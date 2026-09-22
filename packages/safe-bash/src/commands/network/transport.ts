@@ -31,11 +31,13 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
     }
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
+    let connectTimer: ReturnType<typeof setTimeout> | undefined;
     let request: ClientRequest | undefined;
     let finish: (() => void) | undefined;
     const closed = new Promise<void>(resolve => { finish = resolve; });
     let cleanup: Promise<void> | undefined;
     const dispose = (): Promise<void> => {
+      clearTimeout(connectTimer);
       stopped.abort();
       cleanup ??= Promise.resolve().then(async () => {
         if (request) { request.destroy(); await closed; }
@@ -47,6 +49,12 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
     try {
       input.registerCleanup?.(dispose);
       signal.throwIfAborted();
+      if (input.connectTimeoutMs !== undefined) {
+        if (!Number.isFinite(input.connectTimeoutMs) || input.connectTimeoutMs <= 0 || input.connectTimeoutMs > 2_147_483_647) {
+          throw new CurlError(2, "Invalid connection timeout");
+        }
+        connectTimer = setTimeout(() => stopped.abort(new CurlError(28, "Connection timed out")), input.connectTimeoutMs);
+      }
       if (input.denyPrivateNetworks === true) {
         if (privateHostname(url.hostname)) throw new CurlError(7, "Private network destination denied");
         const literalFamily = isIP(hostname);
@@ -73,7 +81,8 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
       await dispose();
       throw error;
     }
-    return new Promise((resolve, reject) => {
+    try {
+    return await withSignal(() => new Promise((resolve, reject) => {
       signal.throwIfAborted();
       request = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, {
         method: input.method,
@@ -105,8 +114,11 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
           async dispose() { response.destroy(); await dispose(); },
         });
       });
-      request.on("error", reject);
+      request.on("error", error => { stopped.abort(error); reject(error); });
       request.on("close", () => { stopped.abort(); finish?.(); });
+      request.once("socket", socket => {
+        socket.once(url.protocol === "https:" ? "secureConnect" : "connect", () => clearTimeout(connectTimer));
+      });
       const upload = async (): Promise<void> => {
         signal.throwIfAborted();
         if (input.body) for await (const chunk of readBytes(input.body, signal)) {
@@ -119,8 +131,13 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
         request!.end();
       };
       void upload().catch(error => request!.destroy(error instanceof Error ? error : new Error("Upload canceled")));
-    });
+    }), signal);
+    } catch (error) {
+      await dispose();
+      throw error;
+    } finally { clearTimeout(connectTimer); }
   };
   Object.defineProperty(transport, "supportsPrivateNetworkDeny", { value: true });
+  Object.defineProperty(transport, "supportsConnectTimeout", { value: true });
   return transport;
 }

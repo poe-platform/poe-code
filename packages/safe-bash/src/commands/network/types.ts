@@ -12,6 +12,8 @@ export interface HttpRequest {
    * status >= 400. Neither changes the HTTP request or response status/headers. */
   readonly responseBodyMode?: "omit" | "omit-on-http-error" | "read";
   readonly signal: AbortSignal;
+  /** Deadline for DNS, TCP and TLS setup only; absent means no separate connection deadline. */
+  readonly connectTimeoutMs?: number;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
   readonly denyPrivateNetworks?: true;
 }
@@ -29,6 +31,7 @@ export interface HttpResponse {
 
 export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & {
   readonly supportsPrivateNetworkDeny?: true;
+  readonly supportsConnectTimeout?: true;
 };
 
 export interface NetworkAuthorization {

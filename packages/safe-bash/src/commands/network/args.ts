@@ -38,6 +38,7 @@ export interface CurlArguments {
   retries: number;
   retryDelayMs: number;
   maxTimeMs: number;
+  connectTimeoutMs?: number;
   maxRedirects: number;
   maxFileSize: number;
 }
@@ -52,7 +53,7 @@ const flags: Readonly<Record<string, string>> = {
   h: "help", V: "version",
 };
 const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode",
-  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay"]);
+  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout"]);
 
 function number(value: string, integral = false): number {
   if (!(integral ? /^\d+$/ : /^\d+(?:\.\d+)?$/).test(value)) throw new CurlError(2, "Invalid numeric option");
@@ -110,6 +111,12 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "max-time": {
         const milliseconds = number(value!) * 1000;
         result.maxTimeMs = milliseconds === 0 ? limits.maxTimeMs : Math.min(milliseconds, limits.maxTimeMs);
+        break;
+      }
+      case "connect-timeout": {
+        const milliseconds = number(value!) * 1000;
+        if (milliseconds === 0) delete result.connectTimeoutMs;
+        else result.connectTimeoutMs = Math.min(milliseconds, limits.maxTimeMs);
         break;
       }
       case "max-filesize": result.maxFileSize = Math.min(number(value!, true), limits.maxDownloadBytes); break;

@@ -34,7 +34,7 @@ after(async () => {
 
 test("HTTPS verifies injected CA without mutating global TLS state", async () => {
   const before = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
-  const actual = await run([origin], { options: { transport: createNodeHttpTransport({ ca: cert }) } });
+  const actual = await run(["--connect-timeout", "1", origin], { options: { transport: createNodeHttpTransport({ ca: cert }) } });
   assert.equal(actual.exitCode, 0);
   assert.equal(process.env.NODE_TLS_REJECT_UNAUTHORIZED, before);
 });

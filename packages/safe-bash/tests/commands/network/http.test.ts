@@ -1,13 +1,49 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { gzipSync, deflateSync } from "node:zlib";
-import { createFetchTransport } from "../../../src/commands/network/index.js";
+import { createFetchTransport, networkCommands } from "../../../src/commands/network/index.js";
+import { Shell } from "../../../src/shell/shell.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { run, server, type TestServer } from "./helpers.js";
 
 let host: TestServer;
 let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
+
+test("Shell curl accepts separate and equals connection timeouts", async () => {
+  const hello = await server((_request, response) => { response.end("hello\n"); return true; });
+  try {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({ authorize: () => true }));
+    for (const option of ["--connect-timeout 1", "--connect-timeout=0.5", "--connect-timeout 0"]) {
+      const result = await shell.exec(`curl ${option} ${hello.origin}/hello`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "hello\n");
+    }
+  } finally { await hello.close(); }
+});
+
+test("connection timeout stops at TCP connection, before response headers or body", async () => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const delayed = await server((_request, response) => {
+    timer = setTimeout(() => { response.write("hello"); timer = setTimeout(() => response.end("\n"), 40); }, 40);
+    return true;
+  });
+  try {
+    const result = await run(["--connect-timeout", "0.02", "--max-time", "1", delayed.origin]);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), "hello\n");
+  } finally { clearTimeout(timer); await delayed.close(); }
+});
+
+test("Fetch refuses connection deadlines it cannot enforce", async () => {
+  let calls = 0;
+  const transport = createFetchTransport({ fetch: async () => { calls++; return new Response("hello\n"); } });
+  const result = await run(["--connect-timeout", "1", host.origin], { options: { transport } });
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr.toString(), /connection timeout/);
+  assert.equal(calls, 0);
+});
 
 test("per-hop authorization and cross-origin custom credentials are removed", async () => {
   const destination = await server();

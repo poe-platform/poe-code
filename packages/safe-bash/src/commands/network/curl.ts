@@ -110,6 +110,9 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           await writeBytes(context.stdout, encode(args.version ? profile.version : profile.help), context.signal);
           return { exitCode: 0 };
         }
+        if (args.connectTimeoutMs !== undefined && transport.supportsConnectTimeout !== true) {
+          throw new CurlError(2, "Transport cannot enforce connection timeout");
+        }
         for (const url of args.urls) parseUrl(url, args.globoff);
         if (args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
           throw new CurlError(2, "Multiple URLs with file/header outputs are unsupported");
@@ -235,7 +238,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         try {
         response = await operation.acquire(async () => {
           const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head ? "omit" : args.fail ? "omit-on-http-error" : "read",
-            registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}) });
+            registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
+            ...(args.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: args.connectTimeoutMs }) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
         }, result => result.dispose());

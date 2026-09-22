@@ -14,7 +14,8 @@ test("registration requires an explicit authorizer", () => {
 });
 
 for (const args of [
-  ["--connect-timeout", "1"], ["--proxy", "http://proxy.invalid"], ["--netrc"], ["-k"], ["--compressed=true"],
+  ["--connect-timeout", "NaN"], ["--connect-timeout", "-1"], ["--connect-timeout=Infinity"],
+  ["--proxy", "http://proxy.invalid"], ["--netrc"], ["-k"], ["--compressed=true"],
   ["-X", "GET\r\nInjected: bad"], ["-X", "CONNECT"], ["-H", "Authorization: secret\r\nX: injection"],
   ["-H", "Content-Length: 9"], ["-H", "Host: elsewhere"], ["--max-time", "NaN"], ["--retry", "-1"],
   ["--data", "x", "-T", "file"], ["--json", "{}", "-F", "x=y"], ["-u", "user-without-password"],

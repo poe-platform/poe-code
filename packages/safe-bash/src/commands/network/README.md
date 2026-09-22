@@ -85,10 +85,17 @@ outbound HTTP(S) authority.
 `--disable`, `--no-buffer`, `--no-progress-meter` are accepted because config
 loading, progress meters and stdout buffering are never enabled. Help/version
 identify the virtual implementation, not a fabricated libcurl version.
-Unknown flags fail, including proxy/config/netrc, `--connect-timeout`, `-k`,
+`--connect-timeout SECONDS` (also `--connect-timeout=SECONDS`) sets a separate,
+host-capped deadline for each connection's DNS, TCP and TLS setup. Fractional
+seconds are supported; zero disables this separate deadline. The Node transport
+stops it when TCP connects or TLS completes, before response headers and body.
+The total transfer deadline still applies. Custom transports must advertise
+`supportsConnectTimeout: true` and enforce `HttpRequest.connectTimeoutMs`;
+Fetch cannot expose connection completion and rejects positive connection timeouts.
+
+Unknown flags fail, including proxy/config/netrc, `-k`,
 CA/cert file flags, cookie-jar, HTTP/2/3, ranges, resume, parallel,
-`--location-trusted`, `--retry-all-errors`, and non-HTTP protocols. In particular,
-connect-only timeouts are not relabeled as total timeouts.
+`--location-trusted`, `--retry-all-errors`, and non-HTTP protocols.
 
 ## Streaming, quotas and failure state
 

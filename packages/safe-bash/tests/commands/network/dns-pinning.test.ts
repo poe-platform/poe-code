@@ -11,6 +11,7 @@ import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { createOriginAuthorizer } from "../../../src/commands/network/authorizer.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
+import { run } from "./helpers.js";
 
 type Address = { address: string; family: 4 | 6 };
 type SocketRequestOptions = RequestOptions & { autoSelectFamily?: boolean };
@@ -71,7 +72,64 @@ function pinnedLookup(options: RequestOptions, all = false): Promise<unknown[]> 
 
 test("Node transport advertises address enforcement", () => {
   assert.equal((createNodeHttpTransport() as { supportsPrivateNetworkDeny?: true }).supportsPrivateNetworkDeny, true);
+  assert.equal(createNodeHttpTransport().supportsConnectTimeout, true);
 });
+
+test("connection timeout is host-capped for each redirect and disabled by a later zero", async () => {
+  const deadlines: (number | undefined)[] = [];
+  const transport = Object.assign(async (input: HttpRequest) => {
+    deadlines.push(input.connectTimeoutMs);
+    return { status: input.url.endsWith("/next") ? 200 : 302, statusText: "OK",
+      headers: [["Location", "/next"]] as const,
+      body: (async function* () {})(), async dispose() {} };
+  }, { supportsConnectTimeout: true as const });
+  const result = await run(["-L", "--connect-timeout", "999999999", "http://127.0.0.1/"], {
+    options: { transport, limits: { maxTimeMs: 1000 } },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(deadlines, [1000, 1000]);
+  const disabled = await run(["--connect-timeout", "1", "--connect-timeout", "0", "http://127.0.0.1/next"], {
+    options: { transport },
+  });
+  assert.equal(disabled.exitCode, 0, disabled.stderr.toString());
+  assert.equal(deadlines.at(-1), undefined);
+});
+
+test("connection deadline cancels protected DNS and returns curl 28", async () => {
+  let signal: AbortSignal | undefined;
+  const transport = createNodeHttpTransport({ resolveAddress: async (_hostname, borrowed) => {
+    signal = borrowed;
+    return new Promise(() => {});
+  } });
+  const result = await run(["--connect-timeout", "0.01", "http://public.example/"], { options: {
+    transport, authorize: request => { request.requirePrivateNetworkDeny?.(); return true; },
+  } });
+  assert.equal(result.exitCode, 28, result.stderr.toString());
+  assert.match(result.stderr.toString(), /Connection timed out/);
+  assert.equal(signal?.aborted, true);
+});
+
+for (const protocol of ["http:", "https:"]) {
+  test(`${protocol} connection deadline waits for the correct socket readiness event`, async context => {
+    const outgoing = new EventEmitter();
+    const socket = new EventEmitter();
+    let destroyed = 0;
+    const implementation = () => Object.assign(outgoing, {
+      write(_chunk: unknown, done: () => void) { done(); },
+      end() { outgoing.emit("socket", socket); if (protocol === "https:") socket.emit("connect"); },
+      destroy() { destroyed++; queueMicrotask(() => outgoing.emit("close")); },
+    });
+    context.mock.method(http, "request", implementation);
+    context.mock.method(https, "request", implementation);
+    syncBuiltinESMExports();
+    context.after(() => { context.mock.restoreAll(); syncBuiltinESMExports(); });
+    await assert.rejects(createNodeHttpTransport()({
+      url: `${protocol}//public.example/`, method: "GET", headers: [],
+      signal: new AbortController().signal, connectTimeoutMs: 10,
+    }), { exitCode: 28 });
+    assert.equal(destroyed, 1);
+  });
+}
 
 test("protected DNS is resolved once, snapshotted and pinned without changing URL or Host", async context => {
   const calls = mockRequests(context);

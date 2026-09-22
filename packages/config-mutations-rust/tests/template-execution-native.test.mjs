@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
+import {createRequire} from 'node:module';
+const tomlReference=createRequire(import.meta.url)('smol-toml');
 import {Volume,createFsFromVolume} from 'memfs';
 import {runMutations as original} from '../../config-mutations/dist/execution/run-mutations.js';
 import {runMutations as rust} from '../dist/execution.js';
@@ -22,7 +24,18 @@ test('native template getter receivers, lazy loader and foreign errors match SDK
 });
 test('native template parse errors preserve cause and do not read current',async()=>{
  for(const kind of ['templateMergeJson','templateMergeToml'])await compare(()=>[{kind,target:'~/file',templateId:'agent'}],{'/home/k/file':'existing'},{templates:async()=> '{{broken'});
- for(const kind of ['templateMergeJson','templateMergeToml'])await compare(()=>[{kind,target:'~/file',templateId:'agent'}],{'/home/k/file':'existing'},{templates:async()=> '= invalid'});
+ await compare(()=>[{kind:'templateMergeJson',target:'~/file',templateId:'agent'}],{'/home/k/file':'existing'},{templates:async()=> '= invalid'});
+ // Native TOML diagnostics track this package's pinned parser, not the SDK's older version.
+ let expectedCause;
+ assert.throws(()=>tomlReference.parse('= invalid'),error=>{expectedCause=error.message;return true;});
+ const events=[],f=fixture({'/home/k/file':'existing'},async()=> '= invalid',events);
+ await assert.rejects(rust([{kind:'templateMergeToml',target:'~/file',templateId:'agent'}],f.context),error=>{
+  assert.equal(error.cause?.message,expectedCause);
+  assert.equal(error.message,'Failed to parse rendered template "agent" as TOML: Error: '+expectedCause);
+  return true;
+ });
+ assert.equal(events.some(event=>event[0]==='readFile'),false);
+ assert.equal(f.volume.toJSON()['/home/k/file'],'existing');
 });
 test('native template factories match SDK layouts and foreign option identities',async()=>{
  const {templateMutation}=await import('../dist/execution.js'),{templateMutation:reference}=await import('../../config-mutations/dist/mutations/template-mutation.js');

@@ -21,6 +21,14 @@ import type {
 } from "../parse/parser.js";
 import { registerPendingHostCallPolicy } from "../snapshot/policy.js";
 
+import {
+  registerImmutableEmptyModuleEnvironment,
+  revokeImmutableEmptyModuleEnvironment
+} from "./empty-environment.js";
+
+const freezeEmptyEnvironment = Object.freeze;
+const ownEmptyEnvironmentKeys = Reflect.ownKeys;
+
 export type ModuleExports =
   | ReadonlyMap<string, CallerInjectedBinding>
   | Record<string, CallerInjectedBinding>;
@@ -57,7 +65,20 @@ export function createModuleEnvironment(modules: ModuleRegistry | undefined, opt
     available: [...registry.keys()],
     namespaces: createBindingRecord(Object.fromEntries(options.wrappedModules ?? []))
   };
+  revokeImmutableEmptyModuleEnvironment(environment);
   moduleEnvironments.set(environment, {registry,options,prepared:new Set(),capabilities:new Map()});
+  return environment;
+}
+
+export function createImmutableEmptyModuleEnvironment(options: ModuleEnvironmentOptions): ModuleEnvironment {
+  const environment = createModuleEnvironment(undefined, options);
+  freezeEmptyEnvironment(environment.available);
+  freezeEmptyEnvironment(environment.namespaces);
+  // Frozen proxy targets cannot conceal their own entries through ownKeys traps.
+  if (environment.available.length !== 0 || ownEmptyEnvironmentKeys(environment.namespaces).length !== 0)
+    throw new TypeError("An immutable empty module environment cannot contain wrapped modules.");
+  freezeEmptyEnvironment(environment);
+  registerImmutableEmptyModuleEnvironment(environment);
   return environment;
 }
 
@@ -272,7 +293,10 @@ function createBindingRecord<TValue extends SandboxValue>(
 const sourceLoaders = new WeakMap<ModuleEnvironment, (specifier: string, referrer: string) => Promise<Record<string, SandboxValue>>>();
 
 export function attachSourceLoader(environment: ModuleEnvironment,
-  loader: (specifier: string, referrer: string) => Promise<Record<string, SandboxValue>>): void {
+  loader: (specifier: string, referrer: string) => Promise<Record<string, SandboxValue>>,
+  options?: { preserveImmutableNamespaces?: true }): void {
+  if (options?.preserveImmutableNamespaces !== true)
+    revokeImmutableEmptyModuleEnvironment(environment);
   sourceLoaders.set(environment,loader);
 }
 

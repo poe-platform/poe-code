@@ -59,7 +59,7 @@ export class SourceModuleGraph {
     importDeadline?: {timeoutMs: number; abort(reason: unknown): void};
   }) {
     this.jobs = options.jobs ?? new SandboxJobQueue();
-    attachSourceLoader(options.modules,this.import.bind(this));
+    attachSourceLoader(options.modules, this.import.bind(this), { preserveImmutableNamespaces: true });
     options.budget?.setRetainedValues(this, () => [...this.records.values()].flatMap(record =>
       [record.id,record.source,...record.parsed.requests,...record.scope.retainedDataRoots()]));
   }

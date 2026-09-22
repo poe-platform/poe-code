@@ -6,6 +6,7 @@ import { builtinGlobalObjects, getIntrinsicIdentity, mutableBuiltinBindings } fr
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import type { SandboxObject } from "./values.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
+import { hasImmutableEmptyModuleEnvironment } from "../modules/empty-environment.js";
 import { appendScopeDataRoot, ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
 import { ScopeBindingMap, ScopeBindingSet } from "./scope-binding-storage.js";
 
@@ -336,8 +337,11 @@ export class Scope {
     if (this.#globalVarNames !== undefined) append(this.#globalVarNameValues ??= [...this.#globalVarNames]);
     if (this.withEnvironment && this.objectEnvironment !== undefined) append(this.objectEnvironment);
     if (this.moduleEnvironment !== undefined) {
-      const namespaces = Object.values(this.moduleEnvironment.namespaces);
-      for (let key = 0; key < namespaces.length; key++) append(namespaces[key]);
+      const environment = this.moduleEnvironment;
+      if (!hasImmutableEmptyModuleEnvironment(environment)) {
+        const namespaces = Object.values(environment.namespaces);
+        for (let key = 0; key < namespaces.length; key++) append(namespaces[key]);
+      }
     }
     if (this.resourceState !== undefined) append(this.resourceState);
     if (this.options.chargeData !== false) {

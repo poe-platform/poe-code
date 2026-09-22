@@ -65,7 +65,7 @@ import {
   type SafeJSExtension
 } from "./extensions.js";
 import {SourceModuleGraph, type SourceResolver} from "./modules/source-graph.js";
-import { attachSourceLoader, createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { attachSourceLoader, createImmutableEmptyModuleEnvironment, createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { parseExecutableModule } from "./parse/parser.js";
 import { createEvalSource } from "./parse/dynamic-source.js";
 import { createReplayableRandom } from "./random.js";
@@ -890,13 +890,15 @@ class RealmState {
   private ensureSourceGraph(): SourceModuleGraph {
     this.assertOpen();
     this.initialize();
+    if (this.sourceGraph !== undefined) return this.sourceGraph;
+    const moduleOptions = {...this.bridgeOptions(), wrappedModules: this.convertedModules};
+    const modules = Object.keys(this.modules).length === 0 && this.convertedModules.size === 0
+      ? createImmutableEmptyModuleEnvironment(moduleOptions)
+      : createModuleEnvironment(this.modules, moduleOptions);
     return (this.sourceGraph ??= new SourceModuleGraph({
       resolver: this.options.sourceResolver ?? (() => undefined),
       scope: this.scope!,
-      modules: createModuleEnvironment(this.modules, {
-        ...this.bridgeOptions(),
-        wrappedModules: this.convertedModules
-      }),
+      modules,
       budget: this.budget,
       compilation: this.compilation,
       signal: this.controller.signal,
@@ -956,9 +958,14 @@ class RealmState {
       if (sourceReference) this.budget.chargeDataUsage(measureSandboxData([sourceReference]));
       const module = script?.node ?? parseExecutableModule(source, filename, this.lease.owner);
       this.initialize();
-      const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
+      const moduleOptions = {...this.bridgeOptions(), wrappedModules: this.convertedModules};
+      const moduleEnvironment = script && Object.keys(this.modules).length === 0 && this.convertedModules.size === 0
+        ? createImmutableEmptyModuleEnvironment(moduleOptions)
+        : createModuleEnvironment(this.modules, moduleOptions);
       if (sourceReference)
-        attachSourceLoader(moduleEnvironment, (specifier, referrer) => this.ensureSourceGraph().import(specifier, referrer));
+        attachSourceLoader(moduleEnvironment,
+          (specifier, referrer) => this.ensureSourceGraph().import(specifier, referrer),
+          { preserveImmutableNamespaces: true });
       const imports = script ? {} : resolveModuleImports(module, this.modules, {
         environment: moduleEnvironment,
         ...this.bridgeOptions(),

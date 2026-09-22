@@ -21,17 +21,46 @@ type PauseRequest = {
 type ExecutionJob = {
   queue: SandboxJobQueue;
   ownsExecution: boolean;
+  attribution?: ReadonlyMap<object, object | undefined>;
   prefixParent?: ExecutionJob;
   keptTargets?: Map<Budget, Set<object | symbol>>;
 };
 
 const activeJob = new AsyncLocalStorage<ExecutionJob>();
+const activeAttribution = new AsyncLocalStorage<{
+  job: ExecutionJob | undefined;
+  values: ReadonlyMap<object, object | undefined> | undefined;
+}>();
+
+function currentJobAttribution(): ReadonlyMap<object, object | undefined> | undefined {
+  const job = activeJob.getStore();
+  const scoped = activeAttribution.getStore();
+  return scoped !== undefined && scoped.job === job
+    ? scoped.values
+    : job?.attribution ?? scoped?.values;
+}
+
+export function getJobAttribution(key: object): object | undefined {
+  return currentJobAttribution()?.get(key);
+}
+
+export function withJobAttribution<Result>(key: object, value: object | undefined, task: () => Result): Result {
+  const values = new Map(currentJobAttribution());
+  values.set(key, value);
+  return activeAttribution.run({ job: activeJob.getStore(), values }, task);
+}
+
+export function captureJobAttribution(): <Result>(task: () => Result) => Result {
+  const values = currentJobAttribution();
+  return task => activeAttribution.run({ job: activeJob.getStore(), values }, task);
+}
 
 export class SandboxJobQueue {
   private running = false;
   private pending: Array<() => void> = [];
   private ready: Array<() => void> = [];
   private readonly idle: Array<() => void> = [];
+  private readonly unsettled = new Set<Promise<unknown>>();
   private generation = 0;
   private controlled = false;
   private nodesUntilHostTurn = 4096;
@@ -139,7 +168,7 @@ export class SandboxJobQueue {
   }
 
   bind<T>(task: () => T): T {
-    return activeJob.run({queue: this, ownsExecution: false}, task);
+    return activeJob.run({queue: this, ownsExecution: false, attribution: currentJobAttribution()}, task);
   }
 
   acquire(job: ExecutionJob): Promise<void> {
@@ -164,16 +193,32 @@ export class SandboxJobQueue {
     this.advance();
   }
 
-  async run<T>(task: () => T | Promise<T>): Promise<T> {
-    const job = { queue: this, ownsExecution: false };
-    await this.acquire(job);
-    return activeJob.run(job, async () => {
-      try {
-        return await task();
-      } finally {
-        this.release(job);
-      }
-    });
+  run<T>(task: () => T | Promise<T>): Promise<T> {
+    if (this.finished) return Promise.reject(this.interruption?.reason ?? new Error("Execution is finished."));
+    return this.track((async () => {
+      const job = { queue: this, ownsExecution: false, attribution: currentJobAttribution() };
+      await this.acquire(job);
+      return activeJob.run(job, async () => {
+        try {
+          return await task();
+        } finally {
+          this.release(job);
+        }
+      });
+    })());
+  }
+
+  track<T>(pending: Promise<T>): Promise<T> {
+    this.unsettled.add(pending);
+    void pending.then(
+      () => { this.unsettled.delete(pending); },
+      () => { this.unsettled.delete(pending); }
+    );
+    return pending;
+  }
+
+  async settle(): Promise<void> {
+    while (this.unsettled.size > 0) await Promise.allSettled([...this.unsettled]);
   }
 
   async drain(): Promise<void> {
@@ -233,7 +278,8 @@ export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T> {
 export function captureJobScheduler(): <T>(task: () => T | Promise<T>) => Promise<T> {
   const queue = activeJob.getStore()?.queue ?? new SandboxJobQueue();
   const context = AsyncLocalStorage.snapshot();
-  return task => context(() => queue.run(task));
+  const attribution = captureJobAttribution();
+  return task => context(() => attribution(() => queue.run(task)));
 }
 
 export function keepJobTarget(target: object | symbol, budget: Budget): void {
@@ -266,6 +312,7 @@ export function createResumableJobContext(): {run<T>(task: () => T): T; release(
       if (ancestor === frame) return activeJob.run(frame, task);
     }
     frame.queue = parent.queue;
+    frame.attribution = currentJobAttribution();
     frame.prefixParent = parent;
     return activeJob.run(frame, task);
   }, release: () => {
@@ -282,15 +329,18 @@ export function runAsyncPrefix<T>(task: () => Promise<T>, joinOwner = false): Pr
   // Authorized nested source is joined by its enclosing host call. Sharing
   // that execution token lets a guest await release/reacquire the queue; a
   // host implementation yield alone still holds the enclosing prefix.
-  if (joinOwner) return activeJob.run(owner, task);
-  const job = { queue: parent.queue, ownsExecution: false, prefixParent: parent };
-  return activeJob.run(job, async () => {
+  if (joinOwner) {
+    const attribution = captureJobAttribution();
+    return parent.queue.track(activeJob.run(owner, () => attribution(task)));
+  }
+  const job = { queue: parent.queue, ownsExecution: false, prefixParent: parent, attribution: currentJobAttribution() };
+  return job.queue.track(activeJob.run(job, async () => {
     try {
       return await task();
     } finally {
       job.queue.release(job);
     }
-  });
+  }));
 }
 
 export async function suspendJob<T>(pending: Promise<T>): Promise<T> {

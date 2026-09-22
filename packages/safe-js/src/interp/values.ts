@@ -1163,7 +1163,13 @@ export function measureSandboxData(
       return;
     }
     if (isSandboxGenerator(value)) {
-      visit(getGeneratorOrigin(value)?.resultPrototype, depth + 1);
+      const origin = getGeneratorOrigin(value);
+      visit(origin?.resultPrototype, depth + 1);
+      if (origin !== undefined) {
+        for (const root of (origin.suspendedScope ?? origin.closureScope).retainedDataRoots()) visit(root, depth + 1);
+        for (const scope of origin.blockScopes?.values() ?? [])
+          for (const root of scope.retainedDataRoots()) visit(root, depth + 1);
+      }
       visit(asyncGeneratorDrivers.get(value), depth + 1);
       const descriptors = Object.getOwnPropertyDescriptors(getGeneratorProperties(value));
       for (const key of Reflect.ownKeys(descriptors)) {

@@ -71,6 +71,10 @@ export function startAsyncFunction(initialize: (onSuspend: () => void) => Promis
   const capability = createPendingPromiseCapability(budget, context, prefix);
   const driver: AsyncFunctionDriver = {capability: {promise: capability.promise, resolve: capability.resolve, reject: capability.reject}, phase: "running", generation: 0};
   asyncFunctionDrivers.set(driver, driver);
+  // The native continuation owns this frame through every suspended tail.
+  // Keep that ownership visible to graph accounting until it settles/disposes.
+  const releaseDriver = retainValues(budget, () => [driver]);
+  void capability.promise.promise.then(releaseDriver, releaseDriver);
   bindAsyncFunctionSignal(driver, signal, budget, context);
   void runAsyncPrefix(async () => {
     try {

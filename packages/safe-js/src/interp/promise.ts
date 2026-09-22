@@ -11,7 +11,7 @@ import { createIntrinsicObject, getSandboxDataProperty, getSandboxPropertyDescri
 import { coerceThrownValue, createSubsetErrorValue, isSourceReferenceError } from "./exceptions.js";
 import { acquireSandboxIterator, closeIterator, getSandboxIterator, readIteratorResult } from "./iteration.js";
 import { retainValues } from "./resources.js";
-import { runPromiseJob } from "./jobs.js";
+import { captureJobAttribution, runPromiseJob } from "./jobs.js";
 import { observeSandboxPromise, unrepresentedPromiseContinuations } from "./promise-tracker.js";
 import { promiseResolvingFunctions, promiseResolverActions } from "./promise-resolvers.js";
 import { promiseContinuations, promiseReactionResults, linkPromiseAggregateProducer } from "./promise-continuations.js";
@@ -111,6 +111,7 @@ export function attachPendingPromiseReaction(
   context?: SandboxCallContext,
   reactionCapability?: Extract<PromiseContinuation, {kind: "reaction"}>["capability"]
 ): void {
+  const attribution = captureJobAttribution();
   const continuation: Extract<PromiseContinuation, {kind: "reaction"}> = {
     kind: "reaction", phase: "waiting", source, onFulfilled, onRejected,
     ...(reactionCapability === undefined ? {} : {capability: reactionCapability})
@@ -132,7 +133,10 @@ export function attachPendingPromiseReaction(
       capability.rejectNative(error);
     }
   };
-  source.promise.then(value => react(onFulfilled, value, "fulfilled"), reason => react(onRejected, reason, "rejected"));
+  source.promise.then(
+    value => attribution(() => react(onFulfilled, value, "fulfilled")),
+    reason => attribution(() => react(onRejected, reason, "rejected"))
+  );
   trackPromiseContinuation(capability.promise, continuation);
   const asyncHandler = isSandboxClosure(onRejected) ? asyncFunctionHandlers.get(onRejected) : undefined;
   const generatorHandler = isSandboxClosure(onRejected) ? asyncGeneratorHandlers.get(onRejected) : undefined;
@@ -462,32 +466,33 @@ function getPromisePrototype(budget: Budget): SandboxObject {
     then: createSandboxClosure({
       sandbox: true,
       call: ([onFulfilled, onRejected], context) => {
+        const attribution = captureJobAttribution();
         const target = context?.thisValue;
         if (!isSandboxPromise(target))
           throw new TypeError("Promise.then requires a promise receiver.");
-        const finish = (constructor: SandboxClosure) => {
+        const finish = (constructor: SandboxClosure) => attribution(() => {
           if (constructor !== intrinsicPromiseConstructors.get(budget)) {
-            return createPromiseCapability(constructor, budget, context).then(capability => {
+            return createPromiseCapability(constructor, budget, context).then(capability => attribution(() => {
               observeSandboxPromise(target, isSandboxPromise(capability.promise));
               const continuation: Extract<PromiseContinuation, {kind: "reaction"}> | undefined = isSandboxPromise(capability.promise)
                 ? {kind: "reaction", phase: "waiting", source: target, onFulfilled, onRejected,
                     capability: {...capability, promise: capability.promise}}
                 : undefined;
               const completion = createSandboxPromise(target.promise.then(
-                value => {
+                value => attribution(() => {
                   if (continuation !== undefined) continuation.phase = "running";
                   consumeSettledHostCall(target);
                   return runCapabilityReaction(onFulfilled, value, "fulfilled", capability, budget, context);
-                },
-                (reason: SandboxValue) => {
+                }),
+                (reason: SandboxValue) => attribution(() => {
                   if (continuation !== undefined) continuation.phase = "running";
                   consumeSettledHostCall(target);
                   return runCapabilityReaction(onRejected, reason, "rejected", capability, budget, context);
-                }
+                })
               ));
               if (continuation !== undefined) trackPromiseContinuation(completion, continuation);
               return capability.promise;
-            });
+            }));
           }
           observeSandboxPromise(target, true);
           const continuation: Extract<PromiseContinuation, {kind: "reaction"}> = {
@@ -495,22 +500,22 @@ function getPromisePrototype(budget: Budget): SandboxObject {
           };
           const chained = createSandboxPromise(
             target.promise.then(
-              (value) => {
+              (value) => attribution(() => {
                 continuation.phase = "running";
                 consumeSettledHostCall(target);
                 return runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained, context);
-              },
-              (reason: SandboxValue) => {
+              }),
+              (reason: SandboxValue) => attribution(() => {
                 continuation.phase = "running";
                 consumeSettledHostCall(target);
                 return runPromiseReaction(onRejected, reason, "rejected", budget, chained, context);
-              }
+              })
             )
           );
           setSandboxPrototype(chained, prototype, budget);
           trackPromiseContinuation(chained, continuation);
           return chained;
-        };
+        });
         const constructor = getPromiseSpeciesConstructor(target, prototype, budget, context);
         return constructor instanceof Promise ? constructor.then(finish) : finish(constructor);
       },

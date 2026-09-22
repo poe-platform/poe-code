@@ -1,4 +1,5 @@
 import {parseSourceModule, type ParsedSourceModule} from "../parse/source-module.js";
+import {AsyncLocalStorage} from "node:async_hooks";
 import type { Module } from "../parse/parser.js";
 import {interpret, type InterpretOptions} from "../interp/interpreter.js";
 import {Scope} from "../interp/scope.js";
@@ -42,6 +43,7 @@ export class SourceModuleGraph {
   private readonly requests = new Map<string, Promise<RecordEntry | SandboxObject>>();
   private requestDataSize = 0;
   private readonly pendingImports = new Set<Promise<SandboxObject>>();
+  private readonly importGroup = new AsyncLocalStorage<Set<Promise<SandboxObject>>>();
   private readonly jobs: SandboxJobQueue;
   private readonly evaluationStack: RecordEntry[] = [];
   private evaluationIndex = 0;
@@ -50,6 +52,7 @@ export class SourceModuleGraph {
     scope: Scope;
     resolver: SourceResolver;
     modules: ModuleEnvironment;
+    serializePreparation?: boolean;
   }) {
     this.jobs = options.jobs ?? new SandboxJobQueue();
     attachSourceLoader(options.modules,this.import.bind(this));
@@ -66,31 +69,50 @@ export class SourceModuleGraph {
   }
 
   import(specifier: string, referrer: string): Promise<SandboxObject> {
+    const group = this.importGroup.getStore();
     const pending=(async () => {
       const entry = await this.load(specifier, referrer);
       if (!isRecord(entry)) return entry;
       await this.loadGraph(entry);
-      await this.link(entry);
+      if (this.options.serializePreparation) await this.jobs.run(() => this.link(entry));
+      else await this.link(entry);
       await this.evaluate(entry);
       await this.jobs.drain();
       return this.namespace(entry);
     })();
     this.pendingImports.add(pending);
-    void pending.then(() => this.pendingImports.delete(pending), () => this.pendingImports.delete(pending));
+    group?.add(pending);
+    const release = () => { this.pendingImports.delete(pending); group?.delete(pending); };
+    void pending.then(release, release);
     return pending;
   }
 
-  async settle(): Promise<void> {
+  withoutImportGroup<Result>(task: () => Result): Result {
+    return this.importGroup.exit(task);
+  }
+
+  withImportGroup<Result>(task: () => Promise<Result>): Promise<Result> {
+    const group = new Set<Promise<SandboxObject>>();
+    return this.importGroup.run(group, async () => {
+      const result = await task();
+      await this.settle(group);
+      return result;
+    });
+  }
+
+  async settle(pendingImports = this.pendingImports): Promise<void> {
     do {
-      await Promise.allSettled([...this.pendingImports]);
+      await Promise.allSettled([...pendingImports]);
       await this.jobs.drain();
-    } while (this.pendingImports.size > 0);
+    } while (pendingImports.size > 0);
   }
 
   async evaluateSource(source: SourceModule, beforeEvaluation?: (module: Module) => void): Promise<SandboxObject> {
-    const entry = this.register(source);
+    const entry = this.options.serializePreparation
+      ? await this.jobs.run(() => this.register(source)) : this.register(source);
     await this.loadGraph(entry);
-    await this.link(entry);
+    if (this.options.serializePreparation) await this.jobs.run(() => this.link(entry));
+    else await this.link(entry);
     beforeEvaluation?.(entry.parsed.module);
     await this.evaluate(entry);
     await this.jobs.drain();
@@ -98,6 +120,8 @@ export class SourceModuleGraph {
   }
 
   private register(source: SourceModule): RecordEntry {
+      this.options.assertActive?.();
+      this.options.signal?.throwIfAborted();
       const known = this.records.get(source.id);
       if (known !== undefined) {
         if (known.source !== source.source) throw new TypeError(`Source identity '${source.id}' changed within the graph.`);
@@ -134,7 +158,8 @@ export class SourceModuleGraph {
       if (source === undefined) throw new TypeError(`Source resolver denied '${specifier}' from '${referrer}'.`);
       if (typeof source.id !== "string" || source.id.length === 0 || typeof source.source !== "string")
         throw new TypeError("Source resolver must supply a nonempty identity and source text.");
-      return this.register(source);
+      return this.options.serializePreparation
+        ? this.jobs.run(() => this.register(source)) : this.register(source);
     })();
     this.requests.set(key,request);
     return request;

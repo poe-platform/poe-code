@@ -223,6 +223,7 @@ This prints `2`. Evaluations share declarations, closures and object identity wi
 | `builtinOverrides` | Optional `{ console: "extension-name" }` authorizes that registered extension to replace only the builtin console. It must declare `console` and export a host object created in the realm. No overrides by default. |
 | `limits` | Positive integer caps: `extensions: 32`, `hostObjects: 1024`, `callbacks: 1024`, `guestReferences: 1024`, `cleanups: 1024`, `nestedEvaluations: 16`. Collection budgets also apply. |
 | `classicScripts` | Optional boolean, default `false`. Evaluations use classic Script grammar with persistent globals: top-level `this` is the intrinsic global object, `var` and functions create global properties, and `let`/`const` remain lexical. Injected capabilities stay immutable lexical bindings. Explicit source modules retain module semantics. |
+| `callbackScheduling` | Optional `"after-prefix"` for a trusted host scheduler. Allows later source after every admitted callback finishes its synchronous prefix, while their asynchronous tails remain pending. Omit for exclusive source evaluation. |
 
 Classic Scripts reject top-level return, await and static imports/exports. This
 option preserves declaration history across evaluations and checkpoints; browser
@@ -232,6 +233,15 @@ imports from classic Scripts require separate support.
 Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Inside a declared and granted `context.nestedOperation`, await `context.invokeCallback` to settle the full guest result, including nested host calls and returned promises. Callbacks and live objects cannot cross realms or survive close. For deferred arguments that must preserve guest identity, opt into retained references as described below.
 
 Need synchronous effects without waiting for an async callback's tail? Use `realm.startCallback(callback, options)` or `context.startCallback(callback, options)`. The frozen `CallbackInvocation` exposes two promises: await `synchronous` when the guest function returns or its async body reaches its first `await`; await `result` for the final value. Interpreter implementation awaits and budget work do not complete the prefix. Ordinary throws reject both promises; nonfatal async-function errors reject only `result`, even before the first `await`. Close, abort and fatal errors reject still-pending handles without changing a completed prefix. The same callback limits, identity and reentry rules apply; no extra grant is required. Calls started outside a host operation are queued in invocation order. Browser event/default-action policy remains the host's responsibility.
+
+With `callbackScheduling: "after-prefix"`, the host must retain and observe callback
+results. Source remains exclusive, including top-level await; guest-owned host
+operations cannot use this option to admit another source. All work shares the
+realm queue and cumulative limits. Suspended frames remain included in full graph
+accounting. Compilation tickets and allocation charges may remain conservatively
+held until pending work completes. External close waits for canceled work and
+cleanup; close from a guest-owned host operation initiates cancellation and rejects
+with `reentry` instead of awaiting its own caller.
 
 <details>
 <summary>Trusted extensions and live host objects</summary>

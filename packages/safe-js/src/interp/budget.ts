@@ -112,6 +112,8 @@ class BudgetAccounting {
   provisionalScopes = 0;
   readonly compileTickets = new Map<CompileTicket, number>();
   readonly completedCompileTickets = new Set<CompileTicket>();
+  reconciliationHolds = 0;
+  readonly deferredCompileDiscards = new Set<CompileTicket>();
 
   realmViews?: Set<WeakRef<Budget>>;
 
@@ -237,7 +239,8 @@ export class Budget {
   }
 
   reconcileDataUsage(usage: number): void {
-    const total = usage + this.accounting.retainedDataSize;
+    const measured = usage + this.accounting.retainedDataSize;
+    const total = this.reconciliationDeferred ? Math.max(measured, this.accounting.currentDataSize) : measured;
     this.checkDataUsage(total);
     this.accounting.currentDataSize = total;
     this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
@@ -260,6 +263,25 @@ export class Budget {
   setRetainedValues(owner: object, values: (() => Iterable<unknown> | undefined) | undefined): void {
     if (values === undefined) this.accounting.retainedValueSources.delete(owner);
     else this.accounting.retainedValueSources.set(owner, values);
+  }
+
+  get reconciliationDeferred(): boolean {
+    return this.accounting.reconciliationHolds > 0;
+  }
+
+  deferReconciliation(): () => void {
+    this.accounting.reconciliationHolds++;
+    const generation = this.accounting.compileGeneration;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      if (generation !== this.accounting.compileGeneration) return;
+      if (--this.accounting.reconciliationHolds !== 0) return;
+      for (const ticket of this.accounting.deferredCompileDiscards)
+        this.accounting.completedCompileTickets.add(ticket);
+      this.accounting.deferredCompileDiscards.clear();
+    };
   }
 
   *retainedValues(): Iterable<unknown> {
@@ -323,6 +345,7 @@ export class Budget {
     if (ticket.owner.generation !== this.accounting.compileGeneration || !this.accounting.compileTickets.has(ticket)) {
       throw new SandboxError("reentry");
     }
+    if (this.reconciliationDeferred) usage = Math.max(usage, this.compileTicketUsage(ticket));
     this.setRetainedDataUsage(ticket, usage);
     this.accounting.compileTickets.set(ticket, usage);
   }
@@ -331,6 +354,10 @@ export class Budget {
     if (ticket.owner.generation !== this.accounting.compileGeneration) return;
     const usage = this.accounting.compileTickets.get(ticket);
     if (usage === undefined) return;
+    if (this.reconciliationDeferred) {
+      this.accounting.deferredCompileDiscards.add(ticket);
+      return;
+    }
     this.accounting.compileTickets.delete(ticket);
     this.accounting.completedCompileTickets.delete(ticket);
     this.accounting.retainedData.delete(ticket);
@@ -345,6 +372,21 @@ export class Budget {
     retainedOwner?: object,
     complete = false
   ): ReadonlySet<CompileTicket> {
+    if (this.reconciliationDeferred) {
+      if (retainedOwner !== undefined) this.setRetainedDataUsage(retainedOwner, usage);
+      else {
+        // Keep tickets owned while another job can still use them. Their bytes
+        // already appear in the measured graph, so do not charge them twice.
+        let includedUsage = 0;
+        for (const ticket of included) includedUsage += this.compileTicketUsage(ticket);
+        const measured = usage + this.accounting.retainedDataSize - includedUsage;
+        const total = Math.max(measured, this.accounting.currentDataSize);
+        this.checkDataUsage(total);
+        this.accounting.currentDataSize = total;
+        this.accounting.peakDataSize = Math.max(this.accounting.peakDataSize, total);
+      }
+      return new Set();
+    }
     let includedUsage = 0;
     let transferredUsage = 0;
     let discardedUsage = 0;
@@ -423,8 +465,11 @@ export class Budget {
       released = true;
       if (generation !== this.accounting.compileGeneration) return;
       this.accounting.provisionalScopes -= 1;
-      if (!commit)
-        this.accounting.currentDataSize = previous + this.accounting.retainedDataSize - previousRetained;
+      if (!commit) {
+        const restored = previous + this.accounting.retainedDataSize - previousRetained;
+        this.accounting.currentDataSize = this.reconciliationDeferred
+          ? Math.max(restored, this.accounting.currentDataSize) : restored;
+      }
     };
   }
 
@@ -449,6 +494,8 @@ export class Budget {
     this.accounting.provisionalScopes = 0;
     this.accounting.compileTickets.clear();
     this.accounting.completedCompileTickets.clear();
+    this.accounting.reconciliationHolds = 0;
+    this.accounting.deferredCompileDiscards.clear();
     this.accounting.stepsUsed = 0;
     this.accounting.peakCallDepth = 0;
     this.accounting.currentCallDepth = 0;

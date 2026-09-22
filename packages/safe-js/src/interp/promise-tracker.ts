@@ -2,9 +2,11 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 import type { ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError } from "./budget.js";
+import { getJobAttribution, withJobAttribution } from "./jobs.js";
 import type { SandboxPromise, SandboxValue } from "./values.js";
 
 type TrackedPromise = {
+  owner?: object;
   observed: boolean;
   promise: SandboxPromise;
   rejectionReason?: SandboxValue;
@@ -16,11 +18,26 @@ export const unrepresentedPromiseContinuations = new WeakSet<SandboxPromise>();
 export class SandboxPromiseRejectionTracker {
   private readonly records = new Set<TrackedPromise>();
   private readonly recordsByPromise = new WeakMap<SandboxPromise, TrackedPromise>();
+  private readonly activeOperations = new WeakSet<object>();
   private fatalRejection: SandboxError | undefined;
   private readonly fatalWaiters = new Set<(error: SandboxError) => void>();
 
   get failure(): SandboxError | undefined {
     return this.fatalRejection;
+  }
+
+  startOperation(): object {
+    const owner = {};
+    this.activeOperations.add(owner);
+    return owner;
+  }
+
+  withOperation<Result>(owner: object | undefined, task: () => Result): Result {
+    return withJobAttribution(this, owner, task);
+  }
+
+  finishOperation(owner: object | undefined): void {
+    if (owner !== undefined) this.activeOperations.delete(owner);
   }
 
   onFatalRejection(interrupt: (error: SandboxError) => void): () => void {
@@ -59,6 +76,7 @@ export class SandboxPromiseRejectionTracker {
     }
 
     const record: TrackedPromise = existing ?? {
+      owner: getJobAttribution(this),
       observed: false,
       promise,
       rejected: false
@@ -87,7 +105,7 @@ export class SandboxPromiseRejectionTracker {
     pending.catch(() => undefined);
   }
 
-  async findUnhandledRejection(): Promise<
+  async findUnhandledRejection(owner?: object): Promise<
     | {
         reason: SandboxValue | undefined;
         span: ErrorSourceSpan | undefined;
@@ -99,7 +117,11 @@ export class SandboxPromiseRejectionTracker {
     if (this.fatalRejection !== undefined) throw this.fatalRejection;
 
     for (const record of this.records) {
-      if (record.rejected && !record.observed) {
+      if (
+        record.rejected && !record.observed &&
+        (owner === undefined || record.owner === undefined || record.owner === owner ||
+          !this.activeOperations.has(record.owner))
+      ) {
         return {
           reason: record.rejectionReason,
           span: record.promise.span

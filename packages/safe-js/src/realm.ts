@@ -83,6 +83,7 @@ export type RealmLimits = {
 };
 export type RealmOptions = {
   classicScripts?: boolean;
+  callbackScheduling?: "after-prefix";
   sourceResolver?: SourceResolver;
   clock?: RunClock;
   bindings?: Record<string, CallerInjectedBinding>;
@@ -136,7 +137,9 @@ class RealmState {
   readonly referenceReleases = new Set<() => void>();
   readonly resources: RunResources;
   readonly callbacks = new Map<Callback, SandboxClosure>();
-  readonly pendingCallbacks = new Set<{ closure: SandboxClosure; promise?: Promise<unknown> }>();
+  readonly pendingCallbacks = new Set<{ closure: SandboxClosure; prefixComplete: boolean; promise?: Promise<unknown> }>();
+  readonly pendingWork = new Set<Promise<unknown>>();
+  releaseReconciliation?: () => void;
   readonly callbackCache = new WeakMap<SandboxClosure, Callback>();
   readonly hostObjects = new Set<HostObject>();
   readonly guestReferences = new Map<GuestReference, [SandboxValue]>();
@@ -407,6 +410,32 @@ class RealmState {
       });
   }
 
+  trackWork<Result>(pending: Promise<Result>): Promise<Result> {
+    this.pendingWork.add(pending);
+    void pending.then(
+      () => { this.pendingWork.delete(pending); },
+      () => { this.pendingWork.delete(pending); }
+    );
+    return pending;
+  }
+
+  reconcileWhenIdle(): void {
+    if (this.closed || this.active !== undefined || this.pendingCallbacks.size > 0) return;
+    this.releaseReconciliation?.();
+    this.releaseReconciliation = undefined;
+    try {
+      reconcileCompiledValues(
+        this.budget,
+        [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
+        this.compilation
+      );
+    } catch (error) {
+      this.poison(error);
+      void this.dispose().catch(() => undefined);
+      throw error;
+    }
+  }
+
   chargeWork = (units = 1): void => {
     this.assertOpen();
     if (!Number.isSafeInteger(units) || units < 0)
@@ -623,12 +652,18 @@ class RealmState {
     options: CallbackOptions = {},
     completeSynchronous?: () => void
   ): Promise<unknown> {
-    if (this.closed || this.failure !== undefined) await this.dispose();
+    if ((this.closed || this.failure !== undefined) && this.options.callbackScheduling !== "after-prefix")
+      await this.dispose();
     this.assertOpen();
     const closure = readGuestCallback(callback, this);
     this.checkCollection(this.pendingCallbacks.size + 1, this.limits.callbacks, "pending callback");
-    const record: { closure: SandboxClosure; promise?: Promise<unknown> } = { closure };
+    const scheduled = this.options.callbackScheduling === "after-prefix";
+    const record: { closure: SandboxClosure; prefixComplete: boolean; promise?: Promise<unknown> } = {
+      closure, prefixComplete: false
+    };
     this.pendingCallbacks.add(record);
+    if (scheduled) this.releaseReconciliation ??= this.budget.deferReconciliation();
+    const rejectionOwner = scheduled ? this.tracker.startOperation() : undefined;
     const invoke = async () => {
       this.assertOpen();
       readGuestCallback(callback, this);
@@ -660,6 +695,7 @@ class RealmState {
         if (isSandboxPromise(value) && value.synchronousPrefix !== undefined)
           await value.synchronousPrefix;
         this.assertOpen();
+        record.prefixComplete = true;
         completeSynchronous?.();
         const settled = await suspendJob(settlement);
         return this.exportValue(settled);
@@ -669,27 +705,36 @@ class RealmState {
       }
     };
     try {
-      const active = this.active !== undefined;
-      const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run(this.resources, () =>
-          withCancellationSignal(this.controller.signal, () =>
-            active && this.phase.getStore()?.active
-              // Full callback invocation is joined by an authorized enclosing
-              // host call. Its settlement may release/reacquire that job;
-              // borrowing only a prefix would wait on the host call itself.
-              ? runAsyncPrefix(invoke, completeSynchronous === undefined && this.phase.getStore()?.extension !== undefined)
-              : this.queue.run(invoke)
+      const active = this.active !== undefined || (scheduled && this.phase.getStore()?.active === true);
+      const execute = () => this.tracker.withOperation(rejectionOwner, () =>
+        withSandboxPromiseRejectionTracker(this.tracker, () =>
+          runResources.run(this.resources, () =>
+            withCancellationSignal(this.controller.signal, () =>
+              active && this.phase.getStore()?.active
+                ? runAsyncPrefix(invoke, completeSynchronous === undefined && this.phase.getStore()?.extension !== undefined)
+                : this.queue.run(invoke)
+            )
           )
         )
       );
-      record.promise = active ? pending : this.perform(() => pending);
-      return await record.promise;
+      const pending = scheduled && this.sourceGraph !== undefined
+        ? this.sourceGraph.withoutImportGroup(execute) : execute();
+      record.promise = scheduled ? this.trackWork(pending) : active ? pending : this.perform(() => pending);
+      const result = await record.promise;
+      if (scheduled) {
+        await this.checkUnhandledRejection(rejectionOwner);
+        this.assertOpen();
+      }
+      return result;
     } catch (error) {
-      if (error instanceof SandboxError) this.poison(error);
+      if (scheduled || error instanceof SandboxError) this.poison(error);
+      if (scheduled) void this.dispose().catch(() => undefined);
       throw error;
     } finally {
+      this.tracker.finishOperation(rejectionOwner);
       this.pendingCallbacks.delete(record);
-      if (!this.closed && this.active === undefined)
+      if (scheduled) this.reconcileWhenIdle();
+      else if (!this.closed && this.active === undefined)
         reconcileCompiledValues(
           this.budget,
           [...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()],
@@ -825,19 +870,30 @@ class RealmState {
     this.assertOpen();
     if (typeof source !== "string") throw new TypeError("Realm source must be a string.");
     if (sourceType === "module") {
-      this.initialize();
-      this.sourceGraph ??= new SourceModuleGraph({
-        resolver:this.options.sourceResolver ?? (() => undefined), scope:this.scope!,
-        modules:createModuleEnvironment(this.modules,{...this.bridgeOptions(),wrappedModules:this.convertedModules}),
-        budget:this.budget, compilation:this.compilation, signal:this.controller.signal,
-        jobs:this.queue, assertActive:this.assertOpen, surfaceUnhandledThrows:true
-      });
-      const before = this.sourceGraph.stats.nodeVisits;
-      const namespace = await this.sourceGraph.evaluateSource({id:filename,source}, module => {
-        this.sourceModuleHash = hashParsedAst(module);
-      });
-      await this.sourceGraph.settle();
-      return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:this.sourceGraph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
+      const prepare = () => {
+        this.initialize();
+        this.sourceGraph ??= new SourceModuleGraph({
+          resolver:this.options.sourceResolver ?? (() => undefined), scope:this.scope!,
+          modules:createModuleEnvironment(this.modules,{...this.bridgeOptions(),wrappedModules:this.convertedModules}),
+          budget:this.budget, compilation:this.compilation, signal:this.controller.signal,
+          jobs:this.queue, assertActive:this.assertOpen, surfaceUnhandledThrows:true,
+          serializePreparation: this.options.callbackScheduling === "after-prefix"
+        });
+      };
+      const scheduled = this.options.callbackScheduling === "after-prefix";
+      if (scheduled) await this.queue.run(prepare);
+      else prepare();
+      const graph = this.sourceGraph!;
+      const before = graph.stats.nodeVisits;
+      const evaluate = async () => {
+        const namespace = await graph.evaluateSource({id:filename,source}, module => {
+          this.sourceModuleHash = hashParsedAst(module);
+        });
+        if (!scheduled) await graph.settle();
+        return namespace;
+      };
+      const namespace = scheduled ? await graph.withImportGroup(evaluate) : await evaluate();
+      return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:graph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
     }
     const script = this.options.classicScripts ? createEvalSource(source, {}, this.lease.owner, filename) : undefined;
     const releaseSource = script ? retainValues(this.budget, () => [script.source]) : undefined;
@@ -890,7 +946,7 @@ class RealmState {
       !phase?.active ||
       phase.extension !== extension ||
       phase.evaluating ||
-      this.active === undefined
+      (this.active === undefined && !(this.options.callbackScheduling === "after-prefix" && this.pendingCallbacks.size > 0))
     )
       throw new SandboxError("reentry");
     const leave = this.budget.enterCall();
@@ -916,38 +972,61 @@ class RealmState {
 
   evaluate = async (source: string, options: { filename?: string; sourceType?: "module" } = {}): Promise<RealmResult> =>
     this.perform(async () => {
-      const result = await this.evaluateRaw(source, options.filename, false, options.sourceType);
+      const scheduled = this.options.callbackScheduling === "after-prefix";
+      const result = scheduled && options.sourceType !== "module"
+        ? await this.queue.run(() => this.evaluateRaw(source, options.filename, true))
+        : await this.evaluateRaw(source, options.filename, false, options.sourceType);
       if (!result.ok) {
-        await this.dispose();
+        if (!scheduled) await this.dispose();
         return { ok: false, error: result.error, stats: result.stats };
       }
       return { ok: true, returnValue: this.exportValue(result.returnValue), stats: result.stats };
-    });
+    }, result => !result.ok);
 
-  async perform<Result>(task: () => Promise<Result>): Promise<Result> {
-    if (this.closed || this.failure !== undefined) await this.dispose();
+  async checkUnhandledRejection(owner?: object): Promise<void> {
+    const unhandled = await this.tracker.findUnhandledRejection(owner);
+    if (unhandled !== undefined) {
+      const error = new Error(
+        `Unhandled guest promise rejection: ${describeThrownValue(unhandled.reason)}`
+      );
+      error.name = "UnhandledRejectionError";
+      throw error;
+    }
+  }
+
+  async perform<Result>(task: () => Promise<Result>, failed?: (result: Result) => boolean): Promise<Result> {
+    if ((this.closed || this.failure !== undefined) && this.options.callbackScheduling !== "after-prefix")
+      await this.dispose();
     this.assertOpen();
     if (this.active !== undefined) throw new SandboxError("reentry");
+    const scheduled = this.options.callbackScheduling === "after-prefix";
+    if (scheduled && (this.phase.getStore()?.active || [...this.pendingCallbacks].some(record => !record.prefixComplete)))
+      throw new SandboxError("reentry");
+    const rejectionOwner = scheduled ? this.tracker.startOperation() : undefined;
     const pending = Promise.resolve().then(() =>
-      withSandboxPromiseRejectionTracker(this.tracker, () =>
-        runResources.run(this.resources, () =>
-          withCancellationSignal(this.controller.signal, task)
+      this.tracker.withOperation(rejectionOwner, () =>
+        withSandboxPromiseRejectionTracker(this.tracker, () =>
+          runResources.run(this.resources, () =>
+            withCancellationSignal(this.controller.signal, task)
+          )
         )
       )
     );
     this.active = pending;
+    if (scheduled) this.trackWork(pending);
     try {
       const result = await pending;
-      await this.queue.drain();
-      const unhandled = await this.tracker.findUnhandledRejection();
-      if (unhandled !== undefined) {
-        const error = new Error(
-          `Unhandled guest promise rejection: ${describeThrownValue(unhandled.reason)}`
-        );
-        error.name = "UnhandledRejectionError";
-        throw error;
+      if (scheduled && failed?.(result)) {
+        this.closed = true;
+        this.controller.abort(new Error("SafeJS source evaluation failed."));
+        await this.dispose();
+        return result;
       }
+      if (scheduled) this.assertOpen();
+      await this.queue.drain();
+      await this.checkUnhandledRejection(rejectionOwner);
       if (this.failure !== undefined) throw this.failure.reason;
+      if (scheduled) this.assertOpen();
       if (!this.closed)
         reconcileCompiledValues(
           this.budget,
@@ -965,13 +1044,23 @@ class RealmState {
       }
       throw reason;
     } finally {
-      this.active = undefined;
+      this.tracker.finishOperation(rejectionOwner);
+      if (this.active === pending) this.active = undefined;
+      if (scheduled) this.reconcileWhenIdle();
     }
   }
 
   close = (): Promise<void> => {
     this.closed = true;
     this.controller.abort(new Error("SafeJS realm is closed."));
+    if (this.options.callbackScheduling === "after-prefix") {
+      const disposal = this.dispose();
+      if (this.phase.getStore()?.active) {
+        void disposal.catch(() => undefined);
+        return Promise.reject(new SandboxError("reentry"));
+      }
+      return disposal;
+    }
     if (this.phase.getStore()?.active) return this.dispose();
     return Promise.allSettled([
       this.active,
@@ -984,6 +1073,22 @@ class RealmState {
     this.closed = true;
     this.controller.abort(new Error("SafeJS realm is closed."));
     this.options.signal?.removeEventListener("abort", this.abort);
+    if (this.options.callbackScheduling === "after-prefix") {
+      this.disposal = Promise.resolve().then(async () => {
+        while (this.pendingWork.size > 0) await Promise.allSettled([...this.pendingWork]);
+        await this.sourceGraph?.settle();
+        await this.queue.settle();
+        this.releaseReconciliation?.();
+        this.releaseReconciliation = undefined;
+        await this.releaseResources();
+      }).finally(() => this.queue.finish());
+      return this.disposal;
+    }
+    this.disposal = this.releaseResources().finally(() => this.queue.finish());
+    return this.disposal;
+  }
+
+  async releaseResources(): Promise<void> {
     for (const callback of this.callbacks.keys()) revokeGuestCallback(callback, this);
     this.callbacks.clear();
     for (const object of this.hostObjects) revokeHostObject(object, this);
@@ -995,28 +1100,25 @@ class RealmState {
     this.budget.setRetainedValues(this, undefined);
     this.sourceGraph?.close();
     releaseObjectPrototype(this.budget);
-    this.disposal = (async () => {
-      const errors: unknown[] = [];
-      for (const cleanup of this.cleanups.splice(0).reverse()) {
-        try {
-          await cleanup();
-        } catch (error) {
-          errors.push(error);
-        }
+    const errors: unknown[] = [];
+    for (const cleanup of this.cleanups.splice(0).reverse()) {
+      try {
+        await cleanup();
+      } catch (error) {
+        errors.push(error);
       }
-      this.scope = undefined;
-      this.convertedModules.clear();
-      for (const key of Object.keys(this.globals)) delete this.globals[key];
-      for (const key of Object.keys(this.modules)) delete this.modules[key];
-      for (const key of Object.keys(this.builtinBindings))
-        Reflect.deleteProperty(this.builtinBindings, key);
-      this.nativeConversions.seen = new WeakMap();
-      reconcileCompiledValues(this.budget, [], this.compilation);
-      this.compilation.dispose();
-      this.lease.release();
-      if (errors.length > 0) throw new AggregateError(errors, "Realm cleanup failed.");
-    })().finally(() => this.queue.finish());
-    return this.disposal;
+    }
+    this.scope = undefined;
+    this.convertedModules.clear();
+    for (const key of Object.keys(this.globals)) delete this.globals[key];
+    for (const key of Object.keys(this.modules)) delete this.modules[key];
+    for (const key of Object.keys(this.builtinBindings))
+      Reflect.deleteProperty(this.builtinBindings, key);
+    this.nativeConversions.seen = new WeakMap();
+    reconcileCompiledValues(this.budget, [], this.compilation);
+    this.compilation.dispose();
+    this.lease.release();
+    if (errors.length > 0) throw new AggregateError(errors, "Realm cleanup failed.");
   }
 }
 
@@ -1117,9 +1219,12 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "limits"
   ]);
   if (!oneShot) supported.add("classicScripts");
+  if (!oneShot) supported.add("callbackScheduling");
   for (const [key, entry] of Object.entries(options)) {
     if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
     throw new TypeError(`Unsupported ${oneShot ? "extension-run" : "realm"} option '${key}'.`);
   }
+  if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix")
+    throw new TypeError("Realm callbackScheduling must be 'after-prefix'.");
   return options as RealmOptions;
 }

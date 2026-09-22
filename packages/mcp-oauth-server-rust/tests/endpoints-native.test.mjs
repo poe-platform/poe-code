@@ -143,7 +143,7 @@ test("client admission accepts non-enumerable redirect data without reading unus
   for(const [key,value] of Object.entries({response_type:"code",client_id:"client",redirect_uri:redirectUri,code_challenge:challenge,code_challenge_method:"S256",resource}))url.searchParams.set(key,value);
   assert.equal((await f.server.handle(new Request(url))).status,200);
 });
-test("signed hostile JWT headers and claims match original JOSE admission and error metadata",async()=>{
+test("signed hostile JWT headers and claims match pinned JOSE admission and server records",async()=>{
   const time=Date.now(),seconds=Math.floor(time/1000),own=fixture(rust,{},time),oracle=fixture(reference,{},time);
   const baseline={iss:issuer,aud:resource,sub:"subject",client_id:"client",jti:"id",scope:"read",exp:seconds+3600};
   const headers=[null,[],false,3,"header",{}, {alg:12},{alg:"RS256"},{alg:"ES256"},
@@ -156,8 +156,8 @@ test("signed hostile JWT headers and claims match original JOSE admission and er
     for(const value of [null,false,0,"wrong",[],[12,resource],seconds-100,seconds+100])payloads.push({...baseline,[claim]:value});
   }
   const cases=[...headers.map(header=>[header,baseline]),...payloads.map(payload=>[{alg:"ES256",typ:"at+jwt"},payload])];
-  const capture=async(f,token)=>{
-    try{return {value:await f.server.verifyAccessToken(token,resource)};}
+  const capture=async(verify)=>{
+    try{return {value:await verify()};}
     catch(error){return {error:Object.fromEntries(["name","code","message","claim","reason","payload","error","status"].filter(key=>error[key]!==undefined).map(key=>[key,error[key]]))};}
   };
   for(const [header,payload] of cases){
@@ -165,6 +165,12 @@ test("signed hostile JWT headers and claims match original JOSE admission and er
     const token=`${data}.${signBytes("sha256",Buffer.from(data),{key:pair.privateKey,dsaEncoding:"ieee-p1363"}).toString("base64url")}`;
     const record={tokenHash:createHash("sha256").update(token).digest("base64url"),tokenId:"id",grantId:"grant",subject:"subject",clientId:"client",resource,expiresAt:time+3600000};
     await own.store.putAccessToken(record);await oracle.store.putAccessToken(record);
-    assert.deepEqual(await capture(own,token),await capture(oracle,token),JSON.stringify({header,payload}));
+    // The reference server's floating JOSE dependency can change error metadata.
+    // Use this package's pinned oracle for JOSE admission, then the server for records.
+    const admission=await capture(()=>jwtVerify(token,pair.publicKey,{
+      issuer,audience:resource,algorithms:["ES256"],typ:"at+jwt"
+    }));
+    const expected=admission.error?admission:await capture(()=>oracle.server.verifyAccessToken(token,resource));
+    assert.deepEqual(await capture(()=>own.server.verifyAccessToken(token,resource)),expected,JSON.stringify({header,payload}));
   }
 });

@@ -326,6 +326,48 @@ test("wc tracks words across chunks and distinguishes bytes, UTF-8 characters an
   assert.equal((await run("wc", ["-l", "first", "second"], { fs })).stdout, "1 first\n2 second\n3 total\n");
 });
 
+test("C and POSIX wc count only spans containing printable ASCII bytes", async () => {
+  const cases: [string | Uint8Array, number][] = [
+    [Uint8Array.of(0, 32, 0), 0], [Uint8Array.of(1, 32, 2), 0],
+    [Uint8Array.of(127, 32, 27), 0], [Uint8Array.of(255, 32, 254, 10), 0],
+    ["é 😀\n", 0], [Uint8Array.of(0, 97, 32, 1), 1],
+    [Uint8Array.of(97, 0, 98, 127, 99, 255, 100, 160, 101), 1],
+    ["!\t~\nword\vnext\flast\rend", 6],
+    [Uint8Array.from({ length: 256 }, (_, byte) => byte), 1],
+    [Uint8Array.from({ length: 512 }, (_, index) => index % 2 ? 32 : index / 2), 94],
+  ];
+  for (const locale of ["C", "POSIX"]) {
+    for (const posix of [false, true]) {
+      const env = { LC_ALL: locale, ...(posix ? { POSIXLY_CORRECT: "1" } : {}) };
+      for (const [data, expected] of cases) {
+        for (const width of [1, 2, 17]) {
+          const result = await run("wc", ["-w"], { stdin: chunks(data, width), env });
+          assert.equal(result.stdout, `${expected}\n`, `${locale}: ${JSON.stringify(data)}`);
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+        }
+      }
+    }
+  }
+  assert.equal((await run("wc", ["-w"], { stdin: chunks("é 😀\n"), env: { LC_ALL: "C.UTF-8" } })).stdout, "2\n");
+});
+
+test("agent wc ignores control-only words in files, redirections and pipelines", async () => {
+  const fs = await fixture({ input: Uint8Array.of(0, 32, 0), ascii: Uint8Array.of(1, 32, 2) });
+  const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(agentCommands());
+  for (const [command, expected] of [
+    ["wc -w input", "0 input\n"],
+    ["wc -w < ascii", "0\n"],
+    ["cat input | wc -w", "0\n"],
+    ["wc -w input ascii", "0 input\n0 ascii\n0 total\n"],
+  ] as const) {
+    const result = await shell.exec(command);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+  }
+});
+
 test("wc accepts both maximum-line-length options for virtual files", async () => {
   const fs = await fixture({ input: "abc\n" });
   for (const option of ["-L", "--max-line-length"]) {

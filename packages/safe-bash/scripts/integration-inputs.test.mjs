@@ -939,6 +939,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/core-sort/record-admission.test.ts"));
   assert.ok(files.includes("tests/commands/core-sort/record-integration.test.ts"));
   assert.ok(files.includes("tests/plugins/git-removal.test.ts"));
+  assert.ok(files.includes("tests/commands/help.test.ts"));
   assert.ok(files.includes("tests/commands/python/runtime.test.ts"));
   assert.ok(files.includes("tests/commands/python/async-executor.test.ts"));
   assert.ok(files.includes("tests/commands/python/async-executor-review.test.ts"));

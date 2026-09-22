@@ -226,7 +226,26 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
   }
   return [
     define("cat", async context => {
-      const parsed = options(context.args, "nbsvETAute", { number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+      const parsed = options(context.args, "nbsvETAute", { help: false, number: "n", "number-nonblank": "b", "squeeze-blank": "s", "show-ends": "E", "show-tabs": "T", "show-nonprinting": "v", "show-all": "A" });
+      if (parsed.flags.has("help")) {
+        await output(context, `Usage: cat [OPTION]... [FILE]...
+Concatenate FILEs to standard output. With no FILE, or FILE -, read standard input.
+
+  -n, --number             Number all output lines
+  -b, --number-nonblank    Number nonempty output lines (overrides -n)
+  -s, --squeeze-blank      Suppress repeated empty output lines
+  -E, --show-ends          Display $ at each line end
+  -T, --show-tabs          Display TAB characters as ^I
+  -v, --show-nonprinting   Display nonprinting characters
+  -A, --show-all           Equivalent to -vET
+  -e                      Equivalent to -vE
+  -t                      Equivalent to -vT
+  -u                      Accepted for compatibility; ignored
+      --help              Display this help and exit
+      --                  End options; remaining arguments are filenames
+`);
+        return { exitCode: 0 };
+      }
       await assertInputRequirements(context, parsed.operands);
       if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
       if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }

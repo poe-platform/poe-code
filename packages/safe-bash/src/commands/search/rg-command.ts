@@ -133,6 +133,63 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
         try {
           const limits = new Limits(context, options);
           args = parse(context.args);
+          if (args.help) {
+            await limits.output(Buffer.from(`Usage: rg [OPTIONS] PATTERN [PATH ...]
+Search files for PATTERN. PATH - reads standard input.
+Default input depends on shell configuration.
+
+  -e, --regexp=PATTERN     Add a pattern (repeatable)
+  -f, --file=FILE          Read patterns from FILE
+  -F, --fixed-strings      Use fixed strings
+  -i, --ignore-case        Ignore case distinctions
+  -s, --case-sensitive     Match case sensitively
+  -S, --smart-case         Infer case sensitivity from the pattern
+  -v, --invert-match       Select nonmatching lines
+  -w, --word-regexp        Match whole words
+  -x, --line-regexp        Match whole lines
+  -n, --line-number        Print line numbers
+  -N, --no-line-number     Suppress line numbers
+  -H, --with-filename      Print filenames
+  -I, --no-filename        Suppress filenames
+  -o, --only-matching      Print matching parts
+  -l, --files-with-matches Print filenames with matches
+      --files-without-match Print filenames without matches
+      --files             List files without searching
+  -c, --count              Print matching line counts
+      --count-matches     Print match counts
+      --json              Emit JSON events
+  -q, --quiet              Suppress normal output
+  -g, --glob=GLOB          Include or exclude paths (repeatable)
+      --iglob=GLOB        Case-insensitive glob
+  -t, --type=TYPE          Include a file type
+  -T, --type-not=TYPE      Exclude a file type
+  -., --hidden             Search hidden files
+  -L, --follow             Follow symbolic links
+      --no-ignore         Disable ignore-file filtering
+  -u, --unrestricted       Relax ignore, hidden and binary filtering (repeatable)
+  -a, --text               Search binary files as text
+  -A, --after-context=NUM  Print NUM lines after matches
+  -B, --before-context=NUM Print NUM lines before matches
+  -C, --context=NUM        Print NUM lines before and after matches
+  -m, --max-count=NUM      Limit matching lines per file
+      --max-depth=NUM     Limit directory traversal depth (maximum 128)
+      --column            Print columns
+  -b, --byte-offset        Print byte offsets
+  -0, --null               NUL-terminate filenames
+      --null-data         Use NUL-delimited records
+      --crlf              Handle CRLF line endings
+      --heading           Group output by filename
+      --sort=path         Sort paths
+      --color=never       Disable color
+      --help              Display this help and exit
+      --                  End options
+
+Exit status: 0 when a match is found, 1 when none is found, 2 on error.
+Regular expression support depends on the configured regex executor.
+The default supports fixed UTF-8 patterns.
+`));
+            return { exitCode: 0 };
+          }
           if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {
             throw new SearchError("cannot search stdin while also reading patterns from stdin");
           }

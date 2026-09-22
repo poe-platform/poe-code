@@ -23,6 +23,33 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
     const context: CommandContext = { ...original, signal };
     try {
       const parsed = await parseOptions(context, limits);
+      if (parsed === "help") {
+        await writeBytes(context.stdout, Buffer.from(`Usage: tar [OPTION]... [FILE]...
+Create, list or extract USTAR/PAX archives in the virtual filesystem.
+
+  -c, --create             Create an archive
+  -t, --list               List archive members
+  -x, --extract, --get      Extract archive members
+  -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)
+  -z, --gzip               Use gzip compression
+  -v, --verbose            List processed members
+  -C, --directory=DIR      Change directory for subsequent operands
+  -T, --files-from=FILE    Read filenames from FILE (- for standard input)
+      --null              Read NUL-delimited filenames; implies verbatim names
+      --no-null           Read newline-delimited filenames
+      --verbatim-files-from Treat file-list entries as literal filenames
+      --no-verbatim-files-from Enable supported file-list directory options
+      --exclude=PATTERN   Exclude paths (place before source operands)
+      --strip-components=NUM Remove leading components when reading archives
+      --format=FORMAT     Create pax (default), posix or ustar archives
+      --help              Display this help and exit
+      --                  End options; remaining arguments are filenames
+
+Exactly one of -c, -t or -x is required for archive operations.
+Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory
+`), signal);
+        return { exitCode: 0 };
+      }
       const budget = new Budget(context, limits);
       if (parsed.mode === "c") {
         const prepared = await manifest(context, parsed, budget);

@@ -9,7 +9,39 @@ const maxPatternCount = 1024;
 export function createGrepCommands(executor: RegexExecutor): CommandDefinition[] {
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
-      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:sz", { "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z" });
+      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:sz", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z" });
+      if (parsed.flags.has("help")) {
+        await output(context, `Usage: grep [OPTION]... PATTERN [FILE]...
+Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
+
+  -E, --extended-regexp    Use extended regular expressions
+  -F, --fixed-strings      Use fixed strings
+  -e, --regexp=PATTERN     Add a pattern (repeatable)
+  -f, --file=FILE          Read patterns from FILE
+  -i, --ignore-case        Ignore case distinctions
+  -v, --invert-match       Select nonmatching lines
+  -w, --word-regexp        Match whole words
+  -x, --line-regexp        Match whole lines
+  -n, --line-number        Print line numbers
+  -H, --with-filename      Print filenames
+  -h, --no-filename        Suppress filenames
+  -o, --only-matching      Print only matching parts
+  -c, --count              Print matching line counts
+  -l, --files-with-matches Print filenames with matches
+  -L, --files-without-match Print filenames without matches
+  -q, --quiet, --silent    Suppress normal output
+  -m, --max-count=NUM      Stop after NUM selected lines per file
+  -s, --no-messages        Suppress file error messages
+  -a, --text               Process input as text
+  -z, --null-data          Use NUL-delimited records
+      --help              Display this help and exit
+      --                  End options
+
+Exit status: 0 when a line is selected, 1 when none is selected, 2 on error.
+Regular expression support depends on the configured regex executor.
+`);
+        return { exitCode: 0 };
+      }
       let positionalPattern: string | undefined;
       if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
         if (!parsed.operands.length) throw new UsageError("missing pattern");

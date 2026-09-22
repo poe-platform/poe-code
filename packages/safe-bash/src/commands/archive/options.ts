@@ -14,7 +14,7 @@ export interface TarOptions {
   excludes: string[];
 }
 
-export async function parseOptions(context: CommandContext, limits: ArchiveLimits): Promise<TarOptions> {
+export async function parseOptions(context: CommandContext, limits: ArchiveLimits): Promise<TarOptions | "help"> {
   if (context.args.reduce((total, argument) => total + Buffer.byteLength(argument), 0) > limits.maxArgumentBytes) fail("argument byte limit exceeded");
   let mode: TarOptions["mode"] | undefined;
   let archive = "-";
@@ -108,6 +108,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (values.has(flag) && value === undefined) value = context.args[++index];
       if (values.has(flag) && value === undefined) fail(`missing argument for --${name}`);
       if (!values.has(flag) && value !== undefined) fail(`option --${name} does not take an argument`);
+      if (flag === "help") return "help";
       await apply(flag, value);
     } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && /^[ctxzvfCT]+$/u.test(argument)))) {
       const old = !argument.startsWith("-");

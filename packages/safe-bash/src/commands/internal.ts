@@ -21,7 +21,7 @@ export interface ParsedOptions {
 }
 
 export function options(
-  args: readonly string[], short: string, long: Readonly<Record<string, string>> = {},
+  args: readonly string[], short: string, long: Readonly<Record<string, string | false>> = {},
   stopAtOperand = false, onOperand?: (index: number) => void,
   onValue?: (key: string, index: number, offset: number) => void,
 ): ParsedOptions {
@@ -47,8 +47,9 @@ export function options(
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
-      const key = long[name];
-      if (!key || !specifications.has(key)) throw new UsageError(`unrecognized option '${argument}'`);
+      const alias = long[name];
+      const key = alias === false ? name : alias;
+      if (!key || (alias !== false && !specifications.has(key))) throw new UsageError(`unrecognized option '${argument}'`);
       if (specifications.get(key)) {
         const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
         if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);

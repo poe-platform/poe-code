@@ -77,6 +77,8 @@ filesystem and byte streams, not host executables.
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
+Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+
 `/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine
 `createFmtEngine`, and equivalent `fmtCommand({ limits?, profile? })` /
 `fmt(context, { width?, goal?, crown?, tagged?, split?, uniform?, prefix?, files?, limits?, profile? })`

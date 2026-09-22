@@ -4,7 +4,7 @@
   "oracle": {
     "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
     "sampleSourceSha256": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
-    "method": "Compile exact authenticated source FunctionDef with GnumericError sentinel; loader FLOAT→Pythonfloat,BOOLEAN→bool,EMPTY→None; output C string NUL termination; TypeError mapped by sample,other exceptions by authenticated loader; Gnumeric node loader does not permit empty scalar values, so scalar blank normalizes to0.0; value_new_float also normalizes negative zero. Native activated-profile results are preserved separately rather than replacing intended GnumericError sentinel results.; Active cases.expected now follows observed native exception wrapping on both CPython3.12.13 and3.14.7; original sentinel expectations retained as sampleExpected on the49 affected cases."
+    "method": "Compile exact authenticated source FunctionDef with GnumericError sentinel; loader FLOAT\u2192Pythonfloat,BOOLEAN\u2192bool,EMPTY\u2192None; output C string NUL termination; TypeError mapped by sample,other exceptions by authenticated loader; Gnumeric node loader does not permit empty scalar values, so scalar blank normalizes to0.0; value_new_float also normalizes negative zero. Native activated-profile results are preserved separately rather than replacing intended GnumericError sentinel results.; Active cases.expected now follows observed native exception wrapping on both CPython3.12.13 and3.14.7; original sentinel expectations retained as sampleExpected on the49 affected cases."
   },
   "cases": [
     {
@@ -3905,86 +3905,86 @@
     },
     {
       "id": "string-1-0",
-      "formula": "=PY_PRINTF(\"%s\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%s\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
-        "value": "Zażółć😀"
+        "value": "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       },
       "format": "%s",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-1",
-      "formula": "=PY_PRINTF(\"%r\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%r\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
-        "value": "'Zażółć😀'"
+        "value": "'Za\u017c\u00f3\u0142\u0107\ud83d\ude00'"
       },
       "format": "%r",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-2",
-      "formula": "=PY_PRINTF(\"%a\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%a\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
         "value": "'Za\\u017c\\xf3\\u0142\\u0107\\U0001f600'"
       },
       "format": "%a",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-3",
-      "formula": "=PY_PRINTF(\"%.1s\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%.1s\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
         "value": "Z"
       },
       "format": "%.1s",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-4",
-      "formula": "=PY_PRINTF(\"%10s\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%10s\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
-        "value": "   Zażółć😀"
+        "value": "   Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       },
       "format": "%10s",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-5",
-      "formula": "=PY_PRINTF(\"%-10s\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%-10s\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "string",
-        "value": "Zażółć😀   "
+        "value": "Za\u017c\u00f3\u0142\u0107\ud83d\ude00   "
       },
       "format": "%-10s",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ]
     },
     {
       "id": "string-1-6",
-      "formula": "=PY_PRINTF(\"%c\",\"Zażółć😀\")",
+      "formula": "=PY_PRINTF(\"%c\",\"Za\u017c\u00f3\u0142\u0107\ud83d\ude00\")",
       "expected": {
         "kind": "error",
         "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
-        "Zażółć😀"
+        "Za\u017c\u00f3\u0142\u0107\ud83d\ude00"
       ],
       "sampleExpected": {
         "kind": "error",
@@ -4169,86 +4169,86 @@
     },
     {
       "id": "string-5-0",
-      "formula": "=PY_PRINTF(\"%s\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%s\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
-        "value": " ​"
+        "value": "\u00a0\u200b"
       },
       "format": "%s",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-1",
-      "formula": "=PY_PRINTF(\"%r\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%r\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
         "value": "'\\xa0\\u200b'"
       },
       "format": "%r",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-2",
-      "formula": "=PY_PRINTF(\"%a\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%a\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
         "value": "'\\xa0\\u200b'"
       },
       "format": "%a",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-3",
-      "formula": "=PY_PRINTF(\"%.1s\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%.1s\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
-        "value": " "
+        "value": "\u00a0"
       },
       "format": "%.1s",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-4",
-      "formula": "=PY_PRINTF(\"%10s\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%10s\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
-        "value": "         ​"
+        "value": "        \u00a0\u200b"
       },
       "format": "%10s",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-5",
-      "formula": "=PY_PRINTF(\"%-10s\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%-10s\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "string",
-        "value": " ​        "
+        "value": "\u00a0\u200b        "
       },
       "format": "%-10s",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ]
     },
     {
       "id": "string-5-6",
-      "formula": "=PY_PRINTF(\"%c\",\" ​\")",
+      "formula": "=PY_PRINTF(\"%c\",\"\u00a0\u200b\")",
       "expected": {
         "kind": "error",
         "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
-        " ​"
+        "\u00a0\u200b"
       ],
       "sampleExpected": {
         "kind": "error",
@@ -9536,24 +9536,24 @@
     },
     {
       "id": "grammar-holdout-8",
-      "formula": "=PY_PRINTF(\"%😊\",1.0)",
+      "formula": "=PY_PRINTF(\"%\ud83d\ude0a\",1.0)",
       "expected": {
         "kind": "error",
         "value": "Python exception (<class 'ValueError'>: unsupported format character '?' (0x1f60a) at index 1)"
       },
-      "format": "%😊",
+      "format": "%\ud83d\ude0a",
       "arguments": [
         1.0
       ]
     },
     {
       "id": "grammar-holdout-9",
-      "formula": "=PY_PRINTF(\"%s %😊\",\"a\",2.0)",
+      "formula": "=PY_PRINTF(\"%s %\ud83d\ude0a\",\"a\",2.0)",
       "expected": {
         "kind": "error",
         "value": "Python exception (<class 'ValueError'>: unsupported format character '?' (0x1f60a) at index 4)"
       },
-      "format": "%s %😊",
+      "format": "%s %\ud83d\ude0a",
       "arguments": [
         "a",
         2.0
@@ -10237,9 +10237,9 @@
     "All remaining plan ledger families and successful containing GitHub publication remain required."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": "native-exception-repair pending atomic delivery; initial scalar/array implementation e9b4ad2de verified remote-main",
-    "publication": "pending containing release"
+    "localCommit": "b4bc4acc667e42b2ac8adf2dc30c5b7da266024b",
+    "remoteMain": "native-exception repair verified on origin/main; initial scalar/array implementation e9b4ad2de also verified",
+    "publication": "containing Release35779111237 in progress; publication not yet verified"
   },
   "reconciliation": {
     "initialDelivery": {

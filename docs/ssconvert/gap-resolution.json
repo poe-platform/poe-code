@@ -390,7 +390,7 @@
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -488,9 +488,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "e9b4ad2de29d52dc63f0d2d44e5bb865cbc05a08",
-        "remoteMain": "initial scalar/array port verified on origin/main; subsequent native-exception fix pending delivery",
-        "publication": "e9b4ad2de Release cancelled; containing successor35778422560 queued; publication not yet verified"
+        "localCommit": "b4bc4acc667e42b2ac8adf2dc30c5b7da266024b",
+        "remoteMain": "native-exception repair verified on origin/main; initial scalar/array port e9b4ad2de verified",
+        "publication": "containing Release35779111237 in progress; publication not yet verified"
       }
     },
     {
@@ -520,7 +520,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         }
       ],
       "delivery": {
@@ -554,7 +554,7 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Public LN1P one-ulp gap reproduced and repaired. Original3red/14own/125focused/6443 maintained tests pass;236 native/public/220-digit reference and236 browser+236worker bit results exact. Internal capturedLog1p/acos and Bessel families remain open; no all-domain/profile claim.",
+      "currentFinding": "Private capturedLog1p matches actual historical libm on3902/3902 controls after compiled FMA repair. Public LN1P preserved. Acos one/60 discrepancy and Bessel high-q47/120 differences remain open; other named Bessel cohorts unchanged and exact. Broader profiles remain required.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -569,6 +569,11 @@
             "remoteMain": "Exact ls-remote main verified after normal rebase/push",
             "publication": "Release35771193772 active; audit passed, build active"
           }
+        },
+        {
+          "kind": "matching-historical-libm-executed-primitive",
+          "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
+          "outcome": "Actual Debian2.41 aarch64 libm disassembly and QEMU oracle drive private log1p FMA repair:3646/3646 traced inputs and256/256 independent controls,7344 workspace tests,lint/build; inspected public screenshot. Acos59/60 and Bessel high-q73/120 remain open."
         }
       ],
       "delivery": {
@@ -580,7 +585,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Current historical Linux/glibc cohorts reproduced, high-q73/120 still47 mismatches. Scratch high-precision Bessel log substitution worsens to64/120, final-expression FMA72/120; no speculative runtime changes. Fresh Darwin remains a distinct profile. Actual scalar/acos/integration discrepancy and repair remain open.",
+      "currentFinding": "Private capturedLog1p matches actual historical libm on3902/3902 controls after compiled FMA repair. Public LN1P preserved. Acos one/60 discrepancy and Bessel high-q47/120 differences remain open; other named Bessel cohorts unchanged and exact. Broader profiles remain required.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -590,6 +595,11 @@
           "kind": "current-historical-replay-and-rejected-primitive-trials",
           "path": "docs/ssconvert/bessel-primitive-qualification.json",
           "outcome": "Current exact counts reproduce536/536 main,126/126 B1,73/120 high-q,120/120 integral,120/120 phase,12/12 errors. High-precision Bessel log substitution64/120 (2 improve/11 regress), final-expression FMA72/120; hypotheses rejected with no product edits.23 distinct historical primitive inputs:5 native mathematical-rounding matches/18 differences. Exact captured profile remains open."
+        },
+        {
+          "kind": "matching-historical-libm-executed-primitive",
+          "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
+          "outcome": "Actual Debian2.41 aarch64 libm disassembly and QEMU oracle drive private log1p FMA repair:3646/3646 traced inputs and256/256 independent controls,7344 workspace tests,lint/build; inspected public screenshot. Acos59/60 and Bessel high-q73/120 remain open."
         }
       ],
       "delivery": {
@@ -649,12 +659,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {

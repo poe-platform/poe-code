@@ -1,5 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { Volume } from "memfs";
+import emptyXorProof from "../../../../docs/ssconvert/biff-empty-xor-gap-proof.json" with { type: "json" };
 import defaultProof from "../../../../docs/ssconvert/biff-rc4-gap-proof.json" with { type: "json" };
 import proof from "../../../../docs/ssconvert/biff-password-gap-proof.json" with { type: "json" };
 import type { CapabilityContext, PasswordCapability } from "../contracts.js";
@@ -112,4 +113,23 @@ it("does not acquire a host password when the built-in password succeeds", async
   const book = await readBiff(bytes(defaultProof.cases[0]!.inputHex), { ...context, password: { read } });
   expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
   expect(read).not.toHaveBeenCalled();
+});
+
+it.each(emptyXorProof.cases)("imports native reader-compatible empty XOR password $id", async fixture => {
+  const secret = new Uint8Array(), read = vi.fn(async () => secret);
+  const book = await readBiff(bytes(fixture.inputHex), { ...context, password: { read } });
+  expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
+  expect(secret).toEqual(new Uint8Array());
+  expect(read).toHaveBeenCalledTimes(1);
+});
+
+it.each(emptyXorProof.controls)("matches native empty-password sequence with stored key $key", async vector => {
+  const header = new Uint8Array(6), view = new DataView(header.buffer);
+  view.setUint16(2, vector.key, true); view.setUint16(4, vector.verifier, true);
+  const ciphertext = bytes(vector.ciphertextHex), before = new Uint8Array(ciphertext);
+  const records = [{ opcode: 0x2f, offset: 0, data: new Binary(header) },
+    { opcode: 0x123, offset: 10, data: new Binary(ciphertext) }];
+  await decryptBiffRecords(records, 8, { ...context, password: { read: async () => new Uint8Array() } });
+  expect(records[1]!.data.bytes).toEqual(new Uint8Array(16));
+  expect(ciphertext).toEqual(before);
 });

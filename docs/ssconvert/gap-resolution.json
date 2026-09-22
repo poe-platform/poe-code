@@ -323,7 +323,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Default-password XOR/standardRC4/CryptoAPI workbook gaps repaired. Explicit host password acquisition now supports nondefault BIFF8 RC4 strings/rawUTF16LE (empty/Unicode/NUL/255units) and nonempty1..15byte XOR; ten independently encoded vectors,20 public SDK/Shell successes,41 own/6484 maintained tests,build and inspected screenshot pass. Final lint/types pass; verified remote-main delivery bc13318c4; publication pending. EmptyXOR,broader profiles,ancillary streams/properties,writing and portability qualification remain open.",
+      "currentFinding": "Default-password XOR/standardRC4/CryptoAPI workbook gaps repaired. Explicit host password acquisition now supports nondefault BIFF8 RC4 strings/rawUTF16LE (empty/Unicode/NUL/255units) and nonempty1..15byte XOR; ten independently encoded vectors,20 public SDK/Shell successes,41 own/6484 maintained tests,build and inspected screenshot pass. Final lint/types pass; verified remote-main delivery bc13318c4; publication pending. EmptyXOR,broader profiles,ancillary streams/properties,writing and portability qualification remain open. Empty XOR host byte passwords now match the native stored-key reader contract:6BIFF7/8 publicSDK/Shell/browser/worker imports and plaintextBIFF replay,256native preset controls,319focused/7863maintained tests,lint/types/build and inspected screenshots pass. Writer key derivation for empty is separately undefined in primary method1; encrypted writers,ancillary/broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -374,6 +374,11 @@
             "remoteMain": "exact remote main verified",
             "publication": "Release35773868968 audit passed/build active"
           }
+        },
+        {
+          "kind": "empty-XOR-stored-key-reader-gap",
+          "path": "docs/ssconvert/biff-empty-xor-gap-proof.json",
+          "outcome": "6originalred then319focused/7863maintainedgreen; unmodified authenticated native hash/sequence functions accept empty; explicit16bytepreset and stored-key import,zero invalid publication."
         }
       ],
       "delivery": {

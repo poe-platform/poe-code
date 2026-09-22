@@ -1,0 +1,1835 @@
+{
+  "version": 1,
+  "status": "empty-XOR-reader-gap-repaired; writer-broader-profiles-and-publication-open",
+  "native": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "sourcePath": "plugins/excel/ms-biff.c",
+    "sourceSha256": "a6c14f0ec72854c0468dbbc0a6a67c103c0bf78ec7a385f94e4eba6b7b24462b",
+    "primitiveSource": "static guint16\nms_biff_password_hash  (guint8 const *password)\n{\n\tint tmp, index = 0, len = strlen ((char const *)password);\n\tguint16 chr, hash= 0;\n\n\tdo {\n\t\tchr = password[index];\n\t\tindex++;\n\t\ttmp = (chr << index);\n\t\thash ^= (tmp & 0x7fff) | (tmp >> 15);\n\t} while (index < len);\n\thash = hash ^ len ^ 0xce4b;\n\n\treturn hash;\n}\n\nstatic void\nms_biff_crypt_seq (BiffQuery *q, guint16 key, guint8 const *password)\n{\n\tstatic guint8 const preset[] = {\n\t\t0xbb, 0xff, 0xff, 0xba, 0xff, 0xff, 0xb9, 0x80,\n\t\t0x00, 0xbe, 0x0f, 0x00, 0xbf, 0x0f, 0x00, 0x00\n\t};\n\tguint8 const low  =        key & 0xff;\n\tguint8 const high = (key >> 8) & 0xff;\n\tunsigned i, len = strlen ((char const*)password);\n\tguint8 *seq = q->xor_key;\n\n\tstrncpy (seq, password, 16);\n\tfor (i = 0; (len + i) < 16; i++)\n\t\tseq[len + i] = preset[i];\n\n\tfor (i = 0; i < 16; i += 2) {\n\t\tseq[i]   ^= low;\n\t\tseq[i+1] ^= high;\n\t}\n\n\tfor (i = 0; i < 16; i++)\n\t\tseq[i] = (seq[i] << 2) | (seq[i] >> 6);\n}\n\n",
+    "primitiveSha256": "3e1b897610b2b427cb5cf553a57b0e09d50ad809f8a0051927af3488f06c9eb7",
+    "wrapperSha256": "64bafb554b19f5df71dc0fe951a8aee98ebfa7fdee0f78742dbae45b60584a35",
+    "observation": "Unmodified native password hash/sequence functions accept empty NUL-terminated password, verifierCE4B,16presetbytes including explicit final0. Stored FILEPASS key is used, no derivation needed by reader.",
+    "scope": "Reader-contract isolated primitive proof; native standaloneCLI requires interactive password UI and no whole writer/key-derivation/conforming-producer qualification."
+  },
+  "controls": [
+    {
+      "key": 0,
+      "verifier": 52811,
+      "nativeSequenceHex": "eeffffeaffffe60200fa3c00fe3c0000",
+      "ciphertextHex": "0000ddffff5dffffdc40005f8700df87"
+    },
+    {
+      "key": 257,
+      "verifier": 52811,
+      "nativeSequenceHex": "eafbfbeefbfbe20604fe3804fa380404",
+      "ciphertextHex": "80805d7f7fdd7f7f5cc080df07805f07"
+    },
+    {
+      "key": 514,
+      "verifier": 52811,
+      "nativeSequenceHex": "e6f7f7e2f7f7ee0a08f23408f6340808",
+      "ciphertextHex": "0101dcfefe5cfefedd41015e8601de86"
+    },
+    {
+      "key": 771,
+      "verifier": 52811,
+      "nativeSequenceHex": "e2f3f3e6f3f3ea0e0cf6300cf2300c0c",
+      "ciphertextHex": "81815c7e7edc7e7e5dc181de06815e06"
+    },
+    {
+      "key": 1028,
+      "verifier": 52811,
+      "nativeSequenceHex": "feefeffaefeff61210ea2c10ee2c1010",
+      "ciphertextHex": "0202dffdfd5ffdfdde42025d8502dd85"
+    },
+    {
+      "key": 1285,
+      "verifier": 52811,
+      "nativeSequenceHex": "faebebfeebebf21614ee2814ea281414",
+      "ciphertextHex": "82825f7d7ddf7d7d5ec282dd05825d05"
+    },
+    {
+      "key": 1542,
+      "verifier": 52811,
+      "nativeSequenceHex": "f6e7e7f2e7e7fe1a18e22418e6241818",
+      "ciphertextHex": "0303defcfc5efcfcdf43035c8403dc84"
+    },
+    {
+      "key": 1799,
+      "verifier": 52811,
+      "nativeSequenceHex": "f2e3e3f6e3e3fa1e1ce6201ce2201c1c",
+      "ciphertextHex": "83835e7c7cde7c7c5fc383dc04835c04"
+    },
+    {
+      "key": 2056,
+      "verifier": 52811,
+      "nativeSequenceHex": "cedfdfcadfdfc62220da1c20de1c2020",
+      "ciphertextHex": "0404d9fbfb59fbfbd844045b8304db83"
+    },
+    {
+      "key": 2313,
+      "verifier": 52811,
+      "nativeSequenceHex": "cadbdbcedbdbc22624de1824da182424",
+      "ciphertextHex": "8484597b7bd97b7b58c484db03845b03"
+    },
+    {
+      "key": 2570,
+      "verifier": 52811,
+      "nativeSequenceHex": "c6d7d7c2d7d7ce2a28d21428d6142828",
+      "ciphertextHex": "0505d8fafa58fafad945055a8205da82"
+    },
+    {
+      "key": 2827,
+      "verifier": 52811,
+      "nativeSequenceHex": "c2d3d3c6d3d3ca2e2cd6102cd2102c2c",
+      "ciphertextHex": "8585587a7ad87a7a59c585da02855a02"
+    },
+    {
+      "key": 3084,
+      "verifier": 52811,
+      "nativeSequenceHex": "decfcfdacfcfd63230ca0c30ce0c3030",
+      "ciphertextHex": "0606dbf9f95bf9f9da4606598106d981"
+    },
+    {
+      "key": 3341,
+      "verifier": 52811,
+      "nativeSequenceHex": "dacbcbdecbcbd23634ce0834ca083434",
+      "ciphertextHex": "86865b7979db79795ac686d901865901"
+    },
+    {
+      "key": 3598,
+      "verifier": 52811,
+      "nativeSequenceHex": "d6c7c7d2c7c7de3a38c20438c6043838",
+      "ciphertextHex": "0707daf8f85af8f8db4707588007d880"
+    },
+    {
+      "key": 3855,
+      "verifier": 52811,
+      "nativeSequenceHex": "d2c3c3d6c3c3da3e3cc6003cc2003c3c",
+      "ciphertextHex": "87875a7878da78785bc787d800875800"
+    },
+    {
+      "key": 4112,
+      "verifier": 52811,
+      "nativeSequenceHex": "aebfbfaabfbfa64240ba7c40be7c4040",
+      "ciphertextHex": "0808d5f7f755f7f7d44808578f08d78f"
+    },
+    {
+      "key": 4369,
+      "verifier": 52811,
+      "nativeSequenceHex": "aabbbbaebbbba24644be7844ba784444",
+      "ciphertextHex": "8888557777d5777754c888d70f88570f"
+    },
+    {
+      "key": 4626,
+      "verifier": 52811,
+      "nativeSequenceHex": "a6b7b7a2b7b7ae4a48b27448b6744848",
+      "ciphertextHex": "0909d4f6f654f6f6d54909568e09d68e"
+    },
+    {
+      "key": 4883,
+      "verifier": 52811,
+      "nativeSequenceHex": "a2b3b3a6b3b3aa4e4cb6704cb2704c4c",
+      "ciphertextHex": "8989547676d4767655c989d60e89560e"
+    },
+    {
+      "key": 5140,
+      "verifier": 52811,
+      "nativeSequenceHex": "beafafbaafafb65250aa6c50ae6c5050",
+      "ciphertextHex": "0a0ad7f5f557f5f5d64a0a558d0ad58d"
+    },
+    {
+      "key": 5397,
+      "verifier": 52811,
+      "nativeSequenceHex": "baababbeababb25654ae6854aa685454",
+      "ciphertextHex": "8a8a577575d7757556ca8ad50d8a550d"
+    },
+    {
+      "key": 5654,
+      "verifier": 52811,
+      "nativeSequenceHex": "b6a7a7b2a7a7be5a58a26458a6645858",
+      "ciphertextHex": "0b0bd6f4f456f4f4d74b0b548c0bd48c"
+    },
+    {
+      "key": 5911,
+      "verifier": 52811,
+      "nativeSequenceHex": "b2a3a3b6a3a3ba5e5ca6605ca2605c5c",
+      "ciphertextHex": "8b8b567474d6747457cb8bd40c8b540c"
+    },
+    {
+      "key": 6168,
+      "verifier": 52811,
+      "nativeSequenceHex": "8e9f9f8a9f9f8662609a5c609e5c6060",
+      "ciphertextHex": "0c0cd1f3f351f3f3d04c0c538b0cd38b"
+    },
+    {
+      "key": 6425,
+      "verifier": 52811,
+      "nativeSequenceHex": "8a9b9b8e9b9b8266649e58649a586464",
+      "ciphertextHex": "8c8c517373d1737350cc8cd30b8c530b"
+    },
+    {
+      "key": 6682,
+      "verifier": 52811,
+      "nativeSequenceHex": "8697978297978e6a6892546896546868",
+      "ciphertextHex": "0d0dd0f2f250f2f2d14d0d528a0dd28a"
+    },
+    {
+      "key": 6939,
+      "verifier": 52811,
+      "nativeSequenceHex": "8293938693938a6e6c96506c92506c6c",
+      "ciphertextHex": "8d8d507272d0727251cd8dd20a8d520a"
+    },
+    {
+      "key": 7196,
+      "verifier": 52811,
+      "nativeSequenceHex": "9e8f8f9a8f8f9672708a4c708e4c7070",
+      "ciphertextHex": "0e0ed3f1f153f1f1d24e0e51890ed189"
+    },
+    {
+      "key": 7453,
+      "verifier": 52811,
+      "nativeSequenceHex": "9a8b8b9e8b8b9276748e48748a487474",
+      "ciphertextHex": "8e8e537171d3717152ce8ed1098e5109"
+    },
+    {
+      "key": 7710,
+      "verifier": 52811,
+      "nativeSequenceHex": "9687879287879e7a7882447886447878",
+      "ciphertextHex": "0f0fd2f0f052f0f0d34f0f50880fd088"
+    },
+    {
+      "key": 7967,
+      "verifier": 52811,
+      "nativeSequenceHex": "9283839683839a7e7c86407c82407c7c",
+      "ciphertextHex": "8f8f527070d2707053cf8fd0088f5008"
+    },
+    {
+      "key": 8224,
+      "verifier": 52811,
+      "nativeSequenceHex": "6e7f7f6a7f7f6682807abc807ebc8080",
+      "ciphertextHex": "1010cdefef4defefcc50104f9710cf97"
+    },
+    {
+      "key": 8481,
+      "verifier": 52811,
+      "nativeSequenceHex": "6a7b7b6e7b7b6286847eb8847ab88484",
+      "ciphertextHex": "90904d6f6fcd6f6f4cd090cf17904f17"
+    },
+    {
+      "key": 8738,
+      "verifier": 52811,
+      "nativeSequenceHex": "6677776277776e8a8872b48876b48888",
+      "ciphertextHex": "1111cceeee4ceeeecd51114e9611ce96"
+    },
+    {
+      "key": 8995,
+      "verifier": 52811,
+      "nativeSequenceHex": "6273736673736a8e8c76b08c72b08c8c",
+      "ciphertextHex": "91914c6e6ecc6e6e4dd191ce16914e16"
+    },
+    {
+      "key": 9252,
+      "verifier": 52811,
+      "nativeSequenceHex": "7e6f6f7a6f6f7692906aac906eac9090",
+      "ciphertextHex": "1212cfeded4fededce52124d9512cd95"
+    },
+    {
+      "key": 9509,
+      "verifier": 52811,
+      "nativeSequenceHex": "7a6b6b7e6b6b7296946ea8946aa89494",
+      "ciphertextHex": "92924f6d6dcf6d6d4ed292cd15924d15"
+    },
+    {
+      "key": 9766,
+      "verifier": 52811,
+      "nativeSequenceHex": "7667677267677e9a9862a49866a49898",
+      "ciphertextHex": "1313ceecec4eececcf53134c9413cc94"
+    },
+    {
+      "key": 10023,
+      "verifier": 52811,
+      "nativeSequenceHex": "7263637663637a9e9c66a09c62a09c9c",
+      "ciphertextHex": "93934e6c6cce6c6c4fd393cc14934c14"
+    },
+    {
+      "key": 10280,
+      "verifier": 52811,
+      "nativeSequenceHex": "4e5f5f4a5f5f46a2a05a9ca05e9ca0a0",
+      "ciphertextHex": "1414c9ebeb49ebebc854144b9314cb93"
+    },
+    {
+      "key": 10537,
+      "verifier": 52811,
+      "nativeSequenceHex": "4a5b5b4e5b5b42a6a45e98a45a98a4a4",
+      "ciphertextHex": "9494496b6bc96b6b48d494cb13944b13"
+    },
+    {
+      "key": 10794,
+      "verifier": 52811,
+      "nativeSequenceHex": "4657574257574eaaa85294a85694a8a8",
+      "ciphertextHex": "1515c8eaea48eaeac955154a9215ca92"
+    },
+    {
+      "key": 11051,
+      "verifier": 52811,
+      "nativeSequenceHex": "4253534653534aaeac5690ac5290acac",
+      "ciphertextHex": "9595486a6ac86a6a49d595ca12954a12"
+    },
+    {
+      "key": 11308,
+      "verifier": 52811,
+      "nativeSequenceHex": "5e4f4f5a4f4f56b2b04a8cb04e8cb0b0",
+      "ciphertextHex": "1616cbe9e94be9e9ca5616499116c991"
+    },
+    {
+      "key": 11565,
+      "verifier": 52811,
+      "nativeSequenceHex": "5a4b4b5e4b4b52b6b44e88b44a88b4b4",
+      "ciphertextHex": "96964b6969cb69694ad696c911964911"
+    },
+    {
+      "key": 11822,
+      "verifier": 52811,
+      "nativeSequenceHex": "5647475247475ebab84284b84684b8b8",
+      "ciphertextHex": "1717cae8e84ae8e8cb5717489017c890"
+    },
+    {
+      "key": 12079,
+      "verifier": 52811,
+      "nativeSequenceHex": "5243435643435abebc4680bc4280bcbc",
+      "ciphertextHex": "97974a6868ca68684bd797c810974810"
+    },
+    {
+      "key": 12336,
+      "verifier": 52811,
+      "nativeSequenceHex": "2e3f3f2a3f3f26c2c03afcc03efcc0c0",
+      "ciphertextHex": "1818c5e7e745e7e7c45818479f18c79f"
+    },
+    {
+      "key": 12593,
+      "verifier": 52811,
+      "nativeSequenceHex": "2a3b3b2e3b3b22c6c43ef8c43af8c4c4",
+      "ciphertextHex": "9898456767c5676744d898c71f98471f"
+    },
+    {
+      "key": 12850,
+      "verifier": 52811,
+      "nativeSequenceHex": "2637372237372ecac832f4c836f4c8c8",
+      "ciphertextHex": "1919c4e6e644e6e6c55919469e19c69e"
+    },
+    {
+      "key": 13107,
+      "verifier": 52811,
+      "nativeSequenceHex": "2233332633332acecc36f0cc32f0cccc",
+      "ciphertextHex": "9999446666c4666645d999c61e99461e"
+    },
+    {
+      "key": 13364,
+      "verifier": 52811,
+      "nativeSequenceHex": "3e2f2f3a2f2f36d2d02aecd02eecd0d0",
+      "ciphertextHex": "1a1ac7e5e547e5e5c65a1a459d1ac59d"
+    },
+    {
+      "key": 13621,
+      "verifier": 52811,
+      "nativeSequenceHex": "3a2b2b3e2b2b32d6d42ee8d42ae8d4d4",
+      "ciphertextHex": "9a9a476565c7656546da9ac51d9a451d"
+    },
+    {
+      "key": 13878,
+      "verifier": 52811,
+      "nativeSequenceHex": "3627273227273edad822e4d826e4d8d8",
+      "ciphertextHex": "1b1bc6e4e446e4e4c75b1b449c1bc49c"
+    },
+    {
+      "key": 14135,
+      "verifier": 52811,
+      "nativeSequenceHex": "3223233623233adedc26e0dc22e0dcdc",
+      "ciphertextHex": "9b9b466464c6646447db9bc41c9b441c"
+    },
+    {
+      "key": 14392,
+      "verifier": 52811,
+      "nativeSequenceHex": "0e1f1f0a1f1f06e2e01adce01edce0e0",
+      "ciphertextHex": "1c1cc1e3e341e3e3c05c1c439b1cc39b"
+    },
+    {
+      "key": 14649,
+      "verifier": 52811,
+      "nativeSequenceHex": "0a1b1b0e1b1b02e6e41ed8e41ad8e4e4",
+      "ciphertextHex": "9c9c416363c1636340dc9cc31b9c431b"
+    },
+    {
+      "key": 14906,
+      "verifier": 52811,
+      "nativeSequenceHex": "0617170217170eeae812d4e816d4e8e8",
+      "ciphertextHex": "1d1dc0e2e240e2e2c15d1d429a1dc29a"
+    },
+    {
+      "key": 15163,
+      "verifier": 52811,
+      "nativeSequenceHex": "0213130613130aeeec16d0ec12d0ecec",
+      "ciphertextHex": "9d9d406262c0626241dd9dc21a9d421a"
+    },
+    {
+      "key": 15420,
+      "verifier": 52811,
+      "nativeSequenceHex": "1e0f0f1a0f0f16f2f00accf00eccf0f0",
+      "ciphertextHex": "1e1ec3e1e143e1e1c25e1e41991ec199"
+    },
+    {
+      "key": 15677,
+      "verifier": 52811,
+      "nativeSequenceHex": "1a0b0b1e0b0b12f6f40ec8f40ac8f4f4",
+      "ciphertextHex": "9e9e436161c3616142de9ec1199e4119"
+    },
+    {
+      "key": 15934,
+      "verifier": 52811,
+      "nativeSequenceHex": "1607071207071efaf802c4f806c4f8f8",
+      "ciphertextHex": "1f1fc2e0e042e0e0c35f1f40981fc098"
+    },
+    {
+      "key": 16191,
+      "verifier": 52811,
+      "nativeSequenceHex": "1203031603031afefc06c0fc02c0fcfc",
+      "ciphertextHex": "9f9f426060c2606043df9fc0189f4018"
+    },
+    {
+      "key": 16448,
+      "verifier": 52811,
+      "nativeSequenceHex": "effefeebfefee70301fb3d01ff3d0101",
+      "ciphertextHex": "2020fddfdf7ddfdffc60207fa720ffa7"
+    },
+    {
+      "key": 16705,
+      "verifier": 52811,
+      "nativeSequenceHex": "ebfafaeffafae30705ff3905fb390505",
+      "ciphertextHex": "a0a07d5f5ffd5f5f7ce0a0ff27a07f27"
+    },
+    {
+      "key": 16962,
+      "verifier": 52811,
+      "nativeSequenceHex": "e7f6f6e3f6f6ef0b09f33509f7350909",
+      "ciphertextHex": "2121fcdede7cdedefd61217ea621fea6"
+    },
+    {
+      "key": 17219,
+      "verifier": 52811,
+      "nativeSequenceHex": "e3f2f2e7f2f2eb0f0df7310df3310d0d",
+      "ciphertextHex": "a1a17c5e5efc5e5e7de1a1fe26a17e26"
+    },
+    {
+      "key": 17476,
+      "verifier": 52811,
+      "nativeSequenceHex": "ffeeeefbeeeef71311eb2d11ef2d1111",
+      "ciphertextHex": "2222ffdddd7fddddfe62227da522fda5"
+    },
+    {
+      "key": 17733,
+      "verifier": 52811,
+      "nativeSequenceHex": "fbeaeaffeaeaf31715ef2915eb291515",
+      "ciphertextHex": "a2a27f5d5dff5d5d7ee2a2fd25a27d25"
+    },
+    {
+      "key": 17990,
+      "verifier": 52811,
+      "nativeSequenceHex": "f7e6e6f3e6e6ff1b19e32519e7251919",
+      "ciphertextHex": "2323fedcdc7edcdcff63237ca423fca4"
+    },
+    {
+      "key": 18247,
+      "verifier": 52811,
+      "nativeSequenceHex": "f3e2e2f7e2e2fb1f1de7211de3211d1d",
+      "ciphertextHex": "a3a37e5c5cfe5c5c7fe3a3fc24a37c24"
+    },
+    {
+      "key": 18504,
+      "verifier": 52811,
+      "nativeSequenceHex": "cfdedecbdedec72321db1d21df1d2121",
+      "ciphertextHex": "2424f9dbdb79dbdbf864247ba324fba3"
+    },
+    {
+      "key": 18761,
+      "verifier": 52811,
+      "nativeSequenceHex": "cbdadacfdadac32725df1925db192525",
+      "ciphertextHex": "a4a4795b5bf95b5b78e4a4fb23a47b23"
+    },
+    {
+      "key": 19018,
+      "verifier": 52811,
+      "nativeSequenceHex": "c7d6d6c3d6d6cf2b29d31529d7152929",
+      "ciphertextHex": "2525f8dada78dadaf965257aa225faa2"
+    },
+    {
+      "key": 19275,
+      "verifier": 52811,
+      "nativeSequenceHex": "c3d2d2c7d2d2cb2f2dd7112dd3112d2d",
+      "ciphertextHex": "a5a5785a5af85a5a79e5a5fa22a57a22"
+    },
+    {
+      "key": 19532,
+      "verifier": 52811,
+      "nativeSequenceHex": "dfcecedbceced73331cb0d31cf0d3131",
+      "ciphertextHex": "2626fbd9d97bd9d9fa662679a126f9a1"
+    },
+    {
+      "key": 19789,
+      "verifier": 52811,
+      "nativeSequenceHex": "dbcacadfcacad33735cf0935cb093535",
+      "ciphertextHex": "a6a67b5959fb59597ae6a6f921a67921"
+    },
+    {
+      "key": 20046,
+      "verifier": 52811,
+      "nativeSequenceHex": "d7c6c6d3c6c6df3b39c30539c7053939",
+      "ciphertextHex": "2727fad8d87ad8d8fb672778a027f8a0"
+    },
+    {
+      "key": 20303,
+      "verifier": 52811,
+      "nativeSequenceHex": "d3c2c2d7c2c2db3f3dc7013dc3013d3d",
+      "ciphertextHex": "a7a77a5858fa58587be7a7f820a77820"
+    },
+    {
+      "key": 20560,
+      "verifier": 52811,
+      "nativeSequenceHex": "afbebeabbebea74341bb7d41bf7d4141",
+      "ciphertextHex": "2828f5d7d775d7d7f4682877af28f7af"
+    },
+    {
+      "key": 20817,
+      "verifier": 52811,
+      "nativeSequenceHex": "abbabaafbabaa34745bf7945bb794545",
+      "ciphertextHex": "a8a8755757f5575774e8a8f72fa8772f"
+    },
+    {
+      "key": 21074,
+      "verifier": 52811,
+      "nativeSequenceHex": "a7b6b6a3b6b6af4b49b37549b7754949",
+      "ciphertextHex": "2929f4d6d674d6d6f5692976ae29f6ae"
+    },
+    {
+      "key": 21331,
+      "verifier": 52811,
+      "nativeSequenceHex": "a3b2b2a7b2b2ab4f4db7714db3714d4d",
+      "ciphertextHex": "a9a9745656f4565675e9a9f62ea9762e"
+    },
+    {
+      "key": 21588,
+      "verifier": 52811,
+      "nativeSequenceHex": "bfaeaebbaeaeb75351ab6d51af6d5151",
+      "ciphertextHex": "2a2af7d5d577d5d5f66a2a75ad2af5ad"
+    },
+    {
+      "key": 21845,
+      "verifier": 52811,
+      "nativeSequenceHex": "bbaaaabfaaaab35755af6955ab695555",
+      "ciphertextHex": "aaaa775555f7555576eaaaf52daa752d"
+    },
+    {
+      "key": 22102,
+      "verifier": 52811,
+      "nativeSequenceHex": "b7a6a6b3a6a6bf5b59a36559a7655959",
+      "ciphertextHex": "2b2bf6d4d476d4d4f76b2b74ac2bf4ac"
+    },
+    {
+      "key": 22359,
+      "verifier": 52811,
+      "nativeSequenceHex": "b3a2a2b7a2a2bb5f5da7615da3615d5d",
+      "ciphertextHex": "abab765454f6545477ebabf42cab742c"
+    },
+    {
+      "key": 22616,
+      "verifier": 52811,
+      "nativeSequenceHex": "8f9e9e8b9e9e8763619b5d619f5d6161",
+      "ciphertextHex": "2c2cf1d3d371d3d3f06c2c73ab2cf3ab"
+    },
+    {
+      "key": 22873,
+      "verifier": 52811,
+      "nativeSequenceHex": "8b9a9a8f9a9a8367659f59659b596565",
+      "ciphertextHex": "acac715353f1535370ecacf32bac732b"
+    },
+    {
+      "key": 23130,
+      "verifier": 52811,
+      "nativeSequenceHex": "8796968396968f6b6993556997556969",
+      "ciphertextHex": "2d2df0d2d270d2d2f16d2d72aa2df2aa"
+    },
+    {
+      "key": 23387,
+      "verifier": 52811,
+      "nativeSequenceHex": "8392928792928b6f6d97516d93516d6d",
+      "ciphertextHex": "adad705252f0525271edadf22aad722a"
+    },
+    {
+      "key": 23644,
+      "verifier": 52811,
+      "nativeSequenceHex": "9f8e8e9b8e8e9773718b4d718f4d7171",
+      "ciphertextHex": "2e2ef3d1d173d1d1f26e2e71a92ef1a9"
+    },
+    {
+      "key": 23901,
+      "verifier": 52811,
+      "nativeSequenceHex": "9b8a8a9f8a8a9377758f49758b497575",
+      "ciphertextHex": "aeae735151f3515172eeaef129ae7129"
+    },
+    {
+      "key": 24158,
+      "verifier": 52811,
+      "nativeSequenceHex": "9786869386869f7b7983457987457979",
+      "ciphertextHex": "2f2ff2d0d072d0d0f36f2f70a82ff0a8"
+    },
+    {
+      "key": 24415,
+      "verifier": 52811,
+      "nativeSequenceHex": "9382829782829b7f7d87417d83417d7d",
+      "ciphertextHex": "afaf725050f2505073efaff028af7028"
+    },
+    {
+      "key": 24672,
+      "verifier": 52811,
+      "nativeSequenceHex": "6f7e7e6b7e7e6783817bbd817fbd8181",
+      "ciphertextHex": "3030edcfcf6dcfcfec70306fb730efb7"
+    },
+    {
+      "key": 24929,
+      "verifier": 52811,
+      "nativeSequenceHex": "6b7a7a6f7a7a6387857fb9857bb98585",
+      "ciphertextHex": "b0b06d4f4fed4f4f6cf0b0ef37b06f37"
+    },
+    {
+      "key": 25186,
+      "verifier": 52811,
+      "nativeSequenceHex": "6776766376766f8b8973b58977b58989",
+      "ciphertextHex": "3131eccece6cceceed71316eb631eeb6"
+    },
+    {
+      "key": 25443,
+      "verifier": 52811,
+      "nativeSequenceHex": "6372726772726b8f8d77b18d73b18d8d",
+      "ciphertextHex": "b1b16c4e4eec4e4e6df1b1ee36b16e36"
+    },
+    {
+      "key": 25700,
+      "verifier": 52811,
+      "nativeSequenceHex": "7f6e6e7b6e6e7793916bad916fad9191",
+      "ciphertextHex": "3232efcdcd6fcdcdee72326db532edb5"
+    },
+    {
+      "key": 25957,
+      "verifier": 52811,
+      "nativeSequenceHex": "7b6a6a7f6a6a7397956fa9956ba99595",
+      "ciphertextHex": "b2b26f4d4def4d4d6ef2b2ed35b26d35"
+    },
+    {
+      "key": 26214,
+      "verifier": 52811,
+      "nativeSequenceHex": "7766667366667f9b9963a59967a59999",
+      "ciphertextHex": "3333eecccc6eccccef73336cb433ecb4"
+    },
+    {
+      "key": 26471,
+      "verifier": 52811,
+      "nativeSequenceHex": "7362627762627b9f9d67a19d63a19d9d",
+      "ciphertextHex": "b3b36e4c4cee4c4c6ff3b3ec34b36c34"
+    },
+    {
+      "key": 26728,
+      "verifier": 52811,
+      "nativeSequenceHex": "4f5e5e4b5e5e47a3a15b9da15f9da1a1",
+      "ciphertextHex": "3434e9cbcb69cbcbe874346bb334ebb3"
+    },
+    {
+      "key": 26985,
+      "verifier": 52811,
+      "nativeSequenceHex": "4b5a5a4f5a5a43a7a55f99a55b99a5a5",
+      "ciphertextHex": "b4b4694b4be94b4b68f4b4eb33b46b33"
+    },
+    {
+      "key": 27242,
+      "verifier": 52811,
+      "nativeSequenceHex": "4756564356564faba95395a95795a9a9",
+      "ciphertextHex": "3535e8caca68cacae975356ab235eab2"
+    },
+    {
+      "key": 27499,
+      "verifier": 52811,
+      "nativeSequenceHex": "4352524752524bafad5791ad5391adad",
+      "ciphertextHex": "b5b5684a4ae84a4a69f5b5ea32b56a32"
+    },
+    {
+      "key": 27756,
+      "verifier": 52811,
+      "nativeSequenceHex": "5f4e4e5b4e4e57b3b14b8db14f8db1b1",
+      "ciphertextHex": "3636ebc9c96bc9c9ea763669b136e9b1"
+    },
+    {
+      "key": 28013,
+      "verifier": 52811,
+      "nativeSequenceHex": "5b4a4a5f4a4a53b7b54f89b54b89b5b5",
+      "ciphertextHex": "b6b66b4949eb49496af6b6e931b66931"
+    },
+    {
+      "key": 28270,
+      "verifier": 52811,
+      "nativeSequenceHex": "5746465346465fbbb94385b94785b9b9",
+      "ciphertextHex": "3737eac8c86ac8c8eb773768b037e8b0"
+    },
+    {
+      "key": 28527,
+      "verifier": 52811,
+      "nativeSequenceHex": "5342425742425bbfbd4781bd4381bdbd",
+      "ciphertextHex": "b7b76a4848ea48486bf7b7e830b76830"
+    },
+    {
+      "key": 28784,
+      "verifier": 52811,
+      "nativeSequenceHex": "2f3e3e2b3e3e27c3c13bfdc13ffdc1c1",
+      "ciphertextHex": "3838e5c7c765c7c7e4783867bf38e7bf"
+    },
+    {
+      "key": 29041,
+      "verifier": 52811,
+      "nativeSequenceHex": "2b3a3a2f3a3a23c7c53ff9c53bf9c5c5",
+      "ciphertextHex": "b8b8654747e5474764f8b8e73fb8673f"
+    },
+    {
+      "key": 29298,
+      "verifier": 52811,
+      "nativeSequenceHex": "2736362336362fcbc933f5c937f5c9c9",
+      "ciphertextHex": "3939e4c6c664c6c6e5793966be39e6be"
+    },
+    {
+      "key": 29555,
+      "verifier": 52811,
+      "nativeSequenceHex": "2332322732322bcfcd37f1cd33f1cdcd",
+      "ciphertextHex": "b9b9644646e4464665f9b9e63eb9663e"
+    },
+    {
+      "key": 29812,
+      "verifier": 52811,
+      "nativeSequenceHex": "3f2e2e3b2e2e37d3d12bedd12fedd1d1",
+      "ciphertextHex": "3a3ae7c5c567c5c5e67a3a65bd3ae5bd"
+    },
+    {
+      "key": 30069,
+      "verifier": 52811,
+      "nativeSequenceHex": "3b2a2a3f2a2a33d7d52fe9d52be9d5d5",
+      "ciphertextHex": "baba674545e7454566fabae53dba653d"
+    },
+    {
+      "key": 30326,
+      "verifier": 52811,
+      "nativeSequenceHex": "3726263326263fdbd923e5d927e5d9d9",
+      "ciphertextHex": "3b3be6c4c466c4c4e77b3b64bc3be4bc"
+    },
+    {
+      "key": 30583,
+      "verifier": 52811,
+      "nativeSequenceHex": "3322223722223bdfdd27e1dd23e1dddd",
+      "ciphertextHex": "bbbb664444e6444467fbbbe43cbb643c"
+    },
+    {
+      "key": 30840,
+      "verifier": 52811,
+      "nativeSequenceHex": "0f1e1e0b1e1e07e3e11bdde11fdde1e1",
+      "ciphertextHex": "3c3ce1c3c361c3c3e07c3c63bb3ce3bb"
+    },
+    {
+      "key": 31097,
+      "verifier": 52811,
+      "nativeSequenceHex": "0b1a1a0f1a1a03e7e51fd9e51bd9e5e5",
+      "ciphertextHex": "bcbc614343e1434360fcbce33bbc633b"
+    },
+    {
+      "key": 31354,
+      "verifier": 52811,
+      "nativeSequenceHex": "0716160316160febe913d5e917d5e9e9",
+      "ciphertextHex": "3d3de0c2c260c2c2e17d3d62ba3de2ba"
+    },
+    {
+      "key": 31611,
+      "verifier": 52811,
+      "nativeSequenceHex": "0312120712120befed17d1ed13d1eded",
+      "ciphertextHex": "bdbd604242e0424261fdbde23abd623a"
+    },
+    {
+      "key": 31868,
+      "verifier": 52811,
+      "nativeSequenceHex": "1f0e0e1b0e0e17f3f10bcdf10fcdf1f1",
+      "ciphertextHex": "3e3ee3c1c163c1c1e27e3e61b93ee1b9"
+    },
+    {
+      "key": 32125,
+      "verifier": 52811,
+      "nativeSequenceHex": "1b0a0a1f0a0a13f7f50fc9f50bc9f5f5",
+      "ciphertextHex": "bebe634141e3414162febee139be6139"
+    },
+    {
+      "key": 32382,
+      "verifier": 52811,
+      "nativeSequenceHex": "1706061306061ffbf903c5f907c5f9f9",
+      "ciphertextHex": "3f3fe2c0c062c0c0e37f3f60b83fe0b8"
+    },
+    {
+      "key": 32639,
+      "verifier": 52811,
+      "nativeSequenceHex": "1302021702021bfffd07c1fd03c1fdfd",
+      "ciphertextHex": "bfbf624040e2404063ffbfe038bf6038"
+    },
+    {
+      "key": 32896,
+      "verifier": 52811,
+      "nativeSequenceHex": "ecfdfde8fdfde40002f83e02fc3e0202",
+      "ciphertextHex": "40409dbfbf1dbfbf9c00401fc7409fc7"
+    },
+    {
+      "key": 33153,
+      "verifier": 52811,
+      "nativeSequenceHex": "e8f9f9ecf9f9e00406fc3a06f83a0606",
+      "ciphertextHex": "c0c01d3f3f9d3f3f1c80c09f47c01f47"
+    },
+    {
+      "key": 33410,
+      "verifier": 52811,
+      "nativeSequenceHex": "e4f5f5e0f5f5ec080af0360af4360a0a",
+      "ciphertextHex": "41419cbebe1cbebe9d01411ec6419ec6"
+    },
+    {
+      "key": 33667,
+      "verifier": 52811,
+      "nativeSequenceHex": "e0f1f1e4f1f1e80c0ef4320ef0320e0e",
+      "ciphertextHex": "c1c11c3e3e9c3e3e1d81c19e46c11e46"
+    },
+    {
+      "key": 33924,
+      "verifier": 52811,
+      "nativeSequenceHex": "fcededf8ededf41012e82e12ec2e1212",
+      "ciphertextHex": "42429fbdbd1fbdbd9e02421dc5429dc5"
+    },
+    {
+      "key": 34181,
+      "verifier": 52811,
+      "nativeSequenceHex": "f8e9e9fce9e9f01416ec2a16e82a1616",
+      "ciphertextHex": "c2c21f3d3d9f3d3d1e82c29d45c21d45"
+    },
+    {
+      "key": 34438,
+      "verifier": 52811,
+      "nativeSequenceHex": "f4e5e5f0e5e5fc181ae0261ae4261a1a",
+      "ciphertextHex": "43439ebcbc1ebcbc9f03431cc4439cc4"
+    },
+    {
+      "key": 34695,
+      "verifier": 52811,
+      "nativeSequenceHex": "f0e1e1f4e1e1f81c1ee4221ee0221e1e",
+      "ciphertextHex": "c3c31e3c3c9e3c3c1f83c39c44c31c44"
+    },
+    {
+      "key": 34952,
+      "verifier": 52811,
+      "nativeSequenceHex": "ccddddc8ddddc42022d81e22dc1e2222",
+      "ciphertextHex": "444499bbbb19bbbb9804441bc3449bc3"
+    },
+    {
+      "key": 35209,
+      "verifier": 52811,
+      "nativeSequenceHex": "c8d9d9ccd9d9c02426dc1a26d81a2626",
+      "ciphertextHex": "c4c4193b3b993b3b1884c49b43c41b43"
+    },
+    {
+      "key": 35466,
+      "verifier": 52811,
+      "nativeSequenceHex": "c4d5d5c0d5d5cc282ad0162ad4162a2a",
+      "ciphertextHex": "454598baba18baba9905451ac2459ac2"
+    },
+    {
+      "key": 35723,
+      "verifier": 52811,
+      "nativeSequenceHex": "c0d1d1c4d1d1c82c2ed4122ed0122e2e",
+      "ciphertextHex": "c5c5183a3a983a3a1985c59a42c51a42"
+    },
+    {
+      "key": 35980,
+      "verifier": 52811,
+      "nativeSequenceHex": "dccdcdd8cdcdd43032c80e32cc0e3232",
+      "ciphertextHex": "46469bb9b91bb9b99a064619c14699c1"
+    },
+    {
+      "key": 36237,
+      "verifier": 52811,
+      "nativeSequenceHex": "d8c9c9dcc9c9d03436cc0a36c80a3636",
+      "ciphertextHex": "c6c61b39399b39391a86c69941c61941"
+    },
+    {
+      "key": 36494,
+      "verifier": 52811,
+      "nativeSequenceHex": "d4c5c5d0c5c5dc383ac0063ac4063a3a",
+      "ciphertextHex": "47479ab8b81ab8b89b074718c04798c0"
+    },
+    {
+      "key": 36751,
+      "verifier": 52811,
+      "nativeSequenceHex": "d0c1c1d4c1c1d83c3ec4023ec0023e3e",
+      "ciphertextHex": "c7c71a38389a38381b87c79840c71840"
+    },
+    {
+      "key": 37008,
+      "verifier": 52811,
+      "nativeSequenceHex": "acbdbda8bdbda44042b87e42bc7e4242",
+      "ciphertextHex": "484895b7b715b7b794084817cf4897cf"
+    },
+    {
+      "key": 37265,
+      "verifier": 52811,
+      "nativeSequenceHex": "a8b9b9acb9b9a04446bc7a46b87a4646",
+      "ciphertextHex": "c8c81537379537371488c8974fc8174f"
+    },
+    {
+      "key": 37522,
+      "verifier": 52811,
+      "nativeSequenceHex": "a4b5b5a0b5b5ac484ab0764ab4764a4a",
+      "ciphertextHex": "494994b6b614b6b695094916ce4996ce"
+    },
+    {
+      "key": 37779,
+      "verifier": 52811,
+      "nativeSequenceHex": "a0b1b1a4b1b1a84c4eb4724eb0724e4e",
+      "ciphertextHex": "c9c91436369436361589c9964ec9164e"
+    },
+    {
+      "key": 38036,
+      "verifier": 52811,
+      "nativeSequenceHex": "bcadadb8adadb45052a86e52ac6e5252",
+      "ciphertextHex": "4a4a97b5b517b5b5960a4a15cd4a95cd"
+    },
+    {
+      "key": 38293,
+      "verifier": 52811,
+      "nativeSequenceHex": "b8a9a9bca9a9b05456ac6a56a86a5656",
+      "ciphertextHex": "caca173535973535168aca954dca154d"
+    },
+    {
+      "key": 38550,
+      "verifier": 52811,
+      "nativeSequenceHex": "b4a5a5b0a5a5bc585aa0665aa4665a5a",
+      "ciphertextHex": "4b4b96b4b416b4b4970b4b14cc4b94cc"
+    },
+    {
+      "key": 38807,
+      "verifier": 52811,
+      "nativeSequenceHex": "b0a1a1b4a1a1b85c5ea4625ea0625e5e",
+      "ciphertextHex": "cbcb163434963434178bcb944ccb144c"
+    },
+    {
+      "key": 39064,
+      "verifier": 52811,
+      "nativeSequenceHex": "8c9d9d889d9d846062985e629c5e6262",
+      "ciphertextHex": "4c4c91b3b311b3b3900c4c13cb4c93cb"
+    },
+    {
+      "key": 39321,
+      "verifier": 52811,
+      "nativeSequenceHex": "8899998c99998064669c5a66985a6666",
+      "ciphertextHex": "cccc113333913333108ccc934bcc134b"
+    },
+    {
+      "key": 39578,
+      "verifier": 52811,
+      "nativeSequenceHex": "8495958095958c686a90566a94566a6a",
+      "ciphertextHex": "4d4d90b2b210b2b2910d4d12ca4d92ca"
+    },
+    {
+      "key": 39835,
+      "verifier": 52811,
+      "nativeSequenceHex": "809191849191886c6e94526e90526e6e",
+      "ciphertextHex": "cdcd103232903232118dcd924acd124a"
+    },
+    {
+      "key": 40092,
+      "verifier": 52811,
+      "nativeSequenceHex": "9c8d8d988d8d947072884e728c4e7272",
+      "ciphertextHex": "4e4e93b1b113b1b1920e4e11c94e91c9"
+    },
+    {
+      "key": 40349,
+      "verifier": 52811,
+      "nativeSequenceHex": "9889899c89899074768c4a76884a7676",
+      "ciphertextHex": "cece133131933131128ece9149ce1149"
+    },
+    {
+      "key": 40606,
+      "verifier": 52811,
+      "nativeSequenceHex": "9485859085859c787a80467a84467a7a",
+      "ciphertextHex": "4f4f92b0b012b0b0930f4f10c84f90c8"
+    },
+    {
+      "key": 40863,
+      "verifier": 52811,
+      "nativeSequenceHex": "908181948181987c7e84427e80427e7e",
+      "ciphertextHex": "cfcf123030923030138fcf9048cf1048"
+    },
+    {
+      "key": 41120,
+      "verifier": 52811,
+      "nativeSequenceHex": "6c7d7d687d7d64808278be827cbe8282",
+      "ciphertextHex": "50508dafaf0dafaf8c10500fd7508fd7"
+    },
+    {
+      "key": 41377,
+      "verifier": 52811,
+      "nativeSequenceHex": "6879796c79796084867cba8678ba8686",
+      "ciphertextHex": "d0d00d2f2f8d2f2f0c90d08f57d00f57"
+    },
+    {
+      "key": 41634,
+      "verifier": 52811,
+      "nativeSequenceHex": "6475756075756c888a70b68a74b68a8a",
+      "ciphertextHex": "51518caeae0caeae8d11510ed6518ed6"
+    },
+    {
+      "key": 41891,
+      "verifier": 52811,
+      "nativeSequenceHex": "607171647171688c8e74b28e70b28e8e",
+      "ciphertextHex": "d1d10c2e2e8c2e2e0d91d18e56d10e56"
+    },
+    {
+      "key": 42148,
+      "verifier": 52811,
+      "nativeSequenceHex": "7c6d6d786d6d74909268ae926cae9292",
+      "ciphertextHex": "52528fadad0fadad8e12520dd5528dd5"
+    },
+    {
+      "key": 42405,
+      "verifier": 52811,
+      "nativeSequenceHex": "7869697c69697094966caa9668aa9696",
+      "ciphertextHex": "d2d20f2d2d8f2d2d0e92d28d55d20d55"
+    },
+    {
+      "key": 42662,
+      "verifier": 52811,
+      "nativeSequenceHex": "7465657065657c989a60a69a64a69a9a",
+      "ciphertextHex": "53538eacac0eacac8f13530cd4538cd4"
+    },
+    {
+      "key": 42919,
+      "verifier": 52811,
+      "nativeSequenceHex": "706161746161789c9e64a29e60a29e9e",
+      "ciphertextHex": "d3d30e2c2c8e2c2c0f93d38c54d30c54"
+    },
+    {
+      "key": 43176,
+      "verifier": 52811,
+      "nativeSequenceHex": "4c5d5d485d5d44a0a2589ea25c9ea2a2",
+      "ciphertextHex": "545489abab09abab8814540bd3548bd3"
+    },
+    {
+      "key": 43433,
+      "verifier": 52811,
+      "nativeSequenceHex": "4859594c595940a4a65c9aa6589aa6a6",
+      "ciphertextHex": "d4d4092b2b892b2b0894d48b53d40b53"
+    },
+    {
+      "key": 43690,
+      "verifier": 52811,
+      "nativeSequenceHex": "4455554055554ca8aa5096aa5496aaaa",
+      "ciphertextHex": "555588aaaa08aaaa8915550ad2558ad2"
+    },
+    {
+      "key": 43947,
+      "verifier": 52811,
+      "nativeSequenceHex": "40515144515148acae5492ae5092aeae",
+      "ciphertextHex": "d5d5082a2a882a2a0995d58a52d50a52"
+    },
+    {
+      "key": 44204,
+      "verifier": 52811,
+      "nativeSequenceHex": "5c4d4d584d4d54b0b2488eb24c8eb2b2",
+      "ciphertextHex": "56568ba9a90ba9a98a165609d15689d1"
+    },
+    {
+      "key": 44461,
+      "verifier": 52811,
+      "nativeSequenceHex": "5849495c494950b4b64c8ab6488ab6b6",
+      "ciphertextHex": "d6d60b29298b29290a96d68951d60951"
+    },
+    {
+      "key": 44718,
+      "verifier": 52811,
+      "nativeSequenceHex": "5445455045455cb8ba4086ba4486baba",
+      "ciphertextHex": "57578aa8a80aa8a88b175708d05788d0"
+    },
+    {
+      "key": 44975,
+      "verifier": 52811,
+      "nativeSequenceHex": "50414154414158bcbe4482be4082bebe",
+      "ciphertextHex": "d7d70a28288a28280b97d78850d70850"
+    },
+    {
+      "key": 45232,
+      "verifier": 52811,
+      "nativeSequenceHex": "2c3d3d283d3d24c0c238fec23cfec2c2",
+      "ciphertextHex": "585885a7a705a7a784185807df5887df"
+    },
+    {
+      "key": 45489,
+      "verifier": 52811,
+      "nativeSequenceHex": "2839392c393920c4c63cfac638fac6c6",
+      "ciphertextHex": "d8d80527278527270498d8875fd8075f"
+    },
+    {
+      "key": 45746,
+      "verifier": 52811,
+      "nativeSequenceHex": "2435352035352cc8ca30f6ca34f6caca",
+      "ciphertextHex": "595984a6a604a6a685195906de5986de"
+    },
+    {
+      "key": 46003,
+      "verifier": 52811,
+      "nativeSequenceHex": "20313124313128ccce34f2ce30f2cece",
+      "ciphertextHex": "d9d90426268426260599d9865ed9065e"
+    },
+    {
+      "key": 46260,
+      "verifier": 52811,
+      "nativeSequenceHex": "3c2d2d382d2d34d0d228eed22ceed2d2",
+      "ciphertextHex": "5a5a87a5a507a5a5861a5a05dd5a85dd"
+    },
+    {
+      "key": 46517,
+      "verifier": 52811,
+      "nativeSequenceHex": "3829293c292930d4d62cead628ead6d6",
+      "ciphertextHex": "dada072525872525069ada855dda055d"
+    },
+    {
+      "key": 46774,
+      "verifier": 52811,
+      "nativeSequenceHex": "3425253025253cd8da20e6da24e6dada",
+      "ciphertextHex": "5b5b86a4a406a4a4871b5b04dc5b84dc"
+    },
+    {
+      "key": 47031,
+      "verifier": 52811,
+      "nativeSequenceHex": "30212134212138dcde24e2de20e2dede",
+      "ciphertextHex": "dbdb062424862424079bdb845cdb045c"
+    },
+    {
+      "key": 47288,
+      "verifier": 52811,
+      "nativeSequenceHex": "0c1d1d081d1d04e0e218dee21cdee2e2",
+      "ciphertextHex": "5c5c81a3a301a3a3801c5c03db5c83db"
+    },
+    {
+      "key": 47545,
+      "verifier": 52811,
+      "nativeSequenceHex": "0819190c191900e4e61cdae618dae6e6",
+      "ciphertextHex": "dcdc012323812323009cdc835bdc035b"
+    },
+    {
+      "key": 47802,
+      "verifier": 52811,
+      "nativeSequenceHex": "0415150015150ce8ea10d6ea14d6eaea",
+      "ciphertextHex": "5d5d80a2a200a2a2811d5d02da5d82da"
+    },
+    {
+      "key": 48059,
+      "verifier": 52811,
+      "nativeSequenceHex": "00111104111108ecee14d2ee10d2eeee",
+      "ciphertextHex": "dddd002222802222019ddd825add025a"
+    },
+    {
+      "key": 48316,
+      "verifier": 52811,
+      "nativeSequenceHex": "1c0d0d180d0d14f0f208cef20ccef2f2",
+      "ciphertextHex": "5e5e83a1a103a1a1821e5e01d95e81d9"
+    },
+    {
+      "key": 48573,
+      "verifier": 52811,
+      "nativeSequenceHex": "1809091c090910f4f60ccaf608caf6f6",
+      "ciphertextHex": "dede032121832121029ede8159de0159"
+    },
+    {
+      "key": 48830,
+      "verifier": 52811,
+      "nativeSequenceHex": "1405051005051cf8fa00c6fa04c6fafa",
+      "ciphertextHex": "5f5f82a0a002a0a0831f5f00d85f80d8"
+    },
+    {
+      "key": 49087,
+      "verifier": 52811,
+      "nativeSequenceHex": "10010114010118fcfe04c2fe00c2fefe",
+      "ciphertextHex": "dfdf022020822020039fdf8058df0058"
+    },
+    {
+      "key": 49344,
+      "verifier": 52811,
+      "nativeSequenceHex": "edfcfce9fcfce50103f93f03fd3f0303",
+      "ciphertextHex": "6060bd9f9f3d9f9fbc20603fe760bfe7"
+    },
+    {
+      "key": 49601,
+      "verifier": 52811,
+      "nativeSequenceHex": "e9f8f8edf8f8e10507fd3b07f93b0707",
+      "ciphertextHex": "e0e03d1f1fbd1f1f3ca0e0bf67e03f67"
+    },
+    {
+      "key": 49858,
+      "verifier": 52811,
+      "nativeSequenceHex": "e5f4f4e1f4f4ed090bf1370bf5370b0b",
+      "ciphertextHex": "6161bc9e9e3c9e9ebd21613ee661bee6"
+    },
+    {
+      "key": 50115,
+      "verifier": 52811,
+      "nativeSequenceHex": "e1f0f0e5f0f0e90d0ff5330ff1330f0f",
+      "ciphertextHex": "e1e13c1e1ebc1e1e3da1e1be66e13e66"
+    },
+    {
+      "key": 50372,
+      "verifier": 52811,
+      "nativeSequenceHex": "fdececf9ececf51113e92f13ed2f1313",
+      "ciphertextHex": "6262bf9d9d3f9d9dbe22623de562bde5"
+    },
+    {
+      "key": 50629,
+      "verifier": 52811,
+      "nativeSequenceHex": "f9e8e8fde8e8f11517ed2b17e92b1717",
+      "ciphertextHex": "e2e23f1d1dbf1d1d3ea2e2bd65e23d65"
+    },
+    {
+      "key": 50886,
+      "verifier": 52811,
+      "nativeSequenceHex": "f5e4e4f1e4e4fd191be1271be5271b1b",
+      "ciphertextHex": "6363be9c9c3e9c9cbf23633ce463bce4"
+    },
+    {
+      "key": 51143,
+      "verifier": 52811,
+      "nativeSequenceHex": "f1e0e0f5e0e0f91d1fe5231fe1231f1f",
+      "ciphertextHex": "e3e33e1c1cbe1c1c3fa3e3bc64e33c64"
+    },
+    {
+      "key": 51400,
+      "verifier": 52811,
+      "nativeSequenceHex": "cddcdcc9dcdcc52123d91f23dd1f2323",
+      "ciphertextHex": "6464b99b9b399b9bb824643be364bbe3"
+    },
+    {
+      "key": 51657,
+      "verifier": 52811,
+      "nativeSequenceHex": "c9d8d8cdd8d8c12527dd1b27d91b2727",
+      "ciphertextHex": "e4e4391b1bb91b1b38a4e4bb63e43b63"
+    },
+    {
+      "key": 51914,
+      "verifier": 52811,
+      "nativeSequenceHex": "c5d4d4c1d4d4cd292bd1172bd5172b2b",
+      "ciphertextHex": "6565b89a9a389a9ab925653ae265bae2"
+    },
+    {
+      "key": 52171,
+      "verifier": 52811,
+      "nativeSequenceHex": "c1d0d0c5d0d0c92d2fd5132fd1132f2f",
+      "ciphertextHex": "e5e5381a1ab81a1a39a5e5ba62e53a62"
+    },
+    {
+      "key": 52428,
+      "verifier": 52811,
+      "nativeSequenceHex": "ddccccd9ccccd53133c90f33cd0f3333",
+      "ciphertextHex": "6666bb99993b9999ba266639e166b9e1"
+    },
+    {
+      "key": 52685,
+      "verifier": 52811,
+      "nativeSequenceHex": "d9c8c8ddc8c8d13537cd0b37c90b3737",
+      "ciphertextHex": "e6e63b1919bb19193aa6e6b961e63961"
+    },
+    {
+      "key": 52942,
+      "verifier": 52811,
+      "nativeSequenceHex": "d5c4c4d1c4c4dd393bc1073bc5073b3b",
+      "ciphertextHex": "6767ba98983a9898bb276738e067b8e0"
+    },
+    {
+      "key": 53199,
+      "verifier": 52811,
+      "nativeSequenceHex": "d1c0c0d5c0c0d93d3fc5033fc1033f3f",
+      "ciphertextHex": "e7e73a1818ba18183ba7e7b860e73860"
+    },
+    {
+      "key": 53456,
+      "verifier": 52811,
+      "nativeSequenceHex": "adbcbca9bcbca54143b97f43bd7f4343",
+      "ciphertextHex": "6868b59797359797b4286837ef68b7ef"
+    },
+    {
+      "key": 53713,
+      "verifier": 52811,
+      "nativeSequenceHex": "a9b8b8adb8b8a14547bd7b47b97b4747",
+      "ciphertextHex": "e8e8351717b5171734a8e8b76fe8376f"
+    },
+    {
+      "key": 53970,
+      "verifier": 52811,
+      "nativeSequenceHex": "a5b4b4a1b4b4ad494bb1774bb5774b4b",
+      "ciphertextHex": "6969b49696349696b5296936ee69b6ee"
+    },
+    {
+      "key": 54227,
+      "verifier": 52811,
+      "nativeSequenceHex": "a1b0b0a5b0b0a94d4fb5734fb1734f4f",
+      "ciphertextHex": "e9e9341616b4161635a9e9b66ee9366e"
+    },
+    {
+      "key": 54484,
+      "verifier": 52811,
+      "nativeSequenceHex": "bdacacb9acacb55153a96f53ad6f5353",
+      "ciphertextHex": "6a6ab79595379595b62a6a35ed6ab5ed"
+    },
+    {
+      "key": 54741,
+      "verifier": 52811,
+      "nativeSequenceHex": "b9a8a8bda8a8b15557ad6b57a96b5757",
+      "ciphertextHex": "eaea371515b7151536aaeab56dea356d"
+    },
+    {
+      "key": 54998,
+      "verifier": 52811,
+      "nativeSequenceHex": "b5a4a4b1a4a4bd595ba1675ba5675b5b",
+      "ciphertextHex": "6b6bb69494369494b72b6b34ec6bb4ec"
+    },
+    {
+      "key": 55255,
+      "verifier": 52811,
+      "nativeSequenceHex": "b1a0a0b5a0a0b95d5fa5635fa1635f5f",
+      "ciphertextHex": "ebeb361414b6141437abebb46ceb346c"
+    },
+    {
+      "key": 55512,
+      "verifier": 52811,
+      "nativeSequenceHex": "8d9c9c899c9c856163995f639d5f6363",
+      "ciphertextHex": "6c6cb19393319393b02c6c33eb6cb3eb"
+    },
+    {
+      "key": 55769,
+      "verifier": 52811,
+      "nativeSequenceHex": "8998988d98988165679d5b67995b6767",
+      "ciphertextHex": "ecec311313b1131330acecb36bec336b"
+    },
+    {
+      "key": 56026,
+      "verifier": 52811,
+      "nativeSequenceHex": "8594948194948d696b91576b95576b6b",
+      "ciphertextHex": "6d6db09292309292b12d6d32ea6db2ea"
+    },
+    {
+      "key": 56283,
+      "verifier": 52811,
+      "nativeSequenceHex": "819090859090896d6f95536f91536f6f",
+      "ciphertextHex": "eded301212b0121231adedb26aed326a"
+    },
+    {
+      "key": 56540,
+      "verifier": 52811,
+      "nativeSequenceHex": "9d8c8c998c8c957173894f738d4f7373",
+      "ciphertextHex": "6e6eb39191339191b22e6e31e96eb1e9"
+    },
+    {
+      "key": 56797,
+      "verifier": 52811,
+      "nativeSequenceHex": "9988889d88889175778d4b77894b7777",
+      "ciphertextHex": "eeee331111b3111132aeeeb169ee3169"
+    },
+    {
+      "key": 57054,
+      "verifier": 52811,
+      "nativeSequenceHex": "9584849184849d797b81477b85477b7b",
+      "ciphertextHex": "6f6fb29090329090b32f6f30e86fb0e8"
+    },
+    {
+      "key": 57311,
+      "verifier": 52811,
+      "nativeSequenceHex": "918080958080997d7f85437f81437f7f",
+      "ciphertextHex": "efef321010b2101033afefb068ef3068"
+    },
+    {
+      "key": 57568,
+      "verifier": 52811,
+      "nativeSequenceHex": "6d7c7c697c7c65818379bf837dbf8383",
+      "ciphertextHex": "7070ad8f8f2d8f8fac30702ff770aff7"
+    },
+    {
+      "key": 57825,
+      "verifier": 52811,
+      "nativeSequenceHex": "6978786d78786185877dbb8779bb8787",
+      "ciphertextHex": "f0f02d0f0fad0f0f2cb0f0af77f02f77"
+    },
+    {
+      "key": 58082,
+      "verifier": 52811,
+      "nativeSequenceHex": "6574746174746d898b71b78b75b78b8b",
+      "ciphertextHex": "7171ac8e8e2c8e8ead31712ef671aef6"
+    },
+    {
+      "key": 58339,
+      "verifier": 52811,
+      "nativeSequenceHex": "617070657070698d8f75b38f71b38f8f",
+      "ciphertextHex": "f1f12c0e0eac0e0e2db1f1ae76f12e76"
+    },
+    {
+      "key": 58596,
+      "verifier": 52811,
+      "nativeSequenceHex": "7d6c6c796c6c75919369af936daf9393",
+      "ciphertextHex": "7272af8d8d2f8d8dae32722df572adf5"
+    },
+    {
+      "key": 58853,
+      "verifier": 52811,
+      "nativeSequenceHex": "7968687d68687195976dab9769ab9797",
+      "ciphertextHex": "f2f22f0d0daf0d0d2eb2f2ad75f22d75"
+    },
+    {
+      "key": 59110,
+      "verifier": 52811,
+      "nativeSequenceHex": "7564647164647d999b61a79b65a79b9b",
+      "ciphertextHex": "7373ae8c8c2e8c8caf33732cf473acf4"
+    },
+    {
+      "key": 59367,
+      "verifier": 52811,
+      "nativeSequenceHex": "716060756060799d9f65a39f61a39f9f",
+      "ciphertextHex": "f3f32e0c0cae0c0c2fb3f3ac74f32c74"
+    },
+    {
+      "key": 59624,
+      "verifier": 52811,
+      "nativeSequenceHex": "4d5c5c495c5c45a1a3599fa35d9fa3a3",
+      "ciphertextHex": "7474a98b8b298b8ba834742bf374abf3"
+    },
+    {
+      "key": 59881,
+      "verifier": 52811,
+      "nativeSequenceHex": "4958584d585841a5a75d9ba7599ba7a7",
+      "ciphertextHex": "f4f4290b0ba90b0b28b4f4ab73f42b73"
+    },
+    {
+      "key": 60138,
+      "verifier": 52811,
+      "nativeSequenceHex": "4554544154544da9ab5197ab5597abab",
+      "ciphertextHex": "7575a88a8a288a8aa935752af275aaf2"
+    },
+    {
+      "key": 60395,
+      "verifier": 52811,
+      "nativeSequenceHex": "41505045505049adaf5593af5193afaf",
+      "ciphertextHex": "f5f5280a0aa80a0a29b5f5aa72f52a72"
+    },
+    {
+      "key": 60652,
+      "verifier": 52811,
+      "nativeSequenceHex": "5d4c4c594c4c55b1b3498fb34d8fb3b3",
+      "ciphertextHex": "7676ab89892b8989aa367629f176a9f1"
+    },
+    {
+      "key": 60909,
+      "verifier": 52811,
+      "nativeSequenceHex": "5948485d484851b5b74d8bb7498bb7b7",
+      "ciphertextHex": "f6f62b0909ab09092ab6f6a971f62971"
+    },
+    {
+      "key": 61166,
+      "verifier": 52811,
+      "nativeSequenceHex": "5544445144445db9bb4187bb4587bbbb",
+      "ciphertextHex": "7777aa88882a8888ab377728f077a8f0"
+    },
+    {
+      "key": 61423,
+      "verifier": 52811,
+      "nativeSequenceHex": "51404055404059bdbf4583bf4183bfbf",
+      "ciphertextHex": "f7f72a0808aa08082bb7f7a870f72870"
+    },
+    {
+      "key": 61680,
+      "verifier": 52811,
+      "nativeSequenceHex": "2d3c3c293c3c25c1c339ffc33dffc3c3",
+      "ciphertextHex": "7878a58787258787a4387827ff78a7ff"
+    },
+    {
+      "key": 61937,
+      "verifier": 52811,
+      "nativeSequenceHex": "2938382d383821c5c73dfbc739fbc7c7",
+      "ciphertextHex": "f8f8250707a5070724b8f8a77ff8277f"
+    },
+    {
+      "key": 62194,
+      "verifier": 52811,
+      "nativeSequenceHex": "2534342134342dc9cb31f7cb35f7cbcb",
+      "ciphertextHex": "7979a48686248686a5397926fe79a6fe"
+    },
+    {
+      "key": 62451,
+      "verifier": 52811,
+      "nativeSequenceHex": "21303025303029cdcf35f3cf31f3cfcf",
+      "ciphertextHex": "f9f9240606a4060625b9f9a67ef9267e"
+    },
+    {
+      "key": 62708,
+      "verifier": 52811,
+      "nativeSequenceHex": "3d2c2c392c2c35d1d329efd32defd3d3",
+      "ciphertextHex": "7a7aa78585278585a63a7a25fd7aa5fd"
+    },
+    {
+      "key": 62965,
+      "verifier": 52811,
+      "nativeSequenceHex": "3928283d282831d5d72debd729ebd7d7",
+      "ciphertextHex": "fafa270505a7050526bafaa57dfa257d"
+    },
+    {
+      "key": 63222,
+      "verifier": 52811,
+      "nativeSequenceHex": "3524243124243dd9db21e7db25e7dbdb",
+      "ciphertextHex": "7b7ba68484268484a73b7b24fc7ba4fc"
+    },
+    {
+      "key": 63479,
+      "verifier": 52811,
+      "nativeSequenceHex": "31202035202039dddf25e3df21e3dfdf",
+      "ciphertextHex": "fbfb260404a6040427bbfba47cfb247c"
+    },
+    {
+      "key": 63736,
+      "verifier": 52811,
+      "nativeSequenceHex": "0d1c1c091c1c05e1e319dfe31ddfe3e3",
+      "ciphertextHex": "7c7ca18383218383a03c7c23fb7ca3fb"
+    },
+    {
+      "key": 63993,
+      "verifier": 52811,
+      "nativeSequenceHex": "0918180d181801e5e71ddbe719dbe7e7",
+      "ciphertextHex": "fcfc210303a1030320bcfca37bfc237b"
+    },
+    {
+      "key": 64250,
+      "verifier": 52811,
+      "nativeSequenceHex": "0514140114140de9eb11d7eb15d7ebeb",
+      "ciphertextHex": "7d7da08282208282a13d7d22fa7da2fa"
+    },
+    {
+      "key": 64507,
+      "verifier": 52811,
+      "nativeSequenceHex": "01101005101009edef15d3ef11d3efef",
+      "ciphertextHex": "fdfd200202a0020221bdfda27afd227a"
+    },
+    {
+      "key": 64764,
+      "verifier": 52811,
+      "nativeSequenceHex": "1d0c0c190c0c15f1f309cff30dcff3f3",
+      "ciphertextHex": "7e7ea38181238181a23e7e21f97ea1f9"
+    },
+    {
+      "key": 65021,
+      "verifier": 52811,
+      "nativeSequenceHex": "1908081d080811f5f70dcbf709cbf7f7",
+      "ciphertextHex": "fefe230101a3010122befea179fe2179"
+    },
+    {
+      "key": 65278,
+      "verifier": 52811,
+      "nativeSequenceHex": "1504041104041df9fb01c7fb05c7fbfb",
+      "ciphertextHex": "7f7fa28080228080a33f7f20f87fa0f8"
+    },
+    {
+      "key": 65535,
+      "verifier": 52811,
+      "nativeSequenceHex": "11000015000019fdff05c3ff01c3ffff",
+      "ciphertextHex": "ffff220000a2000023bfffa078ff2078"
+    }
+  ],
+  "cases": [
+    {
+      "id": "empty-xor-7-0000",
+      "revision": 7,
+      "key": 0,
+      "nativeSequenceHex": "eeffffeaffffe60200fa3c00fe3c0000",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000050500bb0dcc0741000000060000002f00040000004bcee1000200e404420002009cdf3100130019ddffffa210edfc40005f8700df076a2c1091e00010005dffffdc40005f8700df870000ddffffe000100040005f8700df870000ddffff5dffffdce000100000df870000ddffff5dffffdc40005f87e000100000ddffff5dffffdc40005f8700df8700e00010005dffffdc40005f8700df870000ddffffe000100040005f8700df870000ddffff5dffffdce000100000df870000ddffff5dffffdc40005f87e000100000ddffff5dffffdc40005f8700df8700e00010005dffffdc40005f8700df870000ddffffe000100040005f8700df870000ddffff5dffffdce000100000df870000ddffff5dffffdc40005f87e000100000ddffff5dffffdc40005f8700df8700e00010005dffffdc40005f8700df870000ddffffe000100040005f8700df870000ddffff5dffffdce000100000df870000ddffff5dffffdc40005f87e000100000ddffff5dffffdc40005f8700df870085000b0092010000ff5d7ff6700eac0a0000000908100000051000bb0dcc07410000000600000003020e00005f87003e870000ddffff5d57f70a000000",
+      "decryptedHex": "0908100000050500bb0dcc0741000000060000002f00040000004bcee1000200e40442000200e40431001300c8000000ff7f90010000000000000453616e73e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e00010000000000000000000000000000000000085000b0092010000000004486572650a0000000908100000051000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "08b30dcce86023973fa6726097724b2149b9a82c7061c6f6037f369ee798d8e0",
+      "expectedCsv": "42\n"
+    },
+    {
+      "id": "empty-xor-7-7a12",
+      "revision": 7,
+      "key": 31250,
+      "nativeSequenceHex": "a616b703b716aeeb481374e9b6d548e9",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000050500bb0dcc0741000000060000002f000400127a4bcee1000200e4044200020095e23100130024d4c2f69f19d0f57d09628e3dd63a631119ace000100060f6c2d57d09628e3dd6ba093dd4c2f6e00010007d09628e3dd6ba093dd4c2f660f6c2d5e00010003dd6ba093dd4c2f660f6c2d57d09628ee00010003dd4c2f660f6c2d57d09628e3dd6ba09e000100060f6c2d57d09628e3dd6ba093dd4c2f6e00010007d09628e3dd6ba093dd4c2f660f6c2d5e00010003dd6ba093dd4c2f660f6c2d57d09628ee00010003dd4c2f660f6c2d57d09628e3dd6ba09e000100060f6c2d57d09628e3dd6ba093dd4c2f6e00010007d09628e3dd6ba093dd4c2f660f6c2d5e00010003dd6ba093dd4c2f660f6c2d57d09628ee00010003dd4c2f660f6c2d57d09628e3dd6ba09e000100060f6c2d57d09628e3dd6ba093dd4c2f6e00010007d09628e3dd6ba093dd4c2f660f6c2d5e00010003dd6ba093dd4c2f660f6c2d57d09628ee00010003dd4c2f660f6c2d57d09628e3dd6ba0985000b0092010000f66076cb7933a50a0000000908100000051000bb0dcc07410000000600000003020e0009628e3d37ba093dd4c2f6605eca0a000000",
+      "decryptedHex": "0908100000050500bb0dcc0741000000060000002f000400127a4bcee1000200e40442000200e40431001300c8000000ff7f90010000000000000453616e73e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e00010000000000000000000000000000000000085000b0092010000000004486572650a0000000908100000051000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "d4a2a60d78ffea2b4541333736e28465499459f6ffc306fa2681ec3dc0fd827a",
+      "expectedCsv": "42\n"
+    },
+    {
+      "id": "empty-xor-7-ffff",
+      "revision": 7,
+      "key": 65535,
+      "nativeSequenceHex": "11000015000019fdff05c3ff01c3ffff",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000050500bb0dcc0741000000060000002f000400ffff4bcee1000200e40442000200632031001300e62200005def1203bfffa078ff20f895d3ef6ee0001000a2000023bfffa078ff2078ffff220000e0001000bfffa078ff2078ffff220000a2000023e0001000ff2078ffff220000a2000023bfffa078e0001000ff220000a2000023bfffa078ff2078ffe0001000a2000023bfffa078ff2078ffff220000e0001000bfffa078ff2078ffff220000a2000023e0001000ff2078ffff220000a2000023bfffa078e0001000ff220000a2000023bfffa078ff2078ffe0001000a2000023bfffa078ff2078ffff220000e0001000bfffa078ff2078ffff220000a2000023e0001000ff2078ffff220000a2000023bfffa078e0001000ff220000a2000023bfffa078ff2078ffe0001000a2000023bfffa078ff2078ffff220000e0001000bfffa078ff2078ffff220000a2000023e0001000ff2078ffff220000a2000023bfffa078e0001000ff220000a2000023bfffa078ff2078ff85000b009201000000a280098ff1530a0000000908100000051000bb0dcc07410000000600000003020e00ffa078ffc178ffff220000a2a8080a000000",
+      "decryptedHex": "0908100000050500bb0dcc0741000000060000002f000400ffff4bcee1000200e40442000200e40431001300c8000000ff7f90010000000000000453616e73e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e000100000000000000000000000000000000000e00010000000000000000000000000000000000085000b0092010000000004486572650a0000000908100000051000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "fa3ab1f915bcbe036fe92847601f3cb3d850689cceb26952d158faf24c01721b",
+      "expectedCsv": "42\n"
+    },
+    {
+      "id": "empty-xor-8-0000",
+      "revision": 8,
+      "key": 0,
+      "nativeSequenceHex": "eeffffeaffffe60200fa3c00fe3c0000",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000060500bb0dcc0741000000060000002f000600000000004bcee1000200e404420002001b8031001400e65dffff23af127f8700df8700005dff95713291e00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffffe00014008700df870000ddffff5dffffdc40005f8700df87e0001400ff5dffffdc40005f8700df870000ddffff5dffff85000c00d6010000dc40805f8eac912b0a0000000908100000061000bb0dcc07410000000600000003020e00df8700003cffff5dffffdc40a8570a000000",
+      "decryptedHex": "0908100000060500bb0dcc0741000000060000002f000600000000004bcee1000200e40442000200e40431001400c8000000ff7f9001000000000000040053616e73e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e0001400000000000000000000000000000000000000000085000c00d601000000000400486572650a0000000908100000061000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "01be6108968a69cdf6aeab304aa5431e7dbb73e50cc52c3e9a0f627d6b9d55a7",
+      "expectedCsv": "42\n"
+    },
+    {
+      "id": "empty-xor-8-7a12",
+      "revision": 8,
+      "key": 31250,
+      "nativeSequenceHex": "a616b703b716aeeb481374e9b6d548e9",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000060500bb0dcc0741000000060000002f0006000000127a4bcee1000200e4044200020012bd31001400ef60f6c22a921b428e3dd6ba093d54c29c4c3bace00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c2e00014008e3dd6ba093dd4c2f660f6c2d57d09628e3dd6bae0001400f660f6c2d57d09628e3dd6ba093dd4c2f660f6c285000c00d6010000d57d8962879198160a0000000908100000061000bb0dcc07410000000600000003020e00d6ba093d35c2f660f6c2d57da16a0a000000",
+      "decryptedHex": "0908100000060500bb0dcc0741000000060000002f0006000000127a4bcee1000200e40442000200e40431001400c8000000ff7f9001000000000000040053616e73e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e0001400000000000000000000000000000000000000000085000c00d601000000000400486572650a0000000908100000061000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "760959da42d5000570a3141ffa90a6bbba8ece49a3e446092d091838662e9c0a",
+      "expectedCsv": "42\n"
+    },
+    {
+      "id": "empty-xor-8-ffff",
+      "revision": 8,
+      "key": 65535,
+      "nativeSequenceHex": "11000015000019fdff05c3ff01c3ffff",
+      "nativeVerifier": 52811,
+      "inputHex": "0908100000060500bb0dcc0741000000060000002f0006000000ffff4bcee1000200e40442000200e47f3100140019a20000dc50ed8078ff2078ffffa2006a8ecd6ee000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a20000e000140078ff2078ffff220000a2000023bfffa078ff2078e000140000a2000023bfffa078ff2078ffff220000a2000085000c00d601000023bf7fa071536ed40a0000000908100000061000bb0dcc07410000000600000003020e002078ffffc30000a2000023bf57a80a000000",
+      "decryptedHex": "0908100000060500bb0dcc0741000000060000002f0006000000ffff4bcee1000200e40442000200e40431001400c8000000ff7f9001000000000000040053616e73e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e00014000000000000000000000000000000000000000000e0001400000000000000000000000000000000000000000085000c00d601000000000400486572650a0000000908100000061000bb0dcc07410000000600000003020e00000000000f0000000000000045400a000000",
+      "inputSha256": "4c7606fad4e777274ead5a1ff9e382f0dabf015dc2b9bc6fb22be84407b53c2c",
+      "expectedCsv": "42\n"
+    }
+  ],
+  "remaining": [
+    "Encrypted BIFF writer and explicit writer/password authority",
+    "Ancillary encryption,broader profiles and final publication"
+  ],
+  "recordedAt": "2026-09-22T21:21:00.271358+00:00",
+  "candidate": {
+    "baseHead": "12329f88d57c417c7ec929699ff01224fc925d2a",
+    "files": [
+      {
+        "path": "packages/ssconvert/src/codecs/biff-encryption.ts",
+        "sha256": "cc2e6cbef7ffdb5e135c109bc4a63a5dd7c02b95175dd7001a9fbd620b4f44a4"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-password.test.ts",
+        "sha256": "b924d11aac6c23a9616e069ec620feb5bf29cd055d107d6fd349323bec416d48"
+      },
+      {
+        "path": "packages/ssconvert/README.md",
+        "sha256": "8524fb764d97ea78c0f5eabf31dec12855bf1a4f892d58a36572b47fb0795faa"
+      }
+    ]
+  },
+  "primary": {
+    "path": "MS-OFFCRYPTO v20260217 section2.3.7.2",
+    "pdfSha256": "65a20fdaef2b24cabd0c783620a46d339a98b33effffa9ca6da7795e9635ddf0",
+    "scope": "Method1 writer key derivation InitialCode[length-1] is undefined for empty; no conforming writer or producer-key claim. Native reader uses declared FILEPASS key and explicit16bytepreset, independently validated here."
+  },
+  "checks": {
+    "originalRed": 6,
+    "previousGreen": 41,
+    "focusedGreen": 319,
+    "maintainedFiles": 339,
+    "maintainedTests": 7863,
+    "lintTypesConsumers": "maintained lint/production/test/publicconsumer routes passed after256controls",
+    "selectedBuild": "maintained selected workspace closure passed",
+    "public": {
+      "results": [
+        {
+          "id": "empty-xor-7-0000",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        },
+        {
+          "id": "empty-xor-7-7a12",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        },
+        {
+          "id": "empty-xor-7-ffff",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        },
+        {
+          "id": "empty-xor-8-0000",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        },
+        {
+          "id": "empty-xor-8-7a12",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        },
+        {
+          "id": "empty-xor-8-ffff",
+          "sdkExact": true,
+          "shellExact": true,
+          "inputUnchanged": true,
+          "plaintextReplayExact": true,
+          "plaintextReplayNoSecret": true
+        }
+      ],
+      "refusalTargetPreserved": [
+        "absent",
+        "declined",
+        "wrong"
+      ]
+    },
+    "browserWorker": {
+      "browser": {
+        "caseCount": 6,
+        "passed": 6,
+        "results": [
+          {
+            "name": "empty-xor-7-0000",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-7-7a12",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-7-ffff",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-0000",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-7a12",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-ffff",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          }
+        ]
+      },
+      "worker": {
+        "caseCount": 6,
+        "passed": 6,
+        "results": [
+          {
+            "name": "empty-xor-7-0000",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-7-7a12",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-7-ffff",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-0000",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-7a12",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          },
+          {
+            "name": "empty-xor-8-ffff",
+            "exitCode": 0,
+            "exact": true,
+            "stderrBytes": 0,
+            "passwordCalls": 1
+          }
+        ]
+      }
+    }
+  },
+  "contracts": [
+    "Explicit host XOR byte password0–15bytes; emptyUint8Array is a secret,undefined declines; string remains refused as encodingbytes contract.",
+    "Default password retry/header admission/callback snapshot,maxlength,work,cancellation,target-preservation controls unchanged.",
+    "Stored key supplies reader XOR sequence; final preset octet now explicit0matching authenticated native source.",
+    "Six complete native-sequence encode/decode receipts coverBIFF7/8 and declared0/7A12/FFFFkeys;256direct memory controls verify native preset across all16 positions.",
+    "No native/ambient credential fallback. Exports remain plaintext; XOR is unauthenticated obsolete obfuscation."
+  ],
+  "screenshots": [
+    {
+      "sha256": "0e96ce16c1eba2ab747c404bca21494252a76bddd4aefea2a3128795e7b2f0cc",
+      "inspected": true,
+      "scope": "Actual builtSDK/Shell6imports,6plaintextBIFFreplays,3preserved-targetrefusals"
+    },
+    {
+      "sha256": "bb8b38e0aeba4e8eb4652d7e12ee5269ec8f82c12837cc984d7d3588b3e2499c",
+      "inspected": true,
+      "scope": "Actual6browser+6dedicatedworker publicrunCommand,status0,no diagnostics,onecallback"
+    }
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": null
+  }
+}

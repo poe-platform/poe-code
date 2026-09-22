@@ -59,7 +59,7 @@ export async function decryptBiffRecords(records: BiffRecord[], revision: number
       return encoded;
     }
     if (secret instanceof Uint8Array && secret.byteLength <= maxBytes &&
-        (xor ? secret.byteLength > 0 : secret.byteLength % 2 === 0)) return new Uint8Array(secret);
+        (xor || secret.byteLength % 2 === 0)) return new Uint8Array(secret);
     throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password encoding or length");
   };
   const blockKey = (number: number): Uint8Array => {
@@ -166,7 +166,7 @@ export async function decryptBiffRecords(records: BiffRecord[], revision: number
         password = secret;
       }
       const key = data.u16(prefix);
-      const padding = [0xbb, 0xff, 0xff, 0xba, 0xff, 0xff, 0xb9, 0x80, 0x00, 0xbe, 0x0f, 0x00, 0xbf, 0x0f, 0x00];
+      const padding = [0xbb, 0xff, 0xff, 0xba, 0xff, 0xff, 0xb9, 0x80, 0x00, 0xbe, 0x0f, 0x00, 0xbf, 0x0f, 0x00, 0x00];
       array = Uint8Array.from({ length: 16 }, (_, index) => {
         const byte = index < password.length ? password[index]! : padding[index - password.length]!;
         const mixed = byte ^ (index % 2 ? key >> 8 : key & 255);

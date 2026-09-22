@@ -45,9 +45,6 @@
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/csvkit"
   },
-  "devDependencies": {
-    "@poe-code/safe-python": "*"
-  },
   "poeCode": {
     "safeLibraryNotices": {
       "safe-bash": [

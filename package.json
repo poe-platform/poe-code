@@ -431,6 +431,14 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-playwright": {
+      "types": "./packages/safe-playwright/dist/index.d.ts",
+      "import": "./packages/safe-playwright/dist/index.js"
+    },
+    "./safe-playwright/adapter": {
+      "types": "./packages/safe-playwright/dist/adapter.d.ts",
+      "import": "./packages/safe-playwright/dist/adapter.js"
     }
   },
   "workspaces": [
@@ -666,7 +674,8 @@
     "packages/safe-fs/src/native/loader.d.ts",
     "packages/docx/dist",
     "packages/docx/LICENSE",
-    "packages/docx/THIRD_PARTY_NOTICES.txt"
+    "packages/docx/THIRD_PARTY_NOTICES.txt",
+    "packages/safe-playwright/dist"
   ],
   "engines": {
     "node": ">=18.18"

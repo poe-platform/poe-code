@@ -474,7 +474,6 @@
     "@poe-code/package-lint": "*",
     "safe-bash-command-fmt": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/safe-python": "*",
     "@poe-code/ssconvert": "*"
   },
   "poeCode": {

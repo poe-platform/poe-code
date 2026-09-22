@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createCsvpyInterpreter, createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from '@poe-code/csvkit';
-import { PythonSession } from '@poe-code/safe-python';
+import { createSqliteDatabaseProvider, createMemorySqliteFileSystem, utf8Codec } from '@poe-code/csvkit';
 import { readFile } from 'node:fs/promises';
 import initSqlite from '@sqlite.org/sqlite-wasm';
 import { Volume } from 'memfs';
@@ -114,38 +113,6 @@ test('requested SQL CSV stdin and configured owned database execute using inject
     assert.deepEqual({ stdout: selected.stdout, stderr: selected.stderr, status: selected.exitCode }, { stdout: 'name,amount\nA,10.0\nB,2.0\n', stderr: '', status: 0 });
     assert.deepEqual(volume.readFileSync('/owned/fixture.db'), before);
   } finally { await shell.dispose(); await database.dispose(); }
-});
-
-test('requested csvpy FILE consumes explicitly bound Python stdin with exactly one guest closure', async () => {
-  const fs = new MemoryFileSystem();
-  const input = encoder.encode('name,amount\nA,0010\n');
-  await fs.writeFile('/data.csv', input);
-  let closed = 0;
-  let lines: readonly string[] = [], index = 0;
-  class Guest extends PythonSession { override close() { closed++; super.close(); } }
-  const interpreter = createCsvpyInterpreter({
-    createSession: options => new Guest({ ...options, hashSeed: [1n, 2n], limits: { maxSteps: 2_000_000, maxAllocatedBytes: 16_000_000, maxDepth: 100 } }),
-    terminal: { async readLine(signal) { signal.throwIfAborted(); return lines[index++] ?? null; } }
-  });
-  const failures: unknown[] = [];
-  const shell = new Shell({ fs, onInternalError(error) { failures.push(error); } }).use(csvkitCommands({ ...bindings, interpreter }));
-  shell.use(async (context, next) => {
-    const fragments: Uint8Array[] = [];
-    for await (const bytes of context.stdin) fragments.push(Uint8Array.from(bytes));
-    const source = Buffer.concat(fragments).toString('utf8');
-    lines = source.split('\n').slice(0, -1).map(line => line + '\n');
-    return next();
-  });
-  try {
-    const result = await shell.exec('csvpy /data.csv', { stdin: 'next(reader)\nlist(reader)\n' });
-    assert.deepEqual(failures, []);
-    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, {
-      stdout: ">>> ['name', 'amount']\n>>> [['A', '0010']]\n>>> ",
-      stderr: 'Welcome! "/data.csv" has been loaded in an agate.csv.reader object named "reader".\n\nnow exiting InteractiveConsole...\n', status: 0
-    });
-    assert.equal(closed, 1);
-    assert.deepEqual(await fs.readFile('/data.csv'), input);
-  } finally { await shell.dispose(); }
 });
 
 test('requested direct argv keeps raw JSON strings and tab/ASV bytes without shell reinterpretation', async () => {

@@ -369,7 +369,14 @@
     "safe-bash-command-fmt": "*",
     "safe-bash-mcp": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/ssconvert": "*"
+    "@poe-code/ssconvert": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-csv-engine": "*"
   },
   "repository": {
     "type": "git",

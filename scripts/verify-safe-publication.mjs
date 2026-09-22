@@ -125,10 +125,22 @@ export async function verifyCloudflareArtifacts(files, root) {
 
 async function verifyInstalled(files, consumer, identities) {
   const lock = await readInstalledJson(files, path.join(consumer, "package-lock.json"));
+  for (const location of Object.keys(lock.packages ?? {})) {
+    const leaf = location.split("/").at(-1);
+    if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || leaf.startsWith("safe-bash-engine-")) {
+      throw new Error(`Private safe-bash installation: ${location}`);
+    }
+  }
   for (const identity of identities) {
     const packagePath = path.join(consumer, "node_modules", identity.name);
     const entry = lock.packages?.[`node_modules/${identity.name}`];
     const manifest = await readInstalledJson(files, path.join(packagePath, "package.json"));
+    for (const requirement of Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies, ...manifest.peerDependencies })) {
+      const leaf = requirement.split("/").at(-1);
+      if (leaf === "safe-bash-contracts" || leaf.startsWith("safe-bash-command-") || leaf.startsWith("safe-bash-engine-")) {
+        throw new Error(`${identity.name}: Private safe-bash requirement: ${requirement}`);
+      }
+    }
     if (lock.packages?.[""]?.dependencies?.[identity.name] !== identity.version ||
         entry?.version !== identity.version || entry.resolved !== identity.tarball || entry.integrity !== identity.integrity || entry.link ||
         manifest.name !== identity.name || manifest.version !== identity.version ||
@@ -145,12 +157,27 @@ import * as safeJs from "@poe-platform/safe-js";
 import * as safeBash from "@poe-platform/safe-bash";
 import * as nodeBash from "@poe-platform/safe-bash/node";
 import { createMetadataCommands } from "@poe-platform/safe-bash/commands/metadata";
+import * as contracts from "@poe-platform/safe-bash/contracts/command";
+import * as values from "@poe-platform/safe-bash/contracts/value";
+import { createExiftoolCommand, createExiftoolArguments } from "@poe-platform/safe-bash/commands/exiftool";
+import { createWkhtmltopdfCommand } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
 assert.equal(typeof safeFs.createMemoryFileSystem, "function");
 assert.equal(typeof safeJs.run, "function");
 assert.equal(typeof safeBash.Shell, "function");
 assert.equal(safeBash.Shell, nodeBash.Shell);
 assert.equal(safeFs.FsError, safeBash.FsError);
 assert.ok(createMetadataCommands().length > 0);
+assert.equal(safeBash.commandRuntimeIdentity, contracts.commandRuntimeIdentity);
+assert.equal(safeBash.CommandArgumentIdentityError, contracts.CommandArgumentIdentityError);
+assert.equal(createExiftoolCommand().runtimeIdentity, contracts.commandRuntimeIdentity);
+assert.equal(createWkhtmltopdfCommand().runtimeIdentity, contracts.commandRuntimeIdentity);
+const sdk = createExiftoolArguments({ files: ["/missing.png"], format: "json" }, { signal: new AbortController().signal });
+assert.equal(contracts.getCommandArguments({ args: sdk.args, argumentValues: sdk }), sdk);
+const raw = contracts.createCommandArguments([values.shellValueFromBytes(Uint8Array.of(255)), values.shellValueFromBytes(Uint8Array.of(254))]);
+assert.equal(raw.args[0], raw.args[1]);
+assert.deepEqual([...raw.bytes(0)], [255]);
+assert.deepEqual([...raw.bytes(1)], [254]);
+assert.throws(() => contracts.getCommandArguments({ args: [...raw.args], argumentValues: raw }), safeBash.CommandArgumentIdentityError);
 `;
 
 export async function verifyPublication({ version, source, workDir, cloudflare = false, maxAttempts = 180, retryDelayMs = 10_000, timeoutMs = 2_400_000 }, {
@@ -203,7 +230,7 @@ export async function verifyPublication({ version, source, workDir, cloudflare =
       await run("npm", args, { cwd: consumer, env, signal, timeout: 120_000 });
       await verifyInstalled(files, consumer, identities.values());
       if (cloudflare) await verifyCloudflareArtifacts(files, path.join(consumer, "node_modules", "@poe-platform/safe-bash"));
-      await run(process.execPath, ["--input-type=module", "--eval", importSmoke], { cwd: consumer, env, signal, timeout: 30_000 });
+      await run(process.execPath, ["--input-type=module", "--eval", importSmoke], { cwd: consumer, env: { ...env, PATH: "" }, signal, timeout: 30_000 });
       if (cloudflare) await run(process.execPath, ["--input-type=module", "--eval", `
 import assert from "node:assert/strict";
 import { encodeBrowserProfile, parseBrowserProfile, restoreBrowserProfile, checkpointBrowserProfile } from "@poe-platform/safe-bash/playwright";
@@ -212,7 +239,7 @@ const limits = { maxBytes: 4096, maxTabs: 2 };
 assert.deepEqual(parseBrowserProfile(encodeBrowserProfile(profile, limits), limits), profile);
 assert.equal(typeof restoreBrowserProfile, "function");
 assert.equal(typeof checkpointBrowserProfile, "function");
-`], { cwd: consumer, env, signal, timeout: 30_000 });
+`], { cwd: consumer, env: { ...env, PATH: "" }, signal, timeout: 30_000 });
       signal.throwIfAborted();
       log(`Verified ${version} from ${source}: public archives, integrity, provenance source, fresh npm install and Node imports`);
       return;

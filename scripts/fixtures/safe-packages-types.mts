@@ -1,5 +1,7 @@
 import "./safe-packages-fmt-types.mjs";
+import "./safe-packages-unrtf-types.mjs";
 import "./safe-packages-portable-search-types.mjs";
+import "./safe-packages-diff3-types.mjs";
 import { agentCommands, createAgentCommands, createBoundedRegexProvider, createZipCommand, createUnzipCommand, type AgentCommandsOptions, type ArchiveCommandsOptions, type CsplitCommandsOptions } from "@poe-platform/safe-bash";
 import { createCsplitCommand } from "@poe-platform/safe-bash/commands/csplit";
 import { createPrCommand, createPrCommands, prCommands, type PrCommandsOptions, type PrLimits } from "@poe-platform/safe-bash";
@@ -210,3 +212,7 @@ import "./safe-packages-iconv-types.mjs";
 
 import "./safe-packages-line-endings-types.mjs";
 import "./safe-packages-llm-types.mjs";
+import "./safe-packages-private-command-types.mjs";
+import "./safe-packages-fmt-types.mjs";
+
+import "./safe-packages-csvgrep-types.mjs";

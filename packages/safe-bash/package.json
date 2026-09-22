@@ -382,6 +382,30 @@
     "./commands/ssconvert": {
       "types": "./dist/commands/ssconvert/index.d.ts",
       "import": "./dist/commands/ssconvert/index.js"
+    },
+    "./commands/fold": {
+      "types": "./dist/commands/fold/index.d.ts",
+      "import": "./dist/commands/fold/index.js"
+    },
+    "./commands/diff3": {
+      "types": "./dist/commands/diff3/index.d.ts",
+      "import": "./dist/commands/diff3/index.js"
+    },
+    "./commands/unrtf": {
+      "types": "./dist/commands/unrtf/index.d.ts",
+      "import": "./dist/commands/unrtf/index.js"
+    },
+    "./commands/csvgrep": {
+      "types": "./dist/commands/csvgrep/index.d.ts",
+      "import": "./dist/commands/csvgrep/index.js"
+    },
+    "./commands/csvcut": {
+      "types": "./dist/commands/csvcut/index.d.ts",
+      "import": "./dist/commands/csvcut/index.js"
+    },
+    "./commands/htmlq": {
+      "types": "./dist/commands/htmlq/index.d.ts",
+      "import": "./dist/commands/htmlq/index.js"
     }
   },
   "files": [
@@ -474,7 +498,14 @@
     "@poe-code/package-lint": "*",
     "safe-bash-command-fmt": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/ssconvert": "*"
+    "@poe-code/ssconvert": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-csv-engine": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -566,6 +597,61 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           }
+        },
+        "safe-bash-command-fold": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "assets": [
+            "./dist/LICENSE",
+            "./dist/COPYING",
+            "./dist/COPYING.LESSER",
+            "./dist/width-data.ts"
+          ]
+        },
+        "safe-bash-command-diff3": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-unrtf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-csvgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-csv-engine": "*"
+          }
+        },
+        "safe-bash-command-csvcut": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-csv-engine": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-htmlq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-csv-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {}
         }
       }
     }

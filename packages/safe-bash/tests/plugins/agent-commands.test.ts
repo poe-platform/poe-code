@@ -7,6 +7,9 @@ import {
   type AgentCommandsOptions, type CommandContext, type PluginHost,
 } from "../../src/index.js";
 
+import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
+import { wkhtmltopdfCommands, wkhtmltopdfLimits } from "../../src/commands/wkhtmltopdf/index.js";
+
 function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware installation"); }, registerFileSystem() { throw new Error("Unexpected filesystem installation"); } };
 }
@@ -180,3 +183,37 @@ test("aggregate table-text composes with existing cut and virtual files", async 
     assert.equal(createAgentCommands().filter(command => command.name === "cut").length, 1);
   } finally { await shell.dispose(); }
 });
+
+for (const [name, plugin, source, expected] of [
+  ["exiftool", exiftoolCommands({ replace: true }), "exiftool -s3 -Title /image.png", "packed\n"],
+  ["wkhtmltopdf", wkhtmltopdfCommands({ limits: wkhtmltopdfLimits, replace: true }), "wkhtmltopdf --help", "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n"],
+] as const) {
+  test(`${name} opt-in dispatch preserves middleware through pipes and VFS scripts`, async () => {
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands());
+    await fs.writeFile("/image.png", Uint8Array.of(137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,4,0,0,0,181,28,12,2,0,0,0,12,116,69,88,116,84,105,116,108,101,0,112,97,99,107,101,100,41,161,151,116,0,0,0,11,73,68,65,84,120,218,99,252,255,31,0,3,3,2,0,239,162,167,91,0,0,0,0,73,69,78,68,174,66,96,130));
+    const seen: string[] = [];
+    shell.use(async (context, next) => { seen.push(context.command); return next(); });
+    try {
+      assert.equal(shell.commands.has(name), false);
+      assert.equal((await shell.exec(source)).exitCode, 127);
+      shell.register({ name, execute: () => ({ exitCode: 23 }) });
+      assert.throws(() => (name === "exiftool" ? exiftoolCommands() : wkhtmltopdfCommands()).setup(host(shell.commands)), /already registered/u);
+      assert.equal((await shell.exec(source)).exitCode, 23);
+      shell.use(plugin);
+      const direct = await shell.exec(source);
+      assert.equal(direct.exitCode, 0);
+      assert.equal(direct.stdout, expected);
+      assert.equal(direct.stderr, "");
+      const installed = shell.commands.get(name);
+      await fs.writeFile("/command.sh", new TextEncoder().encode(source + " | cat\n"));
+      seen.length = 0;
+      const result = await shell.exec("sh /command.sh");
+      assert.deepEqual(result, { exitCode: 0, stdout: expected, stderr: "", stdoutBytes: new TextEncoder().encode(expected), stderrBytes: new Uint8Array() });
+      assert.ok(seen.includes("sh"));
+      assert.ok(seen.includes(name));
+      assert.ok(seen.includes("cat"));
+      assert.equal(shell.commands.get(name), installed);
+    } finally { await shell.dispose(); }
+  });
+}

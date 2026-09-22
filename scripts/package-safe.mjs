@@ -9,6 +9,7 @@ import ts from "typescript";
 import { build } from "esbuild";
 import { resolveBrowserShellBuild, resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 import { copyNativeAssets, nativeImportMapping, readBuiltNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 
@@ -241,6 +242,16 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
   for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
     const packageDir = path.join(rootDir, "packages", name);
     const source = await readJson(path.join(packageDir, "package.json"));
+    const assertPrivateProfile = (workspace, workspaceName) => {
+      const profile = source.poeCode?.integration?.privateWorkspaces?.[workspaceName];
+      const pkg = workspace?.pkg;
+      if (!profile || !pkg || workspace.dir !== workspaceName || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
+          !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
+          !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
+          Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
+        throw new Error("Qualified private workspace profile mismatch: " + workspaceName);
+      }
+    };
     const directory = path.join(outDir, name);
     await files.mkdir(outDir, { recursive: true });
     await files.mkdir(directory);
@@ -298,19 +309,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           external: [...browser.external, "@poe-platform/safe-fs", ...canonical],
         });
       }
-      for (const command of ["op", "pandoc"]) {
-        if (!source.exports["./commands/" + command]) continue;
-        const converterDependencies = new Set(workspaces.filter(({ dir }) => dir === "pandoc" || dir === "pdf")
-          .flatMap(({ pkg }) => Object.keys(pkg.dependencies ?? {}))
-          .filter(dependency => !Object.hasOwn(root.dependencies ?? {}, dependency) && !Object.hasOwn(root.optionalDependencies ?? {}, dependency)));
-        recipes.push({ absWorkingDir: rootDir, alias,
-          external: command === "pandoc" ? external.filter(dependency => !converterDependencies.has(dependency)) : external,
-          entryPoints: [path.join(packageDir, "src/commands", command, "index.ts")],
-          outfile: path.join(packageDir, "dist/commands", command, "index.js"),
-          bundle: true, platform: "node", target: command === "pandoc" ? "node22" : "es2022", format: "esm", sourcemap: true, write: false,
-          ...(command === "pandoc" ? { banner: { js: 'import {createRequire as createPandocRequire} from "node:module"; const require = createPandocRequire(import.meta.url);' } } : {}),
-        });
-      }
+      recipes.push(...resolveCommandExportBuilds(rootDir, source, root, workspaces, { alias, external }));
       for (const recipe of recipes) {
         const result = await bundle(recipe);
         for (const output of result.outputFiles) {
@@ -399,6 +398,37 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       if (!range || range === "*" || range.startsWith("workspace:")) throw new Error(`Missing publishable dependency range: ${specifier}`);
       dependencies[dependency] = range;
     };
+    const readPrivateAsset = async (workspace, relative) => {
+      assertPrivateProfile(workspace, workspace.pkg.name);
+      const owner = path.join(rootDir, "packages", workspace.dir);
+      if (typeof relative !== "string" || !relative.startsWith("./") || relative.includes("\\") ||
+          relative.slice(2).split("/").some(segment => !segment || segment === "." || segment === "..")) {
+        throw new Error("Invalid private publication asset: " + relative);
+      }
+      const filename = path.join(owner, relative);
+      if (excluded(filename)) throw new Error("Excluded package file referenced: " + relative);
+      let current = owner;
+      for (const segment of ["", ...relative.slice(2).split("/")]) {
+        current = path.join(current, segment);
+        const stat = await files.lstat(current);
+        if (stat.isSymbolicLink() || (current === filename ? !stat.isFile() : !stat.isDirectory())) {
+          throw new Error("Expected regular private publication asset: " + relative);
+        }
+      }
+      return { filename, bytes: await files.readFile(filename) };
+    };
+    if (name === "safe-bash") {
+      for (const [workspaceName, profile] of Object.entries(source.poeCode?.integration?.privateWorkspaces ?? {})) {
+        const workspace = workspaces.find(({ pkg }) => pkg.name === workspaceName);
+        for (const relative of profile.assets ?? []) {
+          assertPrivateProfile(workspace, workspaceName);
+          if (typeof relative !== "string" || !relative.startsWith("./dist/")) throw new Error("Private publication assets must belong to dist: " + relative);
+          const { filename, bytes } = await readPrivateAsset(workspace, relative);
+          bundled.set(filename, bytes);
+          pending.push(filename);
+        }
+      }
+    }
     while (pending.length) {
       const filename = pending.pop();
       if (excluded(filename)) throw new Error(`Excluded package file referenced: ${path.relative(packageDir, filename)}`);
@@ -434,14 +464,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             .find(candidate => publicName === candidate || publicName.startsWith(candidate + "/"));
           if (qualifiedName) {
             const workspace = workspaces.find(({ pkg }) => pkg.name === qualifiedName);
-            const profile = source.poeCode.integration.privateWorkspaces[qualifiedName];
-            const pkg = workspace?.pkg;
-            if (!pkg || workspace.dir !== qualifiedName || pkg.private !== true || pkg.type !== "module" || pkg.version !== profile.version ||
-                !isDeepStrictEqual(pkg.dependencies ?? {}, profile.dependencies) ||
-                !isDeepStrictEqual(pkg.devDependencies ?? {}, profile.devDependencies) ||
-                Object.keys(pkg.peerDependencies ?? {}).length || Object.keys(pkg.optionalDependencies ?? {}).length) {
-              throw new Error("Qualified private workspace profile mismatch: " + qualifiedName);
-            }
+            assertPrivateProfile(workspace, qualifiedName);
           }
           const declaredWorkspace = workspaces.find(({ pkg }) => pkg.private &&
             (publicName === pkg.name || publicName.startsWith(pkg.name + "/")) &&
@@ -484,6 +507,17 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       }
       await files.mkdir(path.dirname(destination), { recursive: true });
       await files.writeFile(destination, contents);
+    }
+    if (name === "safe-bash") {
+      for (const workspace of workspaces.filter(({ pkg }) => pkg.private && Object.hasOwn(source.poeCode?.integration?.privateWorkspaces ?? {}, pkg.name))) {
+        for (const filename of ["LICENSE", "NOTICE"]) {
+          if (!(workspace.pkg.files ?? []).includes(filename) && !await exists(path.join(rootDir, "packages", workspace.dir, filename))) continue;
+          const { bytes } = await readPrivateAsset(workspace, "./" + filename);
+          const destination = path.join(directory, "dist", workspace.dir, filename);
+          await files.mkdir(path.dirname(destination), { recursive: true });
+          await files.writeFile(destination, bytes);
+        }
+      }
     }
     const manifest = {
       name: `@poe-platform/${name}`, version, description: source.description ?? (name === "safe-fs" ? "Composable filesystem with a portable core and explicit Node adapters" : "Budgeted JavaScript interpreter with explicit host capabilities and resumable execution"),

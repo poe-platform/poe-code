@@ -1,5 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
+import { canonicalFs } from "../packages/package-lint/src/bundle-policy.js";
 
 import {
   findUnreachableBundleOutputs,
@@ -13,6 +14,15 @@ function createFileSystem(rootPackageJson: object) {
   });
   return createFsFromVolume(volume).promises;
 }
+
+it("routes embedded spreadsheet XML imports to the published core entry", () => {
+  const consumer = resolveConsumerGraph({
+    alias: { "@poe-code/safe-fs/xml": "/repo/packages/safe-fs/src/xml.ts" },
+    external: ["node:*"],
+  }, canonicalFs);
+  expect(consumer.alias["@poe-code/safe-fs/xml"]).toBe("poe-code/safe-fs/core");
+  expect(consumer.external).toContain("poe-code/safe-fs/core");
+});
 
 it('resolves explicit Node server conditions without admitting schema assets as source', async () => {
   const graph = await resolveBundleGraph('/repo', [{ dir: 'remote', pkg: {

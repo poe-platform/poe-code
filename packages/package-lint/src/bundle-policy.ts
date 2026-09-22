@@ -113,7 +113,10 @@ export const canonicalFs = {
   source: "packages/safe-fs/src/index.ts",
   runtime: "packages/safe-js/dist/safe-fs.js",
   types: "packages/safe-fs/dist/index.d.ts",
-  routes: canonicalFsRoutes
+  routes: [
+    ...canonicalFsRoutes,
+    { workspace: "@poe-code/safe-fs/xml", specifier: "poe-code/safe-fs/core" }
+  ]
 } as const;
 
 export interface BundleMetafile {

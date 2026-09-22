@@ -127,8 +127,7 @@ code should be changed as part of this review.
 The exact qualified Python package set in this checkout is **empty**. Pyodide,
 CPython and a native-package manifest have no reviewed pins or runtime assets.
 XLSX, DOCX and PDF generation/reopening are all unqualified. Historical selected
-library tests are not a supported package inventory; `safe-python` is a separate
-interpreter and does not qualify this adapter.
+library tests are not a supported package inventory.
 
 The existing playground produces Vite static files under
 `packages/safe-bash-playground/dist/site` through `scripts/build.mjs` and the

@@ -2,7 +2,6 @@ import { defineConfig, Plugin } from "vitest/config";
 import { loadTestEnv } from "./tests/test-env.js";
 import path from "path";
 import fs from "fs";
-import safePythonQuarantine from "./packages/safe-python/test-quarantine.json";
 
 loadTestEnv();
 
@@ -148,8 +147,6 @@ export default defineConfig({
       "packages/safe-bash-command-fmt/src/*.test.ts",
       "packages/safe-bash-contracts/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
-      // Share the package's temporary quarantine with root/shared unit runs.
-      ...safePythonQuarantine.map(filename => `packages/safe-python/${filename}`),
       "**/*.e2e.test.ts" // E2E tests run separately
     ],
     // Keep local native replay checks serial; CI retains its two-worker schedule.

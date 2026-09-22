@@ -887,8 +887,8 @@
     "Packed public SDK/Shell final gates and successful registry publication"
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "250b8e0c3e055d111974b2335a8f5e213233b762",
+    "remoteMain": "Exact ls-remote main verified after push",
+    "publication": "Release35769319874 active; audit passed, build active; prior containing Release35767648603 cancelled"
   }
 }

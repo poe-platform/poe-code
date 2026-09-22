@@ -2,7 +2,7 @@
 
 Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer.
 The engine provides spreadsheet import and export, recalculation, workbook updates,
-and chart and print rendering. It also opens XOR-obfuscated and standard RC4-encrypted Excel workbooks
+and chart and print rendering. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
 using the native reader's built-in password. Format support has documented limits; see the
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 

@@ -1,3 +1,4 @@
+import { perlSedAtomicCases, perlSedInvalidAtomicByteCases } from "./perl-sed-atomic-fixtures.js";
 import { perlSedNamedCases, perlSedInvalidNamedByteCases } from "./perl-sed-named-fixtures.js";
 import { perlSedPosixCases, perlSedInvalidPosixByteCases } from "./perl-sed-posix-fixtures.js";
 import { perlSedLookbehindCases, perlSedInvalidLookbehindByteCases } from "./perl-sed-lookbehind-fixtures.js";
@@ -103,5 +104,12 @@ it.each(perlSedNamedCases)("matches native named capture $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
 it.each(perlSedInvalidNamedByteCases)("refuses unresolved named-capture byte result $id", vector => {
+  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+});
+
+it.each(perlSedAtomicCases)("matches native atomic and possessive state $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
+});
+it.each(perlSedInvalidAtomicByteCases)("refuses unresolved atomic byte result $id", vector => {
   expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
 });

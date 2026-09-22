@@ -158,7 +158,8 @@ The exported `perlSampleFunctions` binding includes `PERL_ADDER`, `PERL_DATE`
 and `PERL_SED`. `PERL_DATE` returns `YYYYMMDD` using the injected clock and
 timezone. `PERL_SED("abc","b","d")` returns `adc`; replacement text stays
 literal, including `$1` and backslashes. Its bounded byte-pattern grammar covers
-ordered alternatives, groups, greedy/lazy repetition, classes (including the
+ordered alternatives, groups (including atomic `(?>...)`), greedy/lazy and
+possessive repetition (`a*+`, `a++`, `a?+`, `a{1,3}+`), classes (including the
 14 POSIX byte classes such as `[[:digit:]]`), anchors, flags
 and lookahead/fixed-width lookbehind, with captures, ASCII named groups/references
 (such as `(?<part>a)\k<part>`), numeric backreferences `\1`–`\9`, and explicit

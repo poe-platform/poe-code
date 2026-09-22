@@ -10,6 +10,7 @@ type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "alternative"; nodes: Node[] }
   | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean }
   | { kind: "capture"; node: Node; index: number }
+  | { kind: "atomic"; node: Node }
   | { kind: "reference"; indices: number[]; insensitive: boolean }
   | { kind: "behind"; node: Node; negative: boolean; width: number }
   | { kind: "assert"; node: Node; negative: boolean };
@@ -162,10 +163,12 @@ function compile(pattern: string, host: FunctionHost): Node {
     if (++depth > 64) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
     let assertion: boolean | undefined;
     let behind = false;
+    let atomic = false;
     let capture = pattern[at] === "?" ? undefined : ++captures;
     if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
+      else if (pattern[at] === ">") { at++; atomic = true; }
       else if (pattern[at] === "=" || pattern[at] === "!") assertion = pattern[at++] === "!";
       else if (pattern[at] === "<" && (pattern[at + 1] === "=" || pattern[at + 1] === "!")) {
         at++; assertion = pattern[at++] === "!"; behind = true;
@@ -197,6 +200,7 @@ function compile(pattern: string, host: FunctionHost): Node {
       }
     }
     const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
+    if (atomic) return node({ kind: "atomic", node: inner });
     if (assertion !== undefined) return behind
       ? node({ kind: "behind", node: inner, negative: assertion, width: fixedWidth(inner) })
       : node({ kind: "assert", node: inner, negative: assertion });
@@ -207,7 +211,7 @@ function compile(pattern: string, host: FunctionHost): Node {
     if (value.kind === "char") width = 1;
     else if (value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") width = 0;
     else if (value.kind === "reference") return unsupported();
-    else if (value.kind === "capture") width = fixedWidth(value.node);
+    else if (value.kind === "capture" || value.kind === "atomic") width = fixedWidth(value.node);
     else if (value.kind === "repeat") {
       if (value.min !== value.max) return unsupported();
       width = fixedWidth(value.node) * value.min;
@@ -261,8 +265,9 @@ function compile(pattern: string, host: FunctionHost): Node {
       }
       if (min !== undefined) {
         const lazy = pattern[at] === "?"; if (lazy) at++;
-        if (pattern[at] === "+") return unsupported();
+        const possessive = !lazy && pattern[at] === "+"; if (possessive) at++;
         value = node({ kind: "repeat", node: value, min, max, lazy });
+        if (possessive) value = node({ kind: "atomic", node: value });
       }
       result.push(value);
     }
@@ -305,6 +310,9 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       captures[node.index] = [position, result.position];
       yield { ...result, captures };
     }
+  } else if (node.kind === "atomic") {
+    const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
+    if (!result.done) yield result.value;
   } else if (node.kind === "assert") {
     const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
     if (result.done) { if (node.negative) yield state; }
@@ -333,7 +341,7 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       while (nested.length) {
         host.tick(); const child = nested.pop()!;
         if (child.kind === "capture") cleared.add(child.index);
-        if (child.kind === "capture" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
+        if (child.kind === "capture" || child.kind === "atomic" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
         else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
       }
       if (cleared.size) {

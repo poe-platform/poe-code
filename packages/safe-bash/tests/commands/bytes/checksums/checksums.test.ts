@@ -128,6 +128,29 @@ test("POSIX CRC static vectors and default/explicit stdin names", async () => {
   assert.equal((await run("cksum", ["-z", "line\nname"], { fs })).stdout, "1219131554 3 line\nname\0");
 });
 
+test("cksum binary and tag options preserve CRC bytes and tagged hash output", async () => {
+  const fs = await fixture({ input: "abc\n", "line\nname": "abc\n", "-b": "abc\n" });
+  for (const flags of [["-b"], ["--binary"], ["--tag"], ["--tag", "-b"], ["-b", "--tag"]]) {
+    assert.deepEqual(await run("cksum", [...flags, "input"], { fs }),
+      { exitCode: 0, stdout: "1112837078 4 input\n", stderr: "" });
+    assert.deepEqual(await run("cksum", flags, { stdin: chunks(encoder.encode("abc\n"), 1) }),
+      { exitCode: 0, stdout: "1112837078 4\n", stderr: "" });
+    assert.deepEqual(await run("cksum", [...flags, "-"], { stdin: "abc\n" }),
+      { exitCode: 0, stdout: "1112837078 4 -\n", stderr: "" });
+    assert.deepEqual(await run("cksum", [...flags, "-z", "line\nname"], { fs }),
+      { exitCode: 0, stdout: "1112837078 4 line\nname\0", stderr: "" });
+    assert.deepEqual(await run("cksum", ["-a", "sha256", ...flags], { stdin: "abc" }),
+      { exitCode: 0, stdout: `SHA256 (-) = ${abcSha}\n`, stderr: "" });
+  }
+  const shell = new Shell({ fs, commands: registry, cwd: "/work" });
+  try {
+    assert.deepEqual(await shell.exec("cksum -bz --tag -- input"),
+      { exitCode: 0, stdout: "1112837078 4 input\0", stdoutBytes: encoder.encode("1112837078 4 input\0"), stderr: "", stderrBytes: new Uint8Array() });
+    assert.deepEqual(await shell.exec("cksum --tag -- -b"),
+      { exitCode: 0, stdout: "1112837078 4 -b\n", stdoutBytes: encoder.encode("1112837078 4 -b\n"), stderr: "", stderrBytes: new Uint8Array() });
+  } finally { await shell.dispose(); }
+});
+
 test("verification modes: quiet/status/warn ordering, strict, ignored missing", async () => {
   const fs = await fixture({ good: "abc", bad: "xyz" });
   const manifest = `${abcSha}  good\n${abcSha} *bad\n${abcSha}  absent\ninvalid\n`;
@@ -170,7 +193,7 @@ test("all unknown flags and invalid combinations are rejected", async () => {
   for (const args of [["--tag=yes"], ["--algorithm=sha256"], ["--quiet"], ["--status"], ["--strict"], ["--ignore-missing"], ["-w"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
     assert.equal((await run("sha256sum", args)).exitCode, 2, args.join(" "));
   }
-  for (const args of [["-c"], ["--binary"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {
+  for (const args of [["-c"], ["--binary=yes"], ["--tag=yes"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {
     assert.equal((await run("cksum", args)).exitCode, 2);
   }
 });

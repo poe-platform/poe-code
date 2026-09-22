@@ -41,9 +41,11 @@ long options, `--tag`, `--help`, and `--version` are rejected, not ignored.
 `cksum` defaults to POSIX CRC and accepts `-a`/`--algorithm` with crc, md5,
 sha1, sha224, sha256, sha384 or sha512. Explicit hash algorithms use GNU tagged
 output, including filename escaping; `-z`/`--zero` preserves literal names with
-NUL termination. All algorithms use the same bounded streaming/cancellation
+NUL termination. `-b`/`--binary` and `--tag` are accepted: CRC retains its
+checksum/length format, and hash algorithms retain tagged output. Input bytes
+are unchanged. All algorithms use the same bounded streaming/cancellation
 path, never buffering a complete input. Other algorithms, checksum verification,
-tag-selection, binary/text selectors and output-length options remain rejected.
+untagged output, text selectors and output-length options remain rejected.
 This is not the complete modern GNU interface. Existing SHA/MD5 command
 verification behavior and default CRC bytes/length output are unchanged.
 

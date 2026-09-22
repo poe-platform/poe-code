@@ -33,7 +33,7 @@ interface Digest { hex: string; length: bigint }
 interface Entry { digest: string; filename: string }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
-  const parsed = options(args, "a:z", { algorithm: "a", zero: "z" });
+  const parsed = options(args, "a:bz", { algorithm: "a", binary: "b", tag: false, zero: "z" });
   const algorithm = value(parsed, "a") ?? "crc";
   if (!["crc", "md5", "sha1", "sha224", "sha256", "sha384", "sha512"].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
   return { algorithm: algorithm as Algorithm, settings: { operands: parsed.operands, binary: false, check: false, zero: parsed.flags.has("z"), tag: true, strict: false, ignoreMissing: false, report: "normal" } };

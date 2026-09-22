@@ -2,7 +2,7 @@ import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
   type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
-import { codeOf, define, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { codeOf, define, diagnostic, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
@@ -11,6 +11,7 @@ import { createDirectoryReader, type DirectoryReader } from "./directory-admissi
 import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { touchTimes } from "./touch-times.js";
+import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
@@ -444,21 +445,33 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("readlink", async context => {
-      const parsed = options(context.args, "fenz", { canonicalize: "f", "canonicalize-existing": "e", zero: "z", "no-newline": "n" });
+      const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };
+      const parsed = options(context.args, "femnz", { ...canonicalOptions, zero: "z", "no-newline": "n" });
       requireOperands(parsed.operands);
+      if (parsed.flags.has("n") && parsed.operands.length > 1) {
+        await diagnostic(context, new PublicDiagnostic("ignoring --no-newline with multiple arguments"));
+      }
+      let mode = "link";
+      for (const argument of context.args) {
+        if (argument === "--") break;
+        const flags = argument.startsWith("--") ? canonicalOptions[argument.slice(2)] ?? ""
+          : argument.startsWith("-") ? argument.slice(1) : "";
+        for (const flag of flags) if (flag === "f" || flag === "e" || flag === "m") mode = flag;
+      }
       return eachOperand(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
-        await admitFilesystemModes(context, "readlink", [parsed.flags.has("e") || parsed.flags.has("f") ? "canonical" : "link"], [path]);
+        await admitFilesystemModes(context, "readlink", [mode === "link" ? "link" : "canonical"], [path]);
         let result: string;
-        if (parsed.flags.has("e")) result = await context.fs.realpath(path, { signal: context.signal });
-        else if (parsed.flags.has("f")) {
+        if (mode === "m") result = await canonicalizeReadlinkMissing(context, path);
+        else if (mode === "e") result = await context.fs.realpath(path, { signal: context.signal });
+        else if (mode === "f") {
           const existing = await maybeStat(context, path, false);
           result = existing ? await context.fs.realpath(path, { signal: context.signal }) : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
         } else {
           needCapability(context, "readlink");
           result = await context.fs.readlink!(path, { signal: context.signal });
         }
-        await output(context, result + (parsed.flags.has("n") ? "" : parsed.flags.has("z") ? "\0" : "\n"));
+        await output(context, result + (parsed.flags.has("n") && parsed.operands.length === 1 ? "" : parsed.flags.has("z") ? "\0" : "\n"));
       });
     }),
     define("realpath", async context => {

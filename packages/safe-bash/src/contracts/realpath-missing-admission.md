@@ -28,5 +28,11 @@ interrupted while it owns the event loop. No numeric path limit is introduced.
 
 The operation preserves current path behavior, including existing dangling-link,
 file-ancestor, trailing-slash, and missing-prefix lexical-suffix behavior. It does
-not establish full GNU canonicalize-missing compatibility. `readlink -m` remains
-unsupported, and `realpath -e` does not use the missing-target operation.
+not establish full GNU canonicalize-missing compatibility. `realpath -e` does not
+use the missing-target operation.
+
+`readlink -m`/`--canonicalize-missing` uses a separate component traversal through
+`lstat` and `readlink`, preserving symlink and `..` order. Missing components,
+non-directory ancestors and cyclic links are treated as directories; other
+filesystem failures and cancellation propagate. This traversal yields every 32
+steps and does not use the optional missing-target operation.

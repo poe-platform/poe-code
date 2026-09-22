@@ -46,7 +46,7 @@ export const filesystemCommandRequirements = {
   ],
   readlink: [
     { id: "link", description: "Read symbolic link targets", capabilities: ["readlink"] },
-    { id: "canonical", description: "Canonicalize paths (-f/-e)", capabilities: ["stat", "realpath"] },
+    { id: "canonical", description: "Canonicalize paths (-f/-e/-m)", capabilities: ["stat", "realpath"] },
   ],
   realpath: [
     { id: "canonical", description: "Canonicalize existing or missing paths", capabilities: ["stat", "realpath"] },

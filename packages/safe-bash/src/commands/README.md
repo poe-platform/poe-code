@@ -68,7 +68,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `rm` | Files and links; `-r`/`-R`, `-f`, empty directories `-d`, `-v`; root and dot-entry protection. |
 | `rmdir` | Directory/type/emptiness checks, parent removal `-p`, `-v`. |
 | `ln` | Hard and literal symbolic links, `-s`, `-f`, `-n`, `-T`; multiple sources into target directories. |
-| `readlink` | Literal link targets; canonical `-f`, existing-only `-e`, no newline `-n`, NUL `-z`. |
+| `readlink` | Literal link targets; canonical `-f`, existing-only `-e`, missing components `-m`/`--canonicalize-missing`, no newline `-n`, NUL `-z`. |
 | `basename` | Root/trailing slash handling, optional suffix, `-a`, `-s`, `-z`. |
 | `dirname` | Multiple path operands, trailing slashes and roots, `-z`. |
 | `realpath` | Existing paths and missing final component; `-e`, `-m`, `-s`/`--strip`/`--no-symlinks`, `-z`, `--relative-to`, `--relative-base`; `-s` folds paths lexically without expanding symlinks, and relative bases follow the selected canonicalization mode. |

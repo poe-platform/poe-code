@@ -496,6 +496,61 @@ test("readlink and realpath distinguish literal targets, existing and missing pa
   assert.match((await run("realpath", ["file/.."], { fs })).stderr, /ENOTDIR/u);
 });
 
+test("readlink canonicalize-missing resolves virtual paths and preserves output bytes", async () => {
+  const fs = await fixture({ file: "x", "deep/inside/file": "x" });
+  await fs.symlink("deep/inside", "/work/link");
+  await fs.symlink("absent/target", "/work/dangling");
+  await fs.symlink("cycle", "/work/cycle");
+  const shell = new Shell({ fs, cwd: "/work" });
+  await shell.use(agentCommands());
+  const reproduced = await shell.exec("readlink -m missing");
+  assert.equal(reproduced.exitCode, 0, reproduced.stderr);
+  assert.equal(reproduced.stdout, "/work/missing\n");
+  const operands = ["absent/deep/file", "link/../missing", "dangling/child", "file/child", "file/..", "absent/../link/file", "cycle/child", "/../../work/missing"];
+  const paths = ["/work/absent/deep/file", "/work/deep/missing", "/work/absent/target/child", "/work/file/child", "/work", "/work/deep/inside/file", "/work/cycle/child", "/work/missing"];
+  for (const flags of [["-m"], ["--canonicalize-missing"], ["-mz"], ["-mn"]]) {
+    const result = await run("readlink", [...flags, ...operands], { fs });
+    const separator = flags[0] === "-mz" ? "\0" : "\n";
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, Buffer.from(paths.map(path => path + separator).join("")));
+    assert.equal(result.stderr, flags[0] === "-mn" ? "readlink: ignoring --no-newline with multiple arguments\n" : "");
+  }
+  assert.equal((await run("readlink", ["-mn", "missing"], { fs })).stdout, "/work/missing");
+  for (const flags of ["-em", "-fem", "-mem"]) assert.equal((await run("readlink", [flags, "absent/deep"], { fs })).stdout, "/work/absent/deep\n");
+  for (const flags of ["-me", "-mf", "-emf"]) assert.equal((await run("readlink", [flags, "absent/deep"], { fs })).exitCode, 1);
+  assert.equal((await run("readlink", ["-m", "--", "-missing"], { fs })).stdout, "/work/-missing\n");
+});
+
+test("readlink missing canonicalization bytes match the Linux oracle without host fixtures", { skip: process.platform !== "linux" }, async context => {
+  const fs = await fixture({ "/dev/null": "" });
+  await fs.mkdir("/proc/self", { recursive: true });
+  await fs.symlink(process.cwd(), "/proc/self/cwd");
+  const operands = ["/__poe_readlink_missing_170__/deep/../file", "/dev/null/child", "/dev/null/..", "/proc/self/cwd/__poe_readlink_missing_170__/../missing"];
+  for (const flags of ["-m", "--canonicalize-missing", "-mz", "-mn", "-em", "-mem"]) {
+    const native = spawnSync("readlink", [flags, ...operands], { timeout: 1000, env: { ...process.env, LC_ALL: "C", TZ: "UTC" } });
+    if (native.error && "code" in native.error && native.error.code === "ENOENT") { context.skip("native readlink unavailable"); return; }
+    assert.ifError(native.error);
+    if (native.status !== 0 && native.stderr.toString().includes("illegal option")) { context.skip("native readlink lacks GNU -m support"); return; }
+    const result = await run("readlink", [flags, ...operands], { fs });
+    assert.equal(result.exitCode, native.status, native.stderr.toString());
+    assert.deepEqual(result.stdoutBytes, native.stdout);
+    assert.deepEqual(result.stderrBytes, native.stderr);
+  }
+});
+
+test("readlink missing canonicalization preserves filesystem failures and cancellation", async context => {
+  const fs = await fixture();
+  context.mock.method(fs, "lstat", async () => { throw new FsError("EACCES", { path: "/work" }); });
+  const denied = await run("readlink", ["-m", "missing"], { fs });
+  assert.equal(denied.exitCode, 1);
+  assert.equal(denied.stdout, "");
+  assert.ok(denied.stderr.includes("EACCES"));
+  const controller = new AbortController();
+  const reason = new Error("cancel canonicalization");
+  context.mock.method(fs, "lstat", async () => { controller.abort(reason); throw new FsError("ENOENT"); });
+  await assert.rejects(run("readlink", ["-m", "missing"], { fs, signal: controller.signal }), error => error === reason);
+});
+
 test("realpath strips symlinks and dot components lexically", async () => {
   const fs = await fixture({ input: "a", "deep/inside/file": "x" });
   await fs.symlink("deep/inside", "/work/link");

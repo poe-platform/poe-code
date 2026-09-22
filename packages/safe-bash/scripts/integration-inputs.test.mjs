@@ -2647,6 +2647,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/search/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/search/grep-pattern-admission.test.ts"));
   assert.ok(files.includes("tests/shell-stress/invocation-modes/batch-controls.test.ts"));
+  assert.ok(files.includes("tests/shell-stress/invocation-modes/harness.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
     assert.equal(executable, process.execPath);
     assert.deepEqual(args, ["--import", "tsx", "--test", "--test-concurrency=1", ...files]);

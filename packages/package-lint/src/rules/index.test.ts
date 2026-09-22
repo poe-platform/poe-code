@@ -18,6 +18,7 @@ import "./shipped-dist-deps-unresolvable.test.cases.js";
 import { describe, expect, it } from "vitest";
 import type { PackageInfo, WorkspaceModel } from "../model.js";
 import { runRules } from "./index.js";
+import { makeWorkspace, pkgJson } from "../fixtures.js";
 
 const rootPackage: PackageInfo = {
   name: "root",
@@ -58,6 +59,28 @@ const model: WorkspaceModel = {
 };
 
 describe("runRules", () => {
+  it.each([undefined, false])("requires command workspaces to be private (%s)", async (privateStatus) => {
+    const workspace = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root", private: true }),
+      "/repo/packages/safe-bash-command-example/package.json": pkgJson({
+        name: "safe-bash-command-example", private: privateStatus,
+        repository: { directory: "packages/safe-bash-command-example" }
+      })
+    });
+    expect(runRules(workspace).violations).toContainEqual(expect.objectContaining({
+      rule: "safe-bash-command-private", package: "safe-bash-command-example", severity: "error"
+    }));
+  });
+
+  it("allows private command workspaces and unrelated public packages", async () => {
+    const workspace = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root", private: true }),
+      "/repo/packages/safe-bash-command-example/package.json": pkgJson({ name: "safe-bash-command-example", private: true }),
+      "/repo/packages/other/package.json": pkgJson({ name: "other" })
+    });
+    expect(runRules(workspace).violations.filter(violation => violation.rule === "safe-bash-command-private")).toEqual([]);
+  });
+
   it("rejects unknown focused rule ids", () => {
     expect(() => runRules(model, undefined, ["definitely-not-a-rule"])).toThrow(
       /Unknown package-lint rule/

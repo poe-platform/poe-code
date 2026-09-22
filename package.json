@@ -549,7 +549,14 @@
     "@poe-code/csvkit": "*",
     "@poe-code/ssconvert": "*",
     "@poe-code/media-cli": "*",
-    "@poe-code/remote-execution": "*"
+    "@poe-code/remote-execution": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-csv-engine": "*"
   },
   "repository": {
     "type": "git",

@@ -95,6 +95,14 @@ for spacing, prefix, cancellation and resource limits.
 
 These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`.
 
+Import `csvcutCommands` from `@poe-platform/safe-bash/commands/csvcut` and pass it
+to `shell.use(csvcutCommands())` to enable CSV projection. For example,
+`printf 'a,b\nx,y\n' | csvcut -c2,1,2` emits `b,a,b\ny,x,y\n`.
+The same subpath exports the typed SDK and bounded record/selector APIs; see the
+[flags, limits and profiles](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvcut/README.md).
+Packed Node ESM consumers are verified; actual browser/workerd execution remains
+unqualified.
+
 | Command | Plugin and configuration |
 | --- | --- |
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
@@ -102,8 +110,55 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | `python`, `python3` | `pythonCommands({ createExecutor })` from `@poe-platform/safe-bash/commands/python`: supply an explicit executor for invocation-local Python, filesystem I/O and shell streams. [Executor and ownership contract](src/contracts/python-executor.md). |
 | `llm` | `llmCommands({ providers, defaultModel?, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
 | `wkhtmltopdf` | `/commands/wkhtmltopdf`: opt-in CLI/SDK adapter with VFS byte I/O and explicit limits. Requires a supplied first-party static renderer; none is included. `wkhtmltopdfCommands({ limits, renderer? })` and `runWkhtmltopdf(context, options)` share behavior. Exported `switches` lists all 122 flags and rejections; `wkhtmltopdfLimits` defaults to 16 MiB PDF output, 64 objects and 128 batch jobs. `--help`, `--extended-help` and `--version` work without a renderer; TOC and dynamic execution are unavailable. |
+| `unrtf` | `/commands/unrtf`: opt-in `unrtfCommands({ limits?, replace? })`, equivalent `unrtf(context, { format?, file?, limits? })` SDK, and bounded `tokenizeRtf`, `extractRtf`, `renderRtf` streams. Strict UTF-8 text/HTML supports scoped font/color/emphasis and flat tables; objects, pictures and field instructions stay inert. Use `unrtf --text /document.rtf` or `unrtf --html /document.rtf` (HTML default); output is UTF-8 with no invented text separator/final LF. Accepted flags are `--text`, `--html`, `--quiet`, `--nopict`, `-n`, `--`; unsupported profiles fail with status 1. GNU personalities and picture exports remain unimplemented. Private implementation/types ship inside safe-bash; see the [flags, limits and runtime profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-unrtf/README.md). |
 | `exiftool` | `/commands/exiftool`: opt-in `exiftoolCommands({ limits? })` for uncompressed PNG text and `tIME` inspection/selected writes. Use `exiftool -j -Title /image.png`, `-csv` for union headers, or `-Title=Example` to edit with an `_original` backup. Typed SDK argv uses `createExiftoolArguments`. Defaults: 64 files, 16 MiB cumulative input/output, 8 MiB decoded and 32 MiB retained bytes. Private implementation/types ship inside safe-bash. PDF, Office, EXIF/XMP, broader timestamps, import and execute protocols remain unsupported; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-exiftool/README.md). |
+| `csvcut` | `/commands/csvcut`: opt-in `csvcutCommands({ limits?, replace? })` and equivalent `csvcut(context, { include?, exclude?, zero?, names?, headerless?, deleteEmptyRows?, lineNumbers?, addBom?, dialect?, filePath?, encoding?, help?, version? }, { limits? })`. Bounded UTF-8-sig byte input, comma/LF output and literal VFS paths; csvkit 2.2.0 selector candidate, permissive-v1 reader, quoting 0/3 only, no Sniffer or full Python compatibility. Defaults: 16 MiB input, 32 MiB output, 64 MiB retained, 1 MiB fields and 100,000 cells. Private implementation/types ship inside safe-bash; see the [flags, limits and runtime profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvcut/README.md). |
+| `csvgrep` | `/commands/csvgrep`: opt-in `csvgrepCommands({ limits?, replace? })` and equivalent `csvgrep(context, { columns, match?, regex?, file?, any?, invert?, dialect?, filePath? }, { limits? })`. Preserves CSV rows/headers with UTF-8-sig input, comma/LF output and the bounded `bounded-sequence-v1` Python regex subset; full csvkit compatibility is unqualified. Private implementation/types ship inside safe-bash; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-csvgrep/README.md). |
+| `fold` | `/commands/fold`: opt-in `foldCommands({ locale?, limits?, replace? })` and `fold(context, { width?, mode?, spaces?, files?, locale?, limits? })` for byte streams and literal VFS paths. Supports column, character and byte counting with a pinned Unicode 17 profile or explicit C decoding. Use `replace: true` with `agentCommands()` to replace its existing fold implementation; defaults are unchanged. Private implementation/types ship inside safe-bash; see the [supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-fold/README.md). |
 | `playwright-cli` | Standard browser commands, storage state, native snapshots, recordings, and traces through a host-owned adapter. Completed actions retain their live session when a failed checkpoint confirms safe cleanup. [Sessions and host capabilities](src/contracts/playwright-sessions.md). [Optional Cloudflare adapter and portable profiles](https://github.com/poe-platform/poe-code/blob/main/packages/safe-playwright-cloudflare/README.md). `installPlaywrightNetworkPolicy` from `/playwright` supports browser-native redirects with per-hop bounded host HTTP fetch and independent direct HTTP/WebSocket denial. `bindPlaywrightRoutePolicy(context, { ownsRequest, admit, fetch }, limits)` lets standard route mocks and header rewrites use that host policy, with admission before matching and bounded response leases. Cloudflare guardrails do not establish WebRTC/UDP denial or all-protocol accounting; hosts requiring those guarantees must refuse this integration. [Network policy and lifecycle](src/contracts/playwright-network-policy.md). |
+
+`/commands/diff3` provides opt-in `diff3Commands({ limits?, replace? })`, the
+equivalent `diff3(context, { files, merge?, selector?, labels?, ... })` SDK, and
+pure byte report/merge/ed and analysis APIs. Its GNU 3.12 qualified profile uses
+VFS files and bounded stdin spooling; private implementation and declarations
+ship inside safe-bash. `diff3 -m /ours /base /theirs` emits merge bytes (flagged
+conflicts return 1); the default report returns 0 for differences. `-e` emits an
+ed script without executing it. GNU 3.12's `-X` is unflagged; one stdin operand
+is supported in any position, and external `--diff-program` selection is refused.
+The command is qualified for Node ESM; actual browser/workerd engines remain
+unverified. See the [flags, limits and supported profile](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-diff3/README.md).
+
+
+`/commands/htmlq` exports opt-in `htmlqCommands({ limits?, replace? })`,
+equivalent `htmlq(context, { selector: "p", text: true })` SDK execution (or
+literal `argv`) and the inert HTML
+byte-stream engine. Use `htmlq 'div > p' -t -f /input.html`; attribute, text and
+HTML projections preserve pinned separators and lazy first-match removals.
+Explicit engine limits and cancellation are required. Private implementation and
+types ship inside safe-bash. Full HTML5 recovery, selector grammar and Rust URL
+parity remain unqualified; modern `:is/:where/:has/:lang` are explicitly rejected.
+Use `--attributes` (plural) for attribute output; no-match succeeds with empty
+output. Scripts/styles remain inert and preserved; interior BOMs are retained
+regardless of input chunking, correcting the pinned upstream defect.
+Node.js 22+ is qualified; browser/workerd conditional graphs are checked
+in Node, while actual engines remain unverified. See the
+[supported flags and limits](https://github.com/poe-platform/poe-code/blob/main/packages/safe-bash-command-htmlq/README.md).
+
+
+
+For example, load the optional PDF adapter to inspect its supported options:
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(wkhtmltopdfCommands());
+try {
+  console.log((await shell.exec("wkhtmltopdf --help")).stdout);
+} finally {
+  await shell.dispose();
+}
+```
 
 For a custom same-isolate Python JSPI host, use `createPythonJspiExecutor` from
 the same Python entry with an explicit loader, precompiled Wasm modules and

@@ -10,6 +10,11 @@ import { constructionStates } from "../interp/construction-state.js";
 import { isSandboxClosure } from "../interp/values.js";
 import { serialize, type RuntimeSnapshotValue } from "./serialize.js";
 import { restore } from "./restore.js";
+import { interpret } from "../interp/interpreter.js";
+import { createBuiltinBindings } from "../interp/globals.js";
+import { parseExecutableModule } from "../parse/parser.js";
+import { SandboxJobQueue } from "../interp/jobs.js";
+import { releaseObjectPrototype } from "../interp/object-model.js";
 
 it.each(["binding", "nested", "shared-reference"])("rejects an internal construction environment exposed through %s", async location => {
   const pending = run("class C{constructor(){this.read=()=>this}}const read=new C().read;await 0;return read()");
@@ -55,19 +60,35 @@ it.each([
 ] as const)("restores retained constructor state: %s", async (source, expected) => {
   const native = await (new Function(source)() as () => unknown)();
   if (expected !== undefined) expect(native).toEqual(expected);
-  const control = await run(source);
-  assert(control.ok && isSandboxClosure(control.returnValue));
+  // Runtime graph restoration uses a live interpreter model. run() finishes its
+  // execution queue on completion; persistent callbacks use the realm API.
   const budget = new Budget();
-  expect(await awaitSandboxValue(await invokeBuiltinClosure(control.returnValue, [], budget, undefined, undefined), undefined, budget)).toEqual(native);
-  const fresh = await run(source);
-  assert(fresh.ok);
-  const snapshot = serialize({source, currentAstNodeId: 1,
-    scopeChain: [{id: "module", bindings: {read: fresh.returnValue as RuntimeSnapshotValue}}],
-    callStack: [], pendingPromises: [], moduleBindings: {}});
   const restoredBudget = new Budget();
-  const binding = restore(JSON.parse(JSON.stringify(snapshot)), {source, budget: restoredBudget}).currentScope.lookup("read");
-  assert(binding.found && isSandboxClosure(binding.value));
-  expect(await awaitSandboxValue(await invokeBuiltinClosure(binding.value, [], restoredBudget, undefined, undefined), undefined, restoredBudget)).toEqual(native);
+  const jobs = new SandboxJobQueue();
+  const bindings = createBuiltinBindings({budget});
+  const module = parseExecutableModule(source);
+  const node = {
+    type: "BlockStatement" as const,
+    body: module.body.filter(statement => statement.type !== "ImportDeclaration"),
+    span: module.span
+  };
+  try {
+    const control = await interpret(node, {budget, jobs, bindings});
+    assert(control.ok && isSandboxClosure(control.returnValue));
+    expect(await awaitSandboxValue(await invokeBuiltinClosure(control.returnValue, [], budget, undefined, undefined), undefined, budget)).toEqual(native);
+    const fresh = await interpret(node, {budget, jobs, bindings});
+    assert(fresh.ok);
+    const snapshot = serialize({source, currentAstNodeId: 1,
+      scopeChain: [{id: "module", bindings: {read: fresh.returnValue as RuntimeSnapshotValue}}],
+      callStack: [], pendingPromises: [], moduleBindings: {}});
+    const binding = restore(JSON.parse(JSON.stringify(snapshot)), {source, budget: restoredBudget}).currentScope.lookup("read");
+    assert(binding.found && isSandboxClosure(binding.value));
+    expect(await awaitSandboxValue(await invokeBuiltinClosure(binding.value, [], restoredBudget, undefined, undefined), undefined, restoredBudget)).toEqual(native);
+  } finally {
+    jobs.finish();
+    releaseObjectPrototype(budget);
+    releaseObjectPrototype(restoredBudget);
+  }
 });
 
 it.each(["scope-state", "scope-owner", "prototype"])("rejects inconsistent construction %s metadata", async corruption => {

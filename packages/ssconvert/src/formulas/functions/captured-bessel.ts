@@ -3,6 +3,7 @@ import { capturedTrig } from "./captured-trigonometry.js";
 import { piReduced, sinPi } from "./math.js";
 import { c, multiply } from "./complex.js";
 import type { FunctionHost } from "./types.js";
+import { capturedPow } from "./captured-pow.js";
 import { capturedAcos } from "./captured-acos.js";
 import { capturedLog1p } from "./captured-log1p.js";
 
@@ -290,13 +291,13 @@ export function capturedHankelIntegral(x: number, secondKind: boolean, host: Fun
       } else limit = point;
     }
   }
-  if (power !== 1) { lower **= 1 / power; upper **= 1 / power; }
+  if (power !== 1) { lower = capturedPow(lower, 1 / power, host); upper = capturedPow(upper, 1 / power, host); }
   const step = (upper - lower) / count;
   let real = 0, imaginary = 0;
   for (let n = 0; n <= count; n++) {
-    host.tick(); const t = fusedMultiplyAdd(n, step, lower), point = power === 1 ? t : t ** power;
+    host.tick(); const t = fusedMultiplyAdd(n, step, lower), point = power === 1 ? t : capturedPow(t, power, host);
     let [a, b] = sample(point);
-    if (power !== 1) { const scale = power * t ** (power - 1); a *= scale; b *= scale; }
+    if (power !== 1) { const scale = power * capturedPow(t, power - 1, host); a *= scale; b *= scale; }
     if (n === 0 || n === count) { a *= .5; b *= .5; }
     real += a; imaginary += b;
   }

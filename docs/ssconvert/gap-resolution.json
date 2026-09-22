@@ -554,7 +554,7 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Private capturedLog1p3902/3902 and actual scalar acos2173/2173 match historical Debian2.41 aarch64 libm after compiled-operation repairs. Public LN1P preserved. Bessel high-q improves73→74/120;46 differences and broader profiles remain open. Other named Bessel cohorts preserved and exact.",
+      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73→74→120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -579,18 +579,23 @@
           "kind": "executed-native-acos-full-interval-controls",
           "path": "docs/ssconvert/bessel-acos-native-gap-proof.json",
           "outcome": "Original1red regression repaired;2173 exact primitive controls,all2724 coefficient words match actual libm binary,27focused/7371workspace tests,lint/types/build; actual publicShell repaired Bessel HEXREP screenshot inspected.46 broader Bessel differences remain."
+        },
+        {
+          "kind": "executed-native-quadrature-power-and-public-regressions",
+          "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         }
       ],
       "delivery": {
-        "localCommit": "43c6a527ca00b78291483148def4f7eab56c206b",
-        "remoteMain": "private log1p repair verified on origin/main; acos repair pending atomic delivery",
-        "publication": "log1p Release35780504119 cancelled by unrelated main progress; containing35780848122 pending"
+        "localCommit": "2ab19d7fc64790fae8fa2adeb80b232e84a06c24",
+        "remoteMain": "private log1p43c6a527c and acos2ab19d7fc verified on remote main; quadrature-power repair pending atomic delivery",
+        "publication": "containing Release35781879721 pending; successful publication not yet verified"
       }
     },
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Private capturedLog1p3902/3902 and actual scalar acos2173/2173 match historical Debian2.41 aarch64 libm after compiled-operation repairs. Public LN1P preserved. Bessel high-q improves73→74/120;46 differences and broader profiles remain open. Other named Bessel cohorts preserved and exact.",
+      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73→74→120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -610,12 +615,17 @@
           "kind": "executed-native-acos-full-interval-controls",
           "path": "docs/ssconvert/bessel-acos-native-gap-proof.json",
           "outcome": "Original1red regression repaired;2173 exact primitive controls,all2724 coefficient words match actual libm binary,27focused/7371workspace tests,lint/types/build; actual publicShell repaired Bessel HEXREP screenshot inspected.46 broader Bessel differences remain."
+        },
+        {
+          "kind": "executed-native-quadrature-power-and-public-regressions",
+          "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         }
       ],
       "delivery": {
-        "localCommit": "43c6a527ca00b78291483148def4f7eab56c206b",
-        "remoteMain": "private log1p repair verified on origin/main; acos repair pending atomic delivery",
-        "publication": "log1p Release35780504119 cancelled by unrelated main progress; containing35780848122 pending"
+        "localCommit": "2ab19d7fc64790fae8fa2adeb80b232e84a06c24",
+        "remoteMain": "private log1p43c6a527c and acos2ab19d7fc verified on remote main; quadrature-power repair pending atomic delivery",
+        "publication": "containing Release35781879721 pending; successful publication not yet verified"
       }
     },
     {

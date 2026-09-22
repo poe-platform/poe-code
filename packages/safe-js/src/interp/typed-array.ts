@@ -109,7 +109,7 @@ export function nativeTypedArrayView<T extends object>(value: T): T {
 
 const resizeBuffer = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "resize")?.value as ((length: number) => void) | undefined;
 
-export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: number, length?: number, budget?: Budget, Native: NumericTypedArrayConstructor = Float32Array): NumericTypedArray {
+export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: number, length?: number, budget?: Budget, Native: NumericTypedArrayConstructor = Float32Array, owned = false): NumericTypedArray {
   const originalLength = arrayBufferLength(buffer);
   const required = byteOffset + (length ?? 0) * Native.BYTES_PER_ELEMENT;
   const options = arrayBufferOptions(buffer);
@@ -122,7 +122,8 @@ export function restoreTypedArrayView(buffer: ArrayBufferLike, byteOffset: numbe
     Reflect.apply(resizeBuffer, buffer, [required]);
   }
   try {
-    const view = Reflect.construct(Native,[buffer,byteOffset,length]) as NumericTypedArray;
+    const args = [buffer,byteOffset,length];
+    const view = owned ? createOwnedTypedArray(Native,args) : Reflect.construct(Native,args) as NumericTypedArray;
     if (options !== undefined) typedArrayViewLayouts.set(view, { byteOffset, ...(length === undefined ? {} : { length }) });
     return view;
   } finally {
@@ -235,21 +236,24 @@ export function checkTypedArrayAllocation(length: number, budget: Budget, elemen
   budget.provisionDataUsage(length * elementSize + 1)();
 }
 
+// Track sandbox-bound copies only; outbound BufferSources must remain native.
 export function copyTypedArrayStorage<TValue>(
   value: NumericTypedArray,
   state: {
     seen: WeakMap<object, TValue>;
     float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
-  }
+  },
+  owned = false
 ): NumericTypedArray {
   const storage = typedArrayStorage(value);
   const buffer = copyArrayBufferStorage(storage.buffer, state);
   if (arrayBufferOptions(storage.buffer) !== undefined) {
     const layout = typedArrayViewLayouts.get(value);
     if (layout === undefined) throw new TypeError("Resizable Float32Array copies require known view layout.");
-    return restoreTypedArrayView(buffer, layout.byteOffset, layout.length, undefined, storage.Native);
+    return restoreTypedArrayView(buffer, layout.byteOffset, layout.length, undefined, storage.Native, owned);
   }
-  return Reflect.construct(storage.Native,[buffer,storage.byteOffset,storage.length]) as NumericTypedArray;
+  const args = [buffer,storage.byteOffset,storage.length];
+  return owned ? createOwnedTypedArray(storage.Native,args) : Reflect.construct(storage.Native,args) as NumericTypedArray;
 }
 
 export function requireUint8Array(value: unknown): Uint8Array<ArrayBuffer> {

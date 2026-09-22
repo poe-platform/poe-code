@@ -1758,7 +1758,7 @@ function copyToSandbox(
         throw new DOMException("Cannot clone an out-of-bounds typed array.", "DataCloneError");
       }
     }
-    const copy = copyTypedArrayStorage(value, state);
+    const copy = copyTypedArrayStorage(value, state, true);
     state.seen.set(value, copy);
     if (state.structuredClone) return copy;
     copyToSandbox(typedArrayStorage(value).buffer, state, `${path}.buffer`, cloneSandboxCollections, depth + 1);

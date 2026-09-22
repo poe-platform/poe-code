@@ -1260,7 +1260,7 @@ export function copyHostValueToSandbox(
     if (capacity !== undefined) budget.allocateArrayLength(capacity);
     const storage = typedArrayStorage(value);
     checkTypedArrayAllocation(Math.ceil(storage.byteLength / storage.elementSize), budget, storage.elementSize);
-    const copy = copyTypedArrayStorage(value, state);
+    const copy = copyTypedArrayStorage(value, state, true);
     state.seen.set(value, copy);
     copyHostValueToSandbox(typedArrayStorage(value).buffer, stackFrames,
       { ...options, capabilityPath: [...(options.capabilityPath ?? []), "buffer"] }, state, `${path}.buffer`);

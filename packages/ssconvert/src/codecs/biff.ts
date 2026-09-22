@@ -80,7 +80,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
-  const names: { name: string; tokens: Uint8Array; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
+  const names: { name: string; flags: number; tokens: Uint8Array; sheetIndex: number; revision: number; codepage: number; record: BiffRecord; owner?: PendingSheet }[] = [];
   const legacyExternalSheets: (string | null | undefined)[] = [];
   const supbooks: boolean[] = [], externalReferences: { book: number; first: number; last: number }[] = [];
   const fontTable: Font[] = [], xfTable: { data: Binary; revision: number }[] = [], palette = [...defaultPalette];
@@ -227,7 +227,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
           "Print_Area", "Print_Titles", "Recorder", "Data_Form", "Auto_Activate", "Auto_Deactivate", "Sheet_Title", "_FilterDatabase"][builtin];
         name = (base ?? `_BIFF_BUILTIN_${builtin}`) + text.slice(1);
       } else name = ver >= 8 ? cursor.unicode(length).text : cursor.legacy(length);
-      names.push({ name: accountText(name), tokens: data.slice(start + cursor.consumedBytes, tokenLength), sheetIndex, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
+      names.push({ name: accountText(name), flags, tokens: data.slice(start + cursor.consumedBytes, tokenLength), sheetIndex, revision: ver, codepage, record, ...(sheet ? { owner: sheet } : {}) }); continue;
     }
     if (ignoredOpcodes.has(opcode)) continue;
     if (opcode === 0xf) { if (sheet) sheet.view.referenceMode = data.u16(0) ? "A1" : "R1C1"; continue; }
@@ -374,9 +374,15 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const materializedNames: NamedExpression[] = [];
+  const globalPlaceholders = new Set<string>();
   for (const name of names) {
+    // A synthetic VBA function declaration may follow its imported global
+    // #NAME placeholder. Keep both indexed symbols, but one lexical placeholder.
+    if ((name.flags & 0xe) === 0xe && name.sheetIndex === 0 && name.tokens.length === 0 &&
+      globalPlaceholders.has(name.name)) continue;
     try { materializedNames.push({ name: name.name, expression: name.tokens.length ? formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner) : "=#NAME?",
-      ...(name.sheetIndex ? { sheet: (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? invalidBiff("invalid name sheet scope") } : {}) }); }
+      ...(name.sheetIndex ? { sheet: (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? invalidBiff("invalid name sheet scope") } : {}) });
+      if (!name.sheetIndex && materializedNames.at(-1)!.expression === "=#NAME?") globalPlaceholders.add(name.name); }
     catch (error) {
       if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
       await retain(name.record, unsupported, false);

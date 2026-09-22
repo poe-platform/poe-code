@@ -2,8 +2,11 @@ import { SsconvertError } from "../contracts.js";
 import { Binary, invalidBiff } from "./biff-binary.js";
 import { biffFunctions } from "./biff-source.js";
 import { biffDecode } from "./biff-strings.js";
+import { parseExpression } from "../formulas/parser.js";
+import { functionDescriptors } from "../formulas/function-descriptors.js";
+import { excelGrammar } from "../formulas/conventions.js";
 
-interface Expression { text: string; precedence: number; }
+interface Expression { text: string; precedence: number; functionName?: string; }
 export interface BiffFormulaContext {
   readonly revision: number;
   readonly codepage: number;
@@ -30,10 +33,10 @@ export const biffErrors: Readonly<Record<number, string>> = {
 export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaContext): string {
   const data = new Binary(bytes), stack: Expression[] = [];
   let offset = 0, work = 0;
-  const push = (text: string, precedence = 99) => {
+  const push = (text: string, precedence = 99, functionName?: string) => {
     work += text.length;
     if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
-    stack.push({ text, precedence });
+    stack.push({ text, precedence, ...(functionName === undefined ? {} : { functionName }) });
   };
   function nameText(index: number, fallbackSheet?: string): string {
     const name = context.names[index - 1]!;
@@ -88,7 +91,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         text = flags ? new TextDecoder("utf-16le").decode(data.slice(offset, length * 2)) : biffDecode(data.slice(offset, length), 1200);
         offset += length * (flags ? 2 : 1);
       } else { text = biffDecode(data.slice(offset, length), context.codepage); offset += length; }
-      push('"' + text.split('"').join('""') + '"');
+      push('"' + text.split('"').join('""') + '"', 99, text);
     } else if (token === 0x19) {
       const flags = data.u8(offset), value = data.u16(offset + 1); offset += 3;
       if (flags & 4) { data.check(offset, (value + 1) * 2); offset += (value + 1) * 2; }
@@ -100,6 +103,25 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     else if (token === 0x21 || token === 0x22) {
       const argc = token === 0x22 ? data.u8(offset++) & 0x7f : undefined;
       const index = context.revision >= 4 ? data.u16(offset) : data.u8(offset); offset += context.revision >= 4 ? 2 : 1;
+      if ((index & 0x7fff) === 255) {
+        if (argc === undefined) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: fixed-arity BIFF custom function");
+        if (argc < 1 || argc > stack.length) invalidBiff("invalid custom function argument count");
+        const args = stack.splice(stack.length - argc + 1).map(value => value.text);
+        let name = pop().functionName;
+        if (name === undefined) { push('#"#Unknown!"'); return "=" + pop().text; }
+        for (const prefix of ["_xlfn.", "_xlfnodf."]) if (name.startsWith(prefix)) {
+          const candidate = name.slice(prefix.length).toUpperCase();
+          const alias = prefix === "_xlfn." ? excelGrammar.functionPrefixAliases?.["_XLFN."]?.[candidate] ?? candidate : candidate;
+          if (functionDescriptors[alias]) name = alias;
+          break;
+        }
+        // The name is data, not an expression that may inject extra formula nodes.
+        const parsed = parseExpression("=" + name + "()", { position: { sheet: "", row: context.row, column: context.column },
+          maximumLength: context.limit, maximumNodes: 1 });
+        if (!parsed.ok || parsed.document.root.kind !== "call" || parsed.document.root.spelling !== name)
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: BIFF custom function name");
+        push(name + "(" + args.join(",") + ")"); continue;
+      }
       const descriptor = biffFunctions[index & 0x7fff];
       if (!descriptor || argc === undefined && descriptor[1] !== descriptor[2])
         throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF function ${index}`);
@@ -120,12 +142,12 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const name = context.names[index - 1];
       if (!name) { push("#REF!"); continue; }
       const sheet = binding === null ? context.nameSheets?.[index - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
-      push(nameText(index, sheet));
+      push(nameText(index, sheet), 99, name);
     } else if (token === 0x23) {
       const index = data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
       data.check(offset, width); offset += width;
       const name = context.names[index - 1]; if (!name) invalidBiff("invalid formula name index");
-      push(nameText(index));
+      push(nameText(index), 99, name);
     } else if (token === 0x24 || token === 0x2c) { push(reference(offset, token === 0x2c)); offset += context.revision >= 8 ? 4 : 3; }
     else if (token === 0x25 || token === 0x2d) { push(area(offset, token === 0x2d)); offset += context.revision >= 8 ? 8 : 6; }
     else if (token === 0x2a || token === 0x2b) { const size = context.revision >= 8 ? token === 0x2a ? 4 : 8 : token === 0x2a ? 3 : 6; data.check(offset, size); offset += size; push("#REF!"); }

@@ -548,8 +548,8 @@
     "Add-in/true external names and associated SUPBOOK/EXTERNNAME ownership, custom-function255, arrays/remaining tokens, deleted link records and broader profiles remain open."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "72b96504d922dd0a83229b1c12f8d5a117624e8f",
+    "remoteMain": "exact ls-remote HEAD verified after push",
+    "publication": "Release35760553148 subsequently cancelled by newer upstream main; successor35761223794 pending, prior pre-fix run35758467152 stillin_progress"
   }
 }

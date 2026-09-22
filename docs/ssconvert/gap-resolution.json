@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T17:23:58.286171+00:00",
+  "recordedAt": "2026-09-22T17:35:05.725136+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -221,7 +221,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Local/global BIFF7/8 indexed names repaired, including NameX display conflicts and shadowed workbook-global []Name.24 original native/public CLI CSV cases exact. ODF global qualification, add-in/true external names, custom255 and broader BIFF cells remain open.",
+      "currentFinding": "Indexed local/global names delivered72b96504d; local/string custom255 import now repairs writer-emitted extension slot formulas.30 native/public CLI exact comparisons and two matching BIFF macro roundtrips pass. Add-in/true external tables, ODF global qualification, arrays/other tokens, modern deleted links and broader profile cells remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -266,7 +266,17 @@
         {
           "kind": "indexed-BIFF7/8-qualified-name-and-global-namespace-repair",
           "path": "docs/ssconvert/biff-qualified-name-gap-proof.json",
-          "outcome": "26 focused tests and6346 maintained workspace tests pass; maintained lint/type consumers and selected build pass;24 native/public CLI exact comparisons, corrected screenshot inspected; atomic delivery pending",
+          "outcome": "26 focused/6346 maintained tests pass; lint/types/build and24 native/public CLI exact cases pass, screenshot inspected; verified remote main delivery",
+          "delivery": {
+            "localCommit": "72b96504d922dd0a83229b1c12f8d5a117624e8f",
+            "remoteMain": "exact ls-remote HEAD verified",
+            "publication": "newer containing successor35761223794 pending"
+          }
+        },
+        {
+          "kind": "BIFF7/8-local-string-custom-function255-repair",
+          "path": "docs/ssconvert/biff-custom-function-gap-proof.json",
+          "outcome": "six original red/green cases plus two imported macro roundtrip regressions resolved;6352 maintained tests, lint/types/build pass;30 native/public CLI exact cases, two native/public macro readbacks pass, screenshot inspected; atomic delivery pending",
           "delivery": {
             "localCommit": null,
             "remoteMain": null,

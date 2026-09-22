@@ -53,6 +53,10 @@ native formula grammar, `=[]Rate` explicitly selects the workbook-global
 `Rate`, even when the current sheet defines another `Rate`. This namespace
 does not invoke an external-workbook resolver. Global qualification in ODF
 output remains explicitly unsupported.
+Custom-function token 255 accepts string and local indexed name suppliers,
+including known `_xlfn.` and `_xlfnodf.` extensions. Unknown function names
+remain placeholders; this does not load native plugins or grant host access.
+Add-in and true external name-table imports remain separate unsupported cases.
 
 ## Virtual command
 

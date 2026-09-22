@@ -664,7 +664,12 @@ class RealmState {
       const pending = withSandboxPromiseRejectionTracker(this.tracker, () =>
         runResources.run(this.resources, () =>
           withCancellationSignal(this.controller.signal, () =>
-            active && this.phase.getStore()?.active ? runAsyncPrefix(invoke) : this.queue.run(invoke)
+            active && this.phase.getStore()?.active
+              // Full callback invocation is joined by an authorized enclosing
+              // host call. Its settlement may release/reacquire that job;
+              // borrowing only a prefix would wait on the host call itself.
+              ? runAsyncPrefix(invoke, completeSynchronous === undefined && this.phase.getStore()?.extension !== undefined)
+              : this.queue.run(invoke)
           )
         )
       );

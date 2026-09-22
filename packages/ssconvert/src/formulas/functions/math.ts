@@ -4,6 +4,7 @@ import { fakeFloor, fakeTrunc, nextAfter } from "./floating-point.js";
 import { gamma } from "./scientific.js";
 import { capturedTrig } from "./captured-trigonometry.js";
 import { capturedExp } from "./numeric-arithmetic.js";
+import { preciseLog1p } from "./log1p.js";
 import type { FunctionHost, FunctionImplementation, SpecialForm } from "./types.js";
 
 function fakeCeil(x: number): number { return x === Math.floor(x) ? x : Math.ceil(nextAfter(x, -Infinity)); }
@@ -97,7 +98,7 @@ const unary: Readonly<Record<string, (x: number) => number>> = {
   SEC: x => 1 / Math.cos(x), CSC: x => 1 / Math.sin(x), COT: x => 1 / Math.tan(x),
   SECH: x => 1 / Math.cosh(x), CSCH: x => 1 / Math.sinh(x), COTH: x => 1 / Math.tanh(x),
   EXP: capturedExp, EXPM1: Math.expm1, LN: x => x > 0 ? Math.log(x) : NaN,
-  LN1P: x => x > -1 ? Math.log1p(x) : NaN, LOG10: x => x > 0 ? Math.log10(x) : NaN,
+  LOG10: x => x > 0 ? Math.log10(x) : NaN,
   LOG2: x => x > 0 ? Math.log2(x) : NaN,
   DEGREES: x => x * 180 / Math.PI, RADIANS: x => x * Math.PI / 180, GD: x => 2 * Math.atan(Math.tanh(x / 2)),
   SINPI: sinPi, COSPI: x => piReduced(x, true), TANPI: x => sinPi(x) / piReduced(x, true), COTPI: x => piReduced(x, true) / sinPi(x),
@@ -127,6 +128,7 @@ function binomial(n: number, k: number, host: FunctionHost): number {
 }
 export const mathFunctions: Readonly<Record<string, FunctionImplementation>> = {
   ...Object.fromEntries(Object.entries(unary).map(([name, fn]) => [name, ((args, host) => numericResult(fn(numberArg(args, 0, host)))) satisfies FunctionImplementation])),
+  LN1P: (args, host) => numericResult(preciseLog1p(numberArg(args, 0, host), host)),
   PI: () => numericResult(Math.PI),
   ATAN2: (args, host) => {
     const x = numberArg(args, 0, host), y = numberArg(args, 1, host);

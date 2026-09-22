@@ -360,9 +360,9 @@
           "path": "docs/ssconvert/biff-cryptoapi-gap-proof.json",
           "outcome": "Original20red plus alternate-CSP red,21 own/48 encryption/6429 maintained tests pass; lint/types/build pass.17 byte-exact independent decryptions,34 public imports/exports/readbacks,51 exact native plaintext comparisons,17 browser+17worker exact successes;2 SDK zero-write password refusals. Native refuses encrypted family; not native decryption evidence. Explicit ancillary-property refusal and broader requirements open.",
           "delivery": {
-            "localCommit": null,
-            "remoteMain": null,
-            "publication": null
+            "localCommit": "f85340328b55cb305f757d74c6a509b1cc32aa84",
+            "remoteMain": "Exact remote main verified after push; contained by924a89585 after later unrelated commit",
+            "publication": "Release35770266438 cancelled; containing Release35770350988 active, audit passed/build active"
           }
         }
       ],
@@ -532,11 +532,21 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "current public replay: historical primitives 33 exact / 1 differing; fresh Darwin primitives likewise 33 exact / 1 differing; internal primitive cohorts remain pending",
+      "currentFinding": "Public LN1P one-ulp gap reproduced and repaired. Original3red/14own/125focused/6443 maintained tests pass;236 native/public/220-digit reference and236 browser+236worker bit results exact. Internal capturedLog1p/acos and Bessel families remain open; no all-domain/profile claim.",
       "proof": [
         {
           "kind": "fresh-mac-native",
           "outcome": "LN1P(0.33688260287586475) native 0.29034048788903205 vs SDK 0.290340487889032; public neighboring primitive/error controls 33 match"
+        },
+        {
+          "kind": "public-LN1P-bit-precision",
+          "path": "docs/ssconvert/ln1p-gap-proof.json",
+          "outcome": "Exact1+x and bounded192-bit atanh series repair original1ulp and preserve domain/tiny/large controls; per-iteration work/cancellation. Maintained lint/types/build pass;236 exact native/reference/public cases and472 exact browser/worker cases, screenshot inspected. Private primitive families remain open.",
+          "delivery": {
+            "localCommit": null,
+            "remoteMain": null,
+            "publication": null
+          }
         }
       ],
       "delivery": {

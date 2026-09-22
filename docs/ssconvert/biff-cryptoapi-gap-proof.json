@@ -2216,8 +2216,8 @@
     "Packed SDK/Shell final integrated gates and successful registry publication"
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "f85340328b55cb305f757d74c6a509b1cc32aa84",
+    "remoteMain": "Exact remote main verified; ancestor of924a89585",
+    "publication": "Release35770266438 cancelled; containing Release35770350988 active, audit passed/build active"
   }
 }

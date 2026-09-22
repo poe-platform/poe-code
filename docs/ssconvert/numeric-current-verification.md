@@ -189,3 +189,5 @@ TODOs and unavailable cells. Owned temporary logs, drivers, workbooks, virtual
 environment and screenshots were purged after evidence capture; downloaded
 primary source remains only under `out`. No README edits, Git staging, commits,
 pushes or publication were performed for this task.
+
+The subsequent goal iteration repairs the measured **public LN1P** mismatch; see [current LN1P proof](ln1p-gap-proof.json). Its exact-addition192-bit series passes236 current native/public/220-digit reference cases and matching browser/worker qualification, with6443 maintained workspace tests and final lint/build passing. Historical receipts above remain unchanged. Private log1p/acos and Bessel holdouts are not closed by this public-entry repair.

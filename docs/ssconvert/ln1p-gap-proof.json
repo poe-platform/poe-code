@@ -1,0 +1,2632 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-22T19:01:59.630664+00:00",
+  "baseline": "924a89585e2676f0a07670f057a589df8fecd615",
+  "status": "Measured public LN1P native bit mismatch repaired; internal log1p/acos and Bessel qualification remain open",
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/log1p.ts",
+      "sha256": "6eee3ba2967660793978a438ed7c8a4d321e0a121af8bed387c55bb96f6a185b"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/math.ts",
+      "sha256": "ecff6938cb9c86acae2c430bfebf4b49c600ceaa46e107073a9b255d496efd4d"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/ln1p-native.test.ts",
+      "sha256": "c23cabc48554118b60a176043961e021888c1d8e15d4158eb84651e277b43d71"
+    }
+  ],
+  "nativeReference": {
+    "version": "Gnumeric1.12.61",
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "binarySha256": "f5c5b2888d7cea27a48cb2becfab259f0429c6ded629f79f69aceb683bbf720e",
+    "profile": "Darwin arm64/C locale/UTC; known configuration warnings retained, not whole-profile certification",
+    "source": "plugins/fn-math/functions.c:1414-1422: t<=-1=>#NUM!, otherwise gnm_log1p(t)"
+  },
+  "reproduction": {
+    "original": "LN1P(.33688260287586475) actual native HEXREP0x1.294f0450c0973p-2 vs product0x1.294f0450c0972p-2; existing private capturedLog1p also wrong for this input",
+    "red": "Original14 tests:3 fail/11pass before runtime change, covering numerical mismatch/edge and unavailable per-series work cancellation",
+    "green": "14 own/125 focused mathematical tests pass; exact HEXREP controls, domain errors, near-minus-one/tiny/large values and stop-at-tick4 work cancellation"
+  },
+  "arithmetic": [
+    "Binary64 input decomposition retains exact1+x before range reduction; huge inputs retain low addition rather than overflowing x+1.",
+    "192-bit fixed atanh series after binary reduction has ratio below1/3; at most127 charged iterations.",
+    "floor(log(2)*2^192) regenerated independently using220-digit Decimal; final BigInt->binary64 followed by exact power-of-two scaling.",
+    "Abs(x)<2^-55 returns x preserving tiny inputs/signed zero; x<=-1=>#NUM! through numericResult.",
+    "Each nontrivial invocation and series iteration calls host.tick for existing work/cancellation contracts. No native fallback/new host authority.",
+    "Public LN1P changes only; private capturedLog1p/Bessel/acos remain untouched, so no inherited holdout completion claim.",
+    "Finite cohort evidence, not a proof of correctly rounded results or exact native parity over every binary64 value/platform."
+  ],
+  "independentReference": {
+    "implementation": "Python3.14 standard Decimal,220-digit context; Decimal.from_float exact binary64 inputs",
+    "procedure": "For |x|>=2^-55 and x>-1: float((Decimal.from_float(x)+1).ln()); tiny inputs x; domain<=-1 #NUM!; compare native HEXREP and SDK strings.",
+    "seed": 2026092203,
+    "cohort": "13 chosen controls+100 uniform[-.999999,1]+100 log-uniform exponent[-1000,1023]+23 distinct original private primitive difference inputs",
+    "nativeMatchesReference": "236/236 exact",
+    "logTwoFixedHex": "b17217f7d1cf79abc9e3b39803f2f6af40f343267298b62d"
+  },
+  "publicCommand": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "cases": [
+      {
+        "id": 0,
+        "x": 0.33688260287586475,
+        "expression": "0.33688260287586475",
+        "native": "0x1.294f0450c0973p-2",
+        "reference": 0.29034048788903205,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.294f0450c0973p-2",
+        "exact": true
+      },
+      {
+        "id": 1,
+        "x": 0.5970989573261564,
+        "expression": "0.5970989573261564",
+        "native": "0x1.df6ce4a42bd55p-2",
+        "reference": 0.4681888318254626,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.df6ce4a42bd55p-2",
+        "exact": true
+      },
+      {
+        "id": 2,
+        "x": 0.22690015107295408,
+        "expression": "0.22690015107295408",
+        "native": "0x1.a2cc10afdeaf1p-3",
+        "reference": 0.20449078594886985,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a2cc10afdeaf1p-3",
+        "exact": true
+      },
+      {
+        "id": 3,
+        "x": 0,
+        "expression": "0.0",
+        "native": "0x0p+0",
+        "reference": 0,
+        "nativeMatchesReference": true,
+        "sdk": "0x0p+0",
+        "exact": true
+      },
+      {
+        "id": 4,
+        "x": 0,
+        "expression": "-0.0",
+        "native": "0x0p+0",
+        "reference": 0,
+        "nativeMatchesReference": true,
+        "sdk": "0x0p+0",
+        "exact": true
+      },
+      {
+        "id": 5,
+        "x": -1,
+        "expression": "-1.0",
+        "native": "#NUM!",
+        "reference": null,
+        "nativeMatchesReference": true,
+        "sdk": "#NUM!",
+        "exact": true
+      },
+      {
+        "id": 6,
+        "x": -2,
+        "expression": "-2.0",
+        "native": "#NUM!",
+        "reference": null,
+        "nativeMatchesReference": true,
+        "sdk": "#NUM!",
+        "exact": true
+      },
+      {
+        "id": 7,
+        "x": -0.9999999999999999,
+        "expression": "-0.9999999999999999",
+        "native": "-0x1.25e4f7b2737fap+5",
+        "reference": -36.7368005696771,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.25e4f7b2737fap+5",
+        "exact": true
+      },
+      {
+        "id": 8,
+        "x": 2.7755575615628914e-17,
+        "expression": "2.7755575615628914e-17",
+        "native": "0x1p-55",
+        "reference": 2.7755575615628914e-17,
+        "nativeMatchesReference": true,
+        "sdk": "0x1p-55",
+        "exact": true
+      },
+      {
+        "id": 9,
+        "x": -2.7755575615628914e-17,
+        "expression": "-2.7755575615628914e-17",
+        "native": "-0x1p-55",
+        "reference": -2.7755575615628914e-17,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1p-55",
+        "exact": true
+      },
+      {
+        "id": 10,
+        "x": 1,
+        "expression": "1.0",
+        "native": "0x1.62e42fefa39efp-1",
+        "reference": 0.6931471805599453,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.62e42fefa39efp-1",
+        "exact": true
+      },
+      {
+        "id": 11,
+        "x": 2,
+        "expression": "2.0",
+        "native": "0x1.193ea7aad030bp+0",
+        "reference": 1.0986122886681098,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.193ea7aad030bp+0",
+        "exact": true
+      },
+      {
+        "id": 12,
+        "x": 1e+308,
+        "expression": "1e+308",
+        "native": "0x1.62991d5d62a5ep+9",
+        "reference": 709.1962086421661,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.62991d5d62a5ep+9",
+        "exact": true
+      },
+      {
+        "id": 13,
+        "x": -0.8100885473518005,
+        "expression": "-0.8100885473518005",
+        "native": "-0x1.a9443ad441496p+0",
+        "reference": -1.6611973541451213,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.a9443ad441496p+0",
+        "exact": true
+      },
+      {
+        "id": 14,
+        "x": -0.0077134510329209816,
+        "expression": "-0.0077134510329209816",
+        "native": "-0x1.fb77ea50edf31p-8",
+        "reference": -0.007743353563391329,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.fb77ea50edf31p-8",
+        "exact": true
+      },
+      {
+        "id": 15,
+        "x": -0.10846401109432924,
+        "expression": "-0.10846401109432924",
+        "native": "-0x1.d642756348939p-4",
+        "reference": -0.11480947355861283,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.d642756348939p-4",
+        "exact": true
+      },
+      {
+        "id": 16,
+        "x": 0.5661194014477765,
+        "expression": "0.5661194014477765",
+        "native": "0x1.cb5e04d0bab2p-2",
+        "reference": 0.4486008407972566,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.cb5e04d0bab2p-2",
+        "exact": true
+      },
+      {
+        "id": 17,
+        "x": -0.6299108271097227,
+        "expression": "-0.6299108271097227",
+        "native": "-0x1.fcef0c6410d4fp-1",
+        "reference": -0.9940112945700238,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.fcef0c6410d4fp-1",
+        "exact": true
+      },
+      {
+        "id": 18,
+        "x": 0.17045958851961374,
+        "expression": "0.17045958851961374",
+        "native": "0x1.42591642a11f5p-3",
+        "reference": 0.15739648238026374,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.42591642a11f5p-3",
+        "exact": true
+      },
+      {
+        "id": 19,
+        "x": 0.932648833793159,
+        "expression": "0.932648833793159",
+        "native": "0x1.515a3a868e729p-1",
+        "reference": 0.6588915147069417,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.515a3a868e729p-1",
+        "exact": true
+      },
+      {
+        "id": 20,
+        "x": 0.1612800325095497,
+        "expression": "0.1612800325095497",
+        "native": "0x1.32390c4d96947p-3",
+        "reference": 0.14952287303715137,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.32390c4d96947p-3",
+        "exact": true
+      },
+      {
+        "id": 21,
+        "x": 0.08068780075827708,
+        "expression": "0.08068780075827708",
+        "native": "0x1.3dd71390730aep-4",
+        "reference": 0.07759769098555822,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3dd71390730aep-4",
+        "exact": true
+      },
+      {
+        "id": 22,
+        "x": -0.4215003579696791,
+        "expression": "-0.4215003579696791",
+        "native": "-0x1.1839fad7579e5p-1",
+        "reference": -0.5473173511380166,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.1839fad7579e5p-1",
+        "exact": true
+      },
+      {
+        "id": 23,
+        "x": -0.4042075866235546,
+        "expression": "-0.4042075866235546",
+        "native": "-0x1.092555e3998f3p-1",
+        "reference": -0.517862972291168,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.092555e3998f3p-1",
+        "exact": true
+      },
+      {
+        "id": 24,
+        "x": 0.8700416062478712,
+        "expression": "0.8700416062478712",
+        "native": "0x1.407deb11eddcbp-1",
+        "reference": 0.625960679949395,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.407deb11eddcbp-1",
+        "exact": true
+      },
+      {
+        "id": 25,
+        "x": 0.3226964780036735,
+        "expression": "0.3226964780036735",
+        "native": "0x1.1e6273b1c7ed5p-2",
+        "reference": 0.27967243931378266,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1e6273b1c7ed5p-2",
+        "exact": true
+      },
+      {
+        "id": 26,
+        "x": -0.33818633637596973,
+        "expression": "-0.33818633637596973",
+        "native": "-0x1.a6ad80d81bef1p-2",
+        "reference": -0.4127712375547921,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.a6ad80d81bef1p-2",
+        "exact": true
+      },
+      {
+        "id": 27,
+        "x": -0.5658382101829158,
+        "expression": "-0.5658382101829158",
+        "native": "-0x1.ab2e5a956cc4p-1",
+        "reference": -0.8343380267527962,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.ab2e5a956cc4p-1",
+        "exact": true
+      },
+      {
+        "id": 28,
+        "x": -0.2809851414150486,
+        "expression": "-0.2809851414150486",
+        "native": "-0x1.51ca4b76c86b5p-2",
+        "reference": -0.3298732558488198,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.51ca4b76c86b5p-2",
+        "exact": true
+      },
+      {
+        "id": 29,
+        "x": -0.802137476249129,
+        "expression": "-0.802137476249129",
+        "native": "-0x1.9ec44d076235fp+0",
+        "reference": -1.6201828139330343,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.9ec44d076235fp+0",
+        "exact": true
+      },
+      {
+        "id": 30,
+        "x": 0.11893766170524811,
+        "expression": "0.11893766170524811",
+        "native": "0x1.cc4ead12d83cfp-4",
+        "reference": 0.1123797188461275,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.cc4ead12d83cfp-4",
+        "exact": true
+      },
+      {
+        "id": 31,
+        "x": 0.2199754333599434,
+        "expression": "0.2199754333599434",
+        "native": "0x1.97348fc1cc6c2p-3",
+        "reference": 0.19883072195221102,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.97348fc1cc6c2p-3",
+        "exact": true
+      },
+      {
+        "id": 32,
+        "x": 0.5538639140052054,
+        "expression": "0.5538639140052054",
+        "native": "0x1.c352929100e87p-2",
+        "reference": 0.44074467668563283,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.c352929100e87p-2",
+        "exact": true
+      },
+      {
+        "id": 33,
+        "x": 0.410086192131344,
+        "expression": "0.410086192131344",
+        "native": "0x1.5fe600ed75158p-2",
+        "reference": 0.3436508316929312,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.5fe600ed75158p-2",
+        "exact": true
+      },
+      {
+        "id": 34,
+        "x": 0.6706027398646547,
+        "expression": "0.6706027398646547",
+        "native": "0x1.06c01dd9eb942p-1",
+        "reference": 0.5131844833866028,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.06c01dd9eb942p-1",
+        "exact": true
+      },
+      {
+        "id": 35,
+        "x": -0.42043741012065394,
+        "expression": "-0.42043741012065394",
+        "native": "-0x1.17495dc4e977bp-1",
+        "reference": -0.5454816153403351,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.17495dc4e977bp-1",
+        "exact": true
+      },
+      {
+        "id": 36,
+        "x": 0.2763525157264225,
+        "expression": "0.2763525157264225",
+        "native": "0x1.f3b9a25f2f711p-3",
+        "reference": 0.2440064130113844,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f3b9a25f2f711p-3",
+        "exact": true
+      },
+      {
+        "id": 37,
+        "x": 0.7742362174673215,
+        "expression": "0.7742362174673215",
+        "native": "0x1.2590c1b1519ecp-1",
+        "reference": 0.5733700303033493,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2590c1b1519ecp-1",
+        "exact": true
+      },
+      {
+        "id": 38,
+        "x": -0.9736275660727753,
+        "expression": "-0.9736275660727753",
+        "native": "-0x1.d155f76083832p+1",
+        "reference": -3.635435983777847,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.d155f76083832p+1",
+        "exact": true
+      },
+      {
+        "id": 39,
+        "x": 0.7617346923288711,
+        "expression": "0.7617346923288711",
+        "native": "0x1.21f1ef6af042dp-1",
+        "reference": 0.5662989442863641,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.21f1ef6af042dp-1",
+        "exact": true
+      },
+      {
+        "id": 40,
+        "x": 0.12594047873111236,
+        "expression": "0.12594047873111236",
+        "native": "0x1.e5dcb01a9fc87p-4",
+        "reference": 0.11861866751313431,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e5dcb01a9fc87p-4",
+        "exact": true
+      },
+      {
+        "id": 41,
+        "x": 0.37881192760480664,
+        "expression": "0.37881192760480664",
+        "native": "0x1.48ee795bdf5a9p-2",
+        "reference": 0.3212222063374051,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.48ee795bdf5a9p-2",
+        "exact": true
+      },
+      {
+        "id": 42,
+        "x": -0.04486013726447757,
+        "expression": "-0.04486013726447757",
+        "native": "-0x1.77fe0696c06f3p-5",
+        "reference": -0.045897496098417444,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.77fe0696c06f3p-5",
+        "exact": true
+      },
+      {
+        "id": 43,
+        "x": 0.28878780584349506,
+        "expression": "0.28878780584349506",
+        "native": "0x1.03ca7b2285437p-2",
+        "reference": 0.25370209119984416,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.03ca7b2285437p-2",
+        "exact": true
+      },
+      {
+        "id": 44,
+        "x": -0.738206369795988,
+        "expression": "-0.738206369795988",
+        "native": "-0x1.571744059fe87p+0",
+        "reference": -1.3401987565738709,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.571744059fe87p+0",
+        "exact": true
+      },
+      {
+        "id": 45,
+        "x": 0.5988880592719669,
+        "expression": "0.5988880592719669",
+        "native": "0x1.e092633f2873p-2",
+        "reference": 0.46930842469201917,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e092633f2873p-2",
+        "exact": true
+      },
+      {
+        "id": 46,
+        "x": -0.7586237454609454,
+        "expression": "-0.7586237454609454",
+        "native": "-0x1.6be0c2fc3b005p+0",
+        "reference": -1.42139834077807,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.6be0c2fc3b005p+0",
+        "exact": true
+      },
+      {
+        "id": 47,
+        "x": -0.5127869075888078,
+        "expression": "-0.5127869075888078",
+        "native": "-0x1.7027ce26cd74bp-1",
+        "reference": -0.7190536901823433,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.7027ce26cd74bp-1",
+        "exact": true
+      },
+      {
+        "id": 48,
+        "x": -0.5204801480832852,
+        "expression": "-0.5204801480832852",
+        "native": "-0x1.784dfc5b9d56bp-1",
+        "reference": -0.7349699842294916,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.784dfc5b9d56bp-1",
+        "exact": true
+      },
+      {
+        "id": 49,
+        "x": -0.5469084488939597,
+        "expression": "-0.5469084488939597",
+        "native": "-0x1.955499afab897p-1",
+        "reference": -0.7916610743466376,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.955499afab897p-1",
+        "exact": true
+      },
+      {
+        "id": 50,
+        "x": -0.5106829373109272,
+        "expression": "-0.5106829373109272",
+        "native": "-0x1.6df30166ff986p-1",
+        "reference": -0.7147446096640102,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.6df30166ff986p-1",
+        "exact": true
+      },
+      {
+        "id": 51,
+        "x": 0.30001551506316304,
+        "expression": "0.30001551506316304",
+        "native": "0x1.0cac58a8d9a3bp-2",
+        "reference": 0.26237619906024506,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0cac58a8d9a3bp-2",
+        "exact": true
+      },
+      {
+        "id": 52,
+        "x": -0.8092204154839203,
+        "expression": "-0.8092204154839203",
+        "native": "-0x1.a81954d098bc7p+0",
+        "reference": -1.6566365250844102,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.a81954d098bc7p+0",
+        "exact": true
+      },
+      {
+        "id": 53,
+        "x": 0.780614444539551,
+        "expression": "0.780614444539551",
+        "native": "0x1.27671ab2b1f28p-1",
+        "reference": 0.5769584982999492,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.27671ab2b1f28p-1",
+        "exact": true
+      },
+      {
+        "id": 54,
+        "x": 0.5219996532018921,
+        "expression": "0.5219996532018921",
+        "native": "0x1.ae1b0ab898552p-2",
+        "reference": 0.4200250315826298,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ae1b0ab898552p-2",
+        "exact": true
+      },
+      {
+        "id": 55,
+        "x": -0.7182134017857488,
+        "expression": "-0.7182134017857488",
+        "native": "-0x1.44403dac0b23fp+0",
+        "reference": -1.2666052384403341,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.44403dac0b23fp+0",
+        "exact": true
+      },
+      {
+        "id": 56,
+        "x": 0.0937246807577986,
+        "expression": "0.0937246807577986",
+        "native": "0x1.6ef4e2974911p-4",
+        "reference": 0.08958900940030312,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.6ef4e2974911p-4",
+        "exact": true
+      },
+      {
+        "id": 57,
+        "x": 0.6217758851106202,
+        "expression": "0.6217758851106202",
+        "native": "0x1.ef2054fc74d42p-2",
+        "reference": 0.4835217742049346,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ef2054fc74d42p-2",
+        "exact": true
+      },
+      {
+        "id": 58,
+        "x": -0.46799542606484856,
+        "expression": "-0.46799542606484856",
+        "native": "-0x1.431ff5248e043p-1",
+        "reference": -0.6311031920549869,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.431ff5248e043p-1",
+        "exact": true
+      },
+      {
+        "id": 59,
+        "x": -0.4607524406723157,
+        "expression": "-0.4607524406723157",
+        "native": "-0x1.3c33838e245eep-1",
+        "reference": -0.6175805197728417,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.3c33838e245eep-1",
+        "exact": true
+      },
+      {
+        "id": 60,
+        "x": 0.4197677901252529,
+        "expression": "0.4197677901252529",
+        "native": "0x1.66e7b93a043bbp-2",
+        "reference": 0.3504933301601871,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.66e7b93a043bbp-2",
+        "exact": true
+      },
+      {
+        "id": 61,
+        "x": 0.1492122172567124,
+        "expression": "0.1492122172567124",
+        "native": "0x1.1cd43be5261f1p-3",
+        "reference": 0.13907667916352254,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1cd43be5261f1p-3",
+        "exact": true
+      },
+      {
+        "id": 62,
+        "x": -0.7448451039655207,
+        "expression": "-0.7448451039655207",
+        "native": "-0x1.5daa9affc6de7p+0",
+        "reference": -1.3658844828086047,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.5daa9affc6de7p+0",
+        "exact": true
+      },
+      {
+        "id": 63,
+        "x": 0.0775356153618495,
+        "expression": "0.0775356153618495",
+        "native": "0x1.31e01623d36c7p-4",
+        "reference": 0.07467659614959664,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.31e01623d36c7p-4",
+        "exact": true
+      },
+      {
+        "id": 64,
+        "x": 0.4640887022262702,
+        "expression": "0.4640887022262702",
+        "native": "0x1.8661f1ba4128cp-2",
+        "reference": 0.38123300265605375,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.8661f1ba4128cp-2",
+        "exact": true
+      },
+      {
+        "id": 65,
+        "x": 0.5402779378909169,
+        "expression": "0.5402779378909169",
+        "native": "0x1.ba547a1e90942p-2",
+        "reference": 0.43196287929108135,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ba547a1e90942p-2",
+        "exact": true
+      },
+      {
+        "id": 66,
+        "x": 0.5525731047050907,
+        "expression": "0.5525731047050907",
+        "native": "0x1.c278b76fd483ap-2",
+        "reference": 0.43991362209374396,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.c278b76fd483ap-2",
+        "exact": true
+      },
+      {
+        "id": 67,
+        "x": 0.06766020885311652,
+        "expression": "0.06766020885311652",
+        "native": "0x1.0c29c80e25e0fp-4",
+        "reference": 0.06546953341091231,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0c29c80e25e0fp-4",
+        "exact": true
+      },
+      {
+        "id": 68,
+        "x": -0.6946643123904899,
+        "expression": "-0.6946643123904899",
+        "native": "-0x1.2fb4350615ec7p+0",
+        "reference": -1.1863434924943463,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.2fb4350615ec7p+0",
+        "exact": true
+      },
+      {
+        "id": 69,
+        "x": 0.614477164555668,
+        "expression": "0.614477164555668",
+        "native": "0x1.ea81e74532108p-2",
+        "reference": 0.47901116714321335,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ea81e74532108p-2",
+        "exact": true
+      },
+      {
+        "id": 70,
+        "x": 0.8460868520225852,
+        "expression": "0.8460868520225852",
+        "native": "0x1.39e412aec3b9ap-1",
+        "reference": 0.6130681837401994,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.39e412aec3b9ap-1",
+        "exact": true
+      },
+      {
+        "id": 71,
+        "x": -0.6283045673487768,
+        "expression": "-0.6283045673487768",
+        "native": "-0x1.fab766afa3978p-1",
+        "reference": -0.9896804894831766,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.fab766afa3978p-1",
+        "exact": true
+      },
+      {
+        "id": 72,
+        "x": -0.07495016299354185,
+        "expression": "-0.07495016299354185",
+        "native": "-0x1.3f1c1b99c3764p-4",
+        "reference": -0.07790766507625119,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.3f1c1b99c3764p-4",
+        "exact": true
+      },
+      {
+        "id": 73,
+        "x": -0.16876034102604076,
+        "expression": "-0.16876034102604076",
+        "native": "-0x1.7a8be34ae5866p-3",
+        "reference": -0.18483712742153385,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.7a8be34ae5866p-3",
+        "exact": true
+      },
+      {
+        "id": 74,
+        "x": 0.700786827748875,
+        "expression": "0.700786827748875",
+        "native": "0x1.0feb284d8fd3ap-1",
+        "reference": 0.5310909838371238,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0feb284d8fd3ap-1",
+        "exact": true
+      },
+      {
+        "id": 75,
+        "x": -0.5599008780929893,
+        "expression": "-0.5599008780929893",
+        "native": "-0x1.a43a09ea4c1b9p-1",
+        "reference": -0.8207553003795091,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.a43a09ea4c1b9p-1",
+        "exact": true
+      },
+      {
+        "id": 76,
+        "x": -0.09324799083518309,
+        "expression": "-0.09324799083518309",
+        "native": "-0x1.90f1358f35f29p-4",
+        "reference": -0.09788628503463016,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.90f1358f35f29p-4",
+        "exact": true
+      },
+      {
+        "id": 77,
+        "x": -0.8212325276443024,
+        "expression": "-0.8212325276443024",
+        "native": "-0x1.b8bf52a522d05p+0",
+        "reference": -1.7216693547405282,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.b8bf52a522d05p+0",
+        "exact": true
+      },
+      {
+        "id": 78,
+        "x": -0.16724153279239484,
+        "expression": "-0.16724153279239484",
+        "native": "-0x1.76cecdbd301f7p-3",
+        "reference": -0.18301163419347663,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.76cecdbd301f7p-3",
+        "exact": true
+      },
+      {
+        "id": 79,
+        "x": 0.24189002238765822,
+        "expression": "0.24189002238765822",
+        "native": "0x1.bbaad51b63df4p-3",
+        "reference": 0.21663443078840283,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.bbaad51b63df4p-3",
+        "exact": true
+      },
+      {
+        "id": 80,
+        "x": 0.43917866808037165,
+        "expression": "0.43917866808037165",
+        "native": "0x1.74cf715b40958p-2",
+        "reference": 0.3640725814767811,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.74cf715b40958p-2",
+        "exact": true
+      },
+      {
+        "id": 81,
+        "x": -0.8925902682824419,
+        "expression": "-0.8925902682824419",
+        "native": "-0x1.1d94d4f75bb7bp+1",
+        "reference": -2.231104489117056,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.1d94d4f75bb7bp+1",
+        "exact": true
+      },
+      {
+        "id": 82,
+        "x": -0.18106714022356307,
+        "expression": "-0.18106714022356307",
+        "native": "-0x1.9918318c7d528p-3",
+        "reference": -0.1997531767844205,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.9918318c7d528p-3",
+        "exact": true
+      },
+      {
+        "id": 83,
+        "x": -0.9570231120556595,
+        "expression": "-0.9570231120556595",
+        "native": "-0x1.92d3efd1459edp+1",
+        "reference": -3.1470927974544254,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.92d3efd1459edp+1",
+        "exact": true
+      },
+      {
+        "id": 84,
+        "x": 0.6128164893396438,
+        "expression": "0.6128164893396438",
+        "native": "0x1.e9741e918316cp-2",
+        "reference": 0.4779820228875653,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e9741e918316cp-2",
+        "exact": true
+      },
+      {
+        "id": 85,
+        "x": 0.5638847463071927,
+        "expression": "0.5638847463071927",
+        "native": "0x1.c9e7b489a07f2p-2",
+        "reference": 0.4471729477883165,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.c9e7b489a07f2p-2",
+        "exact": true
+      },
+      {
+        "id": 86,
+        "x": -0.6188486865076583,
+        "expression": "-0.6188486865076583",
+        "native": "-0x1.eddaa7d1d6ac1p-1",
+        "reference": -0.9645588344240751,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.eddaa7d1d6ac1p-1",
+        "exact": true
+      },
+      {
+        "id": 87,
+        "x": 0.23327918025930872,
+        "expression": "0.23327918025930872",
+        "native": "0x1.ad6aefd5efe9p-3",
+        "reference": 0.2096766221202313,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ad6aefd5efe9p-3",
+        "exact": true
+      },
+      {
+        "id": 88,
+        "x": 0.7423084451981442,
+        "expression": "0.7423084451981442",
+        "native": "0x1.1c449b482beap-1",
+        "reference": 0.5552109265899681,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1c449b482beap-1",
+        "exact": true
+      },
+      {
+        "id": 89,
+        "x": -0.10919986685090355,
+        "expression": "-0.10919986685090355",
+        "native": "-0x1.d9a44a10b64b7p-4",
+        "reference": -0.11563519412756561,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.d9a44a10b64b7p-4",
+        "exact": true
+      },
+      {
+        "id": 90,
+        "x": 0.10957359163665437,
+        "expression": "0.10957359163665437",
+        "native": "0x1.a9e2848f0b529p-4",
+        "reference": 0.1039757898403947,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a9e2848f0b529p-4",
+        "exact": true
+      },
+      {
+        "id": 91,
+        "x": 0.520793922373353,
+        "expression": "0.520793922373353",
+        "native": "0x1.ad4b49e3f6609p-2",
+        "reference": 0.41923251584884774,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ad4b49e3f6609p-2",
+        "exact": true
+      },
+      {
+        "id": 92,
+        "x": -0.07129283129779918,
+        "expression": "-0.07129283129779918",
+        "native": "-0x1.2ef291d20664cp-4",
+        "reference": -0.07396180115792922,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.2ef291d20664cp-4",
+        "exact": true
+      },
+      {
+        "id": 93,
+        "x": 0.28793536611270565,
+        "expression": "0.28793536611270565",
+        "native": "0x1.031d08cc80388p-2",
+        "reference": 0.2530404448335095,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.031d08cc80388p-2",
+        "exact": true
+      },
+      {
+        "id": 94,
+        "x": 0.12052413905313475,
+        "expression": "0.12052413905313475",
+        "native": "0x1.d21c56b4b314p-4",
+        "reference": 0.1137965571353492,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d21c56b4b314p-4",
+        "exact": true
+      },
+      {
+        "id": 95,
+        "x": 0.049969809993014924,
+        "expression": "0.049969809993014924",
+        "native": "0x1.8f7417644cd41p-5",
+        "reference": 0.04876141136846935,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.8f7417644cd41p-5",
+        "exact": true
+      },
+      {
+        "id": 96,
+        "x": 0.8379426284603632,
+        "expression": "0.8379426284603632",
+        "native": "0x1.37a08df9cd92dp-1",
+        "reference": 0.6086468093333558,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.37a08df9cd92dp-1",
+        "exact": true
+      },
+      {
+        "id": 97,
+        "x": 0.29934800143971885,
+        "expression": "0.29934800143971885",
+        "native": "0x1.0c25b5b28ab02p-2",
+        "reference": 0.26186260130150185,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0c25b5b28ab02p-2",
+        "exact": true
+      },
+      {
+        "id": 98,
+        "x": -0.11218482397762497,
+        "expression": "-0.11218482397762497",
+        "native": "-0x1.e763d54e9b16dp-4",
+        "reference": -0.11899169276302297,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.e763d54e9b16dp-4",
+        "exact": true
+      },
+      {
+        "id": 99,
+        "x": 0.7028664435560789,
+        "expression": "0.7028664435560789",
+        "native": "0x1.108b538074ac3p-1",
+        "reference": 0.5323129743868197,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.108b538074ac3p-1",
+        "exact": true
+      },
+      {
+        "id": 100,
+        "x": -0.4240213734885079,
+        "expression": "-0.4240213734885079",
+        "native": "-0x1.1a766b9d636bdp-1",
+        "reference": -0.5516847257256,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.1a766b9d636bdp-1",
+        "exact": true
+      },
+      {
+        "id": 101,
+        "x": -0.4167040633866601,
+        "expression": "-0.4167040633866601",
+        "native": "-0x1.13ffc0a17be89p-1",
+        "reference": -0.539060611450581,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.13ffc0a17be89p-1",
+        "exact": true
+      },
+      {
+        "id": 102,
+        "x": 0.7537155620120103,
+        "expression": "0.7537155620120103",
+        "native": "0x1.1f9bf46bd077cp-1",
+        "reference": 0.561736715470246,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1f9bf46bd077cp-1",
+        "exact": true
+      },
+      {
+        "id": 103,
+        "x": 0.020458483950480777,
+        "expression": "0.020458483950480777",
+        "native": "0x1.4bcf214b8a3d5p-6",
+        "reference": 0.020252020373081898,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4bcf214b8a3d5p-6",
+        "exact": true
+      },
+      {
+        "id": 104,
+        "x": 0.20470099307127587,
+        "expression": "0.20470099307127587",
+        "native": "0x1.7d66e3122afbbp-3",
+        "reference": 0.18623139762109794,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.7d66e3122afbbp-3",
+        "exact": true
+      },
+      {
+        "id": 105,
+        "x": 0.8080893487073327,
+        "expression": "0.8080893487073327",
+        "native": "0x1.2f3e1a3bca23cp-1",
+        "reference": 0.592270679281746,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2f3e1a3bca23cp-1",
+        "exact": true
+      },
+      {
+        "id": 106,
+        "x": 0.1768167194758029,
+        "expression": "0.1768167194758029",
+        "native": "0x1.4d70f4129ee8p-3",
+        "reference": 0.16281309778047515,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4d70f4129ee8p-3",
+        "exact": true
+      },
+      {
+        "id": 107,
+        "x": 0.8156379886718216,
+        "expression": "0.8156379886718216",
+        "native": "0x1.31602de6eb806p-1",
+        "reference": 0.5964369148621251,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.31602de6eb806p-1",
+        "exact": true
+      },
+      {
+        "id": 108,
+        "x": 0.7788306604568788,
+        "expression": "0.7788306604568788",
+        "native": "0x1.26e3bbb02b9bbp-1",
+        "reference": 0.5759562161018076,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.26e3bbb02b9bbp-1",
+        "exact": true
+      },
+      {
+        "id": 109,
+        "x": -0.9662629353843714,
+        "expression": "-0.9662629353843714",
+        "native": "-0x1.b1cfefa36502ep+1",
+        "reference": -3.389158205778606,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.b1cfefa36502ep+1",
+        "exact": true
+      },
+      {
+        "id": 110,
+        "x": -0.5980901477741754,
+        "expression": "-0.5980901477741754",
+        "native": "-0x1.d2b3ba4c098e6p-1",
+        "reference": -0.911527463704968,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.d2b3ba4c098e6p-1",
+        "exact": true
+      },
+      {
+        "id": 111,
+        "x": 0.5844230644451566,
+        "expression": "0.5844230644451566",
+        "native": "0x1.d7440077839d4p-2",
+        "reference": 0.46022034387069977,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d7440077839d4p-2",
+        "exact": true
+      },
+      {
+        "id": 112,
+        "x": -0.43988084403311223,
+        "expression": "-0.43988084403311223",
+        "native": "-0x1.28c2155e608d4p-1",
+        "reference": -0.5796057393747795,
+        "nativeMatchesReference": true,
+        "sdk": "-0x1.28c2155e608d4p-1",
+        "exact": true
+      },
+      {
+        "id": 113,
+        "x": 2.3891735958036813e-35,
+        "expression": "2.3891735958036813e-35",
+        "native": "0x1.fc1efbbf36469p-116",
+        "reference": 2.3891735958036813e-35,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.fc1efbbf36469p-116",
+        "exact": true
+      },
+      {
+        "id": 114,
+        "x": 5.970735978200562e+161,
+        "expression": "5.970735978200562e+161",
+        "native": "0x1.7480c934ed3bap+8",
+        "reference": 372.5030701712782,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.7480c934ed3bap+8",
+        "exact": true
+      },
+      {
+        "id": 115,
+        "x": 8.234913812291234e+172,
+        "expression": "8.234913812291234e+172",
+        "native": "0x1.8e272c3f03126p+8",
+        "reference": 398.1530188925266,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.8e272c3f03126p+8",
+        "exact": true
+      },
+      {
+        "id": 116,
+        "x": 8.784427773841709e-32,
+        "expression": "8.784427773841709e-32",
+        "native": "0x1.c81d12bfd1654p-104",
+        "reference": 8.784427773841709e-32,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.c81d12bfd1654p-104",
+        "exact": true
+      },
+      {
+        "id": 117,
+        "x": 2.8028980019533983e-13,
+        "expression": "2.8028980019533983e-13",
+        "native": "0x1.3b9408d7bae5cp-42",
+        "reference": 2.8028980019530055e-13,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3b9408d7bae5cp-42",
+        "exact": true
+      },
+      {
+        "id": 118,
+        "x": 7.896633888140651e-286,
+        "expression": "7.896633888140651e-286",
+        "native": "0x1.e0f848727a41cp-948",
+        "reference": 7.896633888140651e-286,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e0f848727a41cp-948",
+        "exact": true
+      },
+      {
+        "id": 119,
+        "x": 1.0704262226107952e+129,
+        "expression": "1.0704262226107952e+129",
+        "native": "0x1.2919fe203e4fap+8",
+        "reference": 297.1015339042784,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2919fe203e4fap+8",
+        "exact": true
+      },
+      {
+        "id": 120,
+        "x": 6.482120113065205e-52,
+        "expression": "6.482120113065205e-52",
+        "native": "0x1.f0b0e5edb673p-171",
+        "reference": 6.482120113065205e-52,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f0b0e5edb673p-171",
+        "exact": true
+      },
+      {
+        "id": 121,
+        "x": 4.964400153791981e+141,
+        "expression": "4.964400153791981e+141",
+        "native": "0x1.46444c634fd16p+8",
+        "reference": 326.26679058741263,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.46444c634fd16p+8",
+        "exact": true
+      },
+      {
+        "id": 122,
+        "x": 4.2451189195048084e+73,
+        "expression": "4.2451189195048084e+73",
+        "native": "0x1.5311a7933d35cp+7",
+        "reference": 169.5344816219539,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.5311a7933d35cp+7",
+        "exact": true
+      },
+      {
+        "id": 123,
+        "x": 2.1910163776750356e-51,
+        "expression": "2.1910163776750356e-51",
+        "native": "0x1.a3b72169c2d6p-169",
+        "reference": 2.1910163776750356e-51,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a3b72169c2d6p-169",
+        "exact": true
+      },
+      {
+        "id": 124,
+        "x": 5.713266536291286e-129,
+        "expression": "5.713266536291286e-129",
+        "native": "0x1.fae97ae2ea73p-427",
+        "reference": 5.713266536291286e-129,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.fae97ae2ea73p-427",
+        "exact": true
+      },
+      {
+        "id": 125,
+        "x": 1.901431231181941e-93,
+        "expression": "1.901431231181941e-93",
+        "native": "0x1.fbadd6b54e0a3p-309",
+        "reference": 1.901431231181941e-93,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.fbadd6b54e0a3p-309",
+        "exact": true
+      },
+      {
+        "id": 126,
+        "x": 7.344496622157159e+50,
+        "expression": "7.344496622157159e+50",
+        "native": "0x1.d47e29b191becp+6",
+        "reference": 117.1232059235769,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d47e29b191becp+6",
+        "exact": true
+      },
+      {
+        "id": 127,
+        "x": 1.063305055452281e+79,
+        "expression": "1.063305055452281e+79",
+        "native": "0x1.6bee63b287d7ap+7",
+        "reference": 181.9656043806861,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.6bee63b287d7ap+7",
+        "exact": true
+      },
+      {
+        "id": 128,
+        "x": 2.0122720190254124e-22,
+        "expression": "2.0122720190254124e-22",
+        "native": "0x1.e6899ae8c4a3p-73",
+        "reference": 2.0122720190254124e-22,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e6899ae8c4a3p-73",
+        "exact": true
+      },
+      {
+        "id": 129,
+        "x": 6.030448252302289e-153,
+        "expression": "6.030448252302289e-153",
+        "native": "0x1.436b9d35e98edp-506",
+        "reference": 6.030448252302289e-153,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.436b9d35e98edp-506",
+        "exact": true
+      },
+      {
+        "id": 130,
+        "x": 1.2809974721940962e-213,
+        "expression": "1.2809974721940962e-213",
+        "native": "0x1.b99895f0bbfe6p-708",
+        "reference": 1.2809974721940962e-213,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.b99895f0bbfe6p-708",
+        "exact": true
+      },
+      {
+        "id": 131,
+        "x": 1.4622983177436493e+171,
+        "expression": "1.4622983177436493e+171",
+        "native": "0x1.8a1f3f57da8b4p+8",
+        "reference": 394.12206029019876,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.8a1f3f57da8b4p+8",
+        "exact": true
+      },
+      {
+        "id": 132,
+        "x": 1.3413547167853306e+147,
+        "expression": "1.3413547167853306e+147",
+        "native": "0x1.52c6107760945p+8",
+        "reference": 338.77368875606436,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.52c6107760945p+8",
+        "exact": true
+      },
+      {
+        "id": 133,
+        "x": 9.525945836195148e+139,
+        "expression": "9.525945836195148e+139",
+        "native": "0x1.42503784b1f28p+8",
+        "reference": 322.3133471426431,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.42503784b1f28p+8",
+        "exact": true
+      },
+      {
+        "id": 134,
+        "x": 6.740026632921217e-195,
+        "expression": "6.740026632921217e-195",
+        "native": "0x1.f7d2ebfc436bap-646",
+        "reference": 6.740026632921217e-195,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f7d2ebfc436bap-646",
+        "exact": true
+      },
+      {
+        "id": 135,
+        "x": 1.0023378342525395e+256,
+        "expression": "1.0023378342525395e+256",
+        "native": "0x1.26bb683f9ec65p+9",
+        "reference": 589.4641189122455,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.26bb683f9ec65p+9",
+        "exact": true
+      },
+      {
+        "id": 136,
+        "x": 6.349567750567408e+175,
+        "expression": "6.349567750567408e+175",
+        "native": "0x1.94ccffc9b47e4p+8",
+        "reference": 404.8007780137689,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.94ccffc9b47e4p+8",
+        "exact": true
+      },
+      {
+        "id": 137,
+        "x": 8.420942181166575e-117,
+        "expression": "8.420942181166575e-117",
+        "native": "0x1.53c3e85de6032p-386",
+        "reference": 8.420942181166575e-117,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.53c3e85de6032p-386",
+        "exact": true
+      },
+      {
+        "id": 138,
+        "x": 3.2879941358519603e-17,
+        "expression": "3.2879941358519603e-17",
+        "native": "0x1.2f4391072222ep-55",
+        "reference": 3.2879941358519603e-17,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2f4391072222ep-55",
+        "exact": true
+      },
+      {
+        "id": 139,
+        "x": 6.901751479299662e-65,
+        "expression": "6.901751479299662e-65",
+        "native": "0x1.d12d585b8a1d2p-214",
+        "reference": 6.901751479299662e-65,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d12d585b8a1d2p-214",
+        "exact": true
+      },
+      {
+        "id": 140,
+        "x": 6.033145249560345e+92,
+        "expression": "6.033145249560345e+92",
+        "native": "0x1.ab452b701f423p+7",
+        "reference": 213.63509703046392,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ab452b701f423p+7",
+        "exact": true
+      },
+      {
+        "id": 141,
+        "x": 1.9759357593842707e+28,
+        "expression": "1.9759357593842707e+28",
+        "native": "0x1.049d1b5ccd8c1p+6",
+        "reference": 65.15342469219742,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.049d1b5ccd8c1p+6",
+        "exact": true
+      },
+      {
+        "id": 142,
+        "x": 6.398747173140423e-301,
+        "expression": "6.398747173140423e-301",
+        "native": "0x1.b6cdd3a984fcbp-998",
+        "reference": 6.398747173140423e-301,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.b6cdd3a984fcbp-998",
+        "exact": true
+      },
+      {
+        "id": 143,
+        "x": 0.0006583757286726512,
+        "expression": "0.0006583757286726512",
+        "native": "0x1.59109e4a35f29p-11",
+        "reference": 0.0006581590944518589,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.59109e4a35f29p-11",
+        "exact": true
+      },
+      {
+        "id": 144,
+        "x": 1.1850795977033173e-37,
+        "expression": "1.1850795977033173e-37",
+        "native": "0x1.429bfe84c8ad4p-123",
+        "reference": 1.1850795977033173e-37,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.429bfe84c8ad4p-123",
+        "exact": true
+      },
+      {
+        "id": 145,
+        "x": 3.877315034610108e-285,
+        "expression": "3.877315034610108e-285",
+        "native": "0x1.27334e18db85dp-945",
+        "reference": 3.877315034610108e-285,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.27334e18db85dp-945",
+        "exact": true
+      },
+      {
+        "id": 146,
+        "x": 1.3428345453349155e-129,
+        "expression": "1.3428345453349155e-129",
+        "native": "0x1.dc9304bb5c986p-429",
+        "reference": 1.3428345453349155e-129,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.dc9304bb5c986p-429",
+        "exact": true
+      },
+      {
+        "id": 147,
+        "x": 3.0248846790074994e-56,
+        "expression": "3.0248846790074994e-56",
+        "native": "0x1.7bc00b9f96772p-185",
+        "reference": 3.0248846790074994e-56,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.7bc00b9f96772p-185",
+        "exact": true
+      },
+      {
+        "id": 148,
+        "x": 1.8576906683757457e+48,
+        "expression": "1.8576906683757457e+48",
+        "native": "0x1.bc92dc53959b1p+6",
+        "reference": 111.14341860390302,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.bc92dc53959b1p+6",
+        "exact": true
+      },
+      {
+        "id": 149,
+        "x": 2.8622471018668415e-232,
+        "expression": "2.8622471018668415e-232",
+        "native": "0x1.c708ad8a49622p-770",
+        "reference": 2.8622471018668415e-232,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.c708ad8a49622p-770",
+        "exact": true
+      },
+      {
+        "id": 150,
+        "x": 2.6863854359984125e+304,
+        "expression": "2.6863854359984125e+304",
+        "native": "0x1.5e7cae283ea3ap+9",
+        "reference": 700.974064856134,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.5e7cae283ea3ap+9",
+        "exact": true
+      },
+      {
+        "id": 151,
+        "x": 2.773350513243391e+246,
+        "expression": "2.773350513243391e+246",
+        "native": "0x1.1bba5dd94965fp+9",
+        "reference": 567.4559890373602,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1bba5dd94965fp+9",
+        "exact": true
+      },
+      {
+        "id": 152,
+        "x": 1.1670000316507216e+114,
+        "expression": "1.1670000316507216e+114",
+        "native": "0x1.06a62dd75b3a5p+8",
+        "reference": 262.64913698174706,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.06a62dd75b3a5p+8",
+        "exact": true
+      },
+      {
+        "id": 153,
+        "x": 1.5575934131481646e+149,
+        "expression": "1.5575934131481646e+149",
+        "native": "0x1.5787400837d0fp+8",
+        "reference": 343.52832080233287,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.5787400837d0fp+8",
+        "exact": true
+      },
+      {
+        "id": 154,
+        "x": 1.7533704237340625e-165,
+        "expression": "1.7533704237340625e-165",
+        "native": "0x1.9d92772d54d74p-548",
+        "reference": 1.7533704237340625e-165,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.9d92772d54d74p-548",
+        "exact": true
+      },
+      {
+        "id": 155,
+        "x": 9.18246697539416e+182,
+        "expression": "9.18246697539416e+182",
+        "native": "0x1.a549ac22a6f4fp+8",
+        "reference": 421.28778282714933,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a549ac22a6f4fp+8",
+        "exact": true
+      },
+      {
+        "id": 156,
+        "x": 6.150586542347574e+182,
+        "expression": "6.150586542347574e+182",
+        "native": "0x1.a4e314af4ebcbp+8",
+        "reference": 420.8870343749265,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a4e314af4ebcbp+8",
+        "exact": true
+      },
+      {
+        "id": 157,
+        "x": 1.319844494808867e+258,
+        "expression": "1.319844494808867e+258",
+        "native": "0x1.292c17864f10bp+9",
+        "reference": 594.3444679151593,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.292c17864f10bp+9",
+        "exact": true
+      },
+      {
+        "id": 158,
+        "x": 4.916989437254466e+125,
+        "expression": "4.916989437254466e+125",
+        "native": "0x1.216a74092482bp+8",
+        "reference": 289.4158330644738,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.216a74092482bp+8",
+        "exact": true
+      },
+      {
+        "id": 159,
+        "x": 2.403359405672048e+231,
+        "expression": "2.403359405672048e+231",
+        "native": "0x1.0a631337db459p+9",
+        "reference": 532.7740239926017,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0a631337db459p+9",
+        "exact": true
+      },
+      {
+        "id": 160,
+        "x": 3.245261327380675e+78,
+        "expression": "3.245261327380675e+78",
+        "native": "0x1.698ec33764932p+7",
+        "reference": 180.77883313276976,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.698ec33764932p+7",
+        "exact": true
+      },
+      {
+        "id": 161,
+        "x": 3.0378039970380768e+259,
+        "expression": "3.0378039970380768e+259",
+        "native": "0x1.2abd86b9838d6p+9",
+        "reference": 597.4806739704461,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2abd86b9838d6p+9",
+        "exact": true
+      },
+      {
+        "id": 162,
+        "x": 3.598515172332354e+177,
+        "expression": "3.598515172332354e+177",
+        "native": "0x1.98d68c97a0becp+8",
+        "reference": 408.8380827681965,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.98d68c97a0becp+8",
+        "exact": true
+      },
+      {
+        "id": 163,
+        "x": 8.522692551004136e-95,
+        "expression": "8.522692551004136e-95",
+        "native": "0x1.6c1653c9b2f34p-313",
+        "reference": 8.522692551004136e-95,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.6c1653c9b2f34p-313",
+        "exact": true
+      },
+      {
+        "id": 164,
+        "x": 5.919687089561209e-269,
+        "expression": "5.919687089561209e-269",
+        "native": "0x1.f45fc703bd652p-892",
+        "reference": 5.919687089561209e-269,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f45fc703bd652p-892",
+        "exact": true
+      },
+      {
+        "id": 165,
+        "x": 1.4988268433000584e+161,
+        "expression": "1.4988268433000584e+161",
+        "native": "0x1.731ef22aa8ed6p+8",
+        "reference": 371.12088266967965,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.731ef22aa8ed6p+8",
+        "exact": true
+      },
+      {
+        "id": 166,
+        "x": 8.611716003400625e-55,
+        "expression": "8.611716003400625e-55",
+        "native": "0x1.51da9683fb0dap-180",
+        "reference": 8.611716003400625e-55,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.51da9683fb0dap-180",
+        "exact": true
+      },
+      {
+        "id": 167,
+        "x": 5.471929778806696e+265,
+        "expression": "5.471929778806696e+265",
+        "native": "0x1.31f13d3a09864p+9",
+        "reference": 611.8846809908396,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.31f13d3a09864p+9",
+        "exact": true
+      },
+      {
+        "id": 168,
+        "x": 1.862204008133628e-118,
+        "expression": "1.862204008133628e-118",
+        "native": "0x1.e0de1b8308f8p-392",
+        "reference": 1.862204008133628e-118,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e0de1b8308f8p-392",
+        "exact": true
+      },
+      {
+        "id": 169,
+        "x": 7.468871938690822e+86,
+        "expression": "7.468871938690822e+86",
+        "native": "0x1.9010ed7fb99ap+7",
+        "reference": 200.03306197300572,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.9010ed7fb99ap+7",
+        "exact": true
+      },
+      {
+        "id": 170,
+        "x": 6.8886713218010425e+96,
+        "expression": "6.8886713218010425e+96",
+        "native": "0x1.bdf4c298aa50ap+7",
+        "reference": 222.97804715231933,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.bdf4c298aa50ap+7",
+        "exact": true
+      },
+      {
+        "id": 171,
+        "x": 3.548437352882675e+201,
+        "expression": "3.548437352882675e+201",
+        "native": "0x1.d0160b5f1df46p+8",
+        "reference": 464.0861110160953,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d0160b5f1df46p+8",
+        "exact": true
+      },
+      {
+        "id": 172,
+        "x": 1.6948895520088755e+276,
+        "expression": "1.6948895520088755e+276",
+        "native": "0x1.3e0542df0063cp+9",
+        "reference": 636.0411032440093,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3e0542df0063cp+9",
+        "exact": true
+      },
+      {
+        "id": 173,
+        "x": 1.3860220334986567e-07,
+        "expression": "1.3860220334986567e-07",
+        "native": "0x1.29a55ca0ce7f7p-23",
+        "reference": 1.3860219374458116e-07,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.29a55ca0ce7f7p-23",
+        "exact": true
+      },
+      {
+        "id": 174,
+        "x": 1.5856176724655026e+202,
+        "expression": "1.5856176724655026e+202",
+        "native": "0x1.d1954a28825e3p+8",
+        "reference": 465.58316281493006,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d1954a28825e3p+8",
+        "exact": true
+      },
+      {
+        "id": 175,
+        "x": 3.896804224837621e+216,
+        "expression": "3.896804224837621e+216",
+        "native": "0x1.f2b7f2085889ep+8",
+        "reference": 498.7185368744048,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f2b7f2085889ep+8",
+        "exact": true
+      },
+      {
+        "id": 176,
+        "x": 339331123.9387493,
+        "expression": "339331123.9387493",
+        "native": "0x1.3a47a067a344fp+4",
+        "reference": 19.642486958346407,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3a47a067a344fp+4",
+        "exact": true
+      },
+      {
+        "id": 177,
+        "x": 1.5200904580395463e+159,
+        "expression": "1.5200904580395463e+159",
+        "native": "0x1.6e87a0f2d89dap+8",
+        "reference": 366.5297996310088,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.6e87a0f2d89dap+8",
+        "exact": true
+      },
+      {
+        "id": 178,
+        "x": 4.747459697785777e-179,
+        "expression": "4.747459697785777e-179",
+        "native": "0x1.89fe3fa3e23c7p-593",
+        "reference": 4.747459697785777e-179,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.89fe3fa3e23c7p-593",
+        "exact": true
+      },
+      {
+        "id": 179,
+        "x": 2.51510153894387e+292,
+        "expression": "2.51510153894387e+292",
+        "native": "0x1.50a379fd5d452p+9",
+        "reference": 673.2771603303356,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.50a379fd5d452p+9",
+        "exact": true
+      },
+      {
+        "id": 180,
+        "x": 1.0987556560210235e+114,
+        "expression": "1.0987556560210235e+114",
+        "native": "0x1.0696c0c4d276p+8",
+        "reference": 262.58887891901213,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0696c0c4d276p+8",
+        "exact": true
+      },
+      {
+        "id": 181,
+        "x": 3.455183801088804e+183,
+        "expression": "3.455183801088804e+183",
+        "native": "0x1.a69cea237ea8fp+8",
+        "reference": 422.6129476722935,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.a69cea237ea8fp+8",
+        "exact": true
+      },
+      {
+        "id": 182,
+        "x": 1.1640209114441306e+199,
+        "expression": "1.1640209114441306e+199",
+        "native": "0x1.ca5dc6be157e4p+8",
+        "reference": 458.36631382012115,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ca5dc6be157e4p+8",
+        "exact": true
+      },
+      {
+        "id": 183,
+        "x": 1.6627852307966158e-16,
+        "expression": "1.6627852307966158e-16",
+        "native": "0x1.7f6983f98c68fp-53",
+        "reference": 1.6627852307966156e-16,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.7f6983f98c68fp-53",
+        "exact": true
+      },
+      {
+        "id": 184,
+        "x": 7.896471282615843e-170,
+        "expression": "7.896471282615843e-170",
+        "native": "0x1.31297f1ac171bp-562",
+        "reference": 7.896471282615843e-170,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.31297f1ac171bp-562",
+        "exact": true
+      },
+      {
+        "id": 185,
+        "x": 7.805616296396605e-123,
+        "expression": "7.805616296396605e-123",
+        "native": "0x1.4a3c9bbfbb7a2p-406",
+        "reference": 7.805616296396605e-123,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4a3c9bbfbb7a2p-406",
+        "exact": true
+      },
+      {
+        "id": 186,
+        "x": 4.3137584918983453e-243,
+        "expression": "4.3137584918983453e-243",
+        "native": "0x1.d745d0be86e03p-806",
+        "reference": 4.3137584918983453e-243,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d745d0be86e03p-806",
+        "exact": true
+      },
+      {
+        "id": 187,
+        "x": 7.113715074177931e+185,
+        "expression": "7.113715074177931e+185",
+        "native": "0x1.abf0b5539fbf3p+8",
+        "reference": 427.9402668251998,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.abf0b5539fbf3p+8",
+        "exact": true
+      },
+      {
+        "id": 188,
+        "x": 1.2291508481301345e+125,
+        "expression": "1.2291508481301345e+125",
+        "native": "0x1.20078ab3ef5cbp+8",
+        "reference": 288.02946018785286,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.20078ab3ef5cbp+8",
+        "exact": true
+      },
+      {
+        "id": 189,
+        "x": 6.715077255259175e-262,
+        "expression": "6.715077255259175e-262",
+        "native": "0x1.5251d4302bcafp-868",
+        "reference": 6.715077255259175e-262,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.5251d4302bcafp-868",
+        "exact": true
+      },
+      {
+        "id": 190,
+        "x": 1.3638181647058777e+149,
+        "expression": "1.3638181647058777e+149",
+        "native": "0x1.57653d54e550ap+8",
+        "reference": 343.3954670963145,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.57653d54e550ap+8",
+        "exact": true
+      },
+      {
+        "id": 191,
+        "x": 3.96425692089416e-133,
+        "expression": "3.96425692089416e-133",
+        "native": "0x1.2023361ab425fp-440",
+        "reference": 3.96425692089416e-133,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2023361ab425fp-440",
+        "exact": true
+      },
+      {
+        "id": 192,
+        "x": 7.096769645504405e-40,
+        "expression": "7.096769645504405e-40",
+        "native": "0x1.ee9299ed54facp-131",
+        "reference": 7.096769645504405e-40,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ee9299ed54facp-131",
+        "exact": true
+      },
+      {
+        "id": 193,
+        "x": 3.874234089583015e-99,
+        "expression": "3.874234089583015e-99",
+        "native": "0x1.0f2a5d0b82865p-327",
+        "reference": 3.874234089583015e-99,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.0f2a5d0b82865p-327",
+        "exact": true
+      },
+      {
+        "id": 194,
+        "x": 9.100002752132508e-36,
+        "expression": "9.100002752132508e-36",
+        "native": "0x1.83124155ccac4p-117",
+        "reference": 9.100002752132508e-36,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.83124155ccac4p-117",
+        "exact": true
+      },
+      {
+        "id": 195,
+        "x": 2.37634097559426e+287,
+        "expression": "2.37634097559426e+287",
+        "native": "0x1.4ada8ed27e0d4p+9",
+        "reference": 661.707483588742,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4ada8ed27e0d4p+9",
+        "exact": true
+      },
+      {
+        "id": 196,
+        "x": 2.1037477352743525e-128,
+        "expression": "2.1037477352743525e-128",
+        "native": "0x1.d2a3ca6726875p-425",
+        "reference": 2.1037477352743525e-128,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d2a3ca6726875p-425",
+        "exact": true
+      },
+      {
+        "id": 197,
+        "x": 1.6823045784470644e-155,
+        "expression": "1.6823045784470644e-155",
+        "native": "0x1.cdf27d1930652p-515",
+        "reference": 1.6823045784470644e-155,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.cdf27d1930652p-515",
+        "exact": true
+      },
+      {
+        "id": 198,
+        "x": 8.021052735902793e+276,
+        "expression": "8.021052735902793e+276",
+        "native": "0x1.3ecc3b2851892p+9",
+        "reference": 637.595555343449,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3ecc3b2851892p+9",
+        "exact": true
+      },
+      {
+        "id": 199,
+        "x": 1.4107393059951483e+23,
+        "expression": "1.4107393059951483e+23",
+        "native": "0x1.aa6db6a6c880ap+5",
+        "reference": 53.30357103633294,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.aa6db6a6c880ap+5",
+        "exact": true
+      },
+      {
+        "id": 200,
+        "x": 9.219472810382616e-209,
+        "expression": "9.219472810382616e-209",
+        "native": "0x1.e4f4f0cb641c6p-692",
+        "reference": 9.219472810382616e-209,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e4f4f0cb641c6p-692",
+        "exact": true
+      },
+      {
+        "id": 201,
+        "x": 2.632891371358126e+264,
+        "expression": "2.632891371358126e+264",
+        "native": "0x1.306cdebad2e9dp+9",
+        "reference": 608.8505471734858,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.306cdebad2e9dp+9",
+        "exact": true
+      },
+      {
+        "id": 202,
+        "x": 1.678440316515914e+130,
+        "expression": "1.678440316515914e+130",
+        "native": "0x1.2bda9af6dff2fp+8",
+        "reference": 299.8539270684004,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2bda9af6dff2fp+8",
+        "exact": true
+      },
+      {
+        "id": 203,
+        "x": 3.9617762312195414e+270,
+        "expression": "3.9617762312195414e+270",
+        "native": "0x1.37898eb50734ap+9",
+        "reference": 623.0746675763305,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.37898eb50734ap+9",
+        "exact": true
+      },
+      {
+        "id": 204,
+        "x": 4.690356691320316e+200,
+        "expression": "4.690356691320316e+200",
+        "native": "0x1.ce1001c8e062bp+8",
+        "reference": 462.06252723196184,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ce1001c8e062bp+8",
+        "exact": true
+      },
+      {
+        "id": 205,
+        "x": 1.4003078468069775e-104,
+        "expression": "1.4003078468069775e-104",
+        "native": "0x1.00eda6f2eef78p-345",
+        "reference": 1.4003078468069775e-104,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.00eda6f2eef78p-345",
+        "exact": true
+      },
+      {
+        "id": 206,
+        "x": 1.2066378244233671e-203,
+        "expression": "1.2066378244233671e-203",
+        "native": "0x1.e43e62b3bb604p-675",
+        "reference": 1.2066378244233671e-203,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e43e62b3bb604p-675",
+        "exact": true
+      },
+      {
+        "id": 207,
+        "x": 6.268079316995597e+123,
+        "expression": "6.268079316995597e+123",
+        "native": "0x1.1d0dae024f3e2p+8",
+        "reference": 285.0534364169563,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1d0dae024f3e2p+8",
+        "exact": true
+      },
+      {
+        "id": 208,
+        "x": 3.8652216311794635e+243,
+        "expression": "3.8652216311794635e+243",
+        "native": "0x1.1870aa486ac7ep+9",
+        "reference": 560.8801966210738,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.1870aa486ac7ep+9",
+        "exact": true
+      },
+      {
+        "id": 209,
+        "x": 2.8869393741558318e+277,
+        "expression": "2.8869393741558318e+277",
+        "native": "0x1.3f702989e7933p+9",
+        "reference": 638.8762676602113,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3f702989e7933p+9",
+        "exact": true
+      },
+      {
+        "id": 210,
+        "x": 2.5115762243143895e+265,
+        "expression": "2.5115762243143895e+265",
+        "native": "0x1.318d901a640eep+9",
+        "reference": 611.1059601772847,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.318d901a640eep+9",
+        "exact": true
+      },
+      {
+        "id": 211,
+        "x": 5.917100236331474e+101,
+        "expression": "5.917100236331474e+101",
+        "native": "0x1.d4ad89a9422cep+7",
+        "reference": 234.33894089634708,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.d4ad89a9422cep+7",
+        "exact": true
+      },
+      {
+        "id": 212,
+        "x": 4.2321336383867718e-106,
+        "expression": "4.2321336383867718e-106",
+        "native": "0x1.f0f7a1302f2b5p-351",
+        "reference": 4.2321336383867718e-106,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f0f7a1302f2b5p-351",
+        "exact": true
+      },
+      {
+        "id": 213,
+        "x": 0.3080141619174507,
+        "expression": "0.3080141619174507",
+        "native": "0x1.12f44e7339cbfp-2",
+        "reference": 0.26851008013040806,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.12f44e7339cbfp-2",
+        "exact": true
+      },
+      {
+        "id": 214,
+        "x": 0.2532719235739011,
+        "expression": "0.2532719235739011",
+        "native": "0x1.ce5a0998fdc4ap-3",
+        "reference": 0.22575767038481082,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.ce5a0998fdc4ap-3",
+        "exact": true
+      },
+      {
+        "id": 215,
+        "x": 0.3271704526744153,
+        "expression": "0.3271704526744153",
+        "native": "0x1.21d7a60cad281p-2",
+        "reference": 0.2830491967427307,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.21d7a60cad281p-2",
+        "exact": true
+      },
+      {
+        "id": 216,
+        "x": 0.4558776383295378,
+        "expression": "0.4558776383295378",
+        "native": "0x1.809f9f0851d7fp-2",
+        "reference": 0.37560890663413454,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.809f9f0851d7fp-2",
+        "exact": true
+      },
+      {
+        "id": 217,
+        "x": 1.6744903387549872,
+        "expression": "1.6744903387549872",
+        "native": "0x1.f7af3cebbfa27p-1",
+        "reference": 0.9837588346270579,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f7af3cebbfa27p-1",
+        "exact": true
+      },
+      {
+        "id": 218,
+        "x": 0.33688260287586475,
+        "expression": "0.33688260287586475",
+        "native": "0x1.294f0450c0973p-2",
+        "reference": 0.29034048788903205,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.294f0450c0973p-2",
+        "exact": true
+      },
+      {
+        "id": 219,
+        "x": 0.40156994224524284,
+        "expression": "0.40156994224524284",
+        "native": "0x1.59b1fa6ec5d89p-2",
+        "reference": 0.33759299565414175,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.59b1fa6ec5d89p-2",
+        "exact": true
+      },
+      {
+        "id": 220,
+        "x": 0.43570795183331934,
+        "expression": "0.43570795183331934",
+        "native": "0x1.72567e7ce800dp-2",
+        "reference": 0.36165807378165554,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.72567e7ce800dp-2",
+        "exact": true
+      },
+      {
+        "id": 221,
+        "x": 0.34064737858877914,
+        "expression": "0.34064737858877914",
+        "native": "0x1.2c303303ca27dp-2",
+        "reference": 0.2931526156485587,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2c303303ca27dp-2",
+        "exact": true
+      },
+      {
+        "id": 222,
+        "x": 0.25304129080908344,
+        "expression": "0.25304129080908344",
+        "native": "0x1.cdf98bf8beacdp-3",
+        "reference": 0.22557362892970048,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.cdf98bf8beacdp-3",
+        "exact": true
+      },
+      {
+        "id": 223,
+        "x": 0.37909421998794246,
+        "expression": "0.37909421998794246",
+        "native": "0x1.4924238cdccc2p-2",
+        "reference": 0.3214269213414803,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4924238cdccc2p-2",
+        "exact": true
+      },
+      {
+        "id": 224,
+        "x": 0.28630153518708706,
+        "expression": "0.28630153518708706",
+        "native": "0x1.01d046bca27dfp-2",
+        "reference": 0.2517710735925202,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.01d046bca27dfp-2",
+        "exact": true
+      },
+      {
+        "id": 225,
+        "x": 0.37280383977770964,
+        "expression": "0.37280383977770964",
+        "native": "0x1.4475b3aa1741p-2",
+        "reference": 0.3168552467885215,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4475b3aa1741p-2",
+        "exact": true
+      },
+      {
+        "id": 226,
+        "x": 2.1046422569067973,
+        "expression": "2.1046422569067973",
+        "native": "0x1.2205a2bb9df91p+0",
+        "reference": 1.132898493580772,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.2205a2bb9df91p+0",
+        "exact": true
+      },
+      {
+        "id": 227,
+        "x": 0.43148942196302303,
+        "expression": "0.43148942196302303",
+        "native": "0x1.6f531ac13d643p-2",
+        "reference": 0.35871545605127525,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.6f531ac13d643p-2",
+        "exact": true
+      },
+      {
+        "id": 228,
+        "x": 0.2647902765473179,
+        "expression": "0.2647902765473179",
+        "native": "0x1.e1169072c968fp-3",
+        "reference": 0.23490631914426216,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.e1169072c968fp-3",
+        "exact": true
+      },
+      {
+        "id": 229,
+        "x": 0.3703084641338988,
+        "expression": "0.3703084641338988",
+        "native": "0x1.4298c36894f4fp-2",
+        "reference": 0.3150358707982734,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.4298c36894f4fp-2",
+        "exact": true
+      },
+      {
+        "id": 230,
+        "x": 0.27623451493690704,
+        "expression": "0.27623451493690704",
+        "native": "0x1.f3892928b28b5p-3",
+        "reference": 0.24391395717095113,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.f3892928b28b5p-3",
+        "exact": true
+      },
+      {
+        "id": 231,
+        "x": 0.3635979815399797,
+        "expression": "0.3635979815399797",
+        "native": "0x1.3d91dff8abcffp-2",
+        "reference": 0.31012678103702734,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.3d91dff8abcffp-2",
+        "exact": true
+      },
+      {
+        "id": 232,
+        "x": 0.2541721028085292,
+        "expression": "0.2541721028085292",
+        "native": "0x1.cfd27aa95c4a9p-3",
+        "reference": 0.2264756758627631,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.cfd27aa95c4a9p-3",
+        "exact": true
+      },
+      {
+        "id": 233,
+        "x": 0.17933042999320378,
+        "expression": "0.17933042999320378",
+        "native": "0x1.51cfa6ce4fe15p-3",
+        "reference": 0.16494684521784167,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.51cfa6ce4fe15p-3",
+        "exact": true
+      },
+      {
+        "id": 234,
+        "x": 0.39763081124431865,
+        "expression": "0.39763081124431865",
+        "native": "0x1.56d02e885076fp-2",
+        "reference": 0.33477852541920233,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.56d02e885076fp-2",
+        "exact": true
+      },
+      {
+        "id": 235,
+        "x": 0.4374275100859905,
+        "expression": "0.4374275100859905",
+        "native": "0x1.7390472f774a7p-2",
+        "reference": 0.3628550646515784,
+        "nativeMatchesReference": true,
+        "sdk": "0x1.7390472f774a7p-2",
+        "exact": true
+      }
+    ]
+  },
+  "nativeStderr": {
+    "bytes": 9452,
+    "sha256": "b6a764a206e5e5bf642844a10e401ecff3b202e3fa99e75d37ff1621be1304d2",
+    "configurationDiagnostics": {
+      "assertion 'node || key' failed": 34,
+      "assertion 'parent || key' failed": 34,
+      "unknown GOConfMonitor id.": 34
+    },
+    "otherLines": []
+  },
+  "portableRuntime": {
+    "browser": "Chromium154.0.8037.0/Playwright1246 platformbrowser targetes2022 bundle",
+    "worker": "Dedicated module worker, same bounded public command bindings",
+    "results": {
+      "browser": {
+        "count": 236,
+        "exact": 236,
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "first": [
+          {
+            "id": 0,
+            "exact": true,
+            "sdk": "0x1.294f0450c0973p-2"
+          },
+          {
+            "id": 1,
+            "exact": true,
+            "sdk": "0x1.df6ce4a42bd55p-2"
+          },
+          {
+            "id": 2,
+            "exact": true,
+            "sdk": "0x1.a2cc10afdeaf1p-3"
+          },
+          {
+            "id": 3,
+            "exact": true,
+            "sdk": "0x0p+0"
+          },
+          {
+            "id": 4,
+            "exact": true,
+            "sdk": "0x0p+0"
+          },
+          {
+            "id": 5,
+            "exact": true,
+            "sdk": "#NUM!"
+          },
+          {
+            "id": 6,
+            "exact": true,
+            "sdk": "#NUM!"
+          },
+          {
+            "id": 7,
+            "exact": true,
+            "sdk": "-0x1.25e4f7b2737fap+5"
+          },
+          {
+            "id": 8,
+            "exact": true,
+            "sdk": "0x1p-55"
+          },
+          {
+            "id": 9,
+            "exact": true,
+            "sdk": "-0x1p-55"
+          },
+          {
+            "id": 10,
+            "exact": true,
+            "sdk": "0x1.62e42fefa39efp-1"
+          },
+          {
+            "id": 11,
+            "exact": true,
+            "sdk": "0x1.193ea7aad030bp+0"
+          },
+          {
+            "id": 12,
+            "exact": true,
+            "sdk": "0x1.62991d5d62a5ep+9"
+          }
+        ]
+      },
+      "worker": {
+        "count": 236,
+        "exact": 236,
+        "exit": 0,
+        "stdout": "",
+        "stderr": "",
+        "first": [
+          {
+            "id": 0,
+            "exact": true,
+            "sdk": "0x1.294f0450c0973p-2"
+          },
+          {
+            "id": 1,
+            "exact": true,
+            "sdk": "0x1.df6ce4a42bd55p-2"
+          },
+          {
+            "id": 2,
+            "exact": true,
+            "sdk": "0x1.a2cc10afdeaf1p-3"
+          },
+          {
+            "id": 3,
+            "exact": true,
+            "sdk": "0x0p+0"
+          },
+          {
+            "id": 4,
+            "exact": true,
+            "sdk": "0x0p+0"
+          },
+          {
+            "id": 5,
+            "exact": true,
+            "sdk": "#NUM!"
+          },
+          {
+            "id": 6,
+            "exact": true,
+            "sdk": "#NUM!"
+          },
+          {
+            "id": 7,
+            "exact": true,
+            "sdk": "-0x1.25e4f7b2737fap+5"
+          },
+          {
+            "id": 8,
+            "exact": true,
+            "sdk": "0x1p-55"
+          },
+          {
+            "id": 9,
+            "exact": true,
+            "sdk": "-0x1p-55"
+          },
+          {
+            "id": 10,
+            "exact": true,
+            "sdk": "0x1.62e42fefa39efp-1"
+          },
+          {
+            "id": 11,
+            "exact": true,
+            "sdk": "0x1.193ea7aad030bp+0"
+          },
+          {
+            "id": 12,
+            "exact": true,
+            "sdk": "0x1.62991d5d62a5ep+9"
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "maintainedWorkspace": "331files/6443 tests pass",
+    "lint": "Maintained ESLint/source/test/consumer types pass",
+    "build": "Selected maintained workspace dependency closure passes",
+    "publicNativeReference": "236/236 exact public CSV HEXREP command/native/220-digit Decimal cases; exit0 empty SDK diagnostics",
+    "browserWorker": "236/236 exact in each runtime, exit0 empty diagnostics",
+    "screenshots": "Readable input/bit/error controls and browser/worker exact-result screenshot inspected",
+    "receipts": [
+      {
+        "kind": "red",
+        "sha256": "855751b836ae95bd45ab76e9f87164bfab769840c9c34742acf48d6e0d0ca773"
+      },
+      {
+        "kind": "focused",
+        "sha256": "a9124440907beae1948370a19cb44736509cc7e91912df03c25aaf0d6b4f8fa1"
+      },
+      {
+        "kind": "test",
+        "sha256": "9dbd86572bfc67b86615878a9c19d5651d36953e2c57c2a1c20227a5e7d85346"
+      },
+      {
+        "kind": "lint",
+        "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+      },
+      {
+        "kind": "build",
+        "sha256": "0842e9be7c6668ecc4f9a5ea9bb5d8e27e45ebf83f061c6af73ffedbe0239f96"
+      },
+      {
+        "kind": "public",
+        "sha256": "0f33e659bff01247d281883625836b64cb37d076c0e70f1d59a9d0d1168a45d5"
+      },
+      {
+        "kind": "browser",
+        "sha256": "8aff6263f522b2a33c8db75739eda6daf39520ebf1f64b7d9222caa6a9519b86"
+      },
+      {
+        "kind": "screenshot",
+        "sha256": "f5ec5291838196954c94a1bf9f7d3b2a1209469b7080a025dee1cb7e8ba2948f"
+      }
+    ]
+  },
+  "remaining": [
+    "Internal capturedLog1p/acos primitive mismatches",
+    "Historical Linux/glibc and fresh Darwin Bessel high-q holdouts; broader special-function domains",
+    "All other gap ledger rows, packed SDK/Shell integrated gates and successful publication"
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": null
+  }
+}

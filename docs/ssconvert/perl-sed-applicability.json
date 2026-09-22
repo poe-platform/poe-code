@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "status": "validated-required-port; implementation-and-activated-native-profile-open",
+  "reference": {
+    "nativeArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "sourceSha256": "73bfafc72fe65a516eed8708395738a0fbfc11f607321a08bddd456ca572fe71",
+    "loaderSha256": "24fca5f164eadd7b24c9e470e8429a0b7e0a5014addd429380e1958bb8ca8cfc",
+    "perl": "5.34.1 darwin-thread-multi-2level",
+    "scope": "Unmodified released sample function scalar oracle; no actual Gnumeric Perl-loader activation or full Unicode/exporter qualification."
+  },
+  "initialHarnessCorrection": "Released sample is loaded with do,as a script; require rejected its absent module true-return sentinel. No source change.",
+  "cases": [
+    {
+      "id": "initial-empty",
+      "outputHex": "58615862586158",
+      "argumentsHex": [
+        "616261",
+        "",
+        "58"
+      ]
+    },
+    {
+      "id": "literal",
+      "outputHex": "616463",
+      "argumentsHex": [
+        "616263",
+        "62",
+        "64"
+      ]
+    },
+    {
+      "outputHex": "7862786278",
+      "id": "global",
+      "argumentsHex": [
+        "6162616261",
+        "61",
+        "78"
+      ]
+    },
+    {
+      "id": "dollar1",
+      "outputHex": "61243163",
+      "argumentsHex": [
+        "616263",
+        "286229",
+        "2431"
+      ]
+    },
+    {
+      "id": "dollarand",
+      "outputHex": "61242663",
+      "argumentsHex": [
+        "616263",
+        "62",
+        "2426"
+      ]
+    },
+    {
+      "outputHex": "615c3163",
+      "id": "backslash",
+      "argumentsHex": [
+        "616263",
+        "62",
+        "5c31"
+      ]
+    },
+    {
+      "outputHex": "615c6e63",
+      "id": "replacement-escape",
+      "argumentsHex": [
+        "616263",
+        "62",
+        "5c6e"
+      ]
+    },
+    {
+      "id": "empty-after-success",
+      "outputHex": "58615862586158",
+      "argumentsHex": [
+        "616261",
+        "",
+        "58"
+      ]
+    },
+    {
+      "outputHex": "5858",
+      "id": "zero-star",
+      "argumentsHex": [
+        "616161",
+        "612a",
+        "58"
+      ]
+    },
+    {
+      "id": "zero-lazy",
+      "outputHex": "58585858585858",
+      "argumentsHex": [
+        "616161",
+        "612a3f",
+        "58"
+      ]
+    },
+    {
+      "id": "alternative-empty",
+      "outputHex": "5858586258",
+      "argumentsHex": [
+        "6162",
+        "7c61",
+        "58"
+      ]
+    },
+    {
+      "id": "dot-newline",
+      "outputHex": "580a58",
+      "argumentsHex": [
+        "610a62",
+        "2e",
+        "58"
+      ]
+    },
+    {
+      "outputHex": "585858",
+      "id": "dotall",
+      "argumentsHex": [
+        "610a62",
+        "283f73292e",
+        "58"
+      ]
+    },
+    {
+      "id": "anchor",
+      "outputHex": "58610a6258",
+      "argumentsHex": [
+        "610a62",
+        "5e7c24",
+        "58"
+      ]
+    },
+    {
+      "outputHex": "5861580a586258",
+      "id": "multiline",
+      "argumentsHex": [
+        "610a62",
+        "283f6d295e7c24",
+        "58"
+      ]
+    },
+    {
+      "outputHex": "61586258",
+      "id": "digit",
+      "argumentsHex": [
+        "6131326233",
+        "5c642b",
+        "58"
+      ]
+    },
+    {
+      "id": "word",
+      "outputHex": "c3a458c3a9",
+      "argumentsHex": [
+        "c3a462c3a9",
+        "5c772b",
+        "58"
+      ]
+    },
+    {
+      "id": "word-ascii",
+      "outputHex": "c3a458c3a9",
+      "argumentsHex": [
+        "c3a462c3a9",
+        "283f61295c772b",
+        "58"
+      ]
+    },
+    {
+      "outputHex": "58",
+      "id": "empty-string",
+      "argumentsHex": [
+        "",
+        "",
+        "58"
+      ]
+    },
+    {
+      "id": "literal-metachar-replacement",
+      "outputHex": "612e2a5b785d2824312963",
+      "argumentsHex": [
+        "616263",
+        "62",
+        "2e2a5b785d28243129"
+      ]
+    },
+    {
+      "error": "Unmatched [ in regex; marked by <-- HERE in m/[ <-- HERE / at ./out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/perl-func/perl_func.pl line 40, <STDIN> line 21.\n",
+      "id": "invalid",
+      "argumentsHex": [
+        "616263",
+        "5b",
+        "58"
+      ]
+    }
+  ],
+  "stderr": "",
+  "contracts": [
+    "Loader newSVpv(s,strlen(s)) creates unflagged byte strings; NUL terminates before sample function. JS Unicode regex is not qualified native semantics.",
+    "Replacement is variable content literal, including$1/$&/backslash sequences; only match pattern compiles as Perl regex.",
+    "Unsafe code-bearing regex constructs were not executed; product must use bounded portable parser/matcher, never guest Perl/JS regex execution."
+  ],
+  "remaining": [
+    "Original failing memory tests and bounded port",
+    "Perl-loader native activation and optional profile",
+    "Zero-width global search/anchor/flag/byte syntax qualification",
+    "Output bytes/work/cancellation and source diagnostic mapping",
+    "Current SDK/Shell/browser/worker/checkpoint results and publication"
+  ]
+}

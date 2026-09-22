@@ -483,8 +483,14 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "missing bounded compatible optional port",
-      "proof": [],
+      "currentFinding": "Required bounded port absent from explicit perlSampleFunctions binding.21unmodified Perl5.34.1 sample cases qualify literal variable replacement,byte-string loader and zero-width/flag behavior; this source scalar oracle does not activate Gnumeric Perl loader. Implementation,profile/public qualification and publication remain open.",
+      "proof": [
+        {
+          "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
+          "path": "docs/ssconvert/perl-sed-applicability.json",
+          "outcome": "21safe source cases; replacement$1/$&/backslash literal; empty pattern scalar scope,zero-starXX/zero-lazy7Xs; loadernewSVpv/strlen unflagged byte contract,ASCIIword controls and invalidregex sourceerror recorded. Code-bearing patterns not executed."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,

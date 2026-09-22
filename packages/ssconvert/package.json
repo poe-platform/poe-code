@@ -23,7 +23,10 @@
     "src/encoding/ucs2-transliteration-tables.ts",
     "src/codecs/html-NOTICE.md",
     "src/codecs/legacy-binary-NOTICE.md",
-    "src/rendering/print/NOTICE.md"
+    "src/rendering/print/NOTICE.md",
+    "src/formulas/functions/captured-acos-NOTICE.md",
+    "src/formulas/functions/captured-acos.ts",
+    "src/formulas/functions/captured-acos-profile.ts"
   ],
   "scripts": {
     "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",

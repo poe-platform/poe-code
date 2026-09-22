@@ -390,7 +390,7 @@
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -520,7 +520,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         }
       ],
       "delivery": {
@@ -554,7 +554,7 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Private capturedLog1p matches actual historical libm on3902/3902 controls after compiled FMA repair. Public LN1P preserved. Acos one/60 discrepancy and Bessel high-q47/120 differences remain open; other named Bessel cohorts unchanged and exact. Broader profiles remain required.",
+      "currentFinding": "Private capturedLog1p3902/3902 and actual scalar acos2173/2173 match historical Debian2.41 aarch64 libm after compiled-operation repairs. Public LN1P preserved. Bessel high-q improves73→74/120;46 differences and broader profiles remain open. Other named Bessel cohorts preserved and exact.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -574,18 +574,23 @@
           "kind": "matching-historical-libm-executed-primitive",
           "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
           "outcome": "Actual Debian2.41 aarch64 libm disassembly and QEMU oracle drive private log1p FMA repair:3646/3646 traced inputs and256/256 independent controls,7344 workspace tests,lint/build; inspected public screenshot. Acos59/60 and Bessel high-q73/120 remain open."
+        },
+        {
+          "kind": "executed-native-acos-full-interval-controls",
+          "path": "docs/ssconvert/bessel-acos-native-gap-proof.json",
+          "outcome": "Original1red regression repaired;2173 exact primitive controls,all2724 coefficient words match actual libm binary,27focused/7371workspace tests,lint/types/build; actual publicShell repaired Bessel HEXREP screenshot inspected.46 broader Bessel differences remain."
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "43c6a527ca00b78291483148def4f7eab56c206b",
+        "remoteMain": "private log1p repair verified on origin/main; acos repair pending atomic delivery",
+        "publication": "log1p Release35780504119 cancelled by unrelated main progress; containing35780848122 pending"
       }
     },
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Private capturedLog1p matches actual historical libm on3902/3902 controls after compiled FMA repair. Public LN1P preserved. Acos one/60 discrepancy and Bessel high-q47/120 differences remain open; other named Bessel cohorts unchanged and exact. Broader profiles remain required.",
+      "currentFinding": "Private capturedLog1p3902/3902 and actual scalar acos2173/2173 match historical Debian2.41 aarch64 libm after compiled-operation repairs. Public LN1P preserved. Bessel high-q improves73→74/120;46 differences and broader profiles remain open. Other named Bessel cohorts preserved and exact.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -600,12 +605,17 @@
           "kind": "matching-historical-libm-executed-primitive",
           "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
           "outcome": "Actual Debian2.41 aarch64 libm disassembly and QEMU oracle drive private log1p FMA repair:3646/3646 traced inputs and256/256 independent controls,7344 workspace tests,lint/build; inspected public screenshot. Acos59/60 and Bessel high-q73/120 remain open."
+        },
+        {
+          "kind": "executed-native-acos-full-interval-controls",
+          "path": "docs/ssconvert/bessel-acos-native-gap-proof.json",
+          "outcome": "Original1red regression repaired;2173 exact primitive controls,all2724 coefficient words match actual libm binary,27focused/7371workspace tests,lint/types/build; actual publicShell repaired Bessel HEXREP screenshot inspected.46 broader Bessel differences remain."
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "43c6a527ca00b78291483148def4f7eab56c206b",
+        "remoteMain": "private log1p repair verified on origin/main; acos repair pending atomic delivery",
+        "publication": "log1p Release35780504119 cancelled by unrelated main progress; containing35780848122 pending"
       }
     },
     {
@@ -659,12 +669,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {

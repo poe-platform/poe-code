@@ -3,34 +3,8 @@ import { capturedTrig } from "./captured-trigonometry.js";
 import { piReduced, sinPi } from "./math.js";
 import { c, multiply } from "./complex.js";
 import type { FunctionHost } from "./types.js";
-import { scaledPi } from "./reduce-pi.js";
+import { capturedAcos } from "./captured-acos.js";
 import { capturedLog1p } from "./captured-log1p.js";
-
-/** Acos via a geometrically convergent 160-bit asin and exact half-angle root. */
-function capturedAcos(x: number, host: FunctionHost): number {
-  if (!Number.isFinite(x) || Math.abs(x) >= 1) return Math.acos(x);
-  const precision = 160, unit = 1n << BigInt(precision);
-  const view = new DataView(new ArrayBuffer(8)); view.setFloat64(0, Math.abs(x));
-  const bits = view.getBigUint64(0), exponent = Number(bits >> 52n);
-  const mantissa = (bits & ((1n << 52n) - 1n)) | (exponent ? 1n << 52n : 0n), shift = (exponent ? exponent - 1075 : -1074) + precision;
-  let fixed = shift < 0 ? mantissa >> BigInt(-shift) : mantissa << BigInt(shift);
-  const halfAngle = Math.abs(x) >= .25;
-  if (halfAngle) {
-    const radicand = (unit - fixed) * unit / 2n;
-    let root = 1n << BigInt(Math.ceil(radicand.toString(2).length / 2));
-    for (;;) { host.tick(); const next = (root + radicand / root) / 2n; if (next >= root) break; root = next; }
-    fixed = root;
-  }
-  const square = fixed * fixed / unit;
-  let term = fixed, sum = fixed;
-  for (let n = 1; n < 200; n++) {
-    host.tick(); term = term * square * BigInt((2 * n - 1) ** 2) / (unit * BigInt(2 * n * (2 * n + 1))); sum += term;
-    if (term === 0n) break;
-  }
-  const pi = scaledPi >> BigInt(2048 - precision);
-  const result = halfAngle ? x < 0 ? pi - 2n * sum : 2n * sum : (pi >> 1n) - (x < 0 ? -sum : sum);
-  return Number(result) / 2 ** precision;
-}
 
 /** Correct double-rounded square roots by comparing exact fourth-power midpoints. */
 function fourthRoot(x: number, host: FunctionHost): number {

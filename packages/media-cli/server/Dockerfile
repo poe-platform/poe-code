@@ -4,11 +4,15 @@ COPY packages/remote-execution/native/execve.c /app/execve.c
 RUN mkdir -p /opt/remote-execution && gcc -std=c11 -O2 -Wall -Wextra -Werror execve.c -o /opt/remote-execution/execve
 COPY packages/media-cli/server/download.mjs /app/download.mjs
 COPY packages/media-cli/server/container-lock.json /app/container-lock.json
-RUN node download.mjs
-RUN mkdir -p /opt/ffmpeg && tar -xJf /tmp/ffmpeg.tar.xz -C /opt/ffmpeg --strip-components=2 ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffmpeg ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffprobe
 # The checksum-pinned AppImage has its SquashFS payload at byte 944632.
 # Extract it without executing its architecture-specific AppImage launcher.
-RUN dpkg -i /tmp/squashfs-tools.deb && unsquashfs -o 944632 -d /opt/imagemagick /tmp/magick.AppImage
+# Keep downloads and extraction in one layer so archives are never shipped.
+RUN node download.mjs \
+ && mkdir -p /opt/ffmpeg \
+ && tar -xJf /tmp/ffmpeg.tar.xz -C /opt/ffmpeg --strip-components=2 ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffmpeg ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffprobe \
+ && dpkg -i /tmp/squashfs-tools.deb \
+ && unsquashfs -o 944632 -d /opt/imagemagick /tmp/magick.AppImage \
+ && rm /tmp/ffmpeg.tar.xz /tmp/magick.AppImage /tmp/squashfs-tools.deb
 COPY packages/media-cli/dist/build-assets.js /app/build-assets.js
 RUN node --input-type=module -e "import{readFile}from'node:fs/promises';import{verifyMediaExecutableAssets}from'./build-assets.js';const lock=JSON.parse(await readFile('/app/container-lock.json'));await verifyMediaExecutableAssets({executablePaths:lock.executablePaths,expectedExecutableDigests:lock.executables,maxExecutableBytes:lock.maxExecutableBytes});"
 

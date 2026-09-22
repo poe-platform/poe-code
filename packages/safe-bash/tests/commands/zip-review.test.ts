@@ -161,7 +161,7 @@ test("ZIP STORE file writes its owned staging before gated source EOF", async ()
   let writes = 0;
   let published = false;
   const stream = wrapped(fs, {
-    async *readStream(path, options) {
+    async *readStream(_path, _options) {
       yield Buffer.alloc(512, 97);
       assert.ok(writes >= 2, "header and payload must reach staging before next input");
       assert.equal(published, false);

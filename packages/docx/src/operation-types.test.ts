@@ -17,10 +17,10 @@ import type { DocxBatchArgumentMap } from "./operation-types.js";
 it("keeps equation fragments explicit and physical inventory package-global", () => {
   expectTypeOf<keyof DocxOperationArguments<"equations.list">>().toEqualTypeOf<"json" | "limit">();
   expectTypeOf<DocxBatchArgumentMap["equations.list"]>().toEqualTypeOf<Readonly<Record<string, never>>>();
-  for (const operation of ["equations.add", "equations.replace"] as const) {
-    expectTypeOf<DocxOperationArguments<typeof operation>["select"]>().toEqualTypeOf<string>();
-    expectTypeOf<DocxBatchArgumentMap[typeof operation]["select"]>().toEqualTypeOf<string>();
-    expectTypeOf<Extract<keyof DocxOperationArguments<typeof operation>, "scope" | "paragraph" | "all">>().toEqualTypeOf<never>();
+  for (const ignoredOperation of ["equations.add", "equations.replace"] as const) {
+    expectTypeOf<DocxOperationArguments<typeof ignoredOperation>["select"]>().toEqualTypeOf<string>();
+    expectTypeOf<DocxBatchArgumentMap[typeof ignoredOperation]["select"]>().toEqualTypeOf<string>();
+    expectTypeOf<Extract<keyof DocxOperationArguments<typeof ignoredOperation>, "scope" | "paragraph" | "all">>().toEqualTypeOf<never>();
   }
 });
 it("keeps diagram options package-global in direct and declared batch types", () => {

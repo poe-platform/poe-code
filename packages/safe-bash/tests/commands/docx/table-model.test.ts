@@ -19,7 +19,6 @@ const action = (operation: string, receiver: object, args: object = {}, resultHa
 });
 const select = [action("model.document.Document.tables.get", root, {}, "tables")];
 const first = { resultHandle: "tables", index: 0 };
-const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 const cell = (text: string, props = "") =>
   `<w:tc><w:tcPr>${props}</w:tcPr>${paragraph(text)}</w:tc>`;
 const grid = (rows: string, cols = 2) =>

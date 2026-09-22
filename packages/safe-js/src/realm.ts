@@ -1,3 +1,4 @@
+import { denyGuestStringCompilation } from "./interp/string-compilation.js";
 import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./interp/array-buffer.js";
 import {hashParsedAst} from "./parse/hash.js";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -82,6 +83,7 @@ export type RealmLimits = {
   nestedEvaluations?: number;
 };
 export type RealmOptions = {
+  stringCompilation?: "allow" | "deny";
   classicScripts?: boolean;
   callbackScheduling?: "after-prefix";
   sourceResolver?: SourceResolver;
@@ -103,6 +105,7 @@ export type RealmResult =
     })
   | Omit<Extract<InterpreterResult, { ok: false }>, "snapshot">;
 export type SafeJSRealm = ExecutionControl & {
+  readonly stringCompilation: "allow" | "deny";
   readonly extensions: readonly SafeJSExtension["manifest"][];
   evaluate(source: string, options?: { filename?: string; sourceType?: "module" }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
@@ -859,6 +862,7 @@ class RealmState {
     );
     if (this.options.classicScripts)
       this.scope.declare("this", "const", getRealmGlobalObject(this.budget));
+    if (this.options.stringCompilation === "deny") denyGuestStringCompilation(this.scope);
   }
 
   async evaluateRaw(
@@ -1155,6 +1159,7 @@ function assertNames(actual: readonly string[], expected: readonly string[], lab
 export function createRealm(options: RealmOptions = {}): SafeJSRealm {
   const state = new RealmState(readRealmOptions(options));
   return Object.freeze(attachExecutionControl({
+    stringCompilation: state.options.stringCompilation ?? "allow",
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
     startCallback: state.startCallback,
@@ -1218,6 +1223,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "clock",
     "limits"
   ]);
+  if (!oneShot) supported.add("stringCompilation");
   if (!oneShot) supported.add("classicScripts");
   if (!oneShot) supported.add("callbackScheduling");
   for (const [key, entry] of Object.entries(options)) {
@@ -1226,5 +1232,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
   }
   if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix")
     throw new TypeError("Realm callbackScheduling must be 'after-prefix'.");
+  if (options.stringCompilation !== undefined && options.stringCompilation !== "allow" && options.stringCompilation !== "deny")
+    throw new TypeError("Realm stringCompilation must be 'allow' or 'deny'.");
   return options as RealmOptions;
 }

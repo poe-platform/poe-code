@@ -1,3 +1,4 @@
+import { assertGuestStringCompilation } from "./string-compilation.js";
 import { promiseReplayContext } from "./promise-replay.js";
 import { createSandboxBox } from "./boxed.js";
 import { legacyBlockFunctions, prepareLegacyEvalFunctions } from "./legacy-block-functions.js";
@@ -3410,6 +3411,7 @@ async function evaluateGuestEval(source: string, context: EvaluationContext, dir
       direct = false;
     }
   }
+  assertGuestStringCompilation(context.scope);
   const parent = direct ? context.scope : context.scope.globalScope();
   const parsed = createEvalSource(source, {
     strict: direct && context.strict !== false,

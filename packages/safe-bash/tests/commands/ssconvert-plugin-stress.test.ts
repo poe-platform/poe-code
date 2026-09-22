@@ -27,7 +27,7 @@ const options = { codecs: [fixture],
 function invocation(args: readonly string[], overrides: Partial<CommandContext> = {}) {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const context: CommandContext = { command: "ssconvert", args, fs: new MemoryFileSystem(), cwd: "/",
-    env: {}, signal: new AbortController().signal, stdin: [], stdinIsDefault: true,
+    env: {}, signal: new AbortController().signal, stdin: (async function* () {})(), stdinIsDefault: true,
     stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } }, ...overrides };
   return { context, stdout, stderr };
@@ -49,7 +49,7 @@ test("ssconvert retains adapter selection and bound transport hooks after caller
   const visits: string[] = [];
   const adapters = { original: {
     async read() { visits.push("adapter"); return [encode("adapter-original")]; },
-    async write() { throw new Error("unexpected adapter write"); }
+    async write(): Promise<void> { throw new Error("unexpected adapter write"); }
   } };
   const transport = {
     identity: "bound-original", redirects: 0,
@@ -152,7 +152,7 @@ test("ssconvert cancellation drains admitted stderr writes before invocation set
   });
   const execution = createSsconvertCommand(options).execute(call.context);
   const rejection = assert.rejects(async () => execution, error => error === reason);
-  void execution.then(() => { settled = true; }, () => { settled = true; });
+  void Promise.resolve(execution).then(() => { settled = true; }, () => { settled = true; });
   await admission;
   controller.abort(reason);
   const cleanup = Promise.all(cleanups.map(close => close()));
@@ -172,6 +172,66 @@ test("ssconvert explicit plugin is available with ordinary agent shell invocatio
   try {
     const result = await shell.exec("printf 'agent input' | ssconvert -T independent fd://0 fd://1");
     assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, "agent input");
+  } finally { await shell.dispose(); }
+});
+
+test("ssconvert public Shell diagnostics resolve resource identity against VFS cwd independently of PWD", async () => {
+  const environments: Readonly<Record<string, string>>[] = [
+    { PWD: "/reported", KEEP: "original" }, { PWD: "relative", KEEP: "original" }, { KEEP: "original" }
+  ];
+  for (const env of environments) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/input.independent", encode("original"));
+    await fs.writeFile("/work/keep", encode("untouched"));
+    const shell = new Shell({ fs, cwd: "/work" }).use(ssconvertCommands(options));
+    shell.commands.register({ name: "exact-env", async execute(context) {
+      return context.invoke!("ssconvert", context.args, { replaceEnv: true, env });
+    } });
+    try {
+      const missing = await shell.exec("exact-env 'missing #.independent' output.independent");
+      assert.equal(missing.exitCode, 1);
+      assert.equal(missing.stdout, "");
+      assert.equal(missing.stderr, "E /work/missing #.independent: No such file or directory\n");
+      const exporter = await shell.exec("exact-env input.independent 'output #.unknown'");
+      assert.equal(exporter.exitCode, 2);
+      assert.equal(exporter.stdout, "");
+      assert.equal(exporter.stderr, "Unable to guess exporter to use for 'file:///work/output%20%23.unknown'.\nTry --list-exporters to see a list of possibilities.\n");
+      const absolute = await shell.exec("exact-env /elsewhere.independent output.independent");
+      assert.equal(absolute.exitCode, 1);
+      assert.equal(absolute.stderr, "E /elsewhere.independent: No such file or directory\n");
+      assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["input.independent", "keep"]);
+      assert.deepEqual(await fs.readFile("/work/input.independent"), encode("original"));
+      assert.deepEqual(await fs.readFile("/work/keep"), encode("untouched"));
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("ssconvert VFS cwd remains distinct from exact invocation exports and GETENV(PWD)", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input.independent", encode("original"));
+  const observed: Readonly<Record<string, string>>[] = [];
+  const codec: Codec = { ...fixture, async read(_bytes, context) {
+    observed.push(context.environment.env);
+    return { sheets: [{ id: "s", name: "Original", cells: [{ row: 0, column: 0,
+      formula: '=GETENV("PWD")', formulaDirty: true, value: { kind: "string", value: "cached" } }] }] };
+  } };
+  const shell = new Shell({ fs, cwd: "/work" }).use(ssconvertCommands({ ...options, codecs: [codec],
+    environment: { ...options.environment, env: { CONFIGURED: "private" } } }));
+  shell.commands.register({ name: "exact-env", async execute(context) {
+    return context.invoke!("ssconvert", ["--recalc", "-T", "Gnumeric_stf:stf_csv", "input.independent", "fd://1"], {
+      replaceEnv: true, env: { PWD: "/reported", EXPORTED: "value" }
+    });
+  } });
+  try {
+    const result = await shell.exec("exact-env");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "/reported\n");
+    assert.deepEqual(observed, [{ PWD: "/reported", EXPORTED: "value" }]);
+    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["input.independent"]);
+    assert.deepEqual(await fs.readFile("/work/input.independent"), encode("original"));
   } finally { await shell.dispose(); }
 });
 
@@ -211,7 +271,7 @@ test("ssconvert cancellation drains cooperative codec ownership before rejection
     throw new Error("unreachable");
   } };
   const call = invocation(["-T", "independent", "fd://0", "fd://1"], {
-    signal: controller.signal, stdin: [encode("original")], stdinIsDefault: false
+    signal: controller.signal, stdin: (async function* () { yield encode("original"); })(), stdinIsDefault: false
   });
   const execution = createSsconvertCommand({ ...options, codecs: [codec] }).execute(call.context);
   await admission; controller.abort(reason);

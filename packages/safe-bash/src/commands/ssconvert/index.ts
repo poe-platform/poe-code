@@ -83,6 +83,7 @@ export function createSsconvertCommand(options: SsconvertCommandsOptions): Comma
           ...binding,
           environment: {
             ...binding.environment,
+            cwd: context.cwd,
             env: Object.freeze({ ...context.env })
           },
           limits: { ...binding.limits, inputBytes },

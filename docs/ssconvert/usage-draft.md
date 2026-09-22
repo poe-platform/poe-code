@@ -103,15 +103,14 @@ the configured environment map.
 | --- | --- |
 | `LC_ALL`, `LC_CTYPE`, `LC_NUMERIC`, `LC_TIME`, `LANG` | Each category selects nonempty `LC_ALL`, then its category, then `LANG`. With none supplied, use `environment.locale`; explicitly empty selections use C. Captured names are C, POSIX, C.UTF-8 and C.utf8; uncaptured runtime locales are refused. |
 | `TZ` | Overrides `environment.timezone`; an empty value selects UTC. Time-dependent operations also need an injected clock. |
-| `PWD` | Supplies the engine's resource identity base, defaulting to `/`; resource I/O separately uses its explicit cwd. Safe Bash supplies invocation context. |
+| `PWD` | Remains available to `GETENV`. Resource identity uses the filesystem binding's actual cwd, then explicit `environment.cwd`; legacy bindings without either fall back to `PWD`, then `/`. Safe Bash supplies invocation cwd independently. |
 | `GNM_SHORTREP_FILES` | Presence, including an empty string, selects the Gnumeric XML writer's shortest numeric representation path. This is not a guarantee of complete writer parity. |
 | Other names | Available to workbook `GETENV` through the supplied map; absent names yield `#N/A`. They do not authorize host access or load plugins. |
 
-The current virtual command has a measured compatibility mismatch when `PWD`
-names a distinct directory: diagnostic URIs use that value while actual VFS
-reads/writes use the invocation cwd. The captured POSIX GLib source authenticates
-PWD against the current directory before accepting it. This mismatch is open;
-logical symlink-equivalent PWD and Windows behavior remain unverified.
+Diagnostic URIs and VFS reads/writes use the same captured actual cwd even when
+guest `PWD` names a distinct directory, is relative or is absent. The exported
+environment is preserved. Logical symlink-equivalent PWD and Windows behavior
+remain unverified; a supplied actual cwd must be absolute and contain no NUL.
 
 Resource I/O requires injected filesystem bindings. createResourceIO resolves
 VFS paths, file URIs, explicit fd:// descriptors and named adapters.

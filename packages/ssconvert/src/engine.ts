@@ -53,9 +53,13 @@ export function createEngine(supplied: EngineConfig): Engine {
     limits: Object.freeze({ ...supplied.limits }),
     environment: Object.freeze({
       ...supplied.environment,
+      cwd: supplied.filesystem?.cwd ?? supplied.environment.cwd ?? supplied.environment.env.PWD ?? "/",
       env: Object.freeze({ ...supplied.environment.env })
     })
   };
+  if ((supplied.filesystem?.cwd !== undefined || supplied.environment.cwd !== undefined) &&
+      (!config.environment.cwd.startsWith("/") || config.environment.cwd.includes("\0")))
+    throw new TypeError("ssconvert cwd must be an absolute VFS path");
   for (const name of ["inputBytes", "outputBytes", "cells", "sheets", "operations"] as const) {
     const value = config.limits[name];
     if (!Number.isSafeInteger(value) || value < 0)
@@ -197,7 +201,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       throw new SsconvertError("invalid-request", `Unknown importer '${type}'.\nTry --list-importers to see a list of possibilities.`);
     if (input.kind === "resource" && !config.filesystem)
       throw new SsconvertError("capability-denied", "Filesystem read capability is required");
-    const identity = resourceUri(filename ?? "(unspecified)", config.environment.env.PWD ?? "/");
+    const identity = resourceUri(filename ?? "(unspecified)", config.environment.cwd);
     let display = identity;
     if (identity.startsWith("file:///")) {
       try { display = decodeURIComponent(identity.slice(7)); }
@@ -269,7 +273,7 @@ export function createEngine(supplied: EngineConfig): Engine {
     }
     const importContext = { ...context, ...(filename === undefined ? {} : { inputFilename: filename }) };
     const codec = forced ?? await registry.probe(bytes, filename, importContext);
-    if (!codec?.read) throw new SsconvertError("io", `E Unsupported file format for file "${resourceBasename(filename, config.environment.env.PWD ?? "/")}"`);
+    if (!codec?.read) throw new SsconvertError("io", `E Unsupported file format for file "${resourceBasename(filename, config.environment.cwd)}"`);
     const decoded = await codec.read(bytes, importContext, encoding);
     check(context);
     const book = retain(decoded, storageLimits);
@@ -326,7 +330,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       try {
         if (output) { await output.write(bytes); check(context); await output.close(); }
         else await config.filesystem.write(destination.uri, bytes, context.signal);
-      } catch (error) { check(context); ioFailure(error, resourceUri(destination.uri, config.environment.env.PWD ?? "/"), "write"); }
+      } catch (error) { check(context); ioFailure(error, resourceUri(destination.uri, config.environment.cwd), "write"); }
     }
     check(context);
     return { exitCode: 0, diagnostics: Object.freeze([...diagnostics.get(context)!]),
@@ -385,7 +389,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       } catch (error) {
         check(context);
         if (request.destination.kind === "resource") {
-          const uri = resourceUri(request.destination.uri, config.environment.env.PWD ?? "/");
+          const uri = resourceUri(request.destination.uri, config.environment.cwd);
           try { ioFailure(error, uri, "write"); }
           catch (failure) {
             if (failure instanceof FileWriteError) throw new SsconvertError("io", `Failed to write to ${uri}`);
@@ -403,7 +407,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       const destination = request.destination;
       if (destination.kind !== "resource") return unsupported("graph output template");
       const graph = { template: destination.uri, resolution,
-        format: imageFormat(destination, request.exportType, config.environment.env.PWD ?? "/"),
+        format: imageFormat(destination, request.exportType, config.environment.cwd),
         options: request.exportOptions ?? [],
         canVisitSheet(sheet: string) {
           check(context);
@@ -421,7 +425,7 @@ export function createEngine(supplied: EngineConfig): Engine {
         bounded(fileIndex + 1, config.limits.splitOutputs ?? config.limits.operations, "split outputs");
         const index = fileIndex++;
         const uri = sheet ? splitOutput(destination.uri, sheet, index,
-          config.environment.env.PWD ?? "/", artifact.objectName).uri : artifact.uri;
+          config.environment.cwd, artifact.objectName).uri : artifact.uri;
         const availableBytes = config.limits.outputBytes - attemptedBytes;
         let output: import("./contracts.js").FileOutput | undefined;
         try {
@@ -477,7 +481,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       const view = prepared.codec.sheetSelection ? book : retain({ ...book,
         sheets: [sheet, ...book.sheets.filter((candidate) => candidate.id !== sheet.id)], activeSheet: sheet.id });
       const result = await write(view,
-        splitOutput(destination.uri, sheet, index, config.environment.env.PWD ?? "/"),
+        splitOutput(destination.uri, sheet, index, config.environment.cwd),
         request.exportType, request.exportOptions ?? [], context, inputBytes,
         { ...prepared, selected: Object.freeze([sheet.id]) }, config.limits.outputBytes - outputBytes, range);
       outputBytes += result.usage.outputBytes;
@@ -510,17 +514,17 @@ export function createEngine(supplied: EngineConfig): Engine {
       throw new SsconvertError("invalid-request", `Unknown importer '${request.importType}'.\nTry --list-importers to see a list of possibilities.`);
   }
   function exporter(destination: Destination, type: string | undefined) {
-    const codec = registry.select("write", type, destination.kind === "resource" ? conversionUri(destination.uri, config.environment.env.PWD ?? "/") : undefined);
+    const codec = registry.select("write", type, destination.kind === "resource" ? conversionUri(destination.uri, config.environment.cwd) : undefined);
     if (codec?.write) return codec;
     if (type !== undefined)
       throw new SsconvertError("invalid-request", `Unknown exporter '${type}'.\nTry --list-exporters to see a list of possibilities.`);
     if (destination.kind === "resource")
-      throw new SsconvertError("invalid-request", `Unable to guess exporter to use for '${conversionUri(destination.uri, config.environment.env.PWD ?? "/")}'.\nTry --list-exporters to see a list of possibilities.`, 2);
+      throw new SsconvertError("invalid-request", `Unable to guess exporter to use for '${conversionUri(destination.uri, config.environment.cwd)}'.\nTry --list-exporters to see a list of possibilities.`, 2);
     return unsupported("exporter (unspecified)");
   }
   function capture(supplied: ConversionRequest, inputOperations = 0): ResolvedRequest {
-    const request = { ...supplied, destination: resolveOutput(supplied, registry.list("write"), config.environment.env.PWD ?? "/") };
-    if (request.graphs) request.exportType = imageFormat(request.destination, request.exportType, config.environment.env.PWD ?? "/");
+    const request = { ...supplied, destination: resolveOutput(supplied, registry.list("write"), config.environment.cwd) };
+    if (request.graphs) request.exportType = imageFormat(request.destination, request.exportType, config.environment.cwd);
     preflight(request, inputOperations);
     if (request.analysis) {
       bounded(request.analysis.properties.length, config.limits.operations, "analysis properties");
@@ -630,9 +634,9 @@ export function createEngine(supplied: EngineConfig): Engine {
           request.importEncoding,
           context
         );
-        if (!imported.book.sheets.length) throw new SsconvertError("io", `Loading ${resourceUri(request.input.kind === "resource" ? request.input.uri : request.input.filename ?? "(unspecified)", config.environment.env.PWD ?? "/")} failed`);
+        if (!imported.book.sheets.length) throw new SsconvertError("io", `Loading ${resourceUri(request.input.kind === "resource" ? request.input.uri : request.input.filename ?? "(unspecified)", config.environment.cwd)} failed`);
         const sourceName = request.input.kind === "resource" ? request.input.uri : request.input.filename;
-        const sourceUri = sourceName === undefined ? undefined : resourceUri(sourceName, config.environment.env.PWD ?? "/");
+        const sourceUri = sourceName === undefined ? undefined : resourceUri(sourceName, config.environment.cwd);
         const loaded = request.clipboard === undefined ? imported.book :
           snapshotWorkbook(await prepareClipboardImport(imported.book, config, context), context.limits);
         check(context);
@@ -677,7 +681,7 @@ export function createEngine(supplied: EngineConfig): Engine {
         }
         for (const incoming of imported) {
           const filename = incoming.input.kind === "resource" ? incoming.input.uri : incoming.input.filename ?? "(unspecified)";
-          await context.diagnostic!({ code: "merge", severity: "warning", message: `Adding sheets from ${resourceUri(filename, config.environment.env.PWD ?? "/")}` });
+          await context.diagnostic!({ code: "merge", severity: "warning", message: `Adding sheets from ${resourceUri(filename, config.environment.cwd)}` });
           book = mergeWorkbookSheets(book, incoming.book, config.limits, context);
           check(context);
         }

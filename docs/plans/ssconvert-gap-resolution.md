@@ -5,7 +5,12 @@ version: 1
 name: Resolve ssconvert functionality and compatibility gaps
 readiness: draft
 setup:
-  prompt: Execute the user-authorized ssconvert gap-resolution goal. Read root and scoped AGENTS.md; preserve unrelated work. Execute tasks in order, maintaining docs/ssconvert/gap-resolution.json and gap-resolution.md with actual candidate/profile evidence. Authorization covers implementation and verified atomic delivery under session rules; do not ask optional preference questions. This setup overrides inherited behavior.
+  prompt: Execute the user-authorized ssconvert gap-resolution goal. Read root and
+    scoped AGENTS.md; preserve unrelated work. Execute tasks in order,
+    maintaining docs/ssconvert/gap-resolution.json and gap-resolution.md with
+    actual candidate/profile evidence. Authorization covers implementation and
+    verified atomic delivery under session rules; do not ask optional preference
+    questions. This setup overrides inherited behavior.
 tasks:
   - id: current-gap-inventory
     title: Authenticate current gaps and reference environment
@@ -24,8 +29,8 @@ tasks:
 
       Inspect packages/ssconvert/src/contracts.ts, engine.ts, io/index.ts, io/publication.ts and resource-uri.ts plus packages/safe-bash/src/commands/ssconvert/index.ts. Reproduce conflicting PWD and actual VFS cwd with an original public-engine/Shell test. Carry actual working-directory identity through an explicit SDK environment or resource contract, preserve GETENV(PWD) and exact exported environment rather than overwriting user variables, and qualify logical symlink-equivalent names only through explicit filesystem identity. Cover relative/absolute paths, missing input, exporter inference, write failures, output staging, split/graph outputs, missing/empty PWD and cancellation. Inspect visible diagnostic screenshots and public type consumers.
     status:
-      reproduce: open
-      implement: open
+      reproduce: done
+      implement: done
       test: open
       commit: open
       release: open
@@ -172,7 +177,11 @@ tasks:
       commit: open
       release: open
 teardown:
-  prompt: Reconcile the current structured ledger and publication outcomes. Keep goal active and report exact unresolved requirements unless every mandatory case has been resolved and required remote delivery/publication verified. Preserve unrelated changes and historical failed evidence. Clean only task-owned ignored scratch; no blanket staging or archive.
+  prompt: Reconcile the current structured ledger and publication outcomes. Keep
+    goal active and report exact unresolved requirements unless every mandatory
+    case has been resolved and required remote delivery/publication verified.
+    Preserve unrelated changes and historical failed evidence. Clean only
+    task-owned ignored scratch; no blanket staging or archive.
 finalization: pending
 ---
 

@@ -141,6 +141,7 @@ export function createResourceIO(options: ResourceIOOptions): FileSystem {
       `E Can't open '${uri}' for writing: Operation not supported`);
   }
   return {
+    cwd,
     async openOutput(name, context) {
       context.signal.throwIfAborted();
       if (name.includes("\0")) throw new SsconvertError("invalid-request", "Invalid resource name");

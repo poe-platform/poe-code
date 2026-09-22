@@ -26,7 +26,7 @@ export function createVfsOutput(fs: PublicationFileSystem,
   return async (filename: string, context: CapabilityContext): Promise<FileOutput> => {
     const signal = context.signal;
     const options = { signal };
-    const uri = resourceUri(filename, context.environment.env.PWD ?? "/");
+    const uri = resourceUri(filename, context.environment.cwd ?? context.environment.env.PWD ?? "/");
     let path = filename;
     let temporary: string | undefined;
     let finalized = false;

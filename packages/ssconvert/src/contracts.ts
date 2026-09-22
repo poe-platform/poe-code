@@ -18,6 +18,8 @@ export interface Operation {
   readonly diagnostic?: (diagnostic: Diagnostic) => Promise<void>;
 }
 export interface FileSystem {
+  /** Actual absolute VFS working directory, captured by a resource binding. */
+  readonly cwd?: string;
   read(uri: string, signal: AbortSignal): Promise<ByteSource>;
   /** Host controls publication/overwrite policy; bytes are borrowed until settlement. */
   write(uri: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
@@ -30,6 +32,8 @@ export interface FileOutput {
   abort(): Promise<void>;
 }
 export interface Environment {
+  /** Actual VFS working directory; independent of the guest-visible PWD variable. */
+  readonly cwd?: string;
   readonly env: Readonly<Record<string, string>>;
   readonly locale: string;
   readonly timezone: string;

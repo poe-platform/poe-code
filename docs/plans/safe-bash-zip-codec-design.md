@@ -3,7 +3,6 @@
 Authorized scope: packages/safe-bash on main. Method 14 and method 98 are
 format extensions beyond native Info-ZIP Zip 3.0. Runtime dependencies and
 host-process fallback remain prohibited. README and SafeJS are excluded.
-Revision-specific observations belong in safe-bash-zip-remaining-features-evidence.md.
 
 ## LZMA reuse design
 

@@ -2,7 +2,7 @@
 
 Baseline: `c75f0499a1fe7a5b4f5455779eed99cb4ee6cbab` on `main`, inspected
 2026-09-16. Revision, commands, oracle construction, failures and exclusions are
-in [the evidence plan](safe-bash-zip-remaining-features-evidence.md).
+with the [manual QA procedure](safe-bash-zip-final-manual-qa.md).
 This inventory is a qualification plan, not a claim of completed compatibility.
 
 Fresh execution on the same revision is recorded in the **Current-revision

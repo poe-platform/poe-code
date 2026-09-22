@@ -1,7 +1,6 @@
 # ZIP final profile manual QA
 
-Execute from repository root on the candidate recorded in the remaining-features
-evidence plan. This is a manual plan, not a discovered test script. Product
+Execute from repository root against the candidate under review. This is a manual plan, not a discovered test script. Product
 commands use memory VFS; native programs below are isolated oracles only.
 Run interactive snippets with `node --import tsx --input-type=module` and import
 `fixture` / `execute` from

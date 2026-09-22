@@ -1,0 +1,18 @@
+import { createSofficeBudget, parseSofficeArguments, parseSofficeByteArguments, type OfficeDocument, type OfficeConversionEngine, type OfficeEngineContext, type CsvExportOptions, parseCsvExportOptions, type SofficeInvocation } from '@poe-platform/safe-bash/commands/soffice';
+const budget = createSofficeBudget({ argumentBytes: 4096, files: 10, inputBytes: 4096, retainedBytes: 4096, outputBytes: 4096, nodes: 100, pages: 10, work: 10000 }, new AbortController().signal);
+const invocation: SofficeInvocation = parseSofficeArguments(['--convert-to', 'pdf'], budget);
+const byteInvocation: SofficeInvocation = parseSofficeByteArguments([new TextEncoder().encode('--help')], budget);
+const csv: CsvExportOptions = parseCsvExportOptions(undefined, budget);
+declare const engine: OfficeConversionEngine;
+declare const context: OfficeEngineContext;
+declare const document: OfficeDocument;
+const output: AsyncIterable<Uint8Array> = engine.export(document, engine.filters[0]!, '', context);
+void invocation; void byteInvocation; void csv; void output;
+budget.close();
+import { createSofficeCommand, soffice, sofficeCommands, type SofficeRunOptions, type SofficeResult } from '@poe-platform/safe-bash/commands/soffice';
+import type { CommandContext, CommandDefinition } from '@poe-platform/safe-bash/contracts';
+declare const commandContext: CommandContext;
+const runOptions: SofficeRunOptions = { conversion: { extension: 'pdf', filter: '', options: '' }, files: ['-literal.docx'] };
+const command: CommandDefinition = createSofficeCommand();
+const result: Promise<SofficeResult> = soffice(commandContext, runOptions);
+void command; void result; void sofficeCommands();

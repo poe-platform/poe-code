@@ -363,6 +363,7 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
   const ranges: number[] = [];
   const byteEmpty = input.descriptor.kind === "rg" && !input.descriptor.whole
     && input.descriptor.patterns.length === 1 && input.descriptor.patterns[0] === "";
+  const byteCursor = input.descriptor.kind === "grep" && input.descriptor.word;
   let previousEnd = -1;
   for (let from = 0; from <= row.bytes.length;) {
     let best: Span | undefined;
@@ -394,7 +395,7 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
     if (best.end > best.start) from = best.end;
     else {
       const byte = row.bytes[best.end];
-      from = best.end + (byteEmpty || byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
+      from = best.end + (byteEmpty || byteCursor || byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
     }
   }
   ledger.charge("work", ranges.length, signal);

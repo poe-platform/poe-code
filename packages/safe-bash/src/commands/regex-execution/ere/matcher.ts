@@ -119,12 +119,12 @@ export async function createEreSpanMatcher(program: EreProgram, subject: string,
   };
 }
 
-/** Validated, owned UTF-8 subject with one internal code unit per Unicode scalar. */
+/** Owns validated UTF-8, using byte positions for C-locale word matching. */
 export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false, word = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
   ledger.check(signal);
   ledger.admitInput("subjectBytes", bytes.length, signal);
   // Logical allocation units per byte: copy 1, offset storage 8, character
-  // slot 1, normalized string 1. Scalar counts never exceed byte counts.
+  // slot 1, normalized string 1. Both profiles use at most one slot per byte.
   ledger.charge("allocationUnits", bytes.length * 11 + 16, signal);
   ledger.charge("work", bytes.length, signal);
   const owned = new Uint8Array(bytes);
@@ -133,11 +133,11 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
   const offsets: number[] = [];
   for (let offset = 0; offset < owned.length;) {
     const first = owned[offset]!;
-    const width = first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
+    const width = word || first < 0x80 ? 1 : first < 0xe0 ? 2 : first < 0xf0 ? 3 : 4;
     ledger.charge("work", width, signal);
     await ledger.checkpoint(signal);
     offsets.push(offset);
-    // ASCII patterns cannot distinguish non-ASCII scalar values. U+0080 is
+    // ASCII patterns cannot distinguish non-ASCII byte/scalar values. U+0080 is
     // private matcher input, never reconstructed output or user-visible text.
     characters.push(String.fromCharCode(first < 0x80 ? first : 128));
     offset += width;

@@ -79,7 +79,7 @@ filesystem and byte streams, not host executables.
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
-Use `grep -w` or `--word-regexp` to match whole words with C-locale boundaries (ASCII letters, digits and underscore), including fixed strings and `-o` output.
+Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.
 It preserves original UTF-8 byte offsets. Word/case flags, Unicode regex syntax,

@@ -22,6 +22,11 @@ const cases: readonly [string, string, string, number][] = [
   ["grep -wx '' input", "\nabc\n", "\n", 0],
   ["grep -wz alpha input", "alpha\0alphax\0(alpha)\0", "alpha\0(alpha)\0", 0],
   ["LC_ALL=C grep -wo alpha input", "éalpha😀 alpha_\n", "alpha\n", 0],
+  ["LC_ALL=C grep -Fwo -e '' -e a input", "aéa\n", "a\na\n", 0],
+  ["LC_ALL=C grep -wo 'a*' input", "aéa\n", "a\na\n", 0],
+  ["LC_ALL=C grep -w '' input", "aéa\n", "aéa\n", 0],
+  ["LC_ALL=C grep -wo '' input", "aéa\n", "", 0],
+  ["LC_ALL=C grep -Ewo '.{2}' input", "é\n", "é\n", 0],
 ];
 
 for (const [source, input, output, status] of cases) test(`default grep whole-word matching: ${source} / ${JSON.stringify(input)}`, async () => {
@@ -48,6 +53,23 @@ test("whole-word fixtures agree with the installed GNU grep in locale C", t => {
     assert.deepEqual(native.stderr, Buffer.alloc(0), source);
     assert.deepEqual(native.stdout, Buffer.from(output), source);
   }
+  const byteMatches = spawnSync("grep", ["-wo", ".", "-"], {
+    input: Buffer.from("é\n"), env: { ...process.env, LC_ALL: "C", TZ: "UTC" },
+  });
+  assert.ifError(byteMatches.error);
+  assert.equal(byteMatches.status, 0);
+  assert.deepEqual(byteMatches.stderr, Buffer.alloc(0));
+  assert.deepEqual(byteMatches.stdout, Buffer.from([195, 10, 169, 10]));
+});
+
+test("whole-word C-locale regex output preserves individual UTF-8 bytes", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("LC_ALL=C grep -wo .", { stdin: "é\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(195, 10, 169, 10));
+  } finally { await shell.dispose(); }
 });
 
 test("default grep whole-word matching preserves piped stdin", async () => {

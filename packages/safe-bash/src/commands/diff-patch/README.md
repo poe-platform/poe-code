@@ -66,6 +66,8 @@ and the source entry point was exercised directly through `Shell.use`.
   `-l` / `--paginate` formats output with the virtual `pr` command.
 - `-s` / `--report-identical-files` reports equal comparisons. `-a` / `--text`
   admits arbitrary input bytes as text and preserves them in emitted changes.
+  Identical files containing NUL bytes compare equal without `-a`; differing
+  binary inputs still require `-a`.
   `-x PATTERN`, `-X FILE`, and `-S NAME` select directory entries using filename
   glob exclusions, an exclusion file, or a starting filename.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;

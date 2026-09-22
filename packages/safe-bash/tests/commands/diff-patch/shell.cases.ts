@@ -6,6 +6,21 @@ import { createDiffPatchCommands, diffPatchCommands } from "../../../src/command
 import { Shell } from "../../../src/shell/index.js";
 import { contents, filesystem } from "./helpers.js";
 
+test("shell diff accepts identical NUL-containing files", async () => {
+  const fs = await filesystem({ input: Buffer.from("a\0b"), copy: Buffer.from("a\0b") });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());
+  for (const command of ["diff input input", "diff input copy", "diff -q input copy", "diff -u input copy", "diff -y input copy", "diff -D SYMBOL input copy", "diff input - <copy", "diff - - <input"]) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+    assert.equal(result.stdout, "", command);
+    assert.equal(result.stderr, "", command);
+  }
+  const reported = await shell.exec("diff -s input copy");
+  assert.equal(reported.exitCode, 0, reported.stderr);
+  assert.equal(reported.stdout, "Files input and copy are identical\n");
+  assert.equal(reported.stderr, "");
+});
+
 test("plugin exposes stable command definitions and collision preflight", async () => {
   assert.deepEqual(createDiffPatchCommands().map(command => command.name), ["diff", "patch"]);
   const commands = new CommandRegistry([{ name: "patch", execute: () => ({ exitCode: 42 }) }]);

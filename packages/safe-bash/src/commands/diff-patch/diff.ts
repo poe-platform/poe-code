@@ -143,12 +143,16 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     const read = async (path: string, exists: boolean) => {
       if (!exists) return "";
-      if (path === "-") return stdin ??= await budget.read("-", options.text ? "latin1" : "utf8");
-      return budget.read(pathOf(context, path), options.text ? "latin1" : "utf8");
+      if (path === "-") return stdin ??= await budget.read("-", "latin1");
+      return budget.read(pathOf(context, path), "latin1");
     };
-    const oldText = await read(left, !!leftStat);
-    const newText = await read(right, !!rightStat);
+    const oldBytes = await read(left, !!leftStat);
+    const newBytes = await read(right, !!rightStat);
     const reportSame = () => { if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`); };
+    // Latin-1 preserves byte identity before binary inputs reach text validation.
+    if (!options.text && oldBytes.includes("\0") && oldBytes === newBytes) { reportSame(); continue; }
+    const oldText = options.text ? oldBytes : budget.text(Buffer.from(oldBytes, "latin1"));
+    const newText = options.text ? newBytes : budget.text(Buffer.from(newBytes, "latin1"));
     if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);

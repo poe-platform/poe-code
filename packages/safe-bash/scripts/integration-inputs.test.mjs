@@ -467,7 +467,6 @@ function assertSource7Discovery(files) {
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/agent-commands.test.ts",
     "tests/plugins/htmlq-boundaries.test.ts",
-    "tests/plugins/tesseract-wiring.test.ts",
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",

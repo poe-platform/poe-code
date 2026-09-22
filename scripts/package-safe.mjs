@@ -451,9 +451,12 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             if (workspace) {
               const route = "." + publicName.slice(workspace.pkg.name.length);
               const exported = workspace.pkg.exports?.[route];
-              const entrypoint = declaration
+              let entrypoint = declaration
                 ? exported?.types ?? (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)
-                : exported?.import;
+                : exported;
+              while (entrypoint && typeof entrypoint === "object" && !Array.isArray(entrypoint)) {
+                entrypoint = Object.entries(entrypoint).find(([condition]) => condition === "node" || condition === "import" || condition === "default")?.[1];
+              }
               if (typeof entrypoint !== "string") throw new Error(`Missing private workspace ${declaration ? "declaration" : "runtime"} entrypoint: ${specifier}`);
               const target = path.resolve(rootDir, "packages", workspace.dir, entrypoint);
               artifactPath(rootDir, target);

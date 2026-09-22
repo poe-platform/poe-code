@@ -27,6 +27,30 @@ it("ships an explicitly declared private command SDK with its runtime graph", as
   expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("@poe-code/csvkit");
 });
 
+it("packages declared private Node exports and their conditional declarations", async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.devDependencies["@poe-code/private-sdk"] = "*";
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync("/repo/packages/private-sdk/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/private-sdk/package.json", JSON.stringify({
+    name: "@poe-code/private-sdk", private: true, type: "module",
+    exports: { "./server": {
+      types: { browser: "./dist/unavailable.d.ts", node: "./dist/server.d.ts", default: "./dist/unavailable.d.ts" },
+      browser: null, node: "./dist/server.js", default: null,
+    } },
+  }));
+  volume.writeFileSync("/repo/packages/private-sdk/dist/server.js", "export const server = 1;");
+  volume.writeFileSync("/repo/packages/private-sdk/dist/server.d.ts", "export declare const server: number;");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/index." + suffix, 'export { server } from "@poe-code/private-sdk/server";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index." + suffix, "utf8")).toContain('from "../private-sdk/server.js"');
+    expect(volume.existsSync("/output/safe-bash/dist/private-sdk/server." + suffix)).toBe(true);
+  }
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("@poe-code/private-sdk");
+});
+
 it("preserves public contract exports when the browser bundle externalizes their canonical runtime", async () => {
   const entry = readFileSync(new URL("../packages/safe-bash/src/core.browser.ts", import.meta.url), "utf8");
   const publicContracts = {

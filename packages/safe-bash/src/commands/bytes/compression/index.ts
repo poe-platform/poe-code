@@ -9,10 +9,16 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
   return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
-      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\n${options.format === "gzip" ? "-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}; 64 MiB codec allocation cap.\nHigh presets may exceed the cap and fail explicitly.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\n${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}; 64 MiB codec allocation cap.\nHigh presets may exceed the cap and fail explicitly.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };
     }
-    const plans = await planOperands(context, options);
+    let plans;
+    try { plans = await planOperands(context, options); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (options.quiet < 2) throw error;
+      return { exitCode: 1 };
+    }
     let exitCode = 0;
     for (const plan of plans) {
       try {
@@ -29,12 +35,12 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
           }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, context.signal);
         }
         if (warned) {
-          await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
+          if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
           if (exitCode === 0) exitCode = 2;
         }
       } catch (error) {
         context.signal.throwIfAborted();
-        await diagnostic(context, error);
+        if (options.quiet < 2) await diagnostic(context, error);
         exitCode = 1;
       }
     }

@@ -78,6 +78,9 @@ filesystem and byte streams, not host executables.
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+`zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
+short options such as `-qc`. Repeating quiet suppresses processing errors on
+stderr while preserving failure exit codes and validation.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
 The default bounded `grep` matcher rejects BRE groups, intervals, backreferences
 and escape extensions such as `\|`. Use `grep -E 'Remove upvote|Upvoted'` for

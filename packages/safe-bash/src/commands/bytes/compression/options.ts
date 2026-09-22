@@ -8,6 +8,7 @@ export interface CompressionOptions {
   force: boolean;
   test: boolean;
   help: boolean;
+  quiet: number;
   level: number;
   operands: string[];
 }
@@ -23,7 +24,7 @@ export type CompressionFormat = typeof profiles[number]["format"];
 
 const aliases: Readonly<Record<string, string>> = {
   stdout: "c", "to-stdout": "c", decompress: "d", uncompress: "d", keep: "k",
-  force: "f", test: "t", fast: "1", best: "9", "no-name": "n", help: "h",
+  force: "f", test: "t", fast: "1", best: "9", "no-name": "n", help: "h", quiet: "q",
 };
 
 export function parseOptions(command: string, args: readonly string[]): CompressionOptions {
@@ -32,7 +33,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
   const result: CompressionOptions = {
     format: profile.format,
     decompress: command !== profile.names[0], stdout: command === profile.names[2], keep: profile.keep,
-    force: false, test: false, help: false, level: profile.level, operands: [],
+    force: false, test: false, help: false, quiet: 0, level: profile.level, operands: [],
   };
   let ended = false;
   for (const argument of args) {
@@ -51,11 +52,15 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "f": result.force = true; break;
         case "t": result.test = true; result.decompress = true; break;
         case "h": result.help = true; break;
+        case "q":
+          if (profile.format !== "zstd") throw new UsageError(`invalid option -- '${flag}'`);
+          result.quiet++;
+          break;
         case "n":
           if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
           break;
         default:
-          if (/^[1-9]$/u.test(flag)) result.level = Number(flag);
+          if (flag >= "1" && flag <= "9") result.level = Number(flag);
           else throw new UsageError(`invalid option -- '${flag}'`);
       }
     }

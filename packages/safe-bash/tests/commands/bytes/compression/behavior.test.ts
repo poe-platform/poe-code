@@ -3,12 +3,50 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { build } from "esbuild";
-import { toByteSource } from "../../../../src/contracts/index.js";
+import { CommandRegistry, toByteSource } from "../../../../src/contracts/index.js";
+import { Shell } from "../../../../src/shell/shell.js";
+import { createCompressionCommands } from "../../../../src/commands/bytes/compression/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { codec } from "../../../../src/commands/bytes/compression/codec.js";
 import { compressed } from "../../../../src/commands/archive/stream.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../../src/commands/archive/internal.js";
 import { binary, chunks, emptyMember, helloMember, run } from "./helpers.js";
+
+test("zstd quiet options preserve exact bytes through a Shell pipeline", async () => {
+  const fs = createMemoryFileSystem();
+  const input = new TextEncoder().encode("abc\n");
+  await fs.writeFile("/input", input);
+  const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+  try {
+    for (const options of ["-q -c", "--quiet -c", "-qc", "-qqc"]) {
+      const result = await shell.exec(`zstd ${options} input | zstd -dc`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, input);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(await fs.readFile("/input"), input);
+      assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("zstd aliases accept quiet options and repeated quiet suppresses processing errors", async () => {
+  const encoded = await run("zstd", ["-c"], chunks(binary));
+  for (const command of ["zstd", "unzstd", "zstdcat"]) {
+    for (const quiet of [["-q"], ["--quiet"], ["-qq"], ["--quiet", "--quiet"]]) {
+      const decoded = await run(command, [...quiet, "-dc"], chunks(encoded.stdout));
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      assert.deepEqual(decoded.stdout, Buffer.from(binary));
+      assert.equal(decoded.stderr, "");
+      const invalid = await run(command, [...quiet, "-dc"], chunks(Buffer.from("plain")));
+      assert.equal(invalid.exitCode, 1);
+      assert.equal(invalid.stdout.length, 0);
+      assert.equal(invalid.stderr.length === 0, quiet[0] === "-qq" || quiet.length === 2);
+    }
+    const missing = await run(command, ["-qq", "-dc", "missing"]);
+    assert.equal(missing.exitCode, 1);
+    assert.equal(missing.stderr, "");
+  }
+});
 
 test("compression and archive browser graphs need no Node codecs or streams", async () => {
   const platform = fileURLToPath(new URL("../../../../browser/platform.mjs", import.meta.url));

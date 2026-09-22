@@ -36,6 +36,12 @@ have no effect during decompression. `-t` selects decompression regardless of
 argument order and suppresses stdout even with `-c`; help takes precedence over
 execution after all options have been parsed successfully.
 
+The zstd-family definitions (`zstd`, `unzstd`, `zstdcat`) also accept `-q` and
+`--quiet`, including combined short options. One quiet option suppresses warnings;
+two or more suppress processing and filesystem error messages as well. Quiet
+does not change output bytes, validation, file handling or failure exit codes.
+Option-usage diagnostics remain visible.
+
 Force does not bypass integrity checks on input starting with gzip magic
 `1f 8b`. Only decompression to stdout (including stdin's implicit stdout and
 `zcat`) with `-f` passes non-gzip input and suffixes through unchanged.

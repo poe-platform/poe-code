@@ -26,6 +26,12 @@ conditions were exercised under Node with global `Buffer` removed; actual browse
 and workerd engines remain unqualified. The default Node profile requires Node's
 normal runtime globals.
 
+Registration is opt-in. Importing this subpath does not add commands to a shell
+or to `agentCommands()`. The plugin rejects an existing command of the same name
+before changing the registry. Pass `replace: true` to replace that command only;
+unrelated registrations remain intact. `replace` is SDK composition policy, not
+a virtual command argument.
+
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { exiftoolCommands, inspectPng } from "@poe-platform/safe-bash/commands/exiftool";

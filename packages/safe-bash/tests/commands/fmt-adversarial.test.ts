@@ -4,6 +4,7 @@ import test from "node:test";
 import { CommandRegistry, createCommandArguments, toByteSource, type ByteSource, type CommandContext, type FileSystem, type InvocationCleanup } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { fmtCommand } from "../../src/commands/fmt.js";
+import type { FmtProfile } from "../../src/commands/fmt/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/index.js";
@@ -29,10 +30,10 @@ function deferred() {
   return { promise, resolve };
 }
 
-async function format(input: ByteSource, overrides: Partial<CommandContext> = {}) {
+async function format(input: ByteSource, overrides: Partial<CommandContext> = {}, profile?: FmtProfile) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const result = await fmtCommand().execute({
+  const result = await fmtCommand({ profile }).execute({
     command: "fmt", args: [], cwd: "/", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
     stdin: input, signal: new AbortController().signal,
     stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },
@@ -59,7 +60,7 @@ function partition(input: Uint8Array, sizes: readonly number[]): ByteSource {
   } };
 }
 
-for (const entry of snapshot.cases) test(`fmt independent GNU bytes: ${entry.name}`, async () => {
+for (const entry of snapshot.cases) test(`fmt independent GNU 8.30 bytes: ${entry.name}`, async () => {
   const fs = new MemoryFileSystem();
   for (const [path, contents] of Object.entries(entry.files)) {
     if (contents === null) await fs.mkdir(`/${path}`);
@@ -70,7 +71,7 @@ for (const entry of snapshot.cases) test(`fmt independent GNU bytes: ${entry.nam
   const expected = { status: entry.status, stdout: Buffer.from(entry.stdout, "base64"), stderr: Buffer.from(entry.stderr, "base64") };
   const partitions = input.length < 1024 ? [[1], [7, 2, 1]] : [[4999, 1, 1, 997, 1, 1], [5000, 998, 3]];
   for (const sizes of partitions) {
-    assert.deepEqual(await format(partition(input, sizes), { fs, args: argumentValues.args, argumentValues, env: { LC_ALL: entry.locale } }), expected, `chunk sizes ${sizes.join(",")}`);
+    assert.deepEqual(await format(partition(input, sizes), { fs, args: argumentValues.args, argumentValues, env: { LC_ALL: entry.locale } }, 'gnu-coreutils-8.30-C-bytes'), expected, `chunk sizes ${sizes.join(",")}`);
   }
 });
 

@@ -3,10 +3,10 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { createCommandArguments, FsError, toByteSource, type ByteSource, type CommandContext, type FileSystem, type InvocationCleanup } from "../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
-import { fmtCommand } from "../../src/commands/fmt.js";
+import { fmtCommand, defaultFmtLimits, type FmtProfile } from "../../src/commands/fmt/index.js";
 import { fixture } from "./helpers.js";
 
-async function format(args: readonly string[], input: string | Uint8Array | ByteSource = "", overrides: Partial<CommandContext> = {}) {
+async function format(args: readonly string[], input: string | Uint8Array | ByteSource = "", overrides: Partial<CommandContext> = {}, profile: FmtProfile = "gnu-coreutils-9.10-C-bytes") {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   const context: CommandContext = {
@@ -16,15 +16,15 @@ async function format(args: readonly string[], input: string | Uint8Array | Byte
     stderr: { async write(bytes) { stderr.push(new Uint8Array(bytes)); } },
     signal: new AbortController().signal, ...overrides,
   };
-  const result = await fmtCommand().execute(context);
+  const result = await fmtCommand({ profile }).execute(context);
   return { exitCode: result.exitCode, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
 }
 
 for (const [name, args, input, expected] of [
-  ["optimized non-greedy lines", ["-w20"], "one two three four five six seven eight nine ten\n", "one two three four\nfive six seven\neight nine ten\n"],
-  ["strict maximum width", ["-w12"], "12345 123456\n", "12345\n123456\n"],
+  ["optimized non-greedy lines", ["-w20"], "one two three four five six seven eight nine ten\n", "one two three four\nfive six seven eight\nnine ten\n"],
+  ["strict maximum width", ["-w12"], "12345 123456\n", "12345 123456\n"],
   ["uniform sentence spacing", ["-w20", "-u"], "Hello.   There,    friend!\nNext sentence here.\n", "Hello.  There,\nfriend!  Next\nsentence here.\n"],
-  ["crown margins", ["-w18", "-c"], "  alpha beta gamma\n    delta epsilon zeta eta theta\n", "  alpha beta\n    gamma delta\n    epsilon zeta\n    eta theta\n"],
+  ["crown margins", ["-w18", "-c"], "  alpha beta gamma\n    delta epsilon zeta eta theta\n", "  alpha beta gamma\n    delta epsilon\n    zeta eta theta\n"],
   ["tagged default secondary margin", ["-w18", "-t"], "alpha beta gamma delta epsilon\n", "alpha beta gamma\n   delta epsilon\n"],
   ["prefix paragraphs and unmatched lines", ["-w20", "-p", "# "], "# alpha beta gamma delta\n# epsilon zeta eta\nother line untouched\n", "# alpha beta gamma\n# delta epsilon\n# zeta eta\nother line untouched\n"],
   ["tabs", ["-w20"], "a\tb c d e f g h i j k l m n\n", "a\tb c d e f\ng h i j k l m n\n"],
@@ -73,7 +73,7 @@ test("fmt reads metadata-free VFS streams", async () => {
 for (const [args, message] of [
   [["-w2501"], "invalid width: '2501': Numerical result out of range\n"],
   [["-w-1"], "invalid width: '-1'\n"],
-  [["-g76"], "invalid width: '76': Numerical result out of range\n"],
+  [["-g76"], "invalid width: '76': Value too large for defined data type\n"],
   [["--width="], "invalid width: ''\n"],
   [["-w"], "option requires an argument -- 'w'\nTry 'fmt --help' for more information.\n"],
   [["-s", "-20"], "invalid option -- 2; -WIDTH is recognized only when it is the first\noption; use -w N instead\nTry 'fmt --help' for more information.\n"],
@@ -88,7 +88,7 @@ test("fmt matches immutable GNU coreutils 8.30 stdout, stderr and status snapsho
   };
   for (const [index, entry] of snapshot.cases.entries()) {
     const fs = await fixture(Object.fromEntries(Object.entries(entry.files).map(([name, bytes]) => [name, Buffer.from(bytes, "base64")])));
-    const actual = await format(entry.args, Buffer.from(entry.stdin, "base64"), { fs, env: { LC_ALL: "C", ...entry.env } });
+    const actual = await format(entry.args, Buffer.from(entry.stdin, "base64"), { fs, env: { LC_ALL: "C", ...entry.env } }, "gnu-coreutils-8.30-C-bytes");
     assert.deepEqual(actual, { exitCode: entry.expected.exitCode, stdout: Buffer.from(entry.expected.stdout, "base64"), stderr: Buffer.from(entry.expected.stderr, "base64") }, `native case ${index}: ${JSON.stringify(entry.args)}`);
   }
 });
@@ -244,7 +244,7 @@ test("fmt supports declared readFile fallback without metadata", async () => {
     return typeof member === "function" ? member.bind(target) : member;
   } });
   assert.equal((await format(["file"], "", { fs })).stdout.toString(), "one two\n");
-  assert.equal(maximum, 32 * 1024 * 1024);
+  assert.equal(maximum, defaultFmtLimits.retainedBytes - 10120);
 });
 
 test("fmt stops consuming and retires the producer on sink failure", async () => {

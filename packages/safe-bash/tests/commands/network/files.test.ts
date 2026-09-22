@@ -9,6 +9,77 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
 
+test("curl --output-dir writes explicit and remote filenames in the existing VFS directory", async () => {
+  const host = await server(); const fs = await fixture();
+  const payload = Buffer.from([0, 255, 195, 169, 10, 13, 128]);
+  try {
+    await fs.mkdir("/work/sub");
+    await fs.writeFile("/work/sub/placeholder", Buffer.from(""));
+    const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+    try {
+      const actual = await shell.exec(`curl --output-dir sub -o output '${host.origin}/bytes'`, { signal: AbortSignal.timeout(2000) });
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stdout, "");
+      assert.deepEqual(Buffer.from(await fs.readFile("/work/sub/output")), payload);
+      await assert.rejects(fs.stat("/work/output"), { code: "ENOENT" });
+    } finally { await shell.dispose(); }
+    const remote = await run(["--output-dir", "sub", "-O", "-w", "%{filename_effective}", host.origin + "/bytes"], { fs });
+    assert.equal(remote.exitCode, 0, remote.stderr.toString());
+    assert.equal(remote.stdout.toString(), "sub/bytes");
+    assert.deepEqual(Buffer.from(await fs.readFile("/work/sub/bytes")), payload);
+  } finally { await host.close(); }
+});
+
+test("curl output directory applies only to body files and preserves stdout", async () => {
+  const host = await server(); const fs = await fixture();
+  try {
+    await fs.mkdir("/work/sub");
+    const actual = await run(["--output-dir=sub", "-o", "body", "-D", "headers", "-w", "%{filename_effective}", host.origin + "/bytes"], { fs });
+    assert.equal(actual.exitCode, 0, actual.stderr.toString());
+    assert.equal(actual.stdout.toString(), "sub/body");
+    assert.ok((await fs.readFile("/work/headers")).length > 0);
+    await assert.rejects(fs.stat("/work/sub/headers"), { code: "ENOENT" });
+    for (const output of [[], ["-o", "-"]]) {
+      const stdout = await run(["--output-dir", "missing", ...output, host.origin + "/bytes"], { fs });
+      assert.equal(stdout.exitCode, 0, stdout.stderr.toString());
+      assert.deepEqual(stdout.stdout, Buffer.from([0, 255, 195, 169, 10, 13, 128]));
+    }
+  } finally { await host.close(); }
+});
+
+test("curl output directory does not create parents or bypass body/header collision checks", async () => {
+  const host = await server(); const fs = await fixture();
+  try {
+    const missing = await run(["--output-dir", "missing", "-o", "output", host.origin + "/bytes"], { fs });
+    assert.equal(missing.exitCode, 23, missing.stderr.toString());
+    await assert.rejects(fs.stat("/work/missing"), { code: "ENOENT" });
+    await fs.mkdir("/work/sub");
+    const collision = await run(["--output-dir", "sub", "-o", "output", "-D", "sub/output", host.origin + "/bytes"], { fs });
+    assert.equal(collision.exitCode, 23, collision.stderr.toString());
+    await assert.rejects(fs.stat("/work/sub/output"), { code: "ENOENT" });
+    const invalid = await run([host.origin + "/bytes", "--output-dir"], { fs });
+    assert.equal(invalid.exitCode, 2);
+    assert.match(invalid.stderr.toString(), /Option requires an argument/);
+  } finally { await host.close(); }
+});
+
+test("curl output directory prefixes absolute filenames and remains the retry destination", async () => {
+  const host = await server(); const fs = await fixture();
+  try {
+    await fs.mkdir("/work/sub");
+    const absolute = await run(["--output-dir", "sub", "-o", "/output", "-w", "%{filename_effective}", host.origin + "/bytes"], { fs });
+    assert.equal(absolute.exitCode, 0, absolute.stderr.toString());
+    assert.equal(absolute.stdout.toString(), "sub//output");
+    assert.deepEqual(Buffer.from(await fs.readFile("/work/sub/output")), Buffer.from([0, 255, 195, 169, 10, 13, 128]));
+    await assert.rejects(fs.stat("/output"), { code: "ENOENT" });
+    const retried = await run(["--output-dir", "sub", "-o", "output", "--retry", "2", "--retry-delay", "0.001", host.origin + "/retry"], { fs });
+    assert.equal(retried.exitCode, 0, retried.stderr.toString());
+    assert.equal(retried.stdout.length, 0);
+    assert.equal(Buffer.from(await fs.readFile("/work/sub/output")).toString(), "recovered");
+    await assert.rejects(fs.stat("/work/output"), { code: "ENOENT" });
+  } finally { await host.close(); }
+});
+
 test("VFS binary upload and output preserve input bytes", async () => {
   const host = await server(); const fs = await fixture();
   const payload = Buffer.from([0, 255, 13, 10, 195, 169, 127]);

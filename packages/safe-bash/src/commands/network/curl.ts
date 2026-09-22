@@ -194,7 +194,10 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       initial.search += `${initial.search ? "&" : "?"}${query.replace(/%[0-9a-f]{2}/gi, escape => escape.toLowerCase())}`;
       body = undefined;
     }
-    const output = args.remoteName ? args.directoryIndex && initial.pathname.endsWith("/") ? args.directoryIndex : remoteFilename(initial) : args.output;
+    let output = args.remoteName ? args.directoryIndex && initial.pathname.endsWith("/") ? args.directoryIndex : remoteFilename(initial) : args.output;
+    if (args.outputDirectory !== undefined && output !== undefined && output !== "-") {
+      output = `${args.outputDirectory}/${output}`;
+    }
     values.filename_effective = output && output !== "-" ? output : "";
     if (output && output !== "-" && args.dumpHeader && args.dumpHeader !== "-" &&
       normalizePath(pathOf(context, output)) === normalizePath(pathOf(context, args.dumpHeader))) {

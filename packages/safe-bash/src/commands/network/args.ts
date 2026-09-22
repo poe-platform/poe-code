@@ -19,6 +19,7 @@ export interface CurlArguments {
   bearer?: string;
   upload?: string;
   output?: string;
+  outputDirectory?: string;
   dumpHeader?: string;
   writeOut?: string;
   include: boolean;
@@ -54,7 +55,7 @@ const flags: Readonly<Record<string, string>> = {
   h: "help", V: "version",
 };
 const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode",
-  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout"]);
+  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir"]);
 
 function number(value: string, integral = false): number {
   if (!(integral ? /^\d+$/ : /^\d+(?:\.\d+)?$/).test(value)) throw new CurlError(2, "Invalid numeric option");
@@ -108,6 +109,7 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "data-urlencode": result.data.push({ kind: "urlencode", value: value! }); break;
       case "json": case "form": case "form-string": result.data.push({ kind: option, value: value! }); break;
       case "output": result.output = value!; result.remoteName = false; break;
+      case "output-dir": result.outputDirectory = value!; break;
       case "remote-name": result.remoteName = true; delete result.output; break;
       case "dump-header": result.dumpHeader = value!; break;
       case "write-out": result.writeOut = value!; break;

@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded explicit port matches2558valid public controls (645original,382captures,233fixed lookbehind,1298POSIX). Activated native POSIX1298cohort exits0/stderr0; older capture/behind native shutdown failures retained.10442maintained+1laterfocused syntax regression and2597focused controls,lint/types/build pass.16invalidUTF8 outputs,actual native diagnostics,named/variable-width/atomic/possessive/broadergrammar,widerprofiles and publication remain required.",
+      "currentFinding": "Bounded explicit port matches2856valid public controls (645original,382captures,233fixed behind,1298POSIX,298named); native POSIX1298/named298cohorts exit0/stderr0.10743maintained and2897focused tests,lint/types/build pass. Earlier native capture/behind abort is ASAN-proven borrowed-directory double free in native loader,corrected reference qualification pending.18invalidUTF8 outputs,actual native diagnostics,variable-width/atomic/possessive/broadergrammar/Unicode identifiers,widerprofiles and publication remain required.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -514,6 +514,11 @@
           "kind": "native-activated-POSIX-byte-class-port",
           "path": "docs/ssconvert/perl-sed-posix-gap-proof.json",
           "outcome": "840original failing controls repaired;14classes/default/i/a/d/inverses/mixed/highbyte inputs qualify1298native/public exact cases. Unknown/truncated/reserved syntax refuses; native diagnostic parity staysopen."
+        },
+        {
+          "kind": "native-activated-named-capture-byte-port",
+          "path": "docs/ssconvert/perl-sed-named-gap-proof.json",
+          "outcome": "300originalred controls repaired;298valid native/public exact cases and2additional invalid-byte refusals. Map-owned duplicate/forward resolution and assertions qualify;10743maintained tests pass."
         }
       ],
       "delivery": {

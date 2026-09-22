@@ -1,3 +1,4 @@
+import { perlSedNamedCases, perlSedInvalidNamedByteCases } from "./perl-sed-named-fixtures.js";
 import { perlSedPosixCases, perlSedInvalidPosixByteCases } from "./perl-sed-posix-fixtures.js";
 import { perlSedLookbehindCases, perlSedInvalidLookbehindByteCases } from "./perl-sed-lookbehind-fixtures.js";
 import { perlSedCaptureCases, perlSedInvalidCaptureByteCases, perlSedCaptureHoldouts } from "./perl-sed-capture-fixtures.js";
@@ -96,4 +97,11 @@ it.each(perlSedInvalidPosixByteCases)("refuses unresolved POSIX byte result $id"
 it("refuses unknown, truncated and native-reserved POSIX syntax explicitly", () => {
   for (const pattern of ['[[:bogus:]]', '[[:digit:]', '[[.a.]]', '[[=a=]]'])
     expect(() => calculate(expression(['aaa123', pattern, 'X']))).toThrow("PERL_SED pattern syntax or diagnostic");
+});
+
+it.each(perlSedNamedCases)("matches native named capture $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
+});
+it.each(perlSedInvalidNamedByteCases)("refuses unresolved named-capture byte result $id", vector => {
+  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
 });

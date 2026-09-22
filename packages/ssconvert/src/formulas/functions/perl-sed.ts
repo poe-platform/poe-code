@@ -10,7 +10,7 @@ type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "alternative"; nodes: Node[] }
   | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean }
   | { kind: "capture"; node: Node; index: number }
-  | { kind: "reference"; index: number; insensitive: boolean }
+  | { kind: "reference"; indices: number[]; insensitive: boolean }
   | { kind: "behind"; node: Node; negative: boolean; width: number }
   | { kind: "assert"; node: Node; negative: boolean };
 const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
@@ -22,6 +22,7 @@ const fold = (byte: number) => byte >= 65 && byte <= 90 ? byte + 32 : byte;
 function compile(pattern: string, host: FunctionHost): Node {
   let at = 0, depth = 0, nodes = 0, captures = 0;
   const references: number[] = [];
+  const names = new Map<string, number[]>(), namedReferences: { name: string; indices: number[] }[] = [];
   const flags: Flags = { insensitive: false, multiline: false, dotall: false, extended: false };
   const node = <T extends Node>(value: T): T => {
     host.tick();
@@ -30,6 +31,20 @@ function compile(pattern: string, host: FunctionHost): Node {
     return value;
   };
   const literal = (byte: number, mode: Flags) => node({ kind: "char", test: (input: number) => mode.insensitive ? fold(input) === fold(byte) : input === byte } as const);
+  const identifier = (closing: string) => {
+    let name = "";
+    while (at < pattern.length && pattern[at] !== closing) {
+      host.tick(); const byte = pattern.charCodeAt(at++);
+      if (!word(byte) || !name && byte >= 48 && byte <= 57) return unsupported();
+      name += String.fromCharCode(byte);
+    }
+    if (!name || pattern[at++] !== closing) return unsupported();
+    return name;
+  };
+  const namedReference = (name: string, mode: Flags) => {
+    const indices: number[] = []; namedReferences.push({ name, indices });
+    return node({ kind: "reference", indices, insensitive: mode.insensitive } as const);
+  };
   const ignore = (mode: Flags) => {
     if (!mode.extended) return;
     while (at < pattern.length) {
@@ -43,10 +58,16 @@ function compile(pattern: string, host: FunctionHost): Node {
   function escaped(mode: Flags, inClass = false): Node {
     host.tick();
     const char = pattern[at++]; if (char === undefined) return unsupported();
+    if (!inClass && char === "k") {
+      const opening = pattern[at++], closing = opening === "<" ? ">" : opening === "{" ? "}" : opening === "'" ? "'" : undefined;
+      if (closing === undefined) return unsupported();
+      return namedReference(identifier(closing), mode);
+    }
     if (!inClass && (char >= "1" && char <= "9" || char === "g")) {
       let index: number;
       if (char === "g") {
         if (pattern[at++] !== "{") return unsupported();
+        if (pattern[at] !== "-" && !(pattern[at]! >= "0" && pattern[at]! <= "9")) return namedReference(identifier("}"), mode);
         const relative = pattern[at] === "-"; if (relative) at++;
         const number = integer();
         if (!number || pattern[at++] !== "}") return unsupported();
@@ -57,7 +78,7 @@ function compile(pattern: string, host: FunctionHost): Node {
       }
       if (index < 1) return unsupported();
       references.push(index);
-      return node({ kind: "reference", index, insensitive: mode.insensitive });
+      return node({ kind: "reference", indices: [index], insensitive: mode.insensitive });
     }
     const common = "nrtfae", values = [10, 13, 9, 12, 7, 27];
     const index = common.indexOf(char); if (index >= 0) return literal(values[index]!, mode);
@@ -141,13 +162,23 @@ function compile(pattern: string, host: FunctionHost): Node {
     if (++depth > 64) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
     let assertion: boolean | undefined;
     let behind = false;
-    const capture = pattern[at] === "?" ? undefined : ++captures;
+    let capture = pattern[at] === "?" ? undefined : ++captures;
     if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
       else if (pattern[at] === "=" || pattern[at] === "!") assertion = pattern[at++] === "!";
       else if (pattern[at] === "<" && (pattern[at + 1] === "=" || pattern[at + 1] === "!")) {
         at++; assertion = pattern[at++] === "!"; behind = true;
+      }
+      else if (pattern[at] === "<" || pattern[at] === "'" || pattern[at] === "P" && pattern[at + 1] === "<") {
+        if (pattern[at] === "P") at++;
+        const closing = pattern[at++] === "<" ? ">" : "'", name = identifier(closing);
+        capture = ++captures;
+        const indices = names.get(name) ?? []; indices.push(capture); names.set(name, indices);
+      }
+      else if (pattern[at] === "P" && pattern[at + 1] === "=") {
+        at += 2; const name = identifier(")"); depth--;
+        return namedReference(name, mode);
       }
       else {
         let disabled = false, found = false;
@@ -244,6 +275,10 @@ function compile(pattern: string, host: FunctionHost): Node {
   }
   const result = alternative(flags); if (at !== pattern.length) return unsupported();
   for (const index of references) { host.tick(); if (index > captures) return unsupported(); }
+  for (const reference of namedReferences) {
+    host.tick(); const indices = names.get(reference.name); if (indices === undefined) return unsupported();
+    for (const index of indices) { host.tick(); reference.indices.push(index); }
+  }
   return result;
 }
 
@@ -254,7 +289,9 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
   if (node.kind === "char") { if (position < source.length && node.test(source.charCodeAt(position))) yield { ...state, position: position + 1 }; }
   else if (node.kind === "anchor") { if (node.test(source, position)) yield state; }
   else if (node.kind === "reference") {
-    const captured = state.captures[node.index]; if (captured === undefined) return;
+    let captured: readonly [number, number] | undefined;
+    for (const index of node.indices) { host.tick(); captured = state.captures[index]; if (captured !== undefined) break; }
+    if (captured === undefined) return;
     const length = captured[1] - captured[0]; if (length > source.length - position) return;
     for (let offset = 0; offset < length; offset++) {
       host.tick(); const left = source.charCodeAt(captured[0] + offset), right = source.charCodeAt(position + offset);

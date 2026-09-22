@@ -2569,6 +2569,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/iconv/safety.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/translit-policy.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/translit-streams.test.ts"));
+  assert.ok(files.includes("tests/commands/streams.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/translit.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));

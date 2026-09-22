@@ -4,6 +4,7 @@ import { outputFailure } from "../contracts/io.js";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "../contracts/command-requirements.js";
 import { inputRequirements } from "./portable-requirements.js";
 import { followTail, parseTailFollow } from "./tail-follow.js";
+import { wcDisplayWidth } from "./wc-width.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input, integer,
   lines, options, output, pathOf, UsageError, value,
@@ -281,12 +282,12 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
     }),
     headTail("head"), headTail("tail", maxTailFollowHandles),
     define("wc", async context => {
-      const parsed = options(context.args, "lwcm", { lines: "l", words: "w", bytes: "c", chars: "m" });
+      const parsed = options(context.args, "lwcmL", { lines: "l", words: "w", bytes: "c", chars: "m", "max-line-length": "L" });
       if (!parsed.flags.size) for (const flag of ["l", "w", "c"]) parsed.flags.add(flag);
-      const selected = ["l", "w", "m", "c"].filter(flag => parsed.flags.has(flag));
+      const selected = ["l", "w", "m", "c", "L"].filter(flag => parsed.flags.has(flag));
       const names = parsed.operands.length ? parsed.operands : ["-"];
       await assertInputRequirements(context, names);
-      const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
+      const totals: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
       const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
       const singleByte = locale === "C" || locale === "POSIX";
       const posix = Object.hasOwn(context.env, "POSIXLY_CORRECT");
@@ -307,7 +308,15 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
       let exitCode = 0;
       const print = async (counts: Record<string, number>, name?: string) => output(context, selected.map(flag => String(counts[flag]).padStart(width)).join(" ") + (name === undefined ? "" : ` ${name}`) + "\n");
       for (const name of names) {
-        const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0 };
+        const counts: Record<string, number> = { l: 0, w: 0, m: 0, c: 0, L: 0 };
+        let columns = 0;
+        const lineWidth = (point: number) => {
+          if (point === 10 || point === 13 || point === 12) {
+            counts.L = Math.max(counts.L!, columns);
+            columns = 0;
+          } else if (point === 9) columns += 8 - columns % 8;
+          else columns += singleByte ? Number(point >= 32 && point < 127) : wcDisplayWidth(point);
+        };
         let inWord = false;
         const word = (whitespace: boolean) => {
           if (!whitespace && !inWord) counts.w!++;
@@ -316,6 +325,7 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
         const utf8 = wcUtf8(point => {
           if (point !== undefined) counts.m!++;
           word(point !== undefined && wcSpace(point, posix));
+          if (parsed.flags.has("L") && point !== undefined) lineWidth(point);
         });
         try {
           for await (const chunk of input(context, name)) {
@@ -324,12 +334,15 @@ export function streamCommands(maxTeeTargets = 64, maxTailFollowHandles = 64): C
             for (const byte of chunk) {
               if (byte === 10) counts.l!++;
               if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13 || !posix && byte === 0xa0);
+              if (singleByte && parsed.flags.has("L")) lineWidth(byte);
             }
             if (singleByte) counts.m! += chunk.length;
             else utf8.write(chunk);
           }
           if (!singleByte) utf8.finish();
-          for (const field of Object.keys(totals)) totals[field]! += counts[field]!;
+          counts.L = Math.max(counts.L!, columns);
+          for (const field of ["l", "w", "m", "c"]) totals[field]! += counts[field]!;
+          totals.L = Math.max(totals.L!, counts.L!);
           await print(counts, parsed.operands.length ? name : undefined);
         } catch (error) { await diagnostic(context, error); exitCode = 1; }
       }

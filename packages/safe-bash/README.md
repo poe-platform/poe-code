@@ -69,7 +69,7 @@ filesystem and byte streams, not host executables.
 | --- | --- |
 | Browse | `pwd`, `ls`, `tree`, `find`, `du`, `file`, `basename`, `dirname`, `realpath`, `readlink`, `which` |
 | Files | `mkdir`, `touch`, `cp`, `mv`, `rm`, `rmdir`, `ln`, `chmod`, `stat`, `mktemp` |
-| Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep` |
+| Filter/search | `cat`, `head`, `tail`, `wc`, `tee`, `cut`, `tr`, `sort`, `uniq`, `sed`, `awk`, `grep`, `rg`, `egrep`, `fgrep` `wc -L` / `--max-line-length` counts display columns with eight-column tab stops; UTF-8 widths use the frozen GNU/Linux C.UTF-8 profile. |
 | Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
 | Structured text | `jq`, `html-to-markdown` |
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum` |

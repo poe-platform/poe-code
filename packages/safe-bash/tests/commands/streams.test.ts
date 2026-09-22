@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, Shell, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
+import { agentCommands, FsError, Shell, standardCommands, type ByteSource, type FileSystem, type WriteFileOptions } from "../../src/index.js";
 import { bufferLimit } from "../../src/commands/internal.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { chunks, fixture, run } from "./helpers.js";
@@ -266,6 +266,60 @@ test("wc tracks words across chunks and distinguishes bytes, UTF-8 characters an
   assert.equal((await run("wc", ["-c"], { stdin: new Uint8Array([0, 255, 1]) })).stdout, "3\n");
   const fs = await fixture({ first: "a\n", second: "b\nc\n" });
   assert.equal((await run("wc", ["-l", "first", "second"], { fs })).stdout, "1 first\n2 second\n3 total\n");
+});
+
+test("wc accepts both maximum-line-length options for virtual files", async () => {
+  const fs = await fixture({ input: "abc\n" });
+  for (const option of ["-L", "--max-line-length"]) {
+    const result = await run("wc", [option, "input"], { fs, env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "3 input\n");
+    assert.equal(result.stderr, "");
+  }
+});
+
+test("wc measures display columns across byte chunks and line resets", async () => {
+  const cases: [string | Uint8Array, number, number][] = [
+    ["", 0, 0], ["\n\n", 0, 0], ["a\tb\n123456789", 9, 9],
+    ["\t\t!", 17, 17], ["abc\rxy\n", 3, 3], ["abc\fxy\n", 3, 3],
+    ["abc\vxy\n", 5, 5], ["abc\bxy\n", 5, 5],
+    [Uint8Array.of(97, 0, 98, 27, 99, 127, 100, 255, 101, 10), 5, 5],
+    ["界e\u0301😀\n", 1, 5], ["界\t!", 9, 9],
+    ["a\u200db\ufe0f", 2, 2], [Uint8Array.of(97, 0xe2, 0x82), 1, 1],
+  ];
+  for (const [data, cWidth, utf8Width] of cases) {
+    for (const [locale, expected] of [["C", cWidth], ["C.UTF-8", utf8Width]] as const) {
+      for (const width of [1, 2, 17]) {
+        const result = await run("wc", ["-L"], { stdin: chunks(data, width), env: { LC_ALL: locale } });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, `${expected}\n`, `${locale}: ${JSON.stringify(data)}`);
+        assert.equal(result.stderr, "");
+      }
+    }
+  }
+});
+
+test("wc maximum totals use the longest file and follow the normal count columns", async () => {
+  const fs = await fixture({ first: "abc\n", second: "longer\n" });
+  assert.equal((await run("wc", ["-L", "first", "second"], { fs })).stdout, " 3 first\n 6 second\n 6 total\n");
+  assert.equal((await run("wc", ["-Llwcm", "first", "second"], { fs })).stdout,
+    " 1  1  4  4  3 first\n 1  1  7  7  6 second\n 2  2 11 11  6 total\n");
+});
+
+test("agent wc maximum line lengths compose with pipelines and virtual redirections", async () => {
+  const fs = await fixture({ input: "abc\n" });
+  const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(agentCommands());
+  for (const [command, expected] of [
+    ["wc -L input", "3 input\n"],
+    ["wc --max-line-length < input", "3\n"],
+    ["printf 'a\\tb\\n' | wc -L > result; cat result", "9\n"],
+    ["wc -L missing input", "3 input\n3 total\n"],
+  ] as const) {
+    const result = await shell.exec(command);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.exitCode, command.includes("missing") ? 1 : 0);
+    if (!command.includes("missing")) assert.equal(result.stderr, "");
+  }
 });
 
 test("tee streams to stdout and multiple virtual files, supports append, and continues after file errors", async () => {

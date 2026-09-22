@@ -23,13 +23,13 @@ export function createDynamicSource(kind: DynamicFunctionKind, parameters: strin
 }
 
 export function createEvalSource(body: string,
-  context: Omit<EvalParseContext, "privateNames"> & {privateNames?: Iterable<string>}, owner?: CompileOwner) {
+  context: Omit<EvalParseContext, "privateNames"> & {privateNames?: Iterable<string>}, owner?: CompileOwner, filename?: string) {
   const source: DynamicSource = {kind: "eval", body, nodes: new Map(), context: {
     strict: context.strict === true, newTarget: context.newTarget === true,
     superProperty: context.superProperty === true, superCall: context.superCall === true,
     arguments: context.arguments !== false, privateNames: [...(context.privateNames ?? [])]
   }};
-  const parsed = parseEvalScript(body, {...source.context, privateNames: new Set(source.context.privateNames)}, owner);
+  const parsed = parseEvalScript(body, {...source.context, privateNames: new Set(source.context.privateNames)}, owner, filename);
   registerDynamicSource(parsed.node, source);
   return {...parsed, source};
 }

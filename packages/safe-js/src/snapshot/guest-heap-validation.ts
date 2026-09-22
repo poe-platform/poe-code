@@ -1377,7 +1377,7 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       if (Object.hasOwn(environment, "construction")) reference(environment.construction, ["construction-environment"]);
     }
   } else {
-    fields(node, ["kind", "parent", "importMeta", "functionBoundary", "chargeData", "bindings", "cells"], ["restoredBindings", "privateNames", "resourceState", "objectEnvironment", "withObject", "moduleEnvironment", "globalEnvironment", "simpleCatchParameter"]);
+    fields(node, ["kind", "parent", "importMeta", "functionBoundary", "chargeData", "bindings", "cells"], ["restoredBindings", "privateNames", "resourceState", "objectEnvironment", "withObject", "moduleEnvironment", "globalEnvironment", "globalVarNames", "simpleCatchParameter"]);
     if (node.simpleCatchParameter !== undefined) {
       const bindings = array(node.bindings);
       const cells = array(node.cells);
@@ -1451,6 +1451,18 @@ export function validateGuestHeapNode(raw: unknown, heap: Record<string, unknown
       names.add(binding[0]); used.add(id);
     }
     if (used.size !== cells.length) throw new TypeError("Unreferenced guest binding cell.");
+    if (Object.hasOwn(node, "globalVarNames")) {
+      const declarations = array(node.globalVarNames);
+      if (node.globalEnvironment !== true || node.functionBoundary !== false || absent(node.parent) ||
+        node.objectEnvironment !== undefined || node.withObject !== undefined || declarations.length > maxArrayLength)
+        throw new TypeError("Invalid global declaration history.");
+      const declared = new Set<string>();
+      for (const name of declarations) {
+        if (typeof name !== "string" || name.length === 0 || declared.has(name) || names.has(name))
+          throw new TypeError("Invalid global declaration name.");
+        declared.add(name);
+      }
+    }
     if (Object.hasOwn(node, "restoredBindings")) {
       if (!absent(node.parent)) throw new TypeError("Only root scopes own pending restored bindings.");
       const restoredNames = new Set<string>();

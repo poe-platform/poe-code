@@ -63,6 +63,16 @@ export function hydrateGuestScopes(
     if (scope === undefined) throw new TypeError(`Missing allocated scope ${id}.`);
     const parent = parentId(frame);
     if (parent !== undefined && !scopes.has(parent)) throw new TypeError(`Missing allocated parent ${parent}.`);
+    if (frame.globalVarNames !== undefined) {
+      budget.allocateArrayLength(frame.globalVarNames.length);
+      budget.visitNode(frame.globalVarNames.length);
+      if (frame.globalVarNames.length > 0) budget.chargeDataUsage(1 + frame.globalVarNames.length);
+      for (const name of frame.globalVarNames) {
+        budget.allocateString(name);
+        budget.visitNode(name.length);
+        budget.chargeDataUsage(name.length);
+      }
+    }
     const resourceState = frame.resourceState === undefined ? undefined : decode(frame.resourceState);
     scope.hydrateFrame({
       parent: parent === undefined ? undefined : scopes.get(parent),
@@ -70,6 +80,7 @@ export function hydrateGuestScopes(
       functionBoundary: frame.functionBoundary,
       simpleCatchParameter: frame.simpleCatchParameter,
       globalEnvironment: frame.globalEnvironment,
+      ...(frame.globalVarNames === undefined ? {} : {globalVarNames: frame.globalVarNames}),
       chargeData: frame.chargeData,
       bindings: frame.bindings,
       ...(frame.moduleEnvironment === undefined ? {} : {moduleEnvironment: {

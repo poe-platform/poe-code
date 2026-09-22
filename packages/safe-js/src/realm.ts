@@ -9,12 +9,13 @@ import { invokeBuiltinClosure } from "./interp/builtin-call.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { CompileScope } from "./interp/regex/compile-guard.js";
 import { createBuiltinBindings } from "./interp/globals.js";
+import { getRealmGlobalObject } from "./interp/intrinsics.js";
 import { releaseObjectPrototype } from "./interp/object-model.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { attachExecutionControl, SandboxJobQueue, runAsyncPrefix, suspendJob, type ExecutionControl } from "./interp/jobs.js";
 import { withCancellationSignal, awaitSandboxValue } from "./interp/cancel.js";
 import { enterRunningState } from "./interp/running-state.js";
-import { runResources, type RunResources } from "./interp/resources.js";
+import { retainValues, runResources, type RunResources } from "./interp/resources.js";
 import {
   createSandboxPromiseRejectionTracker,
   withSandboxPromiseRejectionTracker
@@ -64,6 +65,7 @@ import {
 import {SourceModuleGraph, type SourceResolver} from "./modules/source-graph.js";
 import { createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { parseExecutableModule } from "./parse/parser.js";
+import { createEvalSource } from "./parse/dynamic-source.js";
 import { createReplayableRandom } from "./random.js";
 import { hashSource } from "./parse/hash.js";
 import { describeThrownValue } from "./error/shape.js";
@@ -80,6 +82,7 @@ export type RealmLimits = {
   nestedEvaluations?: number;
 };
 export type RealmOptions = {
+  classicScripts?: boolean;
   sourceResolver?: SourceResolver;
   clock?: RunClock;
   bindings?: Record<string, CallerInjectedBinding>;
@@ -158,6 +161,8 @@ class RealmState {
   failure?: { reason: unknown };
 
   constructor(readonly options: RealmOptions, queue = new SandboxJobQueue()) {
+    if (options.classicScripts !== undefined && typeof options.classicScripts !== "boolean")
+      throw new TypeError("Realm classicScripts must be a boolean.");
     this.queue = queue;
     const limitInput = readDataRecord(options.limits ?? {}, "Realm limits");
     this.limits = {
@@ -197,6 +202,8 @@ class RealmState {
       string,
       CallerInjectedBinding
     >;
+    if (options.classicScripts && ["this", "globalThis"].some(name => Object.hasOwn(this.globals, name)))
+      throw new TypeError("Classic Script receiver bindings cannot be replaced.");
     this.modules = readModules(options.modules);
     const grants = new Set(readStringList(options.grants ?? [], "Realm grants"));
     for (const extension of this.extensions) getExtensionSetup(extension);
@@ -243,6 +250,8 @@ class RealmState {
       );
       for (const extension of this.extensions) {
         const manifest = extension.manifest;
+        if (options.classicScripts && manifest.globals?.some(name => name === "this" || name === "globalThis"))
+          throw new TypeError("Classic Script receiver bindings cannot be replaced.");
         if (names.has(manifest.name))
           throw new TypeError(`Duplicate extension '${manifest.name}'.`);
         names.add(manifest.name);
@@ -316,7 +325,7 @@ class RealmState {
       }
       if (captured.length > 0)
         this.budget.reconcileDataUsage(
-          measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()])
+          measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots(), ...this.budget.retainedValues()])
         );
       return { args: values, rollback };
     } catch (error) {
@@ -573,7 +582,7 @@ class RealmState {
     });
     try {
       this.budget.reconcileDataUsage(
-        measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots()])
+        measureSandboxData([...(this.scope?.retainedDataRoots() ?? []), ...this.retainedRoots(), ...this.budget.retainedValues()])
       );
     } catch (error) {
       this.poison(error);
@@ -801,8 +810,10 @@ class RealmState {
     const bindings = wrapCallerInjectedBindings(this.globals, this.bridgeOptions());
     this.scope = new Scope(this.builtinBindings, undefined, undefined, { chargeData: false }).child(
       bindings,
-      { functionBoundary: true }
+      this.options.classicScripts ? { globalEnvironment: true } : { functionBoundary: true }
     );
+    if (this.options.classicScripts)
+      this.scope.declare("this", "const", getRealmGlobalObject(this.budget));
   }
 
   async evaluateRaw(
@@ -828,40 +839,48 @@ class RealmState {
       await this.sourceGraph.settle();
       return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:this.sourceGraph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
     }
-    const module = parseExecutableModule(source, filename, this.lease.owner);
-    this.initialize();
-    const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
-    const imports = resolveModuleImports(module, this.modules, {
-      environment: moduleEnvironment,
-      ...this.bridgeOptions(),
-      wrappedModules: this.convertedModules
-    });
-    this.scope!.moduleEnvironment = moduleEnvironment;
-    for (const [name, value] of Object.entries(imports)) {
-      const binding = this.scope!.lookup(name);
-      if (!binding.found) this.scope!.declare(name, "const", value);
-      else if (binding.value !== value) throw new TypeError(`Conflicting import '${name}'.`);
-    }
-    const result = await interpret(
-      {
-        type: "BlockStatement",
-        body: module.body.filter((statement) => statement.type !== "ImportDeclaration"),
-        span: module.span
-      },
-      {
-        scope: this.scope,
-        useScopeDirectly: true,
-        budget: this.budget,
-        compilation: this.compilation,
-        signal: this.controller.signal,
-        surfaceUnhandledThrows: true,
-        jobs: this.queue,
-        nested,
-        assertActive: this.assertOpen
+    const script = this.options.classicScripts ? createEvalSource(source, {}, this.lease.owner, filename) : undefined;
+    const releaseSource = script ? retainValues(this.budget, () => [script.source]) : undefined;
+    try {
+      if (script) this.budget.chargeDataUsage(measureSandboxData([script.source]));
+      const module = script?.node ?? parseExecutableModule(source, filename, this.lease.owner);
+      this.initialize();
+      const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
+      const imports = script ? {} : resolveModuleImports(module, this.modules, {
+        environment: moduleEnvironment,
+        ...this.bridgeOptions(),
+        wrappedModules: this.convertedModules
+      });
+      this.scope!.moduleEnvironment = moduleEnvironment;
+      for (const [name, value] of Object.entries(imports)) {
+        const binding = this.scope!.lookup(name);
+        if (!binding.found) this.scope!.declare(name, "const", value);
+        else if (binding.value !== value) throw new TypeError(`Conflicting import '${name}'.`);
       }
-    );
-    this.assertOpen();
-    return result;
+      const result = await interpret(
+        {
+          type: "BlockStatement",
+          body: module.body.filter((statement) => statement.type !== "ImportDeclaration"),
+          span: module.span
+        },
+        {
+          ...(script ? { script: { strict: script.strict } } : {}),
+          scope: this.scope,
+          useScopeDirectly: true,
+          budget: this.budget,
+          compilation: this.compilation,
+          signal: this.controller.signal,
+          surfaceUnhandledThrows: true,
+          jobs: this.queue,
+          nested,
+          assertActive: this.assertOpen
+        }
+      );
+      this.assertOpen();
+      return result;
+    } finally {
+      releaseSource?.();
+    }
   }
 
   evaluateNested = async (source: string, extension: SafeJSExtension): Promise<void> => {
@@ -1097,6 +1116,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "clock",
     "limits"
   ]);
+  if (!oneShot) supported.add("classicScripts");
   for (const [key, entry] of Object.entries(options)) {
     if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
     throw new TypeError(`Unsupported ${oneShot ? "extension-run" : "realm"} option '${key}'.`);

@@ -222,6 +222,12 @@ This prints `2`. Evaluations share declarations, closures and object identity wi
 | `grants` | Granted capability names; `[]`. Every requested capability must be granted before any extension setup runs. |
 | `builtinOverrides` | Optional `{ console: "extension-name" }` authorizes that registered extension to replace only the builtin console. It must declare `console` and export a host object created in the realm. No overrides by default. |
 | `limits` | Positive integer caps: `extensions: 32`, `hostObjects: 1024`, `callbacks: 1024`, `guestReferences: 1024`, `cleanups: 1024`, `nestedEvaluations: 16`. Collection budgets also apply. |
+| `classicScripts` | Optional boolean, default `false`. Evaluations use classic Script grammar with persistent globals: top-level `this` is the intrinsic global object, `var` and functions create global properties, and `let`/`const` remain lexical. Injected capabilities stay immutable lexical bindings. Explicit source modules retain module semantics. |
+
+Classic Scripts reject top-level return, await and static imports/exports. This
+option preserves declaration history across evaluations and checkpoints; browser
+window aliases and callback scheduling belong to the host. Source-resolved dynamic
+imports from classic Scripts require separate support.
 
 Ordinary host arguments/results are still copied. To preserve live native identity, explicitly create a host object. A guest function crossing to the host becomes an opaque callback: invoke it with `realm.invokeCallback(callback, { thisValue?, args? })`, then `realm.releaseCallback(callback)` when no longer needed. Inside a declared and granted `context.nestedOperation`, await `context.invokeCallback` to settle the full guest result, including nested host calls and returned promises. Callbacks and live objects cannot cross realms or survive close. For deferred arguments that must preserve guest identity, opt into retained references as described below.
 

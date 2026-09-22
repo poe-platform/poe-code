@@ -34,7 +34,7 @@ const uninitialized = Symbol("uninitialized");
 export type BindingReference =
   | {kind: "unresolvable"; name: string}
   | {kind: "binding"; name: string; scope: Scope}
-  | {kind: "object"; name: string; object: SandboxObject; withEnvironment: boolean};
+  | {kind: "object"; name: string; object: SandboxObject; withEnvironment: boolean; globalEnvironment?: Scope};
 
 export type BindingOperations = {
   has(object: SandboxObject, name: string): boolean | Promise<boolean>;
@@ -51,6 +51,7 @@ type ScopeOptions = {
 export type ScopeFrame = {
   simpleCatchParameter?: string;
   globalEnvironment?: boolean;
+  globalVarNames?: string[];
   moduleEnvironment?: ModuleEnvironment;
   objectEnvironment?: SandboxObject;
   withObject?: SandboxObject;
@@ -79,6 +80,8 @@ export class Scope {
   readonly #restoredBindings: Map<string, InterpreterValue>;
   #frameHydrated = false;
   #bindingDataRoots?: SandboxObject[];
+  #globalVarNames?: Set<string>;
+  #globalVarNameValues?: string[];
 
   constructor(
     bindings: Record<string, InterpreterValue> = {},
@@ -117,15 +120,16 @@ export class Scope {
     return scope;
   }
 
-  resolveBinding(name: string, operations: BindingOperations): BindingReference | Promise<BindingReference> {
+  resolveBinding(name: string, operations: BindingOperations, globalEnvironment?: Scope): BindingReference | Promise<BindingReference> {
     if (this.#bindings.has(name)) return {kind: "binding", name, scope: this};
-    if (this.objectEnvironment !== undefined) return this.resolveObjectBinding(name, this.objectEnvironment, operations);
-    if (this.parent !== undefined) return this.parent.resolveBinding(name, operations);
+    if (this.objectEnvironment !== undefined) return this.resolveObjectBinding(name, this.objectEnvironment, operations, globalEnvironment);
+    if (this.parent !== undefined) return this.parent.resolveBinding(name, operations,
+      this.options.globalEnvironment === true ? this : undefined);
     if (name === "undefined") return {kind: "binding", name, scope: this};
     return {kind: "unresolvable", name};
   }
 
-  private async resolveObjectBinding(name: string, object: SandboxObject, operations: BindingOperations): Promise<BindingReference> {
+  private async resolveObjectBinding(name: string, object: SandboxObject, operations: BindingOperations, globalEnvironment?: Scope): Promise<BindingReference> {
     if (await operations.has(object, name)) {
       let blocked = false;
       if (this.withEnvironment) {
@@ -133,7 +137,8 @@ export class Scope {
         if (typeof unscopables === "object" && unscopables !== null)
           blocked = Boolean(await operations.get(unscopables as SandboxObject, name));
       }
-      if (!blocked) return {kind: "object", name, object, withEnvironment: this.withEnvironment};
+      if (!blocked) return {kind: "object", name, object, withEnvironment: this.withEnvironment,
+        ...(globalEnvironment === undefined || this.withEnvironment ? {} : {globalEnvironment})};
     }
     if (this.parent !== undefined) return this.parent.resolveBinding(name, operations);
     if (name === "undefined") return {kind: "binding", name, scope: this};
@@ -193,6 +198,19 @@ export class Scope {
     return true;
   }
 
+  deleteGlobalBinding(name: string): boolean {
+    const object = this.parent?.objectEnvironment;
+    if (this.options.globalEnvironment !== true || object === undefined)
+      throw new TypeError("Missing global object environment.");
+    if (!Object.hasOwn(object, name)) return true;
+    const deleted = Reflect.deleteProperty(object, name);
+    if (deleted && this.#globalVarNames?.delete(name)) {
+      if (this.#globalVarNames.size === 0) this.#globalVarNames = undefined;
+      this.#globalVarNameValues = undefined;
+    }
+    return deleted;
+  }
+
   getOwnBindingKind(name: string): VariableDeclarationKind | undefined {
     return this.#bindings.get(name)?.kind;
   }
@@ -246,6 +264,7 @@ export class Scope {
 
   retainedValues(): InterpreterValue[] {
     const values = this.parent?.retainedValues() ?? [];
+    if (this.#globalVarNames !== undefined) values.push(this.#globalVarNameValues ??= [...this.#globalVarNames]);
     if (this.moduleEnvironment !== undefined) values.push(...Object.values(this.moduleEnvironment.namespaces));
     if (this.resourceState !== undefined) values.push(this.resourceState);
     if (this.options.chargeData !== false) {
@@ -264,6 +283,7 @@ export class Scope {
 
   retainedDataRoots(): InterpreterValue[] {
     const values = this.parent?.retainedDataRoots() ?? [];
+    if (this.#globalVarNames !== undefined) values.push(this.#globalVarNameValues ??= [...this.#globalVarNames]);
     if (this.withEnvironment && this.objectEnvironment !== undefined) values.push(this.objectEnvironment);
     if (this.moduleEnvironment !== undefined) values.push(...Object.values(this.moduleEnvironment.namespaces));
     if (this.resourceState !== undefined) values.push(this.resourceState);
@@ -332,11 +352,16 @@ export class Scope {
       const object = this.parent?.objectEnvironment;
       if (object === undefined) throw new TypeError("Missing global object environment.");
       const descriptor = Object.getOwnPropertyDescriptor(object, name);
-      if (!definesFunction && descriptor !== undefined) return;
-      const attributes = definesFunction && descriptor?.configurable === false
-        ? {value: options.functionValue}
-        : {value: options?.functionValue, writable: true, enumerable: true, configurable: options?.deletable === true};
-      if (!Reflect.defineProperty(object, name, attributes)) throw new TypeError(`Cannot declare global '${name}'.`);
+      if (definesFunction || descriptor === undefined) {
+        const attributes = definesFunction && descriptor?.configurable === false
+          ? {value: options.functionValue}
+          : {value: options?.functionValue, writable: true, enumerable: true, configurable: options?.deletable === true};
+        if (!Reflect.defineProperty(object, name, attributes)) throw new TypeError(`Cannot declare global '${name}'.`);
+      }
+      if (!this.#globalVarNames?.has(name)) {
+        (this.#globalVarNames ??= new Set()).add(name);
+        this.#globalVarNameValues = undefined;
+      }
       return;
     }
     const boundary = this.options.functionBoundary === true ? this : this.parent;
@@ -381,7 +406,7 @@ export class Scope {
       throw new TypeError("Script execution requires a global environment.");
     const object = this.parent.objectEnvironment;
     for (const name of lexical) {
-      if (this.#bindings.has(name) || Object.getOwnPropertyDescriptor(object, name)?.configurable === false)
+      if (this.#bindings.has(name) || this.#globalVarNames?.has(name) || Object.getOwnPropertyDescriptor(object, name)?.configurable === false)
         throw new SyntaxError(`Cannot redeclare global '${name}'.`);
     }
     for (const name of names) {
@@ -591,6 +616,7 @@ export class Scope {
       importMeta: this.importMeta,
       functionBoundary: this.isFunctionBoundary(),
       ...(this.options.globalEnvironment === true ? {globalEnvironment: true} : {}),
+      ...(this.#globalVarNames === undefined ? {} : {globalVarNames: [...this.#globalVarNames]}),
       chargeData: this.options.chargeData !== false,
       bindings,
       cells,
@@ -601,7 +627,7 @@ export class Scope {
   }
 
   hydrateFrame(frame: ScopeFrame): void {
-    if (this.#frameHydrated || this.#bindings.size !== 0 || this.importMeta !== undefined ||
+    if (this.#frameHydrated || this.#bindings.size !== 0 || this.#globalVarNames !== undefined || this.importMeta !== undefined ||
         (this.parent === undefined && this.#restoredBindings.size !== 0))
       throw new TypeError("Frame hydration requires a fresh scope.");
     if (frame.parent !== this.parent || frame.functionBoundary !== this.isFunctionBoundary() ||
@@ -626,6 +652,18 @@ export class Scope {
       referenced.add(id);
     }
     if (referenced.size !== cells.length) throw new TypeError("Unreferenced scope binding cell.");
+    let globalVarNames: Set<string> | undefined;
+    if (Object.hasOwn(frame, "globalVarNames")) {
+      if (!Array.isArray(frame.globalVarNames) || frame.globalEnvironment !== true || frame.functionBoundary ||
+        frame.parent === undefined || frame.objectEnvironment !== undefined || frame.withObject !== undefined)
+        throw new TypeError("Invalid global declaration history.");
+      globalVarNames = new Set();
+      for (const name of frame.globalVarNames) {
+        if (typeof name !== "string" || name.length === 0 || globalVarNames.has(name) || bindings.has(name))
+          throw new TypeError("Invalid global declaration name.");
+        globalVarNames.add(name);
+      }
+    }
     const restored = new Map(frame.restoredBindings ?? []);
     if (restored.size !== (frame.restoredBindings?.length ?? 0)) throw new TypeError("Duplicate restored binding.");
     this.importMeta = frame.importMeta;
@@ -643,6 +681,8 @@ export class Scope {
     }
     if (this.parent === undefined)
       for (const [name, value] of restored) this.#restoredBindings.set(name, value);
+    this.#globalVarNames = globalVarNames?.size ? globalVarNames : undefined;
+    this.#globalVarNameValues = undefined;
     this.#frameHydrated = true;
     this.#bindingDataRoots = undefined;
   }

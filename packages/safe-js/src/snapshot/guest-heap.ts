@@ -181,6 +181,7 @@ export type GuestHeapNode<T> =
   | { kind: "scope-frame"; parent: T; importMeta: T; functionBoundary: boolean; chargeData: boolean;
       simpleCatchParameter?: string;
       globalEnvironment?: boolean;
+      globalVarNames?: string[];
       moduleEnvironment?: {available: string[]; namespaces: T};
       objectEnvironment?: T;
       withObject?: T;
@@ -521,6 +522,7 @@ export function captureGuestHeapNode<T>(value: object, encode: (value: unknown) 
       functionBoundary: frame.functionBoundary, chargeData: frame.chargeData,
       ...(frame.simpleCatchParameter === undefined ? {} : {simpleCatchParameter: frame.simpleCatchParameter}),
       ...(frame.globalEnvironment === true ? {globalEnvironment: true} : {}),
+      ...(frame.globalVarNames === undefined ? {} : {globalVarNames: frame.globalVarNames}),
       bindings: frame.bindings,
       ...(frame.moduleEnvironment === undefined ? {} : {moduleEnvironment: {
         available: [...frame.moduleEnvironment.available], namespaces: encode(frame.moduleEnvironment.namespaces)

@@ -787,7 +787,8 @@ export type EvalParseContext = {
 export function parseEvalScript(
   source: string,
   context: EvalParseContext = {},
-  owner?: CompileOwner
+  owner?: CompileOwner,
+  filename = "<eval>"
 ): {node: Module; strict: boolean} {
   const compilation = new CompileScope(owner);
   try {
@@ -812,7 +813,7 @@ export function parseEvalScript(
     return {node, strict: grammar.strict};
   } catch (error) {
     if (error instanceof SandboxError) throw error;
-    throw createSyntaxDiagnostic(source, "<eval>", error);
+    throw createSyntaxDiagnostic(source, filename, error);
   } finally { compilation.dispose(); }
 }
 

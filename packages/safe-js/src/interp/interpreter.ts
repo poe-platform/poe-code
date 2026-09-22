@@ -3096,6 +3096,7 @@ async function evaluateDeleteExpression(
     const reference = await context.scope.resolveBinding(node.argument.name, bindingOperations(context));
     return {kind: "normal", hasValue: true, value: reference.kind === "unresolvable" ? true
       : reference.kind === "binding" ? reference.scope.deleteBinding(reference.name)
+      : reference.globalEnvironment !== undefined ? reference.globalEnvironment.deleteGlobalBinding(reference.name)
       : guestProxyStates.has(reference.object)
         ? await sandboxDeleteProperty(reference.object, reference.name, context.budget, createCoercionContext(context))
         : deleteSandboxProperty(reference.object, reference.name, false)};

@@ -168,14 +168,14 @@ export function command(name: string, limits: StreamFormatLimits, run: (session:
   } };
 }
 
-export async function* records(source: ByteSource, session: Session): AsyncGenerator<Uint8Array> {
+export async function* records(source: ByteSource, session: Session): AsyncGenerator<{ bytes: Uint8Array; terminated: boolean }> {
   let buffer = new Uint8Array(Math.min(1024, session.limits.maxRecordBytes));
   let size = 0;
   for await (const chunk of source) {
     for (const byte of chunk) {
       await session.step();
       if (byte === 10) {
-        yield buffer.slice(0, size);
+        yield { bytes: buffer.slice(0, size), terminated: true };
         size = 0;
       } else {
         session.check(size + 1, session.limits.maxRecordBytes, "record");
@@ -187,7 +187,7 @@ export async function* records(source: ByteSource, session: Session): AsyncGener
       }
     }
   }
-  if (size) yield buffer.slice(0, size);
+  if (size) yield { bytes: buffer.slice(0, size), terminated: false };
 }
 
 export class ByteOutput {

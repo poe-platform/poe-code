@@ -44,7 +44,7 @@ test("collision preflight does not partially register; replacement is intentiona
   assert.equal(instance.commands.list().length, 1);
   await instance.dispose();
   const replacement = new Shell({ fs: createMemoryFileSystem() }).register({ name: "rev", execute: () => ({ exitCode: 7 }) }).use(streamFormatCommands({ replace: true }));
-  assert.equal((await replacement.exec("rev", { stdin: "ab" })).stdout, "ba\n");
+  assert.equal((await replacement.exec("rev", { stdin: "ab" })).stdout, "ba");
   await replacement.dispose();
 });
 

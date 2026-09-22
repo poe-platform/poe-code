@@ -50,7 +50,7 @@ export function createNlCommand(limits: StreamFormatLimits): CommandDefinition {
     const unnumbered = " ".repeat(width + Buffer.byteLength(separator));
     let current: Style = body, number = start, blanks = 0;
     await session.files(session.names(parsed.operands), async source => {
-      for await (const record of records(source, session)) {
+      for await (const { bytes: record } of records(source, session)) {
         const bytes = Buffer.from(record);
         const section = delimiter.length ? delimiters.findIndex(candidate => candidate.equals(bytes)) : -1;
         if (section >= 0) {

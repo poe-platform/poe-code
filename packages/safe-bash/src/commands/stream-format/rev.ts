@@ -43,11 +43,11 @@ export function createRevCommand(limits: StreamFormatLimits): CommandDefinition 
     if (!utf8 && locale !== "C" && locale !== "POSIX") throw new UsageError(`unsupported character encoding locale: '${locale}'`);
     const names = parsed.operands.length ? parsed.operands.map(name => name === "-" ? "./-" : name) : [];
     await session.files(session.names(names), async (source, name) => {
-      for await (const record of records(source, session)) {
+      for await (const { bytes: record, terminated } of records(source, session)) {
         const length = utf8 ? await validPrefix(record, session) : record.length;
         if (length || length === record.length) {
           await session.output(await reversed(record.subarray(0, length), utf8, session));
-          await session.text("\n");
+          if (terminated || length !== record.length) await session.text("\n");
         }
         if (length !== record.length) {
           await diagnostic(session.context, new PublicDiagnostic(`${name === "-" ? "stdin" : name}: Illegal byte sequence`));

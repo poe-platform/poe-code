@@ -52,13 +52,23 @@ test("sort: buffer failure must not publish partial replacement", async () => {
   assert.equal(result.stdout.length, 0);
 });
 
-for (const args of [["-a", "not-an-algorithm"], ["--check"], ["-b"], ["--tag"]]) test(`cksum: unsupported syntax ${args.join(" ")} consumes no input`, async () => {
+for (const args of [["-a", "not-an-algorithm"], ["--check"], ["-t"], ["--unknown"]]) test(`cksum: unsupported syntax ${args.join(" ")} consumes no input`, async () => {
   let pulls = 0;
   const input = (async function* () { pulls++; yield Buffer.from("secret"); })();
   const result = await execute("cksum", args, { stdin: input });
   assert.notEqual(result.exitCode, 0);
   assert.equal(pulls, 0);
   assert.equal(result.stdout.length, 0);
+});
+
+for (const args of [["-b"], ["--tag"]]) test(`cksum: supported syntax ${args.join(" ")} consumes input once`, async () => {
+  let pulls = 0;
+  const input = (async function* () { pulls++; yield Buffer.from("abc"); })();
+  const result = await execute("cksum", args, { stdin: input });
+  assert.equal(result.exitCode, 0);
+  assert.equal(pulls, 1);
+  assert.equal(result.stdout.toString(), "1219131554 3\n");
+  assert.equal(result.stderr.length, 0);
 });
 
 test("cksum: streaming large binary is chunk-invariant", async () => {

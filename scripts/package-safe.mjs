@@ -115,7 +115,7 @@ async function prepareOptionalPackage({ rootDir, files, workspaces, excluded }) 
       if (!filename.startsWith(path.join(rootDir, "packages", peer.dir, "dist") + path.sep) || excluded(filename)) break;
       const stat = await files.lstat(filename);
       if (!stat.isFile() || stat.isSymbolicLink()) break;
-      return;
+      return filename;
     }
     throw new Error(`Unexported optional peer route: ${specifier}`);
   };
@@ -163,6 +163,29 @@ async function prepareOptionalPackage({ rootDir, files, workspaces, excluded }) 
         let target = path.resolve(path.dirname(filename), specifier);
         if (declaration && !asset) {
           for (const [runtime, types] of [[".js", ".d.ts"], [".mjs", ".d.mts"], [".cjs", ".d.cts"]]) if (target.endsWith(runtime)) { target = target.slice(0, -runtime.length) + types; break; }
+          if (!target.startsWith(dist + path.sep)) {
+            for (const [peerName, peer] of peers) {
+              let route;
+              for (const [key, value] of Object.entries(peer.pkg.exports ?? {})) {
+                let types = value;
+                while (types && typeof types === "object" && !Array.isArray(types)) types = types.types ?? types.import ?? types.default;
+                if (typeof types !== "string") continue;
+                const pattern = path.resolve(rootDir, "packages", peer.dir, types).split("*");
+                if (pattern.length === 1 && pattern[0] === target) route = key;
+                else if (pattern.length === 2 && key.split("*").length === 2 && target.startsWith(pattern[0]) && target.endsWith(pattern[1])) {
+                  route = key.replace("*", target.slice(pattern[0].length, target.length - pattern[1].length));
+                }
+                if (route) break;
+              }
+              if (!route) continue;
+              const publicRoute = peerName + (route === "." ? "" : route.slice(1));
+              if (await peerTarget(publicRoute, true) !== target) throw new Error(`Optional declaration route changes target: ${publicRoute}`);
+              contents.set(filename, Buffer.from(rewriteModuleSpecifiers(filename, contents.get(filename).toString(), value => value === specifier ? publicRoute : value)));
+              target = undefined;
+              break;
+            }
+            if (target === undefined) continue;
+          }
         }
         pending.push({ filename: target, asset });
       } else if (asset) throw new Error(`Unmapped optional asset: ${specifier}`);

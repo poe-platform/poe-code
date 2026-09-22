@@ -793,6 +793,51 @@ function optionalArtifact() {
 }
 
 describe("explicit optional safe package artifact", () => {
+  it("restores public peer routes in declarations rewritten by the root build", async () => {
+    const { volume, options } = optionalArtifact();
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Host = import("../optional-host.js").Host;');
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/optional.d.ts", "utf8")).toContain('import("@poe-platform/safe-bash/optional-host")');
+    expect(volume.existsSync("/output/safe-bash/dist/safe-bash/opt-in/optional-host.d.ts")).toBe(false);
+  });
+
+  it("rejects relative optional declarations targeting an unexported core file", async () => {
+    const { volume, options } = optionalArtifact();
+    volume.writeFileSync("/repo/packages/safe-bash/dist/private-core.d.ts", "export interface Host {};");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Host = import("../private-core.js").Host;');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("escapes owned output");
+    expect(volume.existsSync("/output")).toBe(false);
+  });
+
+  it("restores verified wildcard peer routes in optional declarations", async () => {
+    const { volume, options } = optionalArtifact();
+    volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash/dist/contracts/value.d.ts", "export interface ShellValue {};");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Value = import("../contracts/value.js").ShellValue;');
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/optional.d.ts", "utf8")).toContain('import("@poe-platform/safe-bash/contracts/value")');
+  });
+
+  it("restores a conditional public root declaration route", async () => {
+    const { volume, options } = optionalArtifact();
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export { Shell } from "../index.js";');
+    await packageSafeLibraries({ ...options, outDir: "/output" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/optional.d.ts", "utf8")).toContain('from "@poe-platform/safe-bash"');
+  });
+
+  it("rejects wildcard reverse routes shadowed by a different exact export", async () => {
+    const { volume, options } = optionalArtifact();
+    const manifest = JSON.parse(volume.readFileSync("/repo/packages/safe-bash/package.json", "utf8").toString());
+    manifest.exports["./contracts/value"] = { types: "./dist/alternate.d.ts", import: "./dist/alternate.js" };
+    volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+    volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
+    volume.writeFileSync("/repo/packages/safe-bash/dist/contracts/value.d.ts", "export interface ShellValue {};");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/alternate.d.ts", "export interface DifferentValue {};");
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Value = import("../contracts/value.js").ShellValue;');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow();
+    expect(volume.existsSync("/output")).toBe(false);
+  });
+
   it("ships the optional closure through the core package's explicit subpath without changing its default entry", async () => {
     const { volume, options } = optionalArtifact();
     const result = await packageSafeLibraries({ ...options, outDir: "/output" });

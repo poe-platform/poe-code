@@ -8,7 +8,7 @@ function range(start: number, count: number): string {
 }
 
 function outputLine(prefix: string, line: string, options?: DisplayOptions): string {
-  if (options?.initialTab) prefix = prefix.trimEnd() + "\t";
+  if (options?.initialTab) prefix = (prefix.length === 2 ? prefix.slice(0, -1) : prefix.trimEnd()) + "\t";
   if (options?.expand) line = expandTabs(line);
   return `${prefix}${line}${line.endsWith("\n") ? "" : "\n\\ No newline at end of file\n"}`;
 }

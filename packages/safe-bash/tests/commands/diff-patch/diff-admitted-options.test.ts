@@ -65,6 +65,12 @@ test("text mode retains non UTF-8 bytes", async () => {
   assert.deepEqual(Buffer.concat(chunks), Buffer.concat([Buffer.from("1c1\n< "), Buffer.from([255, 10]), Buffer.from("---\n> "), Buffer.from([254, 10])]));
 });
 
+test("initial-tab context output preserves the unchanged-line marker", async () => {
+  const actual = await run("diff", ["-cT", "--label=LEFT", "--label=RIGHT", "old", "new"], { files: { old: "same\nold\n", new: "same\nnew\n" } });
+  assert.equal(actual.exitCode, 1, actual.stderr);
+  assert.equal(actual.stdout, "*** LEFT\n--- RIGHT\n***************\n*** 1,2 ****\n \tsame\n!\told\n--- 1,2 ----\n \tsame\n!\tnew\n");
+});
+
 test("Shell invokes comparison, side-by-side, and pagination modes with owned arguments", async () => {
   const fs = await filesystem({ old: "A\n", new: "a\n" });
   const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands());

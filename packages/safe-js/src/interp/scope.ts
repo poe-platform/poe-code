@@ -6,7 +6,7 @@ import { builtinGlobalObjects, getIntrinsicIdentity, mutableBuiltinBindings } fr
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import type { SandboxObject } from "./values.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
-import { ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
+import { appendScopeDataRoot, ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
 import { ScopeBindingMap, ScopeBindingSet } from "./scope-binding-storage.js";
 
 type ScopeBinding = {
@@ -34,6 +34,7 @@ type ScopeLookupResult =
 
 const uninitialized = Symbol("uninitialized");
 const freezeAccountingRoot = Object.freeze;
+const isScopeRootArray = Array.isArray;
 
 export type BindingReference =
   | {kind: "unresolvable"; name: string}
@@ -290,15 +291,49 @@ export class Scope {
     return values;
   }
 
-  retainedDataRoots(): InterpreterValue[] {
-    const values = this.parent?.retainedDataRoots() ?? [];
-    if (this.#globalVarNames !== undefined) values.push(this.#globalVarNameValues ??= [...this.#globalVarNames]);
-    if (this.withEnvironment && this.objectEnvironment !== undefined) values.push(this.objectEnvironment);
-    if (this.moduleEnvironment !== undefined) values.push(...Object.values(this.moduleEnvironment.namespaces));
-    if (this.resourceState !== undefined) values.push(this.resourceState);
+  retainedDataRoots(append?: (values: InterpreterValue[]) => void): InterpreterValue[] {
+    // Seed own slots for the common short vector. Writes cannot invoke inherited
+    // index setters; longer vectors use pinned definitions. No buffer escapes
+    // while ancestor metadata is collected.
+    const values: InterpreterValue[] = [undefined, undefined, undefined, undefined];
+    values.length = this.#collectRetainedDataRoots(values, 0);
+    append?.(values);
+    return values;
+  }
+
+  static captureDataRoots(scope: Scope, append: (values: InterpreterValue[]) => void): InterpreterValue[] {
+    const read = scope.retainedDataRoots;
+    if (#bindings in scope && read === ownScopeDataRoots) return callScopeDataRoots(read, scope, append);
+    const captured = callScopeDataRoots(read, scope);
+    const values: InterpreterValue[] = [];
+    appendScopeDataRoots(values, captured);
+    append(values);
+    return values;
+  }
+
+  #collectRetainedDataRoots(values: InterpreterValue[], index: number): number {
+    // Only the native implementation can share this fresh collector. Foreign
+    // collectors keep their own vectors, and every ancestor/metadata read stays live.
+    const parent = this.parent;
+    if (parent != null) {
+      const read = parent.retainedDataRoots;
+      if (#bindings in parent && read === ownScopeDataRoots) index = parent.#collectRetainedDataRoots(values, index);
+      else {
+        const captured = callScopeDataRoots(read, parent);
+        index = appendScopeDataRoots(values, captured, index);
+      }
+    }
+    if (this.#globalVarNames !== undefined) index = appendCollectedScopeRoot(values, this.#globalVarNameValues ??= [...this.#globalVarNames], index);
+    if (this.withEnvironment && this.objectEnvironment !== undefined) index = appendCollectedScopeRoot(values, this.objectEnvironment, index);
+    if (this.moduleEnvironment !== undefined) {
+      const namespaces = Object.values(this.moduleEnvironment.namespaces);
+      for (let key = 0; key < namespaces.length; key++) index = appendCollectedScopeRoot(values, namespaces[key], index);
+    }
+    if (this.resourceState !== undefined) index = appendCollectedScopeRoot(values, this.resourceState, index);
     if (this.options.chargeData !== false) {
-      if (this.importMeta !== undefined) values.push(this.importMeta);
-      if (this.privateNames !== undefined) values.push(...this.privateNames.values());
+      if (this.importMeta !== undefined) index = appendCollectedScopeRoot(values, this.importMeta, index);
+      if (this.privateNames !== undefined)
+        for (const name of this.privateNames.values()) index = appendCollectedScopeRoot(values, name, index);
     }
     if (this.#bindingDataRoot === undefined) {
       const roots = new ScopeDataRootList();
@@ -327,8 +362,8 @@ export class Scope {
         this.#bindingDataRoot = group;
       }
     }
-    if (this.#bindingDataRoot !== null) values.push(this.#bindingDataRoot);
-    return values;
+    if (this.#bindingDataRoot !== null) index = appendCollectedScopeRoot(values, this.#bindingDataRoot, index);
+    return index;
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue,
@@ -777,6 +812,30 @@ export class Scope {
       value: binding.value
     };
   }
+}
+
+const ownScopeDataRoots = Scope.prototype.retainedDataRoots;
+const callScopeDataRoots = Function.prototype.call.bind(Function.prototype.call) as (
+  read: Scope["retainedDataRoots"], scope: Scope, append?: (values: InterpreterValue[]) => void
+) => InterpreterValue[];
+export const captureScopeDataRoots = Scope.captureDataRoots;
+
+export function appendScopeDataRoots(values: InterpreterValue[], captured: Iterable<InterpreterValue>, index = values.length): number {
+  if (isScopeRootArray(captured)) {
+    for (let key = 0; key < captured.length; key++) index = appendCollectedScopeRoot(values, captured[key], index);
+  } else {
+    // Foreign providers can also return iterables at runtime. Preserve their
+    // observations and errors instead of silently treating them as empty arrays.
+    for (const value of captured) index = appendCollectedScopeRoot(values, value, index);
+  }
+  return index;
+}
+
+function appendCollectedScopeRoot(values: InterpreterValue[], value: InterpreterValue, index: number): number {
+  if (value === undefined) return index;
+  if (index < values.length) values[index] = value;
+  else appendScopeDataRoot(values, value);
+  return index + 1;
 }
 
 function isChargedBindingValue(value: ScopeBinding["value"]): value is InterpreterValue {

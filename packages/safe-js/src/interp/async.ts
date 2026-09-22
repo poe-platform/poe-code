@@ -25,7 +25,8 @@ import { runAsyncPrefix, suspendJob } from "./jobs.js";
 import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
-import type { Scope } from "./scope.js";
+import { appendScopeDataRoots, captureScopeDataRoots, type Scope } from "./scope.js";
+import { appendScopeDataRoot } from "./scope-data-roots.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
@@ -235,6 +236,20 @@ export function createInterpretedClosure(
         }
       : undefined;
 
+  const appendCapturedRoots = (values: SandboxValue[]): void => {
+    appendScopeDataRoot(values, context.functionEnvironment?.homeObject);
+    appendScopeDataRoot(values, context.functionEnvironment?.newTarget);
+    if (constructionState !== undefined) {
+      appendScopeDataRoot(values, constructionState.constructor);
+      appendScopeDataRoot(values, constructionState.newTarget);
+      appendScopeDataRoot(values, constructionState.prototype);
+      appendScopeDataRoot(values, constructionState.thisValue);
+      if (constructionState.thisScope !== undefined) {
+        const roots = constructionState.thisScope.retainedDataRoots();
+        appendScopeDataRoots(values, roots);
+      }
+    }
+  };
   const closure = createSandboxClosure({
     sourceRange: functionSources.get(node),
     guest: true,
@@ -247,15 +262,7 @@ export function createInterpretedClosure(
         : { name: node.id.name }
       : { name: context.inferredName }),
     ...(construct === undefined ? {} : { construct }),
-    retainedValues: () => {
-      const values = [...context.scope.retainedDataRoots(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget];
-      if (constructionState !== undefined) {
-        values.push(constructionState.constructor, constructionState.newTarget,
-          constructionState.prototype, constructionState.thisValue);
-        if (constructionState.thisScope !== undefined) values.push(...constructionState.thisScope.retainedDataRoots());
-      }
-      return values;
-    },
+    retainedValues: () => captureScopeDataRoots(context.scope, appendCapturedRoots),
     call: (args, callContext) => {
       const invocationContext = {
         ...context,
@@ -355,6 +362,10 @@ function createGeneratorClosure(
 ) {
   const prototypes = !initializePrototype || runResources.getStore()?.functionSourceText === false ? undefined
     : generatorPrototypes.get(context.budget)?.get(node.async === true);
+  const appendCapturedRoots = (values: SandboxValue[]): void => {
+    appendScopeDataRoot(values, context.functionEnvironment?.homeObject);
+    appendScopeDataRoot(values, context.functionEnvironment?.newTarget);
+  };
   const closure = createSandboxClosure({
     sourceRange: functionSources.get(node),
     guest: true,
@@ -362,7 +373,7 @@ function createGeneratorClosure(
     sandbox: true,
     length: getFunctionLength(node.params),
     ...(node.id === undefined ? { name: context.inferredName } : { name: node.id.name }),
-    retainedValues: () => [...context.scope.retainedDataRoots(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],
+    retainedValues: () => captureScopeDataRoots(context.scope, appendCapturedRoots),
     call: async (args, callContext) => {
       let prototype: Extract<SandboxValue, object> | undefined;
       // Parameter initializers may replace the prototype; retain the current value

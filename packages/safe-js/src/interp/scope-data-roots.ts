@@ -9,6 +9,27 @@ const hasOwn = Object.hasOwn;
 const records = new WeakMap<object, ScopeDataRoot>();
 const nativeGet: typeof records.get = WeakMap.prototype.get.bind(records);
 const nativeSet: typeof records.set = WeakMap.prototype.set.bind(records);
+const freshRootDescriptor = {
+  __proto__: null,
+  value: undefined as InterpreterValue,
+  writable: true,
+  enumerable: true,
+  configurable: true
+};
+
+// Fresh collectors can write millions of roots. Reuse a private descriptor,
+// bypass inherited index setters, and release its guest reference after writing.
+export function appendScopeDataRoot(values: InterpreterValue[], value: InterpreterValue): void {
+  // Optional function captures are usually absent and retain no graph data.
+  if (value === undefined) return;
+  const index = values.length;
+  freshRootDescriptor.value = value;
+  try {
+    if (!defineProperty(values, index, freshRootDescriptor)) throw new TypeError("Cannot append scope data root.");
+  } finally {
+    freshRootDescriptor.value = undefined;
+  }
+}
 
 // Later native hooks must not receive the registry or its accounting records.
 // Discard WeakMap.set's return value so registration cannot reveal the raw map.

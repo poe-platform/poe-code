@@ -71,11 +71,14 @@ test("sed NUL insert and append retain their distinct GNU text terminators", asy
   assert.deepEqual(result.stdout, Buffer.from("before\ninside\0a\nb\0after\ninside\n"));
 });
 
-test("sed NUL list retains the existing 60-column wrapping profile", async () => {
-  const result = await runVirtual("sed", { args: ["-zn", "l"], stdin: "a".repeat(61) + "\0" });
-  assert.equal(result.exitCode, 0, result.stderr.toString());
-  assert.deepEqual(result.stdout, Buffer.from("a".repeat(59) + "\\\0aa$\0"));
-});
+for (const length of [61, 69, 70]) {
+  test(`sed NUL list uses GNU 4.9 wrapping for ${length} printable bytes`, async () => {
+    const result = await runVirtual("sed", { args: ["-zn", "l"], stdin: "a".repeat(length) + "\0" });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    const expected = length === 70 ? "a".repeat(69) + "\\\0a$\0" : "a".repeat(length) + "$\0";
+    assert.deepEqual(result.stdout, Buffer.from(expected));
+  });
+}
 
 for (const separator of ["\n", "\0"]) {
   test(`sed preserves final termination with mode-specific repeated printing: ${JSON.stringify(separator)}`, async () => {

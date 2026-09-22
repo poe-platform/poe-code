@@ -44,11 +44,12 @@ is retained. `\n` means LF in regexes and replacements; NUL mode does not add GN
 multiline `m`/`M` flags, hex escapes, or other previously unsupported regex syntax.
 Literal NUL in a script file remains usable as a regex/replacement byte.
 
+`l` uses GNU sed's default 70-column wrapping width, preserving whole escape
+sequences and appending the final `$` without wrapping. In NUL mode it escapes
+embedded LF as `\n`, NUL as `\000`, and emits NUL after display/wrap lines.
+
 This is not a claim of complete GNU sed parity:
 
-- `l` retains this implementation's 60-column wrapping profile. In NUL mode it
-  escapes embedded LF as `\n`, NUL as `\000`, and emits NUL after display/wrap
-  lines. GNU's default wrapping differs.
 - Only the old LF-mode repeated-print policy is retained: repeated output of an
   unterminated pattern does not insert LF between writes. This discrepancy is not
   inherited by NUL mode. The existing LF file-output policy still adds LF even to

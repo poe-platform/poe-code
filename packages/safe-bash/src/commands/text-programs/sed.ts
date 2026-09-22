@@ -331,7 +331,8 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               const character = pattern[offset];
               const lineEnd = character === "\n" && separator === "\n";
               const token = character === undefined || lineEnd ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
-              if (line.length + token.length >= 60) { await emit(line + "\\" + separator); line = ""; }
+              // GNU sed reserves a column for continuation but appends the end marker without wrapping.
+              if (character !== undefined && !lineEnd && line.length + token.length >= 70) { await emit(line + "\\" + separator); line = ""; }
               line = budget.check(line + token);
               if (lineEnd) { await emit(line + separator); line = ""; }
             }

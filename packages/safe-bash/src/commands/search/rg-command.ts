@@ -186,7 +186,9 @@ Default input depends on shell configuration.
 
 Exit status: 0 when a match is found, 1 when none is found, 2 on error.
 Regular expression support depends on the configured regex executor.
-The default supports fixed UTF-8 patterns.
+The default supports UTF-8 literals and bounded ASCII regular expressions.
+Regex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.
+Word/case flags and extended regex syntax require a configured executor.
 `));
             return { exitCode: 0 };
           }

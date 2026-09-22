@@ -102,13 +102,12 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   if (value === null || typeof value !== "object") fail("protocol", "invalid descriptor");
   const kind = Object.getOwnPropertyDescriptor(value, "kind");
   if (!kind || !("value" in kind)) fail("protocol", "invalid descriptor kind");
-  if (kind.value !== "grep" && kind.value !== "rg") fail("unsupported", "only grep and fixed rg selection descriptors are supported");
+  if (kind.value !== "grep" && kind.value !== "rg") fail("unsupported", "only grep and rg selection descriptors are supported");
   const flags = kind.value === "grep" ? ["fixed", "extended", "insensitive", "whole", "word"] : ["fixed", "whole", "word", "nullData"];
   record(value, ["kind", "patterns", ...flags, ...(kind.value === "rg" ? ["case"] : [])]);
   for (const flag of flags) if (typeof value[flag] !== "boolean") fail("protocol", `invalid ${flag} flag`);
   if (kind.value === "rg" && !["sensitive", "insensitive", "smart"].includes(value.case as string)) fail("protocol", "invalid case flag");
   if (value.word || kind.value === "rg" && value.case !== "sensitive") fail("unsupported", "word matching and rg case-insensitive selection are unsupported");
-  if (kind.value === "rg" && !value.fixed) fail("unsupported", "rg regex modes are unsupported; use fixed UTF-8 patterns");
   array(value.patterns, limits.maxPatterns, "pattern");
   let bytes = 0;
   for (let index = 0; index < value.patterns.length; index++) {
@@ -133,7 +132,6 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
       || Object.hasOwn(row, "directory") && typeof row.directory !== "boolean"
       || Object.hasOwn(row, "ancestors") && typeof row.ancestors !== "boolean") fail("protocol", "invalid row");
     if (Object.hasOwn(row, "directory") || Object.hasOwn(row, "ancestors")) fail("unsupported", "glob row flags are unsupported");
-    if (row.all && selected.kind !== "grep") fail("unsupported", "rg all-match enumeration is unsupported");
     const length = byteLength.call(row.bytes) as number;
     if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
@@ -352,6 +350,9 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
   ledger.charge("allocationUnits", finders.length + 2, signal);
   const cached: (Span | null | undefined)[] = new Array(finders.length);
   const ranges: number[] = [];
+  const byteEmpty = input.descriptor.kind === "rg" && !input.descriptor.whole
+    && input.descriptor.patterns.length === 1 && input.descriptor.patterns[0] === "";
+  let previousEnd = -1;
   for (let from = 0; from <= row.bytes.length;) {
     let best: Span | undefined;
     for (let index = 0; index < finders.length; index++) {
@@ -362,9 +363,14 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
         candidate = await finders[index]!(from) ?? null;
         cached[index] = candidate;
       }
-      if (candidate && (!best || candidate.start < best.start || candidate.start === best.start && candidate.end > best.end)) best = candidate;
+      if (candidate && (!best || candidate.start < best.start || input.descriptor.kind === "grep" && candidate.start === best.start && candidate.end > best.end)) best = candidate;
     }
-    if (!best) break;
+    if (!best || byteEmpty && !row.terminated && best.start === row.bytes.length) break;
+    if (input.descriptor.kind === "rg" && !byteEmpty && best.start === best.end && best.start === previousEnd) {
+      const byte = row.bytes[best.end];
+      from = best.end + (byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
+      continue;
+    }
     if (ranges.length / 2 >= limits.maxMatchesPerLine) fail("limit", "matches per line limit exceeded");
     if (usage.count >= limits.maxTotalMatches) fail("limit", "total match limit exceeded");
     if (usage.count >= Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
@@ -373,10 +379,11 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
     ledger.charge("allocationUnits", 24, signal);
     usage.count++;
     ranges.push(best.start, best.end);
+    previousEnd = best.end;
     if (best.end > best.start) from = best.end;
     else {
       const byte = row.bytes[best.end];
-      from = best.end + (byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
+      from = best.end + (byteEmpty || byte === undefined || byte < 0x80 ? 1 : byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4);
     }
   }
   ledger.charge("work", ranges.length, signal);
@@ -426,7 +433,16 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise
 
 async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
-  if (selected.fixed) return executeLiteral(input, signal);
+  let literal = selected.fixed;
+  if (!literal && selected.kind === "rg") {
+    literal = true;
+    patterns: for (const pattern of selected.patterns) {
+      ledger.charge("work", pattern.length, signal);
+      await ledger.checkpoint(signal);
+      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)) { literal = false; break patterns; }
+    }
+  }
+  if (literal) return executeLiteral(input, signal);
   const programs: EreProgram[] = [];
   for (const pattern of selected.patterns) {
     if (selected.kind === "rg" && !selected.nullData && pattern.includes("\n")) fail("unsupported", "rg multiline matching is unsupported");
@@ -446,7 +462,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
-    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal);
+    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg");
     if (row.all) {
       ledger.charge("allocationUnits", programs.length + 1, signal);
       const finders: ((from: number) => Promise<Span | undefined>)[] = [];
@@ -459,7 +475,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       const candidate = await subject(program)(0);
       if (!candidate) continue;
       if (selected.kind === "grep") { span = candidate; break; }
-      // Fixed rg patterns select the first occurrence, breaking ties by pattern order.
+      // Rg selects the first occurrence, breaking ties by pattern order.
       if (!span || candidate.start < span.start) span = candidate;
     }
     signal.throwIfAborted();

@@ -120,7 +120,7 @@ export async function createEreSpanMatcher(program: EreProgram, subject: string,
 }
 
 /** Validated, owned UTF-8 subject with one internal code unit per Unicode scalar. */
-export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
+export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
   ledger.check(signal);
   ledger.admitInput("subjectBytes", bytes.length, signal);
   // Logical allocation units per byte: copy 1, offset storage 8, character
@@ -160,7 +160,7 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
         else upper = middle;
       }
       if (offsets[lower] !== start) throw new RangeError("UTF-8 ERE cursor must be a scalar boundary");
-      const span = await runMatcher(program, subject, ledger, signal, lower, false);
+      const span = await runMatcher(program, subject, ledger, signal, lower, false, leftmostFirst);
       if (!span) return undefined;
       ledger.charge("allocationUnits", 2, signal);
       return Object.freeze({ start: offsets[span.start]!, end: offsets[span.end]! });
@@ -168,9 +168,9 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
   };
 }
 
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: true): Promise<EreResult>;
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false): Promise<EreSpan | undefined>;
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean): Promise<EreResult | EreSpan | undefined> {
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: true, leftmostFirst?: boolean): Promise<EreResult>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false, leftmostFirst?: boolean): Promise<EreSpan | undefined>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean, leftmostFirst = false): Promise<EreResult | EreSpan | undefined> {
   const root = resolveEreProgram(program, ledger);
   const width = program.groups + 1;
   ledger.charge("work", width * 2, signal);
@@ -197,6 +197,7 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
       const state = pending.pop()!;
       const current = state.task;
       if (current === null) {
+        if (leftmostFirst) { best = state; break; }
         if (!best || await preferred(state, best, ledger, signal)) best = state;
         continue;
       }
@@ -232,7 +233,7 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
         case "literal":
         case "set": {
           const code = subject.charCodeAt(state.position);
-          if (state.position < subject.length && (node.kind === "dot" || node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code) || node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))) {
+          if (state.position < subject.length && (node.kind === "dot" && (!leftmostFirst || code !== 10) || node.kind === "literal" && (node.insensitive ? foldAscii(node.code) === foldAscii(code) : node.code === code) || node.kind === "set" && (code < 128 ? node.members[code] : node.nonAscii))) {
             push(state.position + 1, current.next, state.captures, state.histories);
           }
           break;

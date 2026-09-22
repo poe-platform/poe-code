@@ -64,7 +64,7 @@ test("unsupported dialects and flags are rejected even without subject rows", as
     grep(["x"], { word: true }),
     grep(["a\\+"], { extended: false }), grep(["é"]),
     ...["a^", "$a", "a^b", "a$b", "*a", "^*a", "^^*"].map(pattern => grep([pattern], { extended: false })),
-    { kind: "rg", patterns: ["a|ab"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false },
+    { kind: "rg", patterns: ["(?=a)"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false },
     { kind: "rg", patterns: ["a"], fixed: true, case: "smart", whole: false, word: false, nullData: false },
     { kind: "glob", patterns: [], globOptions: [] },
   ];
@@ -77,8 +77,7 @@ test("unsupported dialects and flags are rejected even without subject rows", as
   assert.ok("error" in syntax);
   assert.match(syntax.error, /invalid ERE/);
   const all = await run({ ...request(literal("rg", ["x"])), rows: [row("x", true)] });
-  assert.ok("error" in all);
-  assert.match(all.error, /all-match/);
+  assert.deepEqual(spans(all), [[0, 1]]);
 });
 
 test("BRE boundary-anchor admission retains character-class literals and named classes", async () => {

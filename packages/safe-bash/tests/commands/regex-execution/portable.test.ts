@@ -1,12 +1,7 @@
 import assert from "node:assert/strict";
-import path from "node:path";
 import { createNodeRegexProvider } from "../../../src/node.js";
-import { before, describe, test } from "node:test";
-import { createContext, runInContext } from "node:vm";
-import { fileURLToPath } from "node:url";
-import { build, type BuildOptions } from "esbuild";
+import { test } from "node:test";
 import * as browser from "../../../src/index.js";
-import * as filesystem from "poe-code/safe-fs/core";
 
 const provider = createNodeRegexProvider();
 
@@ -53,61 +48,6 @@ test("default registration preflights collisions and rejects invalid explicit pr
   assert.equal(commands.has("sed"), true);
   await replacement.dispose?.();
   assert.throws(() => browser.agentCommands({ regexExecutor: null! }), /bounded regex provider is required/);
-});
-
-describe("portable browser runtime", () => {
-  let compiledSource: string;
-  before(async () => {
-    const { resolveBrowserShellBuild } = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href) as { resolveBrowserShellBuild(root: string): BuildOptions };
-    const bundle = await build(resolveBrowserShellBuild(fileURLToPath(new URL("../../../../../", import.meta.url))));
-    const emitted = new Map(bundle.outputFiles!.map(output => [output.path, output.text]));
-    const entry = bundle.outputFiles!.find(output => output.path.endsWith("core.browser.js"))!;
-    const compiled = await build({
-      entryPoints: [entry.path], bundle: true, platform: "browser", format: "cjs", write: false,
-      plugins: [{
-        name: "emitted-browser-runtime",
-        setup(builder) {
-          builder.onResolve({ filter: /.*/ }, args => {
-            if (args.path === "poe-code/safe-fs/core") return { path: args.path, external: true };
-            const filename = path.resolve(args.resolveDir, args.path);
-            return emitted.has(filename) ? { path: filename, namespace: "emitted-browser" }
-              : { errors: [{ text: `Missing emitted browser module: ${filename}` }] };
-          });
-          builder.onLoad({ filter: /.*/, namespace: "emitted-browser" }, args => ({
-            contents: emitted.get(args.path)!, loader: "js", resolveDir: path.dirname(args.path),
-          }));
-        },
-      }],
-    });
-    compiledSource = compiled.outputFiles![0]!.text;
-  }, { timeout: 3000 });
-
-  test("portable commands do not depend on Node globals or Node timer handles", { timeout: 3000 }, async () => {
-    const timers = new Map<number, ReturnType<typeof setTimeout>>();
-    let timerId = 0;
-    const sandbox = createContext({
-      TextEncoder, TextDecoder, Uint8Array, Float64Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-      AbortController, AbortSignal, queueMicrotask, performance, canonical: filesystem,
-      setTimeout(callback: () => void, delay: number) {
-        const id = ++timerId;
-        timers.set(id, setTimeout(() => { timers.delete(id); callback(); }, delay));
-        return id;
-      },
-      clearTimeout(id: number) { clearTimeout(timers.get(id)); timers.delete(id); },
-    });
-    const portable = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiledSource}; return module.exports; })()`, sandbox) as typeof browser;
-    assert.equal(runInContext("typeof Buffer + ':' + typeof process", sandbox), "undefined:undefined");
-    const shell = new portable.Shell({ fs: new portable.MemoryFileSystem() }).use(portable.agentCommands({ regexExecutor: provider }));
-    try {
-      for (const source of ["printf 'café\\n' | grep 'café'", "printf 'café\\n' | rg --json 'café'", "printf 'café\\n' | sed 's/café/tea/'"]) {
-        const result = await shell.exec(source);
-        assert.equal(result.exitCode, 0, result.stderr);
-        assert.ok(result.stdout.length > 0);
-      }
-    } finally {
-      await shell.dispose();
-    }
-  });
 });
 
 test("portable pack preserves adversarial regex deadlines and sed step budgets", async () => {

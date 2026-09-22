@@ -129,6 +129,35 @@ test("preflights all id, alias, and qualified-name collisions", () => {
   assert.throws(() => createLlmCommands({ providers: [provider(), { ...provider(), name: "other" }] }), /[Dd]uplicate|[Cc]ollision/);
 });
 
+test("models help works through Shell with empty or configured providers", async () => {
+  const fake = provider();
+  for (const providers of [[], [fake]]) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(llmCommands({ providers }));
+    try {
+      const result = await shell.exec("llm models --help");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
+      const short = await shell.exec("llm models -h");
+      assert.equal(short.exitCode, 0);
+      assert.equal(short.stderr, "");
+      assert.equal(short.stdout, result.stdout);
+      assert.equal(fake.requests.length, 0);
+    } finally {
+      await shell.dispose();
+    }
+  }
+});
+
+test("models help does not read stdin", async () => {
+  const run = await fixture(["models", "--help"], {
+    options: { providers: [], defaultModel: undefined },
+    stdin: { [Symbol.asyncIterator]() { return assert.fail("must not read stdin"); } },
+  });
+  assert.equal((await run.execute()).exitCode, 0);
+  assert.equal(Buffer.concat(run.stderr).toString(), "");
+});
+
 test("lists all provider models without requiring a default or reading stdin", async () => {
   const run = await fixture(["models"], { stdin: { [Symbol.asyncIterator]() { return assert.fail("must not read stdin"); } } });
   assert.equal((await run.execute()).exitCode, 0);

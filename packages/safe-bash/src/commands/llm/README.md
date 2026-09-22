@@ -63,7 +63,7 @@ try {
 | `-o, --option <key> <value>` | Repeatable provider options; string values, last value for a repeated key wins |
 | `-a, --attachment <path>` | Repeatable sandbox-file attachment; sniff MIME from bytes, then fall back to extension |
 | `--at <path> <mimetype>` | Repeatable sandbox-file attachment with explicit MIME type |
-| `-h, --help` | Show usage without requiring a model or calling a provider |
+| `-h, --help` | Show usage without requiring a model or calling a provider; `llm models --help` (or `-h`) shows model-listing usage |
 | `llm models` | List configured `provider/model` names, aliases, accepted attachment types, and output types without a provider request |
 | `--` | End option parsing, including prompts beginning with `-` |
 

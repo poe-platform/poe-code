@@ -145,6 +145,12 @@ async function execute(context: CommandContext, lookup: ReadonlyMap<string, Mode
       await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment; -- ends options\n");
       return { exitCode: 0 };
     }
+    if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
+      argumentText(0);
+      argumentText(1);
+      await emitText("Usage: llm models [OPTIONS]\n\n  List configured models\n\nOptions:\n  -h, --help  Show this message and exit.\n");
+      return { exitCode: 0 };
+    }
     const args = await parse(argumentsValue.args.length, argumentText, step);
     if (argumentsValue.args[0] === "models" && args.prompt === "models" && !args.attachments.length) {
       for (const { provider, model } of models) {

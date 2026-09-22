@@ -1,5 +1,6 @@
 import { getCommandArguments, writeBytes, type CommandContext, type CommandDefinition, type CommandInvoker, type VirtualShellPlugin } from "../../contracts/index.js";
 import { parseDuration } from "./duration.js";
+import { parseSignal } from "./signal.js";
 import { createDeadline, defaultSchedulerBinding, type SchedulerBinding } from "./scheduler.js";
 
 export interface TimeoutScheduler {
@@ -32,8 +33,7 @@ const records = Object.freeze({
   durationOverflow: encoder.encode("timeout: duration exceeds supported range\n"),
   missingCommand: encoder.encode("timeout: missing command\n"),
   invalidOption: encoder.encode("timeout: invalid option\n"),
-  preserveStatus: encoder.encode("timeout: option --preserve-status is unsupported\n"),
-  signal: encoder.encode("timeout: option --signal is unsupported\n"),
+  invalidSignal: encoder.encode("timeout: invalid signal\n"),
   killAfter: encoder.encode("timeout: option --kill-after is unsupported\n"),
   foreground: encoder.encode("timeout: option --foreground is unsupported\n"),
   verbose: encoder.encode("timeout: option --verbose is unsupported\n"),
@@ -88,8 +88,6 @@ function settings(value: unknown, includeReplace: boolean): Settings {
 
 function unsupported(token: string): Uint8Array | undefined {
   const first = token.length > 1 && token.charCodeAt(0) === 45 && token.charCodeAt(1) !== 45 ? token.charCodeAt(1) : -1;
-  if (token === "--preserve-status" || token.startsWith("--preserve-status=") || first === 112) return records.preserveStatus;
-  if (token === "--signal" || token.startsWith("--signal=") || first === 115) return records.signal;
   if (token === "--kill-after" || token.startsWith("--kill-after=") || first === 107) return records.killAfter;
   if (token === "--foreground" || token.startsWith("--foreground=") || first === 102) return records.foreground;
   if (token === "--verbose" || token.startsWith("--verbose=") || first === 118) return records.verbose;
@@ -116,6 +114,8 @@ function definition(configuration: Settings): CommandDefinition {
     async execute(context: CommandContext) {
       const originalArgs = context.args;
       let offset = 0;
+      let preserveStatus = false;
+      let signalNumber = 15;
       while (offset < originalArgs.length) {
         const token = originalArgs[offset]!;
         if (token === "--") {
@@ -125,6 +125,22 @@ function definition(configuration: Settings): CommandDefinition {
         if (token === "--help") return status(context, records.help, 0, true);
         if (token === "--version") return status(context, records.version, 0, true);
         if (token === "-" || !token.startsWith("-")) break;
+        if (token === "--preserve-status") {
+          preserveStatus = true;
+          offset++;
+          continue;
+        }
+        let signalToken: string | undefined;
+        if (token === "--signal") signalToken = originalArgs[++offset];
+        else if (token.startsWith("--signal=")) signalToken = token.slice(9);
+        else if (token.startsWith("-s")) signalToken = token.slice(2) || originalArgs[++offset];
+        if (signalToken !== undefined) {
+          const parsedSignal = parseSignal(signalToken);
+          if (parsedSignal === undefined) return status(context, records.invalidSignal, 125);
+          signalNumber = parsedSignal;
+          offset++;
+          continue;
+        }
         const record = unsupported(token);
         return status(context, record ?? records.invalidOption, 125);
       }
@@ -153,7 +169,7 @@ function definition(configuration: Settings): CommandDefinition {
       }
 
       context.signal.throwIfAborted();
-      const deadline = createDeadline(configuration.scheduler, parsed.milliseconds, configuration.maxTimerMilliseconds);
+      const deadline = createDeadline(configuration.scheduler, parsed.milliseconds, configuration.maxTimerMilliseconds, signalNumber !== 0);
       context.registerCleanup?.(deadline.retire);
       try { deadline.start(); }
       catch {
@@ -188,8 +204,9 @@ function definition(configuration: Settings): CommandDefinition {
       context.signal.throwIfAborted();
       if (!returned && invocationFailure !== deadline.deadlineReason && invocationFailure !== deadline.timerFailureReason) throw invocationFailure;
       if (retirementFailed) throw retirementFailure;
-      if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: 124 };
+      if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };
       if (!returned && invocationFailure === deadline.timerFailureReason) return status(context, records.timerSetupFailed, 125);
+      if (deadline.expired && (!preserveStatus || signalNumber === 9)) return { exitCode: signalNumber === 9 ? 137 : 124 };
       return result!;
     },
   });

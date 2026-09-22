@@ -14,6 +14,7 @@ export const defaultSchedulerBinding: SchedulerBinding = Object.freeze({
 });
 
 export interface Deadline {
+  readonly expired: boolean;
   readonly signal: AbortSignal;
   readonly deadlineReason: object;
   readonly timerFailureReason: object;
@@ -30,11 +31,12 @@ function clock(binding: SchedulerBinding, previous?: number): number {
   return sample;
 }
 
-export function createDeadline(binding: SchedulerBinding, duration: number, maximumChunk: number): Deadline {
+export function createDeadline(binding: SchedulerBinding, duration: number, maximumChunk: number, cancel = true): Deadline {
   const controller = new AbortController();
   const deadlineReason = Object.freeze({});
   const timerFailureReason = Object.freeze({});
   let admissionOpen = true;
+  let expired = false;
   let remaining = duration;
   let previous = 0;
   let handle: unknown;
@@ -85,7 +87,8 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
     previous = sample;
     if (remaining <= 0) {
       admissionOpen = false;
-      controller.abort(deadlineReason);
+      expired = true;
+      if (cancel) controller.abort(deadlineReason);
       return;
     }
     try {
@@ -111,6 +114,7 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
   };
 
   return {
+    get expired() { return expired; },
     signal: controller.signal,
     deadlineReason,
     timerFailureReason,

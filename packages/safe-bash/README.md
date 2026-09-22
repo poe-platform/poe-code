@@ -447,3 +447,7 @@ honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
   allowlisting alone does not pin DNS or prevent access to private addresses.
 - Cancellation is cooperative, including `timeout`; it cannot undo completed
   effects or stop uncooperative host work. Limits do not bound total process memory.
+  `timeout --preserve-status` retains the child's status; `--signal` (`-s`)
+  accepts Linux signal names and numbers and sets the cancellation exit status.
+  Signals use cooperative cancellation, without process signal delivery or traps;
+  signal `0` lets the child finish, and `KILL` reports status 137 on expiry.

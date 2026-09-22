@@ -1,7 +1,8 @@
 import "./safe-packages-fmt.mjs";
 import "./safe-packages-unrtf.mjs";
+import "./safe-packages-htmlq.mjs";
+import "./safe-packages-fold.mjs";
 import assert from "node:assert/strict";
-import "./safe-packages-fmt.mjs";
 import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
 await privateCommandVerification;
 import "./safe-packages-atomic.mjs";

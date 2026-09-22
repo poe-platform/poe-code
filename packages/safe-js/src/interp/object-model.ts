@@ -53,12 +53,14 @@ const functionPropertyRevisions = new WeakMap<object, {
   measuredDescriptors?: Array<[string, PropertyDescriptor]>;
 }>();
 const trackedIntrinsicObjects = new WeakSet<object>();
+// Only captured intrinsic tables invalidate retention caches. Other tables
+// still update their own revisions for descriptor measurement.
+const intrinsicRetentionTables = new WeakSet<object>();
 const prototypes = new WeakMap<object, object | null>();
 const defaultPrototypeLinks = new WeakMap<object, object>();
 const intrinsicPrototypeOwners = new WeakMap<object, SandboxClosure>();
 const trackedPrototypes = new WeakMap<object, { current: object | null }>();
-// Identity tokens cannot overflow. Unrelated mutations conservatively invalidate
-// all groups without retaining subscriber lists or their owning budgets.
+// Identity tokens cannot overflow or retain subscribers and their owning budgets.
 let intrinsicMutationToken = {};
 
 function storePrototype(value: object, prototype: object | null): void {
@@ -163,7 +165,7 @@ function trackPropertyTable(properties: SandboxObject): SandboxObject {
       const changed = Reflect.defineProperty(target, key, descriptor);
       if (changed) {
         state.revision++;
-        intrinsicMutationToken = {};
+        if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }
       return changed;
     },
@@ -171,7 +173,7 @@ function trackPropertyTable(properties: SandboxObject): SandboxObject {
       const changed = Reflect.deleteProperty(target, key);
       if (changed) {
         state.revision++;
-        intrinsicMutationToken = {};
+        if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }
       return changed;
     }
@@ -366,6 +368,7 @@ function trackIntrinsicState(
   if (roots === undefined) intrinsicPrototypeRoots.set(budget, (roots = new Set()));
   roots.add(root);
   const records = captureIntrinsicRecords(targets);
+  for (const { value } of records) intrinsicRetentionTables.add(value);
   for (const { target } of records)
     if (isGuestClosure(target)) intrinsicFunctions.add(target);
   const unchanged = (

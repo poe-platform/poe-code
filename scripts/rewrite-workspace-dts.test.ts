@@ -8,6 +8,17 @@ vi.mock(
 );
 
 describe("profile-specific emitted workspace declarations", () => {
+  it("resolves conditional declaration exports before rewriting a workspace edge", async () => {
+    const filename = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
+    const volume = Volume.fromJSON({ [filename]: 'export type Value = import("@poe-platform/safe-bash/contracts").Value;' });
+    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
+    await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: {
+      name: "@poe-platform/safe-bash",
+      exports: { "./contracts": { types: { browser: "./dist/contracts/index.d.ts", default: "./dist/contracts/node.d.ts" } } },
+    } }], { rootDir: "/repo", files: createFsFromVolume(volume).promises });
+    expect(volume.readFileSync(filename, "utf8")).toContain('import("../contracts/node.js")');
+  });
+
   it("preserves optional public peers when the root bundle rewrites its shipped declarations", async () => {
     const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
     const optional = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";

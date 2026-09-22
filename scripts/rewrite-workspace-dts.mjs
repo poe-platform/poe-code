@@ -44,7 +44,9 @@ export async function rewriteWorkspaceDts(
           const route = canonicalFsRoutes.find((candidate) => candidate.workspace === specifier);
           const subpath = specifier.slice(workspace.pkg.name.length + 1);
           const exportKey = subpath ? `./${subpath}` : ".";
-          const exported = workspace.pkg.exports?.[exportKey]?.types;
+          let exported = workspace.pkg.exports?.[exportKey]?.types;
+          while (exported && typeof exported === "object" && !Array.isArray(exported))
+            exported = exported[profile] ?? exported.import ?? exported.default;
           const target = route
             ? path.join(rootDir, route.types[profile])
             : path.join(

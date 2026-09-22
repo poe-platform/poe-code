@@ -1,0 +1,3489 @@
+{
+  "scope": "Bounded cooperative native byte-text cursors and lossless host Unicode admission; invalid-byte workbook value representation remains open.",
+  "baseHead": "1674134bb0db43edf086e5b8f438025b5a1ce0a2",
+  "recordedAt": "2026-09-22T23:01:49.240542+00:00",
+  "redEvidence": {
+    "publicTraversal": "Four LEN/LEFT/MID/RIGHT tests failed on original runtime because source traversal did not tick; 79 other focused tests passed.",
+    "malformedHostUtf16": "Original TextEncoder path silently replaced an unpaired surrogate: 1 failure / 339 passes.",
+    "harnessFailures": "Missing initial module and temporary test-brace syntax failures are harness setup, not runtime reproduction."
+  },
+  "nativeDownstream": {
+    "formulas": [
+      {
+        "id": "expanded-9",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"\",\"$1\\\\n\")",
+          "LEN(A1)",
+          "LEFT(A1,1)",
+          "RIGHT(A1,1)",
+          "MID(A1,2,3)",
+          "ISTEXT(A1)",
+          "ISERROR(A1)",
+          "CODE(A1)",
+          "CONCATENATE(A1,\"tail\")",
+          "PERL_SED(A1,\"a\",\"b\")",
+          "LOWER(A1)",
+          "UPPER(A1)"
+        ]
+      },
+      {
+        "id": "expanded-119",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a*\",\"$1\\\\n\")",
+          "LEN(A2)",
+          "LEFT(A2,1)",
+          "RIGHT(A2,1)",
+          "MID(A2,2,3)",
+          "ISTEXT(A2)",
+          "ISERROR(A2)",
+          "CODE(A2)",
+          "CONCATENATE(A2,\"tail\")",
+          "PERL_SED(A2,\"a\",\"b\")",
+          "LOWER(A2)",
+          "UPPER(A2)"
+        ]
+      },
+      {
+        "id": "expanded-141",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a?\",\"$1\\\\n\")",
+          "LEN(A3)",
+          "LEFT(A3,1)",
+          "RIGHT(A3,1)",
+          "MID(A3,2,3)",
+          "ISTEXT(A3)",
+          "ISERROR(A3)",
+          "CODE(A3)",
+          "CONCATENATE(A3,\"tail\")",
+          "PERL_SED(A3,\"a\",\"b\")",
+          "LOWER(A3)",
+          "UPPER(A3)"
+        ]
+      },
+      {
+        "id": "expanded-152",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a*?\",\"$1\\\\n\")",
+          "LEN(A4)",
+          "LEFT(A4,1)",
+          "RIGHT(A4,1)",
+          "MID(A4,2,3)",
+          "ISTEXT(A4)",
+          "ISERROR(A4)",
+          "CODE(A4)",
+          "CONCATENATE(A4,\"tail\")",
+          "PERL_SED(A4,\"a\",\"b\")",
+          "LOWER(A4)",
+          "UPPER(A4)"
+        ]
+      },
+      {
+        "id": "expanded-174",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a??\",\"$1\\\\n\")",
+          "LEN(A5)",
+          "LEFT(A5,1)",
+          "RIGHT(A5,1)",
+          "MID(A5,2,3)",
+          "ISTEXT(A5)",
+          "ISERROR(A5)",
+          "CODE(A5)",
+          "CONCATENATE(A5,\"tail\")",
+          "PERL_SED(A5,\"a\",\"b\")",
+          "LOWER(A5)",
+          "UPPER(A5)"
+        ]
+      },
+      {
+        "id": "expanded-196",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a{0,2}\",\"$1\\\\n\")",
+          "LEN(A6)",
+          "LEFT(A6,1)",
+          "RIGHT(A6,1)",
+          "MID(A6,2,3)",
+          "ISTEXT(A6)",
+          "ISERROR(A6)",
+          "CODE(A6)",
+          "CONCATENATE(A6,\"tail\")",
+          "PERL_SED(A6,\"a\",\"b\")",
+          "LOWER(A6)",
+          "UPPER(A6)"
+        ]
+      },
+      {
+        "id": "expanded-240",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"(?:a|ab)*\",\"$1\\\\n\")",
+          "LEN(A7)",
+          "LEFT(A7,1)",
+          "RIGHT(A7,1)",
+          "MID(A7,2,3)",
+          "ISTEXT(A7)",
+          "ISERROR(A7)",
+          "CODE(A7)",
+          "CONCATENATE(A7,\"tail\")",
+          "PERL_SED(A7,\"a\",\"b\")",
+          "LOWER(A7)",
+          "UPPER(A7)"
+        ]
+      },
+      {
+        "id": "expanded-273",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"|a\",\"$1\\\\n\")",
+          "LEN(A8)",
+          "LEFT(A8,1)",
+          "RIGHT(A8,1)",
+          "MID(A8,2,3)",
+          "ISTEXT(A8)",
+          "ISERROR(A8)",
+          "CODE(A8)",
+          "CONCATENATE(A8,\"tail\")",
+          "PERL_SED(A8,\"a\",\"b\")",
+          "LOWER(A8)",
+          "UPPER(A8)"
+        ]
+      },
+      {
+        "id": "expanded-284",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"a|\",\"$1\\\\n\")",
+          "LEN(A9)",
+          "LEFT(A9,1)",
+          "RIGHT(A9,1)",
+          "MID(A9,2,3)",
+          "ISTEXT(A9)",
+          "ISERROR(A9)",
+          "CODE(A9)",
+          "CONCATENATE(A9,\"tail\")",
+          "PERL_SED(A9,\"a\",\"b\")",
+          "LOWER(A9)",
+          "UPPER(A9)"
+        ]
+      },
+      {
+        "id": "expanded-317",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"(a?)*\",\"$1\\\\n\")",
+          "LEN(A10)",
+          "LEFT(A10,1)",
+          "RIGHT(A10,1)",
+          "MID(A10,2,3)",
+          "ISTEXT(A10)",
+          "ISERROR(A10)",
+          "CODE(A10)",
+          "CONCATENATE(A10,\"tail\")",
+          "PERL_SED(A10,\"a\",\"b\")",
+          "LOWER(A10)",
+          "UPPER(A10)"
+        ]
+      },
+      {
+        "id": "expanded-328",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"(a*)*\",\"$1\\\\n\")",
+          "LEN(A11)",
+          "LEFT(A11,1)",
+          "RIGHT(A11,1)",
+          "MID(A11,2,3)",
+          "ISTEXT(A11)",
+          "ISERROR(A11)",
+          "CODE(A11)",
+          "CONCATENATE(A11,\"tail\")",
+          "PERL_SED(A11,\"a\",\"b\")",
+          "LOWER(A11)",
+          "UPPER(A11)"
+        ]
+      },
+      {
+        "id": "expanded-493",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"\\\\B\",\"$1\\\\n\")",
+          "LEN(A12)",
+          "LEFT(A12,1)",
+          "RIGHT(A12,1)",
+          "MID(A12,2,3)",
+          "ISTEXT(A12)",
+          "ISERROR(A12)",
+          "CODE(A12)",
+          "CONCATENATE(A12,\"tail\")",
+          "PERL_SED(A12,\"a\",\"b\")",
+          "LOWER(A12)",
+          "UPPER(A12)"
+        ]
+      },
+      {
+        "id": "expanded-603",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\u00e9\",\"(?!a)\",\"$1\\\\n\")",
+          "LEN(A13)",
+          "LEFT(A13,1)",
+          "RIGHT(A13,1)",
+          "MID(A13,2,3)",
+          "ISTEXT(A13)",
+          "ISERROR(A13)",
+          "CODE(A13)",
+          "CONCATENATE(A13,\"tail\")",
+          "PERL_SED(A13,\"a\",\"b\")",
+          "LOWER(A13)",
+          "UPPER(A13)"
+        ]
+      },
+      {
+        "id": "capture-71",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(a*)\\\\1\",\"$1\\\\n\")",
+          "LEN(A14)",
+          "LEFT(A14,1)",
+          "RIGHT(A14,1)",
+          "MID(A14,2,3)",
+          "ISTEXT(A14)",
+          "ISERROR(A14)",
+          "CODE(A14)",
+          "CONCATENATE(A14,\"tail\")",
+          "PERL_SED(A14,\"a\",\"b\")",
+          "LOWER(A14)",
+          "UPPER(A14)"
+        ]
+      },
+      {
+        "id": "capture-83",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(a*?)\\\\1\",\"$1\\\\n\")",
+          "LEN(A15)",
+          "LEFT(A15,1)",
+          "RIGHT(A15,1)",
+          "MID(A15,2,3)",
+          "ISTEXT(A15)",
+          "ISERROR(A15)",
+          "CODE(A15)",
+          "CONCATENATE(A15,\"tail\")",
+          "PERL_SED(A15,\"a\",\"b\")",
+          "LOWER(A15)",
+          "UPPER(A15)"
+        ]
+      },
+      {
+        "id": "behind-220",
+        "expressions": [
+          "PERL_SED(\"\u00e4b\",\"(?<!a)\",\"X\")",
+          "LEN(A16)",
+          "LEFT(A16,1)",
+          "RIGHT(A16,1)",
+          "MID(A16,2,3)",
+          "ISTEXT(A16)",
+          "ISERROR(A16)",
+          "CODE(A16)",
+          "CONCATENATE(A16,\"tail\")",
+          "PERL_SED(A16,\"a\",\"b\")",
+          "LOWER(A16)",
+          "UPPER(A16)"
+        ]
+      },
+      {
+        "id": "named-119",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?<a>a*)\\\\k<a>\",\"$1\\\\n\")",
+          "LEN(A17)",
+          "LEFT(A17,1)",
+          "RIGHT(A17,1)",
+          "MID(A17,2,3)",
+          "ISTEXT(A17)",
+          "ISERROR(A17)",
+          "CODE(A17)",
+          "CONCATENATE(A17,\"tail\")",
+          "PERL_SED(A17,\"a\",\"b\")",
+          "LOWER(A17)",
+          "UPPER(A17)"
+        ]
+      },
+      {
+        "id": "named-134",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?<a>a*?)\\\\k<a>\",\"$1\\\\n\")",
+          "LEN(A18)",
+          "LEFT(A18,1)",
+          "RIGHT(A18,1)",
+          "MID(A18,2,3)",
+          "ISTEXT(A18)",
+          "ISERROR(A18)",
+          "CODE(A18)",
+          "CONCATENATE(A18,\"tail\")",
+          "PERL_SED(A18,\"a\",\"b\")",
+          "LOWER(A18)",
+          "UPPER(A18)"
+        ]
+      },
+      {
+        "id": "atomic-251",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?>a*)\",\"$1\\\\n\")",
+          "LEN(A19)",
+          "LEFT(A19,1)",
+          "RIGHT(A19,1)",
+          "MID(A19,2,3)",
+          "ISTEXT(A19)",
+          "ISERROR(A19)",
+          "CODE(A19)",
+          "CONCATENATE(A19,\"tail\")",
+          "PERL_SED(A19,\"a\",\"b\")",
+          "LOWER(A19)",
+          "UPPER(A19)"
+        ]
+      },
+      {
+        "id": "atomic-269",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"a*+\",\"$1\\\\n\")",
+          "LEN(A20)",
+          "LEFT(A20,1)",
+          "RIGHT(A20,1)",
+          "MID(A20,2,3)",
+          "ISTEXT(A20)",
+          "ISERROR(A20)",
+          "CODE(A20)",
+          "CONCATENATE(A20,\"tail\")",
+          "PERL_SED(A20,\"a\",\"b\")",
+          "LOWER(A20)",
+          "UPPER(A20)"
+        ]
+      },
+      {
+        "id": "atomic-323",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?>(a*))\\\\1\",\"$1\\\\n\")",
+          "LEN(A21)",
+          "LEFT(A21,1)",
+          "RIGHT(A21,1)",
+          "MID(A21,2,3)",
+          "ISTEXT(A21)",
+          "ISERROR(A21)",
+          "CODE(A21)",
+          "CONCATENATE(A21,\"tail\")",
+          "PERL_SED(A21,\"a\",\"b\")",
+          "LOWER(A21)",
+          "UPPER(A21)"
+        ]
+      },
+      {
+        "id": "atomic-503",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?:a?)*+\",\"$1\\\\n\")",
+          "LEN(A22)",
+          "LEFT(A22,1)",
+          "RIGHT(A22,1)",
+          "MID(A22,2,3)",
+          "ISTEXT(A22)",
+          "ISERROR(A22)",
+          "CODE(A22)",
+          "CONCATENATE(A22,\"tail\")",
+          "PERL_SED(A22,\"a\",\"b\")",
+          "LOWER(A22)",
+          "UPPER(A22)"
+        ]
+      },
+      {
+        "id": "atomic-521",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(a*?)*+\",\"$1\\\\n\")",
+          "LEN(A23)",
+          "LEFT(A23,1)",
+          "RIGHT(A23,1)",
+          "MID(A23,2,3)",
+          "ISTEXT(A23)",
+          "ISERROR(A23)",
+          "CODE(A23)",
+          "CONCATENATE(A23,\"tail\")",
+          "PERL_SED(A23,\"a\",\"b\")",
+          "LOWER(A23)",
+          "UPPER(A23)"
+        ]
+      },
+      {
+        "id": "variable-behind-527",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"(?<=(a{0,2}))\\\\1\",\"$1\\\\n\")",
+          "LEN(A24)",
+          "LEFT(A24,1)",
+          "RIGHT(A24,1)",
+          "MID(A24,2,3)",
+          "ISTEXT(A24)",
+          "ISERROR(A24)",
+          "CODE(A24)",
+          "CONCATENATE(A24,\"tail\")",
+          "PERL_SED(A24,\"a\",\"b\")",
+          "LOWER(A24)",
+          "UPPER(A24)"
+        ]
+      },
+      {
+        "id": "escape-15",
+        "expressions": [
+          "PERL_SED(\"\u00a0\",\"\\\\h+\",\"$1\\\\n\")",
+          "LEN(A25)",
+          "LEFT(A25,1)",
+          "RIGHT(A25,1)",
+          "MID(A25,2,3)",
+          "ISTEXT(A25)",
+          "ISERROR(A25)",
+          "CODE(A25)",
+          "CONCATENATE(A25,\"tail\")",
+          "PERL_SED(A25,\"a\",\"b\")",
+          "LOWER(A25)",
+          "UPPER(A25)"
+        ]
+      },
+      {
+        "id": "escape-32",
+        "expressions": [
+          "PERL_SED(\"\u00a0\",\"\\\\H+\",\"$1\\\\n\")",
+          "LEN(A26)",
+          "LEFT(A26,1)",
+          "RIGHT(A26,1)",
+          "MID(A26,2,3)",
+          "ISTEXT(A26)",
+          "ISERROR(A26)",
+          "CODE(A26)",
+          "CONCATENATE(A26,\"tail\")",
+          "PERL_SED(A26,\"a\",\"b\")",
+          "LOWER(A26)",
+          "UPPER(A26)"
+        ]
+      },
+      {
+        "id": "escape-48",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"\\\\v+\",\"$1\\\\n\")",
+          "LEN(A27)",
+          "LEFT(A27,1)",
+          "RIGHT(A27,1)",
+          "MID(A27,2,3)",
+          "ISTEXT(A27)",
+          "ISERROR(A27)",
+          "CODE(A27)",
+          "CONCATENATE(A27,\"tail\")",
+          "PERL_SED(A27,\"a\",\"b\")",
+          "LOWER(A27)",
+          "UPPER(A27)"
+        ]
+      },
+      {
+        "id": "escape-65",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"\\\\V+\",\"$1\\\\n\")",
+          "LEN(A28)",
+          "LEFT(A28,1)",
+          "RIGHT(A28,1)",
+          "MID(A28,2,3)",
+          "ISTEXT(A28)",
+          "ISERROR(A28)",
+          "CODE(A28)",
+          "CONCATENATE(A28,\"tail\")",
+          "PERL_SED(A28,\"a\",\"b\")",
+          "LOWER(A28)",
+          "UPPER(A28)"
+        ]
+      },
+      {
+        "id": "escape-82",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"\\\\R\",\"$1\\\\n\")",
+          "LEN(A29)",
+          "LEFT(A29,1)",
+          "RIGHT(A29,1)",
+          "MID(A29,2,3)",
+          "ISTEXT(A29)",
+          "ISERROR(A29)",
+          "CODE(A29)",
+          "CONCATENATE(A29,\"tail\")",
+          "PERL_SED(A29,\"a\",\"b\")",
+          "LOWER(A29)",
+          "UPPER(A29)"
+        ]
+      },
+      {
+        "id": "escape-99",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"\\\\R+\",\"$1\\\\n\")",
+          "LEN(A30)",
+          "LEFT(A30,1)",
+          "RIGHT(A30,1)",
+          "MID(A30,2,3)",
+          "ISTEXT(A30)",
+          "ISERROR(A30)",
+          "CODE(A30)",
+          "CONCATENATE(A30,\"tail\")",
+          "PERL_SED(A30,\"a\",\"b\")",
+          "LOWER(A30)",
+          "UPPER(A30)"
+        ]
+      },
+      {
+        "id": "escape-168",
+        "expressions": [
+          "PERL_SED(\"\u00a0\",\"[\\\\h]+\",\"$1\\\\n\")",
+          "LEN(A31)",
+          "LEFT(A31,1)",
+          "RIGHT(A31,1)",
+          "MID(A31,2,3)",
+          "ISTEXT(A31)",
+          "ISERROR(A31)",
+          "CODE(A31)",
+          "CONCATENATE(A31,\"tail\")",
+          "PERL_SED(A31,\"a\",\"b\")",
+          "LOWER(A31)",
+          "UPPER(A31)"
+        ]
+      },
+      {
+        "id": "escape-185",
+        "expressions": [
+          "PERL_SED(\"\u00a0\",\"[\\\\H]+\",\"$1\\\\n\")",
+          "LEN(A32)",
+          "LEFT(A32,1)",
+          "RIGHT(A32,1)",
+          "MID(A32,2,3)",
+          "ISTEXT(A32)",
+          "ISERROR(A32)",
+          "CODE(A32)",
+          "CONCATENATE(A32,\"tail\")",
+          "PERL_SED(A32,\"a\",\"b\")",
+          "LOWER(A32)",
+          "UPPER(A32)"
+        ]
+      },
+      {
+        "id": "escape-201",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"[\\\\v]+\",\"$1\\\\n\")",
+          "LEN(A33)",
+          "LEFT(A33,1)",
+          "RIGHT(A33,1)",
+          "MID(A33,2,3)",
+          "ISTEXT(A33)",
+          "ISERROR(A33)",
+          "CODE(A33)",
+          "CONCATENATE(A33,\"tail\")",
+          "PERL_SED(A33,\"a\",\"b\")",
+          "LOWER(A33)",
+          "UPPER(A33)"
+        ]
+      },
+      {
+        "id": "escape-218",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"[\\\\V]+\",\"$1\\\\n\")",
+          "LEN(A34)",
+          "LEFT(A34,1)",
+          "RIGHT(A34,1)",
+          "MID(A34,2,3)",
+          "ISTEXT(A34)",
+          "ISERROR(A34)",
+          "CODE(A34)",
+          "CONCATENATE(A34,\"tail\")",
+          "PERL_SED(A34,\"a\",\"b\")",
+          "LOWER(A34)",
+          "UPPER(A34)"
+        ]
+      },
+      {
+        "id": "escape-472",
+        "expressions": [
+          "PERL_SED(\"\u00e4a\u00e4a\",\"\\\\h*?\",\"$1\\\\n\")",
+          "LEN(A35)",
+          "LEFT(A35,1)",
+          "RIGHT(A35,1)",
+          "MID(A35,2,3)",
+          "ISTEXT(A35)",
+          "ISERROR(A35)",
+          "CODE(A35)",
+          "CONCATENATE(A35,\"tail\")",
+          "PERL_SED(A35,\"a\",\"b\")",
+          "LOWER(A35)",
+          "UPPER(A35)"
+        ]
+      },
+      {
+        "id": "escape-473",
+        "expressions": [
+          "PERL_SED(\"\u0085\",\"\\\\h*?\",\"$1\\\\n\")",
+          "LEN(A36)",
+          "LEFT(A36,1)",
+          "RIGHT(A36,1)",
+          "MID(A36,2,3)",
+          "ISTEXT(A36)",
+          "ISERROR(A36)",
+          "CODE(A36)",
+          "CONCATENATE(A36,\"tail\")",
+          "PERL_SED(A36,\"a\",\"b\")",
+          "LOWER(A36)",
+          "UPPER(A36)"
+        ]
+      },
+      {
+        "id": "escape-474",
+        "expressions": [
+          "PERL_SED(\"\u00a0\",\"\\\\h*?\",\"$1\\\\n\")",
+          "LEN(A37)",
+          "LEFT(A37,1)",
+          "RIGHT(A37,1)",
+          "MID(A37,2,3)",
+          "ISTEXT(A37)",
+          "ISERROR(A37)",
+          "CODE(A37)",
+          "CONCATENATE(A37,\"tail\")",
+          "PERL_SED(A37,\"a\",\"b\")",
+          "LOWER(A37)",
+          "UPPER(A37)"
+        ]
+      },
+      {
+        "id": "escape-475",
+        "expressions": [
+          "PERL_SED(\"\u2028\",\"\\\\h*?\",\"$1\\\\n\")",
+          "LEN(A38)",
+          "LEFT(A38,1)",
+          "RIGHT(A38,1)",
+          "MID(A38,2,3)",
+          "ISTEXT(A38)",
+          "ISERROR(A38)",
+          "CODE(A38)",
+          "CONCATENATE(A38,\"tail\")",
+          "PERL_SED(A38,\"a\",\"b\")",
+          "LOWER(A38)",
+          "UPPER(A38)"
+        ]
+      }
+    ],
+    "exit": 0,
+    "stdoutHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea462c324315c6ea924315c6e2c31392c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea462c324315c6ea924315c6e7461696c2c24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c4ec324315c4ea442c324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c32372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c4ec324315c4ea424315c4e4224315c4ec324315c4ea924315c4e0a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a58c358a45862582c362c582c582cc358a4582c545255452c46414c53452c38382c58c358a45862587461696c2c58c358a45862582c78c358a47862782c58c358a45842580a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c33302c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e7461696c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c4ec324315c4ea424315c4e24315c4ec324315c4ea424315c4e24315c4e0a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c33302c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e7461696c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c4ec324315c4ea424315c4e24315c4ec324315c4ea424315c4e24315c4e0a24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c32342c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e7461696c2c24315c6ec324315c6ea46224315c6ec324315c6ea46224315c6e2c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c24315c4ec324315c4ea44124315c4ec324315c4ea44124315c4e0a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c33302c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e7461696c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c4ec324315c4ea424315c4e24315c4ec324315c4ea424315c4e24315c4e0a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c32382c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec3a424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec38424315c4e4124315c4e0ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0a24315c6ea02c352c242c6ea02c315c6e2c545255452c46414c53452c33362c24315c6ea07461696c2c24315c6ea02c24315c6ea02c24315c4ea00ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0a24315c6e852c352c242c6e852c315c6e2c545255452c46414c53452c33362c24315c6e857461696c2c24315c6e852c24315c6e852c24315c4e850ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0a24315c6ea02c352c242c6ea02c315c6e2c545255452c46414c53452c33362c24315c6ea07461696c2c24315c6ea02c24315c6ea02c24315c4ea00ac224315c6e2c342cc2242c6e2c315c6e2c545255452c46414c53452c2356414c5545212cc224315c6e7461696c2cc224315c6e2cc224315c6e2cc224315c4e0a24315c6e852c352c242c6e852c315c6e2c545255452c46414c53452c33362c24315c6e857461696c2c24315c6e852c24315c6e852c24315c4e850a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c33322c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e7461696c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c4ec324315c4ea424315c4e4124315c4ec324315c4ea424315c4e4124315c4e0a24315c6ec224315c6e8524315c6e2c31332c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec224315c6e8524315c6e7461696c2c24315c6ec224315c6e8524315c6e2c24315c6ec224315c6e8524315c6e2c24315c4ec224315c4e8524315c4e0a24315c6ec224315c6e24315c6e24315c6e2c31362c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ec224315c6e24315c6e24315c6e7461696c2c24315c6ec224315c6e24315c6e24315c6e2c24315c6ec224315c6e24315c6e24315c6e2c24315c4ec224315c4e24315c4e24315c4e0a24315c6ee224315c6e8024315c6ea824315c6e2c31372c242c6e2c315c6e2c545255452c46414c53452c33362c24315c6ee224315c6e8024315c6ea824315c6e7461696c2c24315c6ee224315c6e8024315c6ea824315c6e2c24315c6ee224315c6e8024315c6ea824315c6e2c24315c4ee224315c4e8024315c4ea824315c4e0a",
+    "stderrHex": "5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a0a2a2a20287373636f6e766572743a3637363535293a205741524e494e47202a2a3a2032323a34343a34342e3238373a2069636f6e76206661696c656420666f7220434f444528556666666666666666290a"
+  },
+  "glibLeadByteOracle": {
+    "version": "2.90.0",
+    "compile": [
+      "cc",
+      "out/ssconvert-gap-resolution/byte-text-glib-oracle.c",
+      "-I/opt/homebrew/Cellar/glib/2.90.0/include/glib-2.0",
+      "-I/opt/homebrew/Cellar/glib/2.90.0/lib/glib-2.0/include",
+      "-I/opt/homebrew/opt/gettext/include",
+      "-I/opt/homebrew/Cellar/pcre2/10.48/include",
+      "-L/opt/homebrew/Cellar/glib/2.90.0/lib",
+      "-lglib-2.0",
+      "-L/opt/homebrew/opt/gettext/lib",
+      "-lintl",
+      "-o",
+      "out/ssconvert-gap-resolution/byte-text-glib-oracle"
+    ],
+    "rows": [
+      {
+        "lead": 0,
+        "skip": 1,
+        "inputHex": "00414141414141",
+        "length": 0,
+        "leftHex": "",
+        "rightHex": "",
+        "midHex": ""
+      },
+      {
+        "lead": 1,
+        "skip": 1,
+        "inputHex": "01414141414141",
+        "length": 7,
+        "leftHex": "01",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 2,
+        "skip": 1,
+        "inputHex": "02414141414141",
+        "length": 7,
+        "leftHex": "02",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 3,
+        "skip": 1,
+        "inputHex": "03414141414141",
+        "length": 7,
+        "leftHex": "03",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 4,
+        "skip": 1,
+        "inputHex": "04414141414141",
+        "length": 7,
+        "leftHex": "04",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 5,
+        "skip": 1,
+        "inputHex": "05414141414141",
+        "length": 7,
+        "leftHex": "05",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 6,
+        "skip": 1,
+        "inputHex": "06414141414141",
+        "length": 7,
+        "leftHex": "06",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 7,
+        "skip": 1,
+        "inputHex": "07414141414141",
+        "length": 7,
+        "leftHex": "07",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 8,
+        "skip": 1,
+        "inputHex": "08414141414141",
+        "length": 7,
+        "leftHex": "08",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 9,
+        "skip": 1,
+        "inputHex": "09414141414141",
+        "length": 7,
+        "leftHex": "09",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 10,
+        "skip": 1,
+        "inputHex": "0a414141414141",
+        "length": 7,
+        "leftHex": "0a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 11,
+        "skip": 1,
+        "inputHex": "0b414141414141",
+        "length": 7,
+        "leftHex": "0b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 12,
+        "skip": 1,
+        "inputHex": "0c414141414141",
+        "length": 7,
+        "leftHex": "0c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 13,
+        "skip": 1,
+        "inputHex": "0d414141414141",
+        "length": 7,
+        "leftHex": "0d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 14,
+        "skip": 1,
+        "inputHex": "0e414141414141",
+        "length": 7,
+        "leftHex": "0e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 15,
+        "skip": 1,
+        "inputHex": "0f414141414141",
+        "length": 7,
+        "leftHex": "0f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 16,
+        "skip": 1,
+        "inputHex": "10414141414141",
+        "length": 7,
+        "leftHex": "10",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 17,
+        "skip": 1,
+        "inputHex": "11414141414141",
+        "length": 7,
+        "leftHex": "11",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 18,
+        "skip": 1,
+        "inputHex": "12414141414141",
+        "length": 7,
+        "leftHex": "12",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 19,
+        "skip": 1,
+        "inputHex": "13414141414141",
+        "length": 7,
+        "leftHex": "13",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 20,
+        "skip": 1,
+        "inputHex": "14414141414141",
+        "length": 7,
+        "leftHex": "14",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 21,
+        "skip": 1,
+        "inputHex": "15414141414141",
+        "length": 7,
+        "leftHex": "15",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 22,
+        "skip": 1,
+        "inputHex": "16414141414141",
+        "length": 7,
+        "leftHex": "16",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 23,
+        "skip": 1,
+        "inputHex": "17414141414141",
+        "length": 7,
+        "leftHex": "17",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 24,
+        "skip": 1,
+        "inputHex": "18414141414141",
+        "length": 7,
+        "leftHex": "18",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 25,
+        "skip": 1,
+        "inputHex": "19414141414141",
+        "length": 7,
+        "leftHex": "19",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 26,
+        "skip": 1,
+        "inputHex": "1a414141414141",
+        "length": 7,
+        "leftHex": "1a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 27,
+        "skip": 1,
+        "inputHex": "1b414141414141",
+        "length": 7,
+        "leftHex": "1b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 28,
+        "skip": 1,
+        "inputHex": "1c414141414141",
+        "length": 7,
+        "leftHex": "1c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 29,
+        "skip": 1,
+        "inputHex": "1d414141414141",
+        "length": 7,
+        "leftHex": "1d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 30,
+        "skip": 1,
+        "inputHex": "1e414141414141",
+        "length": 7,
+        "leftHex": "1e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 31,
+        "skip": 1,
+        "inputHex": "1f414141414141",
+        "length": 7,
+        "leftHex": "1f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 32,
+        "skip": 1,
+        "inputHex": "20414141414141",
+        "length": 7,
+        "leftHex": "20",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 33,
+        "skip": 1,
+        "inputHex": "21414141414141",
+        "length": 7,
+        "leftHex": "21",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 34,
+        "skip": 1,
+        "inputHex": "22414141414141",
+        "length": 7,
+        "leftHex": "22",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 35,
+        "skip": 1,
+        "inputHex": "23414141414141",
+        "length": 7,
+        "leftHex": "23",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 36,
+        "skip": 1,
+        "inputHex": "24414141414141",
+        "length": 7,
+        "leftHex": "24",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 37,
+        "skip": 1,
+        "inputHex": "25414141414141",
+        "length": 7,
+        "leftHex": "25",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 38,
+        "skip": 1,
+        "inputHex": "26414141414141",
+        "length": 7,
+        "leftHex": "26",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 39,
+        "skip": 1,
+        "inputHex": "27414141414141",
+        "length": 7,
+        "leftHex": "27",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 40,
+        "skip": 1,
+        "inputHex": "28414141414141",
+        "length": 7,
+        "leftHex": "28",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 41,
+        "skip": 1,
+        "inputHex": "29414141414141",
+        "length": 7,
+        "leftHex": "29",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 42,
+        "skip": 1,
+        "inputHex": "2a414141414141",
+        "length": 7,
+        "leftHex": "2a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 43,
+        "skip": 1,
+        "inputHex": "2b414141414141",
+        "length": 7,
+        "leftHex": "2b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 44,
+        "skip": 1,
+        "inputHex": "2c414141414141",
+        "length": 7,
+        "leftHex": "2c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 45,
+        "skip": 1,
+        "inputHex": "2d414141414141",
+        "length": 7,
+        "leftHex": "2d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 46,
+        "skip": 1,
+        "inputHex": "2e414141414141",
+        "length": 7,
+        "leftHex": "2e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 47,
+        "skip": 1,
+        "inputHex": "2f414141414141",
+        "length": 7,
+        "leftHex": "2f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 48,
+        "skip": 1,
+        "inputHex": "30414141414141",
+        "length": 7,
+        "leftHex": "30",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 49,
+        "skip": 1,
+        "inputHex": "31414141414141",
+        "length": 7,
+        "leftHex": "31",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 50,
+        "skip": 1,
+        "inputHex": "32414141414141",
+        "length": 7,
+        "leftHex": "32",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 51,
+        "skip": 1,
+        "inputHex": "33414141414141",
+        "length": 7,
+        "leftHex": "33",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 52,
+        "skip": 1,
+        "inputHex": "34414141414141",
+        "length": 7,
+        "leftHex": "34",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 53,
+        "skip": 1,
+        "inputHex": "35414141414141",
+        "length": 7,
+        "leftHex": "35",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 54,
+        "skip": 1,
+        "inputHex": "36414141414141",
+        "length": 7,
+        "leftHex": "36",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 55,
+        "skip": 1,
+        "inputHex": "37414141414141",
+        "length": 7,
+        "leftHex": "37",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 56,
+        "skip": 1,
+        "inputHex": "38414141414141",
+        "length": 7,
+        "leftHex": "38",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 57,
+        "skip": 1,
+        "inputHex": "39414141414141",
+        "length": 7,
+        "leftHex": "39",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 58,
+        "skip": 1,
+        "inputHex": "3a414141414141",
+        "length": 7,
+        "leftHex": "3a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 59,
+        "skip": 1,
+        "inputHex": "3b414141414141",
+        "length": 7,
+        "leftHex": "3b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 60,
+        "skip": 1,
+        "inputHex": "3c414141414141",
+        "length": 7,
+        "leftHex": "3c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 61,
+        "skip": 1,
+        "inputHex": "3d414141414141",
+        "length": 7,
+        "leftHex": "3d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 62,
+        "skip": 1,
+        "inputHex": "3e414141414141",
+        "length": 7,
+        "leftHex": "3e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 63,
+        "skip": 1,
+        "inputHex": "3f414141414141",
+        "length": 7,
+        "leftHex": "3f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 64,
+        "skip": 1,
+        "inputHex": "40414141414141",
+        "length": 7,
+        "leftHex": "40",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 65,
+        "skip": 1,
+        "inputHex": "41414141414141",
+        "length": 7,
+        "leftHex": "41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 66,
+        "skip": 1,
+        "inputHex": "42414141414141",
+        "length": 7,
+        "leftHex": "42",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 67,
+        "skip": 1,
+        "inputHex": "43414141414141",
+        "length": 7,
+        "leftHex": "43",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 68,
+        "skip": 1,
+        "inputHex": "44414141414141",
+        "length": 7,
+        "leftHex": "44",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 69,
+        "skip": 1,
+        "inputHex": "45414141414141",
+        "length": 7,
+        "leftHex": "45",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 70,
+        "skip": 1,
+        "inputHex": "46414141414141",
+        "length": 7,
+        "leftHex": "46",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 71,
+        "skip": 1,
+        "inputHex": "47414141414141",
+        "length": 7,
+        "leftHex": "47",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 72,
+        "skip": 1,
+        "inputHex": "48414141414141",
+        "length": 7,
+        "leftHex": "48",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 73,
+        "skip": 1,
+        "inputHex": "49414141414141",
+        "length": 7,
+        "leftHex": "49",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 74,
+        "skip": 1,
+        "inputHex": "4a414141414141",
+        "length": 7,
+        "leftHex": "4a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 75,
+        "skip": 1,
+        "inputHex": "4b414141414141",
+        "length": 7,
+        "leftHex": "4b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 76,
+        "skip": 1,
+        "inputHex": "4c414141414141",
+        "length": 7,
+        "leftHex": "4c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 77,
+        "skip": 1,
+        "inputHex": "4d414141414141",
+        "length": 7,
+        "leftHex": "4d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 78,
+        "skip": 1,
+        "inputHex": "4e414141414141",
+        "length": 7,
+        "leftHex": "4e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 79,
+        "skip": 1,
+        "inputHex": "4f414141414141",
+        "length": 7,
+        "leftHex": "4f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 80,
+        "skip": 1,
+        "inputHex": "50414141414141",
+        "length": 7,
+        "leftHex": "50",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 81,
+        "skip": 1,
+        "inputHex": "51414141414141",
+        "length": 7,
+        "leftHex": "51",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 82,
+        "skip": 1,
+        "inputHex": "52414141414141",
+        "length": 7,
+        "leftHex": "52",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 83,
+        "skip": 1,
+        "inputHex": "53414141414141",
+        "length": 7,
+        "leftHex": "53",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 84,
+        "skip": 1,
+        "inputHex": "54414141414141",
+        "length": 7,
+        "leftHex": "54",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 85,
+        "skip": 1,
+        "inputHex": "55414141414141",
+        "length": 7,
+        "leftHex": "55",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 86,
+        "skip": 1,
+        "inputHex": "56414141414141",
+        "length": 7,
+        "leftHex": "56",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 87,
+        "skip": 1,
+        "inputHex": "57414141414141",
+        "length": 7,
+        "leftHex": "57",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 88,
+        "skip": 1,
+        "inputHex": "58414141414141",
+        "length": 7,
+        "leftHex": "58",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 89,
+        "skip": 1,
+        "inputHex": "59414141414141",
+        "length": 7,
+        "leftHex": "59",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 90,
+        "skip": 1,
+        "inputHex": "5a414141414141",
+        "length": 7,
+        "leftHex": "5a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 91,
+        "skip": 1,
+        "inputHex": "5b414141414141",
+        "length": 7,
+        "leftHex": "5b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 92,
+        "skip": 1,
+        "inputHex": "5c414141414141",
+        "length": 7,
+        "leftHex": "5c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 93,
+        "skip": 1,
+        "inputHex": "5d414141414141",
+        "length": 7,
+        "leftHex": "5d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 94,
+        "skip": 1,
+        "inputHex": "5e414141414141",
+        "length": 7,
+        "leftHex": "5e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 95,
+        "skip": 1,
+        "inputHex": "5f414141414141",
+        "length": 7,
+        "leftHex": "5f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 96,
+        "skip": 1,
+        "inputHex": "60414141414141",
+        "length": 7,
+        "leftHex": "60",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 97,
+        "skip": 1,
+        "inputHex": "61414141414141",
+        "length": 7,
+        "leftHex": "61",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 98,
+        "skip": 1,
+        "inputHex": "62414141414141",
+        "length": 7,
+        "leftHex": "62",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 99,
+        "skip": 1,
+        "inputHex": "63414141414141",
+        "length": 7,
+        "leftHex": "63",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 100,
+        "skip": 1,
+        "inputHex": "64414141414141",
+        "length": 7,
+        "leftHex": "64",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 101,
+        "skip": 1,
+        "inputHex": "65414141414141",
+        "length": 7,
+        "leftHex": "65",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 102,
+        "skip": 1,
+        "inputHex": "66414141414141",
+        "length": 7,
+        "leftHex": "66",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 103,
+        "skip": 1,
+        "inputHex": "67414141414141",
+        "length": 7,
+        "leftHex": "67",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 104,
+        "skip": 1,
+        "inputHex": "68414141414141",
+        "length": 7,
+        "leftHex": "68",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 105,
+        "skip": 1,
+        "inputHex": "69414141414141",
+        "length": 7,
+        "leftHex": "69",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 106,
+        "skip": 1,
+        "inputHex": "6a414141414141",
+        "length": 7,
+        "leftHex": "6a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 107,
+        "skip": 1,
+        "inputHex": "6b414141414141",
+        "length": 7,
+        "leftHex": "6b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 108,
+        "skip": 1,
+        "inputHex": "6c414141414141",
+        "length": 7,
+        "leftHex": "6c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 109,
+        "skip": 1,
+        "inputHex": "6d414141414141",
+        "length": 7,
+        "leftHex": "6d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 110,
+        "skip": 1,
+        "inputHex": "6e414141414141",
+        "length": 7,
+        "leftHex": "6e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 111,
+        "skip": 1,
+        "inputHex": "6f414141414141",
+        "length": 7,
+        "leftHex": "6f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 112,
+        "skip": 1,
+        "inputHex": "70414141414141",
+        "length": 7,
+        "leftHex": "70",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 113,
+        "skip": 1,
+        "inputHex": "71414141414141",
+        "length": 7,
+        "leftHex": "71",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 114,
+        "skip": 1,
+        "inputHex": "72414141414141",
+        "length": 7,
+        "leftHex": "72",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 115,
+        "skip": 1,
+        "inputHex": "73414141414141",
+        "length": 7,
+        "leftHex": "73",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 116,
+        "skip": 1,
+        "inputHex": "74414141414141",
+        "length": 7,
+        "leftHex": "74",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 117,
+        "skip": 1,
+        "inputHex": "75414141414141",
+        "length": 7,
+        "leftHex": "75",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 118,
+        "skip": 1,
+        "inputHex": "76414141414141",
+        "length": 7,
+        "leftHex": "76",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 119,
+        "skip": 1,
+        "inputHex": "77414141414141",
+        "length": 7,
+        "leftHex": "77",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 120,
+        "skip": 1,
+        "inputHex": "78414141414141",
+        "length": 7,
+        "leftHex": "78",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 121,
+        "skip": 1,
+        "inputHex": "79414141414141",
+        "length": 7,
+        "leftHex": "79",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 122,
+        "skip": 1,
+        "inputHex": "7a414141414141",
+        "length": 7,
+        "leftHex": "7a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 123,
+        "skip": 1,
+        "inputHex": "7b414141414141",
+        "length": 7,
+        "leftHex": "7b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 124,
+        "skip": 1,
+        "inputHex": "7c414141414141",
+        "length": 7,
+        "leftHex": "7c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 125,
+        "skip": 1,
+        "inputHex": "7d414141414141",
+        "length": 7,
+        "leftHex": "7d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 126,
+        "skip": 1,
+        "inputHex": "7e414141414141",
+        "length": 7,
+        "leftHex": "7e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 127,
+        "skip": 1,
+        "inputHex": "7f414141414141",
+        "length": 7,
+        "leftHex": "7f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 128,
+        "skip": 1,
+        "inputHex": "80414141414141",
+        "length": 7,
+        "leftHex": "80",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 129,
+        "skip": 1,
+        "inputHex": "81414141414141",
+        "length": 7,
+        "leftHex": "81",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 130,
+        "skip": 1,
+        "inputHex": "82414141414141",
+        "length": 7,
+        "leftHex": "82",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 131,
+        "skip": 1,
+        "inputHex": "83414141414141",
+        "length": 7,
+        "leftHex": "83",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 132,
+        "skip": 1,
+        "inputHex": "84414141414141",
+        "length": 7,
+        "leftHex": "84",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 133,
+        "skip": 1,
+        "inputHex": "85414141414141",
+        "length": 7,
+        "leftHex": "85",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 134,
+        "skip": 1,
+        "inputHex": "86414141414141",
+        "length": 7,
+        "leftHex": "86",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 135,
+        "skip": 1,
+        "inputHex": "87414141414141",
+        "length": 7,
+        "leftHex": "87",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 136,
+        "skip": 1,
+        "inputHex": "88414141414141",
+        "length": 7,
+        "leftHex": "88",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 137,
+        "skip": 1,
+        "inputHex": "89414141414141",
+        "length": 7,
+        "leftHex": "89",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 138,
+        "skip": 1,
+        "inputHex": "8a414141414141",
+        "length": 7,
+        "leftHex": "8a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 139,
+        "skip": 1,
+        "inputHex": "8b414141414141",
+        "length": 7,
+        "leftHex": "8b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 140,
+        "skip": 1,
+        "inputHex": "8c414141414141",
+        "length": 7,
+        "leftHex": "8c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 141,
+        "skip": 1,
+        "inputHex": "8d414141414141",
+        "length": 7,
+        "leftHex": "8d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 142,
+        "skip": 1,
+        "inputHex": "8e414141414141",
+        "length": 7,
+        "leftHex": "8e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 143,
+        "skip": 1,
+        "inputHex": "8f414141414141",
+        "length": 7,
+        "leftHex": "8f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 144,
+        "skip": 1,
+        "inputHex": "90414141414141",
+        "length": 7,
+        "leftHex": "90",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 145,
+        "skip": 1,
+        "inputHex": "91414141414141",
+        "length": 7,
+        "leftHex": "91",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 146,
+        "skip": 1,
+        "inputHex": "92414141414141",
+        "length": 7,
+        "leftHex": "92",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 147,
+        "skip": 1,
+        "inputHex": "93414141414141",
+        "length": 7,
+        "leftHex": "93",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 148,
+        "skip": 1,
+        "inputHex": "94414141414141",
+        "length": 7,
+        "leftHex": "94",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 149,
+        "skip": 1,
+        "inputHex": "95414141414141",
+        "length": 7,
+        "leftHex": "95",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 150,
+        "skip": 1,
+        "inputHex": "96414141414141",
+        "length": 7,
+        "leftHex": "96",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 151,
+        "skip": 1,
+        "inputHex": "97414141414141",
+        "length": 7,
+        "leftHex": "97",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 152,
+        "skip": 1,
+        "inputHex": "98414141414141",
+        "length": 7,
+        "leftHex": "98",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 153,
+        "skip": 1,
+        "inputHex": "99414141414141",
+        "length": 7,
+        "leftHex": "99",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 154,
+        "skip": 1,
+        "inputHex": "9a414141414141",
+        "length": 7,
+        "leftHex": "9a",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 155,
+        "skip": 1,
+        "inputHex": "9b414141414141",
+        "length": 7,
+        "leftHex": "9b",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 156,
+        "skip": 1,
+        "inputHex": "9c414141414141",
+        "length": 7,
+        "leftHex": "9c",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 157,
+        "skip": 1,
+        "inputHex": "9d414141414141",
+        "length": 7,
+        "leftHex": "9d",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 158,
+        "skip": 1,
+        "inputHex": "9e414141414141",
+        "length": 7,
+        "leftHex": "9e",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 159,
+        "skip": 1,
+        "inputHex": "9f414141414141",
+        "length": 7,
+        "leftHex": "9f",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 160,
+        "skip": 1,
+        "inputHex": "a0414141414141",
+        "length": 7,
+        "leftHex": "a0",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 161,
+        "skip": 1,
+        "inputHex": "a1414141414141",
+        "length": 7,
+        "leftHex": "a1",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 162,
+        "skip": 1,
+        "inputHex": "a2414141414141",
+        "length": 7,
+        "leftHex": "a2",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 163,
+        "skip": 1,
+        "inputHex": "a3414141414141",
+        "length": 7,
+        "leftHex": "a3",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 164,
+        "skip": 1,
+        "inputHex": "a4414141414141",
+        "length": 7,
+        "leftHex": "a4",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 165,
+        "skip": 1,
+        "inputHex": "a5414141414141",
+        "length": 7,
+        "leftHex": "a5",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 166,
+        "skip": 1,
+        "inputHex": "a6414141414141",
+        "length": 7,
+        "leftHex": "a6",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 167,
+        "skip": 1,
+        "inputHex": "a7414141414141",
+        "length": 7,
+        "leftHex": "a7",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 168,
+        "skip": 1,
+        "inputHex": "a8414141414141",
+        "length": 7,
+        "leftHex": "a8",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 169,
+        "skip": 1,
+        "inputHex": "a9414141414141",
+        "length": 7,
+        "leftHex": "a9",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 170,
+        "skip": 1,
+        "inputHex": "aa414141414141",
+        "length": 7,
+        "leftHex": "aa",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 171,
+        "skip": 1,
+        "inputHex": "ab414141414141",
+        "length": 7,
+        "leftHex": "ab",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 172,
+        "skip": 1,
+        "inputHex": "ac414141414141",
+        "length": 7,
+        "leftHex": "ac",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 173,
+        "skip": 1,
+        "inputHex": "ad414141414141",
+        "length": 7,
+        "leftHex": "ad",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 174,
+        "skip": 1,
+        "inputHex": "ae414141414141",
+        "length": 7,
+        "leftHex": "ae",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 175,
+        "skip": 1,
+        "inputHex": "af414141414141",
+        "length": 7,
+        "leftHex": "af",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 176,
+        "skip": 1,
+        "inputHex": "b0414141414141",
+        "length": 7,
+        "leftHex": "b0",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 177,
+        "skip": 1,
+        "inputHex": "b1414141414141",
+        "length": 7,
+        "leftHex": "b1",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 178,
+        "skip": 1,
+        "inputHex": "b2414141414141",
+        "length": 7,
+        "leftHex": "b2",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 179,
+        "skip": 1,
+        "inputHex": "b3414141414141",
+        "length": 7,
+        "leftHex": "b3",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 180,
+        "skip": 1,
+        "inputHex": "b4414141414141",
+        "length": 7,
+        "leftHex": "b4",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 181,
+        "skip": 1,
+        "inputHex": "b5414141414141",
+        "length": 7,
+        "leftHex": "b5",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 182,
+        "skip": 1,
+        "inputHex": "b6414141414141",
+        "length": 7,
+        "leftHex": "b6",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 183,
+        "skip": 1,
+        "inputHex": "b7414141414141",
+        "length": 7,
+        "leftHex": "b7",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 184,
+        "skip": 1,
+        "inputHex": "b8414141414141",
+        "length": 7,
+        "leftHex": "b8",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 185,
+        "skip": 1,
+        "inputHex": "b9414141414141",
+        "length": 7,
+        "leftHex": "b9",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 186,
+        "skip": 1,
+        "inputHex": "ba414141414141",
+        "length": 7,
+        "leftHex": "ba",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 187,
+        "skip": 1,
+        "inputHex": "bb414141414141",
+        "length": 7,
+        "leftHex": "bb",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 188,
+        "skip": 1,
+        "inputHex": "bc414141414141",
+        "length": 7,
+        "leftHex": "bc",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 189,
+        "skip": 1,
+        "inputHex": "bd414141414141",
+        "length": 7,
+        "leftHex": "bd",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 190,
+        "skip": 1,
+        "inputHex": "be414141414141",
+        "length": 7,
+        "leftHex": "be",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 191,
+        "skip": 1,
+        "inputHex": "bf414141414141",
+        "length": 7,
+        "leftHex": "bf",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 192,
+        "skip": 2,
+        "inputHex": "c0414141414141",
+        "length": 6,
+        "leftHex": "c041",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 193,
+        "skip": 2,
+        "inputHex": "c1414141414141",
+        "length": 6,
+        "leftHex": "c141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 194,
+        "skip": 2,
+        "inputHex": "c2414141414141",
+        "length": 6,
+        "leftHex": "c241",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 195,
+        "skip": 2,
+        "inputHex": "c3414141414141",
+        "length": 6,
+        "leftHex": "c341",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 196,
+        "skip": 2,
+        "inputHex": "c4414141414141",
+        "length": 6,
+        "leftHex": "c441",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 197,
+        "skip": 2,
+        "inputHex": "c5414141414141",
+        "length": 6,
+        "leftHex": "c541",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 198,
+        "skip": 2,
+        "inputHex": "c6414141414141",
+        "length": 6,
+        "leftHex": "c641",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 199,
+        "skip": 2,
+        "inputHex": "c7414141414141",
+        "length": 6,
+        "leftHex": "c741",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 200,
+        "skip": 2,
+        "inputHex": "c8414141414141",
+        "length": 6,
+        "leftHex": "c841",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 201,
+        "skip": 2,
+        "inputHex": "c9414141414141",
+        "length": 6,
+        "leftHex": "c941",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 202,
+        "skip": 2,
+        "inputHex": "ca414141414141",
+        "length": 6,
+        "leftHex": "ca41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 203,
+        "skip": 2,
+        "inputHex": "cb414141414141",
+        "length": 6,
+        "leftHex": "cb41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 204,
+        "skip": 2,
+        "inputHex": "cc414141414141",
+        "length": 6,
+        "leftHex": "cc41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 205,
+        "skip": 2,
+        "inputHex": "cd414141414141",
+        "length": 6,
+        "leftHex": "cd41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 206,
+        "skip": 2,
+        "inputHex": "ce414141414141",
+        "length": 6,
+        "leftHex": "ce41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 207,
+        "skip": 2,
+        "inputHex": "cf414141414141",
+        "length": 6,
+        "leftHex": "cf41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 208,
+        "skip": 2,
+        "inputHex": "d0414141414141",
+        "length": 6,
+        "leftHex": "d041",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 209,
+        "skip": 2,
+        "inputHex": "d1414141414141",
+        "length": 6,
+        "leftHex": "d141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 210,
+        "skip": 2,
+        "inputHex": "d2414141414141",
+        "length": 6,
+        "leftHex": "d241",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 211,
+        "skip": 2,
+        "inputHex": "d3414141414141",
+        "length": 6,
+        "leftHex": "d341",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 212,
+        "skip": 2,
+        "inputHex": "d4414141414141",
+        "length": 6,
+        "leftHex": "d441",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 213,
+        "skip": 2,
+        "inputHex": "d5414141414141",
+        "length": 6,
+        "leftHex": "d541",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 214,
+        "skip": 2,
+        "inputHex": "d6414141414141",
+        "length": 6,
+        "leftHex": "d641",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 215,
+        "skip": 2,
+        "inputHex": "d7414141414141",
+        "length": 6,
+        "leftHex": "d741",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 216,
+        "skip": 2,
+        "inputHex": "d8414141414141",
+        "length": 6,
+        "leftHex": "d841",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 217,
+        "skip": 2,
+        "inputHex": "d9414141414141",
+        "length": 6,
+        "leftHex": "d941",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 218,
+        "skip": 2,
+        "inputHex": "da414141414141",
+        "length": 6,
+        "leftHex": "da41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 219,
+        "skip": 2,
+        "inputHex": "db414141414141",
+        "length": 6,
+        "leftHex": "db41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 220,
+        "skip": 2,
+        "inputHex": "dc414141414141",
+        "length": 6,
+        "leftHex": "dc41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 221,
+        "skip": 2,
+        "inputHex": "dd414141414141",
+        "length": 6,
+        "leftHex": "dd41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 222,
+        "skip": 2,
+        "inputHex": "de414141414141",
+        "length": 6,
+        "leftHex": "de41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 223,
+        "skip": 2,
+        "inputHex": "df414141414141",
+        "length": 6,
+        "leftHex": "df41",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 224,
+        "skip": 3,
+        "inputHex": "e0414141414141",
+        "length": 5,
+        "leftHex": "e04141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 225,
+        "skip": 3,
+        "inputHex": "e1414141414141",
+        "length": 5,
+        "leftHex": "e14141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 226,
+        "skip": 3,
+        "inputHex": "e2414141414141",
+        "length": 5,
+        "leftHex": "e24141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 227,
+        "skip": 3,
+        "inputHex": "e3414141414141",
+        "length": 5,
+        "leftHex": "e34141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 228,
+        "skip": 3,
+        "inputHex": "e4414141414141",
+        "length": 5,
+        "leftHex": "e44141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 229,
+        "skip": 3,
+        "inputHex": "e5414141414141",
+        "length": 5,
+        "leftHex": "e54141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 230,
+        "skip": 3,
+        "inputHex": "e6414141414141",
+        "length": 5,
+        "leftHex": "e64141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 231,
+        "skip": 3,
+        "inputHex": "e7414141414141",
+        "length": 5,
+        "leftHex": "e74141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 232,
+        "skip": 3,
+        "inputHex": "e8414141414141",
+        "length": 5,
+        "leftHex": "e84141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 233,
+        "skip": 3,
+        "inputHex": "e9414141414141",
+        "length": 5,
+        "leftHex": "e94141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 234,
+        "skip": 3,
+        "inputHex": "ea414141414141",
+        "length": 5,
+        "leftHex": "ea4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 235,
+        "skip": 3,
+        "inputHex": "eb414141414141",
+        "length": 5,
+        "leftHex": "eb4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 236,
+        "skip": 3,
+        "inputHex": "ec414141414141",
+        "length": 5,
+        "leftHex": "ec4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 237,
+        "skip": 3,
+        "inputHex": "ed414141414141",
+        "length": 5,
+        "leftHex": "ed4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 238,
+        "skip": 3,
+        "inputHex": "ee414141414141",
+        "length": 5,
+        "leftHex": "ee4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 239,
+        "skip": 3,
+        "inputHex": "ef414141414141",
+        "length": 5,
+        "leftHex": "ef4141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 240,
+        "skip": 4,
+        "inputHex": "f0414141414141",
+        "length": 4,
+        "leftHex": "f0414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 241,
+        "skip": 4,
+        "inputHex": "f1414141414141",
+        "length": 4,
+        "leftHex": "f1414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 242,
+        "skip": 4,
+        "inputHex": "f2414141414141",
+        "length": 4,
+        "leftHex": "f2414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 243,
+        "skip": 4,
+        "inputHex": "f3414141414141",
+        "length": 4,
+        "leftHex": "f3414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 244,
+        "skip": 4,
+        "inputHex": "f4414141414141",
+        "length": 4,
+        "leftHex": "f4414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 245,
+        "skip": 4,
+        "inputHex": "f5414141414141",
+        "length": 4,
+        "leftHex": "f5414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 246,
+        "skip": 4,
+        "inputHex": "f6414141414141",
+        "length": 4,
+        "leftHex": "f6414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 247,
+        "skip": 4,
+        "inputHex": "f7414141414141",
+        "length": 4,
+        "leftHex": "f7414141",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 248,
+        "skip": 5,
+        "inputHex": "f8414141414141",
+        "length": 3,
+        "leftHex": "f841414141",
+        "rightHex": "41",
+        "midHex": "4141"
+      },
+      {
+        "lead": 249,
+        "skip": 5,
+        "inputHex": "f9414141414141",
+        "length": 3,
+        "leftHex": "f941414141",
+        "rightHex": "41",
+        "midHex": "4141"
+      },
+      {
+        "lead": 250,
+        "skip": 5,
+        "inputHex": "fa414141414141",
+        "length": 3,
+        "leftHex": "fa41414141",
+        "rightHex": "41",
+        "midHex": "4141"
+      },
+      {
+        "lead": 251,
+        "skip": 5,
+        "inputHex": "fb414141414141",
+        "length": 3,
+        "leftHex": "fb41414141",
+        "rightHex": "41",
+        "midHex": "4141"
+      },
+      {
+        "lead": 252,
+        "skip": 6,
+        "inputHex": "fc414141414141",
+        "length": 2,
+        "leftHex": "fc4141414141",
+        "rightHex": "41",
+        "midHex": "41"
+      },
+      {
+        "lead": 253,
+        "skip": 6,
+        "inputHex": "fd414141414141",
+        "length": 2,
+        "leftHex": "fd4141414141",
+        "rightHex": "41",
+        "midHex": "41"
+      },
+      {
+        "lead": 254,
+        "skip": 1,
+        "inputHex": "fe414141414141",
+        "length": 7,
+        "leftHex": "fe",
+        "rightHex": "41",
+        "midHex": "414141"
+      },
+      {
+        "lead": 255,
+        "skip": 1,
+        "inputHex": "ff414141414141",
+        "length": 7,
+        "leftHex": "ff",
+        "rightHex": "41",
+        "midHex": "414141"
+      }
+    ],
+    "stderrHex": "",
+    "exit": 0
+  },
+  "nativePublicUnicodeArguments": {
+    "cases": [
+      {
+        "inputHex": "",
+        "formulas": [
+          "LEN(\"\")",
+          "LEFT(\"\",0)",
+          "LEFT(\"\",1)",
+          "LEFT(\"\",2.9)",
+          "LEFT(\"\",2147483648)",
+          "RIGHT(\"\",0)",
+          "RIGHT(\"\",1)",
+          "RIGHT(\"\",2.9)",
+          "RIGHT(\"\",2147483648)",
+          "MID(\"\",1.9,2.9)",
+          "MID(\"\",3,2)",
+          "MID(\"\",2147483648,1)",
+          "LEFT(\"\",-1)",
+          "MID(\"\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "61",
+        "formulas": [
+          "LEN(\"a\")",
+          "LEFT(\"a\",0)",
+          "LEFT(\"a\",1)",
+          "LEFT(\"a\",2.9)",
+          "LEFT(\"a\",2147483648)",
+          "RIGHT(\"a\",0)",
+          "RIGHT(\"a\",1)",
+          "RIGHT(\"a\",2.9)",
+          "RIGHT(\"a\",2147483648)",
+          "MID(\"a\",1.9,2.9)",
+          "MID(\"a\",3,2)",
+          "MID(\"a\",2147483648,1)",
+          "LEFT(\"a\",-1)",
+          "MID(\"a\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "616263",
+        "formulas": [
+          "LEN(\"abc\")",
+          "LEFT(\"abc\",0)",
+          "LEFT(\"abc\",1)",
+          "LEFT(\"abc\",2.9)",
+          "LEFT(\"abc\",2147483648)",
+          "RIGHT(\"abc\",0)",
+          "RIGHT(\"abc\",1)",
+          "RIGHT(\"abc\",2.9)",
+          "RIGHT(\"abc\",2147483648)",
+          "MID(\"abc\",1.9,2.9)",
+          "MID(\"abc\",3,2)",
+          "MID(\"abc\",2147483648,1)",
+          "LEFT(\"abc\",-1)",
+          "MID(\"abc\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "4cc3a97679",
+        "formulas": [
+          "LEN(\"L\u00e9vy\")",
+          "LEFT(\"L\u00e9vy\",0)",
+          "LEFT(\"L\u00e9vy\",1)",
+          "LEFT(\"L\u00e9vy\",2.9)",
+          "LEFT(\"L\u00e9vy\",2147483648)",
+          "RIGHT(\"L\u00e9vy\",0)",
+          "RIGHT(\"L\u00e9vy\",1)",
+          "RIGHT(\"L\u00e9vy\",2.9)",
+          "RIGHT(\"L\u00e9vy\",2147483648)",
+          "MID(\"L\u00e9vy\",1.9,2.9)",
+          "MID(\"L\u00e9vy\",3,2)",
+          "MID(\"L\u00e9vy\",2147483648,1)",
+          "LEFT(\"L\u00e9vy\",-1)",
+          "MID(\"L\u00e9vy\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "e7958c65cc81",
+        "formulas": [
+          "LEN(\"\u754ce\u0301\")",
+          "LEFT(\"\u754ce\u0301\",0)",
+          "LEFT(\"\u754ce\u0301\",1)",
+          "LEFT(\"\u754ce\u0301\",2.9)",
+          "LEFT(\"\u754ce\u0301\",2147483648)",
+          "RIGHT(\"\u754ce\u0301\",0)",
+          "RIGHT(\"\u754ce\u0301\",1)",
+          "RIGHT(\"\u754ce\u0301\",2.9)",
+          "RIGHT(\"\u754ce\u0301\",2147483648)",
+          "MID(\"\u754ce\u0301\",1.9,2.9)",
+          "MID(\"\u754ce\u0301\",3,2)",
+          "MID(\"\u754ce\u0301\",2147483648,1)",
+          "LEFT(\"\u754ce\u0301\",-1)",
+          "MID(\"\u754ce\u0301\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "f09f98806162",
+        "formulas": [
+          "LEN(\"\ud83d\ude00ab\")",
+          "LEFT(\"\ud83d\ude00ab\",0)",
+          "LEFT(\"\ud83d\ude00ab\",1)",
+          "LEFT(\"\ud83d\ude00ab\",2.9)",
+          "LEFT(\"\ud83d\ude00ab\",2147483648)",
+          "RIGHT(\"\ud83d\ude00ab\",0)",
+          "RIGHT(\"\ud83d\ude00ab\",1)",
+          "RIGHT(\"\ud83d\ude00ab\",2.9)",
+          "RIGHT(\"\ud83d\ude00ab\",2147483648)",
+          "MID(\"\ud83d\ude00ab\",1.9,2.9)",
+          "MID(\"\ud83d\ude00ab\",3,2)",
+          "MID(\"\ud83d\ude00ab\",2147483648,1)",
+          "LEFT(\"\ud83d\ude00ab\",-1)",
+          "MID(\"\ud83d\ude00ab\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "c39fc4b1c4b0cea3",
+        "formulas": [
+          "LEN(\"\u00df\u0131\u0130\u03a3\")",
+          "LEFT(\"\u00df\u0131\u0130\u03a3\",0)",
+          "LEFT(\"\u00df\u0131\u0130\u03a3\",1)",
+          "LEFT(\"\u00df\u0131\u0130\u03a3\",2.9)",
+          "LEFT(\"\u00df\u0131\u0130\u03a3\",2147483648)",
+          "RIGHT(\"\u00df\u0131\u0130\u03a3\",0)",
+          "RIGHT(\"\u00df\u0131\u0130\u03a3\",1)",
+          "RIGHT(\"\u00df\u0131\u0130\u03a3\",2.9)",
+          "RIGHT(\"\u00df\u0131\u0130\u03a3\",2147483648)",
+          "MID(\"\u00df\u0131\u0130\u03a3\",1.9,2.9)",
+          "MID(\"\u00df\u0131\u0130\u03a3\",3,2)",
+          "MID(\"\u00df\u0131\u0130\u03a3\",2147483648,1)",
+          "LEFT(\"\u00df\u0131\u0130\u03a3\",-1)",
+          "MID(\"\u00df\u0131\u0130\u03a3\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "610a62",
+        "formulas": [
+          "LEN(\"a\nb\")",
+          "LEFT(\"a\nb\",0)",
+          "LEFT(\"a\nb\",1)",
+          "LEFT(\"a\nb\",2.9)",
+          "LEFT(\"a\nb\",2147483648)",
+          "RIGHT(\"a\nb\",0)",
+          "RIGHT(\"a\nb\",1)",
+          "RIGHT(\"a\nb\",2.9)",
+          "RIGHT(\"a\nb\",2147483648)",
+          "MID(\"a\nb\",1.9,2.9)",
+          "MID(\"a\nb\",3,2)",
+          "MID(\"a\nb\",2147483648,1)",
+          "LEFT(\"a\nb\",-1)",
+          "MID(\"a\nb\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "610d0a62",
+        "formulas": [
+          "LEN((\"a\"&CHAR(13)&\"\nb\"))",
+          "LEFT((\"a\"&CHAR(13)&\"\nb\"),0)",
+          "LEFT((\"a\"&CHAR(13)&\"\nb\"),1)",
+          "LEFT((\"a\"&CHAR(13)&\"\nb\"),2.9)",
+          "LEFT((\"a\"&CHAR(13)&\"\nb\"),2147483648)",
+          "RIGHT((\"a\"&CHAR(13)&\"\nb\"),0)",
+          "RIGHT((\"a\"&CHAR(13)&\"\nb\"),1)",
+          "RIGHT((\"a\"&CHAR(13)&\"\nb\"),2.9)",
+          "RIGHT((\"a\"&CHAR(13)&\"\nb\"),2147483648)",
+          "MID((\"a\"&CHAR(13)&\"\nb\"),1.9,2.9)",
+          "MID((\"a\"&CHAR(13)&\"\nb\"),3,2)",
+          "MID((\"a\"&CHAR(13)&\"\nb\"),2147483648,1)",
+          "LEFT((\"a\"&CHAR(13)&\"\nb\"),-1)",
+          "MID((\"a\"&CHAR(13)&\"\nb\"),0,1)"
+        ]
+      },
+      {
+        "inputHex": "09207820",
+        "formulas": [
+          "LEN(\"\t x \")",
+          "LEFT(\"\t x \",0)",
+          "LEFT(\"\t x \",1)",
+          "LEFT(\"\t x \",2.9)",
+          "LEFT(\"\t x \",2147483648)",
+          "RIGHT(\"\t x \",0)",
+          "RIGHT(\"\t x \",1)",
+          "RIGHT(\"\t x \",2.9)",
+          "RIGHT(\"\t x \",2147483648)",
+          "MID(\"\t x \",1.9,2.9)",
+          "MID(\"\t x \",3,2)",
+          "MID(\"\t x \",2147483648,1)",
+          "LEFT(\"\t x \",-1)",
+          "MID(\"\t x \",0,1)"
+        ]
+      },
+      {
+        "inputHex": "c2a0616263",
+        "formulas": [
+          "LEN(\"\u00a0abc\")",
+          "LEFT(\"\u00a0abc\",0)",
+          "LEFT(\"\u00a0abc\",1)",
+          "LEFT(\"\u00a0abc\",2.9)",
+          "LEFT(\"\u00a0abc\",2147483648)",
+          "RIGHT(\"\u00a0abc\",0)",
+          "RIGHT(\"\u00a0abc\",1)",
+          "RIGHT(\"\u00a0abc\",2.9)",
+          "RIGHT(\"\u00a0abc\",2147483648)",
+          "MID(\"\u00a0abc\",1.9,2.9)",
+          "MID(\"\u00a0abc\",3,2)",
+          "MID(\"\u00a0abc\",2147483648,1)",
+          "LEFT(\"\u00a0abc\",-1)",
+          "MID(\"\u00a0abc\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "6162e280a8",
+        "formulas": [
+          "LEN(\"ab\u2028\")",
+          "LEFT(\"ab\u2028\",0)",
+          "LEFT(\"ab\u2028\",1)",
+          "LEFT(\"ab\u2028\",2.9)",
+          "LEFT(\"ab\u2028\",2147483648)",
+          "RIGHT(\"ab\u2028\",0)",
+          "RIGHT(\"ab\u2028\",1)",
+          "RIGHT(\"ab\u2028\",2.9)",
+          "RIGHT(\"ab\u2028\",2147483648)",
+          "MID(\"ab\u2028\",1.9,2.9)",
+          "MID(\"ab\u2028\",3,2)",
+          "MID(\"ab\u2028\",2147483648,1)",
+          "LEFT(\"ab\u2028\",-1)",
+          "MID(\"ab\u2028\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "ceb1ceb2f09f9880",
+        "formulas": [
+          "LEN(\"\u03b1\u03b2\ud83d\ude00\")",
+          "LEFT(\"\u03b1\u03b2\ud83d\ude00\",0)",
+          "LEFT(\"\u03b1\u03b2\ud83d\ude00\",1)",
+          "LEFT(\"\u03b1\u03b2\ud83d\ude00\",2.9)",
+          "LEFT(\"\u03b1\u03b2\ud83d\ude00\",2147483648)",
+          "RIGHT(\"\u03b1\u03b2\ud83d\ude00\",0)",
+          "RIGHT(\"\u03b1\u03b2\ud83d\ude00\",1)",
+          "RIGHT(\"\u03b1\u03b2\ud83d\ude00\",2.9)",
+          "RIGHT(\"\u03b1\u03b2\ud83d\ude00\",2147483648)",
+          "MID(\"\u03b1\u03b2\ud83d\ude00\",1.9,2.9)",
+          "MID(\"\u03b1\u03b2\ud83d\ude00\",3,2)",
+          "MID(\"\u03b1\u03b2\ud83d\ude00\",2147483648,1)",
+          "LEFT(\"\u03b1\u03b2\ud83d\ude00\",-1)",
+          "MID(\"\u03b1\u03b2\ud83d\ude00\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "c3a9f09f9880e7958c",
+        "formulas": [
+          "LEN(\"\u00e9\ud83d\ude00\u754c\")",
+          "LEFT(\"\u00e9\ud83d\ude00\u754c\",0)",
+          "LEFT(\"\u00e9\ud83d\ude00\u754c\",1)",
+          "LEFT(\"\u00e9\ud83d\ude00\u754c\",2.9)",
+          "LEFT(\"\u00e9\ud83d\ude00\u754c\",2147483648)",
+          "RIGHT(\"\u00e9\ud83d\ude00\u754c\",0)",
+          "RIGHT(\"\u00e9\ud83d\ude00\u754c\",1)",
+          "RIGHT(\"\u00e9\ud83d\ude00\u754c\",2.9)",
+          "RIGHT(\"\u00e9\ud83d\ude00\u754c\",2147483648)",
+          "MID(\"\u00e9\ud83d\ude00\u754c\",1.9,2.9)",
+          "MID(\"\u00e9\ud83d\ude00\u754c\",3,2)",
+          "MID(\"\u00e9\ud83d\ude00\u754c\",2147483648,1)",
+          "LEFT(\"\u00e9\ud83d\ude00\u754c\",-1)",
+          "MID(\"\u00e9\ud83d\ude00\u754c\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "615c62",
+        "formulas": [
+          "LEN(\"a\\\\b\")",
+          "LEFT(\"a\\\\b\",0)",
+          "LEFT(\"a\\\\b\",1)",
+          "LEFT(\"a\\\\b\",2.9)",
+          "LEFT(\"a\\\\b\",2147483648)",
+          "RIGHT(\"a\\\\b\",0)",
+          "RIGHT(\"a\\\\b\",1)",
+          "RIGHT(\"a\\\\b\",2.9)",
+          "RIGHT(\"a\\\\b\",2147483648)",
+          "MID(\"a\\\\b\",1.9,2.9)",
+          "MID(\"a\\\\b\",3,2)",
+          "MID(\"a\\\\b\",2147483648,1)",
+          "LEFT(\"a\\\\b\",-1)",
+          "MID(\"a\\\\b\",0,1)"
+        ]
+      },
+      {
+        "inputHex": "612262",
+        "formulas": [
+          "LEN(\"a\\\"b\")",
+          "LEFT(\"a\\\"b\",0)",
+          "LEFT(\"a\\\"b\",1)",
+          "LEFT(\"a\\\"b\",2.9)",
+          "LEFT(\"a\\\"b\",2147483648)",
+          "RIGHT(\"a\\\"b\",0)",
+          "RIGHT(\"a\\\"b\",1)",
+          "RIGHT(\"a\\\"b\",2.9)",
+          "RIGHT(\"a\\\"b\",2147483648)",
+          "MID(\"a\\\"b\",1.9,2.9)",
+          "MID(\"a\\\"b\",3,2)",
+          "MID(\"a\\\"b\",2147483648,1)",
+          "LEFT(\"a\\\"b\",-1)",
+          "MID(\"a\\\"b\",0,1)"
+        ]
+      }
+    ],
+    "caseCount": 224,
+    "exit": 0,
+    "stdoutHex": "302c2c2c2c2c2c2c2c2c2c2c2c2356414c5545212c2356414c5545210a312c2c612c612c612c2c612c612c612c612c2c2c2356414c5545212c2356414c5545210a332c2c612c61622c6162632c2c632c62632c6162632c61622c632c2c2356414c5545212c2356414c5545210a342c2c4c2c4cc3a92c4cc3a976792c2c792c76792c4cc3a976792c4cc3a92c76792c2c2356414c5545212c2356414c5545210a332c2ce7958c2ce7958c652ce7958c65cc812c2ccc812c65cc812ce7958c65cc812ce7958c652ccc812c2c2356414c5545212c2356414c5545210a332c2cf09f98802cf09f9880612cf09f988061622c2c622c61622cf09f988061622cf09f9880612c622c2c2356414c5545212c2356414c5545210a342c2cc39f2cc39fc4b12cc39fc4b1c4b0cea32c2ccea32cc4b0cea32cc39fc4b1c4b0cea32cc39fc4b12cc4b0cea32c2c2356414c5545212c2356414c5545210a332c2c612c22610a222c22610a62222c2c622c220a62222c22610a62222c22610a222c622c2c2356414c5545212c2356414c5545210a342c2c612c22610d222c22610d0a62222c2c622c220a62222c22610d0a62222c22610d222c220a62222c2c2356414c5545212c2356414c5545210a342c2c2209222c220920222c2209207820222c2c2220222c227820222c2209207820222c220920222c227820222c2c2356414c5545212c2356414c5545210a342c2c22c2a0222c22c2a061222c22c2a0616263222c2c632c62632c22c2a0616263222c22c2a061222c62632c2c2356414c5545212c2356414c5545210a332c2c612c61622c226162e280a8222c2c22e280a8222c2262e280a8222c226162e280a8222c61622c22e280a8222c2c2356414c5545212c2356414c5545210a332c2cceb12cceb1ceb22cceb1ceb2f09f98802c2cf09f98802cceb2f09f98802cceb1ceb2f09f98802cceb1ceb22cf09f98802c2c2356414c5545212c2356414c5545210a332c2cc3a92cc3a9f09f98802cc3a9f09f9880e7958c2c2ce7958c2cf09f9880e7958c2cc3a9f09f9880e7958c2cc3a9f09f98802ce7958c2c2c2356414c5545212c2356414c5545210a332c2c612c615c2c615c622c2c622c5c622c615c622c615c2c622c2c2356414c5545212c2356414c5545210a332c2c612c22612222222c2261222262222c2c622c22222262222c2261222262222c22612222222c622c2c2356414c5545212c2356414c5545210a",
+    "stderrHex": ""
+  },
+  "publicCandidate": {
+    "caseCount": 224,
+    "sdkExact": true,
+    "shellExact": true,
+    "checkpointReplayExact": true,
+    "inputUnchanged": true,
+    "sdkDiagnostics": [],
+    "shellStderr": ""
+  },
+  "ownershipLimits": [
+    "Clip forward cursors to owned source end; never reproduce native reads outside byte ownership.",
+    "Backward cursor stops at owned start even for leading continuation bytes.",
+    "Stop at first NUL; use GLib leading-byte skip widths for non-UTF8 cursor controls.",
+    "Tick source admission before encoding allocation and per-byte scan/cursor/output copy.",
+    "Reject visible unpaired host UTF16 surrogates rather than replacement-encoding them.",
+    "No invalid-byte CellValue admission added; all38 native raw-output obligations remain unresolved."
+  ],
+  "checks": {
+    "focusedTests": "341 passed",
+    "maintainedWorkspaceTests": "Test Files  341 passed (341)\n      Tests  12730 passed (12730)\n   Start at  18:00:29\n   Duration  150.20s (transform 8.32s, setup 4.00s, import 82.30s, tests 34.47s, environment 21ms)",
+    "lintProductionTestConsumerTypes": "npm run lint --workspace=@poe-code/ssconvert exit0",
+    "selectedBuild": "npm run build:workspaces -- --workspace=@poe-code/ssconvert exit0",
+    "sdkShellCheckpoint": "224exact / no diagnostics / input unchanged",
+    "screenshot": {
+      "path": "out/ssconvert-gap-resolution/byte-text-encoder-browser.png",
+      "sha256": "c3ef72bba7a9f47ec86191e6cb7b25f91d7b258eb32e81a1d1fb4ac07ed98920",
+      "visuallyInspected": true
+    }
+  },
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/encoding/byte-text.ts",
+      "sha256": "fe45ebfdadabf0119462817a0d5c2928b529b210cc578017007c9da73b719bbd"
+    },
+    {
+      "path": "packages/ssconvert/src/encoding/byte-text-fixtures.ts",
+      "sha256": "8135b22677ba995ac76dcc6a9254c91066552cc3540744ac6b67c7a2ce282daa"
+    },
+    {
+      "path": "packages/ssconvert/src/encoding/byte-text.test.ts",
+      "sha256": "29a7a440840d2731b5a7d95c195f67fcbdf133071f060c090e32eed878b8ae14"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "sha256": "85a5b047694fd1d91b348ffc60ce684bd41987099b51994d61116d9029ff2f40"
+    }
+  ],
+  "publicBrowserWorker": {
+    "browser": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "lookbehind": {
+        "caseCount": 233,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "posix": {
+        "caseCount": 1298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "named": {
+        "caseCount": 298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "atomic": {
+        "caseCount": 571,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "variableBehind": {
+        "caseCount": 593,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "escapes": {
+        "caseCount": 462,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteText": {
+        "caseCount": 224,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    },
+    "worker": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "lookbehind": {
+        "caseCount": 233,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "posix": {
+        "caseCount": 1298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "named": {
+        "caseCount": 298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "atomic": {
+        "caseCount": 571,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "variableBehind": {
+        "caseCount": 593,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "escapes": {
+        "caseCount": 462,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteText": {
+        "caseCount": 224,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    }
+  }
+}

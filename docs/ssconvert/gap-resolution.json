@@ -544,6 +544,11 @@
           "kind": "actual-native-invalidUTF8-CSV-and-recalc-checkpoint-representation",
           "path": "docs/ssconvert/perl-invalid-byte-native-qualification.json",
           "outcome": "All38invalidUTF8 source outputs exportexact870rawCSVbytes onoriginal/correctedstandard/ASAN loaders,exit0 with retainedvariablewarnings. Correctednativecheckpoint/recalc replay exact. Productexplicitrefusal remains requiredlosslessrepresentation gap."
+        },
+        {
+          "kind": "native-byte-cursor-downstream-and-public-cooperation",
+          "path": "docs/ssconvert/byte-text-cursor-gap-proof.json",
+          "outcome": "256executed GLib lead-byte controls,38actual native downstream rows and224unmodified-native Unicode/argument controls. Four public cancellation failures and one silent malformed-host replacement reproduced and repaired. SDK/Shell/checkpoint/browser/worker exact.38raw workbook value obligations still open; native normal XML replay evaluates formulas rather than preserving invalid caches."
         }
       ],
       "delivery": {

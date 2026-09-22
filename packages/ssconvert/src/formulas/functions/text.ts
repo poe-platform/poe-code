@@ -2,6 +2,7 @@ import { isUnicodeAlpha } from "../../workbook/unicode-sheet-name.js";
 import { foldSheetName } from "../../workbook/case-fold.js";
 import { isUnicodePrintable, simpleUnicodeCase } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
+import { byteTextLength, encodeByteText, sliceByteText } from "../../encoding/byte-text.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
 import { admitMatrix, asBoolean, bool, boundedText, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
@@ -21,15 +22,15 @@ function byteOffsets(s: string, host: FunctionHost): number[] {
   return offsets;
 }
 function sliceText(name: string, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
-  const source = textArg(args, 0, host), chars = Array.from(source), bytes = name.endsWith("B");
+  const source = textArg(args, 0, host), bytes = name.endsWith("B");
   const middle = name.startsWith("MID"), right = name.startsWith("RIGHT");
   const count = numberArg(args, middle ? 2 : 1, host, 1), start = numberArg(args, 1, host, 1);
   if (count < 0 || middle && start < 1) return error("#VALUE!");
   if (!bytes) {
-    const from = middle ? Math.min(chars.length, Math.trunc(start - 1)) : right ? Math.max(0, chars.length - Math.trunc(count)) : 0;
-    return str(chars.slice(from, middle || !right ? from + Math.trunc(count) : chars.length).join(""));
+    const result = sliceByteText(encodeByteText(source, host.tick), middle ? "mid" : right ? "right" : "left", start, count, host.tick);
+    return result === undefined ? error("#VALUE!") : str(new TextDecoder("UTF-8", { fatal: true }).decode(result));
   }
-  const offsets = byteOffsets(source, host), length = offsets.at(-1)!;
+  const chars = Array.from(source), offsets = byteOffsets(source, host), length = offsets.at(-1)!;
   const from = middle ? Math.trunc(start) - 1 : right ? Math.max(0, length - Math.trunc(count)) : 0;
   if (middle && (from >= length || !offsets.includes(from))) return error("#VALUE!");
   const first = right ? offsets.findIndex(offset => offset >= from) : offsets.indexOf(from);
@@ -224,7 +225,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     return point < 128 || point >= 160 && point < 256 ? numericResult(point) : mapped >= 0 ? numericResult(mapped + 128) : error("#VALUE!");
   },
   UNICODE: (args, host) => { const point = textArg(args, 0, host).codePointAt(0); return point === undefined ? error("#VALUE!") : numericResult(point); },
-  LEN: (args, host) => numericResult(Array.from(textArg(args, 0, host)).length),
+  LEN: (args, host) => numericResult(byteTextLength(encodeByteText(textArg(args, 0, host), host.tick), host.tick)),
   LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
   LOWER: (args, host) => boundedText(textArg(args, 0, host).toLowerCase(), host),
   UPPER: (args, host) => boundedText(textArg(args, 0, host).toUpperCase(), host),

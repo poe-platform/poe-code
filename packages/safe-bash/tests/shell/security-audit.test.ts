@@ -155,11 +155,18 @@ test("IFS reuses a whole retained scalar without charging its payload twice", as
   held.release();
 });
 
-test("parser line lookup remains linear for token-heavy input", { timeout: 1_000 }, () => {
-  const source = "a;".repeat(100_000);
-  const started = performance.now();
-  parseShellUnit(source, 0, false, new ParseBudget(2_000_000));
-  assert.ok(performance.now() - started < 750);
+test("parser line lookup scans token-heavy input once", () => {
+  const source = "a;".repeat(1_000);
+  const charCodeAt = String.prototype.charCodeAt;
+  let reads = 0;
+  String.prototype.charCodeAt = function (position) {
+    if (String(this) === source) reads++;
+    return charCodeAt.call(this, position);
+  };
+  try { parseShellUnit(source, 0, false, new ParseBudget()); }
+  finally { String.prototype.charCodeAt = charCodeAt; }
+  assert.ok(reads > source.length / 2, "token line lookups must use the source index");
+  assert.ok(reads <= source.length, `scanned ${reads} characters for ${source.length} input characters`);
 });
 
 test("Cloudflare Worker limits cap large per-invocation allocations", () => {

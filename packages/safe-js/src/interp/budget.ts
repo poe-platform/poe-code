@@ -129,6 +129,8 @@ class BudgetAccounting {
 
 export class Budget {
   private accounting: BudgetAccounting;
+  private realmView = false;
+  private realmLease = false;
 
   constructor(options: BudgetOptions = {}) {
     this.accounting = new BudgetAccounting(options);
@@ -151,9 +153,31 @@ export class Budget {
     // Realm-indexed caches use the view identity; all limits and usage stay shared.
     const view = new Budget();
     view.accounting = this.accounting;
+    view.realmView = true;
     const views = this.accounting.realmViews ??= new Set([new WeakRef(this)]);
     views.add(new WeakRef(view));
     return view;
+  }
+
+  acquireRealmOwner(): ReturnType<Budget["acquireCompileOwner"]> {
+    // Only explicit realm views share a live compile owner; each view still
+    // owns distinct realm-indexed caches and at most one live realm.
+    if (this.realmLease) throw new SandboxError("reentry");
+    const lease = this.acquireCompileOwner(
+      !this.realmView,
+      this.realmView ? this.accounting.activeCompileOwner : undefined,
+    );
+    this.realmLease = true;
+    let released = false;
+    return {
+      owner: lease.owner,
+      release: () => {
+        if (released) return;
+        released = true;
+        this.realmLease = false;
+        lease.release();
+      },
+    };
   }
 
   visitNode(units = 1): void {

@@ -88,6 +88,10 @@ const result = await run(`
 Builtin prototypes retain their originating Object prototype when inspected
 from another realm, including when a budget is reused. Checkpoints preserve
 constructor/prototype identity and their supported property mutations.
+Persistent realms can use `budget.forkRealm()` to keep separate globals and
+intrinsic caches while sharing step, call-depth and retained-data limits. A fork
+preserves consumed allowances, including when a sibling closes. Each budget view
+supports one live realm; suspended invocation data remains charged until released.
 Map and Set instances also retain their selected prototype during inspection
 from another realm.
 Mixed-realm intrinsic checkpoints preserve separate constructor/prototype

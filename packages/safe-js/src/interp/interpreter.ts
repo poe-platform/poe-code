@@ -4754,6 +4754,7 @@ async function invokeSandboxClosure(
   directEval = false
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
+  let releaseScope: (() => void) | undefined;
   const realm = functionRealms.get(callee);
   const foreignContext = realm !== undefined && realm !== activeFunctionRealmPrototypes.get(context.budget)
     ? intrinsicRealmContexts.get(realm) : undefined;
@@ -4795,6 +4796,9 @@ async function invokeSandboxClosure(
       }
     ]);
 
+    if (result instanceof Promise)
+      releaseScope = retainValues(context.budget, () => context.scope.retainedDataRoots());
+
     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
       await result.synchronousPrefix;
     }
@@ -4812,6 +4816,7 @@ async function invokeSandboxClosure(
 
     throw captureException(error, stack, callee.sandbox === true, errorBudget);
   } finally {
+    releaseScope?.();
     leaveCall();
   }
 }

@@ -209,7 +209,7 @@ class RealmState {
       this.consoleExtension = extensionName;
     }
     this.budget = options.budget ?? new Budget({ maxCallDepth: 1000 });
-    this.lease = this.budget.acquireCompileOwner(true);
+    this.lease = this.budget.acquireRealmOwner();
     this.compilation = new CompileScope(this.lease.owner);
     this.bridge = {
       owner: this,

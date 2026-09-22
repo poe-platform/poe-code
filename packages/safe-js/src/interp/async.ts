@@ -520,12 +520,15 @@ export async function suspendAsyncFunctionValue(value: SandboxValue, node: Parse
     driver.suspension = "await";
     origin.awaitPhase = phase;
   }
+  // The channel's native continuation retains this invocation scope while it
+  // is suspended. Keep its real roots visible to sibling realm reconciliation.
+  const releaseScope = retainValues(context.budget, () => context.scope.retainedDataRoots());
   try {
     const completion = await context.generatorYield(awaited, node.nodeId);
     if (context.generatorResume !== undefined) context.generatorResume.completed = true;
     if (completion.type === "throw") throw completion.value;
     return completion.value as SandboxValue;
-  } finally {if (origin !== undefined) origin.awaitPhase = undefined; leaveAwait();}
+  } finally {releaseScope(); if (origin !== undefined) origin.awaitPhase = undefined; leaveAwait();}
 }
 
 export async function executeClosure(

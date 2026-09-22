@@ -32,6 +32,9 @@ export class Budget {
   private files = 0;
   private hunks = 0;
 
+  get maxBufferBytes(): number { return this.limits.maxInputBytes; }
+  get remainingWork(): number { return this.limits.maxWork - this.work; }
+
   constructor(readonly context: CommandContext, options: DiffPatchOptions) {
     this.limits = {
       maxInputBytes: options.maxInputBytes ?? 16 * 1024 * 1024,
@@ -90,7 +93,7 @@ export class Budget {
     return result;
   }
 
-  async read(path: string): Promise<string> {
+  async read(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
     this.context.signal.throwIfAborted();
     const remaining = this.limits.maxInputBytes - this.inputBytes;
     const capabilities = path === "-" ? undefined : await host(this.context, async () =>
@@ -102,7 +105,7 @@ export class Budget {
         : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: remaining }));
     this.inputBytes += bytes.byteLength;
     if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
-    return this.text(bytes);
+    return encoding === "latin1" ? Buffer.from(bytes).toString("latin1") : this.text(bytes);
   }
 
   private async *chunks(source: ByteSource): ByteSource {

@@ -52,6 +52,22 @@ and the source entry point was exercised directly through `Shell.use`.
   styles are rejected, including when brief output is requested.
 - `-b` / `--ignore-space-change` and `-w` / `--ignore-all-space` affect
   comparison rather than rewriting emitted file content.
+- `-i` / `--ignore-case` folds ASCII case in the C locale. `-E` ignores
+  tab expansion, `-Z` ignores trailing whitespace, and `-B` ignores blank-only
+  change groups. `-I PATTERN` ignores groups whose changed lines all match one
+  of the supplied basic regular expressions; matching shares the work budget.
+- `-y` / `--side-by-side`, `-W N` / `--width=N` (default 130),
+  `--left-column`, and `--suppress-common-lines` provide aligned columns,
+  including for identical input. `-t` expands tabs and `-T` inserts an initial
+  tab in normal/context/unified line prefixes.
+- `-e` / `--ed`, `-n` / `--rcs`, and `-D NAME` / `--ifdef=NAME` emit edit
+  scripts or conditional text. `-d` / `--minimal` uses the bounded LCS algorithm.
+  `-p` and `-F PATTERN` annotate context headers with preceding function lines.
+  `-l` / `--paginate` formats output with the virtual `pr` command.
+- `-s` / `--report-identical-files` reports equal comparisons. `-a` / `--text`
+  admits arbitrary input bytes as text and preserves them in emitted changes.
+  `-x PATTERN`, `-X FILE`, and `-S NAME` select directory entries using filename
+  glob exclusions, an exclusion file, or a starting filename.
 - `-q` / `--brief`, `-r` / `--recursive`, and `-N` / `--new-file`;
   short flags may be grouped. Directory entries are sorted by JavaScript's
   deterministic string ordering, not locale collation. Without recursion,

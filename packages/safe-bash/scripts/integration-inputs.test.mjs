@@ -464,6 +464,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/response-body-mode.test.ts",
     "tests/commands/network/file-output-budget.test.ts",
     "tests/contracts/value.test.ts",
+    "tests/commands/diff-patch/diff-admitted-options.test.ts",
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/agent-commands.test.ts",
     "tests/plugins/htmlq-boundaries.test.ts",

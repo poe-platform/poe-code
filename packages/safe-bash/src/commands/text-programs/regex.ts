@@ -51,7 +51,7 @@ export interface Match { readonly start: number; readonly end: number; readonly 
 
 class NfaStorage {
   private used = 0;
-  constructor(private readonly budget: Budget) {}
+  constructor(private readonly budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">) {}
   reserve(bytes: number): void {
     this.budget.step(0);
     if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.budget.maxBufferBytes - this.used) {
@@ -214,7 +214,7 @@ export class Pattern {
     this.linear = this.code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
   }
 
-  async find(text: string, budget: Budget, from = 0): Promise<Match | undefined> {
+  async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from = 0): Promise<Match | undefined> {
     await budget.checkpoint();
     let units = 0;
     const work = (count = 1): Promise<void> | undefined => {

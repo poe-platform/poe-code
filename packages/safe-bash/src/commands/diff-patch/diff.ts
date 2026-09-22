@@ -1,110 +1,26 @@
-import { basename, writeBytes, type CommandContext } from "../../contracts/index.js";
+import { basename, createCommandArguments, toByteSource, writeBytes, type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { Budget, ToolError, definition, host, inspect, type DiffPatchOptions } from "./shared.js";
 import { contextual, normal, type Edit } from "./diff-format.js";
+import { sideBySide, script, ifdef, expandTabs } from "./diff-output.js";
+import { flags, type DiffFlags } from "./diff-options.js";
+import { Pattern } from "../text-programs/regex.js";
+import { createPrCommand } from "../pr/index.js";
 
-interface DiffFlags {
-  format: "normal" | "unified" | "context";
-  whitespace: "exact" | "change" | "all";
-  context: number;
-  brief: boolean;
-  recursive: boolean;
-  newFile: boolean;
-  labels: string[];
-  files: string[];
-}
-
-function contextLength(value: string): number {
-  if (!/^(?:[ \t\n\v\f\r]*[+-]?\d+)?$/u.test(value) || Number(value) < 0) {
-    throw new ToolError(`invalid context length: ${value}`);
-  }
-  return Math.min(Number(value), Number.MAX_SAFE_INTEGER);
-}
-
-function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, labels: [], files: [] };
-  let selectedFormat: DiffFlags["format"] | undefined;
-  const selectFormat = (format: DiffFlags["format"]) => {
-    if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
-    selectedFormat = result.format = format;
-  };
-  let explicitContext = false;
-  let legacyContext = -1;
-  let previousDigit = false;
-  const selectContext = (format: "unified" | "context", width: number, explicit: boolean) => {
-    selectFormat(format);
-    result.context = Math.max(result.context, width);
-    explicitContext ||= explicit;
-  };
-  let operands = false;
-  for (let index = 0; index < args.length; index++) {
-    const arg = args[index]!;
-    if (!operands && arg.startsWith("--")) previousDigit = false;
-    const value = (attached: string | undefined, name: string) => {
-      const next = attached ?? args[++index];
-      if (next === undefined) throw new ToolError(`${name} requires an argument`);
-      return next;
-    };
-    if (operands || arg === "-" || !arg.startsWith("-")) result.files.push(arg);
-    else if (arg === "--") operands = true;
-    else if (arg === "--brief") result.brief = true;
-    else if (arg === "--recursive") result.recursive = true;
-    else if (arg === "--new-file") result.newFile = true;
-    else if (arg === "--ignore-all-space") result.whitespace = "all";
-    else if (arg === "--ignore-space-change") { if (result.whitespace !== "all") result.whitespace = "change"; }
-    else if (arg === "--normal") selectFormat("normal");
-    else if (arg === "--unified") selectContext("unified", 3, true);
-    else if (arg.startsWith("--unified=")) selectContext("unified", contextLength(arg.slice(10)), true);
-    else if (arg === "--context") selectContext("context", 3, true);
-    else if (arg.startsWith("--context=")) selectContext("context", contextLength(arg.slice(10)), true);
-    else if (arg === "--label" || arg.startsWith("--label=")) result.labels.push(value(arg.includes("=") ? arg.slice(8) : undefined, "--label"));
-    else if (arg.startsWith("--")) throw new ToolError(`unsupported option: ${arg}`);
-    else {
-      for (let offset = 1; offset < arg.length; offset++) {
-        const flag = arg[offset]!;
-        if (/^\d$/u.test(flag)) {
-          legacyContext = Math.min((previousDigit ? legacyContext : 0) * 10 + Number(flag), Number.MAX_SAFE_INTEGER);
-          previousDigit = true;
-          continue;
-        }
-        previousDigit = false;
-        if (flag === "u") selectContext("unified", 3, false);
-        else if (flag === "c") selectContext("context", 3, false);
-        else if (flag === "q") result.brief = true;
-        else if (flag === "r") result.recursive = true;
-        else if (flag === "N") result.newFile = true;
-        else if (flag === "w") result.whitespace = "all";
-        else if (flag === "b") { if (result.whitespace !== "all") result.whitespace = "change"; }
-        else if (flag === "U" || flag === "C" || flag === "L") {
-          const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
-          if (flag === "U") selectContext("unified", contextLength(parameter), true);
-          else if (flag === "C") selectContext("context", contextLength(parameter), true);
-          else result.labels.push(parameter);
-          break;
-        } else throw new ToolError(`unsupported option: -${flag}`);
-      }
-    }
-  }
-  if (legacyContext >= 0 && result.format !== "normal") {
-    result.context = explicitContext ? Math.max(result.context, legacyContext) : legacyContext;
-  }
-  if (result.files.length !== 2) throw new ToolError("expected two files or directories");
-  if (result.labels.length > 2) throw new ToolError("at most two labels are supported");
-  for (const name of [...result.labels, ...result.files]) {
-    if (!name || /[\0\r\n\t]/u.test(name)) throw new ToolError("empty names or control characters in filenames/labels are unsupported");
-  }
-  return result;
-}
-
-async function comparisonLines(lines: string[], whitespace: DiffFlags["whitespace"], budget: Budget): Promise<string[]> {
-  if (whitespace === "exact") return lines;
+async function comparisonLines(lines: string[], options: DiffFlags, budget: Budget): Promise<string[]> {
+  const whitespace = options.whitespace;
+  if (whitespace === "exact" && !options.ignoreCase && !options.ignoreTabs && !options.ignoreTrailing) return lines;
   const result: string[] = [];
   for (const line of lines) {
     budget.step(1 + line.length);
     await budget.checkpoint();
-    const body = line.endsWith("\n") ? line.slice(0, -1) : line;
-    const normalized = body.replace(/[ \t\v\f\r]+/gu, whitespace === "all" ? "" : " ");
-    result.push(normalized.endsWith(" ") ? normalized.slice(0, -1) : normalized);
+    let body = line.endsWith("\n") ? line.slice(0, -1) : line;
+    if (options.ignoreTabs) body = expandTabs(body);
+    if (whitespace !== "exact") body = body.replace(/[ \t\v\f\r]+/gu, whitespace === "all" ? "" : " ");
+    if (options.ignoreTrailing || whitespace !== "exact") body = body.replace(/[ \t\v\f\r]+$/u, "");
+    if (options.ignoreCase) body = body.replace(/[A-Z]/gu, letter => letter.toLowerCase());
+    // Whitespace options ignore an absent final LF; -i alone does not.
+    result.push(body + (whitespace !== "exact" || options.ignoreTrailing || options.ignoreTabs ? "" : line.endsWith("\n") ? "\n" : ""));
   }
   return result;
 }
@@ -167,6 +83,12 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
 
 async function run(context: CommandContext, budget: Budget): Promise<number> {
   const options = flags(context.args);
+  for (const path of options.excludeFiles) {
+    if (path !== "-") await inspect(budget, path);
+    const contents = await budget.read(path === "-" ? "-" : pathOf(context, path));
+    options.excludes.push(...contents.split("\n").filter(Boolean));
+  }
+  const exclusions = options.excludes.map(globPattern);
   const pieces: string[] = [];
   const append = (text: string) => { budget.output(text); pieces.push(text); };
   let different = false;
@@ -211,32 +133,100 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
           if (names.size + pending.length > budget.limits.maxFiles) throw new ToolError("file/entry limit exceeded");
         }
       }
-      for (const name of [...names].sort().reverse()) pending.push({ left: `${left}/${name}`, right: `${right}/${name}`, nested: true });
+      for (const name of [...names].sort().reverse()) {
+        if (!pair.nested && options.startingFile !== undefined && name < options.startingFile) continue;
+        let excluded = false;
+        for (const pattern of exclusions) if (await pattern.find(name, budget)) { excluded = true; break; }
+        if (!excluded) pending.push({ left: `${left}/${name}`, right: `${right}/${name}`, nested: true });
+      }
       continue;
     }
     const read = async (path: string, exists: boolean) => {
       if (!exists) return "";
-      if (path === "-") return stdin ??= await budget.read("-");
-      return budget.read(pathOf(context, path));
+      if (path === "-") return stdin ??= await budget.read("-", options.text ? "latin1" : "utf8");
+      return budget.read(pathOf(context, path), options.text ? "latin1" : "utf8");
     };
     const oldText = await read(left, !!leftStat);
     const newText = await read(right, !!rightStat);
-    if (oldText === newText) continue;
+    const reportSame = () => { if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`); };
+    if (oldText === newText && options.format !== "side" && options.format !== "ifdef") { reportSame(); continue; }
     const oldLines = budget.split(oldText);
     const newLines = budget.split(newText);
-    const oldKeys = await comparisonLines(oldLines, options.whitespace, budget);
-    const newKeys = await comparisonLines(newLines, options.whitespace, budget);
-    if (options.whitespace !== "exact" && await equivalent(oldKeys, newKeys, budget)) continue;
-    different = true;
-    if (options.brief) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} differ\n`);
-    else {
-      const changes = await edits(oldLines, newLines, oldKeys, newKeys, budget);
-      if (options.format === "normal") await normal(changes, budget, append);
-      else await contextual(changes, options.format, options.labels[0] ?? (leftStat ? left : "/dev/null"), options.labels[1] ?? (rightStat ? right : "/dev/null"), options.context, budget, append);
+    const oldKeys = await comparisonLines(oldLines, options, budget);
+    const newKeys = await comparisonLines(newLines, options, budget);
+    const same = oldText === newText || await equivalent(oldKeys, newKeys, budget);
+    const changes = await edits(oldLines, newLines, oldKeys, newKeys, budget);
+    if (!same) await ignoreChanges(changes, options, budget);
+    const changed = changes.some(edit => edit.kind !== " " && !edit.ignored);
+    different ||= changed;
+    const label = (name: string) => options.text ? Buffer.from(name).toString("latin1") : name;
+    if (!changed && options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`);
+    if (options.brief) { if (changed) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
+    else if (options.format === "side") await sideBySide(changes, options, budget, append);
+    else if (options.format === "ifdef") await ifdef(changes, options.symbol, budget, append);
+    else if (changed) {
+      if (options.format === "normal") await normal(changes, budget, append, options);
+      else if (options.format === "ed" || options.format === "rcs") await script(changes, options.format, budget, append);
+      else await contextual(changes, options.format, label(options.labels[0] ?? (leftStat ? left : "/dev/null")), label(options.labels[1] ?? (rightStat ? right : "/dev/null")), options.context, budget, append, options, options.functions.length ? async position => {
+        for (let index = position - 1; index >= 0; index--) {
+          for (const pattern of options.functions) if (await pattern.find(oldLines[index]!, budget)) return oldLines[index]!.replace(/\n$/u, "").slice(0, 40);
+          budget.step();
+          await budget.checkpoint();
+        }
+        return "";
+      } : undefined);
     }
   }
-  await writeBytes(context.stdout, Buffer.from(pieces.join("")), context.signal);
+  const output = Buffer.from(pieces.join(""), options.text ? "latin1" : "utf8");
+  if (options.paginate && output.length) {
+    const title = ["diff", ...context.args].join(" ");
+    const argumentValues = createCommandArguments(["-f", "-h", title]);
+    const pages: Uint8Array[] = [];
+    const result = await createPrCommand({ limits: { maxInputBytes: budget.limits.maxOutputBytes, maxOutputBytes: budget.limits.maxOutputBytes, maxWork: Math.max(1, budget.remainingWork) } }).execute({
+      ...context, command: "pr", args: argumentValues.args, argumentValues, stdin: toByteSource(output),
+      stdout: { async write(chunk) { pages.push(chunk.slice()); } },
+    });
+    if (result.exitCode) return 2;
+    await writeBytes(context.stdout, Buffer.concat(pages), context.signal);
+  } else await writeBytes(context.stdout, output, context.signal);
   return different ? 1 : 0;
+}
+
+function globPattern(source: string): Pattern {
+  let result = "^";
+  let bracket = false;
+  for (let index = 0; index < source.length; index++) {
+    const character = source[index]!;
+    if (character === "\\" && index + 1 < source.length) result += `\\${source[++index]}`;
+    else if (character === "[") { bracket = source.indexOf("]", index + 1) >= 0; result += bracket ? "[" : "\\["; }
+    else if (bracket) { result += character === "!" && source[index - 1] === "[" ? "^" : character; if (character === "]") bracket = false; }
+    else if (character === "*") result += ".*";
+    else if (character === "?") result += ".";
+    else result += ".^$+(){}|]".includes(character) ? `\\${character}` : character;
+  }
+  return new Pattern(result + "$", true);
+}
+
+async function ignoreChanges(changes: Edit[], options: DiffFlags, budget: Budget): Promise<void> {
+  if (!options.ignoreBlank && !options.ignorePatterns.length) return;
+  let scan = 0;
+  while (scan < changes.length) {
+    budget.step();
+    await budget.checkpoint();
+    if (changes[scan]!.kind === " ") { scan++; continue; }
+    const start = scan;
+    let ignored = true;
+    while (scan < changes.length && changes[scan]!.kind !== " ") {
+      const edit = changes[scan++]!;
+      const body = edit.line.endsWith("\n") ? edit.line.slice(0, -1) : edit.line;
+      let matches = options.ignoreBlank && (body === "" || options.whitespace !== "exact" && /^[ \t\v\f\r]*$/u.test(body));
+      for (const pattern of options.ignorePatterns) if (await pattern.find(body, budget)) { matches = true; break; }
+      ignored &&= matches;
+      budget.step(1 + body.length);
+      await budget.checkpoint();
+    }
+    if (ignored) for (let index = start; index < scan; index++) changes[index] = { ...changes[index]!, ignored: true };
+  }
 }
 
 export function diffCommand(options: DiffPatchOptions) { return definition("diff", options, run); }

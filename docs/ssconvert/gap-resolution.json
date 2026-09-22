@@ -385,7 +385,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC ODF import extension implemented through explicit once-per-package UTF8 host password authority.24 independent AES128/192/256/hash/checksum vectors match SDK/Shell/browser/worker, complete independent decrypt/inflate and plaintext ODF readbacks.63 own/7516 maintained tests,lint/types/build and inspected screenshots; atomic delivery pending. Blowfish-CFB8,encrypted writing,broader profiles and final publication remain open.",
+      "currentFinding": "Requested AES-CBC ODF import extension implemented through explicit once-per-package UTF8 host password authority.24 independent AES128/192/256/hash/checksum vectors match SDK/Shell/browser/worker, complete independent decrypt/inflate and plaintext ODF readbacks.63 own/7516 maintained tests,lint/types/build and inspected screenshots; delivery verified on remote main as6977e7be0. Blowfish-CFB8,encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -411,9 +411,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "158a71ab946385da39753b993fa52dc769896ecd",
+        "localCommit": "6977e7be0676ca019d96c18e1fa7ae3b73d1de85",
         "remoteMain": "verified on origin/main",
-        "publication": "Release 35755132632 pending; follow containing successor"
+        "publication": "Release35784455740 pending"
       }
     },
     {
@@ -592,9 +592,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "2ab19d7fc64790fae8fa2adeb80b232e84a06c24",
-        "remoteMain": "private log1p43c6a527c and acos2ab19d7fc verified on remote main; quadrature-power repair pending atomic delivery",
-        "publication": "containing Release35781879721 pending; successful publication not yet verified"
+        "localCommit": "0d9c9dbedeffbb45d340ca8a6453f05109adb258",
+        "remoteMain": "verified on origin/main",
+        "publication": "Containing Release35784455740 pending; no publication claim"
       }
     },
     {
@@ -628,9 +628,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "2ab19d7fc64790fae8fa2adeb80b232e84a06c24",
-        "remoteMain": "private log1p43c6a527c and acos2ab19d7fc verified on remote main; quadrature-power repair pending atomic delivery",
-        "publication": "containing Release35781879721 pending; successful publication not yet verified"
+        "localCommit": "0d9c9dbedeffbb45d340ca8a6453f05109adb258",
+        "remoteMain": "verified on origin/main",
+        "publication": "Containing Release35784455740 pending; no publication claim"
       }
     },
     {

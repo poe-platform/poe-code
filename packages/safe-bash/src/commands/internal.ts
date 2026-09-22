@@ -248,7 +248,9 @@ export function replaceArgument(source: string | Uint8Array, pattern: string, re
   return concatenate(chunks);
 }
 
-export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOctal = false): { bytes: Uint8Array; stop: boolean } {
+export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOctal = false,
+  unicode?: { utf8: boolean; missingDigit: (escape: string) => void }): { bytes: Uint8Array; stop: boolean } {
+  if (unicode && typeof text === "string") text = encoder.encode(text);
   if (typeof text === "string") {
     const chunks: Uint8Array[] = [];
     const control: Record<string, number> = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
@@ -270,7 +272,8 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
     return { bytes: concatenate(chunks), stop: false };
   }
   const source = text;
-  const bytes = new Uint8Array(source.length);
+  // C-locale fallback normalizes short escapes to four/eight uppercase digits.
+  const bytes = new Uint8Array(source.length * (unicode && !unicode.utf8 ? 3 : 1));
   const control: Record<number, number> = { 97: 7, 98: 8, 101: 27, 69: 27, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11, 92: 92 };
   let size = 0;
   for (let index = 0; index < source.length;) {
@@ -286,6 +289,42 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
       bytes[size++] = value & 255;
       index = offset;
       continue;
+    }
+    if (unicode && (next === 117 || next === 85)) {
+      const digits = next === 117 ? 4 : 8;
+      let offset = index + 2;
+      const end = Math.min(source.length, offset + digits);
+      let value = 0;
+      while (offset < end) {
+        const digit = source[offset]!;
+        const number = digit >= 48 && digit <= 57 ? digit - 48 : digit >= 65 && digit <= 70 ? digit - 55 : digit >= 97 && digit <= 102 ? digit - 87 : -1;
+        if (number < 0) break;
+        value = value * 16 + number;
+        offset++;
+      }
+      if (offset === index + 2) unicode.missingDigit(String.fromCharCode(next));
+      else {
+        // Bash discards values outside its signed 32-bit wide-character range.
+        if (value < 0x80000000) {
+          if (!unicode.utf8 && value > 127) {
+            const literal = encoder.encode(`\\${value <= 0xffff ? "u" : "U"}${value.toString(16).toUpperCase().padStart(value <= 0xffff ? 4 : 8, "0")}`);
+            bytes.set(literal, size);
+            size += literal.length;
+          } else if (value < 128) bytes[size++] = value;
+          else {
+            // Match Bash's byte encoding, including surrogate and extended values.
+            const length = value < 0x800 ? 2 : value < 0x10000 ? 3 : value < 0x200000 ? 4 : value < 0x4000000 ? 5 : 6;
+            for (let position = length - 1; position > 0; position--) {
+              bytes[size + position] = 0x80 | value & 0x3f;
+              value = Math.floor(value / 64);
+            }
+            bytes[size] = (0xff << (8 - length) & 0xff) | value;
+            size += length;
+          }
+        }
+        index = offset;
+        continue;
+      }
     }
     if (next === 120) {
       let offset = index + 2;

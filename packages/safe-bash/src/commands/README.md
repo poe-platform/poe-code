@@ -118,10 +118,12 @@ options. Invalid options and malformed operands produce diagnostics and status
   `ls -l` is a stable numeric/UTC presentation, not native locale formatting;
   terminal columns, block totals, owner lookup, and time/size sorting are absent.
 - `printf` does not implement `-v`, dynamic `*` widths, `%a`, `%n`, time formats,
-  Unicode escape syntax, complete `%q` rendering compatibility, or native
+  complete `%q` rendering compatibility, or native
   overflow behavior. Width is capped at one million; precision at 1,000 (100
   for floating formats). `%s` precision is byte-based. Floating formatting uses
-  JavaScript numbers rather than the platform C floating-point library.
+  JavaScript numbers rather than the platform C floating-point library. Unicode
+  `\u`/`\U` escapes support C/POSIX and UTF-8 output, with `LC_ALL`, `LC_CTYPE`,
+  then `LANG` precedence; UTF-8 is the default. Other locale encodings are absent.
 - Metadata preservation/archive copying, interactive prompts, cross-device
   move fallback, symbolic permission expressions, parsed touch dates, and atomic
   recursive operations are absent. `cp` rejects combined `-P`/`-L` instead of

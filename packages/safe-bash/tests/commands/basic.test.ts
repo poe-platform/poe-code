@@ -239,6 +239,75 @@ test("printf repeats formats, defaults missing fields, and preserves empty strin
   assert.equal((await run("printf", ["--", "-%s", "literal"])).stdout, "-literal");
 });
 
+for (const entry of [
+  { escape: "\\u0043\\n", utf8: "430a", ascii: "430a" },
+  { escape: "\\u43Z\\U00000044", utf8: "435a44", ascii: "435a44" },
+  { escape: "\\u0000", utf8: "00", ascii: "00" },
+  { escape: "\\u20ac\\U0001F600", utf8: "e282acf09f9880", ascii: "5c75323041435c553030303146363030" },
+  { escape: "\\uD800\\U00110000", utf8: "eda080f4908080", ascii: "5c75443830305c553030313130303030" },
+  { escape: "\\U000000A0", utf8: "c2a0", ascii: "5c7530304130" },
+  { escape: "\\U1F600", utf8: "f09f9880", ascii: "5c553030303146363030" },
+  { escape: "\\U7fffffff", utf8: "fdbfbfbfbfbf", ascii: "5c553746464646464646" },
+  { escape: "\\U80000000", utf8: "", ascii: "" },
+  { escape: "\\u00431", utf8: "4331", ascii: "4331" },
+  { escape: "\\\\u0043", utf8: "5c7530303433", ascii: "5c7530303433" },
+  { escape: "\\UFFFFFFFF", utf8: "", ascii: "" },
+]) for (const locale of ["C", "C.UTF-8"]) for (const conversion of ["format", "%b"]) {
+  test(`printf Unicode ${entry.escape} in ${conversion} under ${locale}`, async () => {
+    const result = await run("printf", conversion === "format" ? [entry.escape] : ["%b", entry.escape], { env: { LC_ALL: locale } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.toString("hex"), locale === "C" ? entry.ascii : entry.utf8);
+  });
+}
+
+for (const env of [
+  { LC_ALL: "C", LC_CTYPE: "C.UTF-8", LANG: "C.UTF-8" },
+  { LC_ALL: "", LC_CTYPE: "POSIX", LANG: "C.UTF-8" },
+  { LANG: "C" },
+]) test(`printf Unicode honors locale precedence ${JSON.stringify(env)}`, async () => {
+  assert.equal((await run("printf", ["\\Ue9"], { env })).stdout, "\\u00E9");
+});
+
+test("printf Unicode percent-b applies byte width, precision, and stop", async () => {
+  assert.equal((await run("printf", ["%4.1b", "\\u00e9"])).stdoutBytes.toString("hex"), "202020c3");
+  assert.equal((await run("printf", ["%bignored", "\\u0043\\c\\u"])).stdout, "C");
+});
+
+test("printf Unicode escapes retain opaque format and operand bytes", async () => {
+  const escape = Buffer.from("\\u0043\\U0001F600");
+  for (const values of [
+    [shellValueFromBytes(Buffer.concat([Buffer.from([255]), escape, Buffer.from([254])]))],
+    ["%b", shellValueFromBytes(Buffer.concat([Buffer.from([255]), escape, Buffer.from([254])]))],
+  ]) {
+    const result = await runByteArguments("printf", values);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr.length, 0);
+    assert.equal(result.stdout.toString("hex"), "ff43f09f9880fe");
+  }
+});
+
+test("printf reports missing Unicode digits while retaining literal bytes and status", async () => {
+  for (const args of [["\\uZZ\\U"], ["%b", "\\uZZ\\U"]]) {
+    const result = await run("printf", args);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "\\uZZ\\U");
+    assert.equal(result.stderr, "printf: missing unicode digit for \\u\nprintf: missing unicode digit for \\U\n");
+  }
+});
+
+test("shell printf Unicode flows through variables, pipes, and virtual files", async () => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()), env: { LC_ALL: "C.UTF-8" } });
+  try {
+    const result = await shell.exec("printf -v value '\\u0043\\U0001F600'; printf '%s' \"$value\" | cat > /work/unicode; cat /work/unicode");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "43f09f9880");
+    assert.equal(Buffer.from(await fs.readFile("/work/unicode")).toString("hex"), "43f09f9880");
+  } finally { await shell.dispose(); }
+});
+
 test("printf formats common numbers, padding, precision, and byte escapes", async () => {
   assert.equal((await run("printf", ["%05d|%-5.3s|%#x|%.2f|%o\n", "-3", "abcdef", "15", "1.25", "8"])).stdout, "-0003|abc  |0xf|1.25|10\n");
   assert.deepEqual((await run("printf", ["%b", "\\0377\\0\\n"])).stdoutBytes, Buffer.from([255, 0, 10]));

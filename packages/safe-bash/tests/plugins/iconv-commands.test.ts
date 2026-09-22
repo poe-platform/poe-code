@@ -81,3 +81,47 @@ test("public root and command subpath share iconv factory identity", async () =>
     assert.equal(result.stderrBytes.length, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const options of [
+  "--from-code=UTF-8 --to-code=UTF-16LE",
+  "--from-code UTF-8 --to-code UTF-16LE",
+  "-f ASCII --from-code=UTF-8 --to-code UTF-16LE",
+  "--from-code ASCII -f UTF-8 --to-code=ASCII -t UTF-16LE",
+]) test(`iconv long encoding options preserve VFS and stdin bytes: ${options}`, async () => {
+  const fs = entry.createMemoryFileSystem();
+  const input = new TextEncoder().encode("abc\n");
+  const expected = Uint8Array.of(97, 0, 98, 0, 99, 0, 10, 0);
+  await fs.writeFile("/input", input);
+  const shell = new entry.Shell({ fs, env: { LC_ALL: "C" } }).use(entry.agentCommands());
+  try {
+    for (const operand of ["input", "", "-"]) {
+      const result = await shell.exec(`iconv ${options} ${operand}`, { stdin: input });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, expected);
+      assert.equal(result.stderrBytes.length, 0);
+    }
+    assert.deepEqual(await fs.readFile("/input"), input);
+  } finally { await shell.dispose(); }
+});
+
+for (const option of ["--from-code", "--to-code"]) test(`iconv rejects missing long encoding arguments: ${option}`, async () => {
+  const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec(`iconv ${option}`, { stdin: "abc" });
+    assert.equal(result.exitCode, 64);
+    assert.equal(result.stdoutBytes.length, 0);
+    assert.equal(result.stderr, `iconv: option '${option}' requires an argument\n`);
+  } finally { await shell.dispose(); }
+});
+
+test("iconv long target encoding supports transliteration and option termination", async () => {
+  const fs = entry.createMemoryFileSystem();
+  await fs.writeFile("/--from-code=UTF-8", new TextEncoder().encode("ß\0€\n"));
+  const shell = new entry.Shell({ fs, env: { LC_ALL: "C" } }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec("iconv --from-code=UTF-8 --to-code=ASCII//TRANSLIT -- --from-code=UTF-8");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("ss\0EUR\n"));
+    assert.equal(result.stderrBytes.length, 0);
+  } finally { await shell.dispose(); }
+});

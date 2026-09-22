@@ -33,7 +33,10 @@ explicit registration. Adding it to an already registered preset requires an
 intentional replacement policy rather than duplicate registration.
 
 Syntax: `iconv -f ENC -t ENC[//TRANSLIT] [-c] [FILE ...]`.
-Attached short option arguments, grouped short options, and `--` are supported.
+`--from-code` and `--to-code` are aliases for `-f` and `-t`; both
+`--option=ENC` and `--option ENC` forms are supported. Repeated encoding
+options use the last value. Attached short option arguments, grouped short
+options, and `--` are supported.
 No operands reads stdin; `-` explicitly selects stdin. A repeated stdin operand
 reports a read error, matching the pinned native CLI's closed-descriptor behavior.
 Paths resolve through the supplied VFS only. Input files are not modified.

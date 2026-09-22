@@ -32,7 +32,15 @@ export function parse(budget: Budget): Parsed {
     budget.charge(argument.length + 1);
     if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
-    if (argument.startsWith("--")) throw new IconvError(`unsupported option: ${argument}`, 64);
+    if (argument.startsWith("--")) {
+      const equals = argument.indexOf("=");
+      const option = equals < 0 ? argument : argument.slice(0, equals);
+      if (option !== "--from-code" && option !== "--to-code") throw new IconvError(`unsupported option: ${argument}`, 64);
+      const value = equals < 0 ? args[++index] : argument.slice(equals + 1);
+      if (value === undefined) throw new IconvError(`option '${option}' requires an argument`, 64);
+      if (option === "--from-code") from = value; else to = value;
+      continue;
+    }
     for (let offset = 1; offset < argument.length; offset++) {
       const flag = argument[offset]!;
       if (flag === "c") { discard = true; continue; }

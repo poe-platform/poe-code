@@ -1,12 +1,15 @@
-// Only internal collectors which always return fresh, dense arrays qualify.
-// Caller-provided retainedValues callbacks keep their iterable semantics.
-const closures = new WeakSet<object>();
-const has = WeakSet.prototype.has.bind(closures);
-const add = WeakSet.prototype.add.bind(closures);
+import type { SandboxValue } from "./values.js";
 
-export const hasIndexedClosureCaptures = has;
+// These native collectors do not expose the supplied append callback. Foreign
+// retainedValues providers keep their iterable observations and snapshot behavior.
+type Collector = (append: (value: SandboxValue) => void) => void;
+const closures = new WeakMap<object, Collector>();
+const get = WeakMap.prototype.get.bind(closures);
+const set = WeakMap.prototype.set.bind(closures);
 
-export function registerIndexedClosureCaptures(closure: object): void {
-  // Never return the native add result: the private registry must not escape.
-  add(closure);
+export const readIndexedClosureCaptures = get;
+
+export function registerIndexedClosureCaptures(closure: object, collect: Collector): void {
+  // Never return the native set result: the private registry must not escape.
+  set(closure, collect);
 }

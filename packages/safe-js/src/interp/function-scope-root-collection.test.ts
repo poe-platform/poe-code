@@ -1,3 +1,4 @@
+import { setImmediate } from "node:timers/promises";
 import { expect, it } from "vitest";
 import { run } from "../run.js";
 import { parseModule } from "../parse/parser.js";
@@ -292,3 +293,82 @@ it("keeps foreign iterable captures and their iterator errors observable", () =>
   };
   expect(() => measureSandboxData([closure])).toThrow(failure);
 });
+
+it("reads metadata for later native closures even when their binding group was visited", () => {
+  const { context, make } = fixture();
+  const firstMeta = { text: "old" };
+  const laterMeta = { text: "x".repeat(1003) };
+  Object.defineProperty(context.scope, "importMeta", {
+    value: firstMeta,
+    writable: true,
+    configurable: true
+  });
+  const closures = [make(), make()];
+  const before = measureSandboxData(closures);
+  let reads = 0;
+  Object.defineProperty(context.scope, "importMeta", {
+    get() {
+      reads++;
+      return reads > 2 ? laterMeta : firstMeta;
+    }
+  });
+  expect(measureSandboxData(closures)).toBe(before + measureSandboxData([laterMeta]));
+  expect(reads).toBe(4);
+});
+
+it("isolates nested capture walks while collecting a later environment value", () => {
+  const outer = fixture();
+  const inner = fixture();
+  outer.context.scope = new Scope({ payload: "x".repeat(1000) });
+  inner.context.scope = new Scope({ payload: "y".repeat(2000) });
+  const innerClosure = inner.make();
+  const innerUnits = measureSandboxData([innerClosure]);
+  const outerClosure = outer.make();
+  const outerUnits = measureSandboxData([outerClosure]);
+  let nested = 0;
+  outer.context.functionEnvironment = {
+    get homeObject() {
+      nested = measureSandboxData([innerClosure]);
+      return undefined;
+    }
+  };
+  expect(measureSandboxData([outerClosure])).toBe(outerUnits);
+  expect(nested).toBe(innerUnits);
+});
+
+it.skipIf(typeof global.gc !== "function").each([false, true])(
+  "releases detached environment payloads after capture traversal (error: %s)",
+  async (throws) => {
+    const { context, make } = fixture();
+    const closure = make();
+    const remember = () => {
+      const failure = new Error("descendant failure");
+      const payload = {
+        text: "x".repeat(60000),
+        child: throws
+          ? new Proxy(
+              {},
+              {
+                ownKeys() {
+                  throw failure;
+                }
+              }
+            )
+          : {}
+      };
+      const reference = new WeakRef(payload);
+      context.functionEnvironment = { homeObject: payload };
+      if (throws) expect(() => measureSandboxData([closure])).toThrow(failure);
+      else expect(measureSandboxData([closure])).toBeGreaterThan(60000);
+      context.functionEnvironment.homeObject = undefined;
+      return reference;
+    };
+    const reference = remember();
+    for (let index = 0; index < 8; index++) {
+      await setImmediate();
+      global.gc!();
+    }
+    expect(reference.deref()).toBeUndefined();
+    expect(measureSandboxData([closure])).toBeLessThan(60000);
+  }
+);

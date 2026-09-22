@@ -25,7 +25,7 @@ import { runAsyncPrefix, suspendJob } from "./jobs.js";
 import { CompileScope } from "./regex/compile-guard.js";
 import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
-import { appendScopeDataRoots, captureScopeDataRoots, type Scope } from "./scope.js";
+import { captureScopeDataRoots, visitScopeDataRoots, type Scope } from "./scope.js";
 import { appendScopeDataRoot } from "./scope-data-roots.js";
 import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
@@ -240,19 +240,21 @@ export function createInterpretedClosure(
         }
       : undefined;
 
-  const appendCapturedRoots = (values: SandboxValue[]): void => {
-    appendScopeDataRoot(values, context.functionEnvironment?.homeObject);
-    appendScopeDataRoot(values, context.functionEnvironment?.newTarget);
+  const appendCapturedValues = (append: (value: SandboxValue) => void): void => {
+    append(context.functionEnvironment?.homeObject);
+    append(context.functionEnvironment?.newTarget);
     if (constructionState !== undefined) {
-      appendScopeDataRoot(values, constructionState.constructor);
-      appendScopeDataRoot(values, constructionState.newTarget);
-      appendScopeDataRoot(values, constructionState.prototype);
-      appendScopeDataRoot(values, constructionState.thisValue);
+      append(constructionState.constructor);
+      append(constructionState.newTarget);
+      append(constructionState.prototype);
+      append(constructionState.thisValue);
       if (constructionState.thisScope !== undefined) {
-        const roots = constructionState.thisScope.retainedDataRoots();
-        appendScopeDataRoots(values, roots);
+        visitScopeDataRoots(constructionState.thisScope, append);
       }
     }
+  };
+  const appendCapturedRoots = (values: SandboxValue[]): void => {
+    appendCapturedValues(value => appendScopeDataRoot(values, value));
   };
   const closure = createSandboxClosure({
     sourceRange: functionSources.get(node),
@@ -315,7 +317,10 @@ export function createInterpretedClosure(
       }, context.budget, callContext, context.signal);
     }
   });
-  registerIndexedClosureCaptures(closure);
+  registerIndexedClosureCaptures(closure, append => {
+    visitScopeDataRoots(context.scope, append);
+    appendCapturedValues(append);
+  });
   registerClosureOrigin(closure, node, context);
   return closure;
 }
@@ -367,9 +372,12 @@ function createGeneratorClosure(
 ) {
   const prototypes = !initializePrototype || runResources.getStore()?.functionSourceText === false ? undefined
     : generatorPrototypes.get(context.budget)?.get(node.async === true);
+  const appendCapturedValues = (append: (value: SandboxValue) => void): void => {
+    append(context.functionEnvironment?.homeObject);
+    append(context.functionEnvironment?.newTarget);
+  };
   const appendCapturedRoots = (values: SandboxValue[]): void => {
-    appendScopeDataRoot(values, context.functionEnvironment?.homeObject);
-    appendScopeDataRoot(values, context.functionEnvironment?.newTarget);
+    appendCapturedValues(value => appendScopeDataRoot(values, value));
   };
   const closure = createSandboxClosure({
     sourceRange: functionSources.get(node),
@@ -451,7 +459,10 @@ function createGeneratorClosure(
     Object.defineProperty(materializeFunctionProperties(closure), "prototype", { value: prototype, writable: true });
     setSandboxPrototype(closure, prototypes.functionPrototype);
   }
-  registerIndexedClosureCaptures(closure);
+  registerIndexedClosureCaptures(closure, append => {
+    visitScopeDataRoots(context.scope, append);
+    appendCapturedValues(append);
+  });
   registerClosureOrigin(closure, node, context);
   return closure;
 }

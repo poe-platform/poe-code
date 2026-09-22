@@ -296,7 +296,11 @@ export class Scope {
     // index setters; longer vectors use pinned definitions. No buffer escapes
     // while ancestor metadata is collected.
     const values: InterpreterValue[] = [undefined, undefined, undefined, undefined];
-    values.length = this.#collectRetainedDataRoots(values, 0);
+    let index = 0;
+    this.#visitRetainedDataRoots(value => {
+      index = appendCollectedScopeRoot(values, value, index);
+    });
+    values.length = index;
     append?.(values);
     return values;
   }
@@ -311,29 +315,35 @@ export class Scope {
     return values;
   }
 
-  #collectRetainedDataRoots(values: InterpreterValue[], index: number): number {
-    // Only the native implementation can share this fresh collector. Foreign
-    // collectors keep their own vectors, and every ancestor/metadata read stays live.
+  static visitDataRoots(scope: Scope, append: (value: InterpreterValue) => void): void {
+    const read = scope.retainedDataRoots;
+    if (#bindings in scope && read === ownScopeDataRoots) scope.#visitRetainedDataRoots(append);
+    else visitCapturedScopeRoots(callScopeDataRoots(read, scope), append);
+  }
+
+  #visitRetainedDataRoots(append: (value: InterpreterValue) => void): void {
+    // Every ancestor and metadata field is read before descendants are visited.
+    // Foreign providers keep their own collectors and their observable reads.
     const parent = this.parent;
     if (parent != null) {
       const read = parent.retainedDataRoots;
-      if (#bindings in parent && read === ownScopeDataRoots) index = parent.#collectRetainedDataRoots(values, index);
+      if (#bindings in parent && read === ownScopeDataRoots) parent.#visitRetainedDataRoots(append);
       else {
         const captured = callScopeDataRoots(read, parent);
-        index = appendScopeDataRoots(values, captured, index);
+        visitCapturedScopeRoots(captured, append);
       }
     }
-    if (this.#globalVarNames !== undefined) index = appendCollectedScopeRoot(values, this.#globalVarNameValues ??= [...this.#globalVarNames], index);
-    if (this.withEnvironment && this.objectEnvironment !== undefined) index = appendCollectedScopeRoot(values, this.objectEnvironment, index);
+    if (this.#globalVarNames !== undefined) append(this.#globalVarNameValues ??= [...this.#globalVarNames]);
+    if (this.withEnvironment && this.objectEnvironment !== undefined) append(this.objectEnvironment);
     if (this.moduleEnvironment !== undefined) {
       const namespaces = Object.values(this.moduleEnvironment.namespaces);
-      for (let key = 0; key < namespaces.length; key++) index = appendCollectedScopeRoot(values, namespaces[key], index);
+      for (let key = 0; key < namespaces.length; key++) append(namespaces[key]);
     }
-    if (this.resourceState !== undefined) index = appendCollectedScopeRoot(values, this.resourceState, index);
+    if (this.resourceState !== undefined) append(this.resourceState);
     if (this.options.chargeData !== false) {
-      if (this.importMeta !== undefined) index = appendCollectedScopeRoot(values, this.importMeta, index);
+      if (this.importMeta !== undefined) append(this.importMeta);
       if (this.privateNames !== undefined)
-        for (const name of this.privateNames.values()) index = appendCollectedScopeRoot(values, name, index);
+        for (const name of this.privateNames.values()) append(name);
     }
     if (this.#bindingDataRoot === undefined) {
       const roots = new ScopeDataRootList();
@@ -362,8 +372,7 @@ export class Scope {
         this.#bindingDataRoot = group;
       }
     }
-    if (this.#bindingDataRoot !== null) index = appendCollectedScopeRoot(values, this.#bindingDataRoot, index);
-    return index;
+    if (this.#bindingDataRoot !== null) append(this.#bindingDataRoot);
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue,
@@ -819,6 +828,7 @@ const callScopeDataRoots = Function.prototype.call.bind(Function.prototype.call)
   read: Scope["retainedDataRoots"], scope: Scope, append?: (values: InterpreterValue[]) => void
 ) => InterpreterValue[];
 export const captureScopeDataRoots = Scope.captureDataRoots;
+export const visitScopeDataRoots = Scope.visitDataRoots;
 
 export function appendScopeDataRoots(values: InterpreterValue[], captured: Iterable<InterpreterValue>, index = values.length): number {
   if (isScopeRootArray(captured)) {
@@ -829,6 +839,14 @@ export function appendScopeDataRoots(values: InterpreterValue[], captured: Itera
     for (const value of captured) index = appendCollectedScopeRoot(values, value, index);
   }
   return index;
+}
+
+function visitCapturedScopeRoots(captured: Iterable<InterpreterValue>, append: (value: InterpreterValue) => void): void {
+  if (isScopeRootArray(captured)) {
+    for (let index = 0; index < captured.length; index++) append(captured[index]);
+  } else {
+    for (const value of captured) append(value);
+  }
 }
 
 function appendCollectedScopeRoot(values: InterpreterValue[], value: InterpreterValue, index: number): number {

@@ -3,7 +3,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { appendScopeDataRoot, scopeDataRoots } from "./scope-data-roots.js";
 import { getGeneratorOrigin } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -102,7 +102,7 @@ import {
 
 export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
 export { isSandboxMap, isSandboxSet } from "./collection-brands.js";
-import { hasIndexedClosureCaptures } from "./indexed-closure-captures.js";
+import { readIndexedClosureCaptures } from "./indexed-closure-captures.js";
 
 // SDK-created closure shapes are frozen. Snapshot their own symbol identities
 // once; foreign frozen objects and mutable function property tables stay fresh.
@@ -838,6 +838,14 @@ function measureSandboxDataWithSeen(
   let waiting: Map<object | symbol, WeakContribution[]> | undefined;
   let ready: WeakContribution[] | undefined;
 
+  let captures: SandboxValue[] | undefined;
+  const appendNativeCapture = (value: SandboxValue): void => {
+    // Omitting an already visited object is equivalent to visit's first check.
+    // Primitive charges and all provider/metadata reads remain observable.
+    if (value === undefined || (typeof value === "object" && value !== null && seen.has(value))) return;
+    appendScopeDataRoot(captures ??= [], value);
+  };
+
   const visit = (value: unknown, depth = 0): void => {
     // Keep ordered record/array descendants off the native call stack.
     let pending: DataContinuation[] | undefined;
@@ -1032,11 +1040,19 @@ function measureSandboxDataWithSeen(
             } else visit(value.properties, depth + 1);
           }
           if (!options.ignoreClosureCaptures) {
-            const retained = value[sandboxRetainedValues]?.();
-            if (hasIndexedClosureCaptures(value)) {
-              const roots = retained as readonly SandboxValue[];
-              for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
-            } else for (const root of retained ?? []) visit(root, depth + 1);
+            const collect = readIndexedClosureCaptures(value);
+            if (collect !== undefined) {
+              let roots: readonly SandboxValue[] | undefined;
+              try {
+                collect(appendNativeCapture);
+                roots = captures;
+              } finally {
+                // Descendants may collect their own native captures on this walk.
+                captures = undefined;
+              }
+              if (roots !== undefined)
+                for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
+            } else for (const root of value[sandboxRetainedValues]?.() ?? []) visit(root, depth + 1);
           }
           break entry;
         }

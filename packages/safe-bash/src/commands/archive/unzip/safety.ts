@@ -86,7 +86,7 @@ export class Extraction {
   async createDirectory(path: string, parent: FileStat): Promise<FileStat> {
     const { fs, signal } = this.context;
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
-    if (capabilities.atomicDirectoryMetadata !== true || !fs.prepareDirectory) fail("extraction requires atomic directory creation");
+    if ((capabilities.atomicDirectoryMetadata !== true && capabilities.trustedOwnedStaging !== true) || !fs.prepareDirectory) fail("extraction requires atomic directory creation");
     return this.operation(() => fs.prepareDirectory!(path, {
       signal, parent, expected: null,
       ...(capabilities.permissions === false ? {} : { mode: 0o755 }),
@@ -160,7 +160,7 @@ export class Extraction {
     await this.parents(root, path, false);
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities);
     if (capabilities.permissions === false && capabilities.timestamps === false) return;
-    if (capabilities.atomicDirectoryMetadata !== true || !fs.prepareDirectory) fail("extraction metadata requires atomic entry conditions");
+    if ((capabilities.atomicDirectoryMetadata !== true && capabilities.trustedOwnedStaging !== true) || !fs.prepareDirectory) fail("extraction metadata requires atomic entry conditions");
     await this.operation(() => fs.prepareDirectory!(path, {
       signal, expected: identity, parent,
       ...(capabilities.permissions === false ? {} : { mode: mode & 0o777 }),
@@ -175,7 +175,7 @@ export class Extraction {
   private async stage(root: string, path: string, chunks: readonly Uint8Array[], expected: FileStat | undefined, parent: FileStat, mode: number, modified: Date, target: string | undefined): Promise<void> {
     const { fs, signal } = this.context;
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
-    if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
+    if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
     let staging: FileStaging | undefined;
     let failure: { reason: unknown } | undefined;
     const cleanup = retainFileSystemCleanup(fs, async view => {

@@ -25,7 +25,7 @@ console.log(await fs.readFile("note.txt", "utf8"));
 
 Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw adapters exchange `Uint8Array` values; the Node bridge adds strings, encodings, `Buffer` results, and stat predicates. Its `cwd` is both the relative-path base and the confinement boundary.
 
-For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. Read the safety boundary below before exposing it to untrusted code.
+For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. ZIP creation, updates, and extraction can use this adapter's private owned staging in an isolated host tree. Its `trustedOwnedStaging` capability checks original entries before publication and cleanup, and preserves foreign staging children. It does not advertise atomic conditional mutations: keep external writers and other in-flight writes away from the tree during these operations. Read the safety boundary below before exposing it to untrusted code.
 
 ## Entry points and shared identity
 

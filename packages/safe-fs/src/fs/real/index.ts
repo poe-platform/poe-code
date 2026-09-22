@@ -1,6 +1,7 @@
-import { constants, type Stats } from "node:fs";
+import { constants, type Stats, type BigIntStats } from "node:fs";
+import * as immediate from "node:fs";
 import * as native from "node:fs/promises";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { dirname, basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { nativeAllocatedBytes } from "./allocation.js";
 import { openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
@@ -13,6 +14,7 @@ import {
 import type {
   AppendFileOptions, ByteSource, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileStat,
   FileSystem, FileSystemCapabilities, FileType, FsOptions, RenameOptions, MkdirOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
   OpenReadFileOptions, OpenResizeFileOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/index.js";
 
@@ -42,20 +44,24 @@ function fileType(stats: Pick<Stats, "isFile" | "isDirectory" | "isSymbolicLink"
   throw new FsError("ENOTSUP", { message: "special filesystem nodes are not supported" });
 }
 
-function fileStat(stats: Stats): FileStat {
-  const allocatedBytes = nativeAllocatedBytes(stats.blocks, process.platform);
-  const preferredIoBlockSize = stats.blksize;
-  return {
-    type: fileType(stats), size: stats.size, mode: stats.mode,
+function fileStat(stats: Stats | BigIntStats): FileStat {
+  const allocatedBytes = nativeAllocatedBytes(typeof stats.size === "bigint" && typeof stats.blocks === "bigint" ? Number(stats.blocks) : stats.blocks, process.platform);
+  const blockSize = typeof stats.size === "bigint" && typeof stats.blksize === "bigint" ? Number(stats.blksize) : stats.blksize;
+  const dev = Number(stats.dev), ino = Number(stats.ino);
+  const snapshot: FileStat = {
+    type: fileType(stats), size: Number(stats.size), mode: Number(stats.mode),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
-    ...(Number.isSafeInteger(stats.blksize) && stats.blksize > 0 ? { ioBlockSize: stats.blksize } : {}),
-    ...(Number.isSafeInteger(preferredIoBlockSize) && preferredIoBlockSize > 0 ? { preferredIoBlockSize } : {}),
-    atimeMs: stats.atimeMs, mtimeMs: stats.mtimeMs, ctimeMs: stats.ctimeMs,
-    birthtimeMs: stats.birthtimeMs, ino: stats.ino, dev: stats.dev,
-    ...(Number.isSafeInteger(stats.dev) && stats.dev >= 0 && Number.isSafeInteger(stats.ino) && stats.ino >= 0
+    ...(typeof blockSize === "number" && Number.isSafeInteger(blockSize) && blockSize > 0 ? { ioBlockSize: blockSize, preferredIoBlockSize: blockSize } : {}),
+    atimeMs: "atimeNs" in stats ? Number(stats.atimeNs / 1_000_000n) + Number(stats.atimeNs % 1_000_000n) / 1e6 : stats.atimeMs,
+    mtimeMs: "mtimeNs" in stats ? Number(stats.mtimeNs / 1_000_000n) + Number(stats.mtimeNs % 1_000_000n) / 1e6 : stats.mtimeMs,
+    ctimeMs: "ctimeNs" in stats ? Number(stats.ctimeNs / 1_000_000n) + Number(stats.ctimeNs % 1_000_000n) / 1e6 : stats.ctimeMs,
+    birthtimeMs: "birthtimeNs" in stats ? Number(stats.birthtimeNs / 1_000_000n) + Number(stats.birthtimeNs % 1_000_000n) / 1e6 : stats.birthtimeMs, ino, dev,
+    ...(Number.isSafeInteger(dev) && dev >= 0 && Number.isSafeInteger(ino) && ino >= 0
       ? { identityScope: Symbol.for("virtual-bash.fs.native") } : {}),
-    nlink: stats.nlink, uid: stats.uid, gid: stats.gid,
+    nlink: Number(stats.nlink), uid: Number(stats.uid), gid: Number(stats.gid),
   };
+  if ("ctimeNs" in stats && !stats.isDirectory()) Object.defineProperty(snapshot, "opaqueVersion", { value: `${stats.ctimeNs}:${stats.mtimeNs}`, enumerable: true });
+  return snapshot;
 }
 
 function integer(value: number, minimum = 0): void {
@@ -121,7 +127,7 @@ export class RealFileSystem implements FileSystem {
     rename: true, atomicRenameNoReplace: false, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
     streamingAppend: true, randomAccessWrite: true,
     readOnly: false, symlinks: true, hardlinks: true, permissions: true,
-    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true,
+    timestamps: true, atomicRename: true, streamingRead: true, streamingWrite: true, retainedRead: true, retainedResize: true, trustedOwnedStaging: true,
   });
 
   private readonly configuredRoot: string;
@@ -273,6 +279,171 @@ export class RealFileSystem implements FileSystem {
     if (resolve(path) === root) throw new FsError("EBUSY", { message: "the filesystem root cannot be removed or replaced" });
   }
 
+  // These critical sections contain no await. They serialize with all JavaScript
+  // callers, under this adapter's existing trusted-host (externally isolated tree)
+  // boundary. They deliberately do not advertise the stronger atomic capabilities.
+  private stagingSnapshot(path: string): FileStat | null {
+    try { return fileStat(immediate.lstatSync(path, { bigint: true })); }
+    catch (error) { if (nativeError(error).code === "ENOENT") return null; throw error; }
+  }
+
+  private expectStaging(path: string, expected: FileStat | null, identityOnly = false): FileStat | null {
+    if (expected && (expected.identityScope !== Symbol.for("virtual-bash.fs.native")
+      || expected.dev === undefined || expected.ino === undefined || !identityOnly && expected.opaqueVersion === undefined)) throw new FsError("ENOTSUP");
+    const current = this.stagingSnapshot(path);
+    if (expected === null ? current !== null : !current || current.dev !== expected.dev || current.ino !== expected.ino || current.type !== expected.type
+      || !identityOnly && (current.opaqueVersion !== expected.opaqueVersion || current.size !== expected.size || current.mode !== expected.mode || current.nlink !== expected.nlink)) throw new FsError("EAGAIN");
+    if (immediate.realpathSync(dirname(path)) !== dirname(path)) throw new FsError("EAGAIN");
+    return current;
+  }
+
+  private stagingMetadata(options: { mode?: number; atimeMs?: number; mtimeMs?: number }): void {
+    if (options.mode !== undefined) integer(options.mode);
+    for (const time of [options.atimeMs, options.mtimeMs]) if (time !== undefined && (!Number.isFinite(time) || Math.abs(time) > 8.64e15)) throw new FsError("EINVAL");
+  }
+
+  async createStagedFile(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    // Unlike operation(), this must return its receipt after commit even if the
+    // signal is aborted before the promise settles.
+    options.signal?.throwIfAborted();
+    try {
+      if (!name || name === "." || name === ".." || name.includes("/") || name.includes("\0")) throw new FsError("EINVAL");
+      this.stagingMetadata(options);
+      if (content.type === "file" && !(content.data instanceof Uint8Array)) throw new FsError("EINVAL");
+      const directory = await this.path(directoryPath, { ...options, followFinal: false, missing: "final" });
+      const root = await this.root(options);
+      const target = content.type === "symlink" ? (validatePath(content.target), isAbsolute(content.target) ? `${root}/${content.target.slice(1)}` : content.target) : undefined;
+      if (content.type === "symlink") await this.walk(root, (isAbsolute(content.target) ? content.target.slice(1).split("/") : relative(root, directory).split("/").concat(content.target.split("/"))).map(name => ({ name, fromLink: true })), { ...options, checkTarget: true });
+      options.signal?.throwIfAborted();
+      this.protectTerminal(directoryPath);
+      this.expectStaging(dirname(directory), options.parent, true);
+      immediate.mkdirSync(directory, { mode: 0o700 });
+      const file = join(directory, name);
+      try {
+        if (content.type === "file") {
+          const fd = immediate.openSync(file, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, options.mode ?? 0o666);
+          try {
+            immediate.writeFileSync(fd, content.data);
+            if (options.mode !== undefined) immediate.fchmodSync(fd, options.mode);
+            if (options.atimeMs !== undefined || options.mtimeMs !== undefined) {
+              const stat = immediate.fstatSync(fd);
+              immediate.futimesSync(fd, (options.atimeMs ?? stat.atimeMs) / 1000, (options.mtimeMs ?? stat.mtimeMs) / 1000);
+            }
+          } finally { immediate.closeSync(fd); }
+        } else immediate.symlinkSync(target!, file);
+        const virtualDirectory = `/${relative(root, directory)}`;
+        const receipt = (path: string, host: string) => Object.freeze({ path, stat: Object.freeze(this.stagingSnapshot(host)!) });
+        return Object.freeze({ parent: receipt(dirname(virtualDirectory), dirname(directory)), directory: receipt(virtualDirectory, directory), file: receipt(`${virtualDirectory}/${name}`, file) });
+      } catch (error) {
+        // Only entries just acquired by this synchronous section can be removed.
+        if (immediate.existsSync(file)) immediate.unlinkSync(file);
+        immediate.rmdirSync(directory);
+        throw error;
+      }
+    } catch (error) { options.signal?.throwIfAborted(); throw new FsError(nativeError(error).code, { syscall: "createStagedFile", path: directoryPath }); }
+  }
+
+  private async stagingPaths(staging: FileStaging, options: FsOptions): Promise<{ directory: string; file: string; parent: string }> {
+    const directory = await this.path(staging.directory.path, { ...options, followFinal: false });
+    const file = await this.path(staging.file.path, { ...options, followFinal: false, missing: "final" });
+    const parent = await this.path(staging.parent.path, { ...options, followFinal: false });
+    if (dirname(directory) !== parent || dirname(file) !== directory) throw new FsError("EAGAIN");
+    return { directory, file, parent };
+  }
+
+  private checkStaging(staging: FileStaging, paths: { directory: string; file: string; parent: string }): void {
+    this.expectStaging(paths.parent, staging.parent.stat, true);
+    const directory = this.expectStaging(paths.directory, staging.directory.stat, true);
+    if (directory?.type !== "directory" || (directory.mode & 0o777) !== 0o700) throw new FsError("EAGAIN");
+  }
+
+  async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    return this.operation("publishStagedFile", staging.file.path, options, async () => {
+      const paths = await this.stagingPaths(staging, options);
+      const target = await this.path(destination, { ...options, followFinal: false, missing: "final" });
+      options.signal?.throwIfAborted();
+      this.protectTerminal(destination);
+      this.checkStaging(staging, paths);
+      this.expectStaging(paths.file, staging.file.stat);
+      this.expectStaging(dirname(target), options.parent, true);
+      const existing = this.expectStaging(target, options.destination);
+      if (existing && (existing.type !== "file" || existing.nlink !== 1)) throw new FsError("EAGAIN");
+      if (target === paths.file || target === paths.directory || dirname(target) === paths.directory) throw new FsError("EINVAL");
+      immediate.renameSync(paths.file, target);
+    }, destination);
+  }
+
+  async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
+    return this.operation("removeStagedFile", staging.directory.path, options, async () => {
+      const paths = await this.stagingPaths(staging, options);
+      options.signal?.throwIfAborted();
+      this.checkStaging(staging, paths);
+      const file = this.stagingSnapshot(paths.file);
+      if (file) this.expectStaging(paths.file, staging.file.stat);
+      const children = immediate.readdirSync(paths.directory);
+      if (children.length !== (file ? 1 : 0) || file && children[0] !== basename(paths.file)) throw new FsError("ENOTEMPTY");
+      if (file) immediate.unlinkSync(paths.file);
+      immediate.rmdirSync(paths.directory);
+    });
+  }
+
+  async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
+    options.signal?.throwIfAborted();
+    try {
+      if (!(data instanceof Uint8Array)) throw new FsError("EINVAL");
+      this.stagingMetadata(options);
+      const target = await this.path(path, { ...options, followFinal: false, missing: "final" });
+      options.signal?.throwIfAborted();
+      this.expectStaging(dirname(target), options.parent, true);
+      const existing = this.expectStaging(target, options.expected);
+      if (existing && (existing.type !== "file" || existing.nlink !== 1)) throw new FsError("EAGAIN");
+      const fd = immediate.openSync(target, constants.O_WRONLY | constants.O_NOFOLLOW | (existing ? 0 : constants.O_CREAT | constants.O_EXCL), options.mode ?? 0o666);
+      try {
+        if (!options.append) immediate.ftruncateSync(fd, 0);
+        let offset = options.append ? Number(immediate.fstatSync(fd).size) : 0;
+        let written = 0;
+        while (written < data.length) {
+          const count = immediate.writeSync(fd, data, written, data.length - written, offset);
+          if (count === 0) throw new FsError("EIO");
+          written += count; offset += count;
+        }
+        if (options.mode !== undefined) immediate.fchmodSync(fd, options.mode);
+        return fileStat(immediate.fstatSync(fd, { bigint: true }));
+      } finally { immediate.closeSync(fd); }
+    } catch (error) { options.signal?.throwIfAborted(); throw new FsError(nativeError(error).code, { syscall: "writeFileConditional", path }); }
+  }
+
+  async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    return this.operation("removeFileConditional", path, options, async () => {
+      const target = await this.path(path, { ...options, followFinal: false });
+      options.signal?.throwIfAborted();
+      this.expectStaging(dirname(target), options.parent, true);
+      const file = this.expectStaging(target, options.expected);
+      if (file?.type !== "file" || file.nlink !== 1) throw new FsError("EAGAIN");
+      immediate.unlinkSync(target);
+    });
+  }
+
+  async prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
+    options.signal?.throwIfAborted();
+    try {
+      this.stagingMetadata(options);
+      const target = await this.path(path, { ...options, followFinal: false, missing: "final" });
+      options.signal?.throwIfAborted();
+      this.protectTerminal(path);
+      this.expectStaging(dirname(target), options.parent, true);
+      const existing = this.expectStaging(target, options.expected, true);
+      if (existing && existing.type !== "directory") throw new FsError("EAGAIN");
+      if (!existing) immediate.mkdirSync(target, { mode: options.mode ?? 0o777 });
+      if (options.mode !== undefined) immediate.chmodSync(target, options.mode);
+      if (options.atimeMs !== undefined || options.mtimeMs !== undefined) {
+        const stat = immediate.statSync(target);
+        immediate.utimesSync(target, (options.atimeMs ?? stat.atimeMs) / 1000, (options.mtimeMs ?? stat.mtimeMs) / 1000);
+      }
+      return this.stagingSnapshot(target)!;
+    } catch (error) { options.signal?.throwIfAborted(); throw new FsError(nativeError(error).code, { syscall: "prepareDirectory", path }); }
+  }
+
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     return openFileDescriptor<{ handle: native.FileHandle | undefined }>(path, options, {
       positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
@@ -299,7 +470,7 @@ export class RealFileSystem implements FileSystem {
         handle = undefined;
         return {
           resource,
-          stat: (retained, forwarded) => this.operation("fstat", path, forwarded, async () => fileStat(await retained.handle!.stat())),
+          stat: (retained, forwarded) => this.operation("fstat", path, forwarded, async () => fileStat(await retained.handle!.stat({ bigint: true }))),
           read: (retained, buffer, position, forwarded) => this.operation("read", path, forwarded,
             async () => (await retained.handle!.read(buffer, 0, buffer.byteLength, position)).bytesRead),
           write: (retained, buffer, position, forwarded) => this.operation("write", path, forwarded,
@@ -349,7 +520,7 @@ export class RealFileSystem implements FileSystem {
     return this.operation("stat", path, options, async () => {
       const target = await this.path(path, options);
       options.signal?.throwIfAborted();
-      return fileStat(await native.stat(target));
+      return fileStat(await native.stat(target, { bigint: true }));
     });
   }
 
@@ -357,7 +528,7 @@ export class RealFileSystem implements FileSystem {
     return this.operation("lstat", path, options, async () => {
       const target = await this.path(path, { ...options, followFinal: false });
       options.signal?.throwIfAborted();
-      return fileStat(await native.lstat(target));
+      return fileStat(await native.lstat(target, { bigint: true }));
     });
   }
 
@@ -637,7 +808,7 @@ export class RealFileSystem implements FileSystem {
     };
     return {
       stat(options = {}) {
-        return perform(options, "fstat", async () => fileStat(await handle.stat()));
+        return perform(options, "fstat", async () => fileStat(await handle.stat({ bigint: true })));
       },
       async truncate(length, options = {}) {
         assertOpen(options, "ftruncate");
@@ -740,7 +911,7 @@ export class RealFileSystem implements FileSystem {
     };
     return {
       stat(options = {}) {
-        return perform(options, "fstat", async () => fileStat(await handle.stat()));
+        return perform(options, "fstat", async () => fileStat(await handle.stat({ bigint: true })));
       },
       async read(position, maxBytes, options = {}) {
         assertOpen(options, "read");

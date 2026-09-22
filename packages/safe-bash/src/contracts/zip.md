@@ -92,8 +92,9 @@ must reach successful EOF before publishing its unverified chunks.
 
 The current `poe-code bash -c` CLI is noninteractive. Its host adapter supplies
 Node cryptographic entropy through the SDK, so `zip -P` works with stdout output.
-Named ZIP publication still requires the filesystem's existing owned atomic
-staging capability; the real-filesystem adapter currently refuses that path.
+Named ZIP publication uses owned filesystem staging. The rooted real adapter
+supports it through `trustedOwnedStaging` in an externally isolated host tree;
+it does not advertise atomic conditional mutations.
 Shell stdout redirection uses its existing explicitly weaker output contract.
 It has no no-echo
 password provider: `zip -e` or passwordless encrypted extraction fails precisely
@@ -299,7 +300,8 @@ their targets to exist.
 The CLI and SDK share the command parser and archive options. The current CLI has
 no volume resolver/prompt binding; multi-volume reads and `-sp` require an SDK
 host configuration. Named writes still require owned VFS staging, which the
-current real adapter does not supply. No host-process fallback is introduced.
+rooted real adapter supplies for externally isolated, trusted host trees. No
+host-process fallback is introduced.
 
 ## ZIP LZMA format extension
 

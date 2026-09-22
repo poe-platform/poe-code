@@ -1224,7 +1224,25 @@ withhold unsupported owned staging rather than bypassing their policies.
 
 ZIP creation/update and unzip file extraction require `atomicFileStaging`.
 Unzip directory creation and supported directory metadata restoration also
-require `atomicDirectoryMetadata`. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
+require `atomicDirectoryMetadata`. The rooted real adapter instead exposes
+`trustedOwnedStaging`, a separate supported route for externally isolated,
+trusted host trees. It supplies all six owned operations (`createStagedFile`,
+`publishStagedFile`, `removeStagedFile`, `writeFileConditional`,
+`removeFileConditional`, and `prepareDirectory`). Final receipt checks and host
+mutations execute synchronously without yielding to JavaScript callers. It
+checks native backing identity, nanosecond file versions, private-directory
+mode, single-link destinations, and exact cleanup contents. Cancellation before
+commit rejects; committed creation and conditional-write receipts remain
+available for cleanup.
+
+This route does **not** satisfy or advertise the atomic capability contracts.
+The host must isolate the tree from concurrent external modifications and
+in-flight ordinary filesystem mutations while owned operations run, as required
+by the real adapter's trusted-host boundary. In particular it is not a sandbox
+against another process or a concurrently writing retained native descriptor.
+Read-only, quota, and overlay views withhold this route; mount, device, scope,
+and retained-cleanup views validate and forward it without upgrading its
+semantics. Listing an archive does not require mutation capabilities. Providers without these guarantees reject the
 corresponding mutation; they must not fall back to check-then-rename or
 check-then-delete operations.
 

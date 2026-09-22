@@ -195,7 +195,7 @@ export async function publishZipVolumes(scope: ZipScope, publication: ZipPublica
     const existing = await scope.stat(output);
     if (existing && (existing.type !== "file" || !hasIdentity(existing) || existing.nlink !== 1 || inputStats.some(stat => stat && sameIdentity(stat, existing)))) fail("ZIP split destination is not a safe regular file");
     const capabilities = await scope.operation(() => fs.capabilitiesFor?.(output, { signal, create: true }) ?? fs.capabilities);
-    if (capabilities.atomicFileStaging !== true) fail("ZIP split publication requires atomic owned staging");
+    if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true)) fail("ZIP split publication requires atomic owned staging");
     destinations.push({ ...publication, output, existing, bytes: parts[disk]! });
   }
   const staged: FileStaging[] = [];

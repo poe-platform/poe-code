@@ -70,6 +70,8 @@ export interface FileSystemCapabilities {
   readonly permissions?: boolean;
   readonly timestamps?: boolean;
   readonly atomicRename?: boolean;
+  /** Owned staging serialized within a trusted host; requires external tree isolation. */
+  readonly trustedOwnedStaging?: boolean;
   readonly atomicFileStaging?: boolean;
   readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;

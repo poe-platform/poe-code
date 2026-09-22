@@ -29,7 +29,7 @@ export class ZipLog {
         || this.expected && (this.expected.type !== "file" || this.expected.nlink !== 1 || !hasIdentity(this.expected))) throw new Error("unsafe log identity");
       await this.protect(protectedNames);
       const capabilities = await this.scope.operation(() => context.fs.capabilitiesFor?.(this.path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
-      if (capabilities.atomicFileMutation !== true || !context.fs.writeFileConditional) throw new Error("conditional log writes unavailable");
+      if ((capabilities.atomicFileMutation !== true && capabilities.trustedOwnedStaging !== true) || !context.fs.writeFileConditional) throw new Error("conditional log writes unavailable");
       this.bytes = append ? this.expected?.size ?? 0 : 0;
       if (!Number.isSafeInteger(this.bytes) || this.bytes < 0 || this.bytes > limits.maxTextBytes) throw new Error("log byte limit");
       this.append = append;

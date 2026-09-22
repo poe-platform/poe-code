@@ -146,8 +146,8 @@ export interface ZipStaging {
 export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (staging: FileStaging) => Promise<void>): Promise<void> {
   const { fs, signal } = scope.context;
   const capabilities = await scope.operation(() => fs.capabilitiesFor?.(prepared.parent, { signal }) ?? fs.capabilities);
-  if (capabilities.atomicFileStaging !== true || !fs.createStagedFile || !fs.removeStagedFile) fail("ZIP temporary path requires atomic owned file staging");
-  if (prepared.source && (capabilities.atomicFileMutation !== true || !fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
+  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.removeStagedFile) fail("ZIP temporary path requires atomic owned file staging");
+  if (prepared.source && ((capabilities.atomicFileMutation !== true && capabilities.trustedOwnedStaging !== true) || !fs.writeFileConditional)) fail("ZIP temporary path requires atomic conditional writes");
   let staging: FileStaging | undefined;
   let failure: { reason: unknown } | undefined;
   const close = retainFileSystemCleanup(fs, async cleanup => {
@@ -237,7 +237,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     }
     return;
   }
-  if (capabilities.atomicFileStaging !== true || !fs.publishStagedFile) fail("ZIP publication requires atomic owned file staging");
+  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.publishStagedFile) fail("ZIP publication requires atomic owned file staging");
   await stageZip(scope, {
     ...prepared, reservedPath: prepared.output, parent: prepared.stagingParent ?? prepared.parent, parentStat: prepared.stagingParentStat ?? prepared.parentStat,
   }, async staging => {

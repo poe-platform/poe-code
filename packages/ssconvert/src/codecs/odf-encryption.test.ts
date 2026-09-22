@@ -3,6 +3,7 @@ import { Volume } from "memfs";
 import { createEngine } from "../engine.js";
 import { runCommand } from "../cli.js";
 import { createZipCodec } from "@poe-code/office-package";
+import { odfBlowfishVectors } from "./odf-blowfish-fixtures.js";
 import { odfCipherVectors, expectedText } from "./odf-encryption-fixtures.js";
 import { readOdf } from "./odf.js";
 import type { CapabilityContext } from "../contracts.js";
@@ -160,4 +161,41 @@ it("rejects authenticated-prefix payload with trailing raw-deflate bytes", async
 
 it.each([545, 547])("rejects exact declared plaintext-size mismatch %s", async (size) => {
   await expect(readOdf(await fixture(manifest.replace('size="546"', 'size="'+size+'"')), { ...context, password: { read: async () => "owned-odf-reference" } })).rejects.toMatchObject({ code: "io" });
+});
+
+it.each(odfBlowfishVectors)("imports independent PyCryptodome CFB8 vector $name", async (vector) => {
+  const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
+  const read = vi.fn(async () => vector.password);
+  const book = await readOdf(await fixture(vector.manifest, payload), { ...context, password: { read } });
+  expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([{ kind: "number", value: 42 }, { kind: "string", value: expectedText }]);
+  expect(read).toHaveBeenCalledTimes(1);
+});
+it("acquires one mixed-profile password after admitting every encrypted member", async () => {
+  const vector = odfBlowfishVectors[0]!;
+  const declaration = vector.manifest.slice(vector.manifest.indexOf('<manifest:file-entry manifest:full-path="content.xml"'), vector.manifest.indexOf('</manifest:manifest>')).replace('full-path="content.xml"', 'full-path="Objects/data.bin"');
+  const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
+  const read = vi.fn(async (request: Parameters<NonNullable<CapabilityContext["password"]>["read"]>[0]) => {
+    expect(request).toMatchObject({ format: "odf", algorithm: "mixed", revision: "1.2", encoding: "utf8" });
+    return "owned-odf-reference";
+  });
+  expect((await readOdf(await fixture(manifest.replace('</manifest:manifest>', declaration + '</manifest:manifest>'), ciphertext, [["Objects/data.bin", payload]]), { ...context, password: { read } })).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
+  expect(read).toHaveBeenCalledTimes(1);
+});
+it("admits aggregate feedback work before acquiring a password", async () => {
+  const vector = odfBlowfishVectors[0]!, read = vi.fn(async () => vector.password);
+  const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
+  await expect(readOdf(await fixture(vector.manifest, payload), { ...context, limits: { ...context.limits, workbookWork: 400000 }, password: { read } })).rejects.toMatchObject({ code: "resource-limit" });
+  expect(read).not.toHaveBeenCalled();
+});
+it("accepts legacy default start generation and derived key size", async () => {
+  const vector = odfBlowfishVectors[0]!, at = vector.manifest.indexOf('<manifest:start-key-generation');
+  const declaration = (vector.manifest.slice(0, at) + vector.manifest.slice(vector.manifest.indexOf('/>', at) + 2)).replace(' manifest:key-size="16"', '').replace(' manifest:checksum-type="SHA1/1K"', '');
+  const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
+  expect((await readOdf(await fixture(declaration, payload), { ...context, password: { read: async () => vector.password } })).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
+});
+it.each([3, 57])("rejects unsupported Blowfish key size %s before secret acquisition", async (size) => {
+  const vector = odfBlowfishVectors[0]!, read = vi.fn(async () => vector.password);
+  const payload = Uint8Array.from(vector.ciphertextHex.match(/../g)!, value => parseInt(value, 16));
+  await expect(readOdf(await fixture(vector.manifest.replace('key-size="16"', 'key-size="'+size+'"'), payload), { ...context, password: { read } })).rejects.toMatchObject({ code: "unsupported-feature" });
+  expect(read).not.toHaveBeenCalled();
 });

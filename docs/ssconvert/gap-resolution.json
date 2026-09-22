@@ -385,7 +385,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC ODF import extension implemented through explicit once-per-package UTF8 host password authority.24 independent AES128/192/256/hash/checksum vectors match SDK/Shell/browser/worker, complete independent decrypt/inflate and plaintext ODF readbacks.63 own/7516 maintained tests,lint/types/build and inspected screenshots; delivery verified on remote main as6977e7be0. Blowfish-CFB8,encrypted writing,broader profiles and final publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish atomic delivery pending; encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -408,6 +408,11 @@
           "kind": "requested-AES-CBC-password-import-extension",
           "path": "docs/ssconvert/odf-aes-encryption-gap-proof.json",
           "outcome": "24 independent vectors exact on four public surfaces; complete decrypt/inflate/ODF plaintext replay; zero invalid target writes; resource/header admission,cancellation,strictUTF8,duplicate declarations and ancillary verification."
+        },
+        {
+          "kind": "requested-Blowfish-CFB8-import-extension",
+          "path": "docs/ssconvert/odf-blowfish-encryption-gap-proof.json",
+          "outcome": "12independent packages,61primitive controls,1042 pinnedMIT words; complete secondOpenSSL oracle byte-equality; mixed/default profiles,pre-secret work admission,cancellation and cleanup."
         }
       ],
       "delivery": {

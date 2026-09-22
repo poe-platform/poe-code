@@ -29,7 +29,10 @@
     "src/formulas/functions/captured-acos-profile.ts",
     "src/formulas/functions/captured-pow-NOTICE.md",
     "src/formulas/functions/captured-pow.ts",
-    "src/formulas/functions/captured-pow-profile.ts"
+    "src/formulas/functions/captured-pow-profile.ts",
+    "src/codecs/odf-blowfish-NOTICE.md",
+    "src/codecs/odf-blowfish.ts",
+    "src/codecs/odf-blowfish-profile.ts"
   ],
   "scripts": {
     "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",

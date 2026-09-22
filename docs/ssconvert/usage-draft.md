@@ -165,9 +165,9 @@ For example, `=PY_PRINTF("Test: %.2f",12)` returns `Test: 12.00`.
 Blank scalar references format as `0.0`; error values become Python `None`
 with a loader warning. Numeric star widths/precisions require Python integers,
 so spreadsheet float arguments are refused; boolean arguments are accepted.
-Range-object representations remain explicitly unsupported. Activated native
-Python 3.14.7 wraps 49 tested sample errors differently from the port's
-`#VALUE!`; these profile differences remain unresolved. See the
+Range-object representations remain explicitly unsupported. Sample TypeErrors
+return `Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)`, matching
+activated native Python 3.12.13 and 3.14.7 profiles. See the
 [executed formatting evidence](python-printf-gap-proof.json).
 
 In `ConversionRequest`, `goalSeekExpressions` and `toolTest` use the built-in

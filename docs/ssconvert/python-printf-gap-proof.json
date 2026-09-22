@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "status": "scalar-and-array-port-qualified; required-range-and-native-exception-profile-gaps-open",
+  "status": "scalar-and-array-native-exception-port-qualified; required-range-and-wider-profile-gaps-open",
   "oracle": {
     "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
     "sampleSourceSha256": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
-    "method": "Compile exact authenticated source FunctionDef with GnumericError sentinel; loader FLOAT→Pythonfloat,BOOLEAN→bool,EMPTY→None; output C string NUL termination; TypeError mapped by sample,other exceptions by authenticated loader; Gnumeric node loader does not permit empty scalar values, so scalar blank normalizes to0.0; value_new_float also normalizes negative zero. Native activated-profile results are preserved separately rather than replacing intended GnumericError sentinel results."
+    "method": "Compile exact authenticated source FunctionDef with GnumericError sentinel; loader FLOAT→Pythonfloat,BOOLEAN→bool,EMPTY→None; output C string NUL termination; TypeError mapped by sample,other exceptions by authenticated loader; Gnumeric node loader does not permit empty scalar values, so scalar blank normalizes to0.0; value_new_float also normalizes negative zero. Native activated-profile results are preserved separately rather than replacing intended GnumericError sentinel results.; Active cases.expected now follows observed native exception wrapping on both CPython3.12.13 and3.14.7; original sentinel expectations retained as sampleExpected on the49 affected cases."
   },
   "cases": [
     {
@@ -216,24 +216,32 @@
       "formula": "=PY_PRINTF(\"%x\",0.0)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         0.0
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-0-18",
       "formula": "=PY_PRINTF(\"%c\",0.0)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         0.0
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-0-19",
@@ -480,24 +488,32 @@
       "formula": "=PY_PRINTF(\"%x\",-0)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         -0.0
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-1-18",
       "formula": "=PY_PRINTF(\"%c\",-0)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         -0.0
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-1-19",
@@ -744,24 +760,32 @@
       "formula": "=PY_PRINTF(\"%x\",2.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         2.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-2-18",
       "formula": "=PY_PRINTF(\"%c\",2.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         2.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-2-19",
@@ -1008,24 +1032,32 @@
       "formula": "=PY_PRINTF(\"%x\",3.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         3.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-3-18",
       "formula": "=PY_PRINTF(\"%c\",3.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         3.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-3-19",
@@ -1272,24 +1304,32 @@
       "formula": "=PY_PRINTF(\"%x\",2.675)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         2.675
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-4-18",
       "formula": "=PY_PRINTF(\"%c\",2.675)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         2.675
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-4-19",
@@ -1536,24 +1576,32 @@
       "formula": "=PY_PRINTF(\"%x\",-1.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         -1.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-5-18",
       "formula": "=PY_PRINTF(\"%c\",-1.5)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         -1.5
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-5-19",
@@ -1800,24 +1848,32 @@
       "formula": "=PY_PRINTF(\"%x\",1e+23)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         1e+23
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-6-18",
       "formula": "=PY_PRINTF(\"%c\",1e+23)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         1e+23
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-6-19",
@@ -2064,24 +2120,32 @@
       "formula": "=PY_PRINTF(\"%x\",1e-05)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         1e-05
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-7-18",
       "formula": "=PY_PRINTF(\"%c\",1e-05)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         1e-05
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-7-19",
@@ -2328,24 +2392,32 @@
       "formula": "=PY_PRINTF(\"%x\",0.0001)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         0.0001
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-8-18",
       "formula": "=PY_PRINTF(\"%c\",0.0001)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         0.0001
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-8-19",
@@ -2592,24 +2664,32 @@
       "formula": "=PY_PRINTF(\"%x\",1e+16)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         1e+16
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-9-18",
       "formula": "=PY_PRINTF(\"%c\",1e+16)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         1e+16
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-9-19",
@@ -2856,24 +2936,32 @@
       "formula": "=PY_PRINTF(\"%x\",1e+17)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         1e+17
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-10-18",
       "formula": "=PY_PRINTF(\"%c\",1e+17)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         1e+17
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-10-19",
@@ -3120,24 +3208,32 @@
       "formula": "=PY_PRINTF(\"%x\",0.9999999999999999)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         0.9999999999999999
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-11-18",
       "formula": "=PY_PRINTF(\"%c\",0.9999999999999999)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         0.9999999999999999
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-11-19",
@@ -3384,24 +3480,32 @@
       "formula": "=PY_PRINTF(\"%x\",5e-324)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         5e-324
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-12-18",
       "formula": "=PY_PRINTF(\"%c\",5e-324)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         5e-324
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-12-19",
@@ -3648,24 +3752,32 @@
       "formula": "=PY_PRINTF(\"%x\",1.7976931348623157e+308)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%x",
       "arguments": [
         1.7976931348623157e+308
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-13-18",
       "formula": "=PY_PRINTF(\"%c\",1.7976931348623157e+308)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         1.7976931348623157e+308
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "number-13-19",
@@ -3780,12 +3892,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"hello\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "hello"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-1-0",
@@ -3864,12 +3980,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"Zażółć😀\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "Zażółć😀"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-2-0",
@@ -3948,12 +4068,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"a\tb\nc\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "a\tb\nc"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-4-0",
@@ -4032,12 +4156,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"a\u001fb\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "a\u001fb"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-5-0",
@@ -4116,12 +4244,16 @@
       "formula": "=PY_PRINTF(\"%c\",\" ​\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         " ​"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-6-0",
@@ -4200,12 +4332,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"a'b\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "a'b"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-7-0",
@@ -4284,12 +4420,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"a\\\"b\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "a\"b"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "string-8-0",
@@ -4368,12 +4508,16 @@
       "formula": "=PY_PRINTF(\"%c\",\"a'\\\"b\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         "a'\"b"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "other-0-0",
@@ -4644,48 +4788,64 @@
       "formula": "=PY_PRINTF(\"%#x\",A2)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%#x",
       "arguments": [
         null
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "other-2-5",
       "formula": "=PY_PRINTF(\"%#o\",A2)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%#o",
       "arguments": [
         null
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "other-2-6",
       "formula": "=PY_PRINTF(\"%#010x\",A2)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%#010x",
       "arguments": [
         null
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "other-2-7",
       "formula": "=PY_PRINTF(\"%c\",A2)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%c",
       "arguments": [
         null
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "other-2-8",
@@ -4736,12 +4896,16 @@
       "formula": "=PY_PRINTF(\"literal\",1.0)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "literal",
       "arguments": [
         1.0
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-4",
@@ -4801,26 +4965,34 @@
       "formula": "=PY_PRINTF(\"%*s\",4.0,\"x\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%*s",
       "arguments": [
         4.0,
         "x"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-9",
       "formula": "=PY_PRINTF(\"%.*f\",2.0,1.25)",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%.*f",
       "arguments": [
         2.0,
         1.25
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-10",
@@ -4839,10 +5011,14 @@
       "formula": "=PY_PRINTF(\"%q\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%q",
-      "arguments": []
+      "arguments": [],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-12",
@@ -4885,20 +5061,28 @@
       "formula": "=PY_PRINTF(\"%(x)s\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%(x)s",
-      "arguments": []
+      "arguments": [],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-16",
       "formula": "=PY_PRINTF(\"%(x\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%(x",
-      "arguments": []
+      "arguments": [],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-17",
@@ -4917,12 +5101,16 @@
       "formula": "=PY_PRINTF(\"%s%s\",\"only\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%s%s",
       "arguments": [
         "only"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "holdout-0",
@@ -9321,22 +9509,30 @@
       "formula": "=PY_PRINTF(\"%5%\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%5%",
-      "arguments": []
+      "arguments": [],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-holdout-7",
       "formula": "=PY_PRINTF(\"%(x\",\"a\")",
       "expected": {
         "kind": "error",
-        "value": "#VALUE!"
+        "value": "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)"
       },
       "format": "%(x",
       "arguments": [
         "a"
-      ]
+      ],
+      "sampleExpected": {
+        "kind": "error",
+        "value": "#VALUE!"
+      }
     },
     {
       "id": "grammar-holdout-8",
@@ -9413,9 +9609,9 @@
       ]
     }
   ],
-  "recordedAt": "2026-09-22T20:06:56.114614+00:00",
+  "recordedAt": "2026-09-22T20:14:51.393862+00:00",
   "candidate": {
-    "baseHead": "d93fad371dec70670096bd208c1945b029d2bd4a",
+    "baseHead": "e9b4ad2de29d52dc63f0d2d44e5bb865cbc05a08",
     "files": [
       {
         "path": "packages/ssconvert/src/formulas/functions/registry.ts",
@@ -9423,7 +9619,7 @@
       },
       {
         "path": "packages/ssconvert/src/formulas/functions/python-printf.ts",
-        "sha256": "1291e98ef461ebaf5b934c30d148c7c26f5d82f6d3f39e9dc7063ad8a07bf719"
+        "sha256": "2d6b9c385c0f1d430b0a863442900cc201573ccf276ef7a68190b84e5061355e"
       },
       {
         "path": "packages/ssconvert/src/formulas/functions/python-printf-profile.ts",
@@ -9443,7 +9639,7 @@
       },
       {
         "path": "packages/ssconvert/src/formulas/python-printf.test.ts",
-        "sha256": "87274eb25f4bacc6929c7a5fdcf428690e88dd246f911fa07c4afaf136f5c9b9"
+        "sha256": "8f6b28da93c3dc3391397ca48e747b3772eef50822e626a995c17f49a990b8d4"
       }
     ]
   },
@@ -9469,11 +9665,10 @@
   "checks": {
     "maintainedWorkspace": {
       "command": "npm test --workspace=@poe-code/ssconvert",
+      "passed": 7341,
       "testFiles": 334,
-      "passed": 7291,
       "failures": 0,
-      "logSha256": "7a65feb360d7235ba327f4549992a162cef4cb905687258a04c1838644cc3234",
-      "scope": "All runtime changes; subsequent comment-only edit and extra formatting-work/cancellation regression verified by focused790-case route"
+      "logSha256": "7d3ea8e931e5d2205bff7b868bd32e4a888541c8764ea0cef24779863e485b98"
     },
     "focused": {
       "passed": 806,
@@ -9487,12 +9682,13 @@
     },
     "lint": {
       "command": "npm run lint --workspace=@poe-code/ssconvert",
-      "status": "passed eslint and public/test type consumers"
+      "status": "passed eslint,test/public type consumers",
+      "logSha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
     },
     "build": {
       "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
-      "status": "passed maintained selected closure",
-      "logSha256": "5650689317b7ddbacf048d5c5324de1f812c583f46afdd96e2a2727ae125987f"
+      "status": "passed selected maintained closure",
+      "logSha256": "5bc5e3f35650bb77583ef3ff0c773e614414d30173aef93ee702272cc50f1716"
     }
   },
   "public": {
@@ -9506,7 +9702,7 @@
     "caseCount": 784,
     "rows": 784,
     "mismatches": [],
-    "outputSha256": "f00e5ca5c3cbecf3b8747b7685c7e1cfe927c4e098ca14e87786ef0e3e4e1b19"
+    "outputSha256": "ba471e1690ae0fe45830aebea42d3e2b70bee7f5e6c7067d212de57dab39b036"
   },
   "portable": {
     "profile": "Chromium154.0.8037.0/Playwright1246; platformbrowser es2022 isolated public-command bundle; same module in dedicated worker",
@@ -9530,7 +9726,7 @@
     },
     "bundle": {
       "path": "out/ssconvert-gap-resolution/browser/ssconvert.js",
-      "sha256": "c4ff15bbc92bf5caf4f373d18b0461f2b971e11425113e9b650f3cfed2d56b6b"
+      "sha256": "8508ddcfbb877514eaba79dcdceb721024792dbc27c940108134515cef649e4e"
     },
     "bindings": "Explicit read-only memory QA filesystem; no product native/runtime fallback. Initial harness used unsupported operation.stdin rather than explicit filesystem binding; corrected; both final executions exit0."
   },
@@ -10020,12 +10216,13 @@
         ]
       }
     ],
-    "harnessCorrections": "One combined formula cohort replaces absent A2 with absent $Z$10000 to avoid cross-case references; control31 string is constructed with CHAR(31) because XML1.0 refuses raw control31. Native control XML emitted with ns0prefix produced empty output despite executing functions; regenerated with captured gnmprefix produced seven rows. Failed observations are not passes."
+    "harnessCorrections": "One combined formula cohort replaces absent A2 with absent $Z$10000 to avoid cross-case references; control31 string is constructed with CHAR(31) because XML1.0 refuses raw control31. Native control XML emitted with ns0prefix produced empty output despite executing functions; regenerated with captured gnmprefix produced seven rows. Failed observations are not passes.",
+    "comparisonStage": "Initial pre-reconciliation port; mismatches and counts are historical against sampleExpected,not the current cases.expected"
   },
   "screenshots": [
     {
       "path": "out/ssconvert-gap-resolution/python-printf-public.png",
-      "sha256": "e276ee74e055d982e39ff165bf679cefbc3dbef7eedc8273f45dbb5e9880dce6",
+      "sha256": "d92f581dda16f0e74abd237e68f188ff5a391eb47e86f7ac945ee254f9a1ad1e",
       "inspected": true
     },
     {
@@ -10036,13 +10233,87 @@
   ],
   "remaining": [
     "Required Python RangeRef representation: native tp_name RangeRef has default address-bearing repr; two actual runs differ. Product refusal is explicit; need a justified compatibility contract,not invented host pointers.",
-    "49/784 activated-native exception-profile mismatches: native wraps GnumericErrorVALUE in Python exception (<class Gnumeric.GnumericError>: #VALUE!) while authenticated sample/sentinel port returns #VALUE!. Keep native-profile and function-family obligations open until reconciled.",
     "Additional Python activation,older profiles/registration behavior and full public packed-artifact qualification remain required.",
     "All remaining plan ledger families and successful containing GitHub publication remain required."
   ],
   "delivery": {
     "localCommit": null,
-    "remoteMain": "pending atomic delivery",
-    "publication": "pending containing Release"
+    "remoteMain": "native-exception-repair pending atomic delivery; initial scalar/array implementation e9b4ad2de verified remote-main",
+    "publication": "pending containing release"
+  },
+  "reconciliation": {
+    "initialDelivery": {
+      "localCommit": "e9b4ad2de29d52dc63f0d2d44e5bb865cbc05a08",
+      "remoteMain": "verified on origin/main,contained by adac4ea070ac6501a57c20fb6caaaf99d5716af0",
+      "publication": "Release35778341040 cancelled; successor35778422560 pending; prior Paradox Release35775387387 active,build/audit/checks/cached-unit/bash2/3/4 pass,unit/bash1 active"
+    },
+    "red": {
+      "failures": 49,
+      "controlsPassed": 790,
+      "sha256": "7a99ad0c0e104b13fa26657dad757861a0297e754436d2325a9544651716d768"
+    },
+    "green": {
+      "printf": 839,
+      "optionalRuntime": 17,
+      "passed": 856,
+      "sha256": "d61e74d935b3a0cbc79befd89d0ed5e6c619d6dc237151d26129773005fe739f"
+    },
+    "profiles": [
+      {
+        "python": "3.14.7",
+        "exitCode": 0,
+        "cases": 784,
+        "matches": 784,
+        "mismatches": [],
+        "inputSha256": "275b19dc53f9f8d7caa2ee53732d1d035af2940451d83a74305f24c28e2848ef",
+        "outputSha256": "ba471e1690ae0fe45830aebea42d3e2b70bee7f5e6c7067d212de57dab39b036",
+        "pluginSha256": "9029e31a906af2c4f253dc3a1b3ebbc2e2dc430d578fb57edadf796581b95123",
+        "diagnostics": {
+          "sha256": "fb4221a1b62695c1f11584a708803e53660d30f1a4f64888bbd5adf741ad50f7",
+          "messages": [
+            {
+              "message": "go_conf_add_monitor: assertion 'node || key' failed",
+              "count": 25
+            },
+            {
+              "message": "go_conf_get_node: assertion 'parent || key' failed",
+              "count": 25
+            },
+            {
+              "message": "unknown GOConfMonitor id.",
+              "count": 25
+            }
+          ]
+        }
+      },
+      {
+        "python": "3.12.13",
+        "exitCode": 0,
+        "cases": 784,
+        "matches": 784,
+        "mismatches": [],
+        "inputSha256": "275b19dc53f9f8d7caa2ee53732d1d035af2940451d83a74305f24c28e2848ef",
+        "outputSha256": "ba471e1690ae0fe45830aebea42d3e2b70bee7f5e6c7067d212de57dab39b036",
+        "pluginSha256": "14624af767322b6ba329c5dfd4b92d2ef9002188ea80229452fcb98766c88293",
+        "diagnostics": {
+          "sha256": "f0335e240801e99bcd83831ac495296d45fa5f2c261997db293525bfb5303a4f",
+          "messages": [
+            {
+              "message": "go_conf_add_monitor: assertion 'node || key' failed",
+              "count": 25
+            },
+            {
+              "message": "go_conf_get_node: assertion 'parent || key' failed",
+              "count": 25
+            },
+            {
+              "message": "unknown GOConfMonitor id.",
+              "count": 25
+            }
+          ]
+        }
+      }
+    ],
+    "method": "Unmodified native1.12.61 plugin activated separately with Python3.12.13 and3.14.7; same49 generic GnumericError wrappers on both. Original49 source-sentinel expectations are immutable sampleExpected. Product adopts observed wrappers after original49 failing native regressions; native.mismatches remains historical pre-reconciliation evidence."
   }
 }

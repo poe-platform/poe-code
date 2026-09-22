@@ -13,6 +13,10 @@ const calculate = (formula: string, overrides: Partial<CapabilityContext> = {}) 
 it.each(proof.cases)("formats exact independent Python case $id", fixture => {
   expect(calculate(fixture.formula)).toEqual(fixture.expected);
 });
+it.each(proof.native.mismatches)("matches activated native exception case $id", fixture => {
+  const original = proof.cases.find(row => row.id === fixture.id)!;
+  expect(calculate(original.formula)).toEqual({ kind: "error", value: fixture.actual });
+});
 it("preserves optional activation and refuses explosive precision before output", () => {
   expect(calculate('=PY_PRINTF("%s","Ada")', { runtimeFunctions: {} })).toEqual({ kind: "error", value: "#NAME?" });
   expect(() => calculate('=PY_PRINTF("%.999999f",1)', { limits: { ...context.limits, outputBytes: 100 } }))
@@ -21,7 +25,7 @@ it("preserves optional activation and refuses explosive precision before output"
 
 it("retains source loader zero-argument and error-to-None behavior", () => {
   expect(calculate('=PY_PRINTF()')).toEqual({ kind: "error", value: "Python exception (<class 'TypeError'>: func_printf() missing 1 required positional argument: 'format')" });
-  expect(calculate('=PY_PRINTF(17,1)')).toEqual({ kind: "error", value: "#VALUE!" });
+  expect(calculate('=PY_PRINTF(17,1)')).toEqual({ kind: "error", value: "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)" });
   const diagnostics: string[] = [];
   // Error values are Python None rather than propagated by the native node function.
   const result = recalculateWorkbook({ sheets: [{ id: "s", name: "Sheet1", cells: [

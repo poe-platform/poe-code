@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T20:06:56.114614+00:00",
+  "recordedAt": "2026-09-22T20:14:51.393862+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -479,18 +479,18 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded optional scalar/column-major-array port passes784 independent Python cases and exact builtSDK/Shell/checkpoint/browser/worker bytes; required RangeRef representation and49 activated-native exception-profile differences remain unresolved.",
+      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7; builtSDK/Shell/checkpoint/browser/worker bytes exact. Required RangeRef representation and wider-profile qualification remain unresolved.",
       "proof": [
         {
           "path": "docs/ssconvert/python-printf-gap-proof.json",
           "kind": "executed-source-oracle-and-activated-native-profile",
-          "outcome": "790 focusedprintf,17 runtime controls;7291 maintained tests,lint/type consumers/build; Unicode printable profile1114112/1114112; native735/784,49 explicit differences."
+          "outcome": "7341 maintained tests,839printf/17runtime focused,lint/types/build; native784/784 on two profiles; original49 red exception cases repaired with old sentinel values retained. RangeRef refusal remains open."
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "e9b4ad2de29d52dc63f0d2d44e5bb865cbc05a08",
+        "remoteMain": "initial scalar/array port verified on origin/main; subsequent native-exception fix pending delivery",
+        "publication": "e9b4ad2de Release cancelled; containing successor35778422560 queued; publication not yet verified"
       }
     },
     {
@@ -665,7 +665,7 @@
     }
   ],
   "pythonPrintfCandidate": {
-    "baseHead": "d93fad371dec70670096bd208c1945b029d2bd4a",
+    "baseHead": "e9b4ad2de29d52dc63f0d2d44e5bb865cbc05a08",
     "files": [
       {
         "path": "packages/ssconvert/src/formulas/functions/registry.ts",
@@ -673,7 +673,7 @@
       },
       {
         "path": "packages/ssconvert/src/formulas/functions/python-printf.ts",
-        "sha256": "1291e98ef461ebaf5b934c30d148c7c26f5d82f6d3f39e9dc7063ad8a07bf719"
+        "sha256": "2d6b9c385c0f1d430b0a863442900cc201573ccf276ef7a68190b84e5061355e"
       },
       {
         "path": "packages/ssconvert/src/formulas/functions/python-printf-profile.ts",
@@ -693,7 +693,7 @@
       },
       {
         "path": "packages/ssconvert/src/formulas/python-printf.test.ts",
-        "sha256": "87274eb25f4bacc6929c7a5fdcf428690e88dd246f911fa07c4afaf136f5c9b9"
+        "sha256": "8f6b28da93c3dc3391397ca48e747b3772eef50822e626a995c17f49a990b8d4"
       }
     ]
   }

@@ -124,7 +124,9 @@ function decimalFloat(value: number, kind: string, precision: number, alternate:
 export function pythonPrintf(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   if (!args.length) return { kind: "error", value: "Python exception (<class 'TypeError'>: func_printf() missing 1 required positional argument: 'format')" };
   const values = args.map(value => pythonValue(value, host)), format = values[0];
-  if (typeof format !== "string") return { kind: "error", value: "#VALUE!" };
+  // Activated 1.12.61 loaders on CPython 3.12 and 3.14 wrap the sample's
+  // GnumericError rather than recognizing it in py_exc_to_string.
+  if (typeof format !== "string") return { kind: "error", value: "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)" };
   const chars = Array.from(format), limit = host.context.limits.outputBytes;
   let result = "", used = 0, bytes = 0;
   const append = (text: string) => {
@@ -215,6 +217,6 @@ export function pythonPrintf(args: readonly (Value | undefined)[], host: Functio
     return boundedText(result.split("\0", 1)[0]!, host);
   } catch (error) {
     if (!(error instanceof PythonFormatError)) throw error;
-    return { kind: "error", value: error.type === "TypeError" ? "#VALUE!" : `Python exception (<class '${error.type}'>: ${error.message})` };
+    return { kind: "error", value: error.type === "TypeError" ? "Python exception (<class 'Gnumeric.GnumericError'>: #VALUE!)" : `Python exception (<class '${error.type}'>: ${error.message})` };
   }
 }

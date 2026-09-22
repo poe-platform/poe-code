@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T18:09:53.825877+00:00",
+  "recordedAt": "2026-09-22T18:29:26.457101+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -308,9 +308,9 @@
           "path": "docs/ssconvert/biff-name-marker-gap-proof.json",
           "outcome": "Seven original red/green regressions;9 own/6381 maintained tests, lint/types/build pass.18 native/public imports and18 BIFF readbacks exact, no SDK warnings or nonconfiguration native stderr, readable screenshot inspected. Broader names remain open.",
           "delivery": {
-            "localCommit": null,
-            "remoteMain": null,
-            "publication": null
+            "localCommit": "166c165c4e594dbf2ec4384938462e1954c022a9",
+            "remoteMain": "Exact ls-remote main verified after push",
+            "publication": "Release35765441617 active; build/audit passed, unit/checks/Bash gates active; earlier containing releases cancelled"
           }
         }
       ],
@@ -323,7 +323,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "current refusal; native tries VelvetSweatshop; standalone stderr context supplies NULL for arbitrary password request; applicability/SDK secret contract pending",
+      "currentFinding": "Default native-password BIFF7/8 XOR gap reproduced and repaired. Seven encrypted inputs independently decrypt byte-identically;14 native/public imports and14 plaintext BIFF readbacks exact,2 native/public wrong-verifier refusals preserve targets. Explicit secret/password contracts, RC4/CryptoAPI, ancillary streams/writing, further versions and profiles remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -334,6 +334,16 @@
           "kind": "upstream-command-context",
           "path": "src/command-context-stderr.c:83",
           "outcome": "native standalone command returns NULL from password acquisition; arbitrary GUI password support is not standalone CLI evidence"
+        },
+        {
+          "kind": "BIFF7/8-default-password-XOR-decoding",
+          "path": "docs/ssconvert/biff-xor-gap-proof.json",
+          "outcome": "Original7red,16 own/6397 maintained tests pass; lint/types/build pass. Primary crypto/XLS specifications,7 independent byte-identical decryptions,14 exact native/public imports and14 native/public plaintext readbacks;2 matching target-preserving native/public refusals, screenshots inspected. Remaining encryption families open.",
+          "delivery": {
+            "localCommit": null,
+            "remoteMain": null,
+            "publication": null
+          }
         }
       ],
       "delivery": {

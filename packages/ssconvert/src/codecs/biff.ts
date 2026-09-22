@@ -1,6 +1,7 @@
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup } from "../workbook.js";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
+import { decryptBiffRecords } from "./biff-encryption.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
 import { biffOpcodes } from "./biff-source.js";
@@ -79,6 +80,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   if (!records[0] || !bofOpcodes.has(records[0].opcode)) invalidBiff("missing BOF");
   const override = biffOverrideCodepage(encoding);
   let codepage = override ?? 1252, ver = revision(records[0]), dateSystem: "1900" | "1904" = "1900";
+  decryptBiffRecords(records, ver, context);
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];
@@ -148,7 +150,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     const sheet = scope.sheet;
     if (sheet) sheet.records.push(record);
     if (![5, 0x10, 0x40, 0x100].includes(scope.type)) { await retain(record, unsupported, false); continue; }
-    if (opcode === 0x2f) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook");
+    if (opcode === 0x2f) continue;
     if (opcode === 0x42 && scope.type === 5) { codepage = data.u16(0); continue; }
     if (opcode === 0x22) { dateSystem = data.u16(0) ? "1904" : "1900"; continue; }
     if (opcode === 0xd) { calculationMode = data.u16(0) === 0 ? "manual" : "automatic"; continue; }

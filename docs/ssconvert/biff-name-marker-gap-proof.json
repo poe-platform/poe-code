@@ -887,8 +887,8 @@
     "Ordinary modern self0xfffe cell-reference applicability remains unqualified; no new support claimed."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "166c165c4e594dbf2ec4384938462e1954c022a9",
+    "remoteMain": "Exact ls-remote main verified after push",
+    "publication": "Release35765441617 active; build/audit passed, unit/checks/Bash gates active; earlier containing releases cancelled"
   }
 }

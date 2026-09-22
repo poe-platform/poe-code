@@ -19,6 +19,11 @@ replace service bindings. Native ssconvert is a separate QA oracle, never a
 product dependency or fallback. Listed services do not establish complete
 format, version, record, formula, numerical or rendering fidelity.
 
+BIFF7/8 XOR-obfuscated Excel workbooks using the native reader's built-in
+`VelvetSweatshop` password open automatically. Conversion exports plaintext.
+XOR provides no data authentication. Other passwords and RC4/CryptoAPI remain
+unsupported; no ambient password acquisition or native fallback occurs.
+
 ```ts
 import { createEngine } from "poe-code/ssconvert";
 const engine = createEngine({

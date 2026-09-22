@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:38:25.034721+00:00",
+  "recordedAt": "2026-09-22T16:45:48.274760+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -90,6 +90,18 @@
       {
         "path": "packages/ssconvert/src/codecs/odf.test.ts",
         "sha256": "43d70a4eb420314ae90daf2a06451ef8f8f88a05ed91beeb2b0506d3094201fb"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+        "sha256": "9665941cb5555c99d5b9883e5318fe1a5af024ee9ff6d4fccb024332fc9e3754"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff.ts",
+        "sha256": "589a897254ccba188776d24dde2a2d8daa929ec3c6da1ad8999efb027f1d696b"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-local-spans.test.ts",
+        "sha256": "958c7a544d6a33a79cb9f4bf280943e1e2028345d2114e2055b61d4c182f08bb"
       }
     ]
   },
@@ -197,8 +209,15 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "explicit current refusals; per-token applicability and repair pending",
-      "proof": [],
+      "currentFinding": "BIFF8 local Ref3D/Area3D sheet spans repaired; 13 focused tests and four native/public CLI cells pass. BIFF7 scopes, deleted tokens and true external books remain open.",
+      "proof": [
+        {
+          "kind": "independent-BIFF8-local-span-repair",
+          "path": "docs/ssconvert/biff-local-span-gap-proof.json",
+          "outcome": "original red4/green13; maintained6292 tests, lint/types/build pass; native/public CLI four exact CSV cells; screenshot inspected",
+          "delivery": "local candidate, pending atomic commit/push and publication"
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,

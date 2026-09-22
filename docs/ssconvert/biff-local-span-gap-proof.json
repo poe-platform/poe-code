@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-22T16:45:48.274760+00:00",
+  "status": "local-BIFF8-span-cell-verified; broader BIFF family open",
+  "baseline": "f44068158d371c8d75e8dc1f9d1fc53debe51702",
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+      "sha256": "9665941cb5555c99d5b9883e5318fe1a5af024ee9ff6d4fccb024332fc9e3754"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff.ts",
+      "sha256": "589a897254ccba188776d24dde2a2d8daa929ec3c6da1ad8999efb027f1d696b"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-local-spans.test.ts",
+      "sha256": "958c7a544d6a33a79cb9f4bf280943e1e2028345d2114e2055b61d4c182f08bb"
+    }
+  ],
+  "reference": {
+    "version": "Gnumeric 1.12.61",
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "binarySha256": "f5c5b2888d7cea27a48cb2becfab259f0429c6ded629f79f69aceb683bbf720e",
+    "profile": "Darwin arm64, existing ledger dependency profile; configuration-monitor criticals/warnings captured, no clean full-profile claim",
+    "source": "plugins/excel/ms-formula-read.c:883-900,1785-1844; plugins/excel/ms-excel-read.c:6247-6288"
+  },
+  "reproduction": {
+    "fixture": "Original in-memory framed BIFF8 records, self SUPBOOK and EXTERNSHEET endpoints; Ref3D and Area3D in both directions; stale numeric cache 999",
+    "before": "4 failing span-import tests; single-sheet and invalid/unbound controls pass",
+    "after": "13 original tests pass: 4 span imports, single-sheet control, 4 forced recalculations, quoting/work/truncation, invalid endpoints and unbound workbook refusal",
+    "writerNormalization": "one-cell sheet span canonicalizes to Area3D A1:A1; semantic endpoints retained"
+  },
+  "nativeFixtureConstruction": "Original framed BIFF8 stream bytes stored in each inputHex; BOF16, BOUNDSHEET absolute offsets, self SUPBOOK and EXTERNSHEET, two sheets with A1 values 1 and 2; SUM(span), A3 cache 999. No product formula writer used. BOUNDSHEET records precede native link resolution.",
+  "discardedHarnessAttempt": "Initial manual fixture placed EXTERNSHEET before BOUNDSHEET; native resolved undeclared sheets to current sheet, giving 1. Reordered same-size globals without changing offsets; correct declarations produce 3. This was fixture construction, not product/native mismatch. Unknown explicit xml_sax exporter was replaced by native default .gnumeric exporter.",
+  "cases": [
+    {
+      "first": 0,
+      "last": 1,
+      "token": 58,
+      "inputSha256": "4af5b8e73fd1b33ec07d132e20a0eb7ca8c30bf8492ca683abe3ff7c32d85863",
+      "inputHex": "0908100000060500bb0dcc07000000000600000085000a004800000000000200533185000a0097000000000002005332ae010400020001041700080001000000000001000a0000000908100000061000bb0dcc07000000000600000003020e00000000000000000000000000f03f060021000200000000000000000000388f400000000000000b003a000000000000220104000a0000000908100000061000bb0dcc07000000000600000003020e0000000000000000000000000000400a000000",
+      "nativeExit": 0,
+      "nativeCsv": "1\n\n3\n",
+      "nativeStderrSha256": "9f68bb8ef4e556cab07dd9209760ad66bee6985a2bf5db1da5d862814d6c79b7",
+      "sdkExit": 0,
+      "sdkCsv": "1\n\n3\n",
+      "sdkStderr": ""
+    },
+    {
+      "first": 1,
+      "last": 0,
+      "token": 58,
+      "inputSha256": "99487f1709e8b3753516d3cad0e6312ea54a9c5875be5b2a80964779190bffad",
+      "inputHex": "0908100000060500bb0dcc07000000000600000085000a004800000000000200533185000a0097000000000002005332ae010400020001041700080001000000010000000a0000000908100000061000bb0dcc07000000000600000003020e00000000000000000000000000f03f060021000200000000000000000000388f400000000000000b003a000000000000220104000a0000000908100000061000bb0dcc07000000000600000003020e0000000000000000000000000000400a000000",
+      "nativeExit": 0,
+      "nativeCsv": "1\n\n3\n",
+      "nativeStderrSha256": "7cd76be917cce5d734cdfefb1988355c853d0a8b15029ac3a3cb104d4add3ff7",
+      "sdkExit": 0,
+      "sdkCsv": "1\n\n3\n",
+      "sdkStderr": ""
+    },
+    {
+      "first": 0,
+      "last": 1,
+      "token": 59,
+      "inputSha256": "181d400497e4b742705160c1e9de76955e5af2b26a6809556a54812afd5ed8f0",
+      "inputHex": "0908100000060500bb0dcc07000000000600000085000a004800000000000200533185000a009b000000000002005332ae010400020001041700080001000000000001000a0000000908100000061000bb0dcc07000000000600000003020e00000000000000000000000000f03f060025000200000000000000000000388f400000000000000f003b00000000010000000100220104000a0000000908100000061000bb0dcc07000000000600000003020e0000000000000000000000000000400a000000",
+      "nativeExit": 0,
+      "nativeCsv": "1\n\n3\n",
+      "nativeStderrSha256": "b5c7e2c08fa2878866903fc2972ee3abf959b3100f5db067c9dfa545ea4f9f28",
+      "sdkExit": 0,
+      "sdkCsv": "1\n\n3\n",
+      "sdkStderr": ""
+    },
+    {
+      "first": 1,
+      "last": 0,
+      "token": 59,
+      "inputSha256": "0bdaef1bd2e424988ce4e7544c6078fd9da68283020099539c596132a7c9a4aa",
+      "inputHex": "0908100000060500bb0dcc07000000000600000085000a004800000000000200533185000a009b000000000002005332ae010400020001041700080001000000010000000a0000000908100000061000bb0dcc07000000000600000003020e00000000000000000000000000f03f060025000200000000000000000000388f400000000000000f003b00000000010000000100220104000a0000000908100000061000bb0dcc07000000000600000003020e0000000000000000000000000000400a000000",
+      "nativeExit": 0,
+      "nativeCsv": "1\n\n3\n",
+      "nativeStderrSha256": "93048470e373bbc7366ad7804b1d71aac6b76a09dbf1bc4137150ab9966ad34b",
+      "sdkExit": 0,
+      "sdkCsv": "1\n\n3\n",
+      "sdkStderr": ""
+    }
+  ],
+  "checks": {
+    "focused": "npx vitest run packages/ssconvert/src/codecs/biff-local-spans.test.ts: 13 passed",
+    "maintainedTest": "npm test --workspace=@poe-code/ssconvert: 318 files,6292 tests passed",
+    "maintainedLint": "npm run lint --workspace=@poe-code/ssconvert: eslint, runtime/test/consumer TypeScript passed",
+    "selectedBuild": "npm run build:workspaces -- --workspace=@poe-code/ssconvert: passed",
+    "publicCLI": "rebuilt SDK runCommand --recalc -T Gnumeric_stf:stf_csv /input.xls fd://1: four exits0, empty stderr, byte-exact native CSV",
+    "visual": "ad hoc CLI-output screenshot inspected; four readable cases, output3, exact native CSV and empty stderr"
+  },
+  "remaining": [
+    "BIFF7 local 3D scope/table semantics",
+    "deleted sheet/reference tokens",
+    "external workbook and detached-sheet records",
+    "other applicable token classes",
+    "final integrated gates and publication"
+  ]
+}

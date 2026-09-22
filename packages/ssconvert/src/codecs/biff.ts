@@ -355,7 +355,12 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     const ai = boundSheets.findIndex(sheet => sheet.offset === a.offset), bi = boundSheets.findIndex(sheet => sheet.offset === b.offset);
     return ai < 0 || bi < 0 ? a.offset - b.offset : ai - bi;
   });
-  const externalSheets = externalReferences.map(ref => supbooks[ref.book] && ref.first === ref.last ? sheets[ref.first]?.name : undefined);
+  const externalSheets = externalReferences.map(ref => {
+    if (!supbooks[ref.book]) return undefined;
+    const first = sheets[ref.first]?.name, last = sheets[ref.last]?.name;
+    if (first === undefined || last === undefined) return undefined;
+    return ref.first === ref.last ? first : [first, last] as const;
+  });
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, names: names.map(name => name.name), externalSheets: revision >= 8 ? externalSheets : legacyExternalSheets,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });

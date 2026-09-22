@@ -10,7 +10,7 @@ export interface BiffFormulaContext {
   readonly row: number;
   readonly column: number;
   readonly names: readonly string[];
-  readonly externalSheets: readonly (string | undefined)[];
+  readonly externalSheets: readonly (string | readonly [string, string] | undefined)[];
   readonly limit: number;
 }
 const binaryOperators: Readonly<Record<number, readonly [string, number]>> = {
@@ -99,7 +99,8 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const sheet = context.externalSheets[data.u16(offset)]; offset += 2;
       if (sheet === undefined) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
       const ref = token === 0x3a ? reference(offset, false) : area(offset, false); offset += token === 0x3a ? 4 : 8;
-      push("'" + sheet.split("'").join("''") + "'!" + ref);
+      const endpoints = typeof sheet === "string" ? [sheet] : sheet;
+      push(endpoints.map(name => "'" + name.split("'").join("''") + "'").join(":") + "!" + ref);
     } else if (token === 0x26 || token === 0x27 || token === 0x28) { data.check(offset, 6); offset += 6; }
     else if (token === 0x29) { data.check(offset, 2); offset += 2; }
     else throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: BIFF formula token 0x${raw.toString(16)}`);

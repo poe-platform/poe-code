@@ -190,7 +190,7 @@ function interactiveFixture(limits = {}) {
 test('help preserves retained sessions and literal help-like action values', async () => {
   const fixture = interactiveFixture();
   try {
-    const result = await fixture.shell.exec('playwright-cli open; playwright-cli snapshot; playwright-cli --help; playwright-cli fill e3 -- --help; playwright-cli press -- --help');
+    const result = await fixture.shell.exec('playwright-cli open; playwright-cli snapshot; playwright-cli --help; playwright-cli fill e1 -- --help; playwright-cli press -- --help');
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(fixture.events, ['acquire', 'fill:0:0:--help', 'handle:dispose', 'press:--help']);
   } finally { await fixture.shell.dispose(); }
@@ -221,9 +221,9 @@ test('actual shell invokes snapshot, quoted ref actions, streams, statuses, and 
   const f = interactiveFixture(); await f.fs.mkdir('/work');
   const middleware: string[] = [];
   f.shell.use(async (context, next) => { if (context.command === 'playwright-cli') middleware.push(context.args.join('|')); return await next(); });
-  const result = await f.shell.exec(`playwright-cli open; playwright-cli snapshot | cat > refs; playwright-cli click e4; playwright-cli fill e5 'a "quote"; $(literal)'; playwright-cli press 'Control+Enter'; playwright-cli tab-new https://example.com; playwright-cli tab-list; playwright-cli tab-select 0; playwright-cli tab-close 1`);
+  const result = await f.shell.exec(`playwright-cli open; playwright-cli snapshot | cat > refs; playwright-cli click e2; playwright-cli fill e1 'a "quote"; $(literal)'; playwright-cli press 'Control+Enter'; playwright-cli tab-new https://example.com; playwright-cli tab-list; playwright-cli tab-select 0; playwright-cli tab-close 1`);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.match(new TextDecoder().decode(await f.fs.readFile('/work/refs')), /Same.*ref=e4/);
+  assert.match(new TextDecoder().decode(await f.fs.readFile('/work/refs')), /Same.*ref=e2/);
   assert.ok(f.events.includes('click:0:1'));
   assert.ok(f.events.includes('fill:0:0:a "quote"; $(literal)'));
   assert.ok(f.events.includes('press:Control+Enter'));
@@ -294,14 +294,14 @@ test('navigation, dynamic DOM, external tabs and session generations invalidate 
   const detached = await f.shell.exec('playwright-cli click e1');
   assert.equal(detached.exitCode, 1); assert.match(detached.stderr, /stale/);
   f.dom[0]!.connected = true; f.dom[0]!.name = 'Changed';
-  const next = await run('playwright-cli snapshot'); assert.match(next.stdout, /Changed.*e5/);
+  const next = await run('playwright-cli snapshot'); assert.match(next.stdout, /Changed.*e1/);
   await f.pages[0]!.goto('https://external.example');
   assert.equal((await f.shell.exec('playwright-cli click e3')).exitCode, 1);
   await run('playwright-cli snapshot; playwright-cli goto https://example.com');
-  assert.equal((await f.shell.exec('playwright-cli click e5')).exitCode, 1);
+  assert.equal((await f.shell.exec('playwright-cli click e3')).exitCode, 1);
   await run('playwright-cli snapshot');
   f.pages.push(f.pages[0]!); // Fake host-observed tab change.
-  assert.equal((await f.shell.exec('playwright-cli click e7')).exitCode, 1); f.pages.pop();
+  assert.equal((await f.shell.exec('playwright-cli click e5')).exitCode, 1); f.pages.pop();
   await run('playwright-cli close; playwright-cli open; playwright-cli snapshot');
   assert.equal((await f.shell.exec('playwright-cli click e1')).exitCode, 1);
   assert.equal(f.events.filter(event => event.startsWith('click:')).length, 0);
@@ -331,7 +331,7 @@ test('borrowed mutable tab arrays cannot hide external tab changes from snapshot
   assert.match(stale.stderr, /stale/);
   assert.equal(f.events.some(event => event.startsWith('click:')), false);
   f.pages.pop();
-  const refreshed = await f.shell.exec('playwright-cli snapshot; playwright-cli click e5');
+  const refreshed = await f.shell.exec('playwright-cli snapshot; playwright-cli click e3');
   assert.equal(refreshed.exitCode, 0, refreshed.stderr);
   await f.shell.dispose();
 });
@@ -371,4 +371,26 @@ test('initial snapshot limits retire failed opens; tab limits leave established 
   assert.equal(tab.exitCode, 1); assert.match(tab.stderr, /limit/); assert.equal(f.pages.length, 1);
   assert.equal((await f.shell.exec('playwright-cli tab-list')).exitCode, 0);
   await f.shell.dispose();
+});
+
+test('separate shell calls retain refs across snapshot, find, actions and screenshot export', async () => {
+  const f = interactiveFixture();
+  await f.fs.mkdir('/work');
+  try {
+    for (const command of [
+      'open', 'snapshot', 'fill e1 value', 'click e2', 'find Same',
+      'fill e1 next', 'snapshot', 'click e2', 'screenshot --filename=/work/capture.png',
+    ]) {
+      const result = await f.shell.exec(`playwright-cli ${command}`);
+      assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+    }
+    assert.deepEqual([...await f.fs.readFile('/work/capture.png')], [...f.bytes]);
+    assert.equal(f.events.filter(event => event === 'acquire').length, 1);
+    assert.equal(f.events.filter(event => event.startsWith('click:')).length, 2);
+    assert.equal(f.events.filter(event => event.startsWith('fill:')).length, 2);
+    const raw = await f.shell.exec('playwright-cli --json snapshot --filename=current.yml');
+    assert.equal(raw.exitCode, 0, raw.stderr);
+    assert.deepEqual(JSON.parse(raw.stdout).snapshot, { file: 'current.yml' });
+    assert.match(new TextDecoder().decode(await f.fs.readFile('/work/current.yml')), /ref=e1/);
+  } finally { await f.shell.dispose(); }
 });

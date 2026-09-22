@@ -189,3 +189,17 @@ test('ambiguous native references retire every acquired handle without selecting
   await assert.rejects(f.engine.resolve('e102'), /stale/);
   assert.equal(disposed, 2);
 });
+
+test('native refs survive repeated text and JSON snapshots until navigation invalidates them', async () => {
+  const f = fixture();
+  const first = await f.engine.capture(f.page);
+  await f.engine.resolve('e102');
+  assert.equal(await f.engine.capture(f.page), first);
+  await f.engine.resolve('e102');
+  f.page.ariaSnapshotJSON = async () => [{ role: 'button', ref: 'e2', name: 'Save' }];
+  assert.deepEqual(await f.engine.captureJSON(f.page), [{ role: 'button', ref: 'e102', name: 'Save' }]);
+  await f.engine.resolve('e102');
+  await f.engine.invalidate();
+  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  assert.equal(f.disposed, 1);
+});

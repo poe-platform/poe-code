@@ -17,6 +17,7 @@ export interface FrameSnapshotCapsule {
   readonly nodes: readonly SnapshotNode[];
   readonly status: FrameSnapshotStatus;
   readonly count: number;
+  readonly identities: readonly number[];
   render(refs: readonly string[]): FrameSnapshotRenderResult;
 }
 
@@ -33,6 +34,16 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     status: 'ok' as FrameSnapshotStatus,
     count: 0,
     nodes,
+    get identities() {
+      const key = Symbol.for('@poe-platform/safe-bash/snapshot-nodes');
+      const host = globalThis as unknown as Record<symbol, { nodes: WeakMap<object, number>; sequence: number }>;
+      const state = host[key] ??= { nodes: new WeakMap(), sequence: 0 };
+      return nodes.map(node => {
+        let id = state.nodes.get(node);
+        if (id === undefined) { id = ++state.sequence; state.nodes.set(node, id); }
+        return id;
+      });
+    },
     render(refs: readonly string[]): FrameSnapshotRenderResult {
       if (capsule.status !== 'ok') return { status: capsule.status, text: '' };
       const byteLimit = {};

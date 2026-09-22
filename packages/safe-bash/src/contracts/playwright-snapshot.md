@@ -1,13 +1,17 @@
 # Adapter snapshots
 
 Snapshots retain candidate DOM nodes in a browser-side capsule. Only bounded
-status, count and rendered text cross the transport; actions unwrap the retained
+status, count, node identities and rendered text cross the transport; actions unwrap the retained
 node for a ref, not a fresh name-based locator. Renaming or duplicate names do not
 change ref identity. A failed capture publishes no partial snapshot or refs.
 
 Unrelated iframe navigation preserves refs to unchanged documents. Main-frame
-navigation, tab selection, snapshot replacement and cold restoration invalidate
-the snapshot. Refs to disconnected nodes or navigated child documents fail on
+navigation, tab selection and cold restoration invalidate the snapshot. Repeated
+snapshots, find operations and action-result snapshots preserve refs for unchanged
+nodes in the current capture. Native snapshots preserve refs while the provider
+keeps the same native identity; a provider-issued replacement ref gets a new
+controller ref. Removed nodes lose their refs, and refreshed capsules
+replace and dispose previous capsules without accumulating retained snapshots. Refs to disconnected nodes or navigated child documents fail on
 resolution; they never select a replacement node by its name. Adapters without
 frame navigation metadata conservatively invalidate the whole snapshot.
 

@@ -12,7 +12,7 @@ function fixture(text = '- button "Save" [ref=e1]\n') {
     async evaluate<Result>(callback: (value: SnapshotNode) => Result) { events.push('native-evaluate'); return callback(node); },
     async click() { events.push('click'); }, async fill() { events.push('fill'); }, async dispose() { events.push('native-dispose'); },
   };
-  const capsule: FrameSnapshotCapsule = { nodes: [node], count: 1, status: 'ok', render: () => ({ status: 'ok', text }) };
+  const capsule: FrameSnapshotCapsule = { nodes: [node], identities: [1], count: 1, status: 'ok', render: () => ({ status: 'ok', text }) };
   const handle = {
     async evaluate<Result, Arg>(callback: (value: FrameSnapshotCapsule, arg: Arg) => Result, arg: Arg) { return callback(capsule, arg); },
     async evaluateHandle(callback: (value: FrameSnapshotCapsule, slot: number) => SnapshotNode | undefined, slot: number) {

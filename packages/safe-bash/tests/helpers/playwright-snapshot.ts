@@ -1,4 +1,4 @@
-import { runInNewContext } from 'node:vm';
+import { createContext, runInContext } from 'node:vm';
 import type { PlaywrightElementHandle, PlaywrightSnapshotHandle, SnapshotNode } from '../../src/playwright/adapter.js';
 import type { FrameSnapshotCapsule, FrameSnapshotInput } from '../../src/playwright/frame-snapshot.js';
 
@@ -9,11 +9,12 @@ export function createSnapshotFrame(elements: readonly { node: SnapshotNode; nat
   const capsules: PlaywrightSnapshotHandle[] = [];
   const disposedCapsules: PlaywrightSnapshotHandle[] = [];
   const acquiredElements: PlaywrightElementHandle[] = [];
+  const document = { body: { innerText: content }, querySelectorAll: () => elements.map(element => element.node) };
+  const realm = createContext({ document, TextEncoder });
   const frame = {
     locator() { throw new Error('Snapshot locator fallback forbidden'); },
     async evaluateHandle(callback: (input: FrameSnapshotInput) => FrameSnapshotCapsule, input: FrameSnapshotInput): Promise<PlaywrightSnapshotHandle> {
-      const document = { body: { innerText: content }, querySelectorAll: () => elements.map(element => element.node) };
-      const create = runInNewContext(`(${callback.toString()})`, { document, TextEncoder }) as typeof callback;
+      const create = runInContext(`(${callback.toString()})`, realm) as typeof callback;
       const capsule = create(input);
       const handle: PlaywrightSnapshotHandle = {
         async evaluate(callback, argument) { return structuredClone(callback(capsule, argument)); },

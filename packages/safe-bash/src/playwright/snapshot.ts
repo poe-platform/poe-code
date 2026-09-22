@@ -1,4 +1,4 @@
-import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle, PlaywrightSnapshotJSONCapture } from './adapter.js';
+import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle, PlaywrightSnapshotJSONCapture, PlaywrightFrame } from './adapter.js';
 import { createFrameSnapshot } from './frame-snapshot.js';
 import { captureNativePlaywrightSnapshot } from './native-snapshot.js';
 import { captureNativePlaywrightJSON } from './native-json-snapshot.js';
@@ -10,6 +10,8 @@ type SnapshotReference = {
   readonly kind: 'capsule';
   readonly capsule: PlaywrightSnapshotHandle;
   readonly slot: number;
+  readonly frame: PlaywrightFrame;
+  readonly identity: number;
   native?: PlaywrightElementHandle;
 } | { readonly kind: 'native'; readonly page: PlaywrightPage; readonly ref: string; native?: PlaywrightElementHandle };
 
@@ -87,25 +89,50 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       await retire([]);
     }
   };
+  const nativeRefIssuer = (page: PlaywrightPage) => {
+    const existing = new Map<string, string>();
+    for (const [issued, entry] of refs) if (entry.kind === 'native' && entry.page === page) existing.set(entry.ref, issued);
+    return (native?: string) => (native === undefined ? undefined : existing.get(native)) ?? nextRef?.() ?? `e${++sequence}`;
+  };
+  const publish = async (pending: Map<string, SnapshotReference>, acquired: Set<SnapshotResource>) => {
+    const old = [...resources];
+    refs.clear(); resources.clear();
+    for (const [ref, entry] of pending) {
+      refs.set(ref, entry);
+      if (entry.native) acquired.add(entry.native);
+    }
+    for (const resource of acquired) resources.add(resource);
+    acquired.clear();
+    const discarded = old.filter(resource => !resources.has(resource));
+    if (actions) for (const resource of discarded) deferredHandles.add(resource);
+    else await retire(discarded);
+  };
+  const publishNative = async (page: PlaywrightPage, captured: Map<string, string>) => {
+    const pending = new Map<string, SnapshotReference>();
+    for (const [issued, ref] of captured) {
+      const previous = refs.get(issued);
+      pending.set(issued, previous?.kind === 'native' && previous.page === page && previous.ref === ref ? previous : { kind: 'native', page, ref });
+    }
+    await publish(pending, new Set());
+  };
   const capture = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = {}): Promise<string> => captureStable(async options => {
     signal?.throwIfAborted();
     if (!page.ariaSnapshot && !page._snapshotForAI && (options.root || options.depth || options.boxes)) throw new Error('Native snapshot options unsupported by this browser');
     if (page.ariaSnapshot || page._snapshotForAI) {
-      await invalidate();
       const capturedEpoch = epoch;
       const captured = await captureNativePlaywrightSnapshot(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
-        nextRef: nextRef ?? (() => `e${++sequence}`), ...(signal ? { signal } : {}),
+        nextRef: nativeRefIssuer(page), ...(signal ? { signal } : {}),
         ...options,
       });
       signal?.throwIfAborted();
       if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
-      for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
+      await publishNative(page, captured.refs);
+      if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
       return captured.text;
     }
     if (typeof page.frames !== 'function') throw new Error('Snapshot engine unsupported: public frame evaluation required');
     const frames = page.frames();
     if (frames.some(frame => typeof frame.evaluateHandle !== 'function')) throw new Error('Snapshot engine unsupported: public frame evaluation required');
-    await invalidate();
     const capturedEpoch = epoch;
     const acquired = new Set<SnapshotResource>();
     const pending = new Map<string, SnapshotReference>();
@@ -120,14 +147,17 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         });
         acquired.add(capsule);
         signal?.throwIfAborted();
-        const admission = await capsule.evaluate(value => ({ status: value.status, count: value.count }), undefined);
+        const admission = await capsule.evaluate(value => ({ status: value.status, count: value.count, identities: value.identities }), undefined);
         if (admission.status === 'ref-limit' || admission.count > maxSnapshotRefs - pending.size) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
         if (admission.status !== 'ok' || !Number.isSafeInteger(admission.count) || admission.count < 0) throw new Error('Snapshot capture failed');
+        const existing = new Map<number, string>();
+        for (const [issued, entry] of refs) if (entry.kind === 'capsule' && entry.frame === frame) existing.set(entry.identity, issued);
         const frameRefs: string[] = [];
         for (let slot = 0; slot < admission.count; slot++) {
-          const ref = nextRef?.() ?? `e${++sequence}`;
+          const identity = admission.identities[slot]!;
+          const ref = existing.get(identity) ?? nextRef?.() ?? `e${++sequence}`;
           frameRefs.push(ref);
-          pending.set(ref, { kind: 'capsule', capsule, slot });
+          pending.set(ref, { kind: 'capsule', capsule, slot, frame, identity });
         }
         signal?.throwIfAborted();
         const rendered = await capsule.evaluate((value, frameRefs) => value.render(frameRefs), frameRefs);
@@ -140,8 +170,8 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       }
       signal?.throwIfAborted();
       if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
-      for (const resource of acquired) resources.add(resource);
-      for (const [ref, reference] of pending) refs.set(ref, reference);
+      await publish(pending, acquired);
+      if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
       return text;
     } catch (error) {
       try { await retire([...acquired]); }
@@ -150,7 +180,10 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       }
       throw error;
     }
-  }, options, signal);
+  }, options, signal).catch(async error => {
+    try { await invalidate(); } catch (cleanup) { throw new AggregateError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
+    throw error;
+  });
   const resolve = async (ref: string, timeout = 5000): Promise<PlaywrightElementHandle> => {
     const reference = refs.get(ref);
     if (!reference) throw new Error(`Unknown or stale snapshot ref: ${ref}; snapshot again`);
@@ -207,15 +240,18 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     return reference.native;
   };
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture } = {}) => captureStable(async options => {
-    await invalidate();
     const capturedEpoch = epoch;
     const captured = await captureNativePlaywrightJSON(page, { maxBytes: maxSnapshotBytes, maxRefs: maxSnapshotRefs,
-      nextRef: nextRef ?? (() => `e${++sequence}`), ...(signal ? { signal } : {}), ...options });
+      nextRef: nativeRefIssuer(page), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
-    for (const [issued, ref] of captured.refs) refs.set(issued, { kind: 'native', page, ref });
+    await publishNative(page, captured.refs);
+    if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
     return captured.tree;
-  }, options, signal);
+  }, options, signal).catch(async error => {
+    try { await invalidate(); } catch (cleanup) { throw new AggregateError([...(error instanceof AggregateError ? error.errors : [error]), ...(cleanup instanceof AggregateError ? cleanup.errors : [cleanup])], 'Snapshot capture and cleanup failed'); }
+    throw error;
+  });
   return { capture, captureJSON, resolve, invalidate, withReferences, nativeSelector(ref: string): string | undefined {
     const reference = refs.get(ref);
     return reference?.kind === 'native' ? `aria-ref=${reference.ref}` : undefined;

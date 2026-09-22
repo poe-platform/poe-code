@@ -4,7 +4,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 /** Use the pinned provider's own accessibility tree; externally issued refs stay
  * scoped to the controller even when native engines reuse short e1-style IDs. */
 export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, options: {
-  maxBytes: number; maxRefs: number; nextRef(): string; signal?: AbortSignal;
+  maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number;
 }): Promise<{ text: string; refs: Map<string, string> }> {
   options.signal?.throwIfAborted();
@@ -85,7 +85,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     let issued = nativeRefs.get(native);
     if (!issued) {
       if (refs.size >= options.maxRefs) throw new PlaywrightResourceLimitError('Snapshot ref limit exceeded');
-      issued = options.nextRef();
+      issued = options.nextRef(native);
       nativeRefs.set(native, issued); refs.set(issued, native);
     }
     text += snapshot.slice(start, index + 5) + issued;

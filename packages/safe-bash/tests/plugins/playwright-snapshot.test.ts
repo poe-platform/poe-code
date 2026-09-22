@@ -219,3 +219,16 @@ test('cancelled snapshots stop admission before public handle acquisition', asyn
   await assert.rejects(engine.capture(f.page, abort.signal), /snapshot cancelled/);
   assert.deepEqual(f.actions, []);
 });
+
+test('capsule refs survive repeated snapshots and actions without retaining old capsules', async () => {
+  const f = contentFixture([{ textContent: 'Save' }], '');
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
+  const first = await engine.capture(f.page);
+  await (await engine.resolve('e1')).click();
+  assert.equal(await engine.capture(f.page), first);
+  await (await engine.resolve('e1')).fill('value');
+  assert.equal(f.snapshot.disposedCapsules.length, 1);
+  await engine.invalidate();
+  assert.equal(f.snapshot.disposedCapsules.length, 2);
+  await assert.rejects(engine.resolve('e1'), /stale/);
+});

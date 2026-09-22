@@ -4,7 +4,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 
 /** Serialize the native accessibility tree, keeping controller-issued refs. */
 export async function captureNativePlaywrightJSON(page: PlaywrightPage, options: {
-  maxBytes: number; maxRefs: number; nextRef(): string; signal?: AbortSignal;
+  maxBytes: number; maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture;
 }): Promise<{ tree: readonly PlaywrightSnapshotJSONNode[]; refs: Map<string, string> }> {
   const signal = options.signal ?? new AbortController().signal;
@@ -58,7 +58,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
     return nodes.map(node => {
       const { children, ref, ...fields } = node;
       let scoped = ref === undefined ? undefined : issued.get(ref);
-      if (ref !== undefined && scoped === undefined) { scoped = options.nextRef(); issued.set(ref, scoped); refs.set(scoped, ref); }
+      if (ref !== undefined && scoped === undefined) { scoped = options.nextRef(ref); issued.set(ref, scoped); refs.set(scoped, ref); }
       return { ...fields, ...(scoped === undefined ? {} : { ref: scoped }),
         ...(children?.length && (!options.depth || depth < options.depth) ? { children: rewrite(children, depth + 1) } : {}),
       };

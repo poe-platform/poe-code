@@ -2309,8 +2309,25 @@
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": "Pending"
-  }
+    "localCommit": "6c73f8c950b8654fbf1154493b5ac99e1db106de",
+    "remoteMain": "Verified exact origin/main after normal push/rebase",
+    "publication": "Containing Release35790262247 pending"
+  },
+  "candidateSourceReceipts": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/perl-sed.ts",
+      "bytes": 19275,
+      "sha256": "5375254e7b8ad6b889ce6ddcd4b2d354a8d0674a2565e7a805752507dba9e5bd"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/perl-sed.test.ts",
+      "bytes": 5981,
+      "sha256": "3ee42dbf34b455b9ada7e92c071b6248b487ea69c13fc6d56df5f097b49e4b7d"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+      "bytes": 1823,
+      "sha256": "3be64ff19fe9de199ed1b91db045037b6708c3a391bc1a85f37c67c85fec3a98"
+    }
+  ]
 }

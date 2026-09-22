@@ -512,9 +512,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "2106b0fd1ead20921c82a71ed53b5ce5acabb83e",
-        "remoteMain": "Capture/backreference commit verified; cipher declaration repair81390f7c0 verified separately",
-        "publication": "Containing successor pending; root cipher declaration failure repaired, actual full root build stillrunning."
+        "localCommit": "6c73f8c950b8654fbf1154493b5ac99e1db106de",
+        "remoteMain": "Latest lookbehind/capture/substitution commits verified on origin/main; separate cipher runtime declaration81390f7c0 verified and normal root build/bundle passes.",
+        "publication": "Containing Release35790262247 pending; monitor through successful publication."
       }
     },
     {

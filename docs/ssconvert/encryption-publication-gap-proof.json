@@ -43,7 +43,7 @@
     "packageLint": "All18maintained package lint rules pass",
     "focusedBundle": "3maintained bundle/public SDK worker controls pass",
     "actualConsumerPolicy": "Current source bundled in memory through maintained consumer graph; old manifest reproduces exact cipher undeclared-dependency, new manifest has zero undeclared-dependency issues. Other artifact rules not claimed passed by this focused control.",
-    "normalRootBuild": "Running; native workspace dependencies rebuilt. Not a completed root/full-candidate gate.",
+    "normalRootBuild": "Maintained npm run build completed successfully, including declared workspace/native dependency closure, root schema/type/bin stages and full bundle publication policy. Build ran during continuous local/main progress; final frozen-candidate/root/packed/registry qualification remains open.",
     "harnessCorrection": "First direct policy call used array instead of maintained Set packed-files argument; corrected helper, no product edit."
   },
   "receipts": [
@@ -71,11 +71,16 @@
       "path": "out/ssconvert-gap-resolution/root-ciphers-bundle-tests.log",
       "bytes": 416,
       "sha256": "155395159e4aef94fba7cb854346d44b0780dbeb01fae4c2dfe9fdf4e3749994"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/root-ciphers-build.log",
+      "bytes": 40692,
+      "sha256": "39a0aca741dac139db37c719866c1212eb9d6bab6b6488eb1943c3b69da6fcf1"
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": "Monitor containing release after atomic push; no success claimed"
+    "localCommit": "81390f7c048a54269b7ba8bf059376eeea2dcc67",
+    "remoteMain": "Verified normal push; contained by6c73f8c950b8654fbf1154493b5ac99e1db106de",
+    "publication": "Containing Release35790262247 pending; previous pre-fix35789637737 stillbuilding. No successful publication inferred."
   }
 }

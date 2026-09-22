@@ -81,5 +81,923 @@
       "bytes": 416,
       "sha256": "7299a4ad772369dd59c1ce07d459be100e04359d3c2941d7d3e9845fc9f84372"
     }
-  ]
+  ],
+  "finalOlderContainingRun": {
+    "run": 35790563033,
+    "head": "7f03b497f",
+    "status": "completed",
+    "conclusion": "failure",
+    "freshUnit": "success",
+    "buildAuditCachedUnitChecks": "success",
+    "bash1And2": "success",
+    "bash3And4": "failure:both retained assertions already repaired on remote main by81b134aa0/6c94bcf59",
+    "publication": "skipped, no release claim",
+    "receipt": {
+      "conclusion": "failure",
+      "jobs": [
+        {
+          "completedAt": "2026-09-22T22:20:13Z",
+          "conclusion": "success",
+          "databaseId": 106957747325,
+          "name": "validate / build",
+          "startedAt": "2026-09-22T22:11:49Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:11:51Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:11:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:07Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:11:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:07Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:12:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:28Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:12:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:04Z",
+              "conclusion": "success",
+              "name": "Build workspace and CLI outputs",
+              "number": 5,
+              "startedAt": "2026-09-22T22:12:28Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:04Z",
+              "conclusion": "success",
+              "name": "Archive fresh build outputs",
+              "number": 6,
+              "startedAt": "2026-09-22T22:20:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:11Z",
+              "conclusion": "success",
+              "name": "Run actions/upload-artifact@v7.0.1",
+              "number": 7,
+              "startedAt": "2026-09-22T22:20:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:11Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 13,
+              "startedAt": "2026-09-22T22:20:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:11Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 14,
+              "startedAt": "2026-09-22T22:20:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:11Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15,
+              "startedAt": "2026-09-22T22:20:11Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106957747325"
+        },
+        {
+          "completedAt": "2026-09-22T22:13:42Z",
+          "conclusion": "success",
+          "databaseId": 106957747764,
+          "name": "validate / audit",
+          "startedAt": "2026-09-22T22:11:49Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:11:51Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:11:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:07Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:11:51Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:08Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:12:07Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:39Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:12:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:12:56Z",
+              "conclusion": "success",
+              "name": "Run npm audit signatures",
+              "number": 5,
+              "startedAt": "2026-09-22T22:12:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:13:36Z",
+              "conclusion": "success",
+              "name": "Run required lint stress tests",
+              "number": 6,
+              "startedAt": "2026-09-22T22:12:56Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:13:40Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 11,
+              "startedAt": "2026-09-22T22:13:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:13:40Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 12,
+              "startedAt": "2026-09-22T22:13:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:13:40Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 13,
+              "startedAt": "2026-09-22T22:13:40Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106957747764"
+        },
+        {
+          "completedAt": "2026-09-22T22:21:37Z",
+          "conclusion": "success",
+          "databaseId": 106961822707,
+          "name": "validate / unit-cached",
+          "startedAt": "2026-09-22T22:20:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:19Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:36Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:41Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:20:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:04Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:20:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:08Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:09Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:08Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:09Z",
+              "conclusion": "success",
+              "name": "Identify cache runtime",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:09Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:09Z",
+              "conclusion": "success",
+              "name": "Restore eligible unit task cache",
+              "number": 8,
+              "startedAt": "2026-09-22T22:21:09Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:34Z",
+              "conclusion": "success",
+              "name": "Run cache-eligible unit checks",
+              "number": 9,
+              "startedAt": "2026-09-22T22:21:09Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:35Z",
+              "conclusion": "success",
+              "name": "Post Restore eligible unit task cache",
+              "number": 16,
+              "startedAt": "2026-09-22T22:21:34Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:35Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 17,
+              "startedAt": "2026-09-22T22:21:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:35Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 18,
+              "startedAt": "2026-09-22T22:21:35Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:35Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 19,
+              "startedAt": "2026-09-22T22:21:35Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822707"
+        },
+        {
+          "completedAt": "2026-09-22T22:22:12Z",
+          "conclusion": "success",
+          "databaseId": 106961822810,
+          "name": "validate / checks",
+          "startedAt": "2026-09-22T22:20:16Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:18Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:36Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:40Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:20:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:06Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:20:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:10Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:11Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:01Z",
+              "conclusion": "success",
+              "name": "Smoke-test freshly built packed CLI",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:11Z",
+              "conclusion": "success",
+              "name": "Run npm run lint:packages",
+              "number": 8,
+              "startedAt": "2026-09-22T22:22:01Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:11Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 15,
+              "startedAt": "2026-09-22T22:22:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:11Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 16,
+              "startedAt": "2026-09-22T22:22:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:11Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-22T22:22:11Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822810"
+        },
+        {
+          "completedAt": "2026-09-22T23:17:50Z",
+          "conclusion": "success",
+          "databaseId": 106961822812,
+          "name": "validate / unit",
+          "startedAt": "2026-09-22T22:20:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:19Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:36Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:43Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:20:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:06Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:20:43Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:11Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:12Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:11Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:31Z",
+              "conclusion": "success",
+              "name": "Install Zsh for native completion tests",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:12Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:39Z",
+              "conclusion": "success",
+              "name": "Verify OP native tests before the full unit gate",
+              "number": 8,
+              "startedAt": "2026-09-22T22:21:31Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T23:17:46Z",
+              "conclusion": "success",
+              "name": "Run fresh unit and native checks",
+              "number": 9,
+              "startedAt": "2026-09-22T22:21:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T23:17:46Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 17,
+              "startedAt": "2026-09-22T23:17:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T23:17:46Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 18,
+              "startedAt": "2026-09-22T23:17:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T23:17:46Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 19,
+              "startedAt": "2026-09-22T23:17:46Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822812"
+        },
+        {
+          "completedAt": "2026-09-22T22:27:52Z",
+          "conclusion": "failure",
+          "databaseId": 106961822873,
+          "name": "validate / bash (3)",
+          "startedAt": "2026-09-22T22:20:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:19Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:06Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:10Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:21:06Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:36Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:21:10Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:39Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:36Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:40Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:39Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:13Z",
+              "conclusion": "success",
+              "name": "Run ./.github/actions/setup-bash-oracle",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:40Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:27:50Z",
+              "conclusion": "failure",
+              "name": "Run balanced Bash shard",
+              "number": 8,
+              "startedAt": "2026-09-22T22:22:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:27:50Z",
+              "conclusion": "skipped",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 15,
+              "startedAt": "2026-09-22T22:27:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:27:50Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 16,
+              "startedAt": "2026-09-22T22:27:50Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:27:50Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-22T22:27:50Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822873"
+        },
+        {
+          "completedAt": "2026-09-22T22:25:51Z",
+          "conclusion": "success",
+          "databaseId": 106961822882,
+          "name": "validate / bash (2)",
+          "startedAt": "2026-09-22T22:20:16Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:17Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:00Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:04Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:21:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:20Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:21:04Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:23Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:20Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:24Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:23Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:53Z",
+              "conclusion": "success",
+              "name": "Run ./.github/actions/setup-bash-oracle",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:49Z",
+              "conclusion": "success",
+              "name": "Run balanced Bash shard",
+              "number": 8,
+              "startedAt": "2026-09-22T22:21:53Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:49Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 15,
+              "startedAt": "2026-09-22T22:25:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:49Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 16,
+              "startedAt": "2026-09-22T22:25:49Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:49Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-22T22:25:49Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822882"
+        },
+        {
+          "completedAt": "2026-09-22T22:28:29Z",
+          "conclusion": "success",
+          "databaseId": 106961822897,
+          "name": "validate / bash (1)",
+          "startedAt": "2026-09-22T22:20:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:19Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:13Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:19Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:21:13Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:41Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:21:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:47Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:41Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:48Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:47Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:22:24Z",
+              "conclusion": "success",
+              "name": "Run ./.github/actions/setup-bash-oracle",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:48Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:28:25Z",
+              "conclusion": "success",
+              "name": "Run balanced Bash shard",
+              "number": 8,
+              "startedAt": "2026-09-22T22:22:24Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:28:25Z",
+              "conclusion": "success",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 15,
+              "startedAt": "2026-09-22T22:28:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:28:26Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 16,
+              "startedAt": "2026-09-22T22:28:25Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:28:26Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-22T22:28:26Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822897"
+        },
+        {
+          "completedAt": "2026-09-22T22:25:35Z",
+          "conclusion": "failure",
+          "databaseId": 106961822943,
+          "name": "validate / bash (4)",
+          "startedAt": "2026-09-22T22:20:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "completedAt": "2026-09-22T22:20:18Z",
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "startedAt": "2026-09-22T22:20:17Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:20:56Z",
+              "conclusion": "success",
+              "name": "Run actions/checkout@v7.0.1",
+              "number": 2,
+              "startedAt": "2026-09-22T22:20:18Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:00Z",
+              "conclusion": "success",
+              "name": "Run actions/setup-node@v7.0.0",
+              "number": 3,
+              "startedAt": "2026-09-22T22:20:56Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:16Z",
+              "conclusion": "success",
+              "name": "Run npm clean-install",
+              "number": 4,
+              "startedAt": "2026-09-22T22:21:00Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:19Z",
+              "conclusion": "success",
+              "name": "Download freshly verified build",
+              "number": 5,
+              "startedAt": "2026-09-22T22:21:16Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:19Z",
+              "conclusion": "success",
+              "name": "Restore freshly verified build",
+              "number": 6,
+              "startedAt": "2026-09-22T22:21:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:21:46Z",
+              "conclusion": "success",
+              "name": "Run ./.github/actions/setup-bash-oracle",
+              "number": 7,
+              "startedAt": "2026-09-22T22:21:19Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:33Z",
+              "conclusion": "failure",
+              "name": "Run balanced Bash shard",
+              "number": 8,
+              "startedAt": "2026-09-22T22:21:46Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:33Z",
+              "conclusion": "skipped",
+              "name": "Post Run actions/setup-node@v7.0.0",
+              "number": 15,
+              "startedAt": "2026-09-22T22:25:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:33Z",
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v7.0.1",
+              "number": 16,
+              "startedAt": "2026-09-22T22:25:33Z",
+              "status": "completed"
+            },
+            {
+              "completedAt": "2026-09-22T22:25:33Z",
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 17,
+              "startedAt": "2026-09-22T22:25:33Z",
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106961822943"
+        },
+        {
+          "completedAt": "2026-09-22T23:17:51Z",
+          "conclusion": "skipped",
+          "databaseId": 106977623511,
+          "name": "release-stable",
+          "startedAt": "2026-09-22T23:17:51Z",
+          "status": "completed",
+          "steps": [],
+          "url": "https://github.com/poe-platform/poe-code/actions/runs/35790563033/job/106977623511"
+        }
+      ],
+      "status": "completed"
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import type { BoundedCodec, BoundedCodecOptions } from "./bounded-codec.js";
 import type { RawCodecFactory } from "./native/types.js";
+import { profiles } from "./options.js";
 
 function unavailable(): never { throw new Error("codec attempted an unavailable host operation"); }
 
@@ -28,7 +29,8 @@ export async function createCodec(
   factory?: RawCodecFactory,
 ): Promise<BoundedCodec> {
   signal.throwIfAborted();
-  if (!Number.isInteger(options.level) || options.level < 1 || options.level > 9) throw new RangeError("invalid codec level");
+  const minimumLevel = profiles.find(profile => profile.format === options.format)?.minimumLevel ?? 1;
+  if (!Number.isInteger(options.level) || options.level < minimumLevel || options.level > 9) throw new RangeError("invalid codec level");
   const lzma = options.lzma;
   if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 8 * 1024 * 1024 ||
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||

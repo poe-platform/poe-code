@@ -49,7 +49,12 @@ API void bridge_destroy(void) {
  active=0;
 }
 API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window_log) {
- if(active||memory_limit<1024||memory_limit>64*1024*1024||level<1||level>9||window_log<10||window_log>26)return -1;
+#if defined(XZ)
+ if(level<0)return -1;
+#else
+ if(level<1)return -1;
+#endif
+ if(active||memory_limit<1024||memory_limit>64*1024*1024||level>9||window_log<10||window_log>26)return -1;
  limit=memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;active=1;int ok=0;
 #if defined(BZ)
  buffered=flush_remaining=0;flushing=0;memset(&s,0,sizeof(s));s.bzalloc=bzalloc;s.bzfree=release;

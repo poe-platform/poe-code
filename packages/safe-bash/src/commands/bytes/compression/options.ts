@@ -14,17 +14,17 @@ export interface CompressionOptions {
 }
 
 export const profiles = [
-  { format: "gzip", names: ["gzip", "gunzip", "zcat"], suffix: ".gz", level: 6, keep: false },
-  { format: "bzip2", names: ["bzip2", "bunzip2", "bzcat"], suffix: ".bz2", level: 9, keep: false },
-  { format: "xz", names: ["xz", "unxz", "xzcat"], suffix: ".xz", level: 3, keep: false },
-  { format: "zstd", names: ["zstd", "unzstd", "zstdcat"], suffix: ".zst", level: 3, keep: true },
+  { format: "gzip", names: ["gzip", "gunzip", "zcat"], suffix: ".gz", level: 6, minimumLevel: 1, keep: false },
+  { format: "bzip2", names: ["bzip2", "bunzip2", "bzcat"], suffix: ".bz2", level: 9, minimumLevel: 1, keep: false },
+  { format: "xz", names: ["xz", "unxz", "xzcat"], suffix: ".xz", level: 3, minimumLevel: 0, keep: false },
+  { format: "zstd", names: ["zstd", "unzstd", "zstdcat"], suffix: ".zst", level: 3, minimumLevel: 1, keep: true },
 ] as const;
 
 export type CompressionFormat = typeof profiles[number]["format"];
 
 const aliases: Readonly<Record<string, string>> = {
   stdout: "c", "to-stdout": "c", decompress: "d", uncompress: "d", keep: "k",
-  force: "f", test: "t", fast: "1", best: "9", "no-name": "n", help: "h", quiet: "q",
+  force: "f", test: "t", best: "9", "no-name": "n", help: "h", quiet: "q",
 };
 
 export function parseOptions(command: string, args: readonly string[]): CompressionOptions {
@@ -42,7 +42,8 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (argument === "--") { ended = true; continue; }
-    const flags = argument.startsWith("--") ? aliases[argument.slice(2)] : argument.slice(1);
+    const flags = argument === "--fast" ? String(profile.minimumLevel)
+      : argument.startsWith("--") ? aliases[argument.slice(2)] : argument.slice(1);
     if (!flags) throw new UsageError(`unrecognized option '${argument}'`);
     for (const flag of flags) {
       switch (flag) {
@@ -60,7 +61,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
           break;
         default:
-          if (flag >= "1" && flag <= "9") result.level = Number(flag);
+          if (flag >= String(profile.minimumLevel) && flag <= "9") result.level = Number(flag);
           else throw new UsageError(`invalid option -- '${flag}'`);
       }
     }

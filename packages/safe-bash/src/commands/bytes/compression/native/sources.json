@@ -215,18 +215,18 @@
   "artifacts": [
     {
       "path": "generated/bz2.mjs",
-      "bytes": 162421,
-      "sha256": "8fbdb2225125871fcb09b844defc914a5d180844b63c0082e27e72ab23981a13"
+      "bytes": 162419,
+      "sha256": "0cd7eeb531cd6c5f5a49bb9746114f070e7ffd19a17131f6615bb904532ff687"
     },
     {
       "path": "generated/xz.mjs",
-      "bytes": 204540,
-      "sha256": "2c5e7515eff57c3190815368f8624ae3ade54a0a8150744c3b5acdabd11d468b"
+      "bytes": 204537,
+      "sha256": "c43f55c550a9dd90eed50c1d657f70b80d946e57ac8a15b182298254afdefa3b"
     },
     {
       "path": "generated/zstd.mjs",
-      "bytes": 1184023,
-      "sha256": "9a16a396b8e364c2317f96277f1342fc35f8794d59674e2e8353ea55b61cfda3"
+      "bytes": 1184017,
+      "sha256": "82ddcfef222a639a942838ba3330bf24ce6ea314602eacda2d0a3921242d259f"
     }
   ],
   "profile": {

@@ -12,6 +12,10 @@ for (const [name, factory] of Object.entries({ bz2, xz, zstd })) {
   test(name + ' native bridge bounds, remainder, cleanup and isolation', () => {
     const codec = factory(wasi);
     codec._initialize?.();
+    assert.equal(codec.bridge_create(0, -1, 64 * 1024 * 1024, 23), -1);
+    assert.equal(codec.bridge_create(0, 0, 64 * 1024 * 1024, 23), name === 'xz' ? 0 : -1);
+    codec.bridge_destroy();
+    assert.equal(codec.bridge_used(), 0);
     const originalMemory = codec.memory.buffer;
     const grow: unknown = Reflect.get(codec.memory, 'grow');
     assert.equal(typeof grow, 'function');

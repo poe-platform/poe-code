@@ -58,13 +58,26 @@ it("accepts the output boundary, rejects one byte over, and charges normalized-a
   })).toThrow("work limit");
 });
 
-it("preserves caller cancellation reason and never hides unsupported Unicode in whitespace", () => {
+it("preserves caller cancellation reason and handles Unicode scalar and whitespace controls", () => {
   const controller = new AbortController(), reason = { cancelled: true };
   controller.abort(reason);
   try {
     calculate({ kind: "string", value: "HELLO" }, { signal: controller.signal });
     throw new Error("Expected cancellation");
   } catch (error) { expect(error).toBe(reason); }
-  for (const value of ["\u0085", "\u00a0", "\u2003", "\u0130", "\u00df", "\ud800"])
-    expect(() => calculate({ kind: "string", value })).toThrow("Unicode");
+  for (const [value, expected] of [
+    ["\u0085", ""], ["\u00a0", ""], ["\u2003", ""],
+    ["\u0130", "İ"], ["\u00df", "Ss"], ["\ud800", "\ud800"],
+    ["Α'Σ", "Α'ς"], ["1'Σ", "1'σ"], ["Α'Σ'Α", "Α'σ'α"]
+  ]) expect(calculate({ kind: "string", value: value! })).toEqual({ kind: "string", value: expected });
+});
+
+it("counts Unicode expansion bytes and keeps long sigma contexts within charged work", () => {
+  const limits = { inputBytes: 10000, outputBytes: 3, cells: 100, sheets: 10, operations: 1000 };
+  expect(calculate({ kind: "string", value: "Aİ" }, { limits: { ...limits, outputBytes: 4 } }))
+    .toEqual({ kind: "string", value: "Ai\u0307" });
+  expect(() => calculate({ kind: "string", value: "Aİ" }, { limits })).toThrow("text limit");
+  expect(() => calculate({ kind: "string", value: "ΑΣ" + "\u0301".repeat(1000) }, {
+    limits: { ...limits, outputBytes: 10000, workbookWork: 100 }
+  })).toThrow("work limit");
 });

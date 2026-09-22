@@ -135,6 +135,13 @@ The exported `perlSampleFunctions` binding includes `PERL_ADDER` and
 Supply the binding as `runtimeFunctions` to enable these names. Without it they
 remain absent. Matching activated native Perl-profile qualification is pending.
 
+`pythonSampleFunctions.PY_CAPWORDS` normalizes Python whitespace and capitalizes
+whole words using frozen CPython 3.14.2 Unicode 16.0.0 data, including titlecase
+expansions and contextual Greek sigma. Enable `pythonSampleFunctions` through
+`runtimeFunctions`. Non-ASCII command option values also need a UTF-8
+`CommandProfile.argumentEncoding`. Activated native Python-profile qualification
+remains pending.
+
 In `ConversionRequest`, `goalSeekExpressions` and `toolTest` use the built-in
 native-style protocols when no overriding binding is supplied. Structured
 `goalSeek` requests require `EngineConfig.solver`; structured `analysis` requests

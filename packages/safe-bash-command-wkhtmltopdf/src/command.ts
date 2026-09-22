@@ -39,6 +39,7 @@ export interface RenderedDocument extends Omit<ConversionCompletion, "mode"> {
 }
 
 export interface WkhtmltopdfCommandOptions {
+  readonly replace?: boolean;
   readonly limits: WkhtmltopdfLimits;
   /** Explicit trusted binding only. No renderer is supplied by this package. */
   readonly renderer?: StaticRenderer;
@@ -347,5 +348,5 @@ export const wkhtmltopdfCommand: CommandDefinition = createWkhtmltopdfCommand();
 
 export function wkhtmltopdfCommands(options: WkhtmltopdfCommandOptions = { limits: wkhtmltopdfLimits }): VirtualShellPlugin {
   const command = createWkhtmltopdfCommand(options);
-  return { name: "wkhtmltopdf-commands", setup(host) { host.commands.register(command); } };
+  return { name: "wkhtmltopdf-commands", setup(host) { host.commands.register(command, { replace: options.replace ?? false }); } };
 }

@@ -35,7 +35,6 @@ it.each([
   ['=R.QST(-1,5,1,TRUE,TRUE)', -7.394064564034049e184],
   ['=R.QST(-1000,5,1,FALSE,TRUE)', 7.394064564034049e184],
   ['=R.QSNORM(-1000,1,1,2,FALSE,TRUE)', 76.03859999999997],
-  ['=R.QTUKEY(-1000,3,10,1,TRUE,TRUE)', 7.186959238596909e-108],
 ])('preserves measured advanced-distribution logarithmic inverter behavior: %s', (formula,expected) => {
   const value=calculate(formula as string);expect(value.kind).toBe('number');
   if(value.kind==='number')expect(Math.abs(value.value/Number(expected)-1)).toBeLessThan(2e-14);

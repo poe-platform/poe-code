@@ -126,10 +126,15 @@ async function destinations(context: CommandContext, operands: readonly string[]
   return { target, directory, sources: operands.slice(0, -1) };
 }
 
+function childOperand(operand: string, name: string): string {
+  while (operand.endsWith("/")) operand = operand.slice(0, -1);
+  return `${operand}/${name}`;
+}
+
 async function copy(
   context: CommandContext, source: string, target: string,
   flags: ReadonlySet<string>, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
-  preflight = false,
+  preflight = false, displaySource = source, displayTarget = target,
 ): Promise<void> {
   context.signal.throwIfAborted();
   const link = await context.fs.lstat(source, { signal: context.signal });
@@ -164,7 +169,8 @@ async function copy(
     try {
       if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
       for (const entry of await readDirectory(context, source, true)) {
-        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight);
+        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight,
+          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name));
       }
     } finally { ancestors.delete(physicalSource); }
   } else if (preserveLink) {
@@ -207,7 +213,7 @@ async function copy(
       await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
   }
-  if (!preflight && flags.has("v")) await output(context, `'${escapeText(source, "display")}' -> '${escapeText(target, "display")}'\n`);
+  if (!preflight && flags.has("v")) await output(context, `'${escapeText(displaySource, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
 }
 
 function modeText(stat: FileStat): string {
@@ -300,7 +306,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
-        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target, parsed.flags, readDirectory);
+        const targetOperand = parsed.operands.at(-1)!;
+        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+          parsed.flags, readDirectory, true, new Set(), false, operand,
+          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
       });
     }),
     define("mv", async context => {

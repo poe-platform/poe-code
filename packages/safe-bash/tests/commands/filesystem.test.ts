@@ -307,6 +307,55 @@ test("touch creates without truncation, honors no-create and reference access/mo
   assert.equal((await fs.stat("/work/new")).size, 0);
 });
 
+for (const [source, target] of [
+  ["input", "output"],
+  ["./input", "./output"],
+  ["nested/../input", "nested/../output"],
+  ["/work/input", "/work/output"],
+]) {
+  test(`cp -v preserves operand spelling for ${source} -> ${target}`, async () => {
+    const fs = await fixture({ input: "a", "nested/keep": "kept" });
+    const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(agentCommands());
+    const result = await shell.exec(`cp -v ${source} ${target}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `'${source}' -> '${target}'\n`);
+    assert.deepEqual(await fs.readFile("/work/output"), new TextEncoder().encode("a"));
+  });
+}
+
+test("cp -v preserves destination directory spelling for multiple operands", async () => {
+  const fs = await fixture({ first: "one", second: "two", "out/keep": "kept" });
+  const result = await run("cp", ["-v", "./first", "second", "./out//"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "'./first' -> './out/first'\n'second' -> './out/second'\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/out/first")), "one");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/out/second")), "two");
+});
+
+test("cp -Rv preserves operand spelling for nested files and symlinks", async () => {
+  const fs = await fixture({ "source/deep/file": "payload" });
+  await fs.symlink("deep/file", "/work/source/link");
+  const result = await run("cp", ["-Rv", "./source/", "./destination"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout.trimEnd().split("\n").sort(), [
+    "'./source/' -> './destination'",
+    "'./source/deep' -> './destination/deep'",
+    "'./source/deep/file' -> './destination/deep/file'",
+    "'./source/link' -> './destination/link'",
+  ].sort());
+  assert.equal(await fs.readlink("/work/destination/link"), "deep/file");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/destination/deep/file")), "payload");
+});
+
+test("cp -nv stays silent when skipping an existing destination", async () => {
+  const fs = await fixture({ input: "new", output: "kept" });
+  const result = await run("cp", ["-nv", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "kept");
+});
+
 test("cp handles multiple files, no-clobber and same-inode protection", async () => {
   const fs = await fixture({ first: "one", second: "two", target: "keep" });
   await run("mkdir", ["out"], { fs });

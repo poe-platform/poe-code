@@ -14,7 +14,7 @@ it("starts the bundled spreadsheet SDK in a Worker without Node module initializ
     format: "iife",
     write: false,
   });
-  const worker: Record<string, unknown> = { TextEncoder, TextDecoder };
+  const worker: Record<string, unknown> = { TextEncoder, TextDecoder, atob };
   runInNewContext(result.outputFiles[0]!.text, worker);
   expect(worker.snapshot).toEqual({});
   expect(Object.isFrozen(worker.snapshot)).toBe(true);

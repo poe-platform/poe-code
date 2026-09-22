@@ -835,7 +835,8 @@ export function measureSandboxData(
     if (bindingRoot !== undefined) {
       seen.add(value);
       if ("value" in bindingRoot) visit(bindingRoot.value, depth);
-      else for (const entry of bindingRoot.values) visit(entry, depth);
+      else for (let index = 0; index < bindingRoot.values.length; index++)
+        visit(bindingRoot.values[index], depth);
       return;
     }
     assertSandboxDataDepth(depth);

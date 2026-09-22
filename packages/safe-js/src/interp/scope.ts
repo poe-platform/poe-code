@@ -6,7 +6,7 @@ import { builtinGlobalObjects, getIntrinsicIdentity, mutableBuiltinBindings } fr
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import type { SandboxObject } from "./values.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
 import { ScopeBindingMap, ScopeBindingSet } from "./scope-binding-storage.js";
 
 type ScopeBinding = {
@@ -33,6 +33,7 @@ type ScopeLookupResult =
     };
 
 const uninitialized = Symbol("uninitialized");
+const freezeAccountingRoot = Object.freeze;
 
 export type BindingReference =
   | {kind: "unresolvable"; name: string}
@@ -82,7 +83,7 @@ export class Scope {
   readonly #replacedBindings = new ScopeBindingSet<ScopeBinding>();
   readonly #restoredBindings: Map<string, InterpreterValue>;
   #frameHydrated = false;
-  #bindingDataRoots?: SandboxObject[];
+  #bindingDataRoot?: SandboxObject | null;
   #globalVarNames?: Set<string>;
   #globalVarNameValues?: string[];
 
@@ -202,7 +203,7 @@ export class Scope {
       if (remaining === binding) { aliased = true; break; }
     }
     if (!aliased) this.#replacedBindings.delete(binding);
-    this.#bindingDataRoots = undefined;
+    this.#bindingDataRoot = undefined;
     return true;
   }
 
@@ -299,8 +300,8 @@ export class Scope {
       if (this.importMeta !== undefined) values.push(this.importMeta);
       if (this.privateNames !== undefined) values.push(...this.privateNames.values());
     }
-    if (this.#bindingDataRoots === undefined) {
-      const roots: InterpreterValue[] = [];
+    if (this.#bindingDataRoot === undefined) {
+      const roots = new ScopeDataRootList();
       const bindings = this.options.chargeData === false ? this.#replacedBindings : this.#bindings.values();
       for (const binding of bindings) {
         const value = binding.value;
@@ -308,24 +309,25 @@ export class Scope {
         // Objects and symbols already have measurement identities. Only strings
         // and bigints need cell roots to preserve independent primitive charges.
         if (typeof value === "object" || typeof value === "symbol") {
-          roots.push(value);
+          roots.append(value);
           continue;
         }
         if (binding.accounting === undefined) {
-          const root = Object.freeze({});
+          const root = freezeAccountingRoot({});
           scopeDataRoots.set(root, {value});
           binding.accounting = {value, root};
         }
-        roots.push(binding.accounting.root);
+        roots.append(binding.accounting.root);
       }
-      this.#bindingDataRoots = [];
-      if (roots.length > 0) {
-        const group = Object.freeze({});
-        scopeDataRoots.set(group, {values: roots});
-        this.#bindingDataRoots.push(group);
+      const snapshot = roots.snapshot();
+      this.#bindingDataRoot = null;
+      if (snapshot.length > 0) {
+        const group = freezeAccountingRoot({});
+        scopeDataRoots.set(group, {values: snapshot});
+        this.#bindingDataRoot = group;
       }
     }
-    values.push(...this.#bindingDataRoots);
+    if (this.#bindingDataRoot !== null) values.push(this.#bindingDataRoot);
     return values;
   }
 
@@ -344,7 +346,7 @@ export class Scope {
     if (existing !== undefined) this.writeBindingValue(existing, value);
     else {
       this.#bindings.set(name, { __proto__: null, kind, value, ...options, accounting: undefined });
-      if (isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
+      if (isChargedBindingValue(value)) this.#bindingDataRoot = undefined;
     }
   }
 
@@ -405,7 +407,7 @@ export class Scope {
       ...(options?.deletable ? {deletable: true} : {}),
       value: options?.functionValue
     });
-    if (options !== undefined && isChargedBindingValue(options.functionValue)) this.#bindingDataRoots = undefined;
+    if (options !== undefined && isChargedBindingValue(options.functionValue)) this.#bindingDataRoot = undefined;
     if (options !== undefined) this.trackReplacement(name, this.#bindings.get(name)!);
   }
 
@@ -513,7 +515,7 @@ export class Scope {
       if (strict) throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
       binding = {__proto__: null, kind: "var", deletable: true, value};
       this.#bindings.set(name, binding);
-      this.#bindingDataRoots = undefined;
+      this.#bindingDataRoot = undefined;
       this.trackReplacement(name, binding);
       return;
     }
@@ -708,7 +710,7 @@ export class Scope {
     this.#globalVarNames = globalVarNames?.size ? globalVarNames : undefined;
     this.#globalVarNameValues = undefined;
     this.#frameHydrated = true;
-    this.#bindingDataRoots = undefined;
+    this.#bindingDataRoot = undefined;
   }
 
   copyInitializedBindingsFrom(source: Scope, names: readonly string[]): void {
@@ -728,7 +730,7 @@ export class Scope {
 
   private writeBindingValue(binding: ScopeBinding, value: InterpreterValue): void {
     if (!Object.is(binding.value, value)) {
-      if (isChargedBindingValue(binding.value) || isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
+      if (isChargedBindingValue(binding.value) || isChargedBindingValue(value)) this.#bindingDataRoot = undefined;
       // Release obsolete snapshots even without another accounting pass.
       binding.accounting = undefined;
     }
@@ -748,10 +750,10 @@ export class Scope {
     if (this.options.chargeData !== false || binding.kind === "const") return;
     const value = binding.value;
     if (typeof value === "object" && value !== null && getIntrinsicIdentity(value) === JSON.stringify([name])) {
-      if (this.#replacedBindings.delete(binding)) this.#bindingDataRoots = undefined;
+      if (this.#replacedBindings.delete(binding)) this.#bindingDataRoot = undefined;
     } else if (!this.#replacedBindings.has(binding)) {
       this.#replacedBindings.add(binding);
-      this.#bindingDataRoots = undefined;
+      this.#bindingDataRoot = undefined;
     }
   }
 

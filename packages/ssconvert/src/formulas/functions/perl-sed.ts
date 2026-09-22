@@ -12,7 +12,7 @@ type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "capture"; node: Node; index: number }
   | { kind: "atomic"; node: Node }
   | { kind: "reference"; indices: number[]; insensitive: boolean }
-  | { kind: "behind"; node: Node; negative: boolean; width: number }
+  | { kind: "behind"; node: Node; negative: boolean; min: number; max: number }
   | { kind: "assert"; node: Node; negative: boolean };
 const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
 const word = (byte: number) => byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 || byte === 95;
@@ -202,27 +202,28 @@ function compile(pattern: string, host: FunctionHost): Node {
     const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
     if (atomic) return node({ kind: "atomic", node: inner });
     if (assertion !== undefined) return behind
-      ? node({ kind: "behind", node: inner, negative: assertion, width: fixedWidth(inner) })
+      ? node({ kind: "behind", node: inner, negative: assertion, ...widthRange(inner) })
       : node({ kind: "assert", node: inner, negative: assertion });
     return capture === undefined ? inner : node({ kind: "capture", node: inner, index: capture });
   }
-  function fixedWidth(value: Node): number {
-    host.tick(); let width: number;
-    if (value.kind === "char") width = 1;
-    else if (value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") width = 0;
+  function widthRange(value: Node): { min: number; max: number } {
+    host.tick(); let min: number, max: number;
+    if (value.kind === "char") min = max = 1;
+    else if (value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") min = max = 0;
     else if (value.kind === "reference") return unsupported();
-    else if (value.kind === "capture" || value.kind === "atomic") width = fixedWidth(value.node);
+    else if (value.kind === "capture" || value.kind === "atomic") return widthRange(value.node);
     else if (value.kind === "repeat") {
-      if (value.min !== value.max) return unsupported();
-      width = fixedWidth(value.node) * value.min;
+      const width = widthRange(value.node);
+      min = width.min * value.min; max = width.max * value.max;
     } else if (value.kind === "sequence") {
-      width = 0; for (const child of value.nodes) width += fixedWidth(child);
+      min = max = 0;
+      for (const child of value.nodes) { const width = widthRange(child); min += width.min; max += width.max; }
     } else {
-      width = fixedWidth(value.nodes[0]!);
-      for (const child of value.nodes) if (fixedWidth(child) !== width) return unsupported();
+      min = Infinity; max = 0;
+      for (const child of value.nodes) { const width = widthRange(child); min = Math.min(min, width.min); max = Math.max(max, width.max); }
     }
-    if (width > 255) return unsupported();
-    return width;
+    if (!Number.isFinite(max) || max > 255) return unsupported();
+    return { min, max };
   }
   function integer(): number {
     let value = 0, count = 0;
@@ -318,10 +319,16 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
     if (result.done) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result.value, position };
   } else if (node.kind === "behind") {
-    if (position < node.width) { if (node.negative) yield state; return; }
-    const inner = match(node.node, source, { ...state, position: position - node.width }, host);
     let result: MatchState | undefined;
-    for (const candidate of inner) if (candidate.position === position) { result = candidate; break; }
+    for (let width = Math.min(position, node.max); width >= node.min; width--) {
+      host.tick();
+      // The qualified Perl 5.34 experimental profile tries longest starts
+      // first without constraining the inner match's end to this position.
+      // Captures can therefore extend into the forward source.
+      const inner = match(node.node, source, { ...state, position: position - width }, host);
+      const first = inner.next(); inner.return(undefined);
+      if (!first.done) { result = first.value; break; }
+    }
     if (result === undefined) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result, position };
   } else if (node.kind === "alternative") { for (const child of node.nodes) yield* match(child, source, state, host); }

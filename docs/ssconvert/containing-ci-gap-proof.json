@@ -1,0 +1,85 @@
+{
+  "scope": "Two CI Bash shard failures repaired by updating obsolete test expectations; delivered command behavior retained.",
+  "validatedCI": {
+    "run": 35790563033,
+    "head": "7f03b497f02631cc75220c12390bc2ca0730bcc1",
+    "bash3": "diagnostic-display expects @ on long symlink operand; current GNU-compatible implementation applies indicators to target.",
+    "bash4": "core-regression-stress expects -b/--tag to refuse, contradicting supported options delivered by138a94a40.",
+    "csvformat": "One numeric/null serialization observation is explicitly NodeTODO; not one of two fatal Bash4 failures. Broader csvkit gap not closed by this change."
+  },
+  "reproduction": {
+    "checksum": "8pass/2fail on current memory-source tests before repair.",
+    "listing": "Existing listing test fails on current memory filesystem before repair.",
+    "nativeListing": {
+      "version": "ls (GNU coreutils) 9.11",
+      "argv": [
+        "-lFb",
+        "--",
+        "out/ssconvert-gap-resolution/ci-listing-native/link-\u009b"
+      ],
+      "stdoutHex": "6c727778722d78722d782031206b6a6f70656b2073746166662032205365702032322031373a3335206f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f63692d6c697374696e672d6e61746976652f6c696e6b2d5c3330325c323333202d3e20615c5c0a",
+      "stderrHex": "",
+      "exit": 0
+    }
+  },
+  "repairs": {
+    "checksum": "Preserve pre-input refusal controls with actual unsupported -t/--unknown; add success/one-pull/exactCRC controls for supported -b/--tag.",
+    "listing": "Assert GNU long listing omits @ from escaped operand and retains escaped target. No runtime change."
+  },
+  "checks": {
+    "checksum": "87focused checks and changed-file lint pass",
+    "listing": "172focused checks and changed-file lint pass"
+  },
+  "delivery": {
+    "checksum": "6c94bcf59b17722f278d22d40150d464b183e99f verified on remote main",
+    "listing": "81b134aa02ff0c173564cff9a866512bbe190bec verified on remote main",
+    "publication": "Containing35793244459pending; no successful publication claimed"
+  },
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/ci-35790563033-bash3.log",
+      "bytes": 229564,
+      "sha256": "46e84a10efa18ca5aea0e25c578f1360fe0d84671a153c4b3b6942938b06d118"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-35790563033-bash4.log",
+      "bytes": 501097,
+      "sha256": "9c33ea8c6b4657730025e08947094381e72ec98fa5bac7a776f87cd9c312452d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-checksum-focused-red.log",
+      "bytes": 3158,
+      "sha256": "471ff135a190412aba210b14613abf2eab6430f8d62d92dd05c561640dd2b459"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-checksum-focused-green.log",
+      "bytes": 17324,
+      "sha256": "c2845e27dd3335acd18c94fc6c3c64afd5acfbc988cd34b094e75e09d579be2a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-checksum-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-listing-red.log",
+      "bytes": 1088,
+      "sha256": "bad9b244e3f68fc1b9906cbd99cfb90b8eea6c394f871d62bdb8b1105932c43c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-listing-green.log",
+      "bytes": 30523,
+      "sha256": "0f15689851ce6038bb072a1284d0bd27244c416ba823875e260387c186443045"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-listing-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/ci-listing-native.json",
+      "bytes": 416,
+      "sha256": "7299a4ad772369dd59c1ce07d459be100e04359d3c2941d7d3e9845fc9f84372"
+    }
+  ]
+}

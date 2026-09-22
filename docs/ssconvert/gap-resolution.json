@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded byte grammar with captures/POSIX/names/fixed behind/atomic/possessive implemented;3427valid public controls exact;23invalid-byte representation cases,diagnostics,broader grammar and profiles remain open.",
+      "currentFinding": "Bounded byte grammar with captures/POSIX/names/finite lookbehind/atomic/possessive implemented;4020valid public controls exact;24invalid-byte representation cases,nativewarnings/diagnostics,broader grammar and profiles remain open.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -529,12 +529,17 @@
           "kind": "independent-atomic-possessive-native-source-and-public-controls",
           "path": "docs/ssconvert/perl-sed-atomic-gap-proof.json",
           "outcome": "558originalred controls repaired;571valid SDK/Shell/replay/browser/worker controls exact. Original native exactCSV then knownshutdownabort retained; correctedstandard/ASAN profiles exact,exit0/stderr0.11319maintained tests,lint/types/build pass."
+        },
+        {
+          "kind": "independent-Perl534-experimental-finite-lookbehind-output",
+          "path": "docs/ssconvert/perl-sed-variable-behind-gap-proof.json",
+          "outcome": "594originalred controls repaired;593valid SDK/Shell/replay/browser/worker controls exact. Original native exactCSV then knownshutdownabort; correctedstandard/ASAN profiles exit0 with retained experimentalwarning stderr,not diagnostic parity.11913maintained tests,lint/types/build pass."
         }
       ],
       "delivery": {
-        "localCommit": "c104f0506e518bb2348c54bcd3e20722642a3093",
-        "remoteMain": "Named/POSIX/runtime improvements verified separately on origin/main",
-        "publication": "Containing release pending; older35790563033 Bash4failed two obsolete cksum option-refusal assertions, reproduced on current source. Repair follows separately."
+        "localCommit": "96f49b9ba82e707482d74e8ee693440769940bd0",
+        "remoteMain": "Atomic/POSIX/named/runtime improvements verified separately on origin/main; finite lookbehind delivery pending.",
+        "publication": "Containing release pending. Fatal Bash3/4 assertions reproduced/repaired as81b134aa0/6c94bcf59; final publication not claimed."
       }
     },
     {

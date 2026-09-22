@@ -161,9 +161,11 @@ literal, including `$1` and backslashes. Its bounded byte-pattern grammar covers
 ordered alternatives, groups (including atomic `(?>...)`), greedy/lazy and
 possessive repetition (`a*+`, `a++`, `a?+`, `a{1,3}+`), classes (including the
 14 POSIX byte classes such as `[[:digit:]]`), anchors, flags
-and lookahead/fixed-width lookbehind, with captures, ASCII named groups/references
+and lookahead/finite lookbehind (up to 255 bytes), with captures, ASCII named groups/references
 (such as `(?<part>a)\k<part>`), numeric backreferences `\1`–`\9`, and explicit
-positive/relative `\g{n}` references. Variable-width lookbehind, advanced pattern syntax and native
+positive/relative `\g{n}` references. Variable-width lookbehind follows the
+qualified Perl 5.34 experimental output profile, including its forward capture
+behavior; its native experimental warnings remain unqualified. Advanced pattern syntax and native
 invalid-pattern/invalid-UTF-8 result representation remain required gaps. Supply
 the binding as `runtimeFunctions` to enable these names. Without it they remain
 absent. An activated native Perl 5.34.1 profile matches 645 substitution controls

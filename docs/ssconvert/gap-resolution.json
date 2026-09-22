@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:27:18.923916+00:00",
+  "recordedAt": "2026-09-22T16:35:29.373639+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -82,6 +82,14 @@
       {
         "path": "packages/ssconvert/src/io/publication.ts",
         "sha256": "643c4d37be98e840d2b772084be9ec71ebcd2ccea7584bc138530d63003c9635"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/odf.ts",
+        "sha256": "3ebac9887f6052d6c0c837e9c1ec23f74811c7f092645048b569bd42b4c27013"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/odf.test.ts",
+        "sha256": "43d70a4eb420314ae90daf2a06451ef8f8f88a05ed91beeb2b0506d3094201fb"
       }
     ]
   },
@@ -222,8 +230,26 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "current refusal; native/format applicability pending",
-      "proof": [],
+      "currentFinding": "authenticated native source has no manifest-decryption path; valid owned AES256-CBC package rejected while plaintext control imports 42. Product intended refusal was reached after ciphertext decoding; admission order repaired. Native configuration qualification and final delivery remain open.",
+      "proof": [
+        {
+          "kind": "primary-spec-and-native-applicability",
+          "path": "docs/ssconvert/encrypted-odf-applicability.json",
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+        },
+        {
+          "kind": "red-public-sdk",
+          "outcome": "encrypted package returned generic UTF8/XML io failure instead of intended encrypted-package unsupported-feature; original failing memory fixture with no output admission"
+        },
+        {
+          "kind": "green",
+          "outcome": "4 original ODF import/export suites / 76 tests passed; full maintained workspace 317 files / 6279 tests passed; selected declared build closure and final workspace lint/type consumers passed"
+        },
+        {
+          "kind": "rebuilt-public-shell-visible-qa",
+          "outcome": "actual AES256 encrypted package gives encrypted OpenDocument package refusal, exit1, no stdout, existing memfs target untouched; screenshot inspected. Earlier public smoke used stale dist and was rebuilt before certification."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,
@@ -437,8 +463,13 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "old packaging gap superseded by 7d97a1731/d53488b24; current installed qualification pending",
-      "proof": [],
+      "currentFinding": "old packaging gap superseded; actual release-safe packaged contract closure and initial strict consumer/runtime conversion pass, independent trace-origin closure and poe-code SDK qualification pending",
+      "proof": [
+        {
+          "kind": "release-safe-artifact-vs-private-fixture",
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,

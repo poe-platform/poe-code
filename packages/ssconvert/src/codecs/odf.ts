@@ -253,6 +253,12 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     if (version === undefined) invalid("Unknown mimetype for openoffice file.");
     const legacy: boolean = version;
     if (!pkg.entries.has("content.xml")) invalid("No stream named content.xml found.");
+    const manifest = pkg.entries.has("META-INF/manifest.xml") ? await pkg.document("META-INF/manifest.xml") : undefined;
+    if (manifest) {
+      if (manifest.localName !== "manifest" || ![urn + "manifest:1.0", "http://openoffice.org/2001/manifest"].includes(manifest.namespace)) invalid("invalid manifest");
+      for (const entry of manifest.children) for (const child of entry.children) if (child.localName === "encryption-data")
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted OpenDocument package");
+    }
     const raw = await pkg.document("content.xml");
     const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);
     const styleRoots = [preparseRoot];
@@ -265,13 +271,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     const unsupportedRecords: UnsupportedRecord[] = [];
     const styles = readStyles(styleRoots, pkg.charge);
     for (const r of styleRoots) for (const node of r.children) if (["styles", "automatic-styles", "master-styles", "font-face-decls", "font-decls"].includes(node.localName)) unsupportedRecords.push(record(node));
-    if (pkg.entries.has("META-INF/manifest.xml")) {
-      const manifest = await pkg.document("META-INF/manifest.xml");
-      if (manifest.localName !== "manifest" || ![urn + "manifest:1.0", "http://openoffice.org/2001/manifest"].includes(manifest.namespace)) invalid("invalid manifest");
-      for (const entry of manifest.children) for (const child of entry.children) if (child.localName === "encryption-data")
-        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted OpenDocument package");
-      unsupportedRecords.push(record(manifest));
-    }
+    if (manifest) unsupportedRecords.push(record(manifest));
     for (const name of ["meta.xml", "settings.xml"]) if (pkg.entries.has(name)) unsupportedRecords.push(record(await pkg.document(name)));
     const resources = new Set<string>();
     async function embedded(parent: XmlElement, base = "") {

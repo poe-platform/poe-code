@@ -22,6 +22,21 @@ export async function fixture(parts: Readonly<Record<string, string>>) {
     { modified: new Date("2000-01-01Z"), mode: 0o644, directory: false, symlink: false, compression: "deflate" }, limits, context.signal));
   return zip.writeZipArchive({ entries, comment: new Uint8Array() }, limits, context.signal);
 }
+it("refuses encrypted OpenDocument before decoding ciphertext and before output admission", async () => {
+  const manifest = '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0"><manifest:file-entry manifest:full-path="content.xml"><manifest:encryption-data/></manifest:file-entry></manifest:manifest>';
+  const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet",
+    "content.xml": "\u0000ciphertext is not XML", "META-INF/manifest.xml": manifest });
+  const engine = createEngine({ codecs: [], environment: context.environment, limits: context.limits });
+  let writes = 0;
+  try {
+    await expect(engine.convert({ input: { kind: "stream", source: [bytes], filename: "encrypted.ods" },
+      exportType: "Gnumeric_stf:stf_csv", destination: { kind: "stream", sink: { async write() { writes++; } } }
+    }, context)).rejects.toMatchObject({ code: "unsupported-feature", exitCode: 1,
+      message: "Unsupported ssconvert feature: encrypted OpenDocument package" });
+    expect(writes).toBe(0);
+  } finally { await engine.dispose(); }
+});
+
 it("imports ODS through the shared engine with sparse repeats, cross-sheet formulas and caches", async () => {
   const bytes = await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(
     `<table:table table:name="Input"><table:table-row table:number-rows-repeated="2"><table:table-cell office:value-type="float" office:value="7" table:number-columns-repeated="2"/></table:table-row><table:table-row table:number-rows-repeated="1000000"><table:table-cell table:number-columns-repeated="1000"/></table:table-row></table:table><table:table table:name="Output"><table:table-row><table:table-cell table:formula="of:=[Input.A1]+2" office:value-type="float" office:value="9"/></table:table-row></table:table>`) });

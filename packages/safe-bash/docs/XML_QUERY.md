@@ -6,11 +6,25 @@ UTF-8 XML document from the supplied virtual filesystem or stdin:
 ```sh
 xq '/catalog/book[@available="yes"]/title' /catalog.xml
 xmllint --xpath 'count(/catalog/book)' /catalog.xml
+xmllint --noout /catalog.xml
+xmllint --format /catalog.xml
+xmllint --c14n /catalog.xml
 xq 'string(/catalog/book[1]/title)' -
 ```
 
 These commands implement a bounded XPath subset. `xq` uses this XPath syntax;
 it does not implement the jq-based XML tools that also use that command name.
+`xmllint --noout` checks well-formedness without emitting the document.
+`--format` emits an XML declaration and indents element-only content with two
+spaces, preserving mixed content and `xml:space` text. `--c14n` emits inclusive
+Canonical XML 1.0 with comments: expanded empty elements, ordered namespaces and
+attributes, normalized escaping, and no declaration or trailing newline.
+`--format --c14n` removes ignorable blank text before canonicalization; `--noout`
+suppresses output when combined with either mode. Supply one filename or `-`;
+omitting the filename reads supplied stdin. `--` separates options from filenames.
+Formatting escapes non-ASCII text and attribute values as character references
+when the input declaration omits an encoding; declared UTF-8 remains UTF-8.
+
 There is no host filesystem fallback or external entity resolution.
 
 ## SDK configuration
@@ -58,8 +72,11 @@ node results each end with a newline. Scalars also end with a newline.
 
 Unsupported expressions fail before reading input. These include `/` alone,
 namespace prefixes, explicit axes, union, arithmetic, variables, relative paths,
-and other functions. Multiple input files and unrelated xmllint flags are
-unsupported. XML input, query arguments, and filenames must be valid UTF-8;
+and other functions. Multiple input files and other xmllint flags are
+unsupported, including DTD/schema validation, output files, and other
+canonicalization variants. Validation here means XML well-formedness, not schema
+validation. The shared parser normalizes processing instructions with whitespace-only
+data to an instruction without data. XML input, query arguments, and filenames must be valid UTF-8;
 XML declarations must agree with UTF-8. DTDs, DOCTYPE, external entities, unknown
 entities, malformed namespaces, and malformed XML are rejected.
 
@@ -95,6 +112,7 @@ partial output already written.
 | 1 | Invalid XML, encoding, or filesystem input failure |
 | 2 | Invalid command arguments |
 | 5 | Configured resource limit exceeded |
+| 6 | Canonicalization failed because of a relative namespace URI |
 | 10 | Invalid or unsupported XPath |
 | 11 | Empty node set |
 

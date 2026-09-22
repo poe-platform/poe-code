@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as api from "../../src/index.js";
-import { MockS3Client, S3FileSystem } from "poe-code/safe-fs";
+import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
 import { createXmlCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
 
 test("XML querying exposes an explicit command family", () => {
@@ -178,3 +178,108 @@ for (const [command, input, status] of [
     } finally { await shell.dispose(); }
   });
 }
+
+
+for (const [flags, input, stdout] of [
+  ["--noout", "<a/>", ""],
+  ["--format", '<a x="é😀">é😀</a>', '<?xml version="1.0"?>\n<a x="&#xE9;&#x1F600;">&#xE9;&#x1F600;</a>\n'],
+  ["--format", '<?xml version="1.0" encoding="utf-8"?><a>é</a>', '<?xml version="1.0" encoding="utf-8"?>\n<a>é</a>\n'],
+  ["--format", '<a> <b/>after</a>', '<?xml version="1.0"?>\n<a><b/>after</a>\n'],
+  ["--format", "<a><b/></a>", '<?xml version="1.0"?>\n<a>\n  <b/>\n</a>\n'],
+  ["--c14n", "<a><b/></a>", "<a><b></b></a>"],
+  ["--format --noout", "<a><b/></a>", ""],
+  ["--format", "<a> </a>", '<?xml version="1.0"?>\n<a> </a>\n'],
+  ["--format", '<a xml:space="preserve"><b/><c/></a>', '<?xml version="1.0"?>\n<a xml:space="preserve">\n  <b/>\n  <c/>\n</a>\n'],
+  ["--format", '<a xml:space="preserve"> <b/> </a>', '<?xml version="1.0"?>\n<a xml:space="preserve"> <b/> </a>\n'],
+  ["--format", '<a xmlns:z="urn:z" x="1" xmlns="urn:a" y="2"/>', '<?xml version="1.0"?>\n<a xmlns:z="urn:z" xmlns="urn:a" x="1" y="2"/>\n'],
+  ["--format", "<a> \n <b/> \n</a>", '<?xml version="1.0"?>\n<a>\n  <b/>\n</a>\n'],
+  ["--format", "<a>x<b/> </a>", '<?xml version="1.0"?>\n<a>x<b/> </a>\n'],
+  ["--format --c14n", "<a> <b/> </a>", "<a><b></b></a>"],
+  ["--c14n --format", "<a> <b/> </a>", "<a><b></b></a>"],
+  ["--format", "<a>hi<b/>bye</a>", '<?xml version="1.0"?>\n<a>hi<b/>bye</a>\n'],
+  ["--format", "<a><![CDATA[x]]><b/></a>", '<?xml version="1.0"?>\n<a><![CDATA[x]]><b/></a>\n'],
+  ["--c14n", '<a z="&#9;&#10;&#13;&quot;" a="&amp;">&lt;&gt;&#13;<![CDATA[&]]></a>', '<a a="&amp;" z="&#x9;&#xA;&#xD;&quot;">&lt;&gt;&#xD;&amp;</a>'],
+  ["--c14n", '<a xmlns="urn:a" xmlns:p="urn:p"><b xmlns="urn:a" xmlns:p="urn:p"/><c xmlns=""/></a>', '<a xmlns="urn:a" xmlns:p="urn:p"><b></b><c xmlns=""></c></a>'],
+  ["--c14n", '<a xmlns:z="urn:z" xmlns:b="urn:b" z:a="1" b:z="2" c="3" b:a="4"/>', '<a xmlns:b="urn:b" xmlns:z="urn:z" c="3" b:a="4" b:z="2" z:a="1"></a>'],
+  ["--c14n", '<a> \n <b/> \n</a>', '<a> \n <b></b> \n</a>'],
+  ["--c14n", '<a xmlns=""/>', '<a></a>'],
+  ["--c14n", '<?xml version="1.0"?><!--pre--><?go x?><a><!--inside--></a><!--post--><?after y?>', '<!--pre-->\n<?go x?>\n<a><!--inside--></a>\n<!--post-->\n<?after y?>'],
+  ["--format", '<!--pre--><a><!--inside--><?go x?><b/></a><!--post-->', '<?xml version="1.0"?>\n<!--pre-->\n<a>\n  <!--inside-->\n  <?go x?>\n  <b/>\n</a>\n<!--post-->\n'],
+] as const) {
+  for (const file of [false, true]) test(`xmllint document mode ${flags} from ${file ? "VFS" : "stdin"}: ${input}`, async () => {
+    const fs = api.createMemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode(input));
+    const shell = new api.Shell({ fs }).use(api.agentCommands());
+    try {
+      const result = await shell.exec(`xmllint ${flags} ${file ? "/input" : "-"}`, { stdin: new TextEncoder().encode(input) });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const mode of ["--noout", "--format", "--c14n"]) {
+  test(`xmllint ${mode} preserves XML refusals and resource limits`, async () => {
+    const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands({ limits: { maxDepth: 2, maxOutputBytes: 4 } }));
+    try {
+      for (const input of ["<a><b></a>", "<!DOCTYPE a><a/>", "<a>&external;</a>"]) {
+        const result = await shell.exec(`xmllint ${mode} -`, { stdin: new TextEncoder().encode(input) });
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.equal(result.stdout, "");
+      }
+      const depth = await shell.exec(`xmllint ${mode} -`, { stdin: new TextEncoder().encode("<a><b><c/></b></a>") });
+      assert.equal(depth.exitCode, 5, depth.stderr);
+      const output = await shell.exec(`xmllint ${mode} -`, { stdin: new TextEncoder().encode("<a/>") });
+      assert.equal(output.exitCode, mode === "--noout" ? 0 : 5, output.stderr);
+      assert.ok(Buffer.byteLength(output.stdout) <= 4);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("xmllint canonicalization rejects relative namespace URIs", async () => {
+  const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands());
+  try {
+    for (const input of ['<a xmlns:p="relative"/>', '<!--pre--><a><b xmlns:p="relative"/></a>']) {
+      const result = await shell.exec("xmllint --c14n -", { stdin: new TextEncoder().encode(input) });
+      assert.equal(result.exitCode, 6, result.stderr);
+      assert.equal(result.stdout, "");
+    }
+  } finally { await shell.dispose(); }
+});
+
+
+for (const mode of ["--noout", "--format", "--c14n"]) {
+  test(`xmllint ${mode} yields to cancellation and closes input`, async () => {
+    let closed = false;
+    const stdin = { async *[Symbol.asyncIterator]() {
+      try { while (true) yield new Uint8Array(); }
+      finally { closed = true; }
+    } };
+    const controller = new AbortController();
+    const reason = Object.freeze({ cancelled: mode });
+    const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands());
+    const timer = setTimeout(() => controller.abort(reason), 0);
+    try {
+      await assert.rejects(shell.exec(`xmllint ${mode} -`, { stdin, signal: controller.signal }), error => error === reason);
+      assert.equal(closed, true);
+    } finally { clearTimeout(timer); await shell.dispose(); }
+  });
+}
+
+test("xmllint document arguments fail before consuming input and admit literal filenames", async () => {
+  let reads = 0;
+  const stdin = { async *[Symbol.asyncIterator]() { reads++; yield new TextEncoder().encode("<a/>"); } };
+  const fs = api.createMemoryFileSystem();
+  await fs.writeFile("/--input", new TextEncoder().encode("<a/>"));
+  const shell = new api.Shell({ fs }).use(xmlCommands());
+  try {
+    for (const command of ["xmllint --format --huge -", "xmllint --noout /one /two", "xmllint --c14n --schema /schema -"]) {
+      const result = await shell.exec(command, { stdin });
+      assert.equal(result.exitCode, 2, result.stderr);
+    }
+    assert.equal(reads, 0);
+    const result = await shell.exec("xmllint --noout -- --input");
+    assert.equal(result.exitCode, 0, result.stderr);
+  } finally { await shell.dispose(); }
+});

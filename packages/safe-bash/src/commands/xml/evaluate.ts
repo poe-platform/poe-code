@@ -141,13 +141,13 @@ export async function* serialize(node: Node, budget: XmlBudget): AsyncGenerator<
   }
 }
 
-async function* escape(value: string, attribute: boolean, budget: XmlBudget): AsyncGenerator<string> {
+export async function* escape(value: string, attribute: boolean, budget: XmlBudget, options: { canonical?: boolean; ascii?: boolean } = {}): AsyncGenerator<string> {
   let part = "";
   for (const character of value) {
     await budget.tick();
     part += character === "&" ? "&amp;" : character === "<" ? "&lt;" : character === ">" ? "&gt;"
-      : attribute && character === '"' ? "&quot;" : attribute && character === "\n" ? "&#10;"
-        : character === "\r" ? "&#13;" : attribute && character === "\t" ? "&#9;" : character;
+      : attribute && character === '"' ? "&quot;" : attribute && character === "\n" ? options.canonical ? "&#xA;" : "&#10;"
+        : character === "\r" ? options.canonical ? "&#xD;" : "&#13;" : attribute && character === "\t" ? options.canonical ? "&#x9;" : "&#9;" : options.ascii && character.codePointAt(0)! >= 128 ? `&#x${character.codePointAt(0)!.toString(16).toUpperCase()};` : character;
     if (part.length >= 4096) { yield part; part = ""; }
   }
   if (part) yield part;

@@ -7,11 +7,12 @@ import { interruptible } from "../structured/limits.js";
 import { XmlBudget, XmlQueryError, XmlQueryLimitError, resolveXmlQueryLimits, type XmlCommandsOptions, type XmlQueryLimits } from "./limits.js";
 import { parseQuery, type Query } from "./query.js";
 import { evaluate, serialize, stringValue } from "./evaluate.js";
+import { serializeDocument, type DocumentMode } from "./document.js";
 
 export { defaultXmlQueryLimits } from "./limits.js";
 export type { XmlCommandsOptions, XmlQueryLimits } from "./limits.js";
 
-async function argumentsFor(context: CommandContext, budget: XmlBudget): Promise<{ query: Query; file: string | undefined }> {
+async function argumentsFor(context: CommandContext, budget: XmlBudget): Promise<{ query?: Query; mode?: DocumentMode | undefined; format?: boolean; noout?: boolean; file: string | undefined }> {
   if (context.args.length > 5) throw new XmlQueryError("expected one XML input FILE or -", 2);
   const carrier = getCommandArguments(context);
   const args = carrier.args;
@@ -28,6 +29,27 @@ async function argumentsFor(context: CommandContext, budget: XmlBudget): Promise
     return decoded;
   }
   let index = 0;
+  if (context.command === "xmllint" && args[0] !== "--xpath") {
+    let mode: DocumentMode | undefined;
+    let noout = false;
+    let format = false;
+    while (index < args.length) {
+      const flag = args[index]!;
+      if (flag === "--noout") noout = true;
+      else if (flag === "--format") { mode ??= "format"; format = true; }
+      else if (flag === "--c14n") mode = "c14n";
+      else break;
+      index++;
+    }
+    if (mode === undefined && !noout) throw new XmlQueryError("expected --xpath QUERY, --noout, --format or --c14n [FILE|-]", 2);
+    if (args[index] === "--") index++;
+    const fileIndex = index++;
+    const file = args[fileIndex];
+    if (index < args.length || file !== undefined && file.startsWith("-") && file !== "-" && args[fileIndex - 1] !== "--") {
+      throw new XmlQueryError("expected one XML input FILE or -", 2);
+    }
+    return { mode, format, noout, file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes") };
+  }
   if (context.command === "xmllint") {
     if (args[index++] !== "--xpath") throw new XmlQueryError("expected --xpath QUERY [FILE|-]", 2);
   }
@@ -91,7 +113,6 @@ async function execute(context: CommandContext, limits: XmlQueryLimits): Promise
     try {
       while (!parsed.done) { await budget.tick(parsed.value); parsed = parser.next(); }
     } finally { if (!parsed.done) parser.return(undefined as never); }
-    const nodes = await evaluate(options.query, parsed.value, budget);
     async function write(part: string): Promise<void> {
       for (let offset = 0; offset < part.length;) {
         let end = Math.min(offset + 4096, part.length);
@@ -106,6 +127,13 @@ async function execute(context: CommandContext, limits: XmlQueryLimits): Promise
         offset = end;
       }
     }
+    if (options.query === undefined) {
+      if (!options.noout && options.mode !== undefined) {
+        for await (const part of serializeDocument(parsed.value, options.mode, budget, options.format)) await write(part);
+      }
+      return { exitCode: 0 };
+    }
+    const nodes = await evaluate(options.query, parsed.value, budget);
     if (options.query.scalar === "count") await write(String(nodes.length));
     else if (options.query.scalar === "boolean") await write(nodes.length ? "true" : "false");
     else if (options.query.scalar === "string") {

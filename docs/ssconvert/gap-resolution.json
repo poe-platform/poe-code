@@ -543,9 +543,9 @@
           "path": "docs/ssconvert/ln1p-gap-proof.json",
           "outcome": "Exact1+x and bounded192-bit atanh series repair original1ulp and preserve domain/tiny/large controls; per-iteration work/cancellation. Maintained lint/types/build pass;236 exact native/reference/public cases and472 exact browser/worker cases, screenshot inspected. Private primitive families remain open.",
           "delivery": {
-            "localCommit": null,
-            "remoteMain": null,
-            "publication": null
+            "localCommit": "1bd77f4e86220eacae874c56fb5a043140f76252",
+            "remoteMain": "Exact ls-remote main verified after normal rebase/push",
+            "publication": "Release35771193772 active; audit passed, build active"
           }
         }
       ],
@@ -558,11 +558,16 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "historical 120-case replay 73 exact / 47 differing; fresh Darwin cohort 46 exact / 74 differing; platform qualification and repair remain open",
+      "currentFinding": "Current historical Linux/glibc cohorts reproduced, high-q73/120 still47 mismatches. Scratch high-precision Bessel log substitution worsens to64/120, final-expression FMA72/120; no speculative runtime changes. Fresh Darwin remains a distinct profile. Actual scalar/acos/integration discrepancy and repair remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
           "outcome": "46 exact / 74 differing of 120; macOS results not substituted for historical Linux/glibc oracle"
+        },
+        {
+          "kind": "current-historical-replay-and-rejected-primitive-trials",
+          "path": "docs/ssconvert/bessel-primitive-qualification.json",
+          "outcome": "Current exact counts reproduce536/536 main,126/126 B1,73/120 high-q,120/120 integral,120/120 phase,12/12 errors. High-precision Bessel log substitution64/120 (2 improve/11 regress), final-expression FMA72/120; hypotheses rejected with no product edits.23 distinct historical primitive inputs:5 native mathematical-rounding matches/18 differences. Exact captured profile remains open."
         }
       ],
       "delivery": {

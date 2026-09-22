@@ -2625,8 +2625,8 @@
     "All other gap ledger rows, packed SDK/Shell integrated gates and successful publication"
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "1bd77f4e86220eacae874c56fb5a043140f76252",
+    "remoteMain": "Exact remote main verified after rebase/push",
+    "publication": "Release35771193772 active; audit passed, build active"
   }
 }

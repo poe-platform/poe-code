@@ -1,0 +1,1568 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-22T19:16:51.198448+00:00",
+  "baseline": [
+    {
+      "cohort": "ssconvert-bessel-followup",
+      "cases": 536,
+      "matches": 536
+    },
+    {
+      "cohort": "ssconvert-bessel-b1-large-order",
+      "cases": 126,
+      "matches": 126
+    },
+    {
+      "cohort": "ssconvert-bessel-integral-highq",
+      "cases": 120,
+      "matches": 73
+    },
+    {
+      "cohort": "ssconvert-bessel-integral-holdout",
+      "cases": 120,
+      "matches": 120
+    },
+    {
+      "cohort": "ssconvert-bessel-phase-holdout",
+      "cases": 120,
+      "matches": 120
+    },
+    {
+      "cohort": "ssconvert-bessel-negative-controls",
+      "cases": 12,
+      "matches": 12
+    }
+  ],
+  "status": "Current historical cohorts reproduced; two primitive substitution hypotheses rejected; no product code changes",
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/captured-bessel.ts",
+      "sha256": "5d729901cb1ee39ba78c5736565c5aae695b92247540f9e90d62db88ad42f75d"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/captured-log1p.ts",
+      "sha256": "3047fbff171e0a943a42c0348985a9e067219427b887d8ddf970db05c5ca7866"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/log1p.ts",
+      "sha256": "6eee3ba2967660793978a438ed7c8a4d321e0a121af8bed387c55bb96f6a185b"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/statistics-beta.ts",
+      "sha256": "b0382a95c20ec0c8c46b128be07c860f7b15f85052d00141be8ec3968b9f3733"
+    }
+  ],
+  "historicalReference": {
+    "path": "docs/ssconvert/numeric-current-bessel-final-structure-replay.json",
+    "sha256": "12bcb85693c2ad577a05714c3940c96c709a8b2c4d22a899061ecca9a471be24",
+    "profilePath": "docs/ssconvert/numeric-current-native-profile.json",
+    "profileSha256": "e373fd472fec1e4f1fce812bb290810de9c63f04ed7f4cfdd1c13749fa6d7819",
+    "profile": "Authenticated Gnumeric1.12.61 aarch64 Linux/glibc2.41; immutable historical references, distinct from Darwin oracle"
+  },
+  "sharedOwnership": "capturedLog1p serves Bessel and statistical beta code; public preciseLog1p serves LN1P. Blanket replacement would affect a second algorithm owner.",
+  "highPrecisionBesselTrial": {
+    "scope": "Scratch source bundle alters only Bessel log1p call site; tracked source unchanged",
+    "counts": [
+      {
+        "cohort": "ssconvert-bessel-followup",
+        "cases": 536,
+        "matches": 536
+      },
+      {
+        "cohort": "ssconvert-bessel-b1-large-order",
+        "cases": 126,
+        "matches": 126
+      },
+      {
+        "cohort": "ssconvert-bessel-integral-highq",
+        "cases": 120,
+        "matches": 64
+      },
+      {
+        "cohort": "ssconvert-bessel-integral-holdout",
+        "cases": 120,
+        "matches": 120
+      },
+      {
+        "cohort": "ssconvert-bessel-phase-holdout",
+        "cases": 120,
+        "matches": 120
+      },
+      {
+        "cohort": "ssconvert-bessel-negative-controls",
+        "cases": 12,
+        "matches": 12
+      }
+    ],
+    "highQ": [
+      {
+        "formula": "=BESSELJ(84.06928098966394,71.54332880335403)",
+        "native": "-0.09534562467811622",
+        "value": {
+          "kind": "number",
+          "value": -0.0953456246781162
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(84.06928098966394,71.54332880335403)",
+        "native": "-0.07269385880761929",
+        "value": {
+          "kind": "number",
+          "value": -0.07269385880761929
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(173.6195328867186,150.1768003498195)",
+        "native": "0.03871556318381844",
+        "value": {
+          "kind": "number",
+          "value": 0.03871556318381844
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(173.6195328867186,150.1768003498195)",
+        "native": "0.07616241916227229",
+        "value": {
+          "kind": "number",
+          "value": 0.07616241916227229
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(192.16044087952775,170.39993582028956)",
+        "native": "0.08383345036988324",
+        "value": {
+          "kind": "number",
+          "value": 0.08383345036988324
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(192.16044087952775,170.39993582028956)",
+        "native": "-0.011368894800763725",
+        "value": {
+          "kind": "number",
+          "value": -0.011368894800763724
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(192.9445008127231,176.23255193192625)",
+        "native": "-0.0678259694471073",
+        "value": {
+          "kind": "number",
+          "value": -0.0678259694471073
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(192.9445008127231,176.23255193192625)",
+        "native": "-0.05899350975592502",
+        "value": {
+          "kind": "number",
+          "value": -0.05899350975592502
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(92.56390257811096,79.25680619740352)",
+        "native": "-0.07598637098117356",
+        "value": {
+          "kind": "number",
+          "value": -0.07598637098117356
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(92.56390257811096,79.25680619740352)",
+        "native": "-0.08661406013715171",
+        "value": {
+          "kind": "number",
+          "value": -0.08661406013715171
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(156.92498390312284,146.27262617699625)",
+        "native": "-0.025503277619126387",
+        "value": {
+          "kind": "number",
+          "value": -0.02550327761912638
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(156.92498390312284,146.27262617699625)",
+        "native": "0.10225357731723897",
+        "value": {
+          "kind": "number",
+          "value": 0.10225357731723897
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(163.51281606047803,151.06651648282937)",
+        "native": "-0.07707693605834871",
+        "value": {
+          "kind": "number",
+          "value": -0.07707693605834874
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(163.51281606047803,151.06651648282937)",
+        "native": "0.06460447664893801",
+        "value": {
+          "kind": "number",
+          "value": 0.06460447664893804
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(155.7610403505767,144.44881454880982)",
+        "native": "-0.05043880916568769",
+        "value": {
+          "kind": "number",
+          "value": -0.05043880916568768
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(155.7610403505767,144.44881454880982)",
+        "native": "0.09111052032471545",
+        "value": {
+          "kind": "number",
+          "value": 0.09111052032471546
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(162.77620744888108,154.13696636471457)",
+        "native": "0.053274250176742796",
+        "value": {
+          "kind": "number",
+          "value": 0.05327425017674277
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(162.77620744888108,154.13696636471457)",
+        "native": "0.09563310246167361",
+        "value": {
+          "kind": "number",
+          "value": 0.09563310246167361
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(184.46268209249757,171.51621336466772)",
+        "native": "-0.07369734172931926",
+        "value": {
+          "kind": "number",
+          "value": -0.07369734172931927
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(184.46268209249757,171.51621336466772)",
+        "native": "0.06238059409310561",
+        "value": {
+          "kind": "number",
+          "value": 0.062380594093105625
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(197.3309031153311,181.01309349310603)",
+        "native": "-0.07885153149375224",
+        "value": {
+          "kind": "number",
+          "value": -0.07885153149375224
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(197.3309031153311,181.01309349310603)",
+        "native": "-0.043105657428799043",
+        "value": {
+          "kind": "number",
+          "value": -0.04310565742879906
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(76.06503015832425,68.29004678693654)",
+        "native": "0.003847924237080267",
+        "value": {
+          "kind": "number",
+          "value": 0.00384792423708028
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(76.06503015832425,68.29004678693654)",
+        "native": "0.13708377936960134",
+        "value": {
+          "kind": "number",
+          "value": 0.13708377936960137
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(183.25257556922986,159.55151642831)",
+        "native": "0.044523113048632566",
+        "value": {
+          "kind": "number",
+          "value": 0.044523113048632566
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(183.25257556922986,159.55151642831)",
+        "native": "0.0712258317004745",
+        "value": {
+          "kind": "number",
+          "value": 0.0712258317004745
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(153.55870190373136,144.15171745957923)",
+        "native": "0.01990134343222273",
+        "value": {
+          "kind": "number",
+          "value": 0.01990134343222273
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(153.55870190373136,144.15171745957923)",
+        "native": "0.10721250498221079",
+        "value": {
+          "kind": "number",
+          "value": 0.10721250498221077
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(120.56222051716283,106.09859215240174)",
+        "native": "-0.07254612606103777",
+        "value": {
+          "kind": "number",
+          "value": -0.0725461260610377
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(120.56222051716283,106.09859215240174)",
+        "native": "-0.07631266700970639",
+        "value": {
+          "kind": "number",
+          "value": -0.07631266700970632
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(124.93799311425622,117.25010630847004)",
+        "native": "0.06677316495086003",
+        "value": {
+          "kind": "number",
+          "value": 0.06677316495086004
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(124.93799311425622,117.25010630847004)",
+        "native": "0.10028735933642874",
+        "value": {
+          "kind": "number",
+          "value": 0.10028735933642874
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(133.73476368579762,117.50418596202707)",
+        "native": "-0.014574216460019383",
+        "value": {
+          "kind": "number",
+          "value": -0.014574216460019376
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(133.73476368579762,117.50418596202707)",
+        "native": "-0.09866171340188096",
+        "value": {
+          "kind": "number",
+          "value": -0.09866171340188096
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(181.7323007048105,162.96926363607471)",
+        "native": "0.018019090234164346",
+        "value": {
+          "kind": "number",
+          "value": 0.01801909023416435
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(181.7323007048105,162.96926363607471)",
+        "native": "-0.08703583874790505",
+        "value": {
+          "kind": "number",
+          "value": -0.08703583874790503
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(129.74505818707684,110.95800298451145)",
+        "native": "0.0932037164619239",
+        "value": {
+          "kind": "number",
+          "value": 0.09320371646192381
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(129.74505818707684,110.95800298451145)",
+        "native": "-0.027680857555729174",
+        "value": {
+          "kind": "number",
+          "value": -0.027680857555729115
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(110.05922072734357,100.70660474080996)",
+        "native": "-0.02367455561361015",
+        "value": {
+          "kind": "number",
+          "value": -0.02367455561361015
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(110.05922072734357,100.70660474080996)",
+        "native": "0.11684226990866275",
+        "value": {
+          "kind": "number",
+          "value": 0.11684226990866275
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(181.85588303167978,171.6364595825778)",
+        "native": "0.009603735727021804",
+        "value": {
+          "kind": "number",
+          "value": 0.009603735727021778
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(181.85588303167978,171.6364595825778)",
+        "native": "0.10190734119659316",
+        "value": {
+          "kind": "number",
+          "value": 0.10190734119659314
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(120.7850091472081,109.50506817284065)",
+        "native": "-0.08650219552127282",
+        "value": {
+          "kind": "number",
+          "value": -0.08650219552127283
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(120.7850091472081,109.50506817284065)",
+        "native": "0.07025490871651957",
+        "value": {
+          "kind": "number",
+          "value": 0.07025490871651957
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(177.72654332681915,159.63719470113546)",
+        "native": "-0.003707825138472662",
+        "value": {
+          "kind": "number",
+          "value": -0.0037078251384726553
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(177.72654332681915,159.63719470113546)",
+        "native": "-0.09009725212719744",
+        "value": {
+          "kind": "number",
+          "value": -0.09009725212719744
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(71.14403112101097,64.00357853890914)",
+        "native": "0.03417880522320547",
+        "value": {
+          "kind": "number",
+          "value": 0.03417880522320546
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(71.14403112101097,64.00357853890914)",
+        "native": "0.13812027508662594",
+        "value": {
+          "kind": "number",
+          "value": 0.13812027508662592
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(139.39535318780327,122.4219628958176)",
+        "native": "0.01059580388733881",
+        "value": {
+          "kind": "number",
+          "value": 0.010595803887338806
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(139.39535318780327,122.4219628958176)",
+        "native": "-0.09704397799935514",
+        "value": {
+          "kind": "number",
+          "value": -0.09704397799935514
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(187.6318948198831,162.45840313845196)",
+        "native": "-0.008678266333882849",
+        "value": {
+          "kind": "number",
+          "value": -0.00867826633388286
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(187.6318948198831,162.45840313845196)",
+        "native": "0.08185386591044855",
+        "value": {
+          "kind": "number",
+          "value": 0.08185386591044855
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(177.58992841414428,169.05189554603047)",
+        "native": "0.06252555394290377",
+        "value": {
+          "kind": "number",
+          "value": 0.06252555394290375
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(177.58992841414428,169.05189554603047)",
+        "native": "0.08716810472942742",
+        "value": {
+          "kind": "number",
+          "value": 0.08716810472942743
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(178.14393694965403,158.927295353493)",
+        "native": "0.040550097875315806",
+        "value": {
+          "kind": "number",
+          "value": 0.04055009787531581
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(178.14393694965403,158.927295353493)",
+        "native": "-0.07906353993171322",
+        "value": {
+          "kind": "number",
+          "value": -0.07906353993171322
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(180.95980860616305,166.50927241062632)",
+        "native": "-0.09428889272044351",
+        "value": {
+          "kind": "number",
+          "value": -0.09428889272044351
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(180.95980860616305,166.50927241062632)",
+        "native": "0.00745590817679508",
+        "value": {
+          "kind": "number",
+          "value": 0.0074559081767950975
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(89.81587473645864,79.47598182651224)",
+        "native": "-0.10010661408384068",
+        "value": {
+          "kind": "number",
+          "value": -0.1001066140838407
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(89.81587473645864,79.47598182651224)",
+        "native": "0.07148139303893225",
+        "value": {
+          "kind": "number",
+          "value": 0.07148139303893228
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(111.12584925219234,97.90809505707992)",
+        "native": "-0.10197592420575487",
+        "value": {
+          "kind": "number",
+          "value": -0.10197592420575487
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(111.12584925219234,97.90809505707992)",
+        "native": "-0.0408714533168081",
+        "value": {
+          "kind": "number",
+          "value": -0.0408714533168081
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(179.89180661593952,157.89351061432728)",
+        "native": "0.0838145784864613",
+        "value": {
+          "kind": "number",
+          "value": 0.0838145784864613
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(179.89180661593952,157.89351061432728)",
+        "native": "0.018735413427357697",
+        "value": {
+          "kind": "number",
+          "value": 0.018735413427357697
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(171.97263288666628,146.40822657463494)",
+        "native": "-0.05516625737545756",
+        "value": {
+          "kind": "number",
+          "value": -0.05516625737545756
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(171.97263288666628,146.40822657463494)",
+        "native": "0.06330634124024158",
+        "value": {
+          "kind": "number",
+          "value": 0.06330634124024158
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(90.26370434562428,80.45700798090027)",
+        "native": "-0.07879903341974899",
+        "value": {
+          "kind": "number",
+          "value": -0.07879903341974899
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(90.26370434562428,80.45700798090027)",
+        "native": "0.09616870789926527",
+        "value": {
+          "kind": "number",
+          "value": 0.0961687078992653
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(186.83961956018896,160.29877662987113)",
+        "native": "-0.06131904959351244",
+        "value": {
+          "kind": "number",
+          "value": -0.06131904959351244
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(186.83961956018896,160.29877662987113)",
+        "native": "0.05354788491389263",
+        "value": {
+          "kind": "number",
+          "value": 0.05354788491389263
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(109.57717735062288,100.75148773171328)",
+        "native": "0.0015117253566191598",
+        "value": {
+          "kind": "number",
+          "value": 0.001511725356619156
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(109.57717735062288,100.75148773171328)",
+        "native": "0.12092567374779514",
+        "value": {
+          "kind": "number",
+          "value": 0.12092567374779511
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(91.96085604534237,85.0198020420183)",
+        "native": "0.07395974751643362",
+        "value": {
+          "kind": "number",
+          "value": 0.07395974751643361
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(91.96085604534237,85.0198020420183)",
+        "native": "0.1113628094652991",
+        "value": {
+          "kind": "number",
+          "value": 0.11136280946529907
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(71.49192069340688,61.621398275636274)",
+        "native": "-0.11820254732616388",
+        "value": {
+          "kind": "number",
+          "value": -0.11820254732616388
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(71.49192069340688,61.621398275636274)",
+        "native": "0.05916689022428459",
+        "value": {
+          "kind": "number",
+          "value": 0.05916689022428459
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(151.6992468330342,130.66933185216587)",
+        "native": "0.08511913339669402",
+        "value": {
+          "kind": "number",
+          "value": 0.08511913339669402
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(151.6992468330342,130.66933185216587)",
+        "native": "0.03171810895520838",
+        "value": {
+          "kind": "number",
+          "value": 0.03171810895520838
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(189.10620697180372,168.0205190997445)",
+        "native": "0.07873131104737555",
+        "value": {
+          "kind": "number",
+          "value": 0.07873131104737555
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(189.10620697180372,168.0205190997445)",
+        "native": "-0.03356485874274492",
+        "value": {
+          "kind": "number",
+          "value": -0.03356485874274492
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(102.16525926730019,88.91417077054413)",
+        "native": "-0.09349749453392646",
+        "value": {
+          "kind": "number",
+          "value": -0.09349749453392646
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(102.16525926730019,88.91417077054413)",
+        "native": "-0.06220825945078234",
+        "value": {
+          "kind": "number",
+          "value": -0.06220825945078234
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(195.94824367402546,174.4844760868497)",
+        "native": "0.07948705613124492",
+        "value": {
+          "kind": "number",
+          "value": 0.07948705613124504
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(195.94824367402546,174.4844760868497)",
+        "native": "-0.028474820547771902",
+        "value": {
+          "kind": "number",
+          "value": -0.028474820547771
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(185.20169712472864,174.33935798845917)",
+        "native": "-0.010537508741140402",
+        "value": {
+          "kind": "number",
+          "value": -0.010537508741140402
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(185.20169712472864,174.33935798845917)",
+        "native": "0.09990112508572181",
+        "value": {
+          "kind": "number",
+          "value": 0.09990112508572181
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(167.25532242522783,148.6466946101827)",
+        "native": "0.033402313063766335",
+        "value": {
+          "kind": "number",
+          "value": 0.03340231306376632
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(167.25532242522783,148.6466946101827)",
+        "native": "-0.08468506142830629",
+        "value": {
+          "kind": "number",
+          "value": -0.08468506142830629
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(99.22048699580381,90.37462857368754)",
+        "native": "-0.014745318432021192",
+        "value": {
+          "kind": "number",
+          "value": -0.014745318432021192
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(99.22048699580381,90.37462857368754)",
+        "native": "0.12322032423309383",
+        "value": {
+          "kind": "number",
+          "value": 0.12322032423309383
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(125.37959003503153,116.6567819972802)",
+        "native": "0.024274040507599865",
+        "value": {
+          "kind": "number",
+          "value": 0.024274040507599865
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(125.37959003503153,116.6567819972802)",
+        "native": "0.11446611903392187",
+        "value": {
+          "kind": "number",
+          "value": 0.11446611903392187
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(186.74124653962318,176.04819663852678)",
+        "native": "-0.0036507301835744404",
+        "value": {
+          "kind": "number",
+          "value": -0.0036507301835744174
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(186.74124653962318,176.04819663852678)",
+        "native": "0.10053436437484568",
+        "value": {
+          "kind": "number",
+          "value": 0.10053436437484571
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(89.76672353979863,82.50045435984073)",
+        "native": "0.05571552570824538",
+        "value": {
+          "kind": "number",
+          "value": 0.05571552570824537
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(89.76672353979863,82.50045435984073)",
+        "native": "0.12098007798835328",
+        "value": {
+          "kind": "number",
+          "value": 0.12098007798835327
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(189.8494070806825,172.65011054674332)",
+        "native": "-0.051261414413935905",
+        "value": {
+          "kind": "number",
+          "value": -0.051261414413935884
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(189.8494070806825,172.65011054674332)",
+        "native": "-0.07357195263406027",
+        "value": {
+          "kind": "number",
+          "value": -0.07357195263406027
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(170.32848508396285,147.54177103744)",
+        "native": "0.05806770628179012",
+        "value": {
+          "kind": "number",
+          "value": 0.05806770628179012
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(170.32848508396285,147.54177103744)",
+        "native": "0.06403336236516559",
+        "value": {
+          "kind": "number",
+          "value": 0.06403336236516559
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(190.53760462762557,163.73608512223203)",
+        "native": "-0.06322055429494218",
+        "value": {
+          "kind": "number",
+          "value": -0.06322055429494218
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(190.53760462762557,163.73608512223203)",
+        "native": "0.05031449662188951",
+        "value": {
+          "kind": "number",
+          "value": 0.05031449662188951
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(122.47404828404994,112.43777801093634)",
+        "native": "-0.037979040853865664",
+        "value": {
+          "kind": "number",
+          "value": -0.037979040853865664
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(122.47404828404994,112.43777801093634)",
+        "native": "0.10753341300645565",
+        "value": {
+          "kind": "number",
+          "value": 0.10753341300645565
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(156.01302960694264,147.61352819760947)",
+        "native": "0.05802643404970055",
+        "value": {
+          "kind": "number",
+          "value": 0.05802643404970053
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(156.01302960694264,147.61352819760947)",
+        "native": "0.09509514764658877",
+        "value": {
+          "kind": "number",
+          "value": 0.09509514764658879
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(162.3854084593559,139.78360125631977)",
+        "native": "0.052491186114452255",
+        "value": {
+          "kind": "number",
+          "value": 0.05249118611445225
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(162.3854084593559,139.78360125631977)",
+        "native": "0.07028483420966535",
+        "value": {
+          "kind": "number",
+          "value": 0.07028483420966535
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(176.22268264495378,154.58494235385334)",
+        "native": "0.08611548543100768",
+        "value": {
+          "kind": "number",
+          "value": 0.08611548543100775
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(176.22268264495378,154.58494235385334)",
+        "native": "0.009948652595698458",
+        "value": {
+          "kind": "number",
+          "value": 0.009948652595698458
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(111.37585857348463,98.66064379615284)",
+        "native": "-0.10983485412109535",
+        "value": {
+          "kind": "number",
+          "value": -0.10983485412109535
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(111.37585857348463,98.66064379615284)",
+        "native": "-0.01441040389611986",
+        "value": {
+          "kind": "number",
+          "value": -0.014410403896119877
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(114.6975783057004,98.13934555501788)",
+        "native": "0.04649109251812436",
+        "value": {
+          "kind": "number",
+          "value": 0.04649109251812436
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(114.6975783057004,98.13934555501788)",
+        "native": "-0.0924251582671259",
+        "value": {
+          "kind": "number",
+          "value": -0.0924251582671259
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(193.31431479258663,173.63226366719667)",
+        "native": "0.037013918658403935",
+        "value": {
+          "kind": "number",
+          "value": 0.03701391865840392
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELY(193.31431479258663,173.63226366719667)",
+        "native": "-0.07814697669105646",
+        "value": {
+          "kind": "number",
+          "value": -0.07814697669105647
+        },
+        "exact": false
+      },
+      {
+        "formula": "=BESSELJ(173.2216336370401,164.50114000240762)",
+        "native": "0.05532944750793057",
+        "value": {
+          "kind": "number",
+          "value": 0.05532944750793057
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(173.2216336370401,164.50114000240762)",
+        "native": "0.0921313791676573",
+        "value": {
+          "kind": "number",
+          "value": 0.0921313791676573
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELJ(182.1090472710281,171.22699894971268)",
+        "native": "-0.01341026482697856",
+        "value": {
+          "kind": "number",
+          "value": -0.01341026482697856
+        },
+        "exact": true
+      },
+      {
+        "formula": "=BESSELY(182.1090472710281,171.22699894971268)",
+        "native": "0.09996145456544246",
+        "value": {
+          "kind": "number",
+          "value": 0.09996145456544246
+        },
+        "exact": true
+      }
+    ],
+    "improved": 2,
+    "regressed": 11,
+    "verdict": "Reject: historical high-q73/120 becomes64/120. All other named cohorts remain exact; cannot substitute mathematical accuracy for native operation parity."
+  },
+  "fmaSourceTrials": [
+    {
+      "variant": 0,
+      "contractions": {
+        "pairs": false,
+        "sum": false,
+        "final": false
+      },
+      "leafCases": 49,
+      "leafMatches": 44,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 73
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 1,
+      "contractions": {
+        "pairs": true,
+        "sum": false,
+        "final": false
+      },
+      "leafCases": 49,
+      "leafMatches": 44,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 73
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 2,
+      "contractions": {
+        "pairs": false,
+        "sum": true,
+        "final": false
+      },
+      "leafCases": 49,
+      "leafMatches": 44,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 73
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 3,
+      "contractions": {
+        "pairs": true,
+        "sum": true,
+        "final": false
+      },
+      "leafCases": 49,
+      "leafMatches": 44,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 73
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 4,
+      "contractions": {
+        "pairs": false,
+        "sum": false,
+        "final": true
+      },
+      "leafCases": 49,
+      "leafMatches": 7,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 72
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 5,
+      "contractions": {
+        "pairs": true,
+        "sum": false,
+        "final": true
+      },
+      "leafCases": 49,
+      "leafMatches": 7,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 72
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 6,
+      "contractions": {
+        "pairs": false,
+        "sum": true,
+        "final": true
+      },
+      "leafCases": 49,
+      "leafMatches": 7,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 72
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    },
+    {
+      "variant": 7,
+      "contractions": {
+        "pairs": true,
+        "sum": true,
+        "final": true
+      },
+      "leafCases": 49,
+      "leafMatches": 7,
+      "cohorts": [
+        {
+          "cohort": "ssconvert-bessel-followup",
+          "cases": 536,
+          "matches": 536
+        },
+        {
+          "cohort": "ssconvert-bessel-b1-large-order",
+          "cases": 126,
+          "matches": 126
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-highq",
+          "cases": 120,
+          "matches": 72
+        },
+        {
+          "cohort": "ssconvert-bessel-integral-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-phase-holdout",
+          "cases": 120,
+          "matches": 120
+        },
+        {
+          "cohort": "ssconvert-bessel-negative-controls",
+          "cases": 12,
+          "matches": 12
+        }
+      ]
+    }
+  ],
+  "sourceObservation": {
+    "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.41/sysdeps/ieee754/dbl-64/s_log1p.c",
+    "sha256": "1bda067a394a58f1390ed1a6dd823941e50f9f0bc897d4854a9c896d5f296195",
+    "purpose": "Upstream tagged source observation for coefficient/expression comparison, not authentication of exact Debian libm binary/compiled operation profile",
+    "coefficients": "All seven current coefficient binary64 values match published decimal and hexadecimal constants exactly.",
+    "aarch64FpuMakefileUrl": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.41/sysdeps/aarch64/fpu/Makefile",
+    "aarch64FpuMakefileSha256": "b471fb4f86c7a0b302f6259e0ae952681525bbdf5f5c7a37361094a4474a4bcb"
+  },
+  "nativeVsMathematics": {
+    "scope": "23 distinct historical log1p primitive difference inputs; independent220-digit Decimal log1p values from previous public LN1P corpus also cover these inputs",
+    "matchesMathematicalReference": 5,
+    "differsFromMathematicalReference": 18,
+    "consequence": "Native Linux/glibc primitive results deliberately differ from mathematically rounded values; the current Darwin236-case success cannot prove historical Linux primitive parity."
+  },
+  "harnessCorrections": [
+    "First prototype assumed nonexistent engine.recalculate; switched to inspected exported recalculateWorkbook and explicit bounded CapabilityContext. No product change.",
+    "First negative-error classification accepted numbers only and counted2/12; fixed parsing of native quoted#NUM! CSV. Actual current baseline and all candidates pass12/12; original provisional count not claimed as product failure."
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/bessel-log-results.json",
+      "sha256": "2baa146edab3c26595ddb6f208c2546afdd2a48fcafa343eba154aeb60631926"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bessel-fma-results.json",
+      "sha256": "cbb8995c2982e5cd552bba3f57e08197d435fdfae1376637512d716efbe9bcf5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bessel-log-prototype.mjs",
+      "sha256": "2115454af6729cbe0b27caaee6dfa5a6eea424165d8057ed038e628964480ec6"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bessel-fma-prototype.mjs",
+      "sha256": "947ad7347d5ff21754f0ac0d171eba1e37845b79c73da399b726090716d72ef5"
+    }
+  ],
+  "remaining": [
+    "Identify exact historical native scalar/acos/integration operation discrepancy; no coefficient/FMA or high-precision speculative patch",
+    "Preserve all Linux/glibc and Darwin cohorts separately, error controls, work/cancellation and actual default profile",
+    "All other goal ledger families and successful publication remain open"
+  ],
+  "delivery": {
+    "localCommit": null,
+    "remoteMain": null,
+    "publication": null
+  },
+  "fmaVerdict": "Reject: polynomial pair/sum contraction does not change current73/120; final-expression contraction drops primitive49-case exact matches44\u21927 and high-q73\u219272. No candidate reaches required exact parity."
+}

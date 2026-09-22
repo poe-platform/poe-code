@@ -364,9 +364,10 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (first === undefined || last === undefined) return undefined;
     return ref.first === ref.last ? first : [first, last] as const;
   });
+  const localSheets = sheets.map(sheet => sheet.name);
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, names: names.map(name => name.name), externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
-    ...(owner ? { currentSheet: owner.name } : {}), shared,
+    ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const materializedNames: NamedExpression[] = [];
   for (const name of names) {

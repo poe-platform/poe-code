@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:57:05.554808+00:00",
+  "recordedAt": "2026-09-22T17:03:23.316924+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -25,7 +25,7 @@
     }
   },
   "candidate": {
-    "head": "807e061b3ec3d46b5e104c1d8da72b840762eb57",
+    "head": "3ebc4afa9a8285723df547eba486014c8567994c",
     "ownedFiles": [
       {
         "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
@@ -100,16 +100,20 @@
         "sha256": "91eb52aff067760730c9c6ce1a534f4576dd5fe07ff23453010f5a2065d3ead1"
       },
       {
+        "path": "packages/ssconvert/src/codecs/biff-legacy-references.test.ts",
+        "sha256": "457b1f7c9fc14db196b460b33186edc9b4c965d7a4c2408c80ebd84872c407d4"
+      },
+      {
         "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
-        "sha256": "a0177f1d54462c2a3d9b136b41d2c20626ce30127f9442700532d280a35157ec"
+        "sha256": "28fbedd14f07c3c5e2e86dfec836b91ba20e99f36e35f36bb168f99477a7c9cf"
       },
       {
         "path": "packages/ssconvert/src/codecs/biff.ts",
-        "sha256": "122b57cde469df68899805718067774d8cb136988f5c2751875c0bd5164cbd4d"
+        "sha256": "ed5a1f9359d2bec0b09b544d9fd7c9bb8dac447d136633b3932096d43148baa5"
       },
       {
-        "path": "packages/ssconvert/src/codecs/biff-legacy-references.test.ts",
-        "sha256": "457b1f7c9fc14db196b460b33186edc9b4c965d7a4c2408c80ebd84872c407d4"
+        "path": "packages/ssconvert/src/codecs/biff-legacy-roundtrip.test.ts",
+        "sha256": "ad2540f7a2bc2f9eefd474a34be177b05c4cbb02249b92e44e9abfb004c31fec"
       }
     ]
   },
@@ -217,7 +221,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF8 spans and BIFF7/8 deleted tokens verified on remote main; legacy local3D import and worksheet-table ownership repaired,14 native/public CLI cells pass. Writer span roundtrip concretely loses Last endpoint (6 becomes3); names, modern deleted links and true external books remain open.",
+      "currentFinding": "Legacy local3D/scoped tables verified on remote main3ebc4afa9; physically indexed BIFF7 spans now preserve writer roundtrip and correctly recalculate all6 directions. Native released reader shares prior misbinding; independent LibreOffice source and six native XLSX readbacks verify correction. Names, modern deleted links, external books and remaining profile cells stay open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -243,6 +247,16 @@
           "kind": "legacy-local-reference-and-scope-repair",
           "path": "docs/ssconvert/biff-legacy-reference-gap-proof.json",
           "outcome": "red11/green14;6313 maintained tests, lint/types/build pass;14 native/public CLI exact comparisons and inspected screenshot; neighboring writer span failure newly reproduced",
+          "delivery": {
+            "localCommit": "3ebc4afa9a8285723df547eba486014c8567994c",
+            "remoteMain": "exact ls-remote HEAD verified",
+            "publication": "Release35757493144 pending; original35751317721 fresh unit in_progress"
+          }
+        },
+        {
+          "kind": "BIFF7-physical-sheet-span-roundtrip-repair",
+          "path": "docs/ssconvert/biff-legacy-roundtrip-gap-proof.json",
+          "outcome": "red7/green7;6320 maintained tests, lint/types/build pass; prior14 native controls exact;6 original physical inputs correct,6 exported XLSX native readbacks exact; native BIFF7 reader bug retained as actual differing evidence",
           "delivery": "local candidate, pending atomic commit/push and publication"
         }
       ],

@@ -13,6 +13,7 @@ export interface BiffFormulaContext {
   /** null is the legacy self-reference placeholder; undefined is an unbound link. */
   readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
   readonly currentSheet?: string;
+  readonly localSheets?: readonly string[];
   readonly shared?: boolean;
   readonly limit: number;
 }
@@ -111,7 +112,11 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         const index = signed(offset), firstIndex = signed(offset + 10), lastIndex = signed(offset + 12);
         if (firstIndex < 0 || lastIndex < 0) { offset += size; push("#REF!"); continue; }
         const first = context.externalSheets[Math.abs(index) - 1];
-        const last = index < 0 && firstIndex === lastIndex ? first : index < 0 && lastIndex === 0 ?
+        // Standard BIFF5/7 uses zero-based physical sheet fields. Preserve the
+        // older native table-index convention when that first field does not
+        // agree with both the signed link and the bound workbook sheet.
+        const physical = index < 0 && firstIndex === -index - 1 && typeof first === "string" && context.localSheets?.[firstIndex] === first;
+        const last = physical ? context.localSheets?.[lastIndex] : index < 0 && firstIndex === lastIndex ? first : index < 0 && lastIndex === 0 ?
           context.currentSheet ?? null : context.externalSheets[lastIndex - 1];
         if (first === undefined || last === undefined || typeof first === "object" && first !== null || typeof last === "object" && last !== null)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");

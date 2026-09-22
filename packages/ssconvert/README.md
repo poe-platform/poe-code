@@ -4,7 +4,9 @@ Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer
 The engine provides spreadsheet import and export, recalculation, workbook updates,
 and chart and print rendering. The optional `pythonSampleFunctions` binding adds
 percent formatting through `PY_PRINTF`; supply it as `runtimeFunctions` to enable
-the sample functions. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
+the sample functions. The optional `perlSampleFunctions` binding adds clock-based dates
+and bounded pattern substitution with literal replacements; advanced Perl regex
+and byte-result compatibility remain documented gaps. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
 using the native reader's built-in password or an explicit host `password.read` callback. AES/Blowfish-encrypted OpenDocument spreadsheets open through the same host callback. Encrypted Paradox tables open automatically using their declared header key. Format support has documented limits; see the
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 

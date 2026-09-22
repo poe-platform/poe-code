@@ -472,6 +472,11 @@
         {
           "kind": "public-shell-visible-qa",
           "outcome": "CSV --set formula/recalc with explicit CSV exporter: UTC 20240229 and Los_Angeles 20240228; exit 0; screenshot inspected. Earlier QA invocations lacked exporter or formula equals and were corrected, not product failures."
+        },
+        {
+          "kind": "activated-native-frozen-clock-profile",
+          "path": "docs/ssconvert/perl-sed-gap-proof.json",
+          "outcome": "Unmodified native sample at1709166600 returns20240229 inUTC and20240228 inLos_Angeles; native/SDK/Shell/browser/worker CSV exact,zero native stderr. Wider profiles remain open."
         }
       ],
       "delivery": {
@@ -483,12 +488,17 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Required bounded port absent from explicit perlSampleFunctions binding.21unmodified Perl5.34.1 sample cases qualify literal variable replacement,byte-string loader and zero-width/flag behavior; this source scalar oracle does not activate Gnumeric Perl loader. Implementation,profile/public qualification and publication remain open.",
+      "currentFinding": "Bounded explicit port matches645 native activated Perl5.34.1 CSV controls and all four public surfaces/checkpoint. Advanced grammar/captures,13 invalid-UTF-8 results,native invalid-pattern diagnostics,wider optional profiles and publication remain required.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
           "path": "docs/ssconvert/perl-sed-applicability.json",
           "outcome": "21safe source cases; replacement$1/$&/backslash literal; empty pattern scalar scope,zero-starXX/zero-lazy7Xs; loadernewSVpv/strlen unflagged byte contract,ASCIIword controls and invalidregex sourceerror recorded. Code-bearing patterns not executed."
+        },
+        {
+          "kind": "activated-native-loader-and-public-four-surface",
+          "path": "docs/ssconvert/perl-sed-gap-proof.json",
+          "outcome": "645 exact controls with zero native stderr; frozen clock Perl family UTC/Los_Angeles matches native/SDK/Shell/browser/worker. Required gaps explicitly retained."
         }
       ],
       "delivery": {

@@ -2,9 +2,10 @@
 
 Static analysis that resolves every workspace package's dependency tree and
 verifies it is configured correctly for this mixed published/private monorepo.
-Every decision is made from facts — the `private` flag, real vendoring into
-`dist/`, dependency edges, release-workflow wiring — never from naming
-conventions, and never from the npm registry (offline only).
+Dependency and publication checks use the `private` flag, real vendoring into
+`dist/`, dependency edges and release-workflow wiring. The maintained
+`safe-bash-command-<name>` convention additionally requires private command
+workspaces. Checks never query the npm registry (offline only).
 
 ## Usage
 
@@ -29,6 +30,7 @@ malformed `package.json`).
 
 | id                                      | Proves                                                                                                                                                                                                                            |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `safe-bash-command-private`             | Every `safe-bash-command-<name>` workspace is private; command implementations ship through Safe Bash rather than independent publication. |
 | `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped, tsc-emitted bin entry resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself a shipped package.                                                     |
 | `no-published-to-private-dep`           | No published package depends (deps / peer / optional) on a private workspace package.                                                                                                                                             |
 | `published-dep-needs-version-range`     | A published → published workspace dependency uses a concrete range, never `*` / `workspace:*`, and that range includes the workspace package version.                                                                             |

@@ -102,6 +102,14 @@ import {
 export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
 export { isSandboxMap, isSandboxSet } from "./collection-brands.js";
 
+// SDK-created closure shapes are frozen. Snapshot their own symbol identities
+// once; foreign frozen objects and mutable function property tables stay fresh.
+const frozenClosureSymbols = new WeakMap<object, readonly symbol[]>();
+const readFrozenClosureSymbols = WeakMap.prototype.get.bind(frozenClosureSymbols);
+const writeFrozenClosureSymbols = WeakMap.prototype.set.bind(frozenClosureSymbols);
+const freezeClosureShape = Object.freeze;
+const captureClosureSymbols = Object.getOwnPropertySymbols;
+
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
 const sandboxPromiseBrand = Symbol("SandboxPromise");
@@ -359,7 +367,9 @@ export function createSandboxClosure(input: {
     });
   }
 
-  return Object.freeze(closure);
+  freezeClosureShape(closure);
+  writeFrozenClosureSymbols(closure, freezeClosureShape(captureClosureSymbols(closure)));
+  return closure;
 }
 
 export function ownEnumerableSandboxEntries(
@@ -949,13 +959,15 @@ export function measureSandboxData(
       }
     }
     if (!isGuestHostObject(value)) {
-      const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
+      const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value);
       let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
       // Capture before visiting: retained callbacks can mutate later properties.
-      for (const key of symbols) {
-        if (internalSymbols.has(key)) continue;
-        const descriptor = Object.getOwnPropertyDescriptor(value, key);
-        if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
+      if (ownedSymbols !== undefined) {
+        for (let index = 0; index < ownedSymbols.length; index++)
+          descriptors = captureRetainedSymbolProperty(value, ownedSymbols[index]!, descriptors);
+      } else {
+        const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
+        for (const key of symbols) descriptors = captureRetainedSymbolProperty(value, key, descriptors);
       }
       if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;
@@ -1358,6 +1370,16 @@ export function reconcileCompiledValues(
   );
   for (const ticket of retained) compilation?.tickets.delete(ticket);
   if (compilation !== undefined && parent !== undefined) compilation.forward(included, parent);
+}
+
+function captureRetainedSymbolProperty(
+  value: object, key: symbol,
+  descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined
+): Array<readonly [symbol, PropertyDescriptor]> | undefined {
+  if (internalSymbols.has(key)) return descriptors;
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
+  return descriptors;
 }
 
 function captureRegexData(value: object): { source: string; flags: string; lastIndex: SandboxValue } {

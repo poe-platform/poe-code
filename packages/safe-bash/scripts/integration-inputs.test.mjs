@@ -2372,9 +2372,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/csvkit-continuation-independent.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-user-final-stress.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-binding-snapshot-stress.test.ts"));
-  assert.ok(files.includes("tests/commands/csvpy-user-edge.test.ts"));
-  assert.ok(files.includes("tests/commands/csvpy-object-contract-stress.test.ts"));
-  assert.ok(files.includes("tests/commands/csvpy-bridge-review.test.ts"));
+  assert.ok(files.includes("tests/commands/csvpy-stress.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-execution-user-edge.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-sqlite-binding-stress.test.ts"));
   assert.ok(files.includes("tests/commands/csvkit-sql-provider-stress.test.ts"));

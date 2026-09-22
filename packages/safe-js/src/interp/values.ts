@@ -1323,7 +1323,16 @@ export function reconcileCompiledValues(
   const included = new Set<CompileTicket>();
   const usage = measureSandboxData([...values, ...budget.retainedValues()], { compileTickets: included });
   const kept = new Set<CompileTicket>();
-  if (parent !== undefined && included.size > 0) measureSandboxData(escaping, { compileTickets: kept });
+  // Always measure the primary graph, including while accounting is held.
+  // Escaping ownership matters only when a staged charge can be transferred.
+  if (parent !== undefined && !budget.reconciliationDeferred) {
+    for (const ticket of included) {
+      if (budget.compileTicketUsage(ticket) > 0) {
+        measureSandboxData(escaping, { compileTickets: kept });
+        break;
+      }
+    }
+  }
   const transferred = new Set<CompileTicket>();
   for (const ticket of included) {
     if (!kept.has(ticket)) {

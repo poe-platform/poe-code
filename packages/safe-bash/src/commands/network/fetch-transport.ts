@@ -3,6 +3,8 @@ import { CurlError, type HttpTransport } from "./types.js";
 
 export interface FetchTransportOptions {
   readonly fetch?: typeof globalThis.fetch;
+  /** Set false only for a host Fetch implementation that preserves encoded body bytes. */
+  readonly contentDecoded?: boolean;
 }
 
 function requestBody(source: ByteSource | undefined, signal: AbortSignal): ReadableStream<Uint8Array> | undefined {
@@ -68,6 +70,7 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
       statusText: response.statusText,
       headers: [...response.headers.entries()],
       body: responseBody,
+      contentDecoded: options.contentDecoded ?? true,
       dispose,
     };
   };

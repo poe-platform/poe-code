@@ -22,6 +22,8 @@ export interface HttpResponse {
   readonly headers: HttpHeaders;
   readonly httpVersion?: string;
   readonly body: ByteSource;
+  /** True when the host already decoded Content-Encoding; encoded length is then unavailable. */
+  readonly contentDecoded?: boolean;
   dispose(): Promise<void>;
 }
 

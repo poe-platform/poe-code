@@ -48,6 +48,10 @@ host `fetch`, forces manual redirects so each hop returns to the authorizer,
 omits ambient credentials, and streams request and response bodies. Pass a
 specific Fetch function as `createFetchTransport({ fetch })` when the host does
 not expose it globally.
+Fetch transports mark bodies as already decoded so `--compressed` does not decode
+them again or compare decoded bytes with encoded Content-Length. Hosts that
+preserve encoded bytes can use `createFetchTransport({ contentDecoded: false })`.
+Custom transports that decode content must return `contentDecoded: true`.
 
 `createOriginAuthorizer(allowlist?)` accepts exact origins (scheme, host, and
 port) or hostnames. Its omitted/default allowlist is `"*"`, which deliberately
@@ -72,6 +76,7 @@ outbound HTTP(S) authority.
 | Request data | `-d/--data/--data-ascii`, `--data-raw`, `--data-binary`, `--data-urlencode`, `--json`; literal, `@VFSFILE`, `@-` stdin; repeated data joins with `&`, repeated JSON concatenates. JSON bytes are not syntax-validated. `-d @file` removes CR/LF/NUL; binary retains bytes. |
 | Uploads/forms | `-T/--upload-file FILE` or `-` uses PUT unless overridden. `-F/--form name=value`, `name=@file`, `name=<file`, optional `;type=TYPE`/`;filename=NAME`, and `--form-string`. File parts default to application/octet-stream rather than filename MIME guessing. Nested forms, file lists, quoting grammar and other attributes are rejected. |
 | Response files | `-o/--output`, `-O/--remote-name`, `-D/--dump-header`; paths are VFS-relative, `-` means stdout. `-O` uses the original URL path basename without percent decoding or Content-Disposition trust. Parents must exist. Multiple URLs with file/header outputs are rejected instead of pretending curl's positional output rules. |
+| Response encoding | `--compressed` advertises gzip/deflate and streams decoded content to stdout or VFS files; headers stay encoded and `size_download` counts transport body bytes. Both encoded and decoded bodies obey the download ceiling. `--raw` disables content decoding even with `--compressed`; already-decoded content and raw transfer framing (such as chunked encoding) fail with code 61. `--no-compressed` and `--no-raw` disable their respective flags. |
 | HTTP status | `-f/--fail`, `--fail-with-body`, `-s/--silent`, `-S/--show-error`; HTTP errors otherwise return zero. No progress meter is generated. `-v` emits method/origin, header names with all values redacted, and numeric response status. Explicit body/header outputs remain raw. |
 | Redirects | `-L/--location`, `--max-redirs`; 301/302/303 method/body changes and 307/308 replay; explicit `-X` is retained. HTTPS downgrade and credential-bearing Location URLs are rejected. All custom request headers and generated credentials are dropped permanently after crossing origins, more conservative than native curl. |
 | Deadlines/retries | `-m/--max-time` covers authorization, upload, response, body output and retry sleeps for each URL; host ceiling always applies. `--retry` retries completed HTTP 408/429/500/502/503/504 responses after output publication (subject to fail modes); `--retry-delay` and Retry-After are bounded by the deadline. Network, partial-transfer and output failures are not retried. |
@@ -81,7 +86,7 @@ outbound HTTP(S) authority.
 loading, progress meters and stdout buffering are never enabled. Help/version
 identify the virtual implementation, not a fabricated libcurl version.
 Unknown flags fail, including proxy/config/netrc, `--connect-timeout`, `-k`,
-`--compressed`, CA/cert file flags, cookie-jar, HTTP/2/3, ranges, resume, parallel,
+CA/cert file flags, cookie-jar, HTTP/2/3, ranges, resume, parallel,
 `--location-trusted`, `--retry-all-errors`, and non-HTTP protocols. In particular,
 connect-only timeouts are not relabeled as total timeouts.
 

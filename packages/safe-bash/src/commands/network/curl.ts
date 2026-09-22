@@ -5,6 +5,7 @@ import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import { parseArguments, type CurlArguments } from "./args.js";
 import { createBody, queryData } from "./body.js";
+import { decodeContent } from "./decode.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
 import { delay, diagnostic, encode, header, limitsFor, networkError, withSignal } from "./shared.js";
 import { createDefaultHttpTransport } from "./platform.js";
@@ -39,6 +40,7 @@ function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL;
 function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number): HttpHeaders {
   const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
+  if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
   if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
   if (scoped && args.bearer !== undefined) {
     if (/[\r\n\0]/.test(args.bearer)) throw new CurlError(2, "Invalid bearer token");
@@ -290,24 +292,37 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         const length = header(response.headers, "content-length");
         if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
         const final = response;
+        const encoding = header(final.headers, "content-encoding");
         const writing = output === undefined || output === "-" ? createOutputOperation({ ...context, signal }, context.stdout) : undefined;
         const bodySignal = writing?.signal ?? signal;
         const source: ByteSource = (async function* () {
           for (const bytes of included) { published += bytes.length; yield bytes; }
           if (!args.head && !suppressBody) {
+            if (args.raw && final.contentDecoded && encoding) throw new CurlError(61, "Transport cannot preserve encoded response bytes");
+            if (args.raw && header(final.headers, "transfer-encoding")) throw new CurlError(61, "Raw transfer encoding is unsupported by this transport");
             let chunks = 0;
-            try {
+            const encoded: ByteSource = (async function* () {
               for await (const chunk of readBytes(final.body, bodySignal)) {
-                if (++chunks % 256 === 0) { await yieldTurn(context.signal); bodySignal.throwIfAborted(); }
                 downloaded += chunk.length;
                 if (downloaded > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+                yield chunk;
+              }
+              if (!final.contentDecoded && length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
+            })();
+            const decoded = args.compressed && !args.raw && !final.contentDecoded && encoding
+              ? decodeContent(encoded, encoding, bodySignal) : encoded;
+            let outputBytes = 0;
+            try {
+              for await (const chunk of decoded) {
+                if (++chunks % 256 === 0) { await yieldTurn(context.signal); bodySignal.throwIfAborted(); }
+                outputBytes += chunk.length;
+                if (outputBytes > args.maxFileSize) throw new CurlError(63, "Decoded response exceeds download byte limit");
                 published += chunk.length;
                 yield chunk;
               }
-              if (length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
             } catch (error) {
               bodySignal.throwIfAborted();
-              if (!(error instanceof CurlError) && length && /^\d+$/.test(length) && downloaded < Number(length)) throw new CurlError(18, "Partial HTTP response body");
+              if (!(error instanceof CurlError) && !final.contentDecoded && length && /^\d+$/.test(length) && downloaded < Number(length)) throw new CurlError(18, "Partial HTTP response body");
               throw networkError(error);
             }
           }

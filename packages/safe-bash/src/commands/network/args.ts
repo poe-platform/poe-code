@@ -33,6 +33,8 @@ export interface CurlArguments {
   globoff: boolean;
   help: boolean;
   version: boolean;
+  compressed?: boolean;
+  raw?: boolean;
   retries: number;
   retryDelayMs: number;
   maxTimeMs: number;
@@ -126,6 +128,10 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "globoff": result.globoff = true; break;
       case "help": result.help = true; break;
       case "version": result.version = true; break;
+      case "compressed": result.compressed = true; break;
+      case "no-compressed": result.compressed = false; break;
+      case "raw": result.raw = true; break;
+      case "no-raw": result.raw = false; break;
       case "disable": case "no-buffer": case "no-progress-meter": case "basic": break;
       default: throw new CurlError(2, "Unsupported curl option");
     }

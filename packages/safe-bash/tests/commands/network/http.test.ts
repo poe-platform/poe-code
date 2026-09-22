@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
+import { gzipSync, deflateSync } from "node:zlib";
+import { createFetchTransport } from "../../../src/commands/network/index.js";
 import { run, server, type TestServer } from "./helpers.js";
 
 let host: TestServer;
@@ -41,4 +43,87 @@ test("verbose diagnostics never expose credential header values", async () => {
   assert.equal(result.exitCode, 0);
   assert.doesNotMatch(result.stderr.toString(), /super-secret|hidden-custom-token|dXNlcjpzdXBlci1zZWNyZXQ=/);
   assert.match(result.stderr.toString(), /redacted/);
+});
+
+test("compressed responses decode while raw responses retain encoded bytes", async () => {
+  const plain = Buffer.from("hello\n");
+  const gzip = gzipSync(plain);
+  const requests: (string | undefined)[] = [];
+  const compressed = await server((request, response) => {
+    requests.push(request.headers["accept-encoding"]);
+    const bytes = request.url === "/deflate" ? deflateSync(plain) : gzip;
+    response.writeHead(200, { "Content-Encoding": request.url === "/deflate" ? "deflate" : "gzip", "Content-Length": bytes.length });
+    response.end(bytes);
+    return true;
+  });
+  try {
+    for (const path of ["/gzip", "/deflate"]) {
+      const result = await run(["--compressed", "-w", ":%{size_download}", compressed.origin + path]);
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      const length = path === "/gzip" ? gzip.length : deflateSync(plain).length;
+      assert.equal(result.stdout.toString(), `hello\n:${length}`);
+    }
+    for (const flags of [["--raw"], ["--compressed", "--raw"]]) {
+      const result = await run([...flags, compressed.origin + "/gzip"]);
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.deepEqual(result.stdout, gzip);
+    }
+    assert.deepEqual(requests, ["gzip, deflate", "gzip, deflate", undefined, "gzip, deflate"]);
+    const output = await run(["--compressed", "-o", "decoded", compressed.origin + "/gzip"]);
+    assert.equal(output.exitCode, 0, output.stderr.toString());
+    assert.deepEqual(Buffer.from(await output.fs.readFile("/work/decoded")), plain);
+  } finally { await compressed.close(); }
+});
+
+test("compressed Fetch content is decoded once and raw encoded content is refused", async () => {
+  const transport = createFetchTransport({ fetch: async () => new Response("hello\n", {
+    headers: { "Content-Encoding": "gzip", "Content-Length": "26" },
+  }) });
+  const decoded = await run(["--compressed", "http://127.0.0.1/"], { options: { transport } });
+  assert.equal(decoded.exitCode, 0, decoded.stderr.toString());
+  assert.equal(decoded.stdout.toString(), "hello\n");
+  const raw = await run(["--raw", "http://127.0.0.1/"], { options: { transport } });
+  assert.equal(raw.exitCode, 61);
+});
+
+test("raw body limitations do not reject head requests", async () => {
+  const raw = await server((_request, response) => {
+    response.writeHead(200, { "Transfer-Encoding": "chunked" });
+    response.end();
+    return true;
+  });
+  try {
+    const result = await run(["--raw", "--head", raw.origin]);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+  } finally { await raw.close(); }
+});
+
+test("compressed body decoding obeys the transfer deadline", async () => {
+  const stalled = await server((_request, response) => {
+    response.writeHead(200, { "Content-Encoding": "gzip" });
+    response.write(gzipSync(Buffer.from("hello\n")).subarray(0, 10));
+    return true;
+  });
+  try {
+    const result = await run(["--compressed", "--max-time", "0.05", stalled.origin]);
+    assert.equal(result.exitCode, 28, result.stderr.toString());
+  } finally { await stalled.close(); }
+});
+
+test("compressed responses enforce decoded quotas and reject invalid or unknown encodings", async () => {
+  const compressed = await server((request, response) => {
+    const bytes = request.url === "/invalid" ? Buffer.from("invalid") : gzipSync(Buffer.alloc(1000, 65));
+    response.writeHead(200, { "Content-Encoding": request.url === "/unknown" ? "unknown" : "gzip", "Content-Length": bytes.length });
+    response.end(bytes);
+    return true;
+  });
+  try {
+    const limited = await run(["--compressed", compressed.origin], { options: { limits: { maxDownloadBytes: 100 } } });
+    assert.equal(limited.exitCode, 63);
+    assert.equal(limited.stdout.length, 0);
+    for (const path of ["/invalid", "/unknown"]) {
+      const result = await run(["--compressed", compressed.origin + path]);
+      assert.equal(result.exitCode, 61, result.stderr.toString());
+    }
+  } finally { await compressed.close(); }
 });

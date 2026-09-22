@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { deflateRawSync } from "node:zlib";
-import { createMemoryFileSystem, Shell, type CommandContext, type FileStat, type FileSystem } from "../../src/index.js";
+import { agentCommands, createMemoryFileSystem, Shell, type CommandContext, type FileStat, type FileSystem } from "../../src/index.js";
 import { createUnzipCommand } from "../../src/commands/archive/unzip.js";
 import type { ArchiveCommandsOptions } from "../../src/commands/archive/internal.js";
 import { bindFileOutputBudget } from "../../src/contracts/filesystem-output.js";
@@ -80,6 +80,42 @@ test("unzip native extraction and extension fallback", async () => {
   const fs = await fixture();
   assert.deepEqual(await run(fs, ["sample"]), { exitCode: 0, stderr: "", stdout: heading + "   creating: folder/\n extracting: hello.txt               \n extracting: folder/data.txt         \n" });
   assert.equal(Buffer.from(await fs.readFile("/work/hello.txt")).toString(), "hello\n");
+});
+
+test("unzip quiet extraction reproduces the reported Shell command", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/archive.zip", Buffer.from("UEsDBBQAAAAAAAAAIVhOgYhHBAAAAAQAAAAFAAAAaW5wdXRhYmMKUEsBAhQDFAAAAAAAAAAhWE6BiEcEAAAABAAAAAUAAAAAAAAAAAAAAIABAAAAAGlucHV0UEsFBgAAAAABAAEAMwAAACcAAAAAAA==", "base64"));
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("unzip -q archive.zip; cat input");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "abc\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+for (const quiet of ["-q", "-qq"]) test(`unzip ${quiet} suppresses extraction progress and archive comments`, async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/sample.zip", zip([
+    { name: "folder/" },
+    { name: "folder/stored", body: "stored" },
+    { name: "folder/deflated", body: "deflated", method: 8 },
+    { name: "folder/link", body: "stored", mode: 0o120777 },
+  ], "archive comment"));
+  assert.deepEqual(await run(fs, [quiet, "-o", "sample.zip", "-d", "dest"]), { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/folder/stored")).toString(), "stored");
+  assert.equal(Buffer.from(await fs.readFile("/work/dest/folder/deflated")).toString(), "deflated");
+  assert.equal(await fs.readlink!("/work/dest/folder/link"), "stored");
+});
+
+test("unzip quiet extraction retains overwrite prompts and diagnostics", async () => {
+  const fs = await fixture([{ name: "hello.txt", body: "hello\n" }]);
+  await fs.writeFile("/work/hello.txt", Buffer.from("keep"));
+  assert.deepEqual(await run(fs, ["-q", "sample.zip"], "n\n"), { exitCode: 0, stdout: "", stderr: prompt("hello.txt") });
+  assert.equal(Buffer.from(await fs.readFile("/work/hello.txt")).toString(), "keep");
+  assert.deepEqual(await run(fs, ["-qq", "sample.zip", "absent"]), { exitCode: 11, stdout: "", stderr: "caution: filename not matched:  absent\n" });
+  assert.deepEqual(await run(fs, ["-q", "missing"]), { exitCode: 9, stdout: "", stderr: "unzip:  cannot find or open missing, missing.zip or missing.ZIP.\n" });
 });
 
 test("unzip -d destination and -o are honored on either side of archive", async () => {

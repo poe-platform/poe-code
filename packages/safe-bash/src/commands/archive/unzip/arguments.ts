@@ -65,9 +65,8 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
   if (rawArguments) for (const [index, value] of rawArguments.values.entries()) {
     if (!passwordArguments.has(index)) text(shellValueBytes(value));
   }
-  if (archive === undefined) fail("usage: unzip [-l] [-p] [-t [-q[q]]] [-o] [-d DIR] ARCHIVE [FILES...]");
+  if (archive === undefined) fail("usage: unzip [-l] [-p] [-t] [-q[q]] [-o] [-d DIR] ARCHIVE [FILES...]");
   checkPath(archive, limits);
-  if (quiet && !test) fail("quiet is currently supported only with unzip test mode");
   if (test && (list || pipe || destination !== undefined)) fail("unzip test mode cannot be combined with listing, pipe or destination");
   return { test, quiet, password, list: list && !pipe, pipe, overwrite, destination, archive, patterns };
 }

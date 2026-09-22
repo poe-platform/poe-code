@@ -173,7 +173,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             if (existing && existing.type !== "directory") fail("directory destination is not a directory");
             if (!existing) {
               identity = await extraction.createDirectory(path, parent);
-              await budget.output(`   creating: ${filtered(shown)}\n`);
+              if (!parsed.quiet) await budget.output(`   creating: ${filtered(shown)}\n`);
             }
             if (!identity || identity.type !== "directory") fail("directory changed during creation");
             directories.push({ path, entry, identity, parent });
@@ -227,10 +227,10 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
             await extraction.target(root, path, target);
             if (!context.fs.symlink || context.fs.capabilities.symlinks === false) fail("filesystem does not support symlinks");
             links.push({ path, shown, target, existing, parent, entry });
-            await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
+            if (!parsed.quiet) await budget.output(`    linking: ${padded(filtered(shown))}  -> ${filtered(target)} \n`);
           } else {
             await extraction.publish(root, path, chunks, existing, parent, entry.mode, entry.modified);
-            await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
+            if (!parsed.quiet) await budget.output(`${entry.method === 0 ? " extracting" : "  inflating"}: ${padded(filtered(shown))}  \n`);
           }
         } catch (error) {
           context.signal.throwIfAborted();
@@ -241,13 +241,13 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       }
       if (parsed.list) await budget.output(`---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
       else {
-        if (links.length) await budget.output("finishing deferred symbolic links:\n");
+        if (links.length && !parsed.quiet) await budget.output("finishing deferred symbolic links:\n");
         for (const link of links) {
           await extraction.parents(root, link.path, false);
           await extraction.target(root, link.path, link.target);
           await extraction.destination(link.path, archivePath, archiveStat);
           await extraction.publish(root, link.path, [], link.existing, link.parent, link.entry.mode, link.entry.modified, link.target);
-          await budget.output(`  ${padded(filtered(link.shown))} -> ${filtered(link.target)}\n`);
+          if (!parsed.quiet) await budget.output(`  ${padded(filtered(link.shown))} -> ${filtered(link.target)}\n`);
         }
         for (const { path, entry, identity, parent } of directories.reverse()) {
           await extraction.metadata(root, path, identity, parent, entry.mode, entry.modified);

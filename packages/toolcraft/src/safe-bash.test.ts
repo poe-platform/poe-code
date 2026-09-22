@@ -273,3 +273,14 @@ it("reports service-factory and root-selection errors through local stderr/statu
   expect(await roots.execute(["missing", "echo"], call)).toEqual({ exitCode: 1 });
   expect(call.errors.join("")).toContain("Unknown toolcraft root");
 });
+
+it("preserves structured note rendering through invocation stdout", async () => {
+  const root = defineGroup({ name: "notes", children: [defineCommand({
+    name: "show", params: S.Object({}), handler: () => "result",
+    render: { json(result, primitives) { primitives.note("a local note", "Details"); return { result }; } }
+  })] });
+  const call = invocation();
+  expect(await createToolcraftCommandExecutor(root).execute(["show", "--output", "json"], call)).toEqual({ exitCode: 0 });
+  expect(JSON.parse(call.output[0]!)).toEqual({ type: "note", title: "Details", message: "a local note" });
+  expect(JSON.parse(call.output[1]!)).toEqual({ result: "result" });
+});

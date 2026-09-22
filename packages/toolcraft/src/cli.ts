@@ -5505,7 +5505,7 @@ async function executeCommand<TServices extends object>(
     logger,
     renderTable,
     getTheme,
-    note: invocation ? (message, title) => invocation.write(`${title ? `${title}\n` : ""}${message}\n`) : note,
+    note: invocation ? (message, title) => note(message, title, invocation.write) : note,
     outputFormat: output
   };
   const diagnostics = createRuntimeLogger({

@@ -25,7 +25,11 @@ function renderTerminalNote(message: string, title?: string): string {
   return [color.gray("│"), titleLine, ...content, bottom].join("\n");
 }
 
-export function note(message: string, title?: string): void {
+export function note(
+  message: string,
+  title?: string,
+  write: (chunk: string) => void = process.stdout.write.bind(process.stdout)
+): void {
   const format = resolveOutputFormat();
   const strippedMessage = stripAnsi(message);
   const strippedTitle = stripAnsi(title ?? "").replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
@@ -34,12 +38,12 @@ export function note(message: string, title?: string): void {
     const lines = strippedMessage.split("\n");
     const heading = strippedTitle ? `> **${strippedTitle}**\n` : "";
     const body = lines.map((line) => `> ${line}`).join("\n");
-    process.stdout.write(`${heading}${body}\n`);
+    write(`${heading}${body}\n`);
     return;
   }
 
   if (format === "json") {
-    process.stdout.write(
+    write(
       `${JSON.stringify({
         type: "note",
         title: strippedTitle,
@@ -49,5 +53,5 @@ export function note(message: string, title?: string): void {
     return;
   }
 
-  process.stdout.write(`${renderTerminalNote(message, title)}\n`);
+  write(`${renderTerminalNote(message, title)}\n`);
 }

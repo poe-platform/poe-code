@@ -250,6 +250,64 @@ test("head and tail support byte/line counts, origin counts, omission and unterm
   assert.equal((await run("head", ["-n", "nope"], { stdin })).exitCode, 2);
 });
 
+test("head and tail select NUL-delimited records without decoding bytes", async () => {
+  const input = Buffer.from([255, 10, 0, 0, 128, 10, 0, 195, 169]);
+  const fs = await fixture({ input, minimal: "a\0b\0" });
+  for (const [command, expected] of [["head", "a\0"], ["tail", "b\0"]] as const) {
+    const result = await run(command, ["-z", "-n1", "minimal"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  }
+  for (const [command, count, start, end] of [
+    ["head", "2", 0, 4], ["head", "+2", 0, 4], ["head", "-2", 0, 4],
+    ["tail", "2", 4, 9], ["tail", "-2", 4, 9], ["tail", "+3", 4, 9],
+    ["head", "0", 0, 0], ["head", "-0", 0, 9], ["tail", "0", 9, 9],
+    ["tail", "+1", 0, 9], ["head", "10", 0, 9], ["tail", "10", 0, 9],
+  ] as const) {
+    for (const flag of ["-z", "--zero-terminated"]) {
+      for (const file of [false, true]) {
+        const result = await run(command, [flag, `-n${count}`, ...(file ? ["input"] : [])], { fs, stdin: chunks(input, 2) });
+        assert.equal(result.exitCode, 0, `${command} ${flag} -n${count}: ${result.stderr}`);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, input.subarray(start, end));
+      }
+    }
+  }
+  for (const command of ["head", "tail"] as const) {
+    for (const stdin of ["", "\0", "\0\0", "a\0b\0", "a\nb"]) {
+      const result = await run(command, ["-z"], { stdin: chunks(stdin) });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, stdin);
+    }
+    for (const count of ["2", "+2", "-2"]) {
+      const args = [`-c${count}`];
+      const ordinary = await run(command, args, { stdin: chunks(input) });
+      const zero = await run(command, ["-z", ...args], { stdin: chunks(input) });
+      assert.equal(zero.exitCode, 0, zero.stderr);
+      assert.deepEqual(zero.stdoutBytes, ordinary.stdoutBytes);
+    }
+  }
+});
+
+test("NUL record selection preserves headers, early completion and shell pipelines", async () => {
+  let produced = 0;
+  const source = (async function* () { produced++; yield Buffer.from("a\nb\0"); produced++; yield Buffer.from("c\0"); })();
+  const first = await run("head", ["-zqn1"], { stdin: source });
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stdout, "a\nb\0");
+  assert.equal(produced, 1);
+  const fs = await fixture({ first: "a\0b\0", second: "c\0d\0" });
+  assert.equal((await run("head", ["-zn1", "first", "second"], { fs })).stdout, "==> first <==\na\0\n==> second <==\nc\0");
+  assert.equal((await run("tail", ["-zqn1", "first", "second"], { fs })).stdout, "b\0d\0");
+  const shell = new Shell({ fs, cwd: "/work" });
+  shell.use(standardCommands());
+  const result = await shell.exec("cat first second | head -z -n3 | tail --zero-terminated -n1 > selected");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(await fs.readFile("/work/selected"), new TextEncoder().encode("c\0"));
+});
+
 test("head stops reading when satisfied and multiple input headers are controllable", async () => {
   let reads = 0;
   const source = (async function* () { reads++; yield Buffer.from("first\n"); reads++; yield Buffer.from("second\n"); })();

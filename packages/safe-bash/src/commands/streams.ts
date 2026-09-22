@@ -32,7 +32,7 @@ async function* combinedInput(context: CommandContext, names: readonly string[],
   }
 }
 
-async function prefix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean): Promise<void> {
+async function prefix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number): Promise<void> {
   let remaining = count;
   if (!remaining && !skip) return;
   for await (const chunk of source) {
@@ -41,7 +41,7 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
     if (remaining) {
       if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
       else {
-        for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === 10) remaining--;
+        for (; offset < chunk.length && remaining; offset++) if (chunk[offset] === delimiter) remaining--;
       }
     }
     if (skip) { if (!remaining && offset < chunk.length) await output(context, chunk.subarray(offset)); }
@@ -52,12 +52,12 @@ async function prefix(context: CommandContext, source: ByteSource, count: number
   }
 }
 
-async function suffix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, omit: boolean): Promise<void> {
+async function suffix(context: CommandContext, source: ByteSource, count: number, bytes: boolean, omit: boolean, delimiter: number): Promise<void> {
   let pending: Uint8Array[] = [];
   let start = 0;
   let size = 0;
   const records: ByteSource = bytes ? source : (async function* () {
-    for await (const line of lines(source)) yield line.terminated ? concatenate([line.bytes, Uint8Array.of(10)]) : line.bytes;
+    for await (const line of lines(source, delimiter)) yield line.terminated ? concatenate([line.bytes, Uint8Array.of(delimiter)]) : line.bytes;
   })();
   for await (const chunk of records) {
     context.signal.throwIfAborted();
@@ -132,9 +132,10 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
   return define(name, async context => {
     const args = context.args[0] && /^-[0-9]+$/u.test(context.args[0]) ? ["-n", context.args[0].slice(1), ...context.args.slice(1)] : context.args;
     const follow = name === "tail" ? parseTailFollow(args) : undefined;
-    const parsed = options(follow?.args ?? args, "n:c:qv", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v" });
+    const parsed = options(follow?.args ?? args, "n:c:qvz", { lines: "n", bytes: "c", quiet: "q", silent: "q", verbose: "v", "zero-terminated": "z" });
     if (parsed.flags.has("n") && parsed.flags.has("c")) throw new UsageError("cannot combine line and byte counts");
     const bytes = parsed.flags.has("c");
+    const delimiter = parsed.flags.has("z") ? 0 : 10;
     const amount = value(parsed, bytes ? "c" : "n") ?? "10";
     const positive = amount.startsWith("+");
     const negative = amount.startsWith("-");
@@ -144,8 +145,8 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
       names, mode: follow.mode, idleMs: follow.idleMs, count, bytes, positive,
       headers: parsed.flags.has("v") || names.length > 1 && !parsed.flags.has("q"),
     }, maxTailFollowHandles, (target, source) => positive
-      ? prefix(target, source, Math.max(0, count - 1), bytes, true)
-      : suffix(target, source, count, bytes, false));
+      ? prefix(target, source, Math.max(0, count - 1), bytes, true, delimiter)
+      : suffix(target, source, count, bytes, false, delimiter));
     await assertInputRequirements(context, names);
     assertCommandRequirements(context, inspectedInputRequirements, [names.some(name => name !== "-") ? "file" : "stdin"]);
     let exitCode = 0;
@@ -162,9 +163,9 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
           await output(context, `${headerWritten ? "\n" : ""}==> ${file === "-" ? "standard input" : file} <==\n`);
           headerWritten = true;
         }
-        if (name === "head" && !negative) await prefix(context, input(context, file), count, bytes, false);
-        else if (name === "tail" && positive) await prefix(context, input(context, file), Math.max(0, count - 1), bytes, true);
-        else await suffix(context, input(context, file), count, bytes, name === "head");
+        if (name === "head" && !negative) await prefix(context, input(context, file), count, bytes, false, delimiter);
+        else if (name === "tail" && positive) await prefix(context, input(context, file), Math.max(0, count - 1), bytes, true, delimiter);
+        else await suffix(context, input(context, file), count, bytes, name === "head", delimiter);
       } catch (error) { await diagnostic(context, error); exitCode = 1; }
     }
     return { exitCode };

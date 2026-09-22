@@ -83,6 +83,22 @@ for (const mode of ["-f", "-F", "-fF", "-Ff"]) test(`tail ${mode} supports bound
   assert.equal(run.errors(), "");
 });
 
+test("tail follow initial selection uses NUL records and appends raw bytes", async context => {
+  const clock = new Clock(context);
+  const fs = await fixture();
+  await fs.writeFile("/log", encode("first\nrecord\0last\nrecord\0"));
+  const run = launch(["-zf", "-n1", "/log"], fs);
+  try {
+    await until(() => clock.timers.size > 0 || run.settled);
+    assert.equal(run.text(), "last\nrecord\0");
+    await fs.appendFile("/log", encode("new\nrecord\0"));
+    clock.advance(100);
+    await until(() => run.text() === "last\nrecord\0new\nrecord\0" && clock.timers.size > 0 || run.settled);
+    assert.equal(run.text(), "last\nrecord\0new\nrecord\0");
+    assert.equal(run.errors(), "");
+  } finally { run.controller.abort(); await run.completion.catch(() => {}); }
+});
+
 test("tail -f on consumed stdin finishes at EOF", async () => {
   const run = launch(["-f", "-n1"], await fixture());
   assert.equal((await run.completion).exitCode, 0, run.errors());

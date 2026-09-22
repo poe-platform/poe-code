@@ -1,22 +1,23 @@
 import type { Cell } from "./display.js";
 import { ColumnBudget } from "./internal.js";
 
-export async function jsonOutput(rows: readonly Cell[][], names: readonly string[], tableName: string, budget: ColumnBudget): Promise<void> {
+export async function jsonOutput(rows: readonly Cell[][], names: readonly string[], tableName: string, budget: ColumnBudget, columns: readonly number[] = names.map((_, index) => index)): Promise<void> {
   const lower = (value: string): string => Array.from(value, character => character >= "A" && character <= "Z" ? character.toLowerCase() : character).join("");
   await budget.work(names.length);
-  const keys = names.map(name => JSON.stringify(lower(name)));
+  const keys = columns.map(index => JSON.stringify(lower(names[index] ?? "")));
   await budget.text(`{\n   ${JSON.stringify(lower(tableName))}: [\n`);
   for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     await budget.step();
     const row = rows[rowIndex]!;
-    await budget.text("      {\n");
+    await budget.text(rowIndex ? "{\n" : "      {\n");
+    if (!keys.length) await budget.text("\n");
     for (let index = 0; index < keys.length; index++) {
       await budget.step();
-      const entry = row[index];
+      const entry = row[columns[index]!];
       const value = entry?.text ? JSON.stringify(entry.text) : "null";
       await budget.text(`         ${keys[index]}: ${value}${index + 1 < keys.length ? "," : ""}\n`);
     }
-    await budget.text(`      }${rowIndex + 1 < rows.length ? "," : ""}\n`);
+    await budget.text(`      }${rowIndex + 1 < rows.length ? "," : "\n"}`);
   }
   await budget.text(`${rows.length ? "" : "\n"}   ]\n}\n`);
 }
@@ -45,8 +46,8 @@ class TailPadding {
   async emit(row: readonly Cell[], budget: ColumnBudget): Promise<void> {
     const start = row.length, last = this.widths.length - 1;
     if (start > last) return;
-    const gap = this.widths[start - 1]! - row[start - 1]!.width;
-    const size = gap + this.separatorSize + this.sizes[start]!;
+    const gap = start ? this.widths[start - 1]! - row[start - 1]!.width : 0;
+    const size = start ? gap + this.separatorSize + this.sizes[start]! : this.sizes[0]!;
     if (!size) return;
     budget.checkOutput(size);
     await budget.work(size);
@@ -69,8 +70,10 @@ class TailPadding {
         if (used === buffer.length) await flush();
       }
     };
-    await append(gap);
-    await append(this.separatorSize, this.separatorBytes);
+    if (start) {
+      await append(gap);
+      await append(this.separatorSize, this.separatorBytes);
+    }
     for (let index = this.next[start]!; index < last; index = this.next[index + 1]!) {
       await append(this.widths[index]!);
       await append(this.separatorSize, this.separatorBytes);

@@ -7,7 +7,7 @@ export function whitespace(character: string): boolean {
   return character === " " || character === "\t" || character === "\r" || character === "\v" || character === "\f";
 }
 
-function widthOf(point: number): number {
+export function widthOf(point: number): number {
   if ((point >= 0x0300 && point <= 0x036f) || (point >= 0x1ab0 && point <= 0x1aff)
     || (point >= 0x1dc0 && point <= 0x1dff) || (point >= 0x20d0 && point <= 0x20ff)
     || (point >= 0xfe00 && point <= 0xfe0f) || (point >= 0xfe20 && point <= 0xfe2f)
@@ -53,7 +53,7 @@ export function decode(bytes: Uint8Array): string {
   catch { throw new FsError("EINVAL", { message: "invalid UTF-8 input" }); }
 }
 
-export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number): Promise<string[]> {
+export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0): Promise<string[]> {
   const result: string[] = [];
   let start = 0, offset = 0;
   const append = (end: number): void => {
@@ -63,6 +63,11 @@ export async function fields(text: string, separator: Set<string> | undefined, b
   };
   for (const character of text) {
     await budget.step();
+    if (columnLimit && result.length + 1 === columnLimit && (separator || !whitespace(character))) {
+      start = offset;
+      append(text.length);
+      return result;
+    }
     if (separator ? separator.has(character) : whitespace(character)) {
       if (separator || offset > start) append(offset);
       start = offset + character.length;

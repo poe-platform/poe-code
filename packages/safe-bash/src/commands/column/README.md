@@ -37,9 +37,21 @@ There is no default aggregation or network capability.
 | `-J`, `--json` | Emit a JSON table; implies table mode and requires named columns. Empty and absent cells become `null`; values remain strings. |
 | `-N names`, `--table-columns names` | Comma-separated column names; table output includes aligned headings. JSON keys fold ASCII uppercase to lowercase. |
 | `-n name`, `--table-name name` | JSON table name, default `table`; folds ASCII uppercase to lowercase. |
+| `-C definition`, `--table-column definition` | Repeatable declarative columns, for example `name=COUNT,right`. Supports `name`, `right`, `hidden`, `trunc`, `wrap`, `strictwidth`, and the util-linux 2.39.3 strict-width spelling `noextremes`. Cannot combine with `-N`. Other properties are rejected; `hide` is accepted without setting `hidden`, as in 2.39.3. |
+| `-O columns`, `--table-order columns` | Put the listed names or one-based column numbers first, followed by remaining columns. |
+| `-H columns`, `--table-hide columns` | Hide selected columns, including unnamed columns selected with `-`. An explicitly empty defined heading is still named. |
+| `-R columns`, `--table-right columns` | Right-align selected cells. |
+| `-T columns`, `--table-truncate columns` | Truncate selected cells when the table exceeds the output width. |
+| `-W columns`, `--table-wrap columns` | Wrap selected cells onto continuation lines when needed to fit. |
+| `-E columns`, `--table-noextreme columns` | Allow unusually long cells to exceed their calculated column width, moving following cells onto another line. |
+| `-l count`, `--table-columns-limit count` | Limit input splitting; the last column retains the original unsplit remainder, including spacing. |
+| `-d`, `--table-noheadings` | Suppress headings while retaining their layout metadata. |
+| `-e`, `--table-header-repeat` | Repeat headings after 24 output lines; uses a fixed nonterminal height. |
+| `-m`, `--table-maxout` | Expand column padding to the output width, including the final column. |
+| `-L`, `--keep-empty-lines` | Retain empty records; table lines include column padding. |
 | `-s chars`, `--separator chars`, `--input-separator chars` | Table-only set of Unicode scalar delimiters, not a substring, regex, CSV parser, or escape parser. Repeated/leading/trailing delimiters produce empty cells. Empty delimiter set is an error. |
 | `-o text`, `--output-separator text` | Table-only output delimiter, default two spaces. Empty text is allowed; controls, tabs and newlines are rejected. Delimiters follow alignment padding; this does not turn output into CSV. |
-| `-c width`, `--output-width width` | Positive decimal fill width up to `maxWidth`; default 80, reduced to `maxWidth` if the host sets a smaller bound. Accepted in table mode but does not wrap, truncate, or constrain the natural table. |
+| `-c width`, `--output-width width` | Positive decimal layout width up to `maxWidth`; default 80, reduced to `maxWidth` if the host sets a smaller bound. Table resizing applies to selected wrapping, truncation, extreme-cell and maxout columns. |
 | `-x`, `--fillrows` | Fill across rows, instead of default down columns. Cannot combine with `-t`. |
 | `-h`, `--help` | Describe the real implemented profile without acquiring input. |
 | `--` | End options; following dash-prefixed operands are VFS paths. |
@@ -62,15 +74,20 @@ add data cells. Explicit empty fields keep their original meaning. For example,
 pad after its last entry. This is a root-authorized compatibility evolution from
 the previous absent-tail omission policy, not a retroactive bug designation.
 
-Column selection/reordering/alignment, wrapping,
-truncation, colors/ANSI handling, tree/depth processing, keep-empty-lines,
+Column flag lists accept names, one-based numbers, bounded numeric ranges,
+`0` for all columns, `-` for unnamed columns and `-1` for the last visible column.
+JSON selection and ordering use the same column metadata; unnamed extra data
+is an error unless `-H -` hides it. Empty input emits no output. JSON whitespace
+follows the util-linux 2.39.3 writer, including its adjacent-object separators.
+
+Colors/ANSI handling, tree/depth processing,
 `--use-spaces`/`-S`, `--version`, legacy `--columns`, zero/unlimited width and all
 other unlisted options are rejected, not silently ignored. No `maxDepth` is
 needed: input/layout has no recursion or tree traversal. `du` is deferred.
 
 ## Records, errors, and byte ownership
 
-LF is the record boundary. Empty records are ignored; whitespace-only default
+LF is the record boundary. Empty records are ignored unless `-L`; whitespace-only default
 table records and space/TAB-only fill records are ignored. With explicit `-s`,
 space-only records are data unless space belongs to the delimiter set. A final
 nonempty unterminated record is accepted. Files concatenate **records**, not

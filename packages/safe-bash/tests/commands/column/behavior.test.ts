@@ -21,14 +21,14 @@ test("JSON long options, escaping, ragged rows and custom table name", async () 
   const result = await run(["--json", "--table-columns=NAME,N", "--table-name=demo", "-s:"], 'a"b:1\nsingle\n');
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
-  assert.equal(result.stdout, '{\n   "demo": [\n      {\n         "name": "a\\"b",\n         "n": "1"\n      },\n      {\n         "name": "single",\n         "n": null\n      }\n   ]\n}\n');
+  assert.equal(result.stdout, '{\n   "demo": [\n      {\n         "name": "a\\"b",\n         "n": "1"\n      },{\n         "name": "single",\n         "n": null\n      }\n   ]\n}\n');
 });
 
 test("JSON preserves tabs, null empty fields and ASCII name folding", async () => {
   const result = await run(["-JNÄ,EMPTY", "-nDEMO", "-s:"], "a\tb:\n");
   assert.equal(result.exitCode, 0);
   assert.deepEqual(JSON.parse(result.stdout), { demo: [{ "Ä": "a\tb", empty: null }] });
-  assert.equal((await run(["-JNname"])).stdout, '{\n   "table": [\n\n   ]\n}\n');
+  assert.equal((await run(["-JNname"])).stdout, "");
 });
 
 test("JSON rejects unnamed data columns before publication", async () => {
@@ -66,6 +66,103 @@ test("JSON enforces output, field and work bounds", async () => {
   assert.equal(work.exitCode, 1);
   assert.equal(work.stdout, "");
   assert.match(work.stderr, /work limit/);
+});
+
+test("table options select, reorder, align, suppress headings and retain empty lines", async () => {
+  const ordered = await run(["-tNname,count", "-Ocount,name", "-Rcount"], "a 1\nlong 20\n");
+  assert.equal(ordered.exitCode, 0);
+  assert.equal(ordered.stdout, "count  name\n 1  a\n20  long\n");
+  const hidden = await run(["-tNname,count", "-Hname", "-d"], "a 1\nlong 20\n");
+  assert.equal(hidden.exitCode, 0);
+  assert.equal(hidden.stdout, "1\n20\n");
+  const empty = await run(["-tL"], "a 1\n\nb 2\n");
+  assert.equal(empty.exitCode, 0);
+  assert.equal(empty.stdout, "a  1\n   \nb  2\n");
+});
+
+test("table column limit retains the original unsplit remainder", async () => {
+  const result = await run(["-tl2"], "a  b   c \nx y z\n");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "a  b   c \nx  y z\n");
+});
+
+test("table width supports native truncation, wrapping, extreme cells and maxout", async () => {
+  const input = "abcdefghijklmnop 1\nx 2\n";
+  for (const [option, expected] of [
+    ["-T1", "abcdefg  1\nx        2\n"],
+    ["-W1", "abcdefg  1\nhijklmn  \nop       \nx        2\n"],
+    ["-E1", "abcdefghijklmnop\n         1\nx        2\n"],
+  ]) {
+    const result = await run(["-tc10", option!], input);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+  }
+  const maxout = await run(["-tmc30"], "a 1\nlong 20\n");
+  assert.equal(maxout.exitCode, 0);
+  assert.equal(maxout.stdout, "a                1            \nlong             20           \n");
+});
+
+test("table definitions and repeated headings match the bounded native profile", async () => {
+  const defined = await run(["-t", "--table-column=name=NAME", "--table-column=name=COUNT,right"], "a 1\nlong 20\n");
+  assert.equal(defined.exitCode, 0);
+  assert.equal(defined.stdout, "NAME  COUNT\na      1\nlong  20\n");
+  const repeated = await run(["-teNname,count"], "a 1\n".repeat(30));
+  assert.equal(repeated.exitCode, 0);
+  assert.equal(repeated.stdout, "name  count\n" + "a     1\n".repeat(24) + "name  count\n" + "a     1\n".repeat(6));
+});
+
+test("combined width options retain native continuation and heading bytes", async () => {
+  const combined = await run(["-tc10", "-W1", "-T2"], "aaaaaa bbbbbbb cccc\nx yy z\n");
+  assert.equal(combined.exitCode, 0);
+  assert.equal(combined.stdout, "aaa  b  cccc\naaa     \nx    y  z\n");
+  const maxout = await run(["-tmc10"], "aaaaaa bbbbbbb cccc\nx yy z\n");
+  assert.equal(maxout.exitCode, 0);
+  assert.equal(maxout.stdout, "aaaaaa  bbbbbbb  cccc\n                  \nx       yy       z\n");
+  const heading = await run(["-tc10", "-Nfirst,second,third", "-H2", "-W1"], "abcdefghijklmnop 1\nx 2\n");
+  assert.equal(heading.exitCode, 0);
+  assert.equal(heading.stdout, "fir  third\nabc  \ndef  \nghi  \njkl  \nmno  \np    \nx    \n");
+});
+
+test("extreme-width statistics leave small deviations unchanged", async () => {
+  const result = await run(["-tE0", "-c12"], "longthing b c\nx yy\nzz q r\n");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "longthing\n       b   c\nx      yy  \nzz     q   r\n");
+});
+
+test("ordering, unnamed selection and empty JSON objects use native semantics", async () => {
+  const ordered = await run(["-tO-"], "a b c\n");
+  assert.equal(ordered.exitCode, 1);
+  assert.equal(ordered.stdout, "");
+  const empty = await run(["-JNA,B,C", "-H0"], "a b c\n");
+  assert.equal(empty.exitCode, 0);
+  assert.equal(empty.stdout, '{\n   "table": [\n      {\n\n      }\n   ]\n}\n');
+  const explicit = await run(["-tCname=,right", "-Cname=B", "-H-"], "a b c\nx\ny z\n");
+  assert.equal(explicit.exitCode, 0);
+  assert.equal(explicit.stdout, "   B\na  b\nx  \ny  z\n");
+});
+
+test("overlapping column ranges consume the work budget before expansion", async () => {
+  const result = await run(["-t", "-H", Array(100).fill("1-1000").join(",")], Array(1000).fill("a").join(" ") + "\n", { limits: { maxSteps: 10_000 } });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /work limit/);
+});
+
+test("column definitions preserve util-linux 2.39.3 strict-width attributes", async () => {
+  for (const property of ["strictwidth", "noextremes"]) {
+    const result = await run(["-tCname=LONGNAME," + property, "-Cname=B"], "a 1\nlong 2\n");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "LONGNAME\n      B\na     1\nlong  2\n");
+  }
+});
+
+test("keep-empty-lines retains whitespace-only records in table and fill modes", async () => {
+  const fill = await run(["-Lc16"], "a\n  \nb\n\n");
+  assert.equal(fill.exitCode, 0);
+  assert.equal(fill.stdout, "a\tb\n\t\n");
+  const table = await run(["-tL", "-s:"], "a:1\n  \nb:2\n");
+  assert.equal(table.exitCode, 0);
+  assert.equal(table.stdout, "a  1\n   \nb  2\n");
 });
 
 test("table whitespace, ragged rows, blanks and unterminated final record", async () => {

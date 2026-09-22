@@ -292,11 +292,17 @@ export class Scope {
       if (this.privateNames !== undefined) values.push(...this.privateNames.values());
     }
     if (this.#bindingDataRoots === undefined) {
-      const roots: SandboxObject[] = [];
+      const roots: InterpreterValue[] = [];
       const bindings = this.options.chargeData === false ? this.#replacedBindings : this.#bindings.values();
       for (const binding of bindings) {
         const value = binding.value;
         if (!isChargedBindingValue(value)) continue;
+        // Objects and symbols already have measurement identities. Only strings
+        // and bigints need cell roots to preserve independent primitive charges.
+        if (typeof value === "object" || typeof value === "symbol") {
+          roots.push(value);
+          continue;
+        }
         if (binding.accounting === undefined) {
           const root = Object.freeze({});
           scopeDataRoots.set(root, {value});
@@ -704,7 +710,7 @@ export class Scope {
 
   private writeBindingValue(binding: ScopeBinding, value: InterpreterValue): void {
     if (!Object.is(binding.value, value)) {
-      if (binding.accounting !== undefined || isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
+      if (isChargedBindingValue(binding.value) || isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
       // Release obsolete snapshots even without another accounting pass.
       binding.accounting = undefined;
     }

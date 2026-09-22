@@ -554,6 +554,11 @@
           "kind": "lossless-native-byte-value-csv-and-array-contract",
           "path": "docs/ssconvert/byte-string-gap-proof.json",
           "outcome": "39original runtime/SDK refusals reproduced and repaired.380scalar comparisons,38raw output results,228downstream array cells and240CSV quoting controls match actual native bytes. Legacy charset/unqualified writers refused before opening destinations. Broad checks and publication pending; family stays open."
+        },
+        {
+          "kind": "native-byte-text-introspection-and-signature-coercion",
+          "path": "docs/ssconvert/byte-string-info-gap-proof.json",
+          "outcome": "228original native scalar output differences reproduced;456native CSV fields now exact on current SDK/Shell/formula-checkpoint/browser/worker. TYPE/N/T/CELLtype/prefix and numeric signature behavior repaired.12790maintained tests,lint/types/build pass. Native warnings,wider byte contexts and publication still open."
         }
       ],
       "delivery": {

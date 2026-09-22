@@ -101,6 +101,7 @@ function coerce(value: Value, type: string, host: FunctionHost, iteration = fals
   }
   if (type === "b" || type === "f") {
     if (scalar.kind === "error") return scalar;
+    if (scalar.kind === "byte-string") return error("#VALUE!");
     if (scalar.kind === "string") {
       const n = matchNumber(scalar.value, host); return n === undefined ? error("#VALUE!") : numericResult(Number(n));
     }

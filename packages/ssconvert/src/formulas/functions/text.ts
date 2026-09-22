@@ -289,7 +289,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     }
     return boundedText(result, host);
   },
-  T: (args, host) => { const value = scalarArg(args, 0, host); return value.kind === "string" ? value : blank; },
+  T: (args, host) => { const value = scalarArg(args, 0, host); return value.kind === "string" || value.kind === "byte-string" ? value : blank; },
   VALUE: (args, host) => { const value = scalarArg(args, 0, host); if (value.kind === "blank" || value.kind === "number" || value.kind === "boolean") return value; const n = matchNumber(rendered(value), host); return n === undefined ? error("#VALUE!") : typeof n === "boolean" ? bool(n) : numericResult(n); },
   NUMBERVALUE: (args, host) => {
     const separator = textArg(args, 1, host); if (![".", ","].includes(separator)) return error("#VALUE!");

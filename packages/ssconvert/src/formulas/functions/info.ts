@@ -57,11 +57,12 @@ function cellInformation(type: string, range: Reference, host: FunctionHost): Va
   if (["locked", "protect"].includes(type)) return numericResult(cell?.style?.locked === false ? 0 : 1);
   if (["type", "datatype", "formulatype"].includes(type)) {
     const value = host.read(sheet, range.firstRow, range.firstColumn);
-    return str(value.kind === "blank" ? "b" : value.kind === "string" ? "l" : "v");
+    return str(value.kind === "blank" ? "b" : value.kind === "string" || value.kind === "byte-string" ? "l" : "v");
   }
   if (["prefix", "prefixcharacter"].includes(type)) {
-    if (cell?.value.kind !== "string") return str("");
-    const align = cell.style?.horizontalAlignment;
+    const value = host.read(sheet, range.firstRow, range.firstColumn);
+    if (value.kind !== "string" && value.kind !== "byte-string") return str("");
+    const align = cell?.style?.horizontalAlignment;
     return str(align === "right" ? '"' : align === "center" || align === "center-across-selection" ? "^" : align === "fill" ? "\\" : "'");
   }
   if (type === "format") {
@@ -116,6 +117,7 @@ export const infoFunctions: Readonly<Record<string, FunctionImplementation>> = {
   },
   N: (args, host) => {
     const value = scalarArg(args, 0, host);
+    if (value.kind === "byte-string") return numericResult(0);
     if (value.kind === "number" || value.kind === "boolean") return numericResult(numeric(value)!);
     if (value.kind !== "string") return error("#NUM!");
     const matched = matchNumber(rendered(value), host);
@@ -123,7 +125,7 @@ export const infoFunctions: Readonly<Record<string, FunctionImplementation>> = {
   },
   TYPE: args => {
     const value = args[0];
-    return numericResult(value?.kind === "matrix" ? 64 : value?.kind === "set" || value?.kind === "range" || value?.kind === "error" ? 16 : value?.kind === "string" ? 2 : value?.kind === "boolean" ? 4 : 1);
+    return numericResult(value?.kind === "matrix" ? 64 : value?.kind === "set" || value?.kind === "range" || value?.kind === "error" ? 16 : value?.kind === "string" || value?.kind === "byte-string" ? 2 : value?.kind === "boolean" ? 4 : 1);
   },
   COUNTBLANK: (args, host) => numericResult(collect(args[0]!, host).filter(value => value.kind === "blank" || value.kind === "string" && value.value === "").length),
   GETENV: (args, host) => {

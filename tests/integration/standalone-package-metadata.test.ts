@@ -243,7 +243,8 @@ describe("standalone package publish metadata", () => {
 
     expect(rootPackage.devDependencies?.["@poe-code/safe-js"]).toBe("*");
     expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
-    expect(rootPackage.files).not.toContain("packages/safe-js/dist");
+    expect(rootPackage.files).toContain("packages/safe-js/dist");
+    expect(rootPackage.files).toContain("!packages/safe-js/dist/package.json");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");
     expect(safejsPackage).toMatchObject({
       name: "@poe-code/safe-js",

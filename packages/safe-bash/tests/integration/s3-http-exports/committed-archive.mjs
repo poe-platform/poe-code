@@ -546,13 +546,27 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       assert.equal(manifest.scripts.build, "node ../../scripts/guard-package-dist.mjs && node scripts/integration-inputs.mjs && node scripts/build.mjs && node scripts/copy-compression-assets.mjs", "unreviewed committed build command");
       assert.equal(rootManifest.name, "poe-code");
       assert.ok(rootManifest.workspaces.includes("packages/*"), "workspace package prefix missing");
+      const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
+      const facadeExports = {
+        "./safe-bash": {
+          types: { workerd: "./packages/safe-bash/dist/core.d.ts", browser: "./packages/safe-bash/dist/core.d.ts", default: "./dist/safe-bash.d.ts" },
+          workerd: "./packages/safe-bash/dist/core.browser.js", browser: "./packages/safe-bash/dist/core.browser.js",
+          node: "./dist/safe-bash.js", default: "./dist/safe-bash.js",
+        },
+        "./safe-bash/commands/media": {
+          types: "./dist/safe-bash-media.d.ts",
+          workerd: "./packages/safe-bash/dist/commands/media/index.browser.js",
+          browser: "./packages/safe-bash/dist/commands/media/index.browser.js",
+          node: "./dist/safe-bash-media.js", default: "./dist/safe-bash-media.js",
+        },
+      };
+      const facades = checkout && rootManifest.exports["./safe-bash"]?.node === "./dist/safe-bash.js";
+      const detached = checkout && rootManifest.exports["./safe-bash"] === undefined;
       for (const [path, conditions] of Object.entries(manifest.exports)) {
         const name = path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`;
         const expected = mirrorArchiveExportTargets(conditions);
         if (path === "./commands/pandoc") expected.import = "./packages/pandoc/dist/public/command.js";
-        const detached = manifest.poeCode?.integration?.peerProfile === "checkout-root"
-          && rootManifest.exports["./safe-bash"] === undefined;
-        assert.deepEqual(rootManifest.exports[name], detached ? undefined : expected, `root export mismatch: ${name}`);
+        assert.deepEqual(rootManifest.exports[name], detached ? undefined : facades ? facadeExports[name] : expected, `root export mismatch: ${name}`);
         if (detached) assert.ok(!rootManifest.files.includes("packages/safe-bash/dist"), "private shell must not be shipped by root");
       }
       assert.equal(lock.lockfileVersion, 3, "workspace lock version");

@@ -182,7 +182,7 @@ if (process.argv[2]?.startsWith("guarded:")) {
     });
   }
 
-  test("moved root package cannot expose the private shell", { timeout: 10000 }, async () => {
+  test("moved root shell export resolves only within the installed package", { timeout: 10000 }, async () => {
     await mkdir(author, { recursive: true });
     const scratch = await mkdtemp(join(author, ".consumer-"));
     try {
@@ -191,7 +191,8 @@ if (process.argv[2]?.startsWith("guarded:")) {
       await cp(join(root, "../../package.json"), join(destination, "package.json"));
       const child = spawnSync(process.execPath, ["--input-type=module", "-e", `
         import assert from 'node:assert/strict';
-        await assert.rejects(import('poe-code/safe-bash'), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
+        assert.equal(import.meta.resolve('poe-code/safe-bash'), new URL('./node_modules/poe-code/dist/safe-bash.js', import.meta.url).href);
+        await assert.rejects(import('poe-code/safe-bash'), { code: 'ERR_MODULE_NOT_FOUND' });
       `], { cwd: scratch, timeout: 4000, killSignal: "SIGKILL", maxBuffer: 256 * 1024 });
       settled(child);
       assert.equal(child.status, 0, child.stderr.toString());

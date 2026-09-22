@@ -897,10 +897,15 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core"]) test(`committ
   assert.equal(committed.get(`${packagePrefix}/src/not-in-live-checkout.ts`), bytes);
 });
 
-test("retired public peer imports cannot qualify the private checkout as a published release", () => {
+test("checkout public peer bindings preserve identity without claiming published qualification", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-  assert.throws(() => createPeerBinding(authority, manifest), /Public SafeFS must preserve shared SafeJS runtime identity/);
-  assert.throws(() => createPeerBinding(authority, manifest, new Map(), ["poe-code/safe-fs/core"]), /Public SafeFS must preserve shared SafeJS runtime identity/);
+  const binding = createPeerBinding(authority, manifest, new Map(), ["poe-code/safe-fs/core"]);
+  assert.equal(binding.profile, "checkout-root");
+  assert.equal(binding.qualification, "integrated checkout; not published peer-range satisfaction");
+  assert.equal(binding.integrity, null);
+  assert.equal(binding.exports["./safe-fs"].import, "./packages/safe-js/dist/safe-fs.js");
+  assert.equal(binding.publicEntries.get("poe-code/safe-fs/core"), "packages/safe-fs/dist/core.d.ts");
+  assert.throws(() => createPeerBinding(authority, manifest, new Map(), ["poe-code/private"]), /explicit public type export/);
 });
 
 for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/private"]) test(`packed consumer admits only authenticated peer public routes: ${route}`, () => {
@@ -1222,7 +1227,7 @@ test("maintained outer launcher rejects inherited startup settings before the ve
     const verifierMarker = join(directory, "synthetic-verifier-ran");
     const startup = join(directory, "startup.cjs");
     writeFileSync(startup, `require("node:fs").writeFileSync(${JSON.stringify(startupMarker)}, "owned startup control"); process.exit(86);\n`);
-    writeFileSync(join(directory, "verify.mjs"), `import {writeFileSync} from "node:fs"; writeFileSync(${JSON.stringify(verifierMarker)},JSON.stringify({revision:process.argv[2],environment:process.env})); writeFileSync(process.argv[3],JSON.stringify({status:"fail",steps:[],error:{message:"Public SafeFS must preserve shared SafeJS runtime identity"}})); process.exitCode=1;\n`);
+    writeFileSync(join(directory, "verify.mjs"), `import {writeFileSync} from "node:fs"; writeFileSync(${JSON.stringify(verifierMarker)},JSON.stringify({revision:process.argv[2],environment:process.env})); writeFileSync(process.argv[3],JSON.stringify({status:"pass",steps:[]})); process.exitCode=0;\n`);
     const observedEnvironments = [];
     for (const mode of ["baseline", "poison"]) {
       if (existsSync(verifierMarker)) rmSync(verifierMarker);
@@ -1286,6 +1291,9 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
     // This synthetic S3 fixture has no Playwright sources or public peer entries.
     delete manifest.devDependencies["@poe-code/safe-playwright"];
+    // This synthetic S3 fixture has no media sources or declaration dependency.
+    delete manifest.devDependencies["@poe-code/media-cli"];
+    delete manifest.devDependencies["@poe-code/remote-execution"];
     // This synthetic S3 fixture has no Pandoc sources or declaration dependency.
     delete manifest.devDependencies["@poe-code/pandoc"];
     // This synthetic S3 fixture has no CSV sources or public peer entry.

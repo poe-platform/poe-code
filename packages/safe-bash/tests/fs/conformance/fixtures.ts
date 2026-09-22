@@ -168,7 +168,7 @@ export async function canonicalPeerState(
       const rootMetadata = JSON.parse(new TextDecoder().decode(rootBytes));
       assert.equal(rootMetadata.name, "poe-code");
       assert.ok(rootMetadata.workspaces?.includes("packages/*"));
-      assert.equal(rootMetadata.exports?.["./safe-fs"], undefined);
+      assert.equal(rootMetadata.exports?.["./safe-fs"]?.import, "./packages/safe-js/dist/safe-fs.js", "public export must retain shared runtime identity");
       const workspaceBytes = await read(join(packageRoot, "package.json"));
       const workspace = JSON.parse(new TextDecoder().decode(workspaceBytes));
       assert.equal(workspace.name, "@poe-platform/safe-bash");

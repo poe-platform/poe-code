@@ -10,7 +10,11 @@ await import(new URL("./archive-controls.test.mjs", import.meta.url).href);
 await import(new URL("./archive-parser.test.mjs", import.meta.url).href);
 const { cleanEnvironment } = await import(new URL("./committed-archive.mjs", import.meta.url).href);
 
-test("private checkout refuses qualification through retired public exports", { timeout: 300_000 }, (context) => {
+test("explicit committed shell qualification uses matching canonical peer outputs", { timeout: 300_000 }, (context) => {
+  if (process.env.S3_HTTP_EXPORTS_REVISION === undefined) {
+    context.skip("Live committed qualification requires an explicit revision and matching canonical peer outputs; see docs/plans/safe-bash-remote-media.md");
+    return;
+  }
   const directory = mkdtempSync(join(tmpdir(), "safe-bash-export-report-"));
   try {
     const reportPath = join(directory, "report.json");
@@ -20,17 +24,9 @@ test("private checkout refuses qualification through retired public exports", { 
       ...(process.env.S3_HTTP_EXPORTS_PEER_ARTIFACT ? [process.env.S3_HTTP_EXPORTS_PEER_ARTIFACT] : []),
     ], { env: cleanEnvironment(directory), encoding: "utf8", timeout: 290_000, maxBuffer: 16 * 1024 * 1024 });
     assert.ifError(result.error);
-    assert.equal(result.status, 1, result.stderr || result.stdout);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
     const report = JSON.parse(readFileSync(reportPath, "utf8"));
-    assert.equal(report.status, "fail");
-    if (process.env.S3_HTTP_EXPORTS_REVISION === undefined &&
-        report.error.message === "committed build input differs from reviewed authority: scripts/build.mjs") {
-      assert.deepEqual(report.steps, []);
-      context.skip("Default HEAD does not contain the reviewed build authority; retired-export qualification remains unverified");
-      return;
-    }
-    assert.match(report.error.message, /Public SafeFS must preserve shared SafeJS runtime identity/);
-    assert.deepEqual(report.steps, []);
+    assert.equal(report.status, "pass");
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

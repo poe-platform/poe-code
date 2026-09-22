@@ -49,3 +49,12 @@ Local QA:
 - Capture and inspect `poe-code bash --help` with the maintained screenshot route.
   Report these local observations separately from cloud or canonical live-file
   qualification; unavailable deployments do not count as passing checks.
+
+Committed shell packaging qualification is separate operator QA. Select an
+explicit committed revision and provide its matching packed canonical peer,
+or its existing full root build outputs. Run the committed verifier against
+that revision, inspect the exact admitted archive and packed consumer report,
+and require a passing report before claiming this qualification. Ordinary
+workspace unit builds do not supply these root bundle outputs; the live case
+is skipped without an explicit revision. Synthetic archive and launcher
+controls remain ordinary unit checks and do not qualify a deployment.

@@ -158,8 +158,17 @@ remain absent. Matching activated native Perl-profile qualification is pending.
 whole words using frozen CPython 3.14.2 Unicode 16.0.0 data, including titlecase
 expansions and contextual Greek sigma. Enable `pythonSampleFunctions` through
 `runtimeFunctions`. Non-ASCII command option values also need a UTF-8
-`CommandProfile.argumentEncoding`. Activated native Python-profile qualification
-remains pending.
+`CommandProfile.argumentEncoding`. The binding also includes `PY_PRINTF` for
+Python percent formatting of scalar values and column-major arrays, with exact
+binary64 decimal rounding and frozen Unicode printability for `%r`/`%a`.
+For example, `=PY_PRINTF("Test: %.2f",12)` returns `Test: 12.00`.
+Blank scalar references format as `0.0`; error values become Python `None`
+with a loader warning. Numeric star widths/precisions require Python integers,
+so spreadsheet float arguments are refused; boolean arguments are accepted.
+Range-object representations remain explicitly unsupported. Activated native
+Python 3.14.7 wraps 49 tested sample errors differently from the port's
+`#VALUE!`; these profile differences remain unresolved. See the
+[executed formatting evidence](python-printf-gap-proof.json).
 
 In `ConversionRequest`, `goalSeekExpressions` and `toolTest` use the built-in
 native-style protocols when no overriding binding is supplied. Structured

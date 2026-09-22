@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "status": "implemented-and-locally-qualified; delivery/publication-pending",
+  "status": "implemented-and-locally-qualified; remote-main-delivery-verified; publication-and-broader-profile-obligations-open",
   "oracle": {
     "tag": "R-0-6-8",
     "commit": "7bab98a58a6e4c712856345c74ff3a16189245fc",
@@ -412,8 +412,8 @@
     "remaining ledger,final integrated gates and successful registry publication"
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "d93fad371dec70670096bd208c1945b029d2bd4a",
+    "remoteMain": "verified on origin/main",
+    "publication": "Containing Release35775387387 audit passed,build active; successful publication not yet verified"
   }
 }

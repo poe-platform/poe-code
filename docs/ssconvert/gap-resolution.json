@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T18:29:26.457101+00:00",
+  "recordedAt": "2026-09-22T20:06:56.114614+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -423,9 +423,9 @@
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "d93fad371dec70670096bd208c1945b029d2bd4a",
+        "remoteMain": "verified on origin/main",
+        "publication": "Containing Release35775387387 audit success,build active; not yet successful publication"
       }
     },
     {
@@ -479,8 +479,14 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "missing built-in optional port",
-      "proof": [],
+      "currentFinding": "Bounded optional scalar/column-major-array port passes784 independent Python cases and exact builtSDK/Shell/checkpoint/browser/worker bytes; required RangeRef representation and49 activated-native exception-profile differences remain unresolved.",
+      "proof": [
+        {
+          "path": "docs/ssconvert/python-printf-gap-proof.json",
+          "kind": "executed-source-oracle-and-activated-native-profile",
+          "outcome": "790 focusedprintf,17 runtime controls;7291 maintained tests,lint/type consumers/build; Unicode printable profile1114112/1114112; native735/784,49 explicit differences."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,
@@ -657,5 +663,38 @@
         "publication": null
       }
     }
-  ]
+  ],
+  "pythonPrintfCandidate": {
+    "baseHead": "d93fad371dec70670096bd208c1945b029d2bd4a",
+    "files": [
+      {
+        "path": "packages/ssconvert/src/formulas/functions/registry.ts",
+        "sha256": "5d5419e2ba44251e5a4371d6367279783d56ad5786c12188f0d927e70b505c55"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/python-printf.ts",
+        "sha256": "1291e98ef461ebaf5b934c30d148c7c26f5d82f6d3f39e9dc7063ad8a07bf719"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/python-printf-profile.ts",
+        "sha256": "b5e13b2cae770dd35dab56c9c9cf7ae9f785c991b28633d0252aebe6427ae22e"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+        "sha256": "cdaf596284143ce4205d8c3cdc6cfccd1e08972152e0896f02b0fc547b078576"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/runtime-functions.ts",
+        "sha256": "4531120f37f61254f115699dc8a85004db411eb8ab9b4497a3559214e201e3b4"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-runtime.test.ts",
+        "sha256": "0c54a7eccc0821a4a5cc8a2b035d730f42d50efb540df9dd82eb3432c507cb7c"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/python-printf.test.ts",
+        "sha256": "87274eb25f4bacc6929c7a5fdcf428690e88dd246f911fa07c4afaf136f5c9b9"
+      }
+    ]
+  }
 }

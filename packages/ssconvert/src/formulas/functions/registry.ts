@@ -46,13 +46,13 @@ export function callFunction(name: string, nodes: Parameters<SpecialForm>[0], ho
   if (!implementation || !descriptor || descriptor.signature === null) return undefined;
   const signature = descriptor.signature, pipe = signature.indexOf("|");
   const minimum = pipe < 0 ? signature.length : pipe, types = signature.split("|").join("");
-  if (nodes.length < minimum || nodes.length > types.length) return error("#N/A");
+  if (nodes.length < minimum || !optional?.rest && nodes.length > types.length) return error("#N/A");
   const args: (Value | undefined)[] = [];
   let height = 0, width = 0;
   const iteration = new Set<number>();
   for (let index = 0; index < nodes.length; index++) {
-    host.tick(); const type = types[index]!;
-    let value: Value | undefined = host.evaluate(nodes[index]!, type === "A" || type === "r", type === "A" || type === "r");
+    host.tick(); const type = types[index] ?? (optional?.rest ?? "?");
+    let value: Value | undefined = host.evaluate(nodes[index]!, type === "A" || type === "r", type === "A" || type === "r" || !!optional?.rest && type === "?");
     if (type === "A" || type === "r") {
       if (value.kind === "error") return value;
       if (type === "r" && value.kind !== "range" && value.kind !== "matrix") return error("#VALUE!");
@@ -64,7 +64,7 @@ export function callFunction(name: string, nodes: Parameters<SpecialForm>[0], ho
         height = rows; width = columns; iteration.add(index);
       } else {
         value = host.scalar(value);
-        if (index >= minimum && value.kind === "blank") value = undefined;
+        if (index >= minimum && index < types.length && value.kind === "blank") value = undefined;
         else {
           const converted = coerce(value, type, host);
           if (converted.kind === "error" && type !== "E") return converted;
@@ -81,8 +81,9 @@ export function callFunction(name: string, nodes: Parameters<SpecialForm>[0], ho
     host.tick(); const current = [...args];
     for (const index of iteration) {
       const value = matrices.get(index)!.rows[row]?.[column] ?? error("#N/A");
-      const converted = coerce(value, types[index]!, host, true);
-      if (converted.kind === "error" && types[index] !== "E") return converted;
+      const type = types[index] ?? (optional?.rest ?? "?");
+      const converted = coerce(value, type, host, true);
+      if (converted.kind === "error" && type !== "E") return converted;
       current[index] = converted;
     }
     return host.scalar(implementation(current, host));

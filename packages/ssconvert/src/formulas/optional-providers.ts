@@ -5,6 +5,7 @@ import { callFunction } from "./functions/registry.js";
 import { snapshotRuntimeFunctions } from "./runtime-functions.js";
 import { localNow } from "./functions/dates.js";
 import { pythonCapwords } from "./functions/python-capwords.js";
+import { pythonPrintf } from "./functions/python-printf.js";
 
 /** Original JS ports of the released Perl sample, enabled only by explicit injection. */
 export const perlSampleFunctions: RuntimeFunctions = snapshotRuntimeFunctions({
@@ -19,6 +20,7 @@ export const perlSampleFunctions: RuntimeFunctions = snapshotRuntimeFunctions({
 
 /** The Python sample resolves Gnumeric's BITAND, rather than Python's integer &. */
 export const pythonSampleFunctions: RuntimeFunctions = snapshotRuntimeFunctions({
+  PY_PRINTF: { signature: "", rest: "?", implementation: pythonPrintf },
   PY_CAPWORDS: { signature: "s", implementation: pythonCapwords },
   PY_BITAND: { signature: "ff", implementation(args, host) {
     const nodes = args.map(value => ({ kind: "literal" as const, start: 0, end: 0, value: host.scalar(value!) }));

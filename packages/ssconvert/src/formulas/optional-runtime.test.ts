@@ -180,3 +180,42 @@ it("retains typed optional sample coercion and exact arithmetic error propagatio
   expect(value("=PERL_ADDER(1e308,1e308)")).toEqual({ kind: "error", value: "#NUM!" });
   expect(value("=PY_BITAND(-1,2)")).toEqual({ kind: "error", value: "#VALUE!" });
 });
+
+it("snapshots owned repeated-argument metadata without executing getters", () => {
+  let reads = 0;
+  const definition = { signature: "", rest: "f" as "f" | "?", implementation: () => ({ kind: "blank" as const }) };
+  const captured = snapshotRuntimeFunctions({ PORTED: definition });
+  definition.rest = "?";
+  expect(captured.PORTED!.rest).toBe("f");
+  const accessor = { signature: "", implementation: definition.implementation, get rest() { reads++; return "f" as const; } };
+  expect(() => snapshotRuntimeFunctions({ PORTED: accessor })).toThrow(TypeError);
+  expect(reads).toBe(0);
+  for (const rest of ["", "ff", "|", "x", 7, null])
+    expect(() => snapshotRuntimeFunctions({ PORTED: { ...definition, rest } } as unknown as RuntimeFunctions)).toThrow(TypeError);
+  const inherited = Object.assign(Object.create({ rest: "?" }), { signature: "", implementation: definition.implementation });
+  expect(snapshotRuntimeFunctions({ PORTED: inherited }).PORTED!.rest).toBeUndefined();
+});
+
+it("coerces repeated typed arguments while retaining fixed minimum arity and blank operands", () => {
+  const extended = { ...context, runtimeFunctions: { PORTED: { signature: "f", rest: "f" as const,
+    implementation: (args: readonly unknown[]) => ({ kind: "string" as const, value: JSON.stringify(args) }) } } };
+  const value = (formula: string) => recalculateWorkbook(book(formula), extended).sheets[0]!.cells[0]!.value;
+  expect(value("=PORTED()")).toEqual({ kind: "error", value: "#N/A" });
+  expect(value('=PORTED(1,"2",A2)')).toEqual({ kind: "string", value: JSON.stringify([
+    { kind: "number", value: 1 }, { kind: "number", value: 2 }, { kind: "number", value: 0 }
+  ]) });
+  expect(value('=PORTED(1,"bad")')).toEqual({ kind: "error", value: "#VALUE!" });
+  expect(value("=PORTED(1,1/0)")).toEqual({ kind: "error", value: "#DIV/0!" });
+});
+
+it("passes repeated untyped arrays, references and errors to the cooperative provider", () => {
+  const extended = { ...context, runtimeFunctions: { PORTED: { signature: "", rest: "?" as const,
+    implementation: (args: readonly unknown[]) => ({ kind: "string" as const,
+      value: (args as readonly { kind: string }[]).map(value => value.kind).join(",") }) } } };
+  expect(recalculateWorkbook(book("=PORTED({1,2},A2:B3,1/0,A2)"), extended).sheets[0]!.cells[0]!.value)
+    .toEqual({ kind: "string", value: "matrix,range,error,blank" });
+  const controller = new AbortController();
+  controller.abort(new Error("stop repeated provider"));
+  expect(() => recalculateWorkbook(book("=PORTED(1,2,3)"), { ...extended, signal: controller.signal }))
+    .toThrow("stop repeated provider");
+});

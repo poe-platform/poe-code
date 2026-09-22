@@ -1,0 +1,1411 @@
+{
+  "profile": "Gnumeric 1.12.61, Darwin arm64; Homebrew GLib 2.90.0/goffice 0.10.62/libgsf 1.14.59; Perl/Python disabled; distinct from historical Linux/glibc oracle",
+  "exitCode": 0,
+  "stderr": "\n** (ssconvert:9035): CRITICAL **: 16:14:08.328: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.329: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.329: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.329: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.329: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.329: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.383: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.389: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.646: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.648: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.648: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.649: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.650: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:08.650: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.019: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.019: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_add_monitor: assertion 'node || key' failed\n\n** (ssconvert:9035): CRITICAL **: 16:14:09.026: go_conf_get_node: assertion 'parent || key' failed\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n\n** (ssconvert:9035): WARNING **: 16:14:09.026: unknown GOConfMonitor id.\n",
+  "cases": [
+    {
+      "formula": "=EXP(0)",
+      "native": "1",
+      "engine": {
+        "kind": "number",
+        "value": 1
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.1)",
+      "native": "1.1051709180756477",
+      "engine": {
+        "kind": "number",
+        "value": 1.1051709180756477
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.125)",
+      "native": "1.1331484530668263",
+      "engine": {
+        "kind": "number",
+        "value": 1.1331484530668263
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.3)",
+      "native": "1.3498588075760032",
+      "engine": {
+        "kind": "number",
+        "value": 1.3498588075760032
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.33)",
+      "native": "1.3909681284637803",
+      "engine": {
+        "kind": "number",
+        "value": 1.3909681284637803
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(0.7)",
+      "native": "2.0137527074704766",
+      "engine": {
+        "kind": "number",
+        "value": 2.0137527074704766
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(1.1)",
+      "native": "3.0041660239464334",
+      "engine": {
+        "kind": "number",
+        "value": 3.0041660239464334
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-0.1)",
+      "native": "0.9048374180359595",
+      "engine": {
+        "kind": "number",
+        "value": 0.9048374180359595
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-0.3)",
+      "native": "0.7408182206817179",
+      "engine": {
+        "kind": "number",
+        "value": 0.7408182206817179
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-1.1)",
+      "native": "0.33287108369807955",
+      "engine": {
+        "kind": "number",
+        "value": 0.33287108369807955
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(10)",
+      "native": "22026.465794806718",
+      "engine": {
+        "kind": "number",
+        "value": 22026.465794806718
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(100)",
+      "native": "2.6881171418161356E+43",
+      "engine": {
+        "kind": "number",
+        "value": 2.6881171418161356e+43
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(700)",
+      "native": "1.0142320547350045E+304",
+      "engine": {
+        "kind": "number",
+        "value": 1.0142320547350045e+304
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(709.782712893384)",
+      "native": "1.7976931348622732E+308",
+      "engine": {
+        "kind": "number",
+        "value": 1.7976931348622732e+308
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-700)",
+      "native": "9.85967654375977E-305",
+      "engine": {
+        "kind": "number",
+        "value": 9.85967654375977e-305
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-744)",
+      "native": "1E-323",
+      "engine": {
+        "kind": "number",
+        "value": 1e-323
+      },
+      "match": true
+    },
+    {
+      "formula": "=EXP(-745)",
+      "native": "5E-324",
+      "engine": {
+        "kind": "number",
+        "value": 5e-324
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0)",
+      "native": "0",
+      "engine": {
+        "kind": "number",
+        "value": 0
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.1)",
+      "native": "0.09531017980432487",
+      "engine": {
+        "kind": "number",
+        "value": 0.09531017980432487
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.125)",
+      "native": "0.11778303565638346",
+      "engine": {
+        "kind": "number",
+        "value": 0.11778303565638346
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.3)",
+      "native": "0.26236426446749106",
+      "engine": {
+        "kind": "number",
+        "value": 0.26236426446749106
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.33688260287586475)",
+      "native": "0.29034048788903205",
+      "engine": {
+        "kind": "number",
+        "value": 0.290340487889032
+      },
+      "match": false
+    },
+    {
+      "formula": "=LN1P(0.5)",
+      "native": "0.4054651081081644",
+      "engine": {
+        "kind": "number",
+        "value": 0.4054651081081644
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(0.9)",
+      "native": "0.6418538861723948",
+      "engine": {
+        "kind": "number",
+        "value": 0.6418538861723948
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(1.1)",
+      "native": "0.7419373447293773",
+      "engine": {
+        "kind": "number",
+        "value": 0.7419373447293773
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(10)",
+      "native": "2.3978952727983707",
+      "engine": {
+        "kind": "number",
+        "value": 2.3978952727983707
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(100)",
+      "native": "4.61512051684126",
+      "engine": {
+        "kind": "number",
+        "value": 4.61512051684126
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(1e-300)",
+      "native": "1E-300",
+      "engine": {
+        "kind": "number",
+        "value": 1e-300
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.1)",
+      "native": "-0.10536051565782631",
+      "engine": {
+        "kind": "number",
+        "value": -0.10536051565782631
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.3)",
+      "native": "-0.35667494393873234",
+      "engine": {
+        "kind": "number",
+        "value": -0.35667494393873234
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.9)",
+      "native": "-2.302585092994046",
+      "engine": {
+        "kind": "number",
+        "value": -2.302585092994046
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-0.9999999999999999)",
+      "native": "-36.7368005696771",
+      "engine": {
+        "kind": "number",
+        "value": -36.7368005696771
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-1)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "match": true
+    },
+    {
+      "formula": "=LN1P(-2)",
+      "native": "#NUM!",
+      "engine": {
+        "kind": "error",
+        "value": "#NUM!"
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(84.06928098966394,71.54332880335403)",
+      "native": "-0.09534562467811636",
+      "engine": {
+        "kind": "number",
+        "value": -0.0953456246781162
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(84.06928098966394,71.54332880335403)",
+      "native": "-0.07269385880761933",
+      "engine": {
+        "kind": "number",
+        "value": -0.07269385880761929
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(173.6195328867186,150.1768003498195)",
+      "native": "0.03871556318381844",
+      "engine": {
+        "kind": "number",
+        "value": 0.03871556318381844
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(173.6195328867186,150.1768003498195)",
+      "native": "0.07616241916227229",
+      "engine": {
+        "kind": "number",
+        "value": 0.07616241916227229
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(192.16044087952775,170.39993582028956)",
+      "native": "0.08383345036988327",
+      "engine": {
+        "kind": "number",
+        "value": 0.08383345036988324
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(192.16044087952775,170.39993582028956)",
+      "native": "-0.011368894800763724",
+      "engine": {
+        "kind": "number",
+        "value": -0.011368894800763724
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(192.9445008127231,176.23255193192625)",
+      "native": "-0.06782596944710731",
+      "engine": {
+        "kind": "number",
+        "value": -0.0678259694471073
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(192.9445008127231,176.23255193192625)",
+      "native": "-0.058993509755925023",
+      "engine": {
+        "kind": "number",
+        "value": -0.05899350975592502
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(92.56390257811096,79.25680619740352)",
+      "native": "-0.07598637098117356",
+      "engine": {
+        "kind": "number",
+        "value": -0.07598637098117356
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(92.56390257811096,79.25680619740352)",
+      "native": "-0.0866140601371517",
+      "engine": {
+        "kind": "number",
+        "value": -0.08661406013715171
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(156.92498390312284,146.27262617699625)",
+      "native": "-0.025503277619126387",
+      "engine": {
+        "kind": "number",
+        "value": -0.02550327761912638
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(156.92498390312284,146.27262617699625)",
+      "native": "0.10225357731723897",
+      "engine": {
+        "kind": "number",
+        "value": 0.10225357731723897
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(163.51281606047803,151.06651648282937)",
+      "native": "-0.07707693605834874",
+      "engine": {
+        "kind": "number",
+        "value": -0.07707693605834871
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(163.51281606047803,151.06651648282937)",
+      "native": "0.06460447664893804",
+      "engine": {
+        "kind": "number",
+        "value": 0.06460447664893802
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(155.7610403505767,144.44881454880982)",
+      "native": "-0.05043880916568769",
+      "engine": {
+        "kind": "number",
+        "value": -0.05043880916568768
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(155.7610403505767,144.44881454880982)",
+      "native": "0.09111052032471545",
+      "engine": {
+        "kind": "number",
+        "value": 0.09111052032471546
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(162.77620744888108,154.13696636471457)",
+      "native": "0.053274250176742796",
+      "engine": {
+        "kind": "number",
+        "value": 0.05327425017674278
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(162.77620744888108,154.13696636471457)",
+      "native": "0.09563310246167361",
+      "engine": {
+        "kind": "number",
+        "value": 0.09563310246167359
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(184.46268209249757,171.51621336466772)",
+      "native": "-0.07369734172931927",
+      "engine": {
+        "kind": "number",
+        "value": -0.07369734172931926
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(184.46268209249757,171.51621336466772)",
+      "native": "0.062380594093105625",
+      "engine": {
+        "kind": "number",
+        "value": 0.06238059409310561
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(197.3309031153311,181.01309349310603)",
+      "native": "-0.07885153149375224",
+      "engine": {
+        "kind": "number",
+        "value": -0.07885153149375224
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(197.3309031153311,181.01309349310603)",
+      "native": "-0.043105657428799043",
+      "engine": {
+        "kind": "number",
+        "value": -0.04310565742879906
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(76.06503015832425,68.29004678693654)",
+      "native": "0.003847924237080278",
+      "engine": {
+        "kind": "number",
+        "value": 0.00384792423708028
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(76.06503015832425,68.29004678693654)",
+      "native": "0.13708377936960137",
+      "engine": {
+        "kind": "number",
+        "value": 0.13708377936960137
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(183.25257556922986,159.55151642831)",
+      "native": "0.04452311304863259",
+      "engine": {
+        "kind": "number",
+        "value": 0.044523113048632566
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(183.25257556922986,159.55151642831)",
+      "native": "0.0712258317004745",
+      "engine": {
+        "kind": "number",
+        "value": 0.0712258317004745
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(153.55870190373136,144.15171745957923)",
+      "native": "0.019901343432222742",
+      "engine": {
+        "kind": "number",
+        "value": 0.01990134343222273
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(153.55870190373136,144.15171745957923)",
+      "native": "0.1072125049822108",
+      "engine": {
+        "kind": "number",
+        "value": 0.10721250498221077
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(120.56222051716283,106.09859215240174)",
+      "native": "-0.07254612606103777",
+      "engine": {
+        "kind": "number",
+        "value": -0.0725461260610377
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(120.56222051716283,106.09859215240174)",
+      "native": "-0.07631266700970639",
+      "engine": {
+        "kind": "number",
+        "value": -0.07631266700970632
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(124.93799311425622,117.25010630847004)",
+      "native": "0.06677316495086004",
+      "engine": {
+        "kind": "number",
+        "value": 0.06677316495086004
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(124.93799311425622,117.25010630847004)",
+      "native": "0.10028735933642874",
+      "engine": {
+        "kind": "number",
+        "value": 0.10028735933642874
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(133.73476368579762,117.50418596202707)",
+      "native": "-0.014574216460019383",
+      "engine": {
+        "kind": "number",
+        "value": -0.014574216460019376
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(133.73476368579762,117.50418596202707)",
+      "native": "-0.09866171340188096",
+      "engine": {
+        "kind": "number",
+        "value": -0.09866171340188096
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(181.7323007048105,162.96926363607471)",
+      "native": "0.018019090234164363",
+      "engine": {
+        "kind": "number",
+        "value": 0.01801909023416435
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(181.7323007048105,162.96926363607471)",
+      "native": "-0.08703583874790502",
+      "engine": {
+        "kind": "number",
+        "value": -0.08703583874790503
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(129.74505818707684,110.95800298451145)",
+      "native": "0.09320371646192388",
+      "engine": {
+        "kind": "number",
+        "value": 0.0932037164619238
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(129.74505818707684,110.95800298451145)",
+      "native": "-0.027680857555729188",
+      "engine": {
+        "kind": "number",
+        "value": -0.0276808575557291
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(110.05922072734357,100.70660474080996)",
+      "native": "-0.02367455561361016",
+      "engine": {
+        "kind": "number",
+        "value": -0.02367455561361015
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(110.05922072734357,100.70660474080996)",
+      "native": "0.11684226990866275",
+      "engine": {
+        "kind": "number",
+        "value": 0.11684226990866275
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(181.85588303167978,171.6364595825778)",
+      "native": "0.009603735727021796",
+      "engine": {
+        "kind": "number",
+        "value": 0.009603735727021792
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(181.85588303167978,171.6364595825778)",
+      "native": "0.10190734119659317",
+      "engine": {
+        "kind": "number",
+        "value": 0.10190734119659314
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(120.7850091472081,109.50506817284065)",
+      "native": "-0.08650219552127282",
+      "engine": {
+        "kind": "number",
+        "value": -0.08650219552127282
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(120.7850091472081,109.50506817284065)",
+      "native": "0.07025490871651957",
+      "engine": {
+        "kind": "number",
+        "value": 0.07025490871651957
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(177.72654332681915,159.63719470113546)",
+      "native": "-0.0037078251384726553",
+      "engine": {
+        "kind": "number",
+        "value": -0.0037078251384726492
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(177.72654332681915,159.63719470113546)",
+      "native": "-0.09009725212719744",
+      "engine": {
+        "kind": "number",
+        "value": -0.09009725212719742
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(71.14403112101097,64.00357853890914)",
+      "native": "0.03417880522320547",
+      "engine": {
+        "kind": "number",
+        "value": 0.03417880522320546
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(71.14403112101097,64.00357853890914)",
+      "native": "0.13812027508662594",
+      "engine": {
+        "kind": "number",
+        "value": 0.13812027508662592
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(139.39535318780327,122.4219628958176)",
+      "native": "0.010595803887338065",
+      "engine": {
+        "kind": "number",
+        "value": 0.01059580388733881
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(139.39535318780327,122.4219628958176)",
+      "native": "-0.09704397799935553",
+      "engine": {
+        "kind": "number",
+        "value": -0.09704397799935514
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(187.6318948198831,162.45840313845196)",
+      "native": "-0.00867826633388286",
+      "engine": {
+        "kind": "number",
+        "value": -0.008678266333882849
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(187.6318948198831,162.45840313845196)",
+      "native": "0.08185386591044855",
+      "engine": {
+        "kind": "number",
+        "value": 0.08185386591044855
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(177.58992841414428,169.05189554603047)",
+      "native": "0.06252555394290377",
+      "engine": {
+        "kind": "number",
+        "value": 0.06252555394290375
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(177.58992841414428,169.05189554603047)",
+      "native": "0.08716810472942742",
+      "engine": {
+        "kind": "number",
+        "value": 0.08716810472942743
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(178.14393694965403,158.927295353493)",
+      "native": "0.040550097875315806",
+      "engine": {
+        "kind": "number",
+        "value": 0.04055009787531581
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(178.14393694965403,158.927295353493)",
+      "native": "-0.07906353993171322",
+      "engine": {
+        "kind": "number",
+        "value": -0.07906353993171322
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(180.95980860616305,166.50927241062632)",
+      "native": "-0.09428889272044351",
+      "engine": {
+        "kind": "number",
+        "value": -0.09428889272044351
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(180.95980860616305,166.50927241062632)",
+      "native": "0.00745590817679508",
+      "engine": {
+        "kind": "number",
+        "value": 0.0074559081767950975
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(89.81587473645864,79.47598182651224)",
+      "native": "-0.10010661408384068",
+      "engine": {
+        "kind": "number",
+        "value": -0.1001066140838407
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(89.81587473645864,79.47598182651224)",
+      "native": "0.07148139303893225",
+      "engine": {
+        "kind": "number",
+        "value": 0.07148139303893228
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(111.12584925219234,97.90809505707992)",
+      "native": "-0.10197592420575487",
+      "engine": {
+        "kind": "number",
+        "value": -0.10197592420575487
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(111.12584925219234,97.90809505707992)",
+      "native": "-0.0408714533168081",
+      "engine": {
+        "kind": "number",
+        "value": -0.0408714533168081
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(179.89180661593952,157.89351061432728)",
+      "native": "0.0838145784864613",
+      "engine": {
+        "kind": "number",
+        "value": 0.0838145784864613
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(179.89180661593952,157.89351061432728)",
+      "native": "0.018735413427357697",
+      "engine": {
+        "kind": "number",
+        "value": 0.018735413427357697
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(171.97263288666628,146.40822657463494)",
+      "native": "-0.05516625737545757",
+      "engine": {
+        "kind": "number",
+        "value": -0.05516625737545756
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(171.97263288666628,146.40822657463494)",
+      "native": "0.0633063412402416",
+      "engine": {
+        "kind": "number",
+        "value": 0.06330634124024158
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(90.26370434562428,80.45700798090027)",
+      "native": "-0.07879903341974899",
+      "engine": {
+        "kind": "number",
+        "value": -0.07879903341974899
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(90.26370434562428,80.45700798090027)",
+      "native": "0.0961687078992653",
+      "engine": {
+        "kind": "number",
+        "value": 0.0961687078992653
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(186.83961956018896,160.29877662987113)",
+      "native": "-0.06131904959351244",
+      "engine": {
+        "kind": "number",
+        "value": -0.06131904959351244
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(186.83961956018896,160.29877662987113)",
+      "native": "0.05354788491389263",
+      "engine": {
+        "kind": "number",
+        "value": 0.05354788491389263
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(109.57717735062288,100.75148773171328)",
+      "native": "0.0015117253566191472",
+      "engine": {
+        "kind": "number",
+        "value": 0.001511725356619156
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(109.57717735062288,100.75148773171328)",
+      "native": "0.12092567374779513",
+      "engine": {
+        "kind": "number",
+        "value": 0.12092567374779511
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(91.96085604534237,85.0198020420183)",
+      "native": "0.07395974751643362",
+      "engine": {
+        "kind": "number",
+        "value": 0.07395974751643361
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(91.96085604534237,85.0198020420183)",
+      "native": "0.1113628094652991",
+      "engine": {
+        "kind": "number",
+        "value": 0.11136280946529907
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(71.49192069340688,61.621398275636274)",
+      "native": "-0.11820254732616388",
+      "engine": {
+        "kind": "number",
+        "value": -0.11820254732616388
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(71.49192069340688,61.621398275636274)",
+      "native": "0.05916689022428458",
+      "engine": {
+        "kind": "number",
+        "value": 0.05916689022428459
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(151.6992468330342,130.66933185216587)",
+      "native": "0.085119133396695",
+      "engine": {
+        "kind": "number",
+        "value": 0.08511913339669402
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(151.6992468330342,130.66933185216587)",
+      "native": "0.03171810895520712",
+      "engine": {
+        "kind": "number",
+        "value": 0.03171810895520838
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(189.10620697180372,168.0205190997445)",
+      "native": "0.07873131104737555",
+      "engine": {
+        "kind": "number",
+        "value": 0.07873131104737555
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(189.10620697180372,168.0205190997445)",
+      "native": "-0.03356485874274492",
+      "engine": {
+        "kind": "number",
+        "value": -0.03356485874274492
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(102.16525926730019,88.91417077054413)",
+      "native": "-0.09349749453392646",
+      "engine": {
+        "kind": "number",
+        "value": -0.09349749453392646
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(102.16525926730019,88.91417077054413)",
+      "native": "-0.062208259450782316",
+      "engine": {
+        "kind": "number",
+        "value": -0.06220825945078234
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(195.94824367402546,174.4844760868497)",
+      "native": "0.07948705613124493",
+      "engine": {
+        "kind": "number",
+        "value": 0.07948705613124504
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(195.94824367402546,174.4844760868497)",
+      "native": "-0.02847482054777189",
+      "engine": {
+        "kind": "number",
+        "value": -0.028474820547771
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(185.20169712472864,174.33935798845917)",
+      "native": "-0.010537508741139373",
+      "engine": {
+        "kind": "number",
+        "value": -0.010537508741140402
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(185.20169712472864,174.33935798845917)",
+      "native": "0.09990112508572235",
+      "engine": {
+        "kind": "number",
+        "value": 0.09990112508572181
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(167.25532242522783,148.6466946101827)",
+      "native": "0.033402313063766335",
+      "engine": {
+        "kind": "number",
+        "value": 0.03340231306376632
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(167.25532242522783,148.6466946101827)",
+      "native": "-0.08468506142830626",
+      "engine": {
+        "kind": "number",
+        "value": -0.08468506142830629
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(99.22048699580381,90.37462857368754)",
+      "native": "-0.014745318432021192",
+      "engine": {
+        "kind": "number",
+        "value": -0.014745318432021192
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(99.22048699580381,90.37462857368754)",
+      "native": "0.12322032423309383",
+      "engine": {
+        "kind": "number",
+        "value": 0.12322032423309383
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(125.37959003503153,116.6567819972802)",
+      "native": "0.024274040507599865",
+      "engine": {
+        "kind": "number",
+        "value": 0.024274040507599865
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(125.37959003503153,116.6567819972802)",
+      "native": "0.11446611903392187",
+      "engine": {
+        "kind": "number",
+        "value": 0.11446611903392187
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(186.74124653962318,176.04819663852678)",
+      "native": "-0.0036507301835744404",
+      "engine": {
+        "kind": "number",
+        "value": -0.0036507301835744174
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(186.74124653962318,176.04819663852678)",
+      "native": "0.10053436437484568",
+      "engine": {
+        "kind": "number",
+        "value": 0.10053436437484571
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(89.76672353979863,82.50045435984073)",
+      "native": "0.0557155257082454",
+      "engine": {
+        "kind": "number",
+        "value": 0.05571552570824537
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(89.76672353979863,82.50045435984073)",
+      "native": "0.12098007798835328",
+      "engine": {
+        "kind": "number",
+        "value": 0.12098007798835327
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(189.8494070806825,172.65011054674332)",
+      "native": "-0.051261414413935905",
+      "engine": {
+        "kind": "number",
+        "value": -0.051261414413935905
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(189.8494070806825,172.65011054674332)",
+      "native": "-0.07357195263406027",
+      "engine": {
+        "kind": "number",
+        "value": -0.07357195263406027
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(170.32848508396285,147.54177103744)",
+      "native": "0.05806770628179012",
+      "engine": {
+        "kind": "number",
+        "value": 0.05806770628179012
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(170.32848508396285,147.54177103744)",
+      "native": "0.06403336236516559",
+      "engine": {
+        "kind": "number",
+        "value": 0.06403336236516559
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(190.53760462762557,163.73608512223203)",
+      "native": "-0.06322055429494218",
+      "engine": {
+        "kind": "number",
+        "value": -0.06322055429494218
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(190.53760462762557,163.73608512223203)",
+      "native": "0.05031449662188951",
+      "engine": {
+        "kind": "number",
+        "value": 0.05031449662188951
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(122.47404828404994,112.43777801093634)",
+      "native": "-0.037979040853865664",
+      "engine": {
+        "kind": "number",
+        "value": -0.037979040853865664
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(122.47404828404994,112.43777801093634)",
+      "native": "0.10753341300645565",
+      "engine": {
+        "kind": "number",
+        "value": 0.10753341300645565
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(156.01302960694264,147.61352819760947)",
+      "native": "0.05802643404970056",
+      "engine": {
+        "kind": "number",
+        "value": 0.05802643404970055
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(156.01302960694264,147.61352819760947)",
+      "native": "0.09509514764658882",
+      "engine": {
+        "kind": "number",
+        "value": 0.09509514764658879
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(162.3854084593559,139.78360125631977)",
+      "native": "0.05249118611445225",
+      "engine": {
+        "kind": "number",
+        "value": 0.052491186114452255
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(162.3854084593559,139.78360125631977)",
+      "native": "0.07028483420966536",
+      "engine": {
+        "kind": "number",
+        "value": 0.07028483420966535
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(176.22268264495378,154.58494235385334)",
+      "native": "0.08611548543100768",
+      "engine": {
+        "kind": "number",
+        "value": 0.08611548543100775
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(176.22268264495378,154.58494235385334)",
+      "native": "0.009948652595698458",
+      "engine": {
+        "kind": "number",
+        "value": 0.009948652595698458
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(111.37585857348463,98.66064379615284)",
+      "native": "-0.10983485412109534",
+      "engine": {
+        "kind": "number",
+        "value": -0.10983485412109535
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(111.37585857348463,98.66064379615284)",
+      "native": "-0.014410403896119842",
+      "engine": {
+        "kind": "number",
+        "value": -0.014410403896119877
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(114.6975783057004,98.13934555501788)",
+      "native": "0.046491092518124374",
+      "engine": {
+        "kind": "number",
+        "value": 0.04649109251812436
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(114.6975783057004,98.13934555501788)",
+      "native": "-0.092425158267126",
+      "engine": {
+        "kind": "number",
+        "value": -0.0924251582671259
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(193.31431479258663,173.63226366719667)",
+      "native": "0.03701391865840395",
+      "engine": {
+        "kind": "number",
+        "value": 0.037013918658403935
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELY(193.31431479258663,173.63226366719667)",
+      "native": "-0.07814697669105654",
+      "engine": {
+        "kind": "number",
+        "value": -0.07814697669105646
+      },
+      "match": false
+    },
+    {
+      "formula": "=BESSELJ(173.2216336370401,164.50114000240762)",
+      "native": "0.05532944750793057",
+      "engine": {
+        "kind": "number",
+        "value": 0.05532944750793057
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(173.2216336370401,164.50114000240762)",
+      "native": "0.0921313791676573",
+      "engine": {
+        "kind": "number",
+        "value": 0.0921313791676573
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELJ(182.1090472710281,171.22699894971268)",
+      "native": "-0.01341026482697856",
+      "engine": {
+        "kind": "number",
+        "value": -0.01341026482697856
+      },
+      "match": true
+    },
+    {
+      "formula": "=BESSELY(182.1090472710281,171.22699894971268)",
+      "native": "0.09996145456544246",
+      "engine": {
+        "kind": "number",
+        "value": 0.09996145456544246
+      },
+      "match": true
+    }
+  ],
+  "candidate": {
+    "head": "ef6b7a9eec520707ce36ae2d7ff0fee3c22ab33c",
+    "evaluation": "current compiled SDK; source profile unchanged for numeric code",
+    "numericSources": [
+      {
+        "path": "packages/ssconvert/src/formulas/functions/math.ts",
+        "sha256": "3fd7f6097619b6cb0670f320cf88cbc9158f92d3202c54c49d598a2294c27e2f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-bessel.ts",
+        "sha256": "5d729901cb1ee39ba78c5736565c5aae695b92247540f9e90d62db88ad42f75d"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/captured-log1p.ts",
+        "sha256": "3047fbff171e0a943a42c0348985a9e067219427b887d8ddf970db05c5ca7866"
+      }
+    ]
+  }
+}

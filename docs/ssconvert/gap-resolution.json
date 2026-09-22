@@ -1,0 +1,449 @@
+{
+  "version": 1,
+  "plan": "docs/plans/ssconvert-gap-resolution.md",
+  "status": "active",
+  "baseline": "ec51e54b9",
+  "planCommit": "ef6b7a9ee",
+  "recordedAt": "2026-09-22T16:27:18.923916+00:00",
+  "reference": {
+    "target": "Gnumeric 1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "acquiredAndChecksumVerified": true,
+    "nativeBuild": "authenticated 1.12.61 built and installed; version and numeric cohort executed on Darwin arm64; distinct from historical Linux/aarch64 glibc profile",
+    "macProfile": {
+      "os": "Darwin",
+      "architecture": "arm64",
+      "glib": "2.90.0",
+      "goffice": "0.10.62",
+      "libgsf": "1.14.59",
+      "gtk": "3.24.52",
+      "python": false,
+      "perl": false,
+      "configure": "--enable-introspection=no --without-python --without-perl --disable-schemas-compile",
+      "binarySha256": "f5c5b2888d7cea27a48cb2becfab259f0429c6ded629f79f69aceb683bbf720e",
+      "knownStderr": "GLib configuration monitor criticals; exit zero, complete 154-row output; profile not cleanly qualified"
+    }
+  },
+  "candidate": {
+    "head": "be35054adff617ae155a3edb87a71db817963550",
+    "ownedFiles": [
+      {
+        "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
+        "sha256": "f5a2fa42e0cecf3539c3a565e95a9b5f54360c77b8059812ab470c7bdc2d5d56"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/ssconvert-plugin-stress.test.ts",
+        "sha256": "580b2d504decb4ccbc62859bd9bb50624dedd976da9f7432696fbbcce5af45e2"
+      },
+      {
+        "path": "packages/ssconvert/src/contracts.ts",
+        "sha256": "41f26d2002bfaa673ce7b49e486080bbf29c9007aef3cd8fcdfd0dbc412fd469"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.ts",
+        "sha256": "1f61ce965fc25cdd586a27522c00154eda4818c208111db37c4f9b41f6a19f79"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/dates.ts",
+        "sha256": "af187aaac523a9b7c4ee894ca971501c6303e6e36ddcb44f5756ce88fa1e5027"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/python-capwords-profile.ts",
+        "sha256": "f0b08c56b9ffd4afe7bc49a8e6337f24df067aca11200e02f609f0ff77ca0daa"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/python-capwords.ts",
+        "sha256": "2c5cf28826766a44365b93f2350f20ac8445889e885ac868ab648001c55c77ab"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+        "sha256": "625b2ebfca1b93e17625ab2ba5aeb5ddd04102edbe14c31b3bc9a9cbb350629f"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/optional-runtime.test.ts",
+        "sha256": "7282348333840c2d7b19c4bd1cc3db4bcdd82f42edb857c2ebe6975d9d271bda"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+        "sha256": "f42e60a69028bdaece8867a38bf337b5da8a6f50f558f552072b4590223a5ea7"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/python-capwords.test.ts",
+        "sha256": "52a9d8c290d40857d712b2b46c73802502445332998faf1f4aacdf6b816ecc10"
+      },
+      {
+        "path": "packages/ssconvert/src/io/binding.test.ts",
+        "sha256": "d21025fca500969ac56b04694e04b354ca27653f19e6a7cfeaedafb4e41c87aa"
+      },
+      {
+        "path": "packages/ssconvert/src/io/index.ts",
+        "sha256": "4dbd8a2a3771d64f7922feab0ae8e923ca4ec3a8a399d07b37b720c6431bb58f"
+      },
+      {
+        "path": "packages/ssconvert/src/io/publication.ts",
+        "sha256": "643c4d37be98e840d2b772084be9ec71ebcd2ccea7584bc138530d63003c9635"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "pwd-resource-identity",
+      "status": "open",
+      "currentFinding": "SDK/Shell fix delivered to remote main; focused behavior and fixture types pass; complete Safe Bash typecheck and logical symlink/Windows qualification unresolved",
+      "proof": [
+        {
+          "kind": "red-sdk",
+          "command": "npx vitest run packages/ssconvert/src/io/binding.test.ts --maxWorkers=1",
+          "outcome": "one failing assertion: actual VFS cwd missing from capability environment; existing immutable-binding control passed"
+        },
+        {
+          "kind": "red-shell",
+          "command": "node --import tsx --test --test-name-pattern='ssconvert public Shell diagnostics|ssconvert VFS cwd' packages/safe-bash/tests/commands/ssconvert-plugin-stress.test.ts",
+          "outcome": "wrong PWD diagnostic /reported instead of actual /work; independent GETENV control passed"
+        },
+        {
+          "kind": "green-shell",
+          "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-plugin-stress.test.ts",
+          "outcome": "12 passed; wrong, relative and absent PWD, absolute path, exporter URI, unchanged VFS, exact environment and GETENV preservation"
+        },
+        {
+          "kind": "green-shell-neighbors",
+          "outcome": "six existing graph/URI/split/environment/loading controls passed"
+        },
+        {
+          "kind": "maintained-workspace-build",
+          "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
+          "outcome": "passed"
+        },
+        {
+          "kind": "maintained-workspace-test",
+          "command": "npm test --workspace=@poe-code/ssconvert -- --maxWorkers=1",
+          "outcome": "passed: 317 files / 6275 tests; no reported failures or skips"
+        },
+        {
+          "kind": "maintained-workspace-lint",
+          "command": "npm run lint --workspace=@poe-code/ssconvert",
+          "outcome": "passed: ESLint and maintained production/test/public-consumer TypeScript checks"
+        },
+        {
+          "kind": "maintained-safe-bash-build",
+          "outcome": "passed: selected declared workspace closure, 27 build tasks"
+        },
+        {
+          "kind": "safe-bash-ssconvert-cohort",
+          "outcome": "14 authenticated-discovery files / 121 tests passed, no failures or skips"
+        },
+        {
+          "kind": "safe-bash-typecheck",
+          "outcome": "failed; full report preserved; root public dist initially missing, broader strict fixture/source and packed exports failures; remediation in progress"
+        },
+        {
+          "kind": "safe-bash-maintained-filtered-test",
+          "outcome": "interrupted exit 143 because name filter still imports all 1365 files; not a passing maintained gate"
+        },
+        {
+          "kind": "visible-cli-diagnostic",
+          "outcome": "screenshot inspected: actual cwd /work, guest PWD /reported, error identifies actual /work path, exit 1"
+        },
+        {
+          "kind": "final-focused-safe-bash-lint-types",
+          "outcome": "post-fixture-correction ESLint and strict explicit-file fixture compile passed"
+        },
+        {
+          "kind": "integrated-maintained-build",
+          "command": "npm run build",
+          "outcome": "passed: maintained workspace DAG and root schema/declaration/bin/bundle suffixes"
+        },
+        {
+          "kind": "root-built-maintained-safe-bash-typecheck",
+          "outcome": "failed: nominal source/dist BytePath collision, private-contract packed-export failures, two invalid public fixture imports and other strict fixture/source errors. 6776 diagnostic headers are not independent issue counts."
+        },
+        {
+          "kind": "filesystem-declaration-alias-attempt",
+          "outcome": "switching only safe-fs aliases to built declarations reduced but did not close source/dist identity failures; attempt rejected and only owned config changes undone. No casts or weakened checks."
+        }
+      ],
+      "delivery": {
+        "localCommit": "bb79af122996fac4f995eaa599d63a2d7e0f47d2",
+        "remoteMain": "verified on origin/main; contained by successor be35054adff617ae155a3edb87a71db817963550",
+        "publication": "run 35753027233 cancelled; monitor containing successor release"
+      }
+    },
+    {
+      "id": "lotus-named-formula-references",
+      "status": "open",
+      "currentFinding": "current product mirrors upstream unimplemented formula tokens; requested extension pending",
+      "proof": [
+        {
+          "kind": "upstream-source",
+          "path": "plugins/lotus-123/lotus-formula.c:806-809",
+          "outcome": "LOTUS_FORMULA_NAMED/ABS_NAMED explicitly warn Named ranges not implemented in authenticated native source"
+        }
+      ],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "biff-external-and-token-formulas",
+      "status": "open",
+      "currentFinding": "explicit current refusals; per-token applicability and repair pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "encrypted-biff",
+      "status": "open",
+      "currentFinding": "current refusal; native tries VelvetSweatshop; standalone stderr context supplies NULL for arbitrary password request; applicability/SDK secret contract pending",
+      "proof": [
+        {
+          "kind": "upstream-source",
+          "path": "plugins/excel/ms-excel-read.c:6401-6421",
+          "outcome": "tries VelvetSweatshop then explicit command-context password acquisition and ms_biff_query_set_decrypt"
+        },
+        {
+          "kind": "upstream-command-context",
+          "path": "src/command-context-stderr.c:83",
+          "outcome": "native standalone command returns NULL from password acquisition; arbitrary GUI password support is not standalone CLI evidence"
+        }
+      ],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "encrypted-odf",
+      "status": "open",
+      "currentFinding": "current refusal; native/format applicability pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "encrypted-paradox",
+      "status": "open",
+      "currentFinding": "current refusal; native/format applicability pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "perl-date",
+      "status": "open",
+      "currentFinding": "optional JS port implemented and delivered; injected-clock/timezone/arity/namespace/budget cases pass; activated native optional-profile qualification still open",
+      "proof": [
+        {
+          "kind": "upstream-source",
+          "path": "plugins/perl-func/perl_func.pl:18-23",
+          "outcome": "localtime date as YYYYMMDD string, empty signature"
+        },
+        {
+          "kind": "red-public-calculation",
+          "outcome": "PERL_DATE() returned #NAME? with explicitly enabled shipped binding"
+        },
+        {
+          "kind": "red-invalid-clock-control",
+          "outcome": "out-of-Date-range finite clock was accepted and returned malformed date text"
+        },
+        {
+          "kind": "green",
+          "outcome": "14 optional-runtime tests pass; leap-day UTC and prior-day America/Los_Angeles, absent namespace, arity, missing/NaN/out-of-range clock and exact output-byte refusal"
+        },
+        {
+          "kind": "maintained-workspace-test-lint",
+          "outcome": "317 files / 6276 tests passed; final maintained workspace lint, production/test/public-consumer types passed"
+        },
+        {
+          "kind": "public-shell-visible-qa",
+          "outcome": "CSV --set formula/recalc with explicit CSV exporter: UTC 20240229 and Los_Angeles 20240228; exit 0; screenshot inspected. Earlier QA invocations lacked exporter or formula equals and were corrected, not product failures."
+        }
+      ],
+      "delivery": {
+        "localCommit": "5e9b4f2b5fa183f43f616a94072d5148cb8e6e45",
+        "remoteMain": "verified on origin/main; contained by be35054adff617ae155a3edb87a71db817963550",
+        "publication": "monitor containing successor release"
+      }
+    },
+    {
+      "id": "perl-sed",
+      "status": "open",
+      "currentFinding": "missing bounded compatible optional port",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "python-printf",
+      "status": "open",
+      "currentFinding": "missing built-in optional port",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "python-capwords-unicode",
+      "status": "open",
+      "currentFinding": "frozen Unicode16 optional JS implementation delivered; activated native Python-loader/result-conversion profile qualification remains open",
+      "proof": [
+        {
+          "kind": "red-public-calculation",
+          "outcome": "original Unicode titlecase/whitespace/sigma cases fail with explicit Unicode refusal"
+        },
+        {
+          "kind": "frozen-data-authentication",
+          "outcome": "CPython 3.14.2 and 3.14.7 unicodetype_db.h are byte-identical SHA256 14ec556848551d98523554080f2d09f6d0a64c83854f43b92c51e10440af2134. Reuse existing simple case owner with 149 title and 43 lower deltas; 159 cased, 452 case-ignorable and 10 whitespace ranges. No host ICU casing."
+        },
+        {
+          "kind": "green-focused-tests",
+          "outcome": "24 tests across 3 files pass; independent Unicode cases, surrogate scalar control, UTF8 expansion-byte boundary, linear sigma context, charged normalized-away input, cancellation, existing typed coercion and namespace cases"
+        },
+        {
+          "kind": "independent-manual-source-corpus",
+          "outcome": "28356 / 28356 CPython16 cases pass: every cased/case-ignorable/whitespace/delta character in four title/lower/sigma contexts; 191171 charged ticks. This is source-corpus proof, not activated native plugin proof."
+        },
+        {
+          "kind": "maintained-workspace-test-lint",
+          "outcome": "317 files / 6278 tests passed; maintained lint initially found overly broad Value return annotation, fixed to CellValue; final lint plus production/test/public-consumer types passed"
+        },
+        {
+          "kind": "public-shell-visible-qa",
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+        }
+      ],
+      "delivery": {
+        "localCommit": "be35054adff617ae155a3edb87a71db817963550",
+        "remoteMain": "verified origin/main be35054adff617ae155a3edb87a71db817963550",
+        "publication": "Release 35754105899 pending; monitor containing successor"
+      }
+    },
+    {
+      "id": "database-functions",
+      "status": "open",
+      "currentFinding": "explicit provider/service and native lifecycle qualification pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "atl-last",
+      "status": "open",
+      "currentFinding": "explicit FIFO/service and native lifecycle qualification pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "numeric-ln1p-log1p-acos",
+      "status": "open",
+      "currentFinding": "current public replay: historical primitives 33 exact / 1 differing; fresh Darwin primitives likewise 33 exact / 1 differing; internal primitive cohorts remain pending",
+      "proof": [
+        {
+          "kind": "fresh-mac-native",
+          "outcome": "LN1P(0.33688260287586475) native 0.29034048788903205 vs SDK 0.290340487889032; public neighboring primitive/error controls 33 match"
+        }
+      ],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "numeric-bessel-high-q",
+      "status": "open",
+      "currentFinding": "historical 120-case replay 73 exact / 47 differing; fresh Darwin cohort 46 exact / 74 differing; platform qualification and repair remain open",
+      "proof": [
+        {
+          "kind": "fresh-mac-native",
+          "outcome": "46 exact / 74 differing of 120; macOS results not substituted for historical Linux/glibc oracle"
+        }
+      ],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "format-record-roundtrip",
+      "status": "open",
+      "currentFinding": "implementation exists; comprehensive semantic evidence closure pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "rendering-font-print-fidelity",
+      "status": "open",
+      "currentFinding": "implementation exists; applicable visual/profile qualification pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "solver-analysis-accuracy",
+      "status": "open",
+      "currentFinding": "implementation exists; required solution/profile qualification pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "optional-profiles",
+      "status": "open",
+      "currentFinding": "14 matching qualifications unresolved; source-disabled/GUI relevance census pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    },
+    {
+      "id": "public-packed-artifacts",
+      "status": "open",
+      "currentFinding": "old packaging gap superseded by 7d97a1731/d53488b24; current installed qualification pending",
+      "proof": [],
+      "delivery": {
+        "localCommit": null,
+        "remoteMain": null,
+        "publication": null
+      }
+    }
+  ]
+}

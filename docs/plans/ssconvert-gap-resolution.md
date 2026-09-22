@@ -32,7 +32,7 @@ tasks:
       reproduce: done
       implement: done
       test: open
-      commit: open
+      commit: done
       release: open
   - id: lotus-named-ranges
     title: Implement applicable Lotus named-range semantics
@@ -215,3 +215,11 @@ At creation, Python 3 and Node/npm tooling are available; native ssconvert and D
 ## Maintained verification
 
 Use the declared @poe-code/ssconvert workspace build closure, npm test --workspace=@poe-code/ssconvert and npm run lint --workspace=@poe-code/ssconvert for relevant atomic changes. Focused Vitest selections establish red/green evidence but do not replace maintained pre-push checks. Broad integration uses npm run build, npm test and npm run lint. Safe Bash changes follow its integration-input registration and stress/fix ownership policy. Ad hoc visible CLI verification uses screenshots; no screenshot unit tests.
+
+### Executed optional-function QA
+
+1. Bind a public Shell to MemoryFileSystem containing `/input.csv` with `0` and a newline. Register only the explicit ssconvert plugin with bounded limits and the named optional runtime binding.
+2. For PERL_DATE, inject clock `Date.UTC(2024, 1, 29, 0, 30)`. Execute `ssconvert --set 'A1==PERL_DATE()' --recalc -T Gnumeric_stf:stf_csv /input.csv fd://1` under UTC and America/Los_Angeles. Require respectively `20240229` and `20240228`, empty stderr and exit zero. Inspect the command-output screenshot.
+3. For PY_CAPWORDS, enable `pythonSampleFunctions`, UTF-8 locale and explicit `CommandProfile.argumentEncoding: "utf8"`. Execute `ssconvert --set 'A1==PY_CAPWORDS("straße ßETA ΟΣ")' --recalc -T Gnumeric_stf:stf_csv /input.csv fd://1`. Require CSV string `"Straße Sseta Ος"`, empty stderr and exit zero; inspect the screenshot. Retain namespace, ASCII-profile and exporter-selection controls separately.
+4. Authenticate CPython 3.14.2 Unicode16 generated type data against the recorded SHA256. Compare every cased, case-ignorable, whitespace and case-delta character with CPython capwords in initial, lowercase and preceding/following sigma contexts. The executed 28356-case source corpus passes; repeat matching activated native plugin qualification separately before closing that profile.
+5. Dispose every Shell. Reduce screenshots, failed harness attempts and numeric/profile observations into the durable ledger, then purge only owned disposable helpers/captures when no longer needed. These steps are agent-executed QA, not a maintained QA script.

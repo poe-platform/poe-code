@@ -6,7 +6,7 @@ import { expect, it } from 'vitest';
 // together with compatibility evidence. These source pins do not admit an image
 // or qualify installed provider enforcement. Executable and SDK pins are separate.
 it.each([
-  ['Dockerfile', 'fe28f39e09fe43f16f0f9fa8d584d56008606fc560316c405e59a0cba0d0b881'],
+  ['Dockerfile', '6d150b87333488b5e18f86d0b905bec6fd2dd256aa8ac654b1818bf7564b7c93'],
   ['container-lock.json', 'e8afb6612b0544a7ebed537c46af8040f0a96f6bb297a78d82b32afa07571044'],
   ['container.mjs', '96b660ba3e07b5caa54c1f7ef4035a33831b66c45102840f26093615e29d56af'],
   ['inventory.mjs', 'b7c3629f680f3791c4f1a2246c141353293b61b5c28998dc6d62b811c520cdab'],

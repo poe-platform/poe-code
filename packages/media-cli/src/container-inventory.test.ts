@@ -1,6 +1,5 @@
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir, stat} from 'node:fs/promises';
 import {posix} from 'node:path';
-import {transform} from 'esbuild';
 import ts from 'typescript';
 import {Volume} from 'memfs';
 import {expect, it} from 'vitest';
@@ -21,13 +20,20 @@ it('loads the disposable image inventory receipt with only its copied runtime mo
   const stage=stages.get(selected)!;inherited.unshift(...stage.lines);selected=stage.base;
  }
  const volume=new Volume();
+ async function copy(source:URL,destination:string){
+  if((await stat(source)).isDirectory()){
+   volume.mkdirSync(destination,{recursive:true});
+   const directory=new URL(source.href.endsWith('/')?source.href:source.href+'/');
+   for(const name of await readdir(source))await copy(new URL(encodeURIComponent(name),directory),posix.join(destination,name));
+  }else{
+   volume.mkdirSync(posix.dirname(destination),{recursive:true});
+   volume.writeFileSync(destination,await readFile(source));
+  }
+ }
  for(const line of inherited){
   const [instruction,source,destination]=line.split(' ');
   if(instruction!=='COPY')continue;
-  const sourcePath=source.includes('/dist/')?source.split('/dist/').join('/src/').slice(0,-3)+'.ts':source;
-  let contents=await readFile(new URL(sourcePath,root),'utf8');
-  if(sourcePath.endsWith('.ts'))contents=(await transform(contents,{loader:'ts',format:'esm'})).code;
-  volume.mkdirSync(posix.dirname(destination),{recursive:true});volume.writeFileSync(destination,contents);
+  await copy(new URL(source,root),destination);
  }
  const visited=new Set<string>();
  function link(path:string){

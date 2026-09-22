@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T17:57:33.277997+00:00",
+  "recordedAt": "2026-09-22T18:03:26.772718+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -221,7 +221,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Indexed names/custom255 delivered72b96504d and887e467a6. Add-in ownership/activity/function/value cells now verified across54 native/public CLI inputs and6 matching BIFF readbacks. DDE/OLE/built-ins, registration loops/order, true external books, ODF global qualification, arrays/other tokens, modern deleted links and broader profiles remain open.",
+      "currentFinding": "Indexed names/custom255/add-in imports verified on remote main. Modern deleted local Ref3D/Area3D links now match18 native/public CSV cases and18 matching BIFF roundtrips. NameX deleted/self display scopes, DDE/OLE/builtins, registration loops/order, true external books, ODF global qualification, arrays/other tokens and broader profiles remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -287,6 +287,16 @@
           "kind": "BIFF7/8-add-in-name-ownership-and-activity-repair",
           "path": "docs/ssconvert/biff-addin-name-gap-proof.json",
           "outcome": "red8 then six activity reproductions;15 own/6367 maintained tests pass; lint/types/build pass;54 native/public CLI exact cells,6 matching native/public readbacks, two screenshots inspected. Three original warning regressions repaired; all six native/public readbacks now have empty SDK stderr.",
+          "delivery": {
+            "localCommit": "69c8250d693cb8b6a5fbc256e9b936451a5c7c06",
+            "remoteMain": "Exact ls-remote main verified after push",
+            "publication": "Release35764056574 pending"
+          }
+        },
+        {
+          "kind": "BIFF8-deleted-local-link-endpoints",
+          "path": "docs/ssconvert/biff-deleted-link-gap-proof.json",
+          "outcome": "Four original red/green regressions;5 own/6372 maintained tests, lint/types/build pass.18 native/public original imports and18 BIFF readbacks exact, no SDK warnings, readable screenshot inspected. Broader links remain open.",
           "delivery": {
             "localCommit": null,
             "remoteMain": null,

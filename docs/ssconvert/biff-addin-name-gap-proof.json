@@ -2025,8 +2025,8 @@
     "ODF global qualification, arrays/other tokens, modern deleted links and wider formats/profiles remain open."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "69c8250d693cb8b6a5fbc256e9b936451a5c7c06",
+    "remoteMain": "Exact ls-remote main verified after push",
+    "publication": "Release35764056574 pending; earlier containing releases cancelled"
   }
 }

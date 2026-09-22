@@ -1,3 +1,4 @@
+import { decryptOdfEntries } from "./odf-encryption.js";
 import { createZipCodec, CodecError, type ZipLimits } from "@poe-code/office-package";
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlContent } from "@poe-code/safe-fs/xml";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -142,7 +143,11 @@ async function openPackage(bytes: Uint8Array, context: CapabilityContext) {
     if (amount > (context.limits.workbookTextBytes ?? limits.maxTotalBytes) - textBytes) limit("retained text");
     textBytes += amount;
   }
-  return { entries, read, document, version, charge, retainText };
+  async function decrypt(manifest: XmlElement) {
+    const plaintext = await decryptOdfEntries(manifest, entries, read, context, charge, limits.maxTotalBytes - decoded, limits.maxEntryBytes);
+    for (const [name, bytes] of plaintext) { decoded += bytes.length; buffers.set(name, bytes); }
+  }
+  return { entries, read, document, version, charge, retainText, decrypt };
 }
 function failure(error: unknown, context: CapabilityContext): never {
   context.signal.throwIfAborted();
@@ -256,8 +261,7 @@ export async function readOdf(bytes: Uint8Array, context: CapabilityContext): Pr
     const manifest = pkg.entries.has("META-INF/manifest.xml") ? await pkg.document("META-INF/manifest.xml") : undefined;
     if (manifest) {
       if (manifest.localName !== "manifest" || ![urn + "manifest:1.0", "http://openoffice.org/2001/manifest"].includes(manifest.namespace)) invalid("invalid manifest");
-      for (const entry of manifest.children) for (const child of entry.children) if (child.localName === "encryption-data")
-        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted OpenDocument package");
+      if (manifest.children.some(entry => entry.children.some(child => child.localName === "encryption-data"))) await pkg.decrypt(manifest);
     }
     const raw = await pkg.document("content.xml");
     const preparseRoot = await recognize(raw, legacy ? "ooo1_content_dtd" : "opendoc_content_dtd", context, pkg.charge);

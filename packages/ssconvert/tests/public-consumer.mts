@@ -15,11 +15,18 @@ if (!referenceText.help || [...exportOptionPairs("sheet=Consumer")].length !== 1
   throw new Error("Public metadata consumer failed");
 const config: EngineConfig = { codecs: [], limits: context.limits, environment: context.environment,
   password: { async read(request) {
-    const format: "biff" = request.format;
-    const algorithm: "xor" | "rc4" | "rc4-cryptoapi" = request.algorithm;
-    const encoding: "bytes" | "utf16le" = request.encoding;
-    if (format !== "biff" || !algorithm || !encoding || request.maxBytes < 1 || request.signal.aborted)
-      throw new Error("Invalid public password request");
+    if (request.format === "biff") {
+      const algorithm: "xor" | "rc4" | "rc4-cryptoapi" = request.algorithm;
+      const encoding: "bytes" | "utf16le" = request.encoding;
+      const revision: number = request.revision;
+      if (!algorithm || !encoding || revision < 1) throw new Error("Invalid public BIFF password request");
+    } else {
+      const algorithm: "aes-cbc" = request.algorithm;
+      const encoding: "utf8" = request.encoding;
+      const revision: "1.2" = request.revision;
+      if (!algorithm || !encoding || revision !== "1.2") throw new Error("Invalid public ODF password request");
+    }
+    if (request.maxBytes < 1 || request.signal.aborted) throw new Error("Invalid public password bounds");
     return undefined;
   } } };
 const request: ConversionRequest = { input: { kind: "stream", source: [bytes] },

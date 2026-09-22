@@ -385,7 +385,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "authenticated native source has no manifest-decryption path; valid owned AES256-CBC package rejected while plaintext control imports 42. Product intended refusal was reached after ciphertext decoding; admission order repaired. Native configuration qualification and final delivery remain open.",
+      "currentFinding": "Requested AES-CBC ODF import extension implemented through explicit once-per-package UTF8 host password authority.24 independent AES128/192/256/hash/checksum vectors match SDK/Shell/browser/worker, complete independent decrypt/inflate and plaintext ODF readbacks.63 own/7516 maintained tests,lint/types/build and inspected screenshots; atomic delivery pending. Blowfish-CFB8,encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -403,6 +403,11 @@
         {
           "kind": "rebuilt-public-shell-visible-qa",
           "outcome": "actual AES256 encrypted package gives encrypted OpenDocument package refusal, exit1, no stdout, existing memfs target untouched; screenshot inspected. Earlier public smoke used stale dist and was rebuilt before certification."
+        },
+        {
+          "kind": "requested-AES-CBC-password-import-extension",
+          "path": "docs/ssconvert/odf-aes-encryption-gap-proof.json",
+          "outcome": "24 independent vectors exact on four public surfaces; complete decrypt/inflate/ODF plaintext replay; zero invalid target writes; resource/header admission,cancellation,strictUTF8,duplicate declarations and ancillary verification."
         }
       ],
       "delivery": {

@@ -67,15 +67,22 @@ export interface RuntimeLimits {
 /** Trusted host secret acquisition. Never sourced from guest argv, environment or logs. */
 export interface PasswordCapability {
   read(request: Readonly<{
+    maxBytes: number;
+    inputFilename?: string;
+    signal: AbortSignal;
+  } & ({
     format: "biff";
     algorithm: "xor" | "rc4" | "rc4-cryptoapi";
     revision: number;
     /** XOR requires explicitly encoded bytes; RC4 accepts a string or UTF-16LE bytes. */
     encoding: "bytes" | "utf16le";
-    maxBytes: number;
-    inputFilename?: string;
-    signal: AbortSignal;
-  }>): Promise<string | Uint8Array | undefined>;
+  } | {
+    format: "odf";
+    algorithm: "aes-cbc";
+    revision: "1.2";
+    /** ODF passwords are UTF-8 strings or explicitly encoded UTF-8 bytes. */
+    encoding: "utf8";
+  })>): Promise<string | Uint8Array | undefined>;
 }
 export interface CapabilityContext {
   readonly stdinIsDefault?: boolean;

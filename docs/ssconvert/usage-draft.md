@@ -19,10 +19,16 @@ replace service bindings. Native ssconvert is a separate QA oracle, never a
 product dependency or fallback. Listed services do not establish complete
 format, version, record, formula, numerical or rendering fidelity.
 
-BIFF7/8 XOR-obfuscated Excel workbooks using the native reader's built-in
-`VelvetSweatshop` password open automatically. Conversion exports plaintext.
-XOR provides no data authentication. Other passwords and RC4/CryptoAPI remain
-unsupported; no ambient password acquisition or native fallback occurs.
+BIFF7/8 XOR-obfuscated and BIFF8 RC4/CryptoAPI Excel workbooks using the
+native reader's built-in `VelvetSweatshop` password open automatically.
+Other BIFF passwords and AES-CBC-encrypted OpenDocument imports use an explicit
+host `password.read` callback. ODF accepts UTF-8 strings or bytes, AES128/192/256,
+SHA1/SHA256 start keys and prefix/full checksums. Every encrypted member is
+admitted before the callback and verified before conversion. Conversion exports
+plaintext. BIFF ciphers and ODF CBC checksums do not authenticate workbook data;
+prefix checksums cover only the first 1024 compressed bytes. Blowfish ODF and
+encrypted exports remain unsupported. No ambient password acquisition or native
+fallback occurs.
 
 ```ts
 import { createEngine } from "poe-code/ssconvert";

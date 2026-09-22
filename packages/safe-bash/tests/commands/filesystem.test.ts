@@ -382,6 +382,36 @@ test("cp recursively copies trees, preserves nested symlinks and rejects self-de
   assert.match((await run("cp", ["-RL", "source", "followed"], { fs })).stderr, /ELOOP/u);
 });
 
+for (const [command, expected, target] of [
+  ["mv -v input output", "renamed 'input' -> 'output'\n", "/work/output"],
+  ["mv --verbose ./input ./output", "renamed './input' -> './output'\n", "/work/output"],
+  ["mv -v /work/input /work/output", "renamed '/work/input' -> '/work/output'\n", "/work/output"],
+  ["mv -v input ./destination//", "renamed 'input' -> './destination/input'\n", "/work/destination/input"],
+] as const) {
+  test(`mv verbose preserves operand spelling: ${command}`, async () => {
+    const fs = await fixture({ input: "a" });
+    await fs.mkdir("/work/destination");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(expected));
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile(target)), "a");
+      await assert.rejects(fs.stat("/work/input"), { code: "ENOENT" });
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("mv -nv stays silent when skipping an existing destination", async () => {
+  const fs = await fixture({ input: "new", output: "kept" });
+  const result = await run("mv", ["-nv", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "new");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "kept");
+});
+
 test("mv renames and honors no-clobber without host filesystem operations", async () => {
   const fs = await fixture({ first: "one", second: "two" });
   await run("mv", ["-n", "first", "second"], { fs });

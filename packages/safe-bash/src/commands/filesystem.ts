@@ -342,7 +342,11 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             return;
           }
         }
-        if (parsed.flags.has("v")) await output(context, `'${escapeText(operand, "display")}' -> '${escapeText(target, "display")}'\n`);
+        if (parsed.flags.has("v")) {
+          const targetOperand = parsed.operands.at(-1)!;
+          const displayTarget = destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
+          await output(context, `renamed '${escapeText(operand, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
+        }
       });
     }),
     define("rm", async context => {

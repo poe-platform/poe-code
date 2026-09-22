@@ -45,6 +45,16 @@ function findTestFiles(dir: string): boolean {
 }
 
 describe("workspace dependency completeness", () => {
+  it("runs csvcut node:test files once through their declared workspace task", () => {
+    expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-csvcut/src/*.test.ts");
+    const plan = createWorkspaceTestPlan(ROOT);
+    expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-csvcut")).toEqual([
+      { id: "safe-bash-command-csvcut#test:unit", name: "safe-bash-command-csvcut", path: "packages/safe-bash-command-csvcut", event: "test:unit" }
+    ]);
+    expect(readJson(path.join(PACKAGES_DIR, "safe-bash-command-csvcut", "package.json"))).toMatchObject({
+      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+    });
+  });
   it("keeps op node:test files out of Vitest while retaining their maintained workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/op/src/*.test.ts");
     const plan = createWorkspaceTestPlan(ROOT);
@@ -52,6 +62,28 @@ describe("workspace dependency completeness", () => {
       { id: "@poe-platform/op#test:unit", name: "@poe-platform/op", path: "packages/op", event: "test:unit" }
     ]);
     expect(readJson(path.join(PACKAGES_DIR, "op", "package.json"))).toMatchObject({
+      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+    });
+  });
+
+  it("runs fold node:test suites through their maintained workspace task", () => {
+    expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-fold/src/*.test.ts");
+    const plan = createWorkspaceTestPlan(ROOT);
+    expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-fold")).toEqual([
+      { id: "safe-bash-command-fold#test:unit", name: "safe-bash-command-fold", path: "packages/safe-bash-command-fold", event: "test:unit" }
+    ]);
+    expect(readJson(path.join(PACKAGES_DIR, "safe-bash-command-fold", "package.json"))).toMatchObject({
+      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+    });
+  });
+
+  it("runs htmlq node:test suites only through the maintained private workspace task", () => {
+    expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-htmlq/src/*.test.ts");
+    const plan = createWorkspaceTestPlan(ROOT);
+    expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-htmlq")).toEqual([
+      { id: "safe-bash-command-htmlq#test:unit", name: "safe-bash-command-htmlq", path: "packages/safe-bash-command-htmlq", event: "test:unit" }
+    ]);
+    expect(readJson(path.join(PACKAGES_DIR, "safe-bash-command-htmlq", "package.json"))).toMatchObject({
       scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
     });
   });

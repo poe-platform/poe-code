@@ -206,6 +206,41 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-fold#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-diff3#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-unrtf#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-csvgrep#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-csvcut#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-htmlq#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-csv-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

@@ -142,6 +142,28 @@ it("preserves Perl loader boolean-to-integer conversion in typed sample addition
     .toEqual({ kind: "number", value: 3 });
 });
 
+it("ports PERL_DATE using the injected clock and timezone without enabling absent names", async () => {
+  const { perlSampleFunctions } = await import("./optional-providers.js");
+  const now = Date.UTC(2024, 1, 29, 0, 30);
+  const supplied = { ...context, runtimeFunctions: perlSampleFunctions, clock: { now: () => now } };
+  const calculate = (formula: string, selected = supplied) =>
+    recalculateWorkbook(book(formula), selected).sheets[0]!.cells[0]!.value;
+  expect(calculate("=PERL_DATE()")).toEqual({ kind: "string", value: "20240229" });
+  expect(calculate("=PERL_DATE()", { ...supplied, environment: { ...context.environment, timezone: "America/Los_Angeles" } }))
+    .toEqual({ kind: "string", value: "20240228" });
+  expect(calculate("=PERL_DATE(1)")).toEqual({ kind: "error", value: "#N/A" });
+  expect(calculate("=PERL_DATE()", { ...supplied, runtimeFunctions: {} }))
+    .toEqual({ kind: "error", value: "#NAME?" });
+  expect(() => recalculateWorkbook(book("=PERL_DATE()"), { ...context, runtimeFunctions: perlSampleFunctions }))
+    .toThrow("explicit clock");
+  expect(() => calculate("=PERL_DATE()", { ...supplied, clock: { now: () => NaN } }))
+    .toThrow("Invalid ssconvert clock result");
+  expect(() => calculate("=PERL_DATE()", { ...supplied, clock: { now: () => 8640000000000001 } }))
+    .toThrow("Invalid ssconvert clock result");
+  expect(() => calculate("=PERL_DATE()", { ...supplied, limits: { ...context.limits, outputBytes: 7 } }))
+    .toThrow("text limit");
+});
+
 it("retains typed optional sample coercion and exact arithmetic error propagation", async () => {
   const { perlSampleFunctions, pythonSampleFunctions } = await import("./optional-providers.js");
   const extended = { ...context, runtimeFunctions: { ...perlSampleFunctions, ...pythonSampleFunctions } };

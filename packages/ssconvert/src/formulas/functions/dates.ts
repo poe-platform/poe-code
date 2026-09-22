@@ -66,7 +66,8 @@ export function yearFraction(from: Date, to: Date, basis: number): number {
 export function localNow(host: FunctionHost): Date {
   if (!host.context.clock) throw new SsconvertError("capability-denied", "ssconvert time functions require an explicit clock");
   const now = host.context.clock.now(); host.tick();
-  if (!Number.isFinite(now)) throw new SsconvertError("invalid-request", "Invalid ssconvert clock result");
+  if (!Number.isFinite(now) || Math.abs(now) > 8640000000000000)
+    throw new SsconvertError("invalid-request", "Invalid ssconvert clock result");
   return zonedDate(now, host);
 }
 function zonedDate(now: number, host: FunctionHost): Date {

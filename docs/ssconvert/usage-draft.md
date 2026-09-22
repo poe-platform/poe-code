@@ -130,6 +130,11 @@ clipboard, solver and analysis bindings supply trusted host implementations.
 Their presence does not establish full source parity. Matching time/random state
 is required for reproducible dependent operations.
 
+The exported `perlSampleFunctions` binding includes `PERL_ADDER` and
+`PERL_DATE`; the latter returns `YYYYMMDD` using the injected clock and timezone.
+Supply the binding as `runtimeFunctions` to enable these names. Without it they
+remain absent. Matching activated native Perl-profile qualification is pending.
+
 In `ConversionRequest`, `goalSeekExpressions` and `toolTest` use the built-in
 native-style protocols when no overriding binding is supplied. Structured
 `goalSeek` requests require `EngineConfig.solver`; structured `analysis` requests

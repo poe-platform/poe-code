@@ -15,7 +15,7 @@ import { CsvTable } from "./csv.js";
 import { expandArgfiles } from "./argfiles.js";
 import { virtualPath } from "./paths.js";
 
-export interface ExiftoolCommandOptions { readonly limits?: Partial<ResourceLimits> }
+export interface ExiftoolCommandOptions { readonly replace?: boolean; readonly limits?: Partial<ResourceLimits> }
 function selected(tags: readonly MetadataTag[], names: readonly string[], duplicates: boolean, resources: Resources): MetadataTag[] {
   resources.admit("work", tags.length + names.length);
   resources.admit("retained", tags.length * 32);
@@ -262,5 +262,5 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
 export const exiftoolCommand = createExiftoolCommand();
 export function exiftoolCommands(options: ExiftoolCommandOptions = {}): VirtualShellPlugin {
   const command = createExiftoolCommand(options);
-  return { name: "exiftool", setup(host) { host.commands.register(command); } };
+  return { name: "exiftool", setup(host) { host.commands.register(command, { replace: options.replace ?? false }); } };
 }

@@ -3,7 +3,7 @@
 Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer.
 The engine provides spreadsheet import and export, recalculation, workbook updates,
 and chart and print rendering. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
-using the native reader's built-in password or an explicit host `password.read` callback. Format support has documented limits; see the
+using the native reader's built-in password or an explicit host `password.read` callback. Encrypted Paradox tables open automatically using their declared header key. Format support has documented limits; see the
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 
 ```ts

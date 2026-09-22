@@ -26,3 +26,9 @@ separate native QA profile are recorded in
 No native Gnumeric or psiconv implementation is loaded, linked, executed or
 required by these product readers. Codepage 950 uses the package's existing
 captured libgsf byte-mapping facts, whose provenance is recorded separately.
+
+- Paradox DB block cipher tables and byte permutation: pxlib 0.6.8
+  (`src/px_crypt.c`), Folke Behrens, LGPL-2.0-or-later. Source identity and
+  independent compiled cipher vectors are recorded in
+  `docs/ssconvert/paradox-encryption-gap-proof.json`. The LGPL text is included
+  at `src/encoding/LGPL-2.1.txt`. No native pxlib code is loaded by the product.

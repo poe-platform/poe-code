@@ -5,6 +5,7 @@ import { databaseInput, databaseText, databaseNumber, databaseNumeric } from "./
 import { recordSheet, enteredRecord } from "./record-text.js";
 import { renderCellText } from "../formatting.js";
 import { encodeText } from "../encoding/encode.js";
+import { decryptParadoxBlocks } from "./paradox-encryption.js";
 
 interface Field { name: string; type: number; length: number; precision: number }
 const fieldLetters = "?ADSI$N??L??MBFOG???T@+#Y";
@@ -46,7 +47,8 @@ function bcd(raw: Uint8Array, precision: number): string | undefined {
 }
 
 export async function readParadox(bytes: Uint8Array, context: CapabilityContext): Promise<Workbook> {
-  const input = databaseInput(bytes, context), view = input.view, cells: Cell[] = [];
+  const input = databaseInput(bytes, context), cells: Cell[] = [];
+  let view = input.view;
   async function warning(message: string) { await context.diagnostic?.({ code: "paradox", severity: "warning", message }); }
   async function fail(message: string): Promise<never> {
     await warning(message); await warning("Unable to get header.");
@@ -64,9 +66,15 @@ export async function readParadox(bytes: Uint8Array, context: CapabilityContext)
   const dataHeader = dataHeaderTypes.includes(type) && version >= 5 && version <= 12;
   let at = dataHeader ? 120 : 88;
   if (header > bytes.length || at + count * 2 + 4 > header) return fail("Could not read header from paradox file.");
-  const encryption = view.getUint32(37, true);
-  if (encryption !== 0 && (encryption !== 0xff00ff00 || !dataHeader || view.getUint32(92, true) !== 0))
-    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Paradox table");
+  let encryption = view.getUint32(37, true);
+  if (encryption === 0xff00ff00) {
+    if (!dataHeader) return fail("Paradox encryption header is missing.");
+    encryption = view.getUint32(92, true);
+  }
+  if (encryption) {
+    bytes = await decryptParadoxBlocks(bytes, header, blockSize, encryption, context);
+    view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  }
   const codepage = dataHeader ? view.getUint16(106, true) : 0;
   const fields: Field[] = [];
   for (let i = 0; i < count; i++, at += 2) {

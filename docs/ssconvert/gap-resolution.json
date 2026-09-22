@@ -323,7 +323,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Default-password XOR/standardRC4/CryptoAPI workbook gaps repaired. Explicit host password acquisition now supports nondefault BIFF8 RC4 strings/rawUTF16LE (empty/Unicode/NUL/255units) and nonempty1..15byte XOR; ten independently encoded vectors,20 public SDK/Shell successes,41 own/6484 maintained tests,build and inspected screenshot pass. Final lint/types pass; delivery/publication pending. EmptyXOR,broader profiles,ancillary streams/properties,writing and portability qualification remain open.",
+      "currentFinding": "Default-password XOR/standardRC4/CryptoAPI workbook gaps repaired. Explicit host password acquisition now supports nondefault BIFF8 RC4 strings/rawUTF16LE (empty/Unicode/NUL/255units) and nonempty1..15byte XOR; ten independently encoded vectors,20 public SDK/Shell successes,41 own/6484 maintained tests,build and inspected screenshot pass. Final lint/types pass; verified remote-main delivery bc13318c4; publication pending. EmptyXOR,broader profiles,ancillary streams/properties,writing and portability qualification remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -368,7 +368,12 @@
         {
           "kind": "explicit-trusted-host-BIFF-password-acquisition",
           "path": "docs/ssconvert/biff-password-gap-proof.json",
-          "outcome": "Original27red/3pass;41 own/6484 maintained green; ten byte-exact independently encoded vectors and ten SDK+ten Shell results exact42 with empty diagnostics. Snapshot callback, header admission before secret access, aggregate retry work, bounded encoding/copy, cancellation around await and sanitized callback errors preserve zero-write target refusals. Wider encryption remains open."
+          "outcome": "Original27red/3pass;41 own/6484 maintained green; ten byte-exact independently encoded vectors and ten SDK+ten Shell results exact42 with empty diagnostics. Snapshot callback, header admission before secret access, aggregate retry work, bounded encoding/copy, cancellation around await and sanitized callback errors preserve zero-write target refusals. Wider encryption remains open.",
+          "delivery": {
+            "localCommit": "bc13318c4987938d3a1ec2c6f2fa134be85e3841",
+            "remoteMain": "exact remote main verified",
+            "publication": "Release35773868968 audit passed/build active"
+          }
         }
       ],
       "delivery": {
@@ -409,8 +414,14 @@
     {
       "id": "encrypted-paradox",
       "status": "open",
-      "currentFinding": "current refusal; native/format applicability pending",
-      "proof": [],
+      "currentFinding": "Real native-compatible encrypted Paradox import gap repaired using declared on-file key, with no host password or companion service. Six independently C-encoded/byte-exact decrypted original profiles, six fullpxlib record reads, six native/publicSDK/publicShell CSV outputs exact; five unsigned-byte block-wrap holdouts pass.15 own/60 focused tests and inspected screenshot pass; 6499 maintained tests,lint/types/selected build and rebuilt final publicSDK/Shell/screenshot pass; delivery/publication pending. Broader profiles,companions/writing and publication remain open.",
+      "proof": [
+        {
+          "kind": "native-compatible-Paradox-header-key-block-decoding",
+          "path": "docs/ssconvert/paradox-encryption-gap-proof.json",
+          "outcome": "Unmodified pinnedpxlib0.6.8 cipher qualifies complete original streams. Gnumeric1.12.61 Paradox plugin independently activated in isolated task-owned profile; all6encrypted nativeCSV imports match publicSDK/Shell exactly,with preserved native configuration/old-version encoding warnings. Host-event cancellation regression drives cooperative32KiB yielding; admission,immutability,truncation and zero target writes qualified. Wider obligations remain open."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,

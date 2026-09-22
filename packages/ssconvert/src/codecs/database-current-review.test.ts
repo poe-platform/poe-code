@@ -62,15 +62,15 @@ it("cancels from an exporter warning without replacing the injected destination"
   } finally { await f.engine.dispose(); }
 });
 
-it("rejects original encrypted Paradox bytes without consulting companion resources", async () => {
+it("rejects truncated encrypted Paradox blocks without consulting companion resources", async () => {
   const f = databaseFixture({ sheets: [{ id: "t", name: "t", cells: [] }] });
-  const bytes = new Uint8Array(512), view = new DataView(bytes.buffer), messages: string[] = [];
+  const bytes = new Uint8Array(513), view = new DataView(bytes.buffer), messages: string[] = [];
   view.setUint16(0, 2, true); view.setUint16(2, 512, true); bytes[4] = 2; bytes[5] = 1; bytes[57] = 11;
   view.setUint32(37, 1, true);
   try {
     await expect(f.engine.readWorkbook({ kind: "stream", filename: "private.db", source: [bytes] }, {}, {
       ...f.operation, async diagnostic(d) { messages.push(d.message); }
-    })).rejects.toMatchObject({ code: "unsupported-feature", message: "Unsupported ssconvert feature: encrypted Paradox table" });
+    })).rejects.toMatchObject({ code: "io", message: "Truncated encrypted Paradox block" });
     expect(messages).toEqual([]);
     expect(f.volume.toJSON()).toEqual({ "/keep": "original" });
   } finally { await f.engine.dispose(); }

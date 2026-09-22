@@ -792,6 +792,25 @@ export function* cloneStructuredGraph(
   } finally { release(); }
 }
 
+interface DataContinuation {
+  readonly values: readonly unknown[];
+  index: number;
+  readonly depth: number;
+}
+const defineDataContinuation = Reflect.defineProperty;
+
+function appendDataContinuation(pending: DataContinuation[], values: readonly unknown[], depth: number): void {
+  // Do not expose the stack or its mutable frames through later Array hooks.
+  const descriptor = {
+    __proto__: null,
+    value: { values, index: 1, depth },
+    writable: true,
+    enumerable: true,
+    configurable: true
+  };
+  defineDataContinuation(pending, pending.length, descriptor);
+}
+
 export function measureSandboxData(
   values: Iterable<unknown>,
   options: {
@@ -820,520 +839,558 @@ function measureSandboxDataWithSeen(
   let ready: WeakContribution[] | undefined;
 
   const visit = (value: unknown, depth = 0): void => {
-    if (typeof value === "bigint") {
-      usage += value.toString(16).length;
-      return;
-    }
-    if (typeof value === "symbol") {
-      if (!seenSymbols.has(value)) {
-        seenSymbols.add(value);
-        usage += 1 + (value.description?.length ?? 0);
+    // Keep ordered record/array descendants off the native call stack.
+    let pending: DataContinuation[] | undefined;
+    walk: while (true) {
+      entry: {
+        if (typeof value === "bigint") {
+          usage += value.toString(16).length;
+          break entry;
+        }
+        if (typeof value === "symbol") {
+          if (!seenSymbols.has(value)) {
+            seenSymbols.add(value);
+            usage += 1 + (value.description?.length ?? 0);
+            const unlocked = waiting?.get(value);
+            if (unlocked !== undefined) {
+              ready ??= [];
+              for (const contribution of unlocked) ready.push(contribution);
+              waiting!.delete(value);
+            }
+          }
+          break entry;
+        }
+        if (typeof value === "string") {
+          usage += value.length;
+          break entry;
+        }
+        if (typeof value !== "object" || value === null) break entry;
+        if (seen.has(value)) break entry;
+        const intrinsicRoot = intrinsicDataRoots.get(value);
+        if (intrinsicRoot !== undefined) {
+          seen.add(value);
+          if (seen.has(intrinsicRoot.target)) break entry;
+          projectedPrimitives.push({ ...intrinsicRoot, depth });
+          // Traverse references now, so another projection can expose an owner
+          // before its otherwise duplicated primitive property data is charged.
+          for (const item of intrinsicRoot.values)
+            if ((typeof item === "object" && item !== null) || typeof item === "symbol") visit(item, depth);
+          break entry;
+        }
+        const bindingRoot = scopeDataRoots.get(value);
+        if (bindingRoot !== undefined) {
+          seen.add(value);
+          if ("value" in bindingRoot) value = bindingRoot.value;
+          else {
+            const references = bindingRoot.values;
+            if (references.length === 0) break entry;
+            if (references.length > 1)
+              appendDataContinuation(pending ??= [], references, depth);
+            value = references[0];
+          }
+          // Accounting projections add neither object units nor graph depth.
+          continue walk;
+        }
+        assertSandboxDataDepth(depth);
+        seen.add(value);
+
         const unlocked = waiting?.get(value);
         if (unlocked !== undefined) {
           ready ??= [];
           for (const contribution of unlocked) ready.push(contribution);
           waiting!.delete(value);
         }
-      }
-      return;
-    }
-    if (typeof value === "string") {
-      usage += value.length;
-      return;
-    }
-    if (typeof value !== "object" || value === null) return;
-    if (seen.has(value)) return;
-    const intrinsicRoot = intrinsicDataRoots.get(value);
-    if (intrinsicRoot !== undefined) {
-      seen.add(value);
-      if (seen.has(intrinsicRoot.target)) return;
-      projectedPrimitives.push({ ...intrinsicRoot, depth });
-      // Traverse references now, so another projection can expose an owner
-      // before its otherwise duplicated primitive property data is charged.
-      for (const item of intrinsicRoot.values)
-        if ((typeof item === "object" && item !== null) || typeof item === "symbol") visit(item, depth);
-      return;
-    }
-    const bindingRoot = scopeDataRoots.get(value);
-    if (bindingRoot !== undefined) {
-      seen.add(value);
-      if ("value" in bindingRoot) visit(bindingRoot.value, depth);
-      else for (let index = 0; index < bindingRoot.values.length; index++)
-        visit(bindingRoot.values[index], depth);
-      return;
-    }
-    assertSandboxDataDepth(depth);
-    seen.add(value);
 
-    const unlocked = waiting?.get(value);
-    if (unlocked !== undefined) {
-      ready ??= [];
-      for (const contribution of unlocked) ready.push(contribution);
-      waiting!.delete(value);
-    }
-
-    usage += 1;
-    const moduleRoots = moduleNamespaceRetainedValues.get(value);
-    if (moduleRoots !== undefined) {
-      for (const key of Reflect.ownKeys(value)) { usage += 1; visit(key,depth + 1); }
-      for (const root of moduleRoots()) visit(root,depth + 1);
-      return;
-    }
-    const proxyState = guestProxyStates.get(value);
-    const finalization = finalizationRegistryStates.get(value);
-    if (finalization !== undefined) {
-      visit(finalization.callback,depth + 1);
-      usage += finalization.state.cells.size * 3;
-      for (const cell of finalization.state.cells) visit(cell.heldValue,depth + 1);
-    }
-    if (proxyState !== undefined) {
-      if (proxyState.target !== null) visit(proxyState.target, depth + 1);
-      if (proxyState.handler !== null) visit(proxyState.handler, depth + 1);
-      return;
-    }
-    if (dynamicSourceRecords.has(value)) {
-      const source = value as DynamicSource;
-      usage += source.body.length + source.nodes.size + (source.kind === "eval"
-        ? 6 + source.context.privateNames.reduce((total, name) => total + name.length + 1, 0)
-        : source.parameters.length);
-      return;
-    }
-    const dynamicSource = dynamicValueSources.get(value);
-    if (dynamicSource !== undefined) visit(dynamicSource, depth + 1);
-    const weakState = weakCollectionStates.get(value);
-    if (weakState !== undefined) {
-      for (const reference of weakState.references) {
-        const key = reference.deref();
-        if (key === undefined) {
-          weakState.references.delete(reference);
-          continue;
-        }
-        const entry = weakState.entries.get(key);
-        if (entry === undefined) continue;
-        const contribution = { value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
-        if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : seen.has(key)) (ready ??= []).push(contribution);
-        else {
-          waiting ??= new Map();
-          const pending = waiting.get(key);
-          if (pending === undefined) waiting.set(key, [contribution]);
-          else pending.push(contribution);
-        }
-      }
-    }
-    const disposableResources = disposableStackStates.get(value)?.resources.map(resource =>
-      [resource.method, resource.receiver, ...resource.args]);
-    const asyncDisposableResources = asyncDisposableStackStates.get(value)?.resources.map(resource =>
-      [resource.method, resource.receiver, ...resource.args]);
-    const arrayLength = Array.isArray(value) ? value.length : undefined;
-    const managedArray = arrayLength !== undefined && hasManagedDescriptors(value);
-    let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
-    let arrayElements: unknown[] | undefined;
-    if (arrayLength !== undefined) {
-      if (managedArray) arrayDescriptors = [];
-      else arrayElements = [];
-      if (!managedArray && nodeTypes.isProxy(value)) {
-        // ownKeys traps can omit indices that descriptor lookup still exposes.
-        for (let index = 0; index < arrayLength; index += 1) {
-          const descriptor = Object.getOwnPropertyDescriptor(value, index);
-          if (descriptor !== undefined && "value" in descriptor) arrayElements!.push(descriptor.value);
-        }
-      } else {
-        let keys = managedArray ? Object.getOwnPropertyNames(value) : Object.keys(value);
-        // Native index keys are unique and ascending. An index equal to
-        // length - 1 at that ordinal proves every index is enumerable and own.
-        const denseIndices = !managedArray &&
-          (arrayLength === 0 || keys[arrayLength - 1] === String(arrayLength - 1));
-        if (!managedArray && !denseIndices) keys = Object.getOwnPropertyNames(value);
-        const keyCount = denseIndices ? arrayLength : keys.length;
-        for (let index = 0; index < keyCount; index += 1) {
-          const key = keys[index]!;
-          // Native array indices precede length, its first non-index own key.
-          // Proxy arrays use index lookup above; managed arrays retain all keys.
-          if (key === "length") {
-            if (!managedArray) break;
-            continue;
-          }
-          const descriptor = Object.getOwnPropertyDescriptor(value, key);
-          if (descriptor !== undefined) {
-            if (arrayDescriptors !== undefined) arrayDescriptors.push([key, descriptor]);
-            else if ("value" in descriptor && typeof descriptor.value !== "number") arrayElements!.push(descriptor.value);
-          }
-        }
-      }
-    }
-    const privateSlots = privateElements.get(value);
-    if (privateSlots !== undefined) {
-      for (const [name, element] of privateSlots) {
-        visit(name, depth + 1);
-        if (element.kind === "accessor") {
-          visit(element.get, depth + 1);
-          visit(element.set, depth + 1);
-        } else visit(element.value, depth + 1);
-      }
-    }
-    if (!isGuestHostObject(value)) {
-      const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value);
-      let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
-      // Capture before visiting: retained callbacks can mutate later properties.
-      if (ownedSymbols !== undefined) {
-        for (let index = 0; index < ownedSymbols.length; index++)
-          descriptors = captureRetainedSymbolProperty(value, ownedSymbols[index]!, descriptors);
-      } else {
-        const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
-        for (const key of symbols) descriptors = captureRetainedSymbolProperty(value, key, descriptors);
-      }
-      if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;
-        visit(key, depth + 1);
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-    }
-    if (isSandboxClosure(value)) {
-      const prototype = getSandboxPrototype(value);
-      if (prototype !== null) visit(prototype, depth + 1);
-      if (options.ignoreClosures) return;
-      if (value.properties !== undefined) {
-        if (isIntrinsicFunction(value)) {
-          for (const [key, descriptor] of intrinsicFunctionDataDescriptors(value.properties)) {
+        const moduleRoots = moduleNamespaceRetainedValues.get(value);
+        if (moduleRoots !== undefined) {
+          for (const key of Reflect.ownKeys(value)) { usage += 1; visit(key,depth + 1); }
+          for (const root of moduleRoots()) visit(root,depth + 1);
+          break entry;
+        }
+        const proxyState = guestProxyStates.get(value);
+        const finalization = finalizationRegistryStates.get(value);
+        if (finalization !== undefined) {
+          visit(finalization.callback,depth + 1);
+          usage += finalization.state.cells.size * 3;
+          for (const cell of finalization.state.cells) visit(cell.heldValue,depth + 1);
+        }
+        if (proxyState !== undefined) {
+          if (proxyState.target !== null) visit(proxyState.target, depth + 1);
+          if (proxyState.handler !== null) visit(proxyState.handler, depth + 1);
+          break entry;
+        }
+        if (dynamicSourceRecords.has(value)) {
+          const source = value as DynamicSource;
+          usage += source.body.length + source.nodes.size + (source.kind === "eval"
+            ? 6 + source.context.privateNames.reduce((total, name) => total + name.length + 1, 0)
+            : source.parameters.length);
+          break entry;
+        }
+        const dynamicSource = dynamicValueSources.get(value);
+        if (dynamicSource !== undefined) visit(dynamicSource, depth + 1);
+        const weakState = weakCollectionStates.get(value);
+        if (weakState !== undefined) {
+          for (const reference of weakState.references) {
+            const key = reference.deref();
+            if (key === undefined) {
+              weakState.references.delete(reference);
+              continue;
+            }
+            const entry = weakState.entries.get(key);
+            if (entry === undefined) continue;
+            const contribution = { value: weakState.kind === "map" ? entry.value : undefined, depth: depth + 1 };
+            if (typeof key === "symbol" ? seenSymbols.has(key) || Object.values(wellKnownSymbols).includes(key) : seen.has(key)) (ready ??= []).push(contribution);
+            else {
+              waiting ??= new Map();
+              const pending = waiting.get(key);
+              if (pending === undefined) waiting.set(key, [contribution]);
+              else pending.push(contribution);
+            }
+          }
+        }
+        const disposableResources = disposableStackStates.get(value)?.resources.map(resource =>
+          [resource.method, resource.receiver, ...resource.args]);
+        const asyncDisposableResources = asyncDisposableStackStates.get(value)?.resources.map(resource =>
+          [resource.method, resource.receiver, ...resource.args]);
+        const arrayLength = Array.isArray(value) ? value.length : undefined;
+        const managedArray = arrayLength !== undefined && hasManagedDescriptors(value);
+        let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
+        let arrayElements: unknown[] | undefined;
+        if (arrayLength !== undefined) {
+          if (managedArray) arrayDescriptors = [];
+          else arrayElements = [];
+          if (!managedArray && nodeTypes.isProxy(value)) {
+            // ownKeys traps can omit indices that descriptor lookup still exposes.
+            for (let index = 0; index < arrayLength; index += 1) {
+              const descriptor = Object.getOwnPropertyDescriptor(value, index);
+              if (descriptor !== undefined && "value" in descriptor) arrayElements!.push(descriptor.value);
+            }
+          } else {
+            let keys = managedArray ? Object.getOwnPropertyNames(value) : Object.keys(value);
+            // Native index keys are unique and ascending. An index equal to
+            // length - 1 at that ordinal proves every index is enumerable and own.
+            const denseIndices = !managedArray &&
+              (arrayLength === 0 || keys[arrayLength - 1] === String(arrayLength - 1));
+            if (!managedArray && !denseIndices) keys = Object.getOwnPropertyNames(value);
+            const keyCount = denseIndices ? arrayLength : keys.length;
+            for (let index = 0; index < keyCount; index += 1) {
+              const key = keys[index]!;
+              // Native array indices precede length, its first non-index own key.
+              // Proxy arrays use index lookup above; managed arrays retain all keys.
+              if (key === "length") {
+                if (!managedArray) break;
+                continue;
+              }
+              const descriptor = Object.getOwnPropertyDescriptor(value, key);
+              if (descriptor !== undefined) {
+                if (arrayDescriptors !== undefined) arrayDescriptors.push([key, descriptor]);
+                else if ("value" in descriptor && typeof descriptor.value !== "number") arrayElements!.push(descriptor.value);
+              }
+            }
+          }
+        }
+        const privateSlots = privateElements.get(value);
+        if (privateSlots !== undefined) {
+          for (const [name, element] of privateSlots) {
+            visit(name, depth + 1);
+            if (element.kind === "accessor") {
+              visit(element.get, depth + 1);
+              visit(element.set, depth + 1);
+            } else visit(element.value, depth + 1);
+          }
+        }
+        if (!isGuestHostObject(value)) {
+          const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value);
+          let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
+          // Capture before visiting: retained callbacks can mutate later properties.
+          if (ownedSymbols !== undefined) {
+            for (let index = 0; index < ownedSymbols.length; index++)
+              descriptors = captureRetainedSymbolProperty(value, ownedSymbols[index]!, descriptors);
+          } else {
+            const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
+            for (const key of symbols) descriptors = captureRetainedSymbolProperty(value, key, descriptors);
+          }
+          if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
+            usage += 1;
+            visit(key, depth + 1);
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+        }
+        if (isSandboxClosure(value)) {
+          const prototype = getSandboxPrototype(value);
+          if (prototype !== null) visit(prototype, depth + 1);
+          if (options.ignoreClosures) break entry;
+          if (value.properties !== undefined) {
+            if (isIntrinsicFunction(value)) {
+              for (const [key, descriptor] of intrinsicFunctionDataDescriptors(value.properties)) {
+                usage += key.length + 1;
+                if ("value" in descriptor) visit(descriptor.value, depth + 1);
+                else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+              }
+            } else visit(value.properties, depth + 1);
+          }
+          if (!options.ignoreClosureCaptures) {
+            const retained = value[sandboxRetainedValues]?.();
+            if (hasIndexedClosureCaptures(value)) {
+              const roots = retained as readonly SandboxValue[];
+              for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
+            } else for (const root of retained ?? []) visit(root, depth + 1);
+          }
+          break entry;
+        }
+        if (isSandboxBox(value)) {
+          const primitive = boxedValue(value);
+          if (typeof primitive === "symbol") visit(primitive, depth + 1);
+          else usage += typeof primitive === "string" ? primitive.length : 8;
+          const prototype = getSandboxPrototype(value);
+          if (prototype !== null) visit(prototype, depth + 1);
+          for (const [key, descriptor] of boxedDataProperties(value)) {
             usage += key.length + 1;
             if ("value" in descriptor) visit(descriptor.value, depth + 1);
             else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
           }
-        } else visit(value.properties, depth + 1);
-      }
-      if (!options.ignoreClosureCaptures) {
-        const retained = value[sandboxRetainedValues]?.();
-        if (hasIndexedClosureCaptures(value)) {
-          const roots = retained as readonly SandboxValue[];
-          for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
-        } else for (const root of retained ?? []) visit(root, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxBox(value)) {
-      const primitive = boxedValue(value);
-      if (typeof primitive === "symbol") visit(primitive, depth + 1);
-      else usage += typeof primitive === "string" ? primitive.length : 8;
-      const prototype = getSandboxPrototype(value);
-      if (prototype !== null) visit(prototype, depth + 1);
-      for (const [key, descriptor] of boxedDataProperties(value)) {
-        usage += key.length + 1;
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
-    const wrapperState = iteratorWrapperStates.get(value);
-    if (disposableResources !== undefined) {
-      usage += disposableResources.length;
-      for (const resource of disposableResources) for (const retained of resource) visit(retained, depth + 1);
-    }
-    if (asyncDisposableResources !== undefined) {
-      usage += asyncDisposableResources.length;
-      for (const resource of asyncDisposableResources) for (const retained of resource) visit(retained, depth + 1);
-    }
-    if (wrapperState !== undefined) {
-      visit(wrapperState.iterator, depth + 1);
-      visit(wrapperState.next, depth + 1);
-    }
-    const helperState = iteratorHelperStates.get(value);
-    if (helperState !== undefined) {
-      if (helperState.joint !== undefined) {
-        for (const record of helperState.joint.cursors) {
-          usage += 1;
-          if (record !== null) {
-            visit(record.iterator, depth + 1);
-            visit(record.next, depth + 1);
+          break entry;
+        }
+        const wrapperState = iteratorWrapperStates.get(value);
+        if (disposableResources !== undefined) {
+          usage += disposableResources.length;
+          for (const resource of disposableResources) for (const retained of resource) visit(retained, depth + 1);
+        }
+        if (asyncDisposableResources !== undefined) {
+          usage += asyncDisposableResources.length;
+          for (const resource of asyncDisposableResources) for (const retained of resource) visit(retained, depth + 1);
+        }
+        if (wrapperState !== undefined) {
+          visit(wrapperState.iterator, depth + 1);
+          visit(wrapperState.next, depth + 1);
+        }
+        const helperState = iteratorHelperStates.get(value);
+        if (helperState !== undefined) {
+          if (helperState.joint !== undefined) {
+            for (const record of helperState.joint.cursors) {
+              usage += 1;
+              if (record !== null) {
+                visit(record.iterator, depth + 1);
+                visit(record.next, depth + 1);
+              }
+            }
+            visit(helperState.joint.padding, depth + 1);
+            visit(helperState.joint.arrayPrototype, depth + 1);
+            if (helperState.joint.keys !== undefined) visit(helperState.joint.keys, depth + 1);
+          }
+          for (const input of helperState.iterables ?? []) {
+            usage += 1;
+            visit(input.iterable, depth + 1);
+            visit(input.open, depth + 1);
+          }
+          for (const record of [helperState.outer, helperState.inner]) {
+            if (record !== undefined) {
+              visit(record.iterator, depth + 1);
+              visit(record.next, depth + 1);
+            }
+          }
+          visit(helperState.callback, depth + 1);
+        }
+        if (isSandboxDate(value)) usage += 8;
+        if (isSandboxTemporalInstant(value)) visit(temporalInstantEpoch(value), depth + 1);
+        if (isSandboxTemporalDuration(value)) usage += temporalDurationFieldNames.length * 8;
+        if (isSandboxTemporalPlainTime(value)) usage += temporalPlainTimeFieldNames.length * 8;
+        if (isSandboxTemporalPlainDateTime(value)) usage += temporalPlainDateTimeNumericFields.length * 8 + temporalPlainDateTimeFields(value).calendar.length;
+        if (isSandboxTemporalPlainDate(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainDateFields(value).calendar.length;
+        if (isSandboxTemporalPlainMonthDay(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainMonthDayFields(value).calendar.length;
+        if (isSandboxTemporalPlainYearMonth(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainYearMonthFields(value).calendar.length;
+        if (isSandboxTemporalZonedDateTime(value)) {
+          const fields = temporalZonedDateTimeFields(value);
+          visit(fields.epochNanoseconds, depth + 1);
+          usage += fields.timeZone.length + fields.calendar.length;
+        }
+        if (isSandboxLocale(value)) usage += localeTag(value).length;
+        if (isSandboxListFormat(value)) visit(listFormatState(value).options, depth + 1);
+        if (isSandboxRelativeTimeFormat(value)) visit(relativeTimeFormatState(value).options, depth + 1);
+        if (isSandboxDisplayNames(value)) visit(displayNamesState(value).options, depth + 1);
+        if (isSandboxPluralRules(value)) visit(pluralRulesState(value).options, depth + 1);
+        if (isSandboxDurationFormat(value)) {
+          const state = durationFormatState(value);
+          visit(state.settings, depth + 1);
+          visit(state.options, depth + 1);
+        }
+        if (isSandboxNumberFormat(value)) {
+          const state = numberFormatState(value);
+          visit(state.options, depth + 1);
+          visit(state.format, depth + 1);
+        }
+        if (isSandboxDateTimeFormat(value)) {
+          const state = dateTimeFormatState(value);
+          visit(state.options, depth + 1);
+          visit(state.requestedOptions, depth + 1);
+          visit(state.format, depth + 1);
+        }
+        if (isSandboxCollator(value)) {
+          const state = collatorState(value);
+          visit(state.options, depth + 1);
+          visit(state.compare, depth + 1);
+        }
+        if (isGuestHostObject(value)) {
+          usage += measureHostObjectData(value);
+          for (const root of hostObjectGuestRoots(value)) visit(root, depth + 1);
+          break entry;
+        }
+        const prototype = getSandboxPrototype(value);
+        if (prototype !== null) visit(prototype, depth + 1);
+        if (isSandboxArrayBuffer(value)) usage += arrayBufferLength(value);
+        if (isSandboxSharedArrayBuffer(value)) {
+          const storage = sharedArrayBufferStorage(value);
+          if (!seen.has(storage.block)) {
+            seen.add(storage.block);
+            usage += storage.byteLength;
           }
         }
-        visit(helperState.joint.padding, depth + 1);
-        visit(helperState.joint.arrayPrototype, depth + 1);
-        if (helperState.joint.keys !== undefined) visit(helperState.joint.keys, depth + 1);
-      }
-      for (const input of helperState.iterables ?? []) {
-        usage += 1;
-        visit(input.iterable, depth + 1);
-        visit(input.open, depth + 1);
-      }
-      for (const record of [helperState.outer, helperState.inner]) {
-        if (record !== undefined) {
-          visit(record.iterator, depth + 1);
-          visit(record.next, depth + 1);
+        if (isSandboxDataView(value)) visit(dataViewBuffer(value), depth + 1);
+        if (isNumericTypedArray(value)) {
+          const storage = typedArrayStorage(value);
+          visit(storage.buffer, depth + 1);
+          for (const [key, descriptor] of typedArrayProperties(value)) {
+            // Symbol properties were captured by the common object traversal above.
+            if (typeof key !== "string") continue;
+            usage += 1 + key.length;
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          break entry;
         }
-      }
-      visit(helperState.callback, depth + 1);
-    }
-    if (isSandboxDate(value)) usage += 8;
-    if (isSandboxTemporalInstant(value)) visit(temporalInstantEpoch(value), depth + 1);
-    if (isSandboxTemporalDuration(value)) usage += temporalDurationFieldNames.length * 8;
-    if (isSandboxTemporalPlainTime(value)) usage += temporalPlainTimeFieldNames.length * 8;
-    if (isSandboxTemporalPlainDateTime(value)) usage += temporalPlainDateTimeNumericFields.length * 8 + temporalPlainDateTimeFields(value).calendar.length;
-    if (isSandboxTemporalPlainDate(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainDateFields(value).calendar.length;
-    if (isSandboxTemporalPlainMonthDay(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainMonthDayFields(value).calendar.length;
-    if (isSandboxTemporalPlainYearMonth(value)) usage += temporalPlainDateNumericFields.length * 8 + temporalPlainYearMonthFields(value).calendar.length;
-    if (isSandboxTemporalZonedDateTime(value)) {
-      const fields = temporalZonedDateTimeFields(value);
-      visit(fields.epochNanoseconds, depth + 1);
-      usage += fields.timeZone.length + fields.calendar.length;
-    }
-    if (isSandboxLocale(value)) usage += localeTag(value).length;
-    if (isSandboxListFormat(value)) visit(listFormatState(value).options, depth + 1);
-    if (isSandboxRelativeTimeFormat(value)) visit(relativeTimeFormatState(value).options, depth + 1);
-    if (isSandboxDisplayNames(value)) visit(displayNamesState(value).options, depth + 1);
-    if (isSandboxPluralRules(value)) visit(pluralRulesState(value).options, depth + 1);
-    if (isSandboxDurationFormat(value)) {
-      const state = durationFormatState(value);
-      visit(state.settings, depth + 1);
-      visit(state.options, depth + 1);
-    }
-    if (isSandboxNumberFormat(value)) {
-      const state = numberFormatState(value);
-      visit(state.options, depth + 1);
-      visit(state.format, depth + 1);
-    }
-    if (isSandboxDateTimeFormat(value)) {
-      const state = dateTimeFormatState(value);
-      visit(state.options, depth + 1);
-      visit(state.requestedOptions, depth + 1);
-      visit(state.format, depth + 1);
-    }
-    if (isSandboxCollator(value)) {
-      const state = collatorState(value);
-      visit(state.options, depth + 1);
-      visit(state.compare, depth + 1);
-    }
-    if (isGuestHostObject(value)) {
-      usage += measureHostObjectData(value);
-      for (const root of hostObjectGuestRoots(value)) visit(root, depth + 1);
-      return;
-    }
-    const prototype = getSandboxPrototype(value);
-    if (prototype !== null) visit(prototype, depth + 1);
-    if (isSandboxArrayBuffer(value)) usage += arrayBufferLength(value);
-    if (isSandboxSharedArrayBuffer(value)) {
-      const storage = sharedArrayBufferStorage(value);
-      if (!seen.has(storage.block)) {
-        seen.add(storage.block);
-        usage += storage.byteLength;
-      }
-    }
-    if (isSandboxDataView(value)) visit(dataViewBuffer(value), depth + 1);
-    if (isNumericTypedArray(value)) {
-      const storage = typedArrayStorage(value);
-      visit(storage.buffer, depth + 1);
-      for (const [key, descriptor] of typedArrayProperties(value)) {
-        // Symbol properties were captured by the common object traversal above.
-        if (typeof key !== "string") continue;
-        usage += 1 + key.length;
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
-    if (arrayLength !== undefined) {
-      usage += arrayLength;
-      if (arrayDescriptors !== undefined) {
-        for (const [key, descriptor] of arrayDescriptors) {
-          usage += key.length + 1;
-          if ("value" in descriptor) visit(descriptor.value, depth + 1);
-          else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+        if (arrayLength !== undefined) {
+          usage += arrayLength;
+          const retained = arrayElements ?? [];
+          if (arrayDescriptors !== undefined) {
+            for (const [key, descriptor] of arrayDescriptors) {
+              usage += key.length + 1;
+              if ("value" in descriptor) retained.push(descriptor.value);
+              else for (const closure of retainedAccessorClosures(descriptor)) retained.push(closure);
+            }
+          }
+          // Descriptors/elements are captured before retained callbacks.
+          if (retained.length === 0) break entry;
+          if (retained.length > 1)
+            appendDataContinuation(pending ??= [], retained, depth + 1);
+          value = retained[0];
+          depth++;
+          continue walk;
         }
-      } else {
-        for (const element of arrayElements!) visit(element, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxMap(value) || isSandboxSet(value)) {
-      const properties = getCollectionProperties(value);
-      for (const key of Reflect.ownKeys(properties)) {
-        const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
-        usage += 1 + (typeof key === "string" ? key.length : 0);
-        if (typeof key === "symbol") visit(key, depth + 1);
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-    }
-    if (isSandboxMap(value)) {
-      usage += value.entries.size;
-      for (const [key, entry] of value.entries) {
-        visit(key, depth + 1);
-        visit(entry, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxArrayIterator(value)) visit(arrayIteratorState(value).source, depth + 1);
-    if (isSandboxStringIterator(value)) visit(stringIteratorState(value).input, depth + 1);
-    if (isSandboxSegmenter(value)) visit(segmenterState(value).options, depth + 1);
-    if (isSandboxSegments(value)) {
-      const state = segmentState(value);
-      visit(state.segmenter, depth + 1);
-      visit(state.input, depth + 1);
-    }
-    if (isSandboxRegExpIterator(value)) {
-      const state = regexpIteratorState(value);
-      visit(state.matcher, depth + 1);
-      visit(state.input, depth + 1);
-      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
-        usage += key.length + 1;
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxCollectionIterator(value)) {
-      visit(collectionIteratorState(value).collection, depth + 1);
-      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
-        usage += key.length + 1;
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxSet(value)) {
-      usage += value.values.size;
-      for (const entry of value.values) visit(entry, depth + 1);
-      return;
-    }
-    if (isSandboxGenerator(value)) {
-      const origin = getGeneratorOrigin(value);
-      visit(origin?.resultPrototype, depth + 1);
-      if (origin !== undefined) {
-        for (const root of (origin.suspendedScope ?? origin.closureScope).retainedDataRoots()) visit(root, depth + 1);
-        for (const scope of origin.blockScopes?.values() ?? [])
-          for (const root of scope.retainedDataRoots()) visit(root, depth + 1);
-      }
-      visit(asyncGeneratorDrivers.get(value), depth + 1);
-      const descriptors = Object.getOwnPropertyDescriptors(getGeneratorProperties(value));
-      for (const key of Reflect.ownKeys(descriptors)) {
-        const descriptor = descriptors[key as keyof typeof descriptors]!;
-        usage += typeof key === "string" ? key.length + 1 : 1;
-        if (typeof key === "symbol") visit(key, depth + 1);
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      const snapshot = value.channel.snapshot();
-      usage += snapshot.sent.length;
-      for (const completion of snapshot.sent) visit(completion.value, depth + 1);
-      return;
-    }
-    if (isSandboxPromise(value)) {
-      const atomicWait = atomicWaitStates.get(value);
-      if (atomicWait !== undefined) {
-        usage += 4;
-        visit(atomicWait.view, depth + 1);
-      }
-      visit(asyncGeneratorRequestOwners.get(value), depth + 1);
-      const settlement = promiseStates.get(value);
-      if (settlement !== undefined && settlement.status !== "pending") visit(settlement.value, depth + 1);
-      const importedSnapshot = importedPromiseSnapshots.get(value);
-      if (importedSnapshot?.ok) visit(importedSnapshot.state.value, depth + 1);
-      visit(importedPromisePropertySnapshots.get(value), depth + 1);
-      const continuation = promiseContinuations.get(value);
-      if (continuation?.kind === "capability" && continuation.resolution !== undefined)
-        visit(continuation.resolution.value, depth + 1);
-      else if (continuation?.kind === "reaction") {
-        visit(continuation.source, depth + 1);
-        visit(continuation.onFulfilled, depth + 1);
-        visit(continuation.onRejected, depth + 1);
-        if (continuation.capability !== undefined) {
-          visit(continuation.capability.promise, depth + 1);
-          visit(continuation.capability.resolve, depth + 1);
-          visit(continuation.capability.reject, depth + 1);
+        if (isSandboxMap(value) || isSandboxSet(value)) {
+          const properties = getCollectionProperties(value);
+          for (const key of Reflect.ownKeys(properties)) {
+            const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
+            usage += 1 + (typeof key === "string" ? key.length : 0);
+            if (typeof key === "symbol") visit(key, depth + 1);
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
         }
-        if (continuation.aggregate !== undefined) visit(continuation.aggregate, depth + 1);
-      }
-      for (const reaction of promiseReactionResults.get(value) ?? []) visit(reaction, depth + 1);
-      for (const producer of promiseProducers.get(value) ?? []) visit(producer, depth + 1);
-      for (const key of Reflect.ownKeys(getPromiseProperties(value))) {
-        const descriptor = Object.getOwnPropertyDescriptor(getPromiseProperties(value), key)!;
-        usage += typeof key === "string" ? key.length + 1 : 1;
-        if (typeof key === "symbol") visit(key, depth + 1);
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
-    if (isSandboxRegex(value)) {
-      const { source, flags, lastIndex } = captureRegexData(value);
-      const compiled = regexCompiledData(getSandboxRegexPattern(value));
-      const staged =
-        compiled.ticket === undefined
-          ? 0
-          : compiled.ticket.owner.budget.compileTicketUsage(compiled.ticket);
-      usage += Math.max(6 + source.length + flags.length + compiled.units, staged - 1);
-      if (compiled.ticket !== undefined) options.compileTickets?.add(compiled.ticket);
-      visit(lastIndex, depth + 1);
-      for (const key of Reflect.ownKeys(getRegexProperties(value))) {
-        if (key === "lastIndex") continue;
-        const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
-        usage += 1 + (typeof key === "string" ? key.length : 0);
-        if (typeof key === "symbol") visit(key, depth + 1);
-        if ("value" in descriptor) visit(descriptor.value, depth + 1);
-        else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
-      }
-      return;
-    }
+        if (isSandboxMap(value)) {
+          usage += value.entries.size;
+          for (const [key, entry] of value.entries) {
+            visit(key, depth + 1);
+            visit(entry, depth + 1);
+          }
+          break entry;
+        }
+        if (isSandboxArrayIterator(value)) visit(arrayIteratorState(value).source, depth + 1);
+        if (isSandboxStringIterator(value)) visit(stringIteratorState(value).input, depth + 1);
+        if (isSandboxSegmenter(value)) visit(segmenterState(value).options, depth + 1);
+        if (isSandboxSegments(value)) {
+          const state = segmentState(value);
+          visit(state.segmenter, depth + 1);
+          visit(state.input, depth + 1);
+        }
+        if (isSandboxRegExpIterator(value)) {
+          const state = regexpIteratorState(value);
+          visit(state.matcher, depth + 1);
+          visit(state.input, depth + 1);
+          for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+            usage += key.length + 1;
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          break entry;
+        }
+        if (isSandboxCollectionIterator(value)) {
+          visit(collectionIteratorState(value).collection, depth + 1);
+          for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+            usage += key.length + 1;
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          break entry;
+        }
+        if (isSandboxSet(value)) {
+          usage += value.values.size;
+          for (const entry of value.values) visit(entry, depth + 1);
+          break entry;
+        }
+        if (isSandboxGenerator(value)) {
+          const origin = getGeneratorOrigin(value);
+          visit(origin?.resultPrototype, depth + 1);
+          if (origin !== undefined) {
+            for (const root of (origin.suspendedScope ?? origin.closureScope).retainedDataRoots()) visit(root, depth + 1);
+            for (const scope of origin.blockScopes?.values() ?? [])
+              for (const root of scope.retainedDataRoots()) visit(root, depth + 1);
+          }
+          visit(asyncGeneratorDrivers.get(value), depth + 1);
+          const descriptors = Object.getOwnPropertyDescriptors(getGeneratorProperties(value));
+          for (const key of Reflect.ownKeys(descriptors)) {
+            const descriptor = descriptors[key as keyof typeof descriptors]!;
+            usage += typeof key === "string" ? key.length + 1 : 1;
+            if (typeof key === "symbol") visit(key, depth + 1);
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          const snapshot = value.channel.snapshot();
+          usage += snapshot.sent.length;
+          for (const completion of snapshot.sent) visit(completion.value, depth + 1);
+          break entry;
+        }
+        if (isSandboxPromise(value)) {
+          const atomicWait = atomicWaitStates.get(value);
+          if (atomicWait !== undefined) {
+            usage += 4;
+            visit(atomicWait.view, depth + 1);
+          }
+          visit(asyncGeneratorRequestOwners.get(value), depth + 1);
+          const settlement = promiseStates.get(value);
+          if (settlement !== undefined && settlement.status !== "pending") visit(settlement.value, depth + 1);
+          const importedSnapshot = importedPromiseSnapshots.get(value);
+          if (importedSnapshot?.ok) visit(importedSnapshot.state.value, depth + 1);
+          visit(importedPromisePropertySnapshots.get(value), depth + 1);
+          const continuation = promiseContinuations.get(value);
+          if (continuation?.kind === "capability" && continuation.resolution !== undefined)
+            visit(continuation.resolution.value, depth + 1);
+          else if (continuation?.kind === "reaction") {
+            visit(continuation.source, depth + 1);
+            visit(continuation.onFulfilled, depth + 1);
+            visit(continuation.onRejected, depth + 1);
+            if (continuation.capability !== undefined) {
+              visit(continuation.capability.promise, depth + 1);
+              visit(continuation.capability.resolve, depth + 1);
+              visit(continuation.capability.reject, depth + 1);
+            }
+            if (continuation.aggregate !== undefined) visit(continuation.aggregate, depth + 1);
+          }
+          for (const reaction of promiseReactionResults.get(value) ?? []) visit(reaction, depth + 1);
+          for (const producer of promiseProducers.get(value) ?? []) visit(producer, depth + 1);
+          for (const key of Reflect.ownKeys(getPromiseProperties(value))) {
+            const descriptor = Object.getOwnPropertyDescriptor(getPromiseProperties(value), key)!;
+            usage += typeof key === "string" ? key.length + 1 : 1;
+            if (typeof key === "symbol") visit(key, depth + 1);
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          break entry;
+        }
+        if (isSandboxRegex(value)) {
+          const { source, flags, lastIndex } = captureRegexData(value);
+          const compiled = regexCompiledData(getSandboxRegexPattern(value));
+          const staged =
+            compiled.ticket === undefined
+              ? 0
+              : compiled.ticket.owner.budget.compileTicketUsage(compiled.ticket);
+          usage += Math.max(6 + source.length + flags.length + compiled.units, staged - 1);
+          if (compiled.ticket !== undefined) options.compileTickets?.add(compiled.ticket);
+          visit(lastIndex, depth + 1);
+          for (const key of Reflect.ownKeys(getRegexProperties(value))) {
+            if (key === "lastIndex") continue;
+            const descriptor = Object.getOwnPropertyDescriptor(getRegexProperties(value), key)!;
+            usage += 1 + (typeof key === "string" ? key.length : 0);
+            if (typeof key === "symbol") visit(key, depth + 1);
+            if ("value" in descriptor) visit(descriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+          }
+          break entry;
+        }
 
-    if (isSandboxArguments(value)) {
-      const mapped = mappedArgumentStates.get(value);
-      if (mapped !== undefined) {
-        for (const retained of mapped.scope.retainedDataRoots()) visit(retained, depth + 1);
+        if (isSandboxArguments(value)) {
+          const mapped = mappedArgumentStates.get(value);
+          if (mapped !== undefined) {
+            for (const retained of mapped.scope.retainedDataRoots()) visit(retained, depth + 1);
+          }
+          const entries: Array<[string, unknown[]]> = [];
+          for (const key of Object.getOwnPropertyNames(value)) {
+            const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+            const retained = "value" in descriptor ? [descriptor.value] : retainedAccessorClosures(descriptor);
+            // The native restricted callee accessor retains no sandbox data.
+            if (retained.length > 0) entries.push([key, retained]);
+          }
+          for (const [key, retained] of entries) {
+            usage += 1 + key.length;
+            for (const entry of retained) visit(entry, depth + 1);
+          }
+          break entry;
+        }
+
+        // Capture values before any retained callback can mutate later properties.
+        // Plain transport records do not charge hidden fields. Preserve proxy trap
+        // ordering, including managed-state changes during descriptor capture.
+        const trackedDescriptors = trackedPropertyDataDescriptors(value);
+        const proxyKeys = trackedDescriptors === undefined && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
+        const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
+        const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
+        const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
+        const metadata = hostFunctionMetadata.get(value);
+        if (trackedDescriptors !== undefined && metadata === undefined) {
+          const projection = trackedPropertyStringData(value, includeNonEnumerable);
+          if (projection !== undefined) {
+            usage += projection.units;
+            const references = projection.references;
+            if (references.length === 0) break entry;
+            if (references.length > 1)
+              appendDataContinuation(pending ??= [], references, depth + 1);
+            value = references[0];
+            depth++;
+            continue walk;
+          }
+        }
+        let retained: unknown[] | undefined;
+        for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
+          const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
+          const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
+            ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
+          if (descriptor === undefined) continue;
+          if (!descriptor.enumerable && !includeNonEnumerable) continue;
+          const initial = metadata?.get(key);
+          if (initial !== undefined && "value" in descriptor && Object.is(initial.value, descriptor.value) &&
+              initial.enumerable === descriptor.enumerable && initial.configurable === descriptor.configurable &&
+              initial.writable === descriptor.writable) continue;
+          usage += 1 + key.length;
+          if ("value" in descriptor) {
+            const data = descriptor.value;
+            // String leaves can be charged during capture. Inert primitives retain
+            // no graph edges; only references and observable primitives need a visit.
+            if (typeof data === "string") usage += data.length;
+            else if (typeof data === "bigint" || typeof data === "symbol" ||
+                (typeof data === "object" && data !== null)) (retained ??= []).push(data);
+          }
+          else for (const closure of retainedAccessorClosures(descriptor)) (retained ??= []).push(closure);
+        }
+        if (retained !== undefined && retained.length > 0) {
+          if (retained.length > 1)
+            appendDataContinuation(pending ??= [], retained, depth + 1);
+          value = retained[0];
+          depth++;
+          continue walk;
+        }
       }
-      const entries: Array<[string, unknown[]]> = [];
-      for (const key of Object.getOwnPropertyNames(value)) {
-        const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-        const retained = "value" in descriptor ? [descriptor.value] : retainedAccessorClosures(descriptor);
-        // The native restricted callee accessor retains no sandbox data.
-        if (retained.length > 0) entries.push([key, retained]);
-      }
-      for (const [key, retained] of entries) {
-        usage += 1 + key.length;
-        for (const entry of retained) visit(entry, depth + 1);
+      while (pending !== undefined && pending.length > 0) {
+        const frame = pending[pending.length - 1]!;
+        if (frame.index < frame.values.length) {
+          value = frame.values[frame.index++];
+          depth = frame.depth;
+          continue walk;
+        }
+        pending.length--;
       }
       return;
     }
-
-    // Capture values before any retained callback can mutate later properties.
-    // Plain transport records do not charge hidden fields. Preserve proxy trap
-    // ordering, including managed-state changes during descriptor capture.
-    const trackedDescriptors = trackedPropertyDataDescriptors(value);
-    const proxyKeys = trackedDescriptors === undefined && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
-    const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
-    const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
-    const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
-    const metadata = hostFunctionMetadata.get(value);
-    if (trackedDescriptors !== undefined && metadata === undefined) {
-      const projection = trackedPropertyStringData(value, includeNonEnumerable);
-      if (projection !== undefined) {
-        usage += projection.units;
-        for (let index = 0; index < projection.references.length; index++) visit(projection.references[index], depth + 1);
-        return;
-      }
-    }
-    let retained: unknown[] | undefined;
-    for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
-      const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
-      const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
-        ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
-      if (descriptor === undefined) continue;
-      if (!descriptor.enumerable && !includeNonEnumerable) continue;
-      const initial = metadata?.get(key);
-      if (initial !== undefined && "value" in descriptor && Object.is(initial.value, descriptor.value) &&
-          initial.enumerable === descriptor.enumerable && initial.configurable === descriptor.configurable &&
-          initial.writable === descriptor.writable) continue;
-      usage += 1 + key.length;
-      if ("value" in descriptor) {
-        const data = descriptor.value;
-        // String leaves can be charged during capture. Inert primitives retain
-        // no graph edges; only references and observable primitives need a visit.
-        if (typeof data === "string") usage += data.length;
-        else if (typeof data === "bigint" || typeof data === "symbol" ||
-            (typeof data === "object" && data !== null)) (retained ??= []).push(data);
-      }
-      else for (const closure of retainedAccessorClosures(descriptor)) (retained ??= []).push(closure);
-    }
-    if (retained !== undefined) for (const entry of retained) visit(entry, depth + 1);
   };
 
   for (const value of values) visit(value);

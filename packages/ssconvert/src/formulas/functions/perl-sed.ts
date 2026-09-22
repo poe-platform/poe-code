@@ -96,7 +96,32 @@ function compile(pattern: string, host: FunctionHost): Node {
   function characterClass(mode: Flags): Node {
     const inverse = pattern[at] === "^"; if (inverse) at++;
     const tests: Node[] = []; let first = true;
-    const take = () => pattern[at] === "\\" ? (at++, escaped(mode, true)) : literal(pattern.charCodeAt(at++), mode);
+    const take = (): Node => {
+      if (pattern[at] === "[" && pattern[at + 1] === ":") {
+        at += 2; const negated = pattern[at] === "^"; if (negated) at++;
+        let name = "";
+        while (at < pattern.length && pattern[at] !== ":") { host.tick(); name += pattern[at++]; }
+        if (pattern[at++] !== ":" || pattern[at++] !== "]") return unsupported();
+        if (!["alnum", "alpha", "ascii", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "word", "xdigit"].includes(name)) return unsupported();
+        return node({ kind: "char", test: (byte: number) => {
+          const digit = byte >= 48 && byte <= 57, lower = byte >= 97 && byte <= 122, upper = byte >= 65 && byte <= 90;
+          const letter = lower || upper;
+          const predicates: Record<string, boolean> = {
+            alnum: letter || digit, alpha: letter, ascii: byte <= 127,
+            blank: byte === 9 || byte === 32, cntrl: byte < 32 || byte === 127,
+            digit, graph: byte >= 33 && byte <= 126,
+            lower: lower || mode.insensitive && upper, print: byte >= 32 && byte <= 126,
+            punct: byte >= 33 && byte <= 126 && !letter && !digit,
+            space: byte === 32 || byte >= 9 && byte <= 13,
+            upper: upper || mode.insensitive && lower, word: word(byte),
+            xdigit: digit || byte >= 65 && byte <= 70 || byte >= 97 && byte <= 102
+          };
+          return negated ? !predicates[name] : predicates[name]!;
+        } });
+      }
+      if (pattern[at] === "[" && (pattern[at + 1] === "." || pattern[at + 1] === "=")) return unsupported();
+      return pattern[at] === "\\" ? (at++, escaped(mode, true)) : literal(pattern.charCodeAt(at++), mode);
+    };
     while (at < pattern.length && (first || pattern[at] !== "]")) {
       host.tick(); first = false;
       const start = at, left = take();

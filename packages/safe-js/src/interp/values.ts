@@ -87,7 +87,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype } from "./object-model.js";
+import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
@@ -1266,16 +1266,25 @@ export function measureSandboxData(
     // Capture values before any retained callback can mutate later properties.
     // Plain transport records do not charge hidden fields. Preserve proxy trap
     // ordering, including managed-state changes during descriptor capture.
-    const proxyKeys = nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
+    const trackedDescriptors = trackedPropertyDataDescriptors(value);
+    const proxyKeys = trackedDescriptors === undefined && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
     const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
     const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
-    const keys = proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value));
+    const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
     const metadata = hostFunctionMetadata.get(value);
+    if (trackedDescriptors !== undefined && metadata === undefined) {
+      const projection = trackedPropertyStringData(value, includeNonEnumerable);
+      if (projection !== undefined) {
+        usage += projection.units;
+        for (let index = 0; index < projection.references.length; index++) visit(projection.references[index], depth + 1);
+        return;
+      }
+    }
     let retained: unknown[] | undefined;
-    for (let index = 0; index < keys.length; index++) {
-      const key = keys[index]!;
-      const descriptor = proxyDescriptors === undefined
-        ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index];
+    for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
+      const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
+      const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
+        ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
       if (descriptor === undefined) continue;
       if (!descriptor.enumerable && !includeNonEnumerable) continue;
       const initial = metadata?.get(key);

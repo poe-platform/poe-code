@@ -47,11 +47,36 @@ import {
 const guestClosures = new WeakSet<object>();
 const functionProperties = new WeakMap<object, SandboxObject>();
 export const hostFunctionPropertyTables = new WeakSet<object>();
-const functionPropertyRevisions = new WeakMap<object, {
+type TrackedPropertyState = {
   revision: number;
   measuredRevision?: number;
   measuredDescriptors?: Array<[string, PropertyDescriptor]>;
-}>();
+};
+const functionPropertyRevisions = new WeakMap<object, TrackedPropertyState>();
+const nativePropertyStateGet = WeakMap.prototype.get.bind(functionPropertyRevisions) as (value: object) => TrackedPropertyState | undefined;
+const nativePropertyStateSet = WeakMap.prototype.set.bind(functionPropertyRevisions) as (value: object, state: TrackedPropertyState) => unknown;
+type TrackedStringData = { readonly units: number; readonly references: readonly unknown[] };
+type TrackedPropertyData = {
+  readonly backing: SandboxObject;
+  descriptors?: readonly (readonly [string, Readonly<PropertyDescriptor>])[];
+  strings?: { readonly all: TrackedStringData; readonly enumerable: TrackedStringData } | null;
+};
+// Do not attach cache/backing data to revision records used by intrinsic captures.
+const trackedPropertyData = new WeakMap<object, TrackedPropertyData>();
+const nativePropertyDataGet = WeakMap.prototype.get.bind(trackedPropertyData) as (value: object) => TrackedPropertyData | undefined;
+const nativePropertyDataSet = WeakMap.prototype.set.bind(trackedPropertyData) as (value: object, state: TrackedPropertyData) => unknown;
+const NativePropertyProxy = Proxy;
+const nativePropertyCreate = Object.create;
+const nativePropertyDefine = Object.defineProperties;
+const nativePropertyDefineOne = Object.defineProperty;
+const nativePropertyNames = Object.getOwnPropertyNames;
+const nativePropertyHasOwn = Object.hasOwn;
+const nativePropertyDescriptor = Object.getOwnPropertyDescriptor;
+const nativePropertyDescriptors = Object.getOwnPropertyDescriptors;
+const nativePropertyPrototype = Object.getPrototypeOf;
+const nativePropertyFreeze = Object.freeze;
+const nativePropertyWrite = Reflect.defineProperty;
+const nativePropertyDelete = Reflect.deleteProperty;
 const trackedIntrinsicObjects = new WeakSet<object>();
 // Only captured intrinsic tables invalidate retention caches. Other tables
 // still update their own revisions for descriptor measurement.
@@ -97,12 +122,60 @@ export function isGuestClosure(value: unknown): value is SandboxClosure {
   return typeof value === "object" && value !== null && guestClosures.has(value);
 }
 
+// Only SDK-owned, revision-tracked tables qualify. Restored tables and foreign
+// proxies still capture fresh descriptors. Descendants/accessor adapters stay live.
+export function trackedPropertyDataDescriptors(value: object): readonly (readonly [string, Readonly<PropertyDescriptor>])[] | undefined {
+  const state = nativePropertyDataGet(value);
+  if (state === undefined) return undefined;
+  if (state.descriptors !== undefined) return state.descriptors;
+  const keys = nativePropertyNames(state.backing);
+  const entries: Array<readonly [string, Readonly<PropertyDescriptor>]> = [];
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index]!;
+    const descriptor = nativePropertyDescriptor(state.backing, key);
+    if (descriptor === undefined) continue;
+    const entry = nativePropertyFreeze([key, nativePropertyFreeze(descriptor)] as const);
+    nativePropertyWrite(entries, entries.length, { value: entry, writable: true, enumerable: true, configurable: true });
+  }
+  return state.descriptors = nativePropertyFreeze(entries);
+}
+
+// String/inert leaves have no volatile observations. Bigints, symbols and object
+// descendants still enter the fresh walk. Accessors retain the descriptor path.
+export function trackedPropertyStringData(value: object, includeNonEnumerable: boolean): TrackedStringData | undefined {
+  const state = nativePropertyDataGet(value);
+  if (state === undefined || state.strings === null) return undefined;
+  if (state.strings === undefined) {
+    const descriptors = trackedPropertyDataDescriptors(value)!;
+    let allUnits = 0, enumerableUnits = 0;
+    const allReferences: unknown[] = [], enumerableReferences: unknown[] = [];
+    for (let index = 0; index < descriptors.length; index++) {
+      const entry = descriptors[index]!;
+      const key = entry[0], descriptor = entry[1];
+      if (!nativePropertyHasOwn(descriptor, "value")) { state.strings = null; return undefined; }
+      const item = descriptor.value;
+      const units = 1 + key.length + (typeof item === "string" ? item.length : 0);
+      allUnits += units;
+      if (descriptor.enumerable) enumerableUnits += units;
+      if (typeof item === "bigint" || typeof item === "symbol" || (typeof item === "object" && item !== null)) {
+        nativePropertyWrite(allReferences, allReferences.length, { value: item, writable: true, enumerable: true, configurable: true });
+        if (descriptor.enumerable) nativePropertyWrite(enumerableReferences, enumerableReferences.length, { value: item, writable: true, enumerable: true, configurable: true });
+      }
+    }
+    state.strings = nativePropertyFreeze({
+      all: nativePropertyFreeze({ units: allUnits, references: nativePropertyFreeze(allReferences) }),
+      enumerable: nativePropertyFreeze({ units: enumerableUnits, references: nativePropertyFreeze(enumerableReferences) })
+    });
+  }
+  return includeNonEnumerable ? state.strings.all : state.strings.enumerable;
+}
+
 export function getGuestFunctionProperties(closure: SandboxClosure): SandboxObject | undefined {
   return functionProperties.get(closure);
 }
 
 export function intrinsicFunctionDataDescriptors(properties: SandboxObject): Array<[string, PropertyDescriptor]> {
-  const state = functionPropertyRevisions.get(properties);
+  const state = nativePropertyStateGet(properties);
   if (state?.measuredDescriptors !== undefined && state.measuredRevision === state.revision)
     return state.measuredDescriptors;
   const descriptors = Object.entries(Object.getOwnPropertyDescriptors(properties))
@@ -124,20 +197,20 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
     functionProperties.set(closure, initialProperties);
     return initialProperties;
   }
-  const properties = Object.create(null) as SandboxObject;
-  Object.defineProperties(properties, {
+  const properties = nativePropertyCreate(null) as SandboxObject;
+  nativePropertyDefine(properties, {
     length: { value: closure.length ?? 0, configurable: true },
     name: { value: closure.name ?? "", configurable: true }
   });
   if (isGuestClosure(closure) && closure.construct !== undefined && closure.boundTarget === undefined) {
-    const prototype = Object.create(null) as SandboxObject;
-    Object.defineProperty(prototype, "constructor", {
+    const prototype = nativePropertyCreate(null) as SandboxObject;
+    nativePropertyDefineOne(prototype, "constructor", {
       value: closure,
       writable: true,
       configurable: true
     });
     descriptorObjects.add(prototype);
-    Object.defineProperty(properties, "prototype", { value: prototype, writable: true });
+    nativePropertyDefineOne(properties, "prototype", { value: prototype, writable: true });
   }
   const tracked = trackPropertyTable(properties);
   descriptorObjects.add(tracked);
@@ -148,7 +221,7 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
 
 export function createIntrinsicObject(initial: SandboxObject = Object.create(null)): SandboxObject {
   // Copy first so no caller retains an untracked alias to the backing table.
-  const tracked = trackPropertyTable(Object.create(Object.getPrototypeOf(initial), Object.getOwnPropertyDescriptors(initial)));
+  const tracked = trackPropertyTable(nativePropertyCreate(nativePropertyPrototype(initial), nativePropertyDescriptors(initial)));
   trackedIntrinsicObjects.add(tracked);
   return tracked;
 }
@@ -159,26 +232,34 @@ export function isTrackedIntrinsicObject(value: object): boolean {
 
 function trackPropertyTable(properties: SandboxObject): SandboxObject {
   // Never expose the raw table: native callers must invalidate captures too.
-  const state = { revision: 0 };
-  const tracked = new Proxy(properties, {
+  const state: TrackedPropertyState = { revision: 0 };
+  const data: TrackedPropertyData = { backing: properties, descriptors: undefined, strings: undefined };
+  const tracked = new NativePropertyProxy(properties, {
     defineProperty(target, key, descriptor) {
-      const changed = Reflect.defineProperty(target, key, descriptor);
+      const changed = nativePropertyWrite(target, key, descriptor);
       if (changed) {
         state.revision++;
+        data.descriptors = undefined;
+        data.strings = undefined;
+        state.measuredDescriptors = undefined;
         if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }
       return changed;
     },
     deleteProperty(target, key) {
-      const changed = Reflect.deleteProperty(target, key);
+      const changed = nativePropertyDelete(target, key);
       if (changed) {
         state.revision++;
+        data.descriptors = undefined;
+        data.strings = undefined;
+        state.measuredDescriptors = undefined;
         if (intrinsicRetentionTables.has(tracked)) intrinsicMutationToken = {};
       }
       return changed;
     }
   });
-  functionPropertyRevisions.set(tracked, state);
+  nativePropertyStateSet(tracked, state);
+  nativePropertyDataSet(tracked, data);
   return tracked;
 }
 
@@ -350,7 +431,7 @@ function captureIntrinsicRecords(targets: Array<SandboxObject | SandboxClosure>)
       ...record,
       dataRoot: {},
       dataRootActive: false,
-      revision: functionPropertyRevisions.get(record.value),
+      revision: nativePropertyStateGet(record.value),
       capturedRevision: -1,
       captured: undefined as unknown[] | undefined,
       extensible: Object.isExtensible(record.value),

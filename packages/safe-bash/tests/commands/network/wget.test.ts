@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { networkCommands, type HttpTransport, type NetworkCommandsOptions } from "../../../src/commands/network/index.js";
-import { toByteSource } from "../../../src/contracts/index.js";
+import { createNodeHttpTransport, networkCommands, type HttpTransport, type NetworkCommandsOptions } from "../../../src/commands/network/index.js";
+import { collectBytes, toByteSource } from "../../../src/contracts/index.js";
+import { server } from "./helpers.js";
 
 async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   const fs = new MemoryFileSystem();
@@ -15,6 +16,101 @@ async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   };
   const shell = new Shell({ fs, cwd: '/work' }).use(networkCommands({ authorize: () => true, transport, ...options }));
   return { shell, fs, requests };
+}
+
+for (const [options, method, body] of [
+  ['--post-data=a=b', 'POST', 'a=b'],
+  ["--post-data '@input'", 'POST', '@input'],
+  ["--post-data ''", 'POST', ''],
+  ['--post-data=a --post-data=b', 'POST', 'b'],
+  ['--method=put --body-data=SYNTHETIC', 'PUT', 'SYNTHETIC'],
+  ["--method POST --body-data '@input'", 'POST', '@input'],
+  ['--method=DELETE', 'DELETE', undefined],
+] as const) test(`wget request data: ${options}`, async () => {
+  const seen: { method: string; body: string | undefined; contentType: string | undefined }[] = [];
+  const authorized: string[] = [];
+  const { shell } = await fixture({
+    authorize: request => { authorized.push(request.method); return true; },
+    transport: async request => {
+      seen.push({ method: request.method, body: request.body ? new TextDecoder().decode(await collectBytes(request.body, { maxBytes: 1024 })) : undefined,
+        contentType: request.headers.find(([name]) => name.toLowerCase() === 'content-type')?.[1] });
+      return { status: 200, statusText: 'OK', headers: [], body: toByteSource('response'), async dispose() {} };
+    },
+  });
+  try {
+    const result = await shell.exec(`wget -qO- ${options} https://example.test/echo`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, 'response');
+    assert.deepEqual(authorized, [method]);
+    assert.deepEqual(seen, [{ method, body, contentType: body === undefined ? undefined : 'application/x-www-form-urlencoded' }]);
+  } finally { await shell.dispose(); }
+});
+
+for (const options of ['--post-file=input', '--post-file input', '--method=PUT --body-file=input', '--method PUT --body-file input', '--post-file=-']) {
+  test(`wget sends virtual file bytes over HTTP: ${options}`, async () => {
+    const endpoint = await server();
+    const { shell, fs } = await fixture({ transport: createNodeHttpTransport() });
+    const bytes = Uint8Array.of(0, 255, 97, 13, 10, 128);
+    await fs.writeFile('/work/input', bytes);
+    await fs.writeFile('/work/-', bytes);
+    try {
+      const result = await shell.exec(`wget -qO- ${options} ${endpoint.origin}/echo`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(endpoint.requests.length, 1);
+      assert.equal(endpoint.requests[0]!.method, options.includes('--method') ? 'PUT' : 'POST');
+      assert.deepEqual([...endpoint.requests[0]!.body], [...bytes]);
+      assert.equal(endpoint.requests[0]!.headers['content-type'], 'application/x-www-form-urlencoded');
+    } finally { await shell.dispose(); await endpoint.close(); }
+  });
+}
+
+test('wget request bodies retain upload limits and authorization', async () => {
+  let calls = 0;
+  const { shell, fs } = await fixture({ limits: { maxUploadBytes: 2 },
+    transport: async request => {
+      calls++;
+      if (request.body) await collectBytes(request.body, { maxBytes: 1024 });
+      return { status: 200, statusText: 'OK', headers: [], body: toByteSource(''), async dispose() {} };
+    },
+  });
+  await fs.writeFile('/work/input', new TextEncoder().encode('abc'));
+  try {
+    for (const options of ['--post-data=abc', '--post-file=input']) {
+      const result = await shell.exec(`wget --tries=1 -O- ${options} https://example.test/echo`);
+      assert.equal(result.exitCode, 4);
+      assert.match(result.stderr, /host byte limit/u);
+    }
+    assert.equal(calls, 2);
+  } finally { await shell.dispose(); }
+
+  const denied = await fixture({ authorize: () => false });
+  try {
+    assert.equal((await denied.shell.exec('wget -qO- --post-data=a=b https://example.test/echo')).exitCode, 4);
+    assert.equal(denied.requests.length, 0);
+  } finally { await denied.shell.dispose(); }
+});
+
+test('wget reports virtual request-file errors', async () => {
+  const { shell } = await fixture({ transport: async request => {
+    if (request.body) await collectBytes(request.body, { maxBytes: 1024 });
+    throw new Error('Expected a missing file failure');
+  } });
+  try {
+    const result = await shell.exec('wget --tries=1 -O- --post-file=missing https://example.test/echo');
+    assert.equal(result.exitCode, 3);
+    assert.match(result.stderr, /Failed to read virtual upload file/u);
+  } finally { await shell.dispose(); }
+});
+
+for (const options of ['--body-data=a', '--post-data=a --method=PUT', '--post-data=a --post-file=input',
+  '--method=PUT --body-data=a --body-file=input', '--method=', '--method=CONNECT', "--method 'bad method'", '--post-file=']) {
+  test(`wget refuses invalid request options before network: ${options}`, async () => {
+    const { shell, requests } = await fixture();
+    try {
+      assert.equal((await shell.exec(`wget -qO- ${options} https://example.test/echo`)).exitCode, 2);
+      assert.equal(requests.length, 0);
+    } finally { await shell.dispose(); }
+  });
 }
 
 for (const [args, path] of [

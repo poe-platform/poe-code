@@ -1,6 +1,12 @@
 # SafeBash remote media release
 
-Status: implementation under release review.
+Status: implementation complete; awaiting GitHub release validation and publication.
+
+Package builds, repository lint, package policy, packed consumer checks and
+available local native qualification passed. Full local unit runs encountered
+intermittent five-second subprocess startup deadlines; those cases passed
+focused checks under the same deadlines. GitHub's complete validation must
+pass before publication. Implementation work must not restart from this plan.
 
 Provide opt-in FFmpeg, ffprobe and ImageMagick commands through SafeBash,
 with the same explicit configuration in the SDK and CLI. Keep portable media

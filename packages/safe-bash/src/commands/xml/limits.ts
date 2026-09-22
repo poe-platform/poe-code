@@ -42,6 +42,7 @@ export class XmlBudget {
   private steps = 0;
   private checkpoint = 0;
   outputBytes = 0;
+  inputBytes = 0;
   constructor(readonly limits: XmlQueryLimits, readonly signal: AbortSignal) {}
   async tick(work = 1): Promise<void> {
     this.signal.throwIfAborted();

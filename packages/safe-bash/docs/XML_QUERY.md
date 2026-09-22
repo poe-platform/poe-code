@@ -1,19 +1,30 @@
 # XML queries
 
-The default `agentCommands()` preset includes `xq` and `xmllint`. Both read one
-UTF-8 XML document from the supplied virtual filesystem or stdin:
+The default `agentCommands()` preset includes `xq` and `xmllint`. They read
+UTF-8 XML from the supplied virtual filesystem or stdin:
 
 ```sh
-xq '/catalog/book[@available="yes"]/title' /catalog.xml
+xq -r '.catalog.book[] | select(."@available" == "yes") | .title' /catalog.xml
 xmllint --xpath 'count(/catalog/book)' /catalog.xml
 xmllint --noout /catalog.xml
 xmllint --format /catalog.xml
 xmllint --c14n /catalog.xml
-xq 'string(/catalog/book[1]/title)' -
+xq -r '.catalog.book[0].title' -
 ```
 
-These commands implement a bounded XPath subset. `xq` uses this XPath syntax;
-it does not implement the jq-based XML tools that also use that command name.
+`xq` converts XML to JSON and applies the existing bounded jq interpreter,
+following Python yq's xq filter interface. Element names become object keys,
+attributes use `@name`, repeated siblings become arrays, empty elements become
+`null`, and text is trimmed. Elements with attributes or children store their
+direct text in `#text`; comments and processing instructions are omitted.
+Namespace declarations are attributes and qualified names retain their prefixes.
+For example, `xq .` converts `<a>text</a>` to `{"a": "text"}`.
+The default filter is `.`. Multiple XML files, `-r`, `-c`, `-S`, `-s`,
+`-n`, `-e`, `--arg`, `--argjson`, and `-f` use the same options as `jq`.
+The jq interpreter remains bounded; Python yq's XML output, in-place editing,
+force-list and streaming-depth options are unsupported and fail explicitly.
+
+`xmllint --xpath` implements a bounded XPath subset.
 `xmllint --noout` checks well-formedness without emitting the document.
 `--format` emits an XML declaration and indents element-only content with two
 spaces, preserving mixed content and `xml:space` text. `--c14n` emits inclusive
@@ -40,7 +51,7 @@ const shell = new Shell({ fs }).use(agentCommands({
   xml: { limits: { maxInputBytes: 1024 * 1024, maxResults: 100 } },
 }));
 try {
-  const result = await shell.exec("xq 'string(/catalog/book/title)' /catalog.xml");
+  const result = await shell.exec("xq -r '.catalog.book.title' /catalog.xml");
   console.log(result.stdout); // Example followed by a newline
 } finally {
   await shell.dispose();
@@ -57,6 +68,8 @@ configure this family.
 
 ## Supported expressions
 
+The expressions below apply to `xmllint --xpath`. Use jq filters with `xq`.
+
 - Absolute child paths (`/catalog/book`) and descendant paths (`//book`).
 - ASCII unprefixed names and `*`. Names match the empty namespace; wildcards
   also match namespaced elements, including Unicode names.
@@ -72,7 +85,7 @@ node results each end with a newline. Scalars also end with a newline.
 
 Unsupported expressions fail before reading input. These include `/` alone,
 namespace prefixes, explicit axes, union, arithmetic, variables, relative paths,
-and other functions. Multiple input files and other xmllint flags are
+and other functions. Multiple xmllint input files and other xmllint flags are
 unsupported, including DTD/schema validation, output files, and other
 canonicalization variants. Validation here means XML well-formedness, not schema
 validation. The shared parser normalizes processing instructions with whitespace-only
@@ -87,16 +100,16 @@ creating the commands. The default limits are independent:
 
 | Option | Default | Bounds |
 | --- | ---: | --- |
-| `maxInputBytes` | 8,388,608 | Input bytes; also filename byte admission |
+| `maxInputBytes` | 8,388,608 | XML input bytes across files; also argument byte admission |
 | `maxOutputBytes` | 8,388,608 | Emitted result bytes |
-| `maxSourceBytes` | 65,536 | XPath argument bytes |
+| `maxSourceBytes` | 65,536 | XPath or jq filter bytes |
 | `maxDepth` | 64 | Element depth; configurable maximum 256 |
 | `maxNodes` | 100,000 | Retained elements, attributes, and content nodes |
 | `maxAttributes` | 10,000 | Total attributes |
 | `maxAttributesPerElement` | 128 | Attributes on one element |
 | `maxNamespaces` | 256 | Namespace bindings in one scope |
-| `maxSteps` | 1,000,000 | Charged input, parsing, traversal, and serialization work |
-| `maxResults` | 100,000 | Selected results after predicates at each path step |
+| `maxSteps` | 1,000,000 | XML work; xq also bounds jq conversion and filtering independently |
+| `maxResults` | 100,000 | XPath selected results or emitted jq results |
 
 A document below the byte cap may exceed another cap. In particular, scanning
 and repeated traversal consume work; the input cap does not promise that an
@@ -115,6 +128,11 @@ partial output already written.
 | 6 | Canonicalization failed because of a relative namespace URI |
 | 10 | Invalid or unsupported XPath |
 | 11 | Empty node set |
+
+The status table describes `xmllint`. `xq` uses jq filter statuses (including
+status 3 for invalid filters and `-e` statuses), status 1 for invalid XML,
+and status 5 for resource limits. Converted JSON values also obey the existing
+jq value, collection and input limits; no external jq process runs.
 
 This is an explicit xmllint-style profile. Native xmllint versions differ;
 libxml2 2.9.13, for example, uses status 10 for an empty set.

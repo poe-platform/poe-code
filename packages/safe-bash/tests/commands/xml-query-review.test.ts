@@ -9,9 +9,9 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 async function query(source: string, xml: string, limits: Partial<XmlQueryLimits> = {}, signal = new AbortController().signal, afterInput?: () => void) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const command = createXmlCommands({ limits }).find(candidate => candidate.name === "xq")!;
+  const command = createXmlCommands({ limits }).find(candidate => candidate.name === "xmllint")!;
   const result = await command.execute({
-    command: "xq", args: [source], stdin: afterInput ? (async function* () {
+    command: "xmllint", args: ["--xpath", source], stdin: afterInput ? (async function* () {
       yield Buffer.from(xml);
       afterInput();
     })() : toByteSource(xml),
@@ -107,12 +107,12 @@ for (const reason of [false, Object.freeze({ cancelled: "parser checkpoint" })])
 test("output backpressure failure retains false identity and stops further writes", async () => {
   let writes = 0;
   const context: CommandContext = {
-    command: "xq", args: ["//i"], stdin: toByteSource("<r><i/><i/><i/></r>"),
+    command: "xmllint", args: ["--xpath", "//i"], stdin: toByteSource("<r><i/><i/><i/></r>"),
     stdout: { async write() { writes++; throw false; } },
     stderr: { async write() { assert.fail("sink failure must not become an XML diagnostic"); } },
     cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
   };
-  await assert.rejects(Promise.resolve(createXmlCommands().find(command => command.name === "xq")!.execute(context)), error => error === false);
+  await assert.rejects(Promise.resolve(createXmlCommands().find(command => command.name === "xmllint")!.execute(context)), error => error === false);
   assert.equal(writes, 1);
 });
 
@@ -121,7 +121,7 @@ for (const operand of ["query", "filename"] as const) test(`invalid UTF-8 ${oper
   const filename = operand === "filename" ? "/\ufffd.xml" : "/document.xml";
   await fs.writeFile(filename, Buffer.from('<r a="\ufffd">private</r>'));
   const raw = shellValueFromBytes(Buffer.from(operand === "query" ? '/r[@a="\xff"]' : "/\xff.xml", "latin1"));
-  const carrier = createCommandArguments(operand === "query" ? [raw, filename] : ["/r", raw]);
+  const carrier = createCommandArguments(operand === "query" ? ["--xpath", raw, filename] : ["--xpath", "/r", raw]);
   let reads = 0;
   const observed = new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
@@ -133,11 +133,11 @@ for (const operand of ["query", "filename"] as const) test(`invalid UTF-8 ${oper
   } });
   const output: Uint8Array[] = [];
   const context: CommandContext = {
-    command: "xq", args: carrier.args, argumentValues: carrier, stdin: toByteSource(""),
+    command: "xmllint", args: carrier.args, argumentValues: carrier, stdin: toByteSource(""),
     stdout: { async write(chunk) { output.push(new Uint8Array(chunk)); } }, stderr: { async write() {} },
     cwd: "/", env: {}, fs: observed, signal: new AbortController().signal,
   };
-  const command = createXmlCommands().find(command => command.name === "xq")!;
+  const command = createXmlCommands().find(command => command.name === "xmllint")!;
   const literalReplacementArguments = createCommandArguments(carrier.args);
   assert.equal((await command.execute({ ...context, args: literalReplacementArguments.args, argumentValues: literalReplacementArguments })).exitCode, 0);
   assert.ok(Buffer.concat(output).toString().includes("private"));

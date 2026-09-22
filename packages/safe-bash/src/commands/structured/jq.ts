@@ -97,7 +97,9 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
   try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(Buffer.concat(chunks)); }
   catch { throw new JqError("program file is not valid UTF-8", 3); }
 }
-async function* inputSources(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<ByteSource> {
+export type FilterInput = (source: ByteSource) => Promise<ByteSource>;
+
+async function* inputSources(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<ByteSource> {
   const files = options.files.length ? options.files : ["-"];
   let usedStdin = false;
   for (const file of files) {
@@ -119,20 +121,20 @@ async function* inputSources(context: CommandContext, options: Options, budget: 
       else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: remaining }), context.signal));
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
-    yield source;
+    yield convert ? await convert(source) : source;
   }
 }
-async function* inputs(context: CommandContext, options: Options, budget: Budget): AsyncGenerator<Json> {
+async function* inputs(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<Json> {
   if (options.rawInput) {
-    yield* rawValues(inputSources(context, options, budget), budget, options.slurp);
+    yield* rawValues(inputSources(context, options, budget, convert), budget, options.slurp);
   } else {
     async function* joined(): ByteSource {
-      for await (const source of inputSources(context, options, budget)) yield* readBytes(source, context.signal);
+      for await (const source of inputSources(context, options, budget, convert)) yield* readBytes(source, context.signal);
     }
     yield* jsonValues(joined(), budget);
   }
 }
-async function execute(context: CommandContext, limits: JqLimits): Promise<{ exitCode: number }> {
+export async function executeJq(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
   const budget = new Budget(limits, context.signal);
   context.signal.throwIfAborted();
   const diagnostics: { location: InputLocation; message: string }[] = [];
@@ -200,18 +202,22 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
       if (status < 2 && invocationLast !== undefined) last = invocationLast;
       await flush();
     };
-    if (options.nullInput) await emit(null);
+    if (options.nullInput) {
+      await emit(null);
+      // XML frontends still parse their documents when jq receives null.
+      if (convert) for await (const value of inputs(context, options, budget, convert)) budget.value(value);
+    }
     else if (options.slurp && !options.rawInput) {
       const values: Json[] = [];
       let bytes = 2;
-      for await (const value of inputs(context, options, budget)) {
+      for await (const value of inputs(context, options, budget, convert)) {
         budget.collection(values.length + 1);
         bytes += budget.value(value) + (values.length ? 1 : 0);
         if (bytes > limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
         values.push(value);
       }
       budget.value(values); await emit(values);
-    } else for await (const value of inputs(context, options, budget)) await emit(value);
+    } else for await (const value of inputs(context, options, budget, convert)) await emit(value);
     await flush(true);
     return { exitCode: options.exitStatus && last === undefined && status === 0 ? 4 : status };
   } catch (error) {
@@ -227,5 +233,5 @@ async function execute(context: CommandContext, limits: JqLimits): Promise<{ exi
 }
 export function jqCommand(options: StructuredCommandsOptions = {}): CommandDefinition {
   const limits = resolveJqLimits(options.limits);
-  return { name: "jq", description: "Bounded, dependency-free JSON filter interpreter", execute: context => execute(context, limits) };
+  return { name: "jq", description: "Bounded, dependency-free JSON filter interpreter", execute: context => executeJq(context, limits) };
 }

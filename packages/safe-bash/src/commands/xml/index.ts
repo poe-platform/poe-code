@@ -8,6 +8,10 @@ import { XmlBudget, XmlQueryError, XmlQueryLimitError, resolveXmlQueryLimits, ty
 import { parseQuery, type Query } from "./query.js";
 import { evaluate, serialize, stringValue } from "./evaluate.js";
 import { serializeDocument, type DocumentMode } from "./document.js";
+import { executeJq } from "../structured/jq.js";
+import { Budget, JqError, resolveJqLimits } from "../structured/limits.js";
+import { stringify } from "../structured/input.js";
+import { xmlToJson } from "./json.js";
 
 export { defaultXmlQueryLimits } from "./limits.js";
 export type { XmlCommandsOptions, XmlQueryLimits } from "./limits.js";
@@ -84,12 +88,11 @@ async function input(context: CommandContext, file: string | undefined, budget: 
     }
   }
   const parts: string[] = [];
-  let size = 0;
   const decoder = new TextDecoder("utf-8", { fatal: true });
   for await (const chunk of readBytes(source, context.signal)) {
     await budget.tick();
-    size += chunk.byteLength;
-    if (size > budget.limits.maxInputBytes) throw new XmlQueryLimitError("maxInputBytes");
+    budget.inputBytes += chunk.byteLength;
+    if (budget.inputBytes > budget.limits.maxInputBytes) throw new XmlQueryLimitError("maxInputBytes");
     // Decode before requesting another chunk; a producer may reuse its backing bytes.
     for (let offset = 0; offset < chunk.length; offset += 4096) {
       await budget.tick(Math.min(4096, chunk.length - offset));
@@ -106,6 +109,43 @@ async function execute(context: CommandContext, limits: XmlQueryLimits): Promise
   const budget = new XmlBudget(limits, context.signal);
   let outputFailed = false;
   try {
+    if (context.command === "xq") {
+      const carrier = getCommandArguments(context);
+      for (let index = 0; index < carrier.args.length; index++) {
+        if (shellValueByteLength(carrier.values[index]!) > limits.maxInputBytes) throw new XmlQueryLimitError("maxInputBytes");
+        let decoded: string;
+        try { decoded = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(carrier.bytes(index)); }
+        catch { throw new XmlQueryError("filters and filenames require valid UTF-8", 2); }
+        if (decoded !== carrier.args[index]) throw new XmlQueryError("filters and filenames require lossless UTF-8", 2);
+        await budget.tick(decoded.length);
+      }
+      const jqLimits = resolveJqLimits({
+        maxOutputBytes: limits.maxOutputBytes,
+        maxSourceBytes: limits.maxSourceBytes, maxDepth: Math.min(256, limits.maxDepth * 2 + 2),
+        maxSteps: limits.maxSteps, maxResults: limits.maxResults,
+      });
+      const conversionBudget = new Budget(jqLimits, context.signal);
+      // Only XML conversion errors are translated; jq owns its sink failures.
+      return executeJq(context, jqLimits, async bytes => {
+        try {
+          const source = await input({ ...context, stdin: bytes }, undefined, budget);
+          const parser = parseXmlSteps(source, { ...limits, maxContentNodes: limits.maxNodes, expectedEncoding: "UTF-8" });
+          let parsed = parser.next();
+          try {
+            while (!parsed.done) { await budget.tick(parsed.value); parsed = parser.next(); }
+          } finally { if (!parsed.done) parser.return(undefined as never); }
+          const value = await xmlToJson(parsed.value, budget);
+          conversionBudget.value(value);
+          return toByteSource(await stringify(value, conversionBudget, false, jqLimits.maxValueBytes, "maxValueBytes") + "\n");
+        } catch (error) {
+          context.signal.throwIfAborted();
+          if (error instanceof XmlQueryError) throw new JqError(error.message, error.status);
+          if (error instanceof XmlLimitError) throw new JqError(error.message, 5);
+          if (error instanceof SyntaxError) throw new JqError(error.message, 1);
+          throw error;
+        }
+      });
+    }
     const options = await argumentsFor(context, budget);
     const source = await input(context, options.file, budget);
     const parser = parseXmlSteps(source, { ...limits, maxContentNodes: limits.maxNodes, expectedEncoding: "UTF-8" });

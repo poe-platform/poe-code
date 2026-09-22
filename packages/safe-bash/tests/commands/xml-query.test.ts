@@ -3,6 +3,112 @@ import test from "node:test";
 import * as api from "../../src/index.js";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
 import { createXmlCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
+import { createCommandArguments, toByteSource } from "../../src/contracts/index.js";
+import { shellValueFromBytes } from "../../src/contracts/value.js";
+
+for (const [command, xml, expected] of [
+  ["xq . /input", "<a>text</a>", '{\n  "a": "text"\n}\n'],
+  ["xq -r '.root.item[]' /input", "<root><item>one</item><item>two</item></root>", "one\ntwo\n"],
+  ["xq -c . /input", '<root id="7"><empty/><value>  hi &amp; bye </value>tail</root>', '{"root":{"@id":"7","empty":null,"value":"hi & bye","#text":"tail"}}\n'],
+  ["xq -r --arg key a '.[$key]' /input", "<a>text</a>", "text\n"],
+  ["xq -sc . /input /other", "<a>text</a>", '[{"a":"text"},{"b":null}]\n'],
+  ["xq -c .", '<r xmlns:p="urn:p"><p:a p:id="1"><![CDATA[ hi ]]><!--ignore--></p:a></r>', '{"r":{"@xmlns:p":"urn:p","p:a":{"@p:id":"1","#text":"hi"}}}\n'],
+  ["xq --null-input -c '42'", "<a/>", "42\n"],
+  ["xq -cS .", '<r b="2" a="1"><i>3</i><i>4</i></r>', '{"r":{"@a":"1","@b":"2","i":["3","4"]}}\n'],
+  ["xq -c .", '<r xmlns="urn:r"><a xmlns="">ok</a><b xmlns="urn:r"/></r>', '{"r":{"@xmlns":"urn:r","a":{"@xmlns":"","#text":"ok"},"b":{"@xmlns":"urn:r"}}}\n'],
+  ["xq -c .", '<__proto__ constructor="safe"><__proto__>value</__proto__></__proto__>', '{"__proto__":{"@constructor":"safe","__proto__":"value"}}\n'],
+  ["xq -r -f /filter /input", "<a>text</a>", "text\n"],
+] as const) test(`xq applies jq filters to converted XML: ${command}`, async () => {
+  const fs = api.createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from(xml));
+  await fs.writeFile("/other", Buffer.from("<b/>"));
+  await fs.writeFile("/filter", Buffer.from(".a"));
+  const shell = new api.Shell({ fs }).use(api.agentCommands());
+  try {
+    const result = await shell.exec(command, { stdin: Buffer.from(xml) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+for (const [command, xml, limits, status, diagnostic] of [
+  ["xq .", "<a/>", { maxInputBytes: 3 }, 5, "maxInputBytes"],
+  ["xq .", "<a><b/></a>", { maxNodes: 1 }, 5, "resource limit"],
+  ["xq -r .a", "<a>long</a>", { maxOutputBytes: 2 }, 5, "maxOutputBytes"],
+  ["xq .a", "<a/>", { maxSourceBytes: 1 }, 5, "maxSourceBytes"],
+  ["xq '.r.i[]'", "<r><i>1</i><i>2</i></r>", { maxResults: 1 }, 5, "maxResults"],
+  ["xq .", "<a><broken></a>", {}, 1, "mismatched"],
+  ["xq .", "<!DOCTYPE a><a/>", {}, 1, "DTD"],
+  ["xq -e .a", "<a/>", {}, 1, ""],
+  ["xq '/a'", "<a/>", {}, 3, ""],
+  ["xq --xml-output .", "<a/>", {}, 2, "unsupported option"],
+  ["xq --null-input -c '42'", "not XML", {}, 1, "Invalid XML"],
+] as const) test(`xq preserves bounded failures and jq statuses: ${command} ${JSON.stringify(limits)}`, async () => {
+  const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands({ limits }));
+  try {
+    const result = await shell.exec(command, { stdin: Buffer.from(xml) });
+    assert.equal(result.exitCode, status, result.stderr);
+    if (diagnostic) assert.ok(result.stderr.includes(diagnostic), result.stderr);
+  } finally { await shell.dispose(); }
+});
+
+test("xq preserves output failure identity instead of reporting an XML parse failure", async () => {
+  const command = createXmlCommands().find(command => command.name === "xq")!;
+  const failure = new SyntaxError("sink failed");
+  await assert.rejects(Promise.resolve(command.execute({
+    command: "xq", args: ["."], cwd: "/", env: {}, fs: api.createMemoryFileSystem(),
+    signal: new AbortController().signal, stdin: toByteSource("<a/>"),
+    stdout: { async write() { throw failure; } },
+    stderr: { async write() { assert.fail("output failure must not become an XML diagnostic"); } },
+  })), error => error === failure);
+});
+
+test("xq counts original XML bytes across files rather than JSON expansion", async () => {
+  const fs = api.createMemoryFileSystem();
+  await fs.writeFile("/a", Buffer.from("<a/>"));
+  await fs.writeFile("/b", Buffer.from("<b/>"));
+  const shell = new api.Shell({ fs }).use(xmlCommands({ limits: { maxInputBytes: 4 } }));
+  try {
+    const single = await shell.exec("xq -c . /a");
+    assert.equal(single.exitCode, 0, single.stderr);
+    assert.equal(single.stdout, '{"a":null}\n');
+    const multiple = await shell.exec("xq -c . /a /b");
+    assert.equal(multiple.exitCode, 5, multiple.stderr);
+    assert.ok(multiple.stderr.includes("maxInputBytes"));
+  } finally { await shell.dispose(); }
+});
+
+for (const operand of ["filter", "filename"] as const) test(`xq rejects lossy UTF-8 ${operand} before input reads`, async () => {
+  const raw = shellValueFromBytes(Buffer.from(operand === "filter" ? '.["\xff"]' : "/\xff.xml", "latin1"));
+  const carrier = createCommandArguments(operand === "filter" ? [raw] : [".", raw]);
+  const command = createXmlCommands().find(command => command.name === "xq")!;
+  let reads = 0;
+  const result = await command.execute({
+    command: "xq", args: carrier.args, argumentValues: carrier,
+    cwd: "/", env: {}, fs: api.createMemoryFileSystem(), signal: new AbortController().signal,
+    stdin: (async function* () { reads++; yield Buffer.from("<a/>"); })(),
+    stdout: { async write() { assert.fail("invalid arguments must not emit output"); } },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 2);
+  assert.equal(reads, 0);
+});
+
+test("xq observes cancellation and closes its XML input", async () => {
+  const controller = new AbortController();
+  const reason = Object.freeze({ cancelled: "xq XML input" });
+  let closed = false;
+  const stdin = (async function* () {
+    try { yield Buffer.from("<a>"); controller.abort(reason); yield Buffer.from("text</a>"); }
+    finally { closed = true; }
+  })();
+  const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands());
+  try {
+    await assert.rejects(shell.exec("xq .", { stdin, signal: controller.signal }), error => error === reason);
+    assert.equal(closed, true);
+  } finally { await shell.dispose(); }
+});
 
 test("XML querying exposes an explicit command family", () => {
   assert.equal(Object.hasOwn(api, "xmlCommands"), true);
@@ -19,6 +125,9 @@ for (const backend of ["memory", "s3"] as const) {
       const result = await shell.exec("xmllint --xpath 'string(/root/value)' /document.xml");
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "virtual\n");
+      const filtered = await shell.exec("xq -r .root.value /document.xml");
+      assert.equal(filtered.exitCode, 0, filtered.stderr);
+      assert.equal(filtered.stdout, "virtual\n");
     } finally { await shell.dispose(); }
   });
 }
@@ -33,7 +142,7 @@ for (const [axis, value, source, input] of [
   test(`XML independently enforces ${axis}`, async () => {
     const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands({ limits: { [axis]: value } }));
     try {
-      const result = await shell.exec(`xq '${source}'`, { stdin: new TextEncoder().encode(input) });
+      const result = await shell.exec(`xmllint --xpath '${source}'`, { stdin: new TextEncoder().encode(input) });
       assert.equal(result.exitCode, 5, result.stderr);
       assert.match(result.stderr, new RegExp(axis));
       if (axis === "maxOutputBytes") assert.ok(Buffer.byteLength(result.stdout) <= value);
@@ -49,7 +158,7 @@ test("XML configuration is validated and captured before invocation", async () =
   Object.assign(limits, { maxOutputBytes: 1000 });
   const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(plugin);
   try {
-    const result = await shell.exec("xq 'string(/r)'", { stdin: new TextEncoder().encode("<r>long</r>") });
+    const result = await shell.exec("xmllint --xpath 'string(/r)'", { stdin: new TextEncoder().encode("<r>long</r>") });
     assert.equal(result.exitCode, 5);
   } finally { await shell.dispose(); }
 });
@@ -71,7 +180,7 @@ test("XML charges empty input chunks before exhausting a finite producer", async
   } };
   const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands({ limits: { maxSteps: 8 } }));
   try {
-    const result = await shell.exec("xq '/r'", { stdin });
+    const result = await shell.exec("xmllint --xpath '/r'", { stdin });
     assert.equal(result.exitCode, 5, result.stderr);
     assert.ok(reads < 64, `producer exhausted after ${reads} reads`);
   } finally { await shell.dispose(); }
@@ -87,7 +196,7 @@ test("XML empty-chunk input yields to timer cancellation", async () => {
   const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands());
   const timer = setTimeout(() => controller.abort(reason), 0);
   try {
-    await assert.rejects(shell.exec("xq '/r'", { stdin, signal: controller.signal }), error => error === reason);
+    await assert.rejects(shell.exec("xmllint --xpath '/r'", { stdin, signal: controller.signal }), error => error === reason);
     assert.ok(reads < 5000, `producer exhausted after ${reads} reads`);
   } finally { clearTimeout(timer); await shell.dispose(); }
 });
@@ -95,7 +204,7 @@ test("XML empty-chunk input yields to timer cancellation", async () => {
 test("XML result limits apply after predicates select the result set", async () => {
   const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands({ limits: { maxResults: 1 } }));
   try {
-    const result = await shell.exec("xq '/r/i[1]'", { stdin: new TextEncoder().encode("<r><i/><i/></r>") });
+    const result = await shell.exec("xmllint --xpath '/r/i[1]'", { stdin: new TextEncoder().encode("<r><i/><i/></r>") });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "<i/>\n");
   } finally { await shell.dispose(); }
@@ -112,7 +221,7 @@ test("XML buffered VFS admission reports the configured input limit", async () =
   } });
   const shell = new api.Shell({ fs }).use(xmlCommands({ limits: { maxInputBytes: 3 } }));
   try {
-    const result = await shell.exec("xq '/r' /d");
+    const result = await shell.exec("xmllint --xpath '/r' /d");
     assert.equal(result.exitCode, 5, result.stderr);
     assert.match(result.stderr, /maxInputBytes/u);
     assert.equal(result.stdout, "");
@@ -125,7 +234,7 @@ test("XML retains a leading BOM in a filename as part of its identity", async ()
   await fs.writeFile("/d", new TextEncoder().encode("<r>wrong</r>"));
   const shell = new api.Shell({ fs }).use(xmlCommands());
   try {
-    const result = await shell.exec("xq 'string(/r)' '\ufeffd'");
+    const result = await shell.exec("xmllint --xpath 'string(/r)' '\ufeffd'");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "bom\n");
   } finally { await shell.dispose(); }
@@ -135,7 +244,7 @@ test("XML serialization escapes decoded carriage returns while string values rem
   const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(xmlCommands());
   try {
     for (const [query, expected] of [["/r", "<r>&#13;</r>\n"], ["/r/text()", "&#13;\n"], ["string(/r)", "\r\n"]]) {
-      const result = await shell.exec(`xq '${query}'`, { stdin: new TextEncoder().encode("<r>&#13;</r>") });
+      const result = await shell.exec(`xmllint --xpath '${query}'`, { stdin: new TextEncoder().encode("<r>&#13;</r>") });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, expected);
     }
@@ -143,10 +252,10 @@ test("XML serialization escapes decoded carriage returns while string values rem
 });
 
 for (const [command, input, stdout] of [
-  ["xq 'count(/root/value)'", "<root><value/><value/></root>", "2\n"],
+  ["xmllint --xpath 'count(/root/value)'", "<root><value/><value/></root>", "2\n"],
   ["xmllint --xpath 'boolean(/root/missing)' -", "<root/>", "false\n"],
-  ["xq 'string(/root)'", "<root>before<child>inside</child>after</root>", "beforeinsideafter\n"],
-  ["xq '/root/value'", '<root><value a="&amp;">hello</value><value/></root>', '<value a="&amp;">hello</value>\n<value/>\n'],
+  ["xmllint --xpath 'string(/root)'", "<root>before<child>inside</child>after</root>", "beforeinsideafter\n"],
+  ["xmllint --xpath '/root/value'", '<root><value a="&amp;">hello</value><value/></root>', '<value a="&amp;">hello</value>\n<value/>\n'],
 ] as const) {
   test(`XML stdin query: ${command}`, async () => {
     const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());
@@ -159,14 +268,14 @@ for (const [command, input, stdout] of [
 }
 
 for (const [command, input, status] of [
-  ["xq '/root/missing'", "<root/>", 11],
-  ["xq '/root'", "<!DOCTYPE root><root/>", 1],
-  ["xq '/root'", "<root><broken></root>", 1],
-  ["xq '/root'", '<root a="&unknown;"/>', 1],
-  ["xq '/root | /other'", "<root/>", 10],
-  ["xq '/'", "<root/>", 10],
+  ["xmllint --xpath '/root/missing'", "<root/>", 11],
+  ["xmllint --xpath '/root'", "<!DOCTYPE root><root/>", 1],
+  ["xmllint --xpath '/root'", "<root><broken></root>", 1],
+  ["xmllint --xpath '/root'", '<root a="&unknown;"/>', 1],
+  ["xmllint --xpath '/root | /other'", "<root/>", 10],
+  ["xmllint --xpath '/'", "<root/>", 10],
   ["xmllint '/root'", "<root/>", 2],
-  ["xq '/root' /one /two", "<root/>", 2],
+  ["xmllint --xpath '/root' /one /two", "<root/>", 2],
 ] as const) {
   test(`XML refuses unsupported input: ${command}: ${input}`, async () => {
     const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());

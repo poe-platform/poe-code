@@ -67,35 +67,35 @@ it("opens an original XOR stream through its CFB Workbook container", async () =
   expect(input).toEqual(original);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
 });
-it("leaves all specification-exempt record payloads and framing untouched", () => {
+it("leaves all specification-exempt record payloads and framing untouched", async () => {
   const pass = { opcode: 0x2f, offset: 0, data: new Binary(bytes("000059b30a9a")) };
   for (const opcode of [9, 0x209, 0x409, 0x809, 0x194, 0x195, 0xe1, 0x196, 0x138]) {
     const clear = { opcode, offset: 10, data: new Binary(bytes("1032547698badcfe")) }, records = [pass, clear];
-    decryptBiffRecords(records, 8, context);
+    await decryptBiffRecords(records, 8, context);
     expect(records[1]).toBe(clear);
     expect(records[1]!.data.bytes).toEqual(bytes("1032547698badcfe"));
   }
 });
-it("bounds XOR headers and the partially plaintext BoundSheet payload", () => {
+it("bounds XOR headers and the partially plaintext BoundSheet payload", async () => {
   for (const input of ["0000", "000059b30a", "000059b30a9a00"])
-    expect(() => decryptBiffRecords([{ opcode: 0x2f, offset: 0, data: new Binary(bytes(input)) }], 8, context)).toThrow("Invalid Excel BIFF");
+    await expect(decryptBiffRecords([{ opcode: 0x2f, offset: 0, data: new Binary(bytes(input)) }], 8, context)).rejects.toThrow("Invalid Excel BIFF");
   const records = [{ opcode: 0x2f, offset: 0, data: new Binary(bytes("000059b30a9a")) },
     { opcode: 0x85, offset: 10, data: new Binary(bytes("010203")) }];
-  expect(() => decryptBiffRecords(records, 8, context)).toThrow("Invalid Excel BIFF");
+  await expect(decryptBiffRecords(records, 8, context)).rejects.toThrow("Invalid Excel BIFF");
 });
-it("checks decryption work before copying payload bytes", () => {
+it("checks decryption work before copying payload bytes", async () => {
   const data = new Binary(bytes("1032547698badcfe")), copy = vi.spyOn(data.bytes, "slice");
   const records = [{ opcode: 0x2f, offset: 0, data: new Binary(bytes("000059b30a9a")) }, { opcode: 0x203, offset: 10, data }];
-  expect(() => decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).toThrow("decryption work limit");
+  await expect(decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).rejects.toThrow("decryption work limit");
   expect(copy).not.toHaveBeenCalled();
   expect(records[1]!.data).toBe(data);
 });
-it("observes cancellation within a long record without publishing partial decoded bytes", () => {
+it("observes cancellation within a long record without publishing partial decoded bytes", async () => {
   let checks = 0;
   const signal = { throwIfAborted() { if (++checks === 5) throw new Error("cancel inside XOR"); } } as AbortSignal;
   const data = new Binary(new Uint8Array(5000)), original = data.bytes.slice();
   const records = [{ opcode: 0x2f, offset: 0, data: new Binary(bytes("000059b30a9a")) }, { opcode: 0x203, offset: 10, data }];
-  expect(() => decryptBiffRecords(records, 8, { ...context, signal })).toThrow("cancel inside XOR");
+  await expect(decryptBiffRecords(records, 8, { ...context, signal })).rejects.toThrow("cancel inside XOR");
   expect(records[1]!.data).toBe(data);
   expect(data.bytes).toEqual(original);
 });

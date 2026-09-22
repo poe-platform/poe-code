@@ -49,6 +49,7 @@ function bounded(value: number, maximum: number, name: string) {
 export function createEngine(supplied: EngineConfig): Engine {
   const config = {
     ...supplied,
+    ...(supplied.password === undefined ? {} : { password: Object.freeze({ read: supplied.password.read.bind(supplied.password) }) }),
     ...(supplied.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(supplied.runtimeFunctions) }),
     limits: Object.freeze({ ...supplied.limits }),
     environment: Object.freeze({
@@ -128,6 +129,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       ...(config.random === undefined ? {} : { random: config.random }),
       ...(config.runtimeFunctions === undefined ? {} : { runtimeFunctions: config.runtimeFunctions }),
       ...(config.externalReferences === undefined ? {} : { externalReferences: config.externalReferences }),
+      ...(config.password === undefined ? {} : { password: config.password }),
       async diagnostic(supplied) {
         check(context);
         let textBytes = 0;

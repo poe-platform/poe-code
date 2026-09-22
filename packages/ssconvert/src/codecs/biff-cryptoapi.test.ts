@@ -42,16 +42,16 @@ it.each(fixtures)("imports $id and exports plaintext", async ({ mode, inputHex }
   expect(recalculateWorkbook(await readBiff(output, context), context, true).sheets[0]!.cells[0]!.value).toEqual(expected);
   expect(diagnostics).toEqual([]);
 });
-it("bounds CryptoAPI headers and verifier declarations", () => {
+it("bounds CryptoAPI headers and verifier declarations", async () => {
   const header = readBiffRecords(bytes(fixtures[0]!.inputHex), context).find(r => r.opcode === 0x2f)!;
   const size = header.data.u32(10), at = 14 + size;
   for (const [offset, value] of [[10, 0xffffffff], [10, 31], [14, 4], [18, 1], [at, 15], [at + 36, 19]]) {
     const altered = header.data.bytes.slice(); new DataView(altered.buffer).setUint32(offset!, value!, true);
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).toThrow("Invalid Excel BIFF");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).rejects.toThrow("Invalid Excel BIFF");
   }
   for (const length of [13, 45, header.data.bytes.length - 1, header.data.bytes.length + 1]) {
     const altered = new Uint8Array(length); altered.set(header.data.bytes.subarray(0, length));
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).toThrow("Invalid Excel BIFF");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).rejects.toThrow("Invalid Excel BIFF");
   }
 });
 it("uses declared algorithms without resolving CSP names on the host", async () => {
@@ -61,27 +61,27 @@ it("uses declared algorithms without resolving CSP names on the host", async () 
   const book = await readBiff(input, context);
   expect(book.sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
 });
-it("refuses unsupported crypto parameters, encrypted ancillary properties and wrong passwords", () => {
+it("refuses unsupported crypto parameters, encrypted ancillary properties and wrong passwords", async () => {
   const header = readBiffRecords(bytes(fixtures[0]!.inputHex), context).find(r => r.opcode === 0x2f)!;
   const at = 14 + header.data.u32(10);
   for (const [offset, value] of [[22, 0x660e], [26, 0x8003], [30, 39], [30, 136], [34, 2]]) {
     const altered = header.data.bytes.slice(); new DataView(altered.buffer).setUint32(offset!, value!, true);
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).toThrow("encrypted Excel workbook");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).rejects.toThrow("encrypted Excel workbook");
   }
   for (const offset of [at + 20, at + 40]) {
     const altered = header.data.bytes.slice(); altered[offset]! ^= 1;
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).toThrow("password required");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(altered) }], 8, context)).rejects.toThrow("password required");
   }
   const ancillary = header.data.bytes.slice(); new DataView(ancillary.buffer).setUint32(6, 4, true); new DataView(ancillary.buffer).setUint32(14, 4, true);
-  expect(() => decryptBiffRecords([{ ...header, data: new Binary(ancillary) }], 8, context)).toThrow("encrypted Excel workbook");
+  await expect(decryptBiffRecords([{ ...header, data: new Binary(ancillary) }], 8, context)).rejects.toThrow("encrypted Excel workbook");
 });
-it("admits CryptoAPI work before copying and preserves original bytes during cancellation", () => {
+it("admits CryptoAPI work before copying and preserves original bytes during cancellation", async () => {
   const records = readBiffRecords(bytes(fixtures.at(-1)!.inputHex), context), source = records.map(r => ({ data: r.data, original: r.data.bytes.slice() }));
   const payload = records.find(r => r.opcode === 0x42)!.data, copy = vi.spyOn(payload.bytes, "slice");
-  expect(() => decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).toThrow("decryption work limit");
+  await expect(decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).rejects.toThrow("decryption work limit");
   expect(copy).not.toHaveBeenCalled();
   let checks = 0;
   const signal = { throwIfAborted() { if (++checks === 40) throw new Error("cancel CryptoAPI"); } } as AbortSignal;
-  expect(() => decryptBiffRecords(records, 8, { ...context, signal })).toThrow("cancel CryptoAPI");
+  await expect(decryptBiffRecords(records, 8, { ...context, signal })).rejects.toThrow("cancel CryptoAPI");
   source.forEach(({ data, original }) => expect(data.bytes).toEqual(original));
 });

@@ -64,6 +64,19 @@ export interface RuntimeLimits {
    * Also bounds an analysis property array before its owned copy is allocated. */
   readonly operations: number;
 }
+/** Trusted host secret acquisition. Never sourced from guest argv, environment or logs. */
+export interface PasswordCapability {
+  read(request: Readonly<{
+    format: "biff";
+    algorithm: "xor" | "rc4" | "rc4-cryptoapi";
+    revision: number;
+    /** XOR requires explicitly encoded bytes; RC4 accepts a string or UTF-16LE bytes. */
+    encoding: "bytes" | "utf16le";
+    maxBytes: number;
+    inputFilename?: string;
+    signal: AbortSignal;
+  }>): Promise<string | Uint8Array | undefined>;
+}
 export interface CapabilityContext {
   readonly stdinIsDefault?: boolean;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;
@@ -77,6 +90,7 @@ export interface CapabilityContext {
   readonly clock?: { now(): number };
   readonly random?: { next(): number };
   readonly externalReferences?: ExternalReferencesCapability;
+  readonly password?: PasswordCapability;
   readonly formatting?: FormattingCapability;
   /** Register synchronously before acquisition; cleanup must be cooperative. */
   own(cleanup: Cleanup): void;
@@ -91,6 +105,7 @@ export interface EngineConfig {
   readonly clock?: CapabilityContext["clock"];
   readonly random?: CapabilityContext["random"];
   readonly externalReferences?: ExternalReferencesCapability;
+  readonly password?: PasswordCapability;
   readonly formulas?: FormulaCapability;
   readonly formatting?: FormattingCapability;
   readonly rendering?: RenderingCapability;

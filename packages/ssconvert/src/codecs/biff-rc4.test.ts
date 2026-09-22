@@ -40,43 +40,43 @@ it("opens RC4 in an original CFB Workbook container", async () => {
   const book = await readBiff(input, context);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 42 });
 });
-it("rejects malformed RC4 headers, unknown versions and duplicate FILEPASS", () => {
+it("rejects malformed RC4 headers, unknown versions and duplicate FILEPASS", async () => {
   const header = readBiffRecords(bytes(fixtures[0]!.input), context).find(record => record.opcode === 0x2f)!;
   for (const length of [5, 6, 22, 53, 55]) {
     const value = new Uint8Array(length); value.set(header.data.bytes.subarray(0, length));
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(value) }], 8, context)).toThrow("Invalid Excel BIFF");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(value) }], 8, context)).rejects.toThrow("Invalid Excel BIFF");
   }
   for (const index of [2, 4]) {
     const value = header.data.bytes.slice(); value[index] = 2;
-    expect(() => decryptBiffRecords([{ ...header, data: new Binary(value) }], 8, context)).toThrow("encrypted Excel workbook");
+    await expect(decryptBiffRecords([{ ...header, data: new Binary(value) }], 8, context)).rejects.toThrow("encrypted Excel workbook");
   }
-  expect(() => decryptBiffRecords([header, header], 8, context)).toThrow("duplicate FILEPASS");
+  await expect(decryptBiffRecords([header, header], 8, context)).rejects.toThrow("duplicate FILEPASS");
 });
-it("admits RC4 derivation and block work before payload copying", () => {
+it("admits RC4 derivation and block work before payload copying", async () => {
   const records = readBiffRecords(bytes(fixtures[0]!.input), context);
   const payload = records.find(record => record.opcode === 0x42)!.data, copy = vi.spyOn(payload.bytes, "slice");
-  expect(() => decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 1000 } })).toThrow("decryption work limit");
+  await expect(decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 1000 } })).rejects.toThrow("decryption work limit");
   expect(copy).not.toHaveBeenCalled();
-  expect(() => decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).toThrow("decryption work limit");
+  await expect(decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 0 } })).rejects.toThrow("decryption work limit");
 });
-it("observes cancellation during multi-block RC4 without changing source bytes", () => {
+it("observes cancellation during multi-block RC4 without changing source bytes", async () => {
   const records = readBiffRecords(bytes(fixtures[4]!.input), context);
   const source = records.map(record => ({ data: record.data, original: record.data.bytes.slice() }));
   let checks = 0;
   const signal = { throwIfAborted() { if (++checks === 40) throw new Error("cancel RC4 import"); } } as AbortSignal;
-  expect(() => decryptBiffRecords(records, 8, { ...context, signal })).toThrow("cancel RC4 import");
+  await expect(decryptBiffRecords(records, 8, { ...context, signal })).rejects.toThrow("cancel RC4 import");
   // The public input stays immutable even if a previous internal record has completed decoding.
   source.forEach(({ data, original }) => expect(data.bytes).toEqual(original));
 });
-it("leaves specification-exempt records clear and charges only used blocks across large plaintext gaps", () => {
+it("leaves specification-exempt records clear and charges only used blocks across large plaintext gaps", async () => {
   const header = readBiffRecords(bytes(fixtures[0]!.input), context).find(record => record.opcode === 0x2f)!;
   for (const opcode of [9, 0x209, 0x409, 0x809, 0x194, 0x195, 0xe1, 0x196, 0x138]) {
     const clear = { opcode, offset: 1000000, data: new Binary(bytes("1032547698badcfe")) }, records = [header, clear];
-    decryptBiffRecords(records, 8, context);
+    await decryptBiffRecords(records, 8, context);
     expect(records[1]).toBe(clear);
   }
   const payload = { opcode: 0x85, offset: 1000000, data: new Binary(bytes("1032547698badcfe")) }, records = [header, payload];
-  decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 2200 } });
+  await decryptBiffRecords(records, 8, { ...context, limits: { ...context.limits, workbookWork: 2200 } });
   expect(records[1]!.data.bytes.subarray(0, 4)).toEqual(payload.data.bytes.subarray(0, 4));
   expect(records[1]!.data.bytes.subarray(4)).not.toEqual(payload.data.bytes.subarray(4));
   expect(payload.data.bytes).toEqual(bytes("1032547698badcfe"));

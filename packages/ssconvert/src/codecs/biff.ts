@@ -80,7 +80,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   if (!records[0] || !bofOpcodes.has(records[0].opcode)) invalidBiff("missing BOF");
   const override = biffOverrideCodepage(encoding);
   let codepage = override ?? 1252, ver = revision(records[0]), dateSystem: "1900" | "1904" = "1900";
-  decryptBiffRecords(records, ver, context);
+  await decryptBiffRecords(records, ver, context);
   let calculationMode: "automatic" | "manual" = "automatic", maximum = 100, tolerance = 0.001, iterationEnabled = false;
   let cellCount = 0, textBytes = 0, metadataBytes = 0;
   const boundSheets: BoundSheet[] = [], sheets: PendingSheet[] = [], unsupported: UnsupportedRecord[] = [];

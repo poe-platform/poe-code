@@ -13,7 +13,15 @@ if (book.sheets[0]?.cells[0]?.value.kind !== "string" || rootReadXlsx !== readXl
   throw new Error("Public codec consumer failed");
 if (!referenceText.help || [...exportOptionPairs("sheet=Consumer")].length !== 1)
   throw new Error("Public metadata consumer failed");
-const config: EngineConfig = { codecs: [], limits: context.limits, environment: context.environment };
+const config: EngineConfig = { codecs: [], limits: context.limits, environment: context.environment,
+  password: { async read(request) {
+    const format: "biff" = request.format;
+    const algorithm: "xor" | "rc4" | "rc4-cryptoapi" = request.algorithm;
+    const encoding: "bytes" | "utf16le" = request.encoding;
+    if (format !== "biff" || !algorithm || !encoding || request.maxBytes < 1 || request.signal.aborted)
+      throw new Error("Invalid public password request");
+    return undefined;
+  } } };
 const request: ConversionRequest = { input: { kind: "stream", source: [bytes] },
   destination: { kind: "stream", sink: { async write() {} } },
   importType: "Gnumeric_Excel:xlsx", exportType: "Gnumeric_Excel:xlsx2" };

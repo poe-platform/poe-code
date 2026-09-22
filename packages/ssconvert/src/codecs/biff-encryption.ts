@@ -21,9 +21,9 @@ function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext):
   return result;
 }
 
-/** Decode built-in-password XOR/RC4 workbook profiles without host authority. */
-export function decryptBiffRecords(records: BiffRecord[], revision: number, context: CapabilityContext): void {
-  let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0, seen = false;
+/** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */
+export async function decryptBiffRecords(records: BiffRecord[], revision: number, context: CapabilityContext): Promise<void> {
+  let array: Uint8Array | undefined, base: Uint8Array | undefined, work = 0;
   let block = -1, stream: Uint8Array | undefined;
   let cryptoapi = false, keyBits = 128;
   let hash: (bytes: Uint8Array) => Uint8Array = md5;
@@ -31,6 +31,36 @@ export function decryptBiffRecords(records: BiffRecord[], revision: number, cont
     work += amount;
     if (work > (context.limits.workbookWork ?? context.limits.inputBytes * 8))
       throw new SsconvertError("resource-limit", "ssconvert BIFF decryption work limit exceeded");
+  };
+  // Reject ambiguous declarations before asking the host for a secret or decoding data.
+  let declarations = 0;
+  for (let index = 0; index < records.length; index++) {
+    if ((index & 1023) === 0) context.signal.throwIfAborted();
+    if (records[index]!.opcode === 0x2f && ++declarations > 1) invalidBiff("duplicate FILEPASS");
+  }
+  const acquire = async (algorithm: "xor" | "rc4" | "rc4-cryptoapi"): Promise<Uint8Array | undefined> => {
+    if (!context.password) return undefined;
+    context.signal.throwIfAborted();
+    const xor = algorithm === "xor", maxBytes = xor ? 15 : 510;
+    let secret: string | Uint8Array | undefined;
+    try {
+      secret = await context.password.read(Object.freeze({ format: "biff", algorithm, revision,
+        encoding: xor ? "bytes" : "utf16le", maxBytes, signal: context.signal,
+        ...(context.inputFilename === undefined ? {} : { inputFilename: context.inputFilename }) }));
+    } catch {
+      context.signal.throwIfAborted();
+      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password acquisition failed");
+    }
+    context.signal.throwIfAborted();
+    if (secret === undefined) return undefined;
+    if (typeof secret === "string" && !xor && secret.length <= 255) {
+      const encoded = new Uint8Array(secret.length * 2), view = new DataView(encoded.buffer);
+      for (let index = 0; index < secret.length; index++) view.setUint16(index * 2, secret.charCodeAt(index), true);
+      return encoded;
+    }
+    if (secret instanceof Uint8Array && secret.byteLength <= maxBytes &&
+        (xor ? secret.byteLength > 0 : secret.byteLength % 2 === 0)) return new Uint8Array(secret);
+    throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password encoding or length");
   };
   const blockKey = (number: number): Uint8Array => {
     const prefix = cryptoapi ? 20 : 5, input = new Uint8Array(prefix + 4);
@@ -46,8 +76,6 @@ export function decryptBiffRecords(records: BiffRecord[], revision: number, cont
     context.signal.throwIfAborted();
     const record = records[at]!, data = record.data, opcode = record.opcode;
     if (opcode === 0x2f) {
-      if (seen) invalidBiff("duplicate FILEPASS");
-      seen = true;
       const prefix = revision >= 8 ? 2 : 0;
       const method = prefix ? data.u16(0) : 0;
       if (method === 1) {
@@ -86,44 +114,61 @@ export function decryptBiffRecords(records: BiffRecord[], revision: number, cont
         } else if (major !== 1 || minor !== 1) {
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook method");
         } else if (data.bytes.length !== 54) invalidBiff("invalid RC4 FILEPASS size");
-        // Charge fixed KDF, key scheduling and verifier work before crypto allocation.
-        admit(800);
+        const verify = (encoded: Uint8Array): boolean => {
+          // Aggregate admission includes both attempts and longer host passwords.
+          admit(800 + Math.max(0, encoded.length - 30));
+          if (cryptoapi) {
+            const material = new Uint8Array(16 + encoded.length);
+            material.set(data.bytes.subarray(saltOffset, saltOffset + 16)); material.set(encoded, 16);
+            base = hash(material);
+          } else {
+            const first = hash(encoded), material = new Uint8Array(336);
+            for (let index = 0; index < 16; index++) {
+              material.set(first.subarray(0, 5), index * 21);
+              material.set(data.bytes.subarray(saltOffset, saltOffset + 16), index * 21 + 5);
+            }
+            base = hash(material);
+          }
+          const verifierStream = rc4Stream(blockKey(0), 16 + hashLength, context), verifier = new Uint8Array(16 + hashLength);
+          for (let index = 0; index < verifier.length; index++)
+            verifier[index] = data.bytes[index < 16 ? verifierOffset + index : hashOffset + index - 16]! ^ verifierStream[index]!;
+          const expected = hash(verifier.subarray(0, 16));
+          let difference = 0;
+          for (let index = 0; index < hashLength; index++) difference |= expected[index]! ^ verifier[index + 16]!;
+          if (difference) base = undefined;
+          return difference === 0;
+        };
         const password = "VelvetSweatshop", encoded = new Uint8Array(password.length * 2);
         for (let index = 0; index < password.length; index++) encoded[index * 2] = password.charCodeAt(index);
-        if (cryptoapi) {
-          const material = new Uint8Array(16 + encoded.length);
-          material.set(data.bytes.subarray(saltOffset, saltOffset + 16)); material.set(encoded, 16);
-          base = hash(material);
-        } else {
-          const first = hash(encoded), material = new Uint8Array(336);
-          for (let index = 0; index < 16; index++) {
-            material.set(first.subarray(0, 5), index * 21);
-            material.set(data.bytes.subarray(saltOffset, saltOffset + 16), index * 21 + 5);
-          }
-          base = hash(material);
+        if (!verify(encoded)) {
+          const secret = await acquire(cryptoapi ? "rc4-cryptoapi" : "rc4");
+          if (secret === undefined || !verify(secret))
+            throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password required");
         }
-        const verifierStream = rc4Stream(blockKey(0), 16 + hashLength, context), verifier = new Uint8Array(16 + hashLength);
-        for (let index = 0; index < verifier.length; index++)
-          verifier[index] = data.bytes[index < 16 ? verifierOffset + index : hashOffset + index - 16]! ^ verifierStream[index]!;
-        const expected = hash(verifier.subarray(0, 16));
-        let difference = 0;
-        for (let index = 0; index < hashLength; index++) difference |= expected[index]! ^ verifier[index + 16]!;
-        if (difference)
-          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password required");
         continue;
       }
       if (method !== 0 || !prefix && data.bytes.length !== 4)
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook");
       data.check(0, prefix + 4);
       if (data.bytes.length !== prefix + 4) invalidBiff("invalid XOR FILEPASS size");
-      const password = "VelvetSweatshop";
-      let verifier = 0;
-      for (const byte of [...password].map(char => char.charCodeAt(0)).reverse().concat(password.length))
-        verifier = ((verifier << 1) & 0x7fff | verifier >> 14) ^ byte;
-      if ((verifier ^ 0xce4b) !== data.u16(prefix + 2))
-        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password required");
+      const verify = (password: Uint8Array): boolean => {
+        admit(password.length + 1);
+        let verifier = 0;
+        for (let index = password.length - 1; index >= -1; index--)
+          verifier = ((verifier << 1) & 0x7fff | verifier >> 14) ^ (index < 0 ? password.length : password[index]!);
+        return (verifier ^ 0xce4b) === data.u16(prefix + 2);
+      };
+      let password: Uint8Array = new TextEncoder().encode("VelvetSweatshop");
+      if (!verify(password)) {
+        const secret = await acquire("xor");
+        if (secret === undefined || !verify(secret))
+          throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: encrypted Excel workbook password required");
+        password = secret;
+      }
       const key = data.u16(prefix);
-      array = Uint8Array.from([...new TextEncoder().encode(password), 0xbb, 0xff], (byte, index) => {
+      const padding = [0xbb, 0xff, 0xff, 0xba, 0xff, 0xff, 0xb9, 0x80, 0x00, 0xbe, 0x0f, 0x00, 0xbf, 0x0f, 0x00];
+      array = Uint8Array.from({ length: 16 }, (_, index) => {
+        const byte = index < password.length ? password[index]! : padding[index - password.length]!;
         const mixed = byte ^ (index % 2 ? key >> 8 : key & 255);
         return mixed >> 1 | mixed << 7;
       });

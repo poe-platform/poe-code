@@ -3,7 +3,7 @@
 Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer.
 The engine provides spreadsheet import and export, recalculation, workbook updates,
 and chart and print rendering. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
-using the native reader's built-in password. Format support has documented limits; see the
+using the native reader's built-in password or an explicit host `password.read` callback. Format support has documented limits; see the
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 
 ```ts
@@ -30,3 +30,5 @@ uses a native spreadsheet converter as a fallback. Safe Bash provides a separate
 opt-in `ssconvertCommands` plugin using the same engine.
 
 This workspace is private and is distributed through the `poe-code` SDK subpath.
+
+For encrypted BIFF imports, `createEngine({ ...config, password: { read: readWorkbookPassword } })` asks only after the built-in password fails. The callback receives the algorithm, revision, input filename when available, encoding, maximum byte length and invocation cancellation signal. Return a string or UTF-16LE bytes for RC4 (up to 255 UTF-16 code units); XOR requires explicitly encoded bytes (1–15). Return `undefined` to decline. Passwords never come from command arguments or guest environment variables, and callback failures produce a sanitized diagnostic. Encryption is read-only; exports contain plaintext. These obsolete ciphers do not authenticate workbook data.

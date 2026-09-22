@@ -323,7 +323,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Default built-in-password XOR BIFF7/8, standard RC4 and CryptoAPI RC4 BIFF8 workbook-stream gaps repaired. CryptoAPI independently decrypts all17 profiles byte-identically;34 public imports/exports/readbacks,51 native plaintext comparisons and34 browser/worker results exact,2 SDK password refusals preserve targets. Native refuses all17 encrypted CryptoAPI imports; this is an extension. Explicit passwords, ancillary streams/properties, writing and other versions/profiles remain open.",
+      "currentFinding": "Default-password XOR/standardRC4/CryptoAPI workbook gaps repaired. Explicit host password acquisition now supports nondefault BIFF8 RC4 strings/rawUTF16LE (empty/Unicode/NUL/255units) and nonempty1..15byte XOR; ten independently encoded vectors,20 public SDK/Shell successes,41 own/6484 maintained tests,build and inspected screenshot pass. Final lint/types pass; delivery/publication pending. EmptyXOR,broader profiles,ancillary streams/properties,writing and portability qualification remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -364,6 +364,11 @@
             "remoteMain": "Exact remote main verified after push; contained by924a89585 after later unrelated commit",
             "publication": "Release35770266438 cancelled; containing Release35770350988 active, audit passed/build active"
           }
+        },
+        {
+          "kind": "explicit-trusted-host-BIFF-password-acquisition",
+          "path": "docs/ssconvert/biff-password-gap-proof.json",
+          "outcome": "Original27red/3pass;41 own/6484 maintained green; ten byte-exact independently encoded vectors and ten SDK+ten Shell results exact42 with empty diagnostics. Snapshot callback, header admission before secret access, aggregate retry work, bounded encoding/copy, cancellation around await and sanitized callback errors preserve zero-write target refusals. Wider encryption remains open."
         }
       ],
       "delivery": {
@@ -380,7 +385,7 @@
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -498,7 +503,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         }
       ],
       "delivery": {
@@ -627,12 +632,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {

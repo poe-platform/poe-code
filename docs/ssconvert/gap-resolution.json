@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:45:48.274760+00:00",
+  "recordedAt": "2026-09-22T16:49:04.576065+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -25,7 +25,7 @@
     }
   },
   "candidate": {
-    "head": "158a71ab946385da39753b993fa52dc769896ecd",
+    "head": "56f45d0c64d5710d4c6fd0c0cafb8360332229ce",
     "ownedFiles": [
       {
         "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
@@ -92,16 +92,20 @@
         "sha256": "43d70a4eb420314ae90daf2a06451ef8f8f88a05ed91beeb2b0506d3094201fb"
       },
       {
-        "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
-        "sha256": "9665941cb5555c99d5b9883e5318fe1a5af024ee9ff6d4fccb024332fc9e3754"
-      },
-      {
         "path": "packages/ssconvert/src/codecs/biff.ts",
         "sha256": "589a897254ccba188776d24dde2a2d8daa929ec3c6da1ad8999efb027f1d696b"
       },
       {
         "path": "packages/ssconvert/src/codecs/biff-local-spans.test.ts",
         "sha256": "958c7a544d6a33a79cb9f4bf280943e1e2028345d2114e2055b61d4c182f08bb"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+        "sha256": "399c6c8045ee4b2e4d43f6f112011c8e99045a761563fe4b35f363b03148ef68"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-deleted-references.test.ts",
+        "sha256": "91eb52aff067760730c9c6ce1a534f4576dd5fe07ff23453010f5a2065d3ead1"
       }
     ]
   },
@@ -209,12 +213,22 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF8 local Ref3D/Area3D sheet spans repaired; 13 focused tests and four native/public CLI cells pass. BIFF7 scopes, deleted tokens and true external books remain open.",
+      "currentFinding": "BIFF8 local Ref3D/Area3D spans verified on remote main56f45d0c6; BIFF7/8 explicit RefErr3D/AreaErr3D repaired with12 native/CLI comparisons. BIFF7 scopes, deleted EXTERNSHEET endpoints and true external books remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
           "path": "docs/ssconvert/biff-local-span-gap-proof.json",
           "outcome": "original red4/green13; maintained6292 tests, lint/types/build pass; native/public CLI four exact CSV cells; screenshot inspected",
+          "delivery": {
+            "localCommit": "56f45d0c64d5710d4c6fd0c0cafb8360332229ce",
+            "remoteMain": "exact ls-remote HEAD verified",
+            "publication": "Release35756275068 pending; original35751317721 fresh-unit job in_progress"
+          }
+        },
+        {
+          "kind": "explicit-deleted-BIFF7/8-reference-token-repair",
+          "path": "docs/ssconvert/biff-deleted-reference-gap-proof.json",
+          "outcome": "original7 red/green, twelve token-class/revision memory integrations; maintained6299 tests, lint/types/build pass; twelve independent native/public CLI exact CSV cells; screenshot inspected",
           "delivery": "local candidate, pending atomic commit/push and publication"
         }
       ],

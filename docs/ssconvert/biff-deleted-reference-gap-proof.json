@@ -1,0 +1,191 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-22T16:48:23.964734+00:00",
+  "status": "BIFF7/8 explicit-deleted-token cell verified; broader BIFF family open",
+  "baseline": "56f45d0c64d5710d4c6fd0c0cafb8360332229ce",
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+      "sha256": "399c6c8045ee4b2e4d43f6f112011c8e99045a761563fe4b35f363b03148ef68"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-deleted-references.test.ts",
+      "sha256": "91eb52aff067760730c9c6ce1a534f4576dd5fe07ff23453010f5a2065d3ead1"
+    }
+  ],
+  "reference": {
+    "version": "Gnumeric 1.12.61",
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "binarySha256": "f5c5b2888d7cea27a48cb2becfab259f0429c6ded629f79f69aceb683bbf720e",
+    "profile": "Darwin arm64, existing ledger dependency profile; configuration-monitor criticals/warnings captured, no clean full-profile claim",
+    "source": "plugins/excel/ms-formula-read.c:1846-1854: RefErr3D payload6/17, AreaErr3D payload10/20; each pushes native #REF error without resolving links"
+  },
+  "reproduction": {
+    "before": "7 original tests fail: explicit RefErr3D/AreaErr3D are unsupported; truncated tokens incorrectly classified as unsupported; formula-work limit not reached",
+    "after": "7 tests pass, including twelve revision/token-class integrations and forced stale-cache recalculation, four truncated payloads and work limit",
+    "fixture": "Original memory BIFF7/8 formula tokens 0x3c,5c,7c,3d,5d,7d; deliberately FF payload, followed by integer1 and Add; expected =#REF!+1 and recalculated #REF!"
+  },
+  "nativeFixtureConstruction": "Each original framed byte stream stored as inputHex: full16byte BOF, BOUNDSHEET with absolute worksheet offset and revision-dependent string header, EOF, worksheet BOF, formula cache0 and original token plus1, EOF. No production writer or native dependency in unit tests.",
+  "cases": [
+    {
+      "revision": 7,
+      "token": 60,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002c00000000000000000000000000000000000000000016003cffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "9eb85b7ad00426eb0985d267618a134346c332480f2e4fbc530ce239daa6108d",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "4965b20091c3bbfd97df57645b75e80dd98cd19ff4a697fd6ded2f66dce92bb8",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 7,
+      "token": 92,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002c00000000000000000000000000000000000000000016005cffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "b80bda832dee26b8e377254a4e32a51c9fdca681c9baebaa3a040670a9f33f86",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "468c7d2440dd4e548eb47017dd4baf343ae5c7cc7ba988c317f5a002f53b9bb4",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 7,
+      "token": 124,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002c00000000000000000000000000000000000000000016007cffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "9b4e2006e2c6a17a6d34325679204c1b43163033c9864ba3f00d5d2d348115dd",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "39b0e719009909e93b1710cdcec4e3bcc2aee885c2f1cc8b1a75e0a452e724ef",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 7,
+      "token": 61,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002f00000000000000000000000000000000000000000019003dffffffffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "0a905fc8c4c3c42f01b2ef878b04c4a77e7f945bdf93032f894248580d0cb4b2",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "90e6ae40ab9bde05c592836b415ad22fe5f4d88da6cbe52e7d2f80c9cf87daf2",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 7,
+      "token": 93,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002f00000000000000000000000000000000000000000019005dffffffffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "bc38c317cc6fe2d34934546aeb9ace44799663f3c98493f8c5d3c4014fb89ecc",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "52140fa0f30f8fc59450ab7fdd5a07cbd8f6cfabc24d5bf3d84f6c988a423ab4",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 7,
+      "token": 125,
+      "inputHex": "0908100000050500bb0dcc0700000000060000008500080024000000000001530a0000000908100000051000bb0dcc07000000000600000006002f00000000000000000000000000000000000000000019007dffffffffffffffffffffffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "b5316d123c19f746f6704fa14472192f89c2f47b28ed2f96f56ecf159e096e42",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "0b7a3a0de635745f788bc00fafcbc14d0e557558220c97fd238329f145321680",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 60,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600210000000000000000000000000000000000000000000b003cffffffffffff1e0100030a000000",
+      "inputSha256": "77dfec384a397858d56afcb69ac2d93b4c50dd949dfa6f4a044c41f4cfe61971",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "8df309a398568dda4903b02768df84e5bc1f075b1804a48e92735fa8b7e18f15",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 92,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600210000000000000000000000000000000000000000000b005cffffffffffff1e0100030a000000",
+      "inputSha256": "53db87d4be0945853dc0c859c57cb6ba57a6709a8a562896332017f6e8955f3f",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "78d39e98085774a00891407b32b008d203134586f6f7bc53b8c20d0bf75d3c33",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 124,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600210000000000000000000000000000000000000000000b007cffffffffffff1e0100030a000000",
+      "inputSha256": "ee69a1da74a954e320cf6662f31669d15c8da82302d5ee60a978c0fd3cba9076",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "89ca8c0dc19ce6f157cb56723735029bb0ed68f8cb8416ba6e0c47739e2f6cc2",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 61,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600250000000000000000000000000000000000000000000f003dffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "d9b0d41a1f82e39de2d12ed3d3d5ab3c66621a409a0e2f90a9ed92c82e58a2d8",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "e7b7f3c57a12ae0fa1cf7f31b5e7e7a0f474760542e7115e18876d837da5f4b0",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 93,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600250000000000000000000000000000000000000000000f005dffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "794821738f438b7c78a0dc318369f3b7952a670d72f78b5119b6dd0a6bdd095b",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "8802c954de6cec819e2bf3ffd2c4b3e745c567c53b40a16737e25f64b8166c3f",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    },
+    {
+      "revision": 8,
+      "token": 125,
+      "inputHex": "0908100000060500bb0dcc070000000006000000850009002500000000000100530a0000000908100000061000bb0dcc0700000000060000000600250000000000000000000000000000000000000000000f007dffffffffffffffffffff1e0100030a000000",
+      "inputSha256": "49f7b0ab120cee6ce57fea7d6f4fc94fe52388e553e69e760da53a11effd0688",
+      "nativeExit": 0,
+      "nativeCsv": "#REF!\n",
+      "nativeStderrSha256": "939224d1562d8a0379359645de492fd77e1f46d5d48bf78684090af7a564222b",
+      "sdkExit": 0,
+      "sdkCsv": "#REF!\n",
+      "sdkStderr": ""
+    }
+  ],
+  "checks": {
+    "focused": "npx vitest run packages/ssconvert/src/codecs/biff-deleted-references.test.ts packages/ssconvert/src/codecs/biff-local-spans.test.ts:20 pass",
+    "maintainedTest": "npm test --workspace=@poe-code/ssconvert:319 files,6299 tests passed",
+    "maintainedLint": "npm run lint --workspace=@poe-code/ssconvert: passed eslint and runtime/test/consumer TypeScript",
+    "selectedBuild": "npm run build:workspaces -- --workspace=@poe-code/ssconvert: passed",
+    "publicCLI": "all12 rebuilt SDK runCommand/native --recalc -T Gnumeric_stf:stf_csv cases: exit0, byte-exact #REF! newline, empty SDK stderr; known native profile warnings remain",
+    "visual": "twelve-case CLI-output screenshot inspected; all native-equality controls true; no unit screenshot tests",
+    "screenshotSha256": "318476973dfc20f652706d15b433a89e3717920c1e6e2a8207960fa65aca775d"
+  },
+  "remaining": [
+    "BIFF7 local 3D scope/table semantics",
+    "deleted endpoints in EXTERNSHEET for non-error tokens",
+    "external workbook/detached-sheet records",
+    "other applicable token classes",
+    "final integrated checks and publication"
+  ]
+}

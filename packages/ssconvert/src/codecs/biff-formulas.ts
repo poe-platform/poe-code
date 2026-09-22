@@ -94,6 +94,10 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     } else if (token === 0x24 || token === 0x2c) { push(reference(offset, token === 0x2c)); offset += context.revision >= 8 ? 4 : 3; }
     else if (token === 0x25 || token === 0x2d) { push(area(offset, token === 0x2d)); offset += context.revision >= 8 ? 8 : 6; }
     else if (token === 0x2a || token === 0x2b) { const size = context.revision >= 8 ? token === 0x2a ? 4 : 8 : token === 0x2a ? 3 : 6; data.check(offset, size); offset += size; push("#REF!"); }
+    else if (token === 0x3c || token === 0x3d) {
+      const size = context.revision >= 8 ? token === 0x3c ? 6 : 10 : token === 0x3c ? 17 : 20;
+      data.check(offset, size); offset += size; push("#REF!");
+    }
     else if (token === 0x3a || token === 0x3b) {
       if (context.revision < 8) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: old BIFF external formula reference");
       const sheet = context.externalSheets[data.u16(offset)]; offset += 2;

@@ -480,6 +480,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("ls", async context => {
       let sort: "name" | "time" | "size" = "name";
+      let indicator: "none" | "slash" | "file-type" | "classify" = "none";
       let ended = false;
       const args: string[] = [];
       for (let index = 0; index < context.args.length; index++) {
@@ -491,14 +492,36 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           args.push(selection === "time" ? "-t" : "-S");
           continue;
         }
+        if (!ended && (argument === "--indicator-style" || argument.startsWith("--indicator-style="))) {
+          const selection = argument === "--indicator-style" ? context.args[++index] : argument.slice(18);
+          if (selection === undefined) throw new UsageError("option '--indicator-style' requires an argument");
+          const styles = ["none", "slash", "file-type", "classify"] as const;
+          const matches = styles.filter(style => style.startsWith(selection));
+          if (matches.length !== 1) {
+            throw new PublicDiagnostic(`${matches.length ? "ambiguous" : "invalid"} argument '${selection}' for '--indicator-style'\nValid arguments are:\n${styles.map(style => `  - '${style}'`).join("\n")}\nTry 'ls --help' for more information.`);
+          }
+          indicator = matches[0]!;
+          continue;
+        }
+        if (!ended && argument === "--classify") indicator = "classify";
         args.push(argument);
         if (argument === "--") ended = true;
         if (!ended && argument.startsWith("-") && !argument.startsWith("--")) for (const flag of argument.slice(1)) {
           if (flag === "t") sort = "time";
           else if (flag === "S") sort = "size";
+          else if (flag === "F") indicator = "classify";
+          else if (flag === "p") indicator = "slash";
         }
       }
-      const parsed = options(args, "aAl1dFprRLhtS", { all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      const parsed = options(args, "aAl1dFprRLhtSQ", { "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      const formatName = (name: string): string => {
+        if (!parsed.flags.has("Q")) return escapeText(name, "display");
+        let quoted = '"';
+        for (const character of name) {
+          quoted += character === '"' ? '\\"' : character === "\x07" ? "\\a" : escapeText(character, "display");
+        }
+        return quoted + '"';
+      };
       const operands = parsed.operands.length ? parsed.operands : ["."];
       interface ListingEntry { path: string; display: string; stat: FileStat }
       let outputWritten = false;
@@ -506,7 +529,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         await admitFilesystemModes(context, "ls", ["entry"], [path]);
         let stat = await context.fs[parsed.flags.has("L") ? "stat" : "lstat"](path, { signal: context.signal });
         context.signal.throwIfAborted();
-        if (operand && stat.type === "symlink" && !parsed.flags.has("L") && !parsed.flags.has("d") && !parsed.flags.has("l") && !parsed.flags.has("F")) {
+        if (operand && stat.type === "symlink" && !parsed.flags.has("L") && !parsed.flags.has("d") && !parsed.flags.has("l") && indicator !== "classify") {
           try {
             const target = await context.fs.stat(path, { signal: context.signal });
             if (target.type === "directory") stat = target;
@@ -540,17 +563,25 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const tenths = (bytes * 10n + scale - 1n) / scale;
         return (tenths < 100n ? `${tenths / 10n}.${tenths % 10n}` : String((bytes + scale - 1n) / scale)) + units[unit]!;
       };
+      const suffixFor = (stat: FileStat): string => {
+        if (stat.type === "directory" && indicator !== "none") return "/";
+        if ((indicator === "file-type" || indicator === "classify") && stat.type === "symlink") return "@";
+        if (indicator === "classify" && stat.type === "file" && stat.mode & 0o111) return "*";
+        return "";
+      };
       const render = async ({ path, display, stat }: ListingEntry): Promise<void> => {
-        let suffix = stat.type === "directory" && (parsed.flags.has("F") || parsed.flags.has("p")) ? "/" : "";
-        if (parsed.flags.has("F") && stat.type === "symlink") suffix = "@";
-        else if (parsed.flags.has("F") && stat.type === "file" && stat.mode & 0o111) suffix = "*";
+        let suffix = suffixFor(stat);
         if (parsed.flags.has("l")) {
           let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
           const date = new Date(stat.mtimeMs).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);
-            needCapability(context, "readlink"); target = ` -> ${escapeText(await context.fs.readlink!(path, { signal: context.signal }), "display")}`;
+            needCapability(context, "readlink");
+            const link = await context.fs.readlink!(path, { signal: context.signal });
+            const targetStat = indicator === "none" || indicator === "slash" ? undefined : await maybeStat(context, path);
+            suffix = "";
+            target = ` -> ${formatName(link)}${targetStat ? suffixFor(targetStat) : ""}`;
           }
           if (stat.type === "character") {
             for (const number of [stat.rdevMajor, stat.rdevMinor]) {
@@ -560,8 +591,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             size = `${stat.rdevMajor ?? "?"}, ${stat.rdevMinor ?? "?"}`;
           }
-          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${escapeText(display, "display")}${suffix}${target}\n`);
-        } else await output(context, `${escapeText(display, "display")}${suffix}\n`);
+          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${formatName(display)}${suffix}${target}\n`);
+        } else await output(context, `${formatName(display)}${suffix}\n`);
         outputWritten = true;
       };
       const list = async ({ path, display }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
@@ -575,7 +606,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         ancestors.add(physical);
         try {
-          if (header) { await output(context, `${outputWritten ? "\n" : ""}${escapeText(display, "display")}:\n`); outputWritten = true; }
+          if (header) { await output(context, `${outputWritten ? "\n" : ""}${formatName(display)}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
           const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
           if (parsed.flags.has("a")) for (const name of [".", ".."]) {

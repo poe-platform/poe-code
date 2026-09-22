@@ -41,7 +41,13 @@ export async function boundedProcess(executable: string, args: readonly string[]
   let overflow = false;
   let size = 0;
   const kill = (): void => { if (child.pid) { try { process.kill(-child.pid, "SIGKILL"); } catch {} } };
-  const timer = setTimeout(() => { timedOut = true; kill(); }, options.deadlineMs ?? 4000);
+  let deadlineCheck: ReturnType<typeof setImmediate> | undefined;
+  const timer = setTimeout(() => {
+    // Allow a complete poll cycle to drain queued process/pipe completion.
+    deadlineCheck = setImmediate(() => {
+      deadlineCheck = setImmediate(() => { timedOut = true; kill(); });
+    });
+  }, options.deadlineMs ?? 4000);
   const capture = (target: Buffer[]) => (chunk: Buffer): void => {
     size += chunk.length;
     if (size > 2 * 1024 * 1024) { overflow = true; kill(); } else target.push(chunk);
@@ -53,12 +59,19 @@ export async function boundedProcess(executable: string, args: readonly string[]
   try {
     const outcome = await new Promise<{ code: number | null; signal: string | null }>((accept, reject) => {
       child.on("error", reject);
-      child.on("close", (code, signal) => accept({ code, signal }));
+      child.on("close", (code, signal) => {
+        if (deadlineCheck) clearImmediate(deadlineCheck);
+        accept({ code, signal });
+      });
     });
     return { argv: [executable, ...args], argv0: options.argv0 ?? executable, cwd: options.cwd, env: options.env,
       pid: child.pid, ...outcome, timedOut, overflow, stdoutHex: Buffer.concat(stdout).toString("hex"), stderrHex: Buffer.concat(stderr).toString("hex"),
       stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(), elapsedMs: performance.now() - started };
-  } finally { clearTimeout(timer); kill(); }
+  } finally {
+    clearTimeout(timer);
+    if (deadlineCheck) clearImmediate(deadlineCheck);
+    kill();
+  }
 }
 
 export async function sourceHashes(directory = "src"): Promise<Record<string, string>> {

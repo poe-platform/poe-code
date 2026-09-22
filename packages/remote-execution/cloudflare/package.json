@@ -1,0 +1,14 @@
+{
+ "name": "poe-media-cloudflare-deployment",
+ "private": true,
+ "type": "module",
+ "dependencies": {
+  "@cloudflare/sandbox": "0.12.9"
+ },
+ "devDependencies": {
+  "wrangler": "4.131.2"
+ },
+ "scripts": {
+  "lint": "wrangler types --path worker-configuration.d.ts && tsc --project tsconfig.json"
+ }
+}

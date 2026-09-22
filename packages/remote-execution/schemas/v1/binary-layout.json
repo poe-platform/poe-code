@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "status": "review-draft",
+  "normativeSource": "binary.md",
+  "contentType": "application/vnd.poe.remote-execution.v1+octet-stream",
+  "byteOrder": "big-endian",
+  "headerBytes": 40,
+  "maxPayloadBytes": 1048576,
+  "fields": [
+    {
+      "name": "magic",
+      "offset": 0,
+      "width": 4,
+      "octets": [
+        82,
+        69,
+        88,
+        49
+      ]
+    },
+    {
+      "name": "major",
+      "offset": 4,
+      "width": 1,
+      "value": 1
+    },
+    {
+      "name": "kind",
+      "offset": 5,
+      "width": 1,
+      "values": {
+        "DATA": 1,
+        "END": 2,
+        "CONTROL": 3
+      }
+    },
+    {
+      "name": "reserved",
+      "offset": 6,
+      "width": 2,
+      "value": 0
+    },
+    {
+      "name": "channelId",
+      "offset": 8,
+      "width": 4
+    },
+    {
+      "name": "payloadBytes",
+      "offset": 12,
+      "width": 4
+    },
+    {
+      "name": "sequence",
+      "offset": 16,
+      "width": 8
+    },
+    {
+      "name": "channelOffset",
+      "offset": 24,
+      "width": 8
+    },
+    {
+      "name": "correlationId",
+      "offset": 32,
+      "width": 8
+    }
+  ],
+  "payload": {
+    "offset": 40,
+    "lengthFrom": "payloadBytes",
+    "DATA": "raw bytes",
+    "END": "zero bytes",
+    "CONTROL": "bounded UTF-8 JSON metadata"
+  },
+  "channels": {
+    "control": 0,
+    "stdin": 1,
+    "stdout": 2,
+    "stderr": 3,
+    "dynamicMinimum": 4
+  },
+  "admission": [
+    "Reject invalid header and negotiated bounds before payload allocation.",
+    "Sequence is contiguous per direction from 1; DATA offsets are contiguous per channel from 0.",
+    "END occurs once per channel at its final byte offset; transport EOF is not END.",
+    "CONTROL uses channel 0 and offset 0; DATA and END use admitted nonzero channels.",
+    "Correlation and dynamic channel ownership bind to authenticated session, epoch and operation.",
+    "Await destination writes before acknowledgement; replay cannot prove exactly-once publication.",
+    "Use bigint for unsigned 64-bit framing fields; canonical object offsets separately obey signed off_t limits."
+  ],
+  "scheduling": {
+    "controlCapacity": "Reserve bounded control admission independently of data credit before accepting native work. ACK, callback results, cancellation and lease work cannot depend on data credit they release.",
+    "sequence": "Schedule before emission; never reorder emitted frame sequences.",
+    "fallback": "Independent authenticated HTTP callback-result/cancel/signal/lease routes remain available when output-lane delivery is blocked.",
+    "exhaustion": "Pause dependent work within negotiated budgets/deadlines, then report observed cancellation, timeout or unknown outcome; never discard frames or synthesize END."
+  },
+  "acknowledgements": {
+    "uploadOffset": "Validated staging only; distinct from blob commit and materialization readiness.",
+    "frameCursor": "Completed contiguous writes to one named consumer; persistence loss may leave delivery unknown.",
+    "canonicalResult": "Actual settled progress on an authorized operation; receipt loss does not authorize replay.",
+    "terminal": "Known or unknown effect barrier, ended production lanes and server cleanup; client writes and local cleanup settle independently.",
+    "materializationRevision": "Inspectable progress/readiness under the selected operation profile; not source freshness, canonical publication by private preparation, or a directory transaction."
+  },
+  "ownership": {
+    "input": "Borrowed ByteSource or same-cursor optional stdinInput; never consume both. Seek requires admitted seek capability.",
+    "outputs": "Borrowed ByteSink destinations; each awaited write determines delivery for that consumer.",
+    "extraDescriptors": "Additive admitted-handle leases; wire IDs never authorize native fd numbers. Lease close drains operations without closing shell descriptors.",
+    "cleanup": "Register before acquisition; execute finally and caller await the same idempotent local barrier. Track server termination/disposal separately."
+  },
+  "x-design-review": {
+    "status": "review-draft",
+    "contract": "../../frontend-server-contract.md",
+    "sourceBinding": "frontend-server-source-binding-20260917.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "runtimeConformanceClaim": false
+  },
+  "x-boundary-admission-review": {
+    "status": "review-draft",
+    "contract": "../../boundary-admission-review.md",
+    "validation": "boundary-admission-review.json",
+    "runtimeConformanceClaim": false,
+    "schemaSelection": "Apply admission-map mandatory streaming overrides, then explicitly negotiated profile overrides; no legacy buffered fallback."
+  },
+  "x-execute-settlement": {
+    "status": "review-draft",
+    "contract": "../../contracts.md#execute-settlement-decisions-against-the-current-contracts",
+    "requestBoundary": "In-process structural capability object; never serialize fs, sinks, input cursor, signal, cleanup registrar or admitted handles.",
+    "resolveRequires": [
+      "qualified native shell status",
+      "all admitted effects resolved",
+      "output END and awaited writes for this named consumer",
+      "server-owned cleanup settled",
+      "local invocation-owned cleanup settled"
+    ],
+    "unknownEffectOrDelivery": "Reject incomplete execute lifecycle while retaining every known native and progress observation.",
+    "cancellation": "Preserve local AbortSignal reason; cancellation request, confirmed termination and resource disposal are separate observations.",
+    "ownership": "Destination closure retires its admitted output scope; borrowed siblings, sessions and original shell descriptors retain their owners.",
+    "lostState": "No exactly-once claim, synthetic END/status, rollback or automatic native resubmission.",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-source-bound-lifecycle-selection": {
+    "status": "review-draft",
+    "contract": "../../source-bound-lifecycle-selection.md",
+    "validation": "source-bound-lifecycle-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-source-bound-lifecycle-acceptance.md",
+    "runtimeConformanceClaim": false,
+    "wireShapeChange": false
+  },
+  "x-js-server-selection": {
+    "status": "review-draft",
+    "contract": "../../contracts.md#current-js-frontend-and-generic-server-selection",
+    "sourceBinding": "js-server-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-js-server-contract-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-contract-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-source-design-review-september-17",
+    "sourceReceipt": "current-contract-review.json",
+    "acceptancePlan": "../../../plans/remote-media-current-contract-design.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-request-design-selection": {
+    "status": "design-only",
+    "sourceReceipt": "request-design-selection.json",
+    "contract": "../../contracts.md#selected-design-for-this-request",
+    "acceptancePlan": "../../../plans/remote-media-request-design-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-planning-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-review",
+    "sourceReceipt": "current-planning-review.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false,
+    "semanticAdmission": [
+      "Accounted bound operations and cleanup; preserve acquired handle access rights.",
+      "Object identity is correlation, not handle authority or open-description cursor.",
+      "Close consumes ownership on failure; disposal drains and attempts all owned closes.",
+      "Dense owned byte directory components; malformed backend listings fail EIO, limits fail EFBIG.",
+      "No external-writer serialization, native mediation or exactly-once inference from an authority."
+    ]
+  },
+  "x-js-media-planning-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#js-media-frontend-and-generic-sandbox-decision",
+    "sourceReceipt": "request-review-20260918.json",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-contract-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-request-contract-map",
+    "sourceReceipt": "planning-contract-selection.json",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-design-entrypoint": {
+    "status": "design-only",
+    "contract": "../../contracts.md#design-entrypoint-and-precedence",
+    "validation": "design-entrypoint-validation.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-structural-engine-review": {
+    "status": "design-only",
+    "sourceBinding": "structural-engine-source-review.json",
+    "contract": "../../contracts.md#structural-shell-engine",
+    "acceptancePlan": "../../../plans/media-frontend-generic-sandbox-design.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-turn-admission-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-turn-admission-review",
+    "sourceReceipt": "planning-turn-admission-review.json",
+    "acceptancePlan": "../../../plans/remote-media-design-review-20260919.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-frontend-sandbox-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-turn-admission-review",
+    "sourceReceipt": "current-frontend-sandbox-review.json",
+    "acceptancePlan": "../../../plans/remote-media-design-review-20260919.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-frontend-native-admission": {
+    "status": "design-only",
+    "contract": "../../contracts.md#frontend-native-mediation-and-schema-admission",
+    "admission": "admission-map.json",
+    "structuralRequestIsWireModel": false,
+    "descriptorOffsets": "Current numeric input/lease facets require safe integers; exact wire offsets do not upgrade those capabilities.",
+    "nativeMediation": "Build-qualified live canonical mediation is required independently of grammar discovery and private materialization.",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-turn-structural-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#planning-turn-selection-js-frontend-and-generic-sandbox",
+    "sourceReceipt": "planning-turn-source-binding.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-observable-boundary-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#planning-review-observable-boundaries",
+    "sourceReceipt": "planning-turn-contract-recheck.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-source-admission": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-request-selection-against-shell-and-filesystem-contracts",
+    "sourceReceipt": "planning-turn-source-binding.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "runtimeConformanceClaim": false,
+    "wireShapeChange": false,
+    "packageOwners": [
+      "media-cli",
+      "remote-execution"
+    ],
+    "runnerAdoption": "Node server candidate only; qualify byte argv, spawn failure, signal identity, descriptor bridge and drain before adoption. No shared runner change.",
+    "standaloneOperations": [
+      "upload",
+      "materialize"
+    ],
+    "settlementAxes": [
+      "native",
+      "canonicalEffects",
+      "consumerDelivery",
+      "cancellation",
+      "serverCleanup",
+      "localCleanup"
+    ],
+    "freshness": "Backend-declared live reads; retained identity and materialization revision do not freeze contents. Cache only verified immutable blobs or qualified stable versions.",
+    "canonicalFacets": {
+      "filesystem": "accounted FileSystem; optional objects requires independent qualification",
+      "exactSeek": "same-description capability, never inferred from positional read or pathname reopen",
+      "cleanup": "engine finally and invocation owner await the same registered barrier"
+    },
+    "publicTransfer": "upload and materialize without media-cli",
+    "visibility": "completed live canonical effects before native acknowledgement; backend-declared read freshness",
+    "recovery": "inspect retained state; loss is unknown, never automatic uncertain resubmission"
+  }
+}

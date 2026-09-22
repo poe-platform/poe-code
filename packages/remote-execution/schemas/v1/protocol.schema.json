@@ -1,0 +1,2879 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:poe:remote-execution:protocol:v1",
+  "title": "Remote execution v1 draft control models",
+  "$ref": "#/$defs/Control",
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "Uint64": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})$",
+      "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+    },
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "maxJobs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxHandles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxArgvBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxManifestEntries": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxFrameBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1048576
+        },
+        "maxInflightBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxBlobBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxReplayBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxCallbacks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxNativeMemoryBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxNativeProcesses": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxJobDurationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "maxJobs",
+        "maxHandles",
+        "maxArgvBytes",
+        "maxManifestEntries",
+        "maxFrameBytes",
+        "maxInflightBytes",
+        "maxBlobBytes",
+        "maxReplayBytes",
+        "maxCallbacks",
+        "maxNativeMemoryBytes",
+        "maxNativeProcesses",
+        "maxJobDurationMs"
+      ],
+      "additionalProperties": false
+    },
+    "Build": {
+      "type": "object",
+      "properties": {
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "imageDigest": {
+          "type": "string"
+        },
+        "os": {
+          "type": "string"
+        },
+        "architecture": {
+          "type": "string"
+        },
+        "executables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "librariesDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "grammarRevision": {
+          "type": "string",
+          "description": "Optional for generic builds; required and pinned by injected media tool definitions."
+        },
+        "sourceRevision": {
+          "type": "string",
+          "description": "Optional for generic builds; required and pinned by injected media tool definitions."
+        },
+        "inventoryDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "assetsDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "launcherRevision": {
+          "type": "string"
+        },
+        "bridgeRevision": {
+          "type": "string"
+        },
+        "runtimeRequirements": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policyDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "configDigest": {
+          "$ref": "#/$defs/Digest"
+        },
+        "policyDifferences": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inventory": {
+          "type": "object",
+          "properties": {
+            "codecs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "coders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "delegates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "fonts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "profiles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "codecs",
+            "coders",
+            "delegates",
+            "fonts",
+            "profiles"
+          ],
+          "additionalProperties": false
+        },
+        "runtimeEnvironment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Fixed native runtime environment; caller conflicts fail admission."
+        }
+      },
+      "required": [
+        "digest",
+        "imageDigest",
+        "os",
+        "architecture",
+        "executables",
+        "librariesDigest",
+        "inventoryDigest",
+        "assetsDigest",
+        "launcherRevision",
+        "bridgeRevision",
+        "runtimeRequirements",
+        "policyDigest",
+        "configDigest",
+        "policyDifferences",
+        "inventory",
+        "runtimeEnvironment"
+      ],
+      "additionalProperties": false
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "protocolMajor": {
+          "const": 1
+        },
+        "builds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Build"
+          }
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "requestStreaming": {
+          "type": "boolean"
+        },
+        "leaseMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "retentionMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "cleanupGraceMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "protocolMajor",
+        "builds",
+        "features",
+        "limits",
+        "requestStreaming",
+        "leaseMs",
+        "retentionMs"
+      ],
+      "additionalProperties": false
+    },
+    "Binding": {
+      "type": "object",
+      "properties": {
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "logicalRoot": {
+          "type": "string"
+        },
+        "rights": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "read",
+              "write",
+              "metadata",
+              "links"
+            ]
+          }
+        },
+        "grantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "profile": {
+          "enum": [
+            "live",
+            "snapshot"
+          ]
+        }
+      },
+      "required": [
+        "namespaceId",
+        "logicalRoot",
+        "rights",
+        "grantId",
+        "profile"
+      ],
+      "additionalProperties": false
+    },
+    "SessionRequest": {
+      "type": "object",
+      "properties": {
+        "buildDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Binding"
+          }
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "requiredFeatures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Required negotiated profiles, including canonical-object-v1 for byte namespace callbacks. Refuse before job effects if unsupported."
+        }
+      },
+      "required": [
+        "buildDigest",
+        "bindings",
+        "limits"
+      ],
+      "additionalProperties": false
+    },
+    "Session": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "buildDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Binding"
+          }
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "leaseExpiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "state": {
+          "enum": [
+            "open",
+            "closing",
+            "closed",
+            "lost"
+          ]
+        }
+      },
+      "required": [
+        "sessionId",
+        "epoch",
+        "buildDigest",
+        "bindings",
+        "limits",
+        "leaseExpiresAt",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "LeaseRequest": {
+      "type": "object",
+      "properties": {
+        "leaseMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "leaseMs"
+      ],
+      "additionalProperties": false
+    },
+    "UploadRequest": {
+      "type": "object",
+      "properties": {
+        "size": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "size",
+        "digest"
+      ],
+      "additionalProperties": false
+    },
+    "Upload": {
+      "type": "object",
+      "properties": {
+        "uploadId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "committedOffset": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "state": {
+          "enum": [
+            "open",
+            "committed",
+            "aborted",
+            "expired"
+          ]
+        },
+        "blobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "uploadId",
+        "size",
+        "digest",
+        "committedOffset",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "Blob": {
+      "type": "object",
+      "properties": {
+        "blobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "size": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "blobId",
+        "size",
+        "digest"
+      ],
+      "additionalProperties": false
+    },
+    "Entry": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "file"
+            },
+            "blobId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "mode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "mtimeMs": {
+              "type": "number"
+            },
+            "identityRef": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "pathBytes": {
+              "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "type",
+            "blobId"
+          ],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "path"
+              ],
+              "not": {
+                "required": [
+                  "pathBytes"
+                ]
+              }
+            },
+            {
+              "required": [
+                "pathBytes"
+              ],
+              "not": {
+                "required": [
+                  "path"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "directory"
+            },
+            "mode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "mtimeMs": {
+              "type": "number"
+            },
+            "pathBytes": {
+              "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "path"
+              ],
+              "not": {
+                "required": [
+                  "pathBytes"
+                ]
+              }
+            },
+            {
+              "required": [
+                "pathBytes"
+              ],
+              "not": {
+                "required": [
+                  "path"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "symlink"
+            },
+            "target": {
+              "type": "string"
+            },
+            "pathBytes": {
+              "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/BytePath"
+            },
+            "targetBytes": {
+              "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "path"
+              ],
+              "not": {
+                "required": [
+                  "pathBytes"
+                ]
+              }
+            },
+            {
+              "required": [
+                "pathBytes"
+              ],
+              "not": {
+                "required": [
+                  "path"
+                ]
+              }
+            }
+          ],
+          "allOf": [
+            {
+              "oneOf": [
+                {
+                  "required": [
+                    "target"
+                  ],
+                  "not": {
+                    "required": [
+                      "targetBytes"
+                    ]
+                  }
+                },
+                {
+                  "required": [
+                    "targetBytes"
+                  ],
+                  "not": {
+                    "required": [
+                      "target"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "type": {
+              "const": "hardlink"
+            },
+            "identityRef": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "pathBytes": {
+              "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "type",
+            "identityRef"
+          ],
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "required": [
+                "path"
+              ],
+              "not": {
+                "required": [
+                  "pathBytes"
+                ]
+              }
+            },
+            {
+              "required": [
+                "pathBytes"
+              ],
+              "not": {
+                "required": [
+                  "path"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "Manifest": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "capture": {
+          "enum": [
+            "observed-traversal",
+            "immutable-snapshot"
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Entry"
+          }
+        }
+      },
+      "required": [
+        "version",
+        "capture",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestRecord": {
+      "type": "object",
+      "properties": {
+        "manifestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "manifest": {
+          "$ref": "#/$defs/Manifest"
+        }
+      },
+      "required": [
+        "manifestId",
+        "digest",
+        "manifest"
+      ],
+      "additionalProperties": false
+    },
+    "MaterializeRequest": {
+      "type": "object",
+      "properties": {
+        "manifestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "root": {
+          "type": "string"
+        },
+        "expectedRevision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conflictPolicy": {
+          "enum": [
+            "refuse",
+            "overwrite"
+          ]
+        },
+        "grantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "manifestId",
+        "namespaceId",
+        "root",
+        "expectedRevision",
+        "conflictPolicy",
+        "grantId"
+      ],
+      "additionalProperties": false
+    },
+    "Materialization": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "root": {
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "accepted",
+            "applying",
+            "complete",
+            "partial",
+            "failed",
+            "unknown"
+          ]
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "error": {
+          "$ref": "#/$defs/Failure"
+        }
+      },
+      "required": [
+        "operationId",
+        "namespaceId",
+        "root",
+        "state",
+        "revision",
+        "effects"
+      ],
+      "additionalProperties": false
+    },
+    "Grant": {
+      "type": "object",
+      "properties": {
+        "grantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "root": {
+          "type": "string"
+        },
+        "handleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "open",
+              "read",
+              "write",
+              "seek",
+              "stat",
+              "lstat",
+              "readdir",
+              "mkdir",
+              "truncate",
+              "rename",
+              "unlink",
+              "rmdir",
+              "readlink",
+              "symlink",
+              "link",
+              "chmod",
+              "utimes",
+              "close",
+              "metadata",
+              "append"
+            ]
+          }
+        },
+        "maxBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "maxOperations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ranges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/FileOffset"
+              },
+              "endExclusive": {
+                "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/FileOffset"
+              }
+            },
+            "required": [
+              "start",
+              "endExclusive"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Optional narrowing to byte intervals. Validate start <= endExclusive and every access within an authorized interval; omission never widens host authority."
+        }
+      },
+      "required": [
+        "grantId",
+        "operations",
+        "maxBytes",
+        "maxOperations",
+        "expiresAt"
+      ],
+      "additionalProperties": false
+    },
+    "Descriptor": {
+      "type": "object",
+      "properties": {
+        "fd": {
+          "type": "integer",
+          "minimum": 3
+        },
+        "handleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "openDescriptionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "grantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "rights": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "read",
+              "write",
+              "seek",
+              "stat"
+            ]
+          }
+        },
+        "seekable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "fd",
+        "handleId",
+        "openDescriptionId",
+        "grantId",
+        "rights",
+        "seekable"
+      ],
+      "additionalProperties": false,
+      "description": "handleId leases a shell-admitted description; openDescriptionId correlates shared cursor, never file identity or native fd. fd/rights uniqueness and seekability checked before acquisition."
+    },
+    "Input": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "stream"
+            },
+            "seekable": {
+              "const": false
+            }
+          },
+          "required": [
+            "kind",
+            "seekable"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "handle"
+            },
+            "handleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "grantId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "position": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            "seekable": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "handleId",
+            "grantId",
+            "position",
+            "seekable"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "blob"
+            },
+            "blobId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "seekable": {
+              "const": true
+            }
+          },
+          "required": [
+            "kind",
+            "blobId",
+            "seekable"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "JobRequest": {
+      "type": "object",
+      "properties": {
+        "buildDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "toolId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          }
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "materializationRevision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stdin": {
+          "$ref": "#/$defs/Input"
+        },
+        "descriptors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Descriptor"
+          }
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Grant"
+          }
+        },
+        "freshness": {
+          "enum": [
+            "live",
+            "snapshot"
+          ]
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        },
+        "frontendContract": {
+          "$ref": "#/$defs/FrontendContract"
+        },
+        "requiredFeatures": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Required negotiated profiles, including canonical-object-v1 for byte namespace callbacks. Refuse before job effects if unsupported."
+        }
+      },
+      "required": [
+        "buildDigest",
+        "toolId",
+        "args",
+        "namespaceId",
+        "materializationRevision",
+        "cwd",
+        "env",
+        "stdin",
+        "descriptors",
+        "grants",
+        "freshness",
+        "limits",
+        "frontendContract"
+      ],
+      "additionalProperties": false
+    },
+    "Outcome": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "exited"
+            },
+            "exitCode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "required": [
+            "kind",
+            "exitCode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "signaled"
+            },
+            "signal": {
+              "type": "string"
+            },
+            "signalNumber": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "kind",
+            "signal",
+            "signalNumber"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "spawnError"
+            },
+            "code": {
+              "type": "string"
+            },
+            "stage": {
+              "type": "string"
+            },
+            "message": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "code",
+            "stage",
+            "message"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "canceled"
+            },
+            "terminationConfirmed": {
+              "type": "boolean"
+            },
+            "signal": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "terminationConfirmed"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "executionError"
+            },
+            "error": {
+              "$ref": "#/$defs/Failure"
+            }
+          },
+          "required": [
+            "kind",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "unknown"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "reason"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Job": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "buildDigest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "state": {
+          "enum": [
+            "accepted",
+            "running",
+            "draining",
+            "terminal"
+          ]
+        },
+        "cancelRequested": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "effectBarrier": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "outputComplete": {
+          "type": "boolean"
+        },
+        "retainedUntil": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "processOutcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "cleanup": {
+          "enum": [
+            "pending",
+            "complete",
+            "unknown"
+          ]
+        },
+        "invocationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "jobState": {
+          "$ref": "#/$defs/JobStateEvent"
+        },
+        "recoveryActions": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "inspect",
+              "attach",
+              "renew-credentials",
+              "recover-partial-outputs",
+              "reauthorize",
+              "start-new-invocation"
+            ]
+          }
+        },
+        "effectReceipts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EffectReceipt"
+          }
+        }
+      },
+      "required": [
+        "jobId",
+        "sessionId",
+        "epoch",
+        "buildDigest",
+        "state",
+        "cancelRequested",
+        "effectBarrier",
+        "outputComplete",
+        "retainedUntil"
+      ],
+      "additionalProperties": false
+    },
+    "CancelRequest": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "Recovery": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "lastEffect": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "laneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        }
+      },
+      "required": [
+        "sessionId",
+        "epoch"
+      ],
+      "additionalProperties": false
+    },
+    "Failure": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "enum": [
+            "transport",
+            "protocol",
+            "authorization",
+            "filesystem",
+            "native",
+            "cancellation",
+            "unknown"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "notAccepted",
+            "accepted",
+            "unknown"
+          ]
+        },
+        "recovery": {
+          "$ref": "#/$defs/Recovery"
+        },
+        "path": {
+          "type": "string"
+        },
+        "syscall": {
+          "type": "string"
+        },
+        "acknowledgedBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        }
+      },
+      "required": [
+        "category",
+        "code",
+        "message",
+        "phase"
+      ],
+      "additionalProperties": false
+    },
+    "Effect": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "operation": {
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "requested",
+            "applied",
+            "failed",
+            "unknown"
+          ]
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "path": {
+          "type": "string"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "handleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "identityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "offset": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "length": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "acknowledgedBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "error": {
+          "$ref": "#/$defs/Failure"
+        },
+        "bytes": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "maxItems": 1048576,
+          "description": "Legacy draft content field; prohibited by the streaming/canonical-object-v1 profile. Payloads belong in binary channels or authorized blobs."
+        }
+      },
+      "required": [
+        "operationId",
+        "sequence",
+        "operation",
+        "state",
+        "namespaceId"
+      ],
+      "additionalProperties": false
+    },
+    "LaneRequest": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ]
+        },
+        "consumerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "direction",
+        "consumerId"
+      ],
+      "additionalProperties": false
+    },
+    "Lane": {
+      "type": "object",
+      "properties": {
+        "laneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "direction": {
+          "enum": [
+            "input",
+            "output"
+          ]
+        },
+        "consumerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "floorSequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "nextSequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "maxFrameBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "maxInflightBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "laneId",
+        "direction",
+        "consumerId",
+        "floorSequence",
+        "nextSequence",
+        "maxFrameBytes",
+        "maxInflightBytes"
+      ],
+      "additionalProperties": false
+    },
+    "Cursor": {
+      "type": "object",
+      "properties": {
+        "channelId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "offset": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        }
+      },
+      "required": [
+        "channelId",
+        "offset"
+      ],
+      "additionalProperties": false
+    },
+    "Ack": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Ack"
+        },
+        "laneId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "offsets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Cursor"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "laneId",
+        "sequence",
+        "offsets"
+      ],
+      "additionalProperties": false
+    },
+    "ChannelOpen": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ChannelOpen"
+        },
+        "channelId": {
+          "type": "integer",
+          "minimum": 4
+        },
+        "correlationId": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "direction": {
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "seekable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "channelId",
+        "correlationId",
+        "direction",
+        "resourceId",
+        "seekable"
+      ],
+      "additionalProperties": false
+    },
+    "FileOperation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "open"
+            },
+            "path": {
+              "type": "string"
+            },
+            "rights": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "read",
+                  "write",
+                  "seek",
+                  "stat"
+                ]
+              }
+            },
+            "flag": {
+              "enum": [
+                "r",
+                "r+",
+                "w",
+                "w+",
+                "wx",
+                "wx+",
+                "a",
+                "a+",
+                "ax",
+                "ax+"
+              ]
+            },
+            "mode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "rights",
+            "flag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "read",
+                "write"
+              ]
+            },
+            "handleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "position": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            "length": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            },
+            "channelId": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "op",
+            "handleId",
+            "length",
+            "channelId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "seek"
+            },
+            "handleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "whence": {
+              "enum": [
+                "set",
+                "current",
+                "end"
+              ]
+            },
+            "offset": {
+              "type": "string",
+              "pattern": "^-?(0|[1-9][0-9]{0,18})$"
+            }
+          },
+          "required": [
+            "op",
+            "handleId",
+            "whence",
+            "offset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "stat",
+                "close"
+              ]
+            },
+            "handleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          "required": [
+            "op",
+            "handleId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "stat",
+                "lstat",
+                "readlink",
+                "unlink",
+                "rmdir"
+              ]
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "op",
+            "path"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "readdir"
+            },
+            "path": {
+              "type": "string"
+            },
+            "maxEntries": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "maxEntries"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "truncate"
+            },
+            "handleId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "length": {
+              "type": "string",
+              "pattern": "^(0|[1-9][0-9]{0,19})$",
+              "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+            }
+          },
+          "required": [
+            "op",
+            "handleId",
+            "length"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "rename",
+                "link"
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "destination": {
+              "type": "string"
+            },
+            "noReplace": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "destination"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "symlink"
+            },
+            "path": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "target"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "enum": [
+                "mkdir",
+                "chmod"
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "mode"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "const": "utimes"
+            },
+            "path": {
+              "type": "string"
+            },
+            "atimeMs": {
+              "type": "number"
+            },
+            "mtimeMs": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "op",
+            "path",
+            "atimeMs",
+            "mtimeMs"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Callback": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Callback"
+        },
+        "callbackId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "correlationId": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "epoch": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "grantId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "namespaceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "$ref": "#/$defs/FileOperation"
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "job",
+                "materialization"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "callbackId",
+        "correlationId",
+        "epoch",
+        "operationId",
+        "grantId",
+        "namespaceId",
+        "expiresAt",
+        "operation",
+        "owner"
+      ],
+      "additionalProperties": false
+    },
+    "Stat": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "file",
+            "directory",
+            "symlink",
+            "character"
+          ]
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mtimeMs": {
+          "type": "number"
+        },
+        "atimeMs": {
+          "type": "number"
+        },
+        "ctimeMs": {
+          "type": "number"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "identityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "allocatedBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ino": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "dev": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "nlink": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "gid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "birthtimeMs": {
+          "type": "number"
+        },
+        "preferredIoBlockSize": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "type",
+        "size",
+        "mode",
+        "mtimeMs",
+        "atimeMs",
+        "ctimeMs"
+      ],
+      "additionalProperties": false
+    },
+    "CallbackResult": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "CallbackResult"
+        },
+        "callbackId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "state": {
+          "enum": [
+            "applied",
+            "failed",
+            "unknown"
+          ]
+        },
+        "handleId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "stat": {
+          "$ref": "#/$defs/Stat"
+        },
+        "position": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "acknowledgedBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "target": {
+          "type": "string"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "file",
+                  "directory",
+                  "symlink",
+                  "character"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "error": {
+          "$ref": "#/$defs/Failure"
+        },
+        "identityId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "type",
+        "callbackId",
+        "operationId",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "Control": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Ack"
+        },
+        {
+          "$ref": "#/$defs/ChannelOpen"
+        },
+        {
+          "$ref": "#/$defs/Callback"
+        },
+        {
+          "$ref": "#/$defs/CallbackResult"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "Effect"
+            },
+            "effect": {
+              "$ref": "#/$defs/Effect"
+            }
+          },
+          "required": [
+            "type",
+            "effect"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "JobState"
+            },
+            "job": {
+              "$ref": "#/$defs/Job"
+            }
+          },
+          "required": [
+            "type",
+            "job"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "Failure"
+            },
+            "error": {
+              "$ref": "#/$defs/Failure"
+            }
+          },
+          "required": [
+            "type",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/CanonicalCallback"
+        },
+        {
+          "$ref": "urn:poe:remote-execution:canonical-filesystem:v1#/$defs/CanonicalCallbackResult"
+        }
+      ]
+    },
+    "ReleaseRequest": {
+      "type": "object",
+      "properties": {
+        "handleIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "grantIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      },
+      "required": [
+        "handleIds",
+        "grantIds"
+      ],
+      "additionalProperties": false
+    },
+    "OperationLookup": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "enum": [
+            "session",
+            "upload",
+            "manifest",
+            "materialization",
+            "job",
+            "cancel",
+            "release",
+            "close",
+            "lane",
+            "ack",
+            "callback",
+            "file-open",
+            "file-close",
+            "file-listing",
+            "lease",
+            "signal"
+          ]
+        },
+        "state": {
+          "enum": [
+            "accepted",
+            "complete",
+            "failed",
+            "unknown"
+          ]
+        },
+        "resourceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "error": {
+          "$ref": "#/$defs/Failure"
+        }
+      },
+      "required": [
+        "operationId",
+        "kind",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "FrontendContract": {
+      "type": "object",
+      "properties": {
+        "grammarRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sourceRevision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "grammarRevision",
+        "sourceRevision"
+      ],
+      "additionalProperties": false
+    },
+    "SignalRequest": {
+      "type": "object",
+      "properties": {
+        "signal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      },
+      "required": [
+        "signal"
+      ],
+      "additionalProperties": false
+    },
+    "ManifestReceipt": {
+      "type": "object",
+      "properties": {
+        "manifestId": {
+          "$ref": "#/$defs/Id"
+        },
+        "digest": {
+          "$ref": "#/$defs/Digest"
+        }
+      },
+      "required": [
+        "manifestId",
+        "digest"
+      ],
+      "additionalProperties": false
+    },
+    "JobList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Job"
+      }
+    },
+    "FileOpenRequest": {
+      "type": "object",
+      "properties": {
+        "namespaceId": {
+          "$ref": "#/$defs/Id"
+        },
+        "grantId": {
+          "$ref": "#/$defs/Id"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jobId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "namespaceId",
+        "grantId",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "FileListRequest": {
+      "type": "object",
+      "properties": {
+        "namespaceId": {
+          "$ref": "#/$defs/Id"
+        },
+        "grantId": {
+          "$ref": "#/$defs/Id"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "namespaceId",
+        "grantId",
+        "path",
+        "maxEntries"
+      ],
+      "additionalProperties": false
+    },
+    "FileMetadata": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "file",
+            "directory",
+            "symlink",
+            "character",
+            "fifo",
+            "socket"
+          ]
+        },
+        "size": {
+          "$ref": "#/$defs/Uint64"
+        },
+        "allocatedBytes": {
+          "$ref": "#/$defs/Uint64"
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "gid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "atimeNs": {
+          "type": "string",
+          "pattern": "^-?(0|[1-9][0-9]{0,18})$"
+        },
+        "mtimeNs": {
+          "type": "string",
+          "pattern": "^-?(0|[1-9][0-9]{0,18})$"
+        },
+        "ctimeNs": {
+          "type": "string",
+          "pattern": "^-?(0|[1-9][0-9]{0,18})$"
+        },
+        "nlink": {
+          "$ref": "canonical-filesystem.schema.json#/$defs/FileOffset"
+        }
+      },
+      "required": [
+        "type",
+        "size"
+      ],
+      "additionalProperties": false,
+      "description": "Legacy draft model. For canonical-object-v1 use companion WireExactFileStat and signed-off_t-compatible exact values; never round through Number."
+    },
+    "FileHandle": {
+      "type": "object",
+      "properties": {
+        "handleId": {
+          "$ref": "#/$defs/Id"
+        },
+        "invocationId": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "required": [
+        "handleId",
+        "invocationId"
+      ],
+      "additionalProperties": false
+    },
+    "FileListing": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "file",
+              "directory",
+              "symlink",
+              "character",
+              "fifo",
+              "socket"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "Released": {
+      "type": "object",
+      "properties": {
+        "released": {
+          "const": true
+        }
+      },
+      "required": [
+        "released"
+      ],
+      "additionalProperties": false
+    },
+    "JobStateEvent": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "sequence": {
+          "$ref": "#/$defs/Uint64"
+        },
+        "stage": {
+          "enum": [
+            "accepted",
+            "running",
+            "process-exited",
+            "io-settled",
+            "sandbox-lost",
+            "unknown-outcome"
+          ]
+        },
+        "retainedUntil": {
+          "type": "number"
+        },
+        "effectBarrier": {
+          "$ref": "#/$defs/Uint64"
+        },
+        "processOutcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "cancelRequested": {
+          "type": "boolean"
+        },
+        "cancelActed": {
+          "type": "boolean"
+        },
+        "outputComplete": {
+          "type": "boolean"
+        },
+        "cleanup": {
+          "enum": [
+            "pending",
+            "complete",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "version",
+        "sequence",
+        "stage",
+        "retainedUntil",
+        "effectBarrier"
+      ],
+      "additionalProperties": false
+    },
+    "EffectReceipt": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "sequence": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "operation": {
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "requested",
+            "applied",
+            "failed",
+            "unknown"
+          ]
+        },
+        "acknowledgedBytes": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]{0,19})$",
+          "description": "Canonical unsigned decimal <= 18446744073709551615, checked semantically."
+        }
+      },
+      "required": [
+        "operationId",
+        "sequence",
+        "operation",
+        "state"
+      ],
+      "additionalProperties": false
+    },
+    "EffectManifest": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "$ref": "#/$defs/Id"
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Id"
+          }
+        },
+        "effectBarrier": {
+          "$ref": "#/$defs/Uint64"
+        },
+        "outputComplete": {
+          "type": "boolean"
+        },
+        "processOutcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "outcome": {
+          "$ref": "#/$defs/Outcome"
+        },
+        "retrievalFailures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "identityId": {
+                "$ref": "#/$defs/Id"
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "identityId",
+              "error"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "jobId",
+        "effects",
+        "outputs",
+        "effectBarrier",
+        "outputComplete"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+ "name":"poe-media-modal-deployment",
+ "private":true,
+ "type":"module",
+ "dependencies":{"modal":"0.10.1"}
+}

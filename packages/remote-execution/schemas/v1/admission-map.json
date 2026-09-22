@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "status": "review-draft",
+  "http": "http.openapi.json",
+  "binary": {
+    "normativeLayout": "binary.md",
+    "layoutDescription": "binary-layout.json",
+    "control": "control-streaming.schema.json#/$defs/Control",
+    "canonicalObjectControl": "control-streaming.schema.json#/$defs/CanonicalObjectControl"
+  },
+  "httpSchemaOverrides": {
+    "submitJob.request": "streaming-profile.schema.json#/$defs/GenericJobRequest",
+    "inspectEffects.response": "streaming-profile.schema.json#/$defs/EffectManifest",
+    "materialize.response": "streaming-profile.schema.json#/$defs/Materialization",
+    "inspectMaterialization.response": "streaming-profile.schema.json#/$defs/Materialization"
+  },
+  "selection": {
+    "baseProtocolIsSufficientForStreaming": false,
+    "canonicalObjectFeature": "canonical-object-v1",
+    "mediaFrontendContract": "Required by injected media tool definitions; optional for generic tools.",
+    "schemaResolution": "Register trusted local schema files by their declared IDs and local filename aliases. Never perform network schema resolution.",
+    "reviewStatus": "Design only; export and implementation statements require separate qualification.",
+    "currentPlanningRequest": {
+      "contract": "../../contracts.md#selection-for-the-current-planning-request",
+      "packageOwners": [
+        "media-cli",
+        "remote-execution"
+      ],
+      "dependencyDirection": "media-cli -> remote-execution",
+      "shellBoundary": "Injected structural MediaCommandEngine.execute; no runtime import of either package in safe-bash.",
+      "materializationProfiles": {
+        "canonicalImport": "Explicit authorized canonical publication; supports conditional entry publication, not a directory transaction.",
+        "dependency-manifest-v1": "Explicit private dependency preparation; no canonical copyback, output creation or freshness inference."
+      },
+      "adoption": "Design only. Shared Runner semantics remain unchanged; Node-server qualification is separate."
+    },
+    "structuralContractReview": {
+      "status": "design-only",
+      "contract": "../../contracts.md#structural-contract-review-for-this-request-september-19",
+      "sourceReceipt": "structural-review-20260919.json",
+      "acceptancePlan": "../../../plans/remote-media-structural-contract-review-20260919.md",
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    },
+    "activeRequestDesign": {
+      "status": "design-only",
+      "contract": "../../contracts.md#current-design-selection-and-precedence",
+      "sourceReceipt": "request-design-binding.json",
+      "acceptancePlan": "../../../plans/remote-media-contract-adoption.md",
+      "httpMajor": 1,
+      "binaryMajor": 1,
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    },
+    "activeJsMediaSandboxRequest": {
+      "status": "design-only",
+      "contract": "../../contracts.md#active-js-media-and-sandbox-contract-selection",
+      "sourceReceipt": "js-media-sandbox-planning-selection.json",
+      "acceptancePlan": "../../../plans/js-media-sandbox-contract-acceptance.md",
+      "httpMajor": 1,
+      "binaryMajor": 1,
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    },
+    "sourceQualifiedDesign": {
+      "status": "design-only",
+      "contract": "../../contracts.md#source-qualified-design-for-this-planning-turn",
+      "sourceReceipt": "source-qualified-design.json",
+      "acceptancePlan": "../../../plans/remote-media-source-qualified-adoption.md",
+      "httpMajor": 1,
+      "binaryMajor": 1,
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    },
+    "activeReview20260921": {
+      "status": "design-only",
+      "contract": "../../contracts.md#active-design-review--september-21-2026",
+      "sourceReceipt": "design-review-20260921.json",
+      "httpMajor": 1,
+      "binaryMajor": 1,
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    },
+    "planningTurnStructuralSelection": {
+      "status": "design-only",
+      "contract": "../../contracts.md#planning-turn-selection-js-frontend-and-generic-sandbox",
+      "sourceReceipt": "planning-turn-source-binding.json",
+      "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+      "httpMajor": 1,
+      "binaryMajor": 1,
+      "wireShapeChange": false,
+      "runtimeConformanceClaim": false
+    }
+  },
+  "semanticAdmission": [
+    "Reject duplicate control JSON keys before schema validation; reject unknown fields and required features.",
+    "Admit aggregate argv bytes/slots before copying; preserve empty argv; reject native argv NUL and refuse lossy launcher profiles.",
+    "Validate absolute logical cwd and exact NUL-free environment without inheriting server configuration.",
+    "Validate unsigned frame counters <= 2^64-1 and exact file offsets <= 2^63-1 before conversion or allocation.",
+    "Validate channel IDs as uint32, ownership, direction, sequence, correlation, END state and inflight/replay limits.",
+    "Authorize principal, session, epoch, owner, namespace, grant, rights, ranges, expiry and both ends of rename/link before canonical access.",
+    "Validate callback results against their originating operation and binary transferred count.",
+    "Resolve authoritative manifest paths, aliases, digest, link references and conditional publication support before each ordered mutation.",
+    "Bind ready materialization revision to job namespace installation; do not infer immutable content from service revision.",
+    "Require output END, resolved-or-unknown effect barrier and server cleanup evidence before terminal publication; client delivery remains a separate barrier.",
+    "Append requires the accounted retained atomic append method, explicit operation grant and write right; validate actual progress against correlated DATA/END, never stat/write or whole-request replay.",
+    "Accept moved only for an applied canonical rename and only from its actual receipt; false is a no-op and absence leaves namespace movement unknown.",
+    "Non-null materializationRevision requires materializationBinding identifying the complete operation and root in the enclosing namespace/session/epoch; reserve that exact revision through installation, release on owned cleanup, and refuse stale or lost reservations before launch.",
+    "Generic builds may omit grammar/source revisions; injected media definitions require both and matching frontendContract before native launch.",
+    "Treat upload staging commitment, canonical effect settlement and named-consumer delivery acknowledgements as distinct barriers; none proves the others.",
+    "Use type-only or verified portable safe-fs exports in the portable client; contracts path/platform runtime helpers are not implicitly portable.",
+    "Preserve native process outcome independently from effect uncertainty, stream delivery and cleanup observations; incomplete lifecycle cannot resolve execute successfully.",
+    "Create requires accounted objects.create plus separate flag-specific create/truncate authority; applied results require opened and the acquisition creation receipt. Exclusive flags refuse symlinks without mutation; a/ax do not imply append. Refuse special-file creation and reject creation on non-create or failed/unknown results. Lost acquisition receipts can leave unknown canonical effects; release late acquired retains without replay.",
+    "Reject sparse local argv and octet arrays before copying/conversion; absent slots, JSON nulls and missing octets never become empty arguments or zero bytes. stdinInput presence does not admit seek unless that same borrowed cursor supplies the operation.",
+    "Register invocation cleanup synchronously before acquisition and await the same idempotent completion in execute finally and the caller barrier. A direct host without CommandContext.registerCleanup owns a real local registrar; lease cleanup does not close original shell descriptors or borrowed sessions.",
+    "JavaScript dependency discovery preserves native access timing and original argv. Prefetch cannot publish early errors or effects; late accesses remain canonically mediated and native work runs once.",
+    "Live canonical operations use backend-declared consistency and make completed mutations visible before native acknowledgement. Only verified immutable blobs or qualified stable content revisions/leases admit caching; materialization revision and retained identity do not freeze contents.",
+    "Dependency profile: validate exact manifest bytes/digest and immutable revision, matching source authority, raw unsigned-byte ordering, explicit directory parents, prior-file hardlink references and consistent alias metadata. Reject canonical collisions; retain literal symlink targets and inert output intents.",
+    "Dependency profile: parse decimal sizes/timestamps and lowercase hexadecimal digests character by character before conversion; JSON Schema string lengths alone do not establish canonical values. Apply negotiated entry/path/document/aggregate budgets before allocation.",
+    "Dependency profile: authenticate bindingId and serialize overlapping or alias logical roots, compare expectedDirectoryRevision under that authority, and pin the ready private revision for job installation. No caller-controlled physical destination and no canonical copyback.",
+    "Dependency profile: immutable source requires a qualified snapshot binding; live/revalidate-on-open require active callback grants through native reads and reloads. Directory readiness is not read freshness, output intent registration is not file creation, and unavailable callbacks cannot fall back to prefetched mutable blobs.",
+    "Dependency job binding: require originalArgv equal to args byte-for-byte, directoryRevision equal to materializationRevision, materializationId equal to materializationBinding.operationId, losslessly encoded cwd equality, and logical-root equality. Authenticate manifest/revision, sourceAuthorityId, bindingId and enclosing namespace/session/epoch; pin the ready private revision before installation."
+  ],
+  "httpProfiles": {
+    "dependency-manifest-v1": {
+      "selectionHeader": {
+        "name": "Execution-Profile",
+        "value": "dependency-manifest-v1"
+      },
+      "requiredFeature": "dependency-manifest-v1",
+      "schema": "dependency-manifest.schema.json",
+      "httpSchemaOverrides": {
+        "putManifest.request": "dependency-manifest.schema.json#/$defs/DependencyManifest",
+        "putManifest.response": "dependency-manifest.schema.json#/$defs/StoredManifest",
+        "getManifest.response": "dependency-manifest.schema.json#/$defs/DependencyManifest",
+        "materialize.request": "dependency-manifest.schema.json#/$defs/DependencyMaterializeRequest",
+        "materialize.response": "dependency-manifest.schema.json#/$defs/DependencyMaterialization",
+        "inspectMaterialization.response": "dependency-manifest.schema.json#/$defs/DependencyMaterialization",
+        "submitJob.request": "streaming-profile.schema.json#/$defs/DependencyJobRequest"
+      },
+      "invocationComponent": "dependency-manifest.schema.json#/$defs/ManifestInvocation",
+      "jobLifecycle": "DependencyJobRequest extends the streaming generic request with a dependency binding; full generic job/lane lifecycle remains required. No alternate buffered execute endpoint.",
+      "binary": "binary-layout.json; CONTROL selection remains control-streaming.schema.json; file payloads use correlated DATA/END.",
+      "publication": "Private dependency preparation only. Canonical import/publication is a distinct authorized operation and cannot be selected by an overwrite field.",
+      "unsupportedProfile": "Reject before effects; never fall back to legacy text paths, caller roots or overwrite policies."
+    }
+  },
+  "x-design-review": {
+    "status": "review-draft",
+    "contract": "../../frontend-server-contract.md",
+    "sourceBinding": "frontend-server-source-binding-20260917.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "runtimeConformanceClaim": false
+  },
+  "x-boundary-admission-review": {
+    "status": "review-draft",
+    "contract": "../../boundary-admission-review.md",
+    "validation": "boundary-admission-review.json",
+    "runtimeConformanceClaim": false,
+    "schemaSelection": "Apply admission-map mandatory streaming overrides, then explicitly negotiated profile overrides; no legacy buffered fallback."
+  },
+  "x-js-server-selection": {
+    "status": "review-draft",
+    "contract": "../../contracts.md#current-js-frontend-and-generic-server-selection",
+    "sourceBinding": "js-server-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-js-server-contract-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-contract-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-source-design-review-september-17",
+    "sourceReceipt": "current-contract-review.json",
+    "acceptancePlan": "../../../plans/remote-media-current-contract-design.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-request-design-selection": {
+    "status": "design-only",
+    "sourceReceipt": "request-design-selection.json",
+    "contract": "../../contracts.md#selected-design-for-this-request",
+    "acceptancePlan": "../../../plans/remote-media-request-design-acceptance.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-planning-contract-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-request-contract-map",
+    "sourceReceipt": "planning-contract-selection.json",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-design-entrypoint": {
+    "status": "design-only",
+    "contract": "../../contracts.md#design-entrypoint-and-precedence",
+    "validation": "design-entrypoint-validation.json",
+    "acceptancePlan": "../../../plans/remote-media-design-acceptance-20260917.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-structural-engine-review": {
+    "status": "design-only",
+    "sourceBinding": "structural-engine-source-review.json",
+    "contract": "../../contracts.md#structural-shell-engine",
+    "acceptancePlan": "../../../plans/media-frontend-generic-sandbox-design.md",
+    "schemaSelection": "admission-map.json",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-engine-admission-selection": {
+    "status": "design-only",
+    "contract": "../../contracts.md#source-bound-design-selection-for-this-planning-turn",
+    "sourceBinding": "engine-admission-source-binding.json",
+    "acceptancePlan": "../../../plans/media-frontend-generic-sandbox-design.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-frontend-sandbox-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-planning-turn-admission-review",
+    "sourceReceipt": "current-frontend-sandbox-review.json",
+    "acceptancePlan": "../../../plans/remote-media-design-review-20260919.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-current-adoption": {
+    "status": "design-only",
+    "contract": "../../contracts.md#current-working-tree-adoption-decision",
+    "sourceReceipt": "current-adoption-selection.json",
+    "acceptancePlan": "../../../plans/remote-media-current-adoption.md",
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  },
+  "x-observable-boundary-review": {
+    "status": "design-only",
+    "contract": "../../contracts.md#planning-review-observable-boundaries",
+    "sourceReceipt": "planning-turn-contract-recheck.json",
+    "acceptancePlan": "../../../plans/remote-media-planning-turn-acceptance.md",
+    "httpMajor": 1,
+    "binaryMajor": 1,
+    "wireShapeChange": false,
+    "runtimeConformanceClaim": false
+  }
+}

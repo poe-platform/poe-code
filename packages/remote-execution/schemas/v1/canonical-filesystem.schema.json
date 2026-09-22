@@ -1,0 +1,593 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:poe:remote-execution:canonical-filesystem:v1",
+  "title": "Canonical retained-object callback extension v1 \u2014 planning draft",
+  "description": "Requires authenticated canonical-object-v1 negotiation. Schema shape validation must be followed by contract range, rights, ownership and operation-result validation; no runtime implementation is claimed. Reads/writes use correlated binary DATA/END, never JSON content.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CanonicalCallback"
+    },
+    {
+      "$ref": "#/$defs/CanonicalCallbackResult"
+    }
+  ],
+  "$defs": {
+    "BytePath": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1048576,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 255
+      },
+      "description": "Owned nonempty NUL-free octets. No decoding or lexical normalization; authorize canonical traversal before access. Admission uses tighter negotiated byte/slot limits."
+    },
+    "FileOffset": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 19,
+      "description": "Canonical decimal 0 through 9223372036854775807. Validate digit-by-digit, reject signs, leading zeros, exponents and overflow; decode directly to bigint via safe-fs decodeFileOffset."
+    },
+    "Timestamp": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20,
+      "description": "Canonical signed decimal nanoseconds within signed 64-bit range. Reject negative zero, leading zeros and overflow; use safe-fs timestamp/metadata codecs."
+    },
+    "WireExactFileStat": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "file",
+            "directory",
+            "symlink",
+            "character",
+            "fifo",
+            "socket"
+          ]
+        },
+        "size": {
+          "$ref": "#/$defs/FileOffset"
+        },
+        "allocatedBytes": {
+          "$ref": "#/$defs/FileOffset"
+        },
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "gid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "atimeNs": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "mtimeNs": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "ctimeNs": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "nlink": {
+          "$ref": "#/$defs/FileOffset"
+        }
+      },
+      "required": [
+        "type",
+        "size"
+      ],
+      "additionalProperties": false
+    },
+    "WireObjectMetadata": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4095
+        },
+        "uid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967294
+        },
+        "gid": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967294
+        },
+        "atimeNs": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "mtimeNs": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    },
+    "WireObjectHandle": {
+      "type": "object",
+      "properties": {
+        "handle": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "object": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        }
+      },
+      "required": [
+        "handle",
+        "object"
+      ],
+      "additionalProperties": false
+    },
+    "Operation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "open"
+            },
+            "path": {
+              "$ref": "#/$defs/BytePath"
+            },
+            "access": {
+              "enum": [
+                "read",
+                "write",
+                "readwrite"
+              ]
+            },
+            "special": {
+              "enum": [
+                "character",
+                "fifo",
+                "socket"
+              ]
+            }
+          },
+          "required": [
+            "operation",
+            "path"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "read"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "position": {
+              "$ref": "#/$defs/FileOffset"
+            },
+            "maxBytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "channelId": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "position",
+            "maxBytes",
+            "channelId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "write"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "position": {
+              "$ref": "#/$defs/FileOffset"
+            },
+            "length": {
+              "$ref": "#/$defs/FileOffset"
+            },
+            "channelId": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "position",
+            "length",
+            "channelId"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "truncate"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "length": {
+              "$ref": "#/$defs/FileOffset"
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "length"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "stat"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            }
+          },
+          "required": [
+            "operation",
+            "handle"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "metadata"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "changes": {
+              "$ref": "#/$defs/WireObjectMetadata"
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "changes"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "link"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "destination": {
+              "$ref": "#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "destination"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "close"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            }
+          },
+          "required": [
+            "operation",
+            "handle"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "rename"
+            },
+            "source": {
+              "$ref": "#/$defs/BytePath"
+            },
+            "destination": {
+              "$ref": "#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "operation",
+            "source",
+            "destination"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "enum": [
+                "unlink",
+                "rmdir"
+              ]
+            },
+            "path": {
+              "$ref": "#/$defs/BytePath"
+            }
+          },
+          "required": [
+            "operation",
+            "path"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "readdir"
+            },
+            "path": {
+              "$ref": "#/$defs/BytePath"
+            },
+            "maxEntries": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "operation",
+            "path",
+            "maxEntries"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "append"
+            },
+            "handle": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            },
+            "length": {
+              "$ref": "#/$defs/FileOffset"
+            },
+            "channelId": {
+              "type": "integer",
+              "minimum": 4,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "operation",
+            "handle",
+            "length",
+            "channelId"
+          ],
+          "additionalProperties": false,
+          "description": "Atomically choose EOF and append on the retained object. Requires admitted append support and write authority; never stat then write. Actual settled progress is acknowledgedBytes with correlated binary DATA/END."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "create"
+            },
+            "path": {
+              "$ref": "#/$defs/BytePath"
+            },
+            "flag": {
+              "enum": [
+                "w",
+                "wx",
+                "a",
+                "ax"
+              ]
+            },
+            "access": {
+              "enum": [
+                "read",
+                "write",
+                "readwrite"
+              ]
+            },
+            "mode": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4095
+            }
+          },
+          "required": [
+            "operation",
+            "path",
+            "flag"
+          ],
+          "additionalProperties": false,
+          "description": "Accounted objects.create acquisition returns the same retained object and its creation receipt. Exclusive flags refuse all existing entries including symlinks; w may truncate during acquisition. Requires separately authorized creation/truncation and backend method support. No stat/open fallback; a/ax do not imply retained append support."
+        }
+      ]
+    },
+    "CanonicalCallback": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "CanonicalCallback"
+        },
+        "callbackId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "operationId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "correlationId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Uint64"
+        },
+        "epoch": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "namespaceId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "grantId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [
+                "job",
+                "materialization"
+              ]
+            },
+            "id": {
+              "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ],
+          "additionalProperties": false
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "operation": {
+          "$ref": "#/$defs/Operation"
+        }
+      },
+      "required": [
+        "type",
+        "callbackId",
+        "operationId",
+        "correlationId",
+        "epoch",
+        "namespaceId",
+        "grantId",
+        "owner",
+        "expiresAt",
+        "operation"
+      ],
+      "additionalProperties": false
+    },
+    "CanonicalCallbackResult": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "CanonicalCallbackResult"
+        },
+        "callbackId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "operationId": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Id"
+        },
+        "state": {
+          "enum": [
+            "applied",
+            "failed",
+            "unknown"
+          ]
+        },
+        "opened": {
+          "$ref": "#/$defs/WireObjectHandle"
+        },
+        "stat": {
+          "$ref": "#/$defs/WireExactFileStat"
+        },
+        "acknowledgedBytes": {
+          "$ref": "#/$defs/FileOffset"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/BytePath"
+              },
+              "type": {
+                "enum": [
+                  "file",
+                  "directory",
+                  "symlink",
+                  "character",
+                  "fifo",
+                  "socket"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "error": {
+          "$ref": "urn:poe:remote-execution:protocol:v1#/$defs/Failure"
+        },
+        "moved": {
+          "type": "boolean",
+          "description": "Only for an applied rename, from the canonical rename receipt. Absent means unknown namespace effect; never infer from a later pathname probe."
+        },
+        "creation": {
+          "enum": [
+            "created",
+            "opened",
+            "truncated"
+          ],
+          "description": "Required with opened only for an applied create, copied from CreatedFileObject.creation at acquisition. Never inferred by a later stat. A lost receipt after canonical truncation leaves unknown effects; no rollback or blind create replay."
+        }
+      },
+      "required": [
+        "type",
+        "callbackId",
+        "operationId",
+        "state"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

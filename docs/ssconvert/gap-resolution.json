@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:35:29.373639+00:00",
+  "recordedAt": "2026-09-22T16:38:25.034721+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -25,7 +25,7 @@
     }
   },
   "candidate": {
-    "head": "be35054adff617ae155a3edb87a71db817963550",
+    "head": "158a71ab946385da39753b993fa52dc769896ecd",
     "ownedFiles": [
       {
         "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
@@ -251,9 +251,9 @@
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "158a71ab946385da39753b993fa52dc769896ecd",
+        "remoteMain": "verified on origin/main",
+        "publication": "Release 35755132632 pending; follow containing successor"
       }
     },
     {
@@ -463,11 +463,16 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "old packaging gap superseded; actual release-safe packaged contract closure and initial strict consumer/runtime conversion pass, independent trace-origin closure and poe-code SDK qualification pending",
+      "currentFinding": "actual local release-safe packaged ssconvert plugin passes independent isolated strict typing, provenance and edited XLSX roundtrip; private-checkout maintained fixture gate, poe-code SDK artifact and registry/final-head qualification remain open",
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
           "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+        },
+        {
+          "kind": "independent-isolated-installed-safe-bash-ssconvert",
+          "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {

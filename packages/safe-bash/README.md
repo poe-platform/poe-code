@@ -78,6 +78,7 @@ filesystem and byte streams, not host executables.
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.
 It preserves original UTF-8 byte offsets. Word/case flags, Unicode regex syntax,

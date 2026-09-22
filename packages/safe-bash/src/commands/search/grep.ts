@@ -1,5 +1,5 @@
 import { toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { bufferLimit, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value } from "../internal.js";
+import { bufferLimit, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import type { GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
@@ -9,7 +9,13 @@ const maxPatternCount = 1024;
 export function createGrepCommands(executor: RegexExecutor): CommandDefinition[] {
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
-      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:sz", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z" });
+      const contextLengths = new Map<string, number>();
+      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C" }, false, undefined, (key, index, offset) => {
+        if (!["A", "B", "C"].includes(key)) return;
+        const text = context.args[index]!.slice(offset);
+        try { contextLengths.set(key, integer(text)); }
+        catch { throw new UsageError(`${text}: invalid context length argument`); }
+      });
       if (parsed.flags.has("help")) {
         await output(context, `Usage: grep [OPTION]... PATTERN [FILE]...
 Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
@@ -31,6 +37,9 @@ Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
   -L, --files-without-match Print filenames without matches
   -q, --quiet, --silent    Suppress normal output
   -m, --max-count=NUM      Stop after NUM selected lines per file
+  -A, --after-context=NUM  Print NUM lines after selected lines
+  -B, --before-context=NUM Print NUM lines before selected lines
+  -C, --context=NUM        Print NUM lines before and after selected lines
   -s, --no-messages        Suppress file error messages
   -a, --text               Process input as text
   -z, --null-data          Use NUL-delimited records
@@ -98,13 +107,30 @@ Regular expression support depends on the configured regex executor.
       const batchSize = Number.isFinite(maxCount) || parsed.flags.has("q") || parsed.flags.has("l") || parsed.flags.has("L") ? 1 : 128;
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
+      const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
+      const withContext = contextLengths.size > 0 && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
+      const before = withContext ? contextLengths.get("B") ?? contextLengths.get("C") ?? 0 : 0;
+      const after = withContext ? contextLengths.get("A") ?? contextLengths.get("C") ?? 0 : 0;
+      let emittedGroup = false;
       let anySelected = false;
       let failed = false;
       for (const name of names) {
         let count = 0;
         let number = 0;
+        let lastCovered = 0;
+        let remainingAfter = 0;
+        let pendingBytes = 0;
+        const pending = new Map<number, Line>();
         const named = name === "-" ? "(standard input)" : name;
-        const prefix = (lineNumber = false) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || names.length > 1) ? `${named}:` : ""}${lineNumber && parsed.flags.has("n") ? `${number}:` : ""}`;
+        const prefix = (lineNumber = false, position = number, separator = ":") => `${!parsed.flags.has("h") && (parsed.flags.has("H") || names.length > 1) ? `${named}${separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}`;
+        const emitContext = async (line: Line, position: number) => {
+          if (!parsed.flags.has("o")) {
+            await output(context, prefix(true, position, "-"));
+            await output(context, line.bytes);
+            await output(context, delimiter);
+          }
+          lastCovered = position;
+        };
         try {
           const available = new AvailableRecords(parsed.flags.has("z") ? 0 : 10, bufferLimit);
           const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, bufferLimit);
@@ -115,12 +141,40 @@ Regular expression support depends on the configured regex executor.
               context.signal.throwIfAborted();
               number++;
               const found = results[index]!;
-              if ((found.length > 0) === parsed.flags.has("v")) continue;
+              const selected = count < maxCount && (found.length > 0) !== parsed.flags.has("v");
+              if (!selected) {
+                if (remainingAfter > 0) {
+                  await emitContext(line, number);
+                  remainingAfter--;
+                  if (count >= maxCount && remainingAfter === 0) break records;
+                } else if (before > 0) {
+                  if (pending.size >= before) {
+                    const oldest = pending.keys().next().value!;
+                    pendingBytes -= pending.get(oldest)!.bytes.length + 1;
+                    pending.delete(oldest);
+                  }
+                  const size = line.bytes.length + 1;
+                  if (size > bufferLimit - pendingBytes) throw new UsageError(`context byte limit exceeded (${bufferLimit} bytes)`);
+                  pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated });
+                  pendingBytes += size;
+                }
+                continue;
+              }
               count++;
               if (!parsed.flags.has("L")) anySelected = true;
               if (parsed.flags.has("q")) return { exitCode: 0 };
               if (parsed.flags.has("l") || parsed.flags.has("L")) break records;
               if (!parsed.flags.has("c")) {
+                if (withContext) {
+                  const first = pending.keys().next().value ?? number;
+                  if (emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, "--\n");
+                  for (const [position, previous] of pending) await emitContext(previous, position);
+                  pending.clear();
+                  pendingBytes = 0;
+                  remainingAfter = after;
+                  lastCovered = number;
+                  emittedGroup = true;
+                }
                 if (parsed.flags.has("o")) {
                   if (!parsed.flags.has("v")) {
                     let end = -1;
@@ -136,7 +190,7 @@ Regular expression support depends on the configured regex executor.
                   await output(context, prefix(true)); await output(context, line.bytes); await output(context, delimiter);
                 }
               }
-              if (count >= maxCount) break records;
+              if (count >= maxCount && remainingAfter === 0) break records;
             }
           }
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {

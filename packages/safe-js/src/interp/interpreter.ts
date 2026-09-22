@@ -256,6 +256,7 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  sourceReference?: AsyncEvaluationContext["sourceReference"];
   modulePhase?: "link" | "evaluate";
   script?: { strict: boolean };
   assertActive?: () => void;
@@ -390,7 +391,7 @@ const dispatchTable: DispatchTable = {
       }
       const environment = context.scope.lookupModuleEnvironment();
       if (environment === undefined) throw new Error(`Unknown module '${specifier}'. No modules are registered.`);
-      const namespace = importModuleNamespace(environment,specifier,context.scope.lookupModuleId());
+      const namespace = importModuleNamespace(environment,specifier,context.sourceReference?.referrer ?? context.scope.lookupModuleId());
       if (namespace instanceof Promise) {
         void namespace.then(
           value => invokeBuiltinClosure(capability.resolve,[value],context.budget,callContext,undefined),
@@ -499,6 +500,7 @@ export async function interpret(
     if (options.script?.strict === false && node.type === "BlockStatement")
       prepareLegacyEvalFunctions(node.body, scope, { deletable: false });
     const context = {
+      sourceReference: options.sourceReference,
       strict: options.script?.strict,
       evalCompletion: options.script !== undefined,
       scriptScope: options.script === undefined ? undefined : scope,

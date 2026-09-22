@@ -4,7 +4,7 @@ import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
 import { appendScopeDataRoot, scopeDataRoots } from "./scope-data-roots.js";
-import { getGeneratorOrigin } from "./closure-origin.js";
+import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { weakReferenceStates } from "./weak-reference.js";
@@ -1247,6 +1247,7 @@ function measureSandboxDataWithSeen(
         }
         if (isSandboxGenerator(value)) {
           const origin = getGeneratorOrigin(value);
+          visit(getGeneratorSourceReference(value), depth + 1);
           visit(origin?.resultPrototype, depth + 1);
           if (origin !== undefined) {
             for (const root of (origin.suspendedScope ?? origin.closureScope).retainedDataRoots()) visit(root, depth + 1);

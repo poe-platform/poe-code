@@ -27,6 +27,15 @@ export type GeneratorOrigin = ClosureOrigin & {
   expressionStates?: AsyncEvaluationContext["generatorExpressionStates"];
 };
 const generatorOrigins = new WeakMap<object, GeneratorOrigin>();
+// Retention accounting must not depend on mutable exported origin metadata.
+const generatorSourceReferences = new WeakMap<object, NonNullable<AsyncEvaluationContext["sourceReference"]>>();
+const readSourceReference: typeof generatorSourceReferences.get = WeakMap.prototype.get.bind(generatorSourceReferences);
+const saveSourceReference: typeof generatorSourceReferences.set = WeakMap.prototype.set.bind(generatorSourceReferences);
+
+export function getGeneratorSourceReference(value: object): AsyncEvaluationContext["sourceReference"] {
+  return readSourceReference(value);
+}
+
 
 export function registerClosureOrigin(closure: SandboxClosure, node: ClosureOrigin["node"], context: AsyncEvaluationContext): void {
   registerFunctionRealm(closure, context.budget);
@@ -46,6 +55,7 @@ export function registerGeneratorOrigin(generator: SandboxGenerator, node: Closu
     ...(node.type !== "ArrowFunctionExpression" && node.generator && node.async
       ? {resultPrototype: getSandboxPrototype({}, context.budget)} : {}) };
   generatorOrigins.set(generator, origin);
+  if (context.sourceReference !== undefined) saveSourceReference(generator, context.sourceReference);
   const source = dynamicNodeSources.get(node);
   if (source !== undefined) dynamicValueSources.set(generator, source);
   return origin;

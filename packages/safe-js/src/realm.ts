@@ -65,7 +65,7 @@ import {
   type SafeJSExtension
 } from "./extensions.js";
 import {SourceModuleGraph, type SourceResolver} from "./modules/source-graph.js";
-import { createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { attachSourceLoader, createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { parseExecutableModule } from "./parse/parser.js";
 import { createEvalSource } from "./parse/dynamic-source.js";
 import { createReplayableRandom } from "./random.js";
@@ -127,6 +127,8 @@ type HostPhase = {
   failure?: { reason: unknown };
 };
 type Callback = (...args: readonly unknown[]) => Promise<unknown>;
+
+const freezeSourceReference = Object.freeze;
 
 class RealmState {
   readonly budget: Budget;
@@ -871,6 +873,26 @@ class RealmState {
     if (this.options.stringCompilation === "deny") denyGuestStringCompilation(this.scope);
   }
 
+  private ensureSourceGraph(): SourceModuleGraph {
+    this.assertOpen();
+    this.initialize();
+    return (this.sourceGraph ??= new SourceModuleGraph({
+      resolver: this.options.sourceResolver ?? (() => undefined),
+      scope: this.scope!,
+      modules: createModuleEnvironment(this.modules, {
+        ...this.bridgeOptions(),
+        wrappedModules: this.convertedModules
+      }),
+      budget: this.budget,
+      compilation: this.compilation,
+      signal: this.controller.signal,
+      jobs: this.queue,
+      assertActive: this.assertOpen,
+      surfaceUnhandledThrows: true,
+      serializePreparation: this.options.callbackScheduling === "after-prefix"
+    }));
+  }
+
   async evaluateRaw(
     source: string,
     filename = "<realm>",
@@ -882,14 +904,7 @@ class RealmState {
     if (typeof source !== "string") throw new TypeError("Realm source must be a string.");
     if (sourceType === "module") {
       const prepare = () => {
-        this.initialize();
-        this.sourceGraph ??= new SourceModuleGraph({
-          resolver:this.options.sourceResolver ?? (() => undefined), scope:this.scope!,
-          modules:createModuleEnvironment(this.modules,{...this.bridgeOptions(),wrappedModules:this.convertedModules}),
-          budget:this.budget, compilation:this.compilation, signal:this.controller.signal,
-          jobs:this.queue, assertActive:this.assertOpen, surfaceUnhandledThrows:true,
-          serializePreparation: this.options.callbackScheduling === "after-prefix"
-        });
+        this.ensureSourceGraph();
       };
       const scheduled = this.options.callbackScheduling === "after-prefix";
       if (scheduled) await this.queue.run(prepare);
@@ -907,12 +922,18 @@ class RealmState {
       return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:graph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
     }
     const script = this.options.classicScripts ? createEvalSource(source, {}, this.lease.owner, filename) : undefined;
-    const releaseSource = script ? retainValues(this.budget, () => [script.source]) : undefined;
+    // Each Script owns a charged identity that survives through its saved closures.
+    const sourceReference = script && this.options.sourceResolver !== undefined
+      ? freezeSourceReference({ referrer: filename }) : undefined;
+    const releaseSource = script ? retainValues(this.budget, () => [script.source, sourceReference]) : undefined;
     try {
       if (script) this.budget.chargeDataUsage(measureSandboxData([script.source]));
+      if (sourceReference) this.budget.chargeDataUsage(measureSandboxData([sourceReference]));
       const module = script?.node ?? parseExecutableModule(source, filename, this.lease.owner);
       this.initialize();
       const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
+      if (sourceReference)
+        attachSourceLoader(moduleEnvironment, (specifier, referrer) => this.ensureSourceGraph().import(specifier, referrer));
       const imports = script ? {} : resolveModuleImports(module, this.modules, {
         environment: moduleEnvironment,
         ...this.bridgeOptions(),
@@ -932,6 +953,7 @@ class RealmState {
         },
         {
           ...(script ? { script: { strict: script.strict } } : {}),
+          sourceReference,
           scope: this.scope,
           useScopeDirectly: true,
           budget: this.budget,

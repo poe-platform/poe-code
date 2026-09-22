@@ -79,6 +79,7 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  sourceReference?: Readonly<{ referrer: string }>;
   scriptScope?: Scope;
   evalCompletion?: boolean;
   callee?: SandboxClosure;
@@ -241,6 +242,7 @@ export function createInterpretedClosure(
       : undefined;
 
   const appendCapturedValues = (append: (value: SandboxValue) => void): void => {
+    append(context.sourceReference);
     append(context.functionEnvironment?.homeObject);
     append(context.functionEnvironment?.newTarget);
     if (constructionState !== undefined) {
@@ -373,6 +375,7 @@ function createGeneratorClosure(
   const prototypes = !initializePrototype || runResources.getStore()?.functionSourceText === false ? undefined
     : generatorPrototypes.get(context.budget)?.get(node.async === true);
   const appendCapturedValues = (append: (value: SandboxValue) => void): void => {
+    append(context.sourceReference);
     append(context.functionEnvironment?.homeObject);
     append(context.functionEnvironment?.newTarget);
   };

@@ -1,0 +1,39 @@
+{
+  "research_date": "2026-09-14",
+  "scope": "Local native HTTP oracle; no remote shim or provider qualification",
+  "version": "ffprobe version 8.1 Copyright (c) 2007-2026 the FFmpeg developers\nbuilt with Apple clang version 21.0.0 (clang-2100.0.123.102)\nconfiguration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\nlibavutil      60. 26.100 / 60. 26.100\nlibavcodec     62. 28.100 / 62. 28.100\nlibavformat    62. 12.100 / 62. 12.100\nlibavdevice    62.  3.100 / 62.  3.100\nlibavfilter    11. 14.100 / 11. 14.100\nlibswscale      9.  5.100 /  9.  5.100\nlibswresample   6.  3.100 /  6.  3.100\n",
+  "argv": [
+    "/opt/homebrew/bin/ffprobe",
+    "-v",
+    "error",
+    "-headers",
+    "X-Oracle: synthetic\r\n",
+    "-show_entries",
+    "stream=codec_name",
+    "-of",
+    "json",
+    "http://127.0.0.1:57413/entry.m3u8?original=synthetic"
+  ],
+  "status": 0,
+  "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"codec_name\": \"mpeg2video\",\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"codec_name\": \"mpeg2video\",\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+  "stderr": "",
+  "requests": [
+    {
+      "path": "/entry.m3u8?original=synthetic",
+      "range": "bytes=0-",
+      "x_oracle": "synthetic"
+    },
+    {
+      "path": "/nested/index.m3u8?token=synthetic",
+      "range": "bytes=0-",
+      "x_oracle": "synthetic"
+    },
+    {
+      "path": "/nested/segment.ts",
+      "range": "bytes=0-",
+      "x_oracle": "synthetic"
+    }
+  ],
+  "playlist": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-MEDIA-SEQUENCE:0\n#EXTINF:1.0,\nsegment.ts\n#EXT-X-ENDLIST\n",
+  "segment_sha256": "0645f3241e435ebaca48ec516737f441fe563c488840b1f77f62ee7c8cc7ad78"
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "source_set": "ffmpeg-snapshot",
+    "url": "https://codeload.github.com/FFmpeg/FFmpeg/tar.gz/639ee849526cfe61ceb312776335c245b98bd9d4",
+    "sha256": "17e4ffe5ea22eba0927bd12f2166d6e7a2056233cde64b3cf8ed37eef281b5e6"
+  },
+  {
+    "source_set": "imagemagick-snapshot",
+    "url": "https://codeload.github.com/ImageMagick/ImageMagick/tar.gz/2ed1b96b9bc71434f0c4e82e3c63fec029c684c6",
+    "sha256": "2453a7c72e643369b00a7beb1920080bc701fd5e4cb72b54f89aec091229d287"
+  },
+  {
+    "source_set": "ffmpeg-release",
+    "url": "https://ffmpeg.org/releases/ffmpeg-9.0.1.tar.xz",
+    "sha256": "cf38e0e28c7e5605942c4a77755349b0145804a397af37eb1fb4c77cb237f635"
+  },
+  {
+    "source_set": "imagemagick-release",
+    "url": "https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-31/ImageMagick-7.1.2-31.tar.xz",
+    "sha256": "168a9710b3a8d69dbd20eb0a35f145b0c0ed35f076b2fc98d3eb57daa919c376"
+  }
+]

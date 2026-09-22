@@ -1,0 +1,1 @@
+{"name":"poe-media-worker-deployment","private":true,"type":"module","dependencies":{"@cloudflare/sandbox":"0.12.9"},"devDependencies":{"@cloudflare/workers-types":"5.20260914.1","miniflare":"5.20260911.1-alpha","wrangler":"4.131.2"},"scripts":{"lint":"tsc --noEmit -p tsconfig.json","bundle":"wrangler deploy --dry-run"}}

@@ -1,0 +1,55 @@
+{
+  "name": "@poe-code/media-cli",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
+      "node": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./server": {
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "node": "./dist/server.d.ts",
+        "default": "./dist/node-unavailable.d.ts"
+      },
+      "workerd": null,
+      "browser": null,
+      "node": "./dist/server.js",
+      "default": null
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test": "npm run test:unit",
+    "lint": "tsc --noEmit && eslint src",
+    "metadata:check": "python3 scripts/metadata.py --check && python3 scripts/imagemagick-metadata.py --check",
+    "metadata:generate": "python3 scripts/metadata.py && python3 scripts/imagemagick-metadata.py",
+    "test:native": "vitest run --config vitest.native.config.ts",
+    "test:container": "node server/container.mjs",
+    "test:worker-imports": "vitest run --config deploy/vitest.config.ts",
+    "test:public-consumer": "npm run typecheck:public-consumer && vitest run --config vitest.public.config.ts",
+    "typecheck:public-consumer": "tsc -p tsconfig.public.json"
+  },
+  "dependencies": {
+    "saxes": "^6.0.0",
+    "@poe-code/remote-execution": "*"
+  },
+  "files": [
+    "dist",
+    "server/start.mjs",
+    "README.md",
+    "COPYING",
+    "COPYING.ImageMagick",
+    "COPYING.LGPLv2.1",
+    "NOTICE",
+    "NOTICE.ImageMagick"
+  ]
+}

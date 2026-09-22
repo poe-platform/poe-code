@@ -1,0 +1,10 @@
+{
+  "source": "ffmpeg-9.0.1",
+  "registers": {
+    "packages/media-cli/metadata/option-tables.csv": "e7d59df89aa43ff18fee7af88c307b87a6d5e0506c32489b0f906b95a192a079",
+    "packages/media-cli/metadata/source-files.csv": "3a8974f35ab2a017e358a2b78c63acda09569bf5dba4983fefbe5055c4e15b90",
+    "packages/media-cli/metadata/baselines/source-lock.json": "58f0790b3768eb9239f14961612f8e778a31ca066d61db2bda5124750fa251eb",
+    "packages/media-cli/metadata/baselines/build-lock.json": "22c4ee96b8b19a680c4867e1c28169d3c25beb3397be597daf3ecfe5328ded4e",
+    "packages/media-cli/filter-macros.json": "49da79ed8c61b2d3908787cb89c0754635907a8c51ac8b935dc953492d5ce94d"
+  }
+}

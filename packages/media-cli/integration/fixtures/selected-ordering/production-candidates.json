@@ -1,0 +1,37 @@
+[
+  {
+    "project": "https://github.com/BtbN/FFmpeg-Builds/releases/tag/latest",
+    "release_tag": "latest",
+    "asset_id": 563470925,
+    "asset_name": "ffmpeg-n9.0-latest-linux64-gpl-9.0.tar.xz",
+    "download_url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n9.0-latest-linux64-gpl-9.0.tar.xz",
+    "asset_api_url": "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/assets/563470925",
+    "sha256": "sha256:24dcd178497e26c88ef9d914e40721b985e1ddc62881daed7ce97787e7a4f12c",
+    "bytes": 150165456,
+    "verified_download": true,
+    "execution_status": "not executed: Linux x86_64 runtime unavailable",
+    "selection": "production candidate; do not port against macOS capabilities",
+    "source_commit": "ad500d59cb6e0126add4fcb95afb4e2557c4292c",
+    "source_commit_url": "https://github.com/FFmpeg/FFmpeg/commit/ad500d59cb6e0126add4fcb95afb4e2557c4292c",
+    "executables": {
+      "ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
+      "ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d"
+    },
+    "embedded_version": "n9.0.1-29-gad500d59cb-20260914",
+    "embedded_configure": "--prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-ffbuild-linux-gnu- --arch=x86_64 --target-os=linux --enable-gpl --enable-version3 --disable-debug --enable-iconv --enable-zlib --enable-libxml2 --enable-libsoxr --enable-openssl --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --enable-libxcb --enable-xlib --enable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --enable-avisynth --enable-chromaprint --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librubberband --disable-schannel --enable-sdl2 --enable-libsnappy --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --enable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --disable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs='-lgomp -ldl' --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-ffbuild-linux-gnu-gcc --cxx=x86_64-ffbuild-linux-gnu-g++ --ar=x86_64-ffbuild-linux-gnu-gcc-ar --ranlib=x86_64-ffbuild-linux-gnu-gcc-ranlib --nm=x86_64-ffbuild-linux-gnu-gcc-nm --extra-version=20260914",
+    "metadata_method": "ELF strings inspection on macOS; not a native execution or availability test"
+  },
+  {
+    "project": "https://github.com/ImageMagick/ImageMagick/releases/tag/7.1.2-31",
+    "release_tag": "7.1.2-31",
+    "asset_id": 543364945,
+    "asset_name": "ImageMagick-7.1.2-31-gcc-x86_64.AppImage",
+    "download_url": "https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-31/ImageMagick-7.1.2-31-gcc-x86_64.AppImage",
+    "asset_api_url": "https://api.github.com/repos/ImageMagick/ImageMagick/releases/assets/543364945",
+    "sha256": "sha256:b22dee096a68e7eb6771a6f98c16490ea78d399ffa27f34ca2ec4f02e707fd9c",
+    "bytes": 33315320,
+    "verified_download": true,
+    "execution_status": "not executed: Linux x86_64 runtime unavailable",
+    "selection": "production candidate; do not port against macOS capabilities"
+  }
+]

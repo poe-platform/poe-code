@@ -5,6 +5,51 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const [args, expected] of [
+  [["--quiet", "p", "input"], "a\n"],
+  [["--quiet", "", "input"], ""],
+  [["--regexp-extended", "s/(a)/X/", "input"], "X\n"],
+  [["--quiet", "--regexp-extended", "-e", "s/(a)/X/p", "input"], "X\n"],
+  [["-f", "program", "--regexp-extended", "--quiet", "input"], "X\n"],
+] as const) {
+  test(`sed long aliases: ${args.join(" ")}`, async () => {
+    const files = { input: "a\n", program: "s/(a)/X/p" };
+    const result = await runVirtual("sed", { args, files });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stderr.length, 0);
+    assert.deepEqual(result.stdout, Buffer.from(expected));
+    assert.deepEqual(result.files, { input: Buffer.from(files.input), program: Buffer.from(files.program) });
+  });
+}
+
+test("sed long aliases preserve NUL records and non-UTF-8 bytes in shell pipelines", async () => {
+  const fs = await makeFileSystem({ input: Uint8Array.of(0xff, 0x61, 0, 0x62, 0) });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(textProgramCommands());
+  const result = await shell.exec("cat input | sed --quiet --regexp-extended --null-data 's/(a)/X/p' > output");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(await fs.readFile("/work/output"), Uint8Array.of(0xff, 0x58, 0));
+});
+
+test("sed treats long aliases after -- as filenames", async () => {
+  const result = await runVirtual("sed", {
+    args: ["-e", "p", "--", "--quiet", "--regexp-extended"],
+    files: { "--quiet": "a\n", "--regexp-extended": "b\n" },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  assert.deepEqual(result.stdout, Buffer.from("a\na\nb\nb\n"));
+});
+
+for (const option of ["--quiet=yes", "--regexp-extended=yes"]) {
+  test(`sed rejects an argument on the flag ${option}`, async () => {
+    const result = await runVirtual("sed", { args: [option, "p"], stdin: "a\n" });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr.toString(), `sed: unsupported option '${option}'\n`);
+    assert.equal(result.stdout.length, 0);
+  });
+}
+
 for (const [replacement, expected] of [
   [String.raw`\n`, "\n"],
   [String.raw`\t`, "\t"],

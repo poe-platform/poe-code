@@ -56,7 +56,8 @@ remain in the dialect matrix. This does not claim complete GNU/BSD or Bash
 compatibility: ambiguous capture selection, listing presentation, and other
 documented differences still exist across native implementations.
 
-Options: `-n`, repeated ordered `-e PROGRAM`/`-f FILE`, `-E`/`-r`, `-s`, and
+Options: `-n`/`--quiet`, repeated ordered `-e PROGRAM`/`-f FILE`,
+`-E`/`-r`/`--regexp-extended`, `-s`, and
 `-i[SUFFIX]`. `-i ''` is also accepted for a BSD-style empty backup suffix.
 Other long/short options are rejected. A first-line `#n` suppresses automatic
 printing. Program files are read through the virtual filesystem.

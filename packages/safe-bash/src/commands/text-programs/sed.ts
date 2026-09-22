@@ -434,6 +434,8 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
       if (argument === "--") { ended = true; continue; }
       if (argument === "--null-data") { separator = "\0"; continue; }
+      if (argument === "--quiet") { quiet = true; continue; }
+      if (argument === "--regexp-extended") { extended = true; continue; }
       if (argument.startsWith("--")) throw new ProgramError(`unsupported option '${argument}'`);
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;

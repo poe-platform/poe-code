@@ -18,6 +18,81 @@ async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   return { shell, fs, requests };
 }
 
+for (const [options, expected] of [
+  ['--header="X-Test: hello"', { 'x-test': 'hello' }],
+  ["--header 'X-Test: hello' --header 'X-Other: world'", { 'x-test': 'hello', 'x-other': 'world' }],
+  ["--header 'X-Test: first' --header 'x-test: last'", { 'x-test': 'last' }],
+  ["--header 'X-Test: first' --header= --header 'X-Other: last'", { 'x-other': 'last' }],
+  ["--header 'Accept:'", { accept: '' }],
+  ['--user-agent=AUDIT --referer=https://example.invalid/a', { 'user-agent': 'AUDIT', referer: 'https://example.invalid/a' }],
+  ["--user-agent first --user-agent last --referer first --referer last", { 'user-agent': 'last', referer: 'last' }],
+  ["--user-agent=AUDIT --referer=source --header 'X-Test: first' --header=", { 'user-agent': 'AUDIT', referer: 'source' }],
+  ["--header 'User-Agent: custom' --user-agent=AUDIT --header 'Referer: custom' --referer=source", { 'user-agent': 'custom', referer: 'custom' }],
+  ['--user-agent= --referer=', { 'user-agent': undefined, referer: '' }],
+] as const) test(`wget sends request headers over HTTP: ${options}`, async () => {
+  const endpoint = await server();
+  const { shell } = await fixture({ transport: createNodeHttpTransport() });
+  try {
+    const result = await shell.exec(`wget -q -O - ${options} ${endpoint.origin}/hello`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, '');
+    assert.equal(JSON.parse(result.stdout).path, '/hello');
+    assert.equal(endpoint.requests.length, 1);
+    const headers = endpoint.requests[0]!.headers;
+    for (const [name, value] of Object.entries(expected)) assert.equal(headers[name], value);
+    if (!Object.hasOwn(expected, 'x-test')) assert.equal(headers['x-test'], undefined);
+  } finally { await shell.dispose(); await endpoint.close(); }
+});
+
+for (const options of [
+  '--header', '--user-agent', '--referer', '--header=invalid', '--header=X-Test;',
+  "--header 'Bad Name: value'", "--header $'X-Test: value\\r\\nX-Injected: bad'",
+  "--user-agent $'value\\r\\nX-Injected: bad'", "--referer $'value\\nX-Injected: bad'",
+  ...['Host', 'Content-Length', 'Transfer-Encoding', 'Connection', 'Proxy-Authorization', 'Upgrade', 'Expect']
+    .map(name => `--header '${name}: value'`),
+]) test(`wget rejects invalid request headers before authorization: ${options}`, async () => {
+  let authorizations = 0;
+  const { shell, requests } = await fixture({ authorize: () => { authorizations++; return true; } });
+  try {
+    const result = await shell.exec(`wget -O- https://example.test/hello ${options}`);
+    assert.equal(result.exitCode, 2);
+    assert.equal(authorizations, 0);
+    assert.equal(requests.length, 0);
+  } finally { await shell.dispose(); }
+});
+
+test('wget drops custom headers after a cross-origin redirect', async () => {
+  const seen: { url: string; headers: readonly (readonly [string, string])[] }[] = [];
+  const authorized: string[] = [];
+  const { shell } = await fixture({
+    authorize: request => { authorized.push(request.url); return true; },
+    transport: async request => {
+      seen.push({ url: request.url, headers: request.headers });
+      return seen.length === 1
+        ? { status: 302, statusText: 'Found', headers: [['Location', 'https://other.test/end']], body: toByteSource(''), async dispose() {} }
+        : { status: 200, statusText: 'OK', headers: [], body: toByteSource('hello'), async dispose() {} };
+    },
+  });
+  try {
+    const result = await shell.exec("wget -qO- --header 'Authorization: synthetic' --header 'X-Test: hello' https://example.test/start");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, 'hello');
+    assert.deepEqual(authorized, ['https://example.test/start', 'https://other.test/end']);
+    assert.ok(seen[0]!.headers.some(([name, value]) => name === 'Authorization' && value === 'synthetic'));
+    assert.equal(seen[1]!.headers.some(([name]) => ['authorization', 'x-test'].includes(name.toLowerCase())), false);
+  } finally { await shell.dispose(); }
+});
+
+test('wget request headers retain the host byte ceiling', async () => {
+  const { shell, requests } = await fixture({ limits: { maxHeaderBytes: 128 } });
+  try {
+    const result = await shell.exec(`wget -O- --header 'X-Test: ${'a'.repeat(128)}' https://example.test/hello`);
+    assert.equal(result.exitCode, 4);
+    assert.ok(result.stderr.includes('Request headers exceed host byte limit'));
+    assert.equal(requests.length, 0);
+  } finally { await shell.dispose(); }
+});
+
 for (const [options, method, body] of [
   ['--post-data=a=b', 'POST', 'a=b'],
   ["--post-data '@input'", 'POST', '@input'],

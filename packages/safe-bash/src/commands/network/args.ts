@@ -64,17 +64,21 @@ function number(value: string, integral = false): number {
   return parsed;
 }
 
+export function validateRequestHeader(name: string, value: string): void {
+  try { validateHeaderName(name); validateHeaderValue(name, value); }
+  catch { throw new CurlError(2, "Invalid HTTP header"); }
+  if (["host", "content-length", "transfer-encoding", "connection", "proxy-authorization", "upgrade", "expect"].includes(name.toLowerCase())) {
+    throw new CurlError(2, "Transport-controlled HTTP header is not supported");
+  }
+}
+
 function addHeader(result: CurlArguments, raw: string): void {
   const colon = raw.indexOf(":");
   const semicolon = colon < 0 && raw.endsWith(";");
   if (colon < 1 && !semicolon) throw new CurlError(2, "Invalid HTTP header");
   const name = semicolon ? raw.slice(0, -1) : raw.slice(0, colon);
   const value = semicolon ? "" : raw.slice(colon + 1).trim();
-  try { validateHeaderName(name); validateHeaderValue(name, value); }
-  catch { throw new CurlError(2, "Invalid HTTP header"); }
-  if (["host", "content-length", "transfer-encoding", "connection", "proxy-authorization", "upgrade", "expect"].includes(name.toLowerCase())) {
-    throw new CurlError(2, "Transport-controlled HTTP header is not supported");
-  }
+  validateRequestHeader(name, value);
   result.headers.push([name, value === "" && !semicolon ? null : value]);
 }
 

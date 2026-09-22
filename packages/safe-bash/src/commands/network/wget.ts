@@ -1,7 +1,7 @@
 import { getCommandArguments, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import type { CurlArguments } from "./args.js";
+import { validateRequestHeader, type CurlArguments } from "./args.js";
 import { createTransferCommand } from "./curl.js";
 import { validateHeaderName } from "./platform.js";
 import { CurlError, type NetworkCommandsOptions, type NetworkLimits } from "./types.js";
@@ -51,6 +51,9 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     return parsed;
   };
   const bodies: Partial<Record<"--post-data" | "--post-file" | "--body-data" | "--body-file", string>> = {};
+  const headers = new Map<string, [string, string]>();
+  let agent: string | undefined;
+  let referer: string | undefined;
   let ended = false;
   for (let index = 0; index < context.args.length; index++) {
     if (index % 128 === 0) await yieldTurn(context.signal);
@@ -82,13 +85,28 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     const equal = argument.indexOf("=");
     const flag = equal < 0 ? argument : argument.slice(0, equal);
     let operand: string | undefined;
-    if (["--output-document", "--timeout", "--tries", "--method", "--post-data", "--post-file", "--body-data", "--body-file"].includes(flag)) {
+    if (["--output-document", "--timeout", "--tries", "--method", "--post-data", "--post-file", "--body-data", "--body-file", "--header", "--user-agent", "--referer"].includes(flag)) {
       operand = equal < 0 ? context.args[++index] : argument.slice(equal + 1);
     } else throw new CurlError(2, `Unsupported option: ${argument}`);
     if (operand === undefined) throw new CurlError(2, `${flag} requires an argument`);
     if (flag === "--output-document") { if (!operand) throw new CurlError(2, "Output filename must not be empty"); result.output = operand; result.remoteName = false; }
     else if (flag === "--timeout") { const seconds = number(operand, false); result.maxTimeMs = seconds === 0 ? limits.maxTimeMs : Math.min(seconds * 1000, limits.maxTimeMs); }
     else if (flag === "--tries") { const tries = number(operand, true); result.retries = tries === 0 ? limits.maxRetries : Math.min(tries - 1, limits.maxRetries); }
+    else if (flag === "--header") {
+      if (operand === "") { headers.clear(); continue; }
+      const colon = operand.indexOf(":");
+      if (colon < 1) throw new CurlError(2, "Invalid HTTP header");
+      const name = operand.slice(0, colon);
+      const value = operand.slice(colon + 1).trim();
+      validateRequestHeader(name, value);
+      headers.set(name.toLowerCase(), [name, value]);
+    } else if (flag === "--user-agent") {
+      validateRequestHeader("User-Agent", operand);
+      agent = operand;
+    } else if (flag === "--referer") {
+      validateRequestHeader("Referer", operand);
+      referer = operand;
+    }
     else if (flag === "--method") {
       try { validateHeaderName(operand); }
       catch { throw new CurlError(2, "Invalid or unsupported HTTP method"); }
@@ -100,6 +118,9 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
       bodies[bodyFlag] = operand;
     }
   }
+  if (agent !== undefined && !headers.has("user-agent")) result.headers.push(["User-Agent", agent === "" ? null : agent]);
+  if (referer !== undefined && !headers.has("referer")) result.headers.push(["Referer", referer]);
+  result.headers.push(...headers.values());
   const post = bodies["--post-data"] !== undefined || bodies["--post-file"] !== undefined;
   const customBody = bodies["--body-data"] !== undefined || bodies["--body-file"] !== undefined;
   if ((post && result.method !== undefined) || (customBody && result.method === undefined) ||
@@ -119,7 +140,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
 export function createWgetCommand(options: NetworkCommandsOptions): CommandDefinition {
   return createTransferCommand(options, {
     name: "wget", parse: parseWget,
-    help: "Usage: wget [-O FILE|-] [-q|-nv] [--timeout SECONDS] [--tries COUNT] URL\nRequest bodies: --post-data DATA | --post-file FILE | --method METHOD [--body-data DATA | --body-file FILE]\nBody files are read from the VFS. Downloads require explicit host authorization. Recursive mirroring is unsupported.\nTimeout is aggregate and host-capped; --tries=0 remains host-capped.\n",
+    help: "Usage: wget [-O FILE|-] [-q|-nv] [--timeout SECONDS] [--tries COUNT] URL\nRequest headers: --header 'NAME: VALUE' | --user-agent AGENT | --referer URL\nRequest bodies: --post-data DATA | --post-file FILE | --method METHOD [--body-data DATA | --body-file FILE]\nBody files are read from the VFS. Downloads require explicit host authorization. Recursive mirroring is unsupported.\nTimeout is aggregate and host-capped; --tries=0 remains host-capped.\n",
     version: "virtual-bash wget 0.0 (bounded HTTP HTTPS)\n",
     status: code => code === 0 ? 0 : [1, 2, 3].includes(code) ? 2 : [23, 26].includes(code) ? 3 : code === 60 ? 5 : code === 22 ? 8 : 4,
   });

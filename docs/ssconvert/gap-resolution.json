@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T16:49:04.576065+00:00",
+  "recordedAt": "2026-09-22T16:57:05.554808+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -25,7 +25,7 @@
     }
   },
   "candidate": {
-    "head": "56f45d0c64d5710d4c6fd0c0cafb8360332229ce",
+    "head": "807e061b3ec3d46b5e104c1d8da72b840762eb57",
     "ownedFiles": [
       {
         "path": "packages/safe-bash/src/commands/ssconvert/index.ts",
@@ -92,20 +92,24 @@
         "sha256": "43d70a4eb420314ae90daf2a06451ef8f8f88a05ed91beeb2b0506d3094201fb"
       },
       {
-        "path": "packages/ssconvert/src/codecs/biff.ts",
-        "sha256": "589a897254ccba188776d24dde2a2d8daa929ec3c6da1ad8999efb027f1d696b"
-      },
-      {
         "path": "packages/ssconvert/src/codecs/biff-local-spans.test.ts",
         "sha256": "958c7a544d6a33a79cb9f4bf280943e1e2028345d2114e2055b61d4c182f08bb"
       },
       {
-        "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
-        "sha256": "399c6c8045ee4b2e4d43f6f112011c8e99045a761563fe4b35f363b03148ef68"
-      },
-      {
         "path": "packages/ssconvert/src/codecs/biff-deleted-references.test.ts",
         "sha256": "91eb52aff067760730c9c6ce1a534f4576dd5fe07ff23453010f5a2065d3ead1"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+        "sha256": "a0177f1d54462c2a3d9b136b41d2c20626ce30127f9442700532d280a35157ec"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff.ts",
+        "sha256": "122b57cde469df68899805718067774d8cb136988f5c2751875c0bd5164cbd4d"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/biff-legacy-references.test.ts",
+        "sha256": "457b1f7c9fc14db196b460b33186edc9b4c965d7a4c2408c80ebd84872c407d4"
       }
     ]
   },
@@ -213,7 +217,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "BIFF8 local Ref3D/Area3D spans verified on remote main56f45d0c6; BIFF7/8 explicit RefErr3D/AreaErr3D repaired with12 native/CLI comparisons. BIFF7 scopes, deleted EXTERNSHEET endpoints and true external books remain open.",
+      "currentFinding": "BIFF8 spans and BIFF7/8 deleted tokens verified on remote main; legacy local3D import and worksheet-table ownership repaired,14 native/public CLI cells pass. Writer span roundtrip concretely loses Last endpoint (6 becomes3); names, modern deleted links and true external books remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -229,6 +233,16 @@
           "kind": "explicit-deleted-BIFF7/8-reference-token-repair",
           "path": "docs/ssconvert/biff-deleted-reference-gap-proof.json",
           "outcome": "original7 red/green, twelve token-class/revision memory integrations; maintained6299 tests, lint/types/build pass; twelve independent native/public CLI exact CSV cells; screenshot inspected",
+          "delivery": {
+            "localCommit": "807e061b3ec3d46b5e104c1d8da72b840762eb57",
+            "remoteMain": "exact ls-remote HEAD verified",
+            "publication": "Release35756622238 pending, prior original fresh-unit job remains in_progress"
+          }
+        },
+        {
+          "kind": "legacy-local-reference-and-scope-repair",
+          "path": "docs/ssconvert/biff-legacy-reference-gap-proof.json",
+          "outcome": "red11/green14;6313 maintained tests, lint/types/build pass;14 native/public CLI exact comparisons and inspected screenshot; neighboring writer span failure newly reproduced",
           "delivery": "local candidate, pending atomic commit/push and publication"
         }
       ],

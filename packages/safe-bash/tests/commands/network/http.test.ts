@@ -11,6 +11,44 @@ let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
 
+test("Shell curl sends byte ranges and streams partial responses", async () => {
+  const bodies = new Map([
+    ["bytes=0-2", { body: "hel", contentRange: "bytes 0-2/6" }],
+    ["bytes=3-", { body: "lo\n", contentRange: "bytes 3-5/6" }],
+    ["bytes=-2", { body: "o\n", contentRange: "bytes 4-5/6" }],
+  ]);
+  const ranges: (string | undefined)[] = [];
+  const partial = await server((request, response) => {
+    ranges.push(request.headers.range);
+    const selected = bodies.get(request.headers.range ?? "");
+    if (!selected) { response.writeHead(200); response.end("hello\n"); return true; }
+    response.writeHead(206, { "Content-Range": selected.contentRange, "Content-Length": Buffer.byteLength(selected.body) });
+    response.end(selected.body);
+    return true;
+  });
+  try {
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === partial.origin }));
+    for (const [option, expected] of [
+      ["--range 0-2", "hel"], ["-r 0-2", "hel"], ["-r0-2", "hel"],
+      ["--range 3-", "lo\n"], ["--range -2", "o\n"], ["--range=0-2", "hel"],
+      ["-r 3- --range 0-2", "hel"], ["--range 0-2 -H 'Range: bytes=-2'", "o\n"],
+    ]) {
+      const result = await shell.exec(`curl ${option} -w ':%{http_code}:%{size_download}' ${partial.origin}/hello`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `${expected}:206:${Buffer.byteLength(expected!)}`);
+    }
+    const output = await shell.exec(`curl --range 0-2 -o /partial ${partial.origin}/hello`);
+    assert.equal(output.exitCode, 0, output.stderr);
+    assert.equal(output.stdout, "");
+    assert.deepEqual(Buffer.from(await fs.readFile("/partial")), Buffer.from("hel"));
+    const suppressed = await shell.exec(`curl --range 0-2 -H 'Range:' ${partial.origin}/hello`);
+    assert.equal(suppressed.exitCode, 0, suppressed.stderr);
+    assert.equal(suppressed.stdout, "hello\n");
+    assert.deepEqual(ranges, ["bytes=0-2", "bytes=0-2", "bytes=0-2", "bytes=3-", "bytes=-2", "bytes=0-2", "bytes=0-2", "bytes=-2", "bytes=0-2", undefined]);
+  } finally { await partial.close(); }
+});
+
 test("Shell curl accepts separate and equals connection timeouts", async () => {
   const hello = await server((_request, response) => { response.end("hello\n"); return true; });
   try {

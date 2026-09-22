@@ -14,6 +14,7 @@ test("registration requires an explicit authorizer", () => {
 });
 
 for (const args of [
+  ["--range", "0-2\r\nX: injection"], ["-r", "0-2\0"],
   ["--connect-timeout", "NaN"], ["--connect-timeout", "-1"], ["--connect-timeout=Infinity"],
   ["--proxy", "http://proxy.invalid"], ["--netrc"], ["-k"], ["--compressed=true"],
   ["-X", "GET\r\nInjected: bad"], ["-X", "CONNECT"], ["-H", "Authorization: secret\r\nX: injection"],
@@ -24,6 +25,16 @@ for (const args of [
   const result = await run([...args, "http://127.0.0.1/"], { options: { transport: async () => { called = true; return response(); } } });
   assert.equal(result.exitCode, 2); assert.equal(called, false);
   assert.doesNotMatch(result.stderr.toString(), /secret|proxy\.invalid|elsewhere|user-without-password/);
+});
+
+test("range requests still require host authorization", async () => {
+  let calls = 0;
+  const result = await run(["--range", "0-2", "http://127.0.0.1/"], { options: {
+    authorize: () => false,
+    transport: async () => { calls++; return response(); },
+  } });
+  assert.equal(result.exitCode, 7);
+  assert.equal(calls, 0);
 });
 
 test("denied URLs neither invoke transport nor consume uploads", async () => {

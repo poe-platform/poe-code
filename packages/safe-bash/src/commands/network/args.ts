@@ -14,6 +14,7 @@ export interface CurlArguments {
   data: DataArgument[];
   headers: [string, string | null][];
   method?: string;
+  range?: string;
   user?: string;
   bearer?: string;
   upload?: string;
@@ -45,7 +46,7 @@ export interface CurlArguments {
 
 const values: Readonly<Record<string, string>> = {
   X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
-  o: "output", D: "dump-header", w: "write-out", T: "upload-file", m: "max-time", F: "form",
+  o: "output", D: "dump-header", w: "write-out", T: "upload-file", m: "max-time", F: "form", r: "range",
 };
 const flags: Readonly<Record<string, string>> = {
   L: "location", I: "head", i: "include", f: "fail", s: "silent", S: "show-error",
@@ -91,6 +92,10 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
         }
         result.method = value; break;
       case "header": addHeader(result, value!); break;
+      case "range":
+        try { validateHeaderValue("Range", value!); }
+        catch { throw new CurlError(2, "Invalid byte range"); }
+        result.range = value!; break;
       case "user-agent": addHeader(result, `User-Agent: ${value!}`); break;
       case "referer": addHeader(result, `Referer: ${value!}`); break;
       case "user":

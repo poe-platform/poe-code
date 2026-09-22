@@ -41,6 +41,7 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
   const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
+  if (args.range !== undefined) defaults.push(["Range", `bytes=${args.range}`]);
   if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
   if (scoped && args.bearer !== undefined) {
     if (/[\r\n\0]/.test(args.bearer)) throw new CurlError(2, "Invalid bearer token");

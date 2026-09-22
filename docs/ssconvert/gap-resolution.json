@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded byte grammar with captures/POSIX/names/finite lookbehind/atomic/possessive implemented;4020valid public controls exact;24invalid-byte representation cases,nativewarnings/diagnostics,broader grammar and profiles remain open.",
+      "currentFinding": "Bounded byte grammar with captures/POSIX/names/finite lookbehind/atomic/possessive/whitespace-newline-octal escapes implemented;4482valid public controls exact;38invalid-byte representation cases,nativewarnings/diagnostics,broader grammar and profiles remain open.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -534,11 +534,16 @@
           "kind": "independent-Perl534-experimental-finite-lookbehind-output",
           "path": "docs/ssconvert/perl-sed-variable-behind-gap-proof.json",
           "outcome": "594originalred controls repaired;593valid SDK/Shell/replay/browser/worker controls exact. Original native exactCSV then knownshutdownabort; correctedstandard/ASAN profiles exit0 with retained experimentalwarning stderr,not diagnostic parity.11913maintained tests,lint/types/build pass."
+        },
+        {
+          "kind": "independent-whitespace-newline-explicit-octal-byte-escapes",
+          "path": "docs/ssconvert/perl-sed-escape-gap-proof.json",
+          "outcome": "476originalred controls repaired;462valid SDK/Shell/replay/browser/worker cases exact after CHAR13 fixture preserves originalCR bytes. Original native exactCSV then knownshutdownabort; correctedstandard/ASAN profiles exit0/stderr0.12389maintained tests,lint/types/build pass."
         }
       ],
       "delivery": {
-        "localCommit": "96f49b9ba82e707482d74e8ee693440769940bd0",
-        "remoteMain": "Atomic/POSIX/named/runtime improvements verified separately on origin/main; finite lookbehind delivery pending.",
+        "localCommit": "a2c5552e9ff7adae9ecb8986b280f8dda11c7208",
+        "remoteMain": "Variable lookbehind/atomic/POSIX/named/runtime improvements verified separately on origin/main; escape delivery pending.",
         "publication": "Containing release pending. Fatal Bash3/4 assertions reproduced/repaired as81b134aa0/6c94bcf59; final publication not claimed."
       }
     },

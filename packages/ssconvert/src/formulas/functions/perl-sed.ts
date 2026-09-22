@@ -84,6 +84,31 @@ function compile(pattern: string, host: FunctionHost): Node {
     const common = "nrtfae", values = [10, 13, 9, 12, 7, 27];
     const index = common.indexOf(char); if (index >= 0) return literal(values[index]!, mode);
     if (char === "b" && inClass) return literal(8, mode);
+    if ("hHvV".includes(char) || char === "N" && !inClass) {
+      if (char === "N" && pattern[at] === "{") return unsupported();
+      const kind = char.toLowerCase(), inverse = char !== kind;
+      return node({ kind: "char", test: (byte: number) => {
+        const matched = kind === "h" ? byte === 9 || byte === 32 || byte === 160
+          : kind === "v" ? byte >= 10 && byte <= 13 || byte === 133 : byte === 10;
+        return inverse ? !matched : matched;
+      } });
+    }
+    if (char === "R" && !inClass) {
+      const crlf = node({ kind: "sequence", nodes: [literal(13, mode), literal(10, mode)] });
+      const vertical = node({ kind: "char", test: (byte: number) => byte >= 10 && byte <= 13 || byte === 133 });
+      return node({ kind: "atomic", node: node({ kind: "alternative", nodes: [crlf, vertical] }) });
+    }
+    if (char === "0" || char === "o") {
+      let byte = 0, count = 0;
+      const braced = char === "o";
+      if (braced && pattern[at++] !== "{") return unsupported();
+      while (at < pattern.length && (braced || count < 2) && pattern[at]! >= "0" && pattern[at]! <= "7") {
+        host.tick(); count++; byte = byte * 8 + pattern.charCodeAt(at++) - 48;
+        if (byte > 255) return unsupported();
+      }
+      if (braced && (!count || pattern[at++] !== "}")) return unsupported();
+      return literal(byte, mode);
+    }
     if ("dDsSwW".includes(char)) {
       const kind = char.toLowerCase(), inverse = char !== kind;
       return node({ kind: "char", test: (byte: number) => {

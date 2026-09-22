@@ -48,6 +48,11 @@ Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
 
 Exit status: 0 when a line is selected, 1 when none is selected, 2 on error.
 Regular expression support depends on the configured regex executor.
+The default bounded matcher rejects BRE groups, intervals, backreferences and escape extensions.
+Use extended alternation: grep -E 'Remove upvote|Upvoted'
+For literal alternatives: grep -F -e 'Remove upvote' -e 'Upvoted'
+If an action succeeded but filtering failed, retry only the read-only verification;
+inspect the resulting state before repeating the action.
 `);
         return { exitCode: 0 };
       }

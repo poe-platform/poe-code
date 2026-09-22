@@ -79,6 +79,12 @@ filesystem and byte streams, not host executables.
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
+The default bounded `grep` matcher rejects BRE groups, intervals, backreferences
+and escape extensions such as `\|`. Use `grep -E 'Remove upvote|Upvoted'` for
+alternation or `grep -F -e 'Remove upvote' -e 'Upvoted'` for literal alternatives.
+Exit 1 means no match; exit 2 means filtering failed. If a preceding action
+succeeded, inspect its resulting state and retry only the read-only verification
+before repeating the action. A configured regex executor may support more syntax.
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.

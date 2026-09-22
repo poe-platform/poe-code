@@ -241,6 +241,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "@poe-code/safe-js#test:unit": {
+      "dependsOn": [
+        "build"
+      ]
     }
   }
 }

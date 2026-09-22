@@ -48434,5 +48434,345 @@
     ],
     "stderrHex": "",
     "exit": 0
+  },
+  "declaredUnicode16Extension": {
+    "recordedAt": "2026-09-22T23:59:20.023885+00:00",
+    "reference": "Unmodified authenticated GLib2.84.4 guniprop.c and Unicode16 property tables compiled into private executable with installed2.90GLib allocation/UTF8 support; not a complete activated2.84 native profile.",
+    "caseContexts": {
+      "reference": "Unmodified authenticated GLib2.84.4 guniprop.c/property tables compiled into private executable with installed2.90GLib allocation/UTF8 support; C-locale Unicode16 property/case logic,not a complete matching activated profile.",
+      "unicode": "16.0.0",
+      "locale": "C",
+      "cases": [
+        {
+          "inputHex": "cea3",
+          "lowerHex": "cf82",
+          "upperHex": "cea3"
+        },
+        {
+          "inputHex": "ce9fcea3cc81ce91",
+          "lowerHex": "cebfcf82cc81ceb1",
+          "upperHex": "ce9fcea3cc81ce91"
+        },
+        {
+          "inputHex": "ce9fcea327ce91",
+          "lowerHex": "cebfcf8227ceb1",
+          "upperHex": "ce9fcea327ce91"
+        },
+        {
+          "inputHex": "cd85cc87cc81",
+          "lowerHex": "cd85cc87cc81",
+          "upperHex": "cc87cc81ce99"
+        },
+        {
+          "inputHex": "69cc87cd85cc87",
+          "lowerHex": "69cc87cd85cc87",
+          "upperHex": "49cc87cc87ce99"
+        },
+        {
+          "inputHex": "e285a3e29390",
+          "lowerHex": "e285a3e29390",
+          "upperHex": "e285a3e29390"
+        },
+        {
+          "inputHex": "e1b289",
+          "lowerHex": "e1b28a",
+          "upperHex": "e1b289"
+        },
+        {
+          "inputHex": "e082aa",
+          "lowerHex": "e082aa",
+          "upperHex": "e082aa"
+        },
+        {
+          "inputHex": "e08180",
+          "lowerHex": "e08180",
+          "upperHex": "e08180"
+        },
+        {
+          "inputHex": "c38041",
+          "lowerHex": "c3a061",
+          "upperHex": "c38041"
+        },
+        {
+          "inputHex": "e080804142",
+          "lowerHex": "e080806162",
+          "upperHex": "e080804142"
+        },
+        {
+          "inputHex": "eda08041",
+          "lowerHex": "eda08061",
+          "upperHex": "eda08041"
+        },
+        {
+          "inputHex": "f88880808141",
+          "lowerHex": "f88880808161",
+          "upperHex": "f88880808141"
+        },
+        {
+          "inputHex": "c3",
+          "lowerHex": "c3",
+          "upperHex": "c3"
+        },
+        {
+          "inputHex": "ce",
+          "lowerHex": "ce",
+          "upperHex": "ce"
+        },
+        {
+          "inputHex": "e084b8",
+          "lowerHex": "e084b8",
+          "upperHex": "c4b8"
+        },
+        {
+          "inputHex": "e0839f",
+          "lowerHex": "e0839f",
+          "upperHex": "5353"
+        },
+        {
+          "inputHex": "e08589",
+          "lowerHex": "e08589",
+          "upperHex": "cabc4e"
+        },
+        {
+          "inputHex": "e081a1",
+          "lowerHex": "e081a1",
+          "upperHex": "41"
+        },
+        {
+          "inputHex": "e08181",
+          "lowerHex": "61",
+          "upperHex": "e08181"
+        },
+        {
+          "inputHex": "c181",
+          "lowerHex": "61",
+          "upperHex": "c181"
+        }
+      ],
+      "stderr": "",
+      "profileDifference": "Unicode16 GLib2.84.4 retains following U0307 after upper U0345; installed GLib2.90.0 Unicode17 removes it. Keep native profiles separate."
+    },
+    "categoryCounts": {
+      "lowerActiveRanges": 654,
+      "upperActiveRanges": 662,
+      "markRanges": 321
+    },
+    "existingAlphaPropertyQualification": {
+      "cases": 1114112,
+      "differences": 0,
+      "examples": [],
+      "reference": "Unmodified GLib2.84.4 Unicode16 primary source"
+    },
+    "wideHoldouts": {
+      "sourceRows": 4800,
+      "directionFields": 9600,
+      "construction": "Alpha range endpoints and neighboring scalars after sigma; mark endpoints after sigma/before Greek base; following mark reorder and dot retention; five-byte encodings of each lowercase/uppercase active-range start.",
+      "diagnostics": "Private source oracle exit0 and empty stderr."
+    },
+    "leadByteOracle": {
+      "sourceRows": 256,
+      "directionFields": 512,
+      "reference": "Private unmodified2.84 guniprop case implementation, same allocation/UTF8 qualification limits."
+    },
+    "currentBuiltProductRed": {
+      "candidate": "current built product before case fix",
+      "datasets": [
+        {
+          "file": "byte-string-case-context-unicode16.json",
+          "controls": 42,
+          "mismatches": 7,
+          "refusals": 26,
+          "examples": [
+            {
+              "name": "LOWER",
+              "inputHex": "cea3",
+              "expected": "cf82",
+              "got": "cf83"
+            },
+            {
+              "name": "LOWER",
+              "inputHex": "ce9fcea3cc81ce91",
+              "expected": "cebfcf82cc81ceb1",
+              "got": "cebfcf83cc81ceb1"
+            },
+            {
+              "name": "LOWER",
+              "inputHex": "ce9fcea327ce91",
+              "expected": "cebfcf8227ceb1",
+              "got": "cebfcf8327ceb1"
+            },
+            {
+              "name": "UPPER",
+              "inputHex": "cd85cc87cc81",
+              "expected": "cc87cc81ce99",
+              "got": "ce99cc87cc81"
+            },
+            {
+              "name": "UPPER",
+              "inputHex": "69cc87cd85cc87",
+              "expected": "49cc87cc87ce99",
+              "got": "49cc87ce99cc87"
+            }
+          ]
+        },
+        {
+          "file": "byte-string-case-context-holdouts-unicode16.json",
+          "controls": 9600,
+          "mismatches": 2130,
+          "refusals": 2632,
+          "examples": [
+            {
+              "id": "sigma-alpha-0-64",
+              "name": "LOWER",
+              "inputHex": "cea340",
+              "expected": "cf8240",
+              "got": "cf8340"
+            },
+            {
+              "id": "sigma-alpha-0-91",
+              "name": "LOWER",
+              "inputHex": "cea35b",
+              "expected": "cf825b",
+              "got": "cf835b"
+            },
+            {
+              "id": "sigma-alpha-1-96",
+              "name": "LOWER",
+              "inputHex": "cea360",
+              "expected": "cf8260",
+              "got": "cf8360"
+            },
+            {
+              "id": "sigma-alpha-1-123",
+              "name": "LOWER",
+              "inputHex": "cea37b",
+              "expected": "cf827b",
+              "got": "cf837b"
+            },
+            {
+              "id": "sigma-alpha-2-169",
+              "name": "LOWER",
+              "inputHex": "cea3c2a9",
+              "expected": "cf82c2a9",
+              "got": "cf83c2a9"
+            }
+          ]
+        },
+        {
+          "file": "byte-text-glib-case-unicode16-oracle.json",
+          "controls": 512,
+          "mismatches": 0,
+          "refusals": 256,
+          "examples": [
+            {
+              "id": 128,
+              "name": "LOWER",
+              "inputHex": "80414141414141",
+              "expected": "80616161616161",
+              "error": "Native byte-string Unicode rendering is not qualified"
+            },
+            {
+              "id": 128,
+              "name": "UPPER",
+              "inputHex": "80414141414141",
+              "expected": "80414141414141",
+              "error": "Native byte-string Unicode rendering is not qualified"
+            },
+            {
+              "id": 129,
+              "name": "LOWER",
+              "inputHex": "81414141414141",
+              "expected": "81616161616161",
+              "error": "Native byte-string Unicode rendering is not qualified"
+            },
+            {
+              "id": 129,
+              "name": "UPPER",
+              "inputHex": "81414141414141",
+              "expected": "81414141414141",
+              "error": "Native byte-string Unicode rendering is not qualified"
+            },
+            {
+              "id": 130,
+              "name": "LOWER",
+              "inputHex": "82414141414141",
+              "expected": "82616161616161",
+              "error": "Native byte-string Unicode rendering is not qualified"
+            }
+          ]
+        }
+      ]
+    },
+    "scratchPrototypeOnly": {
+      "scalar": {
+        "implementation": "scratch prototype only; no product claim",
+        "scalarControls": 2224126,
+        "scalarDifferences": 0,
+        "contextControls": 42,
+        "contextDifferences": 0
+      },
+      "holdouts": {
+        "scratchPrototypeOnly": true,
+        "controls": 9600,
+        "differences": 0,
+        "examples": []
+      },
+      "status": "No product implementation, maintained regression, delivery or parity claim. Source-category and context controls demonstrate candidate algorithm only."
+    },
+    "profileDifference": "GLib2.84.4 Unicode16 retains a following combining dot U0307 while uppercasing U0345; installed2.90 Unicode17 drops it. Native2.90 workbook controls are a separate profile, not interchangeable with declaredUnicode16.",
+    "historicalEncoding": "Unchanged byte spans stay original for inactive categories; an active lowercase letter with no uppercase equivalent (overlong U0138) reencodes to canonical UTF8 on UPPER. Category admission matters independently of changed scalar mappings.",
+    "remaining": "Add failing memory regressions and implement bounded cooperative declaredUnicode16 byte case conversion; qualify actual publicSDK/Shell/checkpoint/browser/worker and active profiles/locales. Diagnostics and whole-plan obligations remain required.",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-category-oracle.c",
+        "bytes": 1758,
+        "sha256": "28af8be1a0816463fd9f826022d04248f69ce8dc79f143df08d107b95b21f1ee"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-category-oracle.json",
+        "bytes": 245157,
+        "sha256": "6748a41ae7522b0e56bca6ec5d29ea9492b23205cbd9c20935e0585b963e0c8e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-context-oracle.c",
+        "bytes": 724,
+        "sha256": "6cb73e186178d9310197937d431c0e08ce7d8e9ca19b6b80279a7e564c4df574"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-context-unicode16.json",
+        "bytes": 2600,
+        "sha256": "43d0a9785745e1b82a7412f6c05287cc82e8802d75a5f0e36631ca515300c145"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-context-holdouts-unicode16.json",
+        "bytes": 753214,
+        "sha256": "9820fc7a300ef5db8829737525db1e37c9740971d1deb7590d245bda6b3cc8da"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-current-context-red.json",
+        "bytes": 3369,
+        "sha256": "9408457eb547a9d650fffafdff0fb564122e7c66d4a7ebdc0f2de26cbc6a903e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-alpha-control.json",
+        "bytes": 109,
+        "sha256": "f9283fb6b9523b173b6c326e0fbf743722c1f8723132f3d07257be24b859d88f"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-text-glib-case-unicode16-oracle.json",
+        "bytes": 63726,
+        "sha256": "80e42b0f45657045592f225ee40755aaa86d787afdf4f6741ebd4435ebd43413"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-prototype-results.json",
+        "bytes": 174,
+        "sha256": "05748b156de0074f6c5bc09cbbeb041bab7152961d4296bd67062ce5fd57f22f"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-prototype-holdouts-results.json",
+        "bytes": 93,
+        "sha256": "8ff8805a0b90ef5581ad0f05cbeff30e902bbbfa3474c53298dfef6d390c931b"
+      }
+    ]
   }
 }

@@ -23,6 +23,8 @@ Release work:
    generator inputs with their owning packages.
 4. Pass the maintained uncached build, workspace test, lint, package and
    workflow checks; inspect the CLI help screenshot.
+   Keep DOCX list/style semantic fixtures on deterministic archive and budget
+   schedulers so host timer delays cannot derail the full shared unit batches.
 5. Commit atomic owned changes on main, verify remote-main delivery, and
    monitor GitHub publication through successful release.
 

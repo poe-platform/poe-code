@@ -1,3 +1,4 @@
+import "../tests/fixtures/semantic-scheduler.js";
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "./index.js";

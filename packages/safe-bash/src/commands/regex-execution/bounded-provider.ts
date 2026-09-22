@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "../../public-diagnostic.js";
-import { foldAscii } from "./ascii.js";
+import { foldAscii, isAsciiWord } from "./ascii.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { matchExprSteps, searchBreSteps } from "../expr/bre-engine.js";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError, EreUsageUnknownError } from "./ere/errors.js";
@@ -107,7 +107,7 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   record(value, ["kind", "patterns", ...flags, ...(kind.value === "rg" ? ["case"] : [])]);
   for (const flag of flags) if (typeof value[flag] !== "boolean") fail("protocol", `invalid ${flag} flag`);
   if (kind.value === "rg" && !["sensitive", "insensitive", "smart"].includes(value.case as string)) fail("protocol", "invalid case flag");
-  if (value.word || kind.value === "rg" && value.case !== "sensitive") fail("unsupported", "word matching and rg case-insensitive selection are unsupported");
+  if (kind.value === "rg" && (value.word || value.case !== "sensitive")) fail("unsupported", "rg word matching and case-insensitive selection are unsupported");
   array(value.patterns, limits.maxPatterns, "pattern");
   let bytes = 0;
   for (let index = 0; index < value.patterns.length; index++) {
@@ -324,17 +324,28 @@ async function compileLiteral(bytes: Uint8Array, ledger: EreLedger, signal: Abor
   return { bytes, fallback, insensitive };
 }
 
-async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): Promise<number> {
+async function literalStart(program: LiteralProgram, subject: Uint8Array, whole: boolean, word: boolean, ledger: EreLedger, signal: AbortSignal, from = 0): Promise<number> {
   const { bytes, fallback } = program;
   ledger.charge("work", 1, signal);
   await ledger.checkpoint(signal);
   if (whole && (from !== 0 || bytes.length !== subject.length) || bytes.length > subject.length - from) return -1;
-  if (bytes.length === 0) return from;
+  if (bytes.length === 0) {
+    for (let start = from; start <= subject.length; start++) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      if (!word || !isAsciiWord(subject[start - 1] ?? -1) && !isAsciiWord(subject[start] ?? -1)) return start;
+    }
+    return -1;
+  }
   for (let index = from, prefix = 0; index < subject.length;) {
     ledger.charge("work", 1, signal);
     if ((program.insensitive ? foldAscii(subject[index]!) : subject[index]) === bytes[prefix]) {
       index++;
-      if (++prefix === bytes.length) return index - prefix;
+      if (++prefix === bytes.length) {
+        const start = index - prefix;
+        if (!word || !isAsciiWord(subject[start - 1] ?? -1) && !isAsciiWord(subject[index] ?? -1)) return start;
+        prefix = fallback[prefix - 1]!;
+      }
     } else if (prefix > 0) prefix = fallback[prefix - 1]!;
     else index++;
     await ledger.checkpoint(signal);
@@ -405,7 +416,7 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise
     if (row.all) {
       ledger.charge("allocationUnits", programs.length * 2, signal);
       const finders = programs.map(program => async (from: number): Promise<Span | undefined> => {
-        const start = await literalStart(program, row.bytes, selected.whole, ledger, signal, from);
+        const start = await literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal, from);
         if (start < 0) return undefined;
         ledger.charge("allocationUnits", 2, signal);
         return { start, end: start + program.bytes.length };
@@ -416,7 +427,7 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise
     let start = -1;
     let end = -1;
     for (const program of programs) {
-      const candidate = await literalStart(program, row.bytes, selected.whole, ledger, signal);
+      const candidate = await literalStart(program, row.bytes, selected.whole, selected.word, ledger, signal);
       if (candidate < 0) continue;
       if (start < 0 || candidate < start) { start = candidate; end = start + program.bytes.length; }
       if (selected.kind === "grep") break;
@@ -462,7 +473,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
-    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg");
+    const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word);
     if (row.all) {
       ledger.charge("allocationUnits", programs.length + 1, signal);
       const finders: ((from: number) => Promise<Span | undefined>)[] = [];

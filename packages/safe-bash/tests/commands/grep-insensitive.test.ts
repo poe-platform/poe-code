@@ -34,7 +34,7 @@ for (const [source, input, output, status] of cases) test(`bounded grep ASCII fo
   } finally { await shell.dispose(); }
 });
 
-for (const source of ["grep -iw a", "rg -Fi a", "grep -i é"]) test(`ASCII folding does not widen ${source}`, async () => {
+for (const source of ["rg -Fi a", "grep -i é"]) test(`ASCII folding does not widen ${source}`, async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
     const result = await shell.exec(source, { stdin: "é A\n" });

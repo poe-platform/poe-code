@@ -1,5 +1,5 @@
 import { validateUtf8 } from "../utf8.js";
-import { foldAscii } from "../ascii.js";
+import { foldAscii, isAsciiWord } from "../ascii.js";
 import { EreLedger } from "./limits.js";
 import { admitAscii, resolveEreProgram } from "./syntax.js";
 import type { EreNode, EreProgram, EreResult, EreSpan } from "./types.js";
@@ -120,7 +120,7 @@ export async function createEreSpanMatcher(program: EreProgram, subject: string,
 }
 
 /** Validated, owned UTF-8 subject with one internal code unit per Unicode scalar. */
-export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
+export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger, signal?: AbortSignal, leftmostFirst = false, word = false): Promise<(program: EreProgram) => (start: number) => Promise<EreSpan | undefined>> {
   ledger.check(signal);
   ledger.admitInput("subjectBytes", bytes.length, signal);
   // Logical allocation units per byte: copy 1, offset storage 8, character
@@ -160,7 +160,7 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
         else upper = middle;
       }
       if (offsets[lower] !== start) throw new RangeError("UTF-8 ERE cursor must be a scalar boundary");
-      const span = await runMatcher(program, subject, ledger, signal, lower, false, leftmostFirst);
+      const span = await runMatcher(program, subject, ledger, signal, lower, false, leftmostFirst, word);
       if (!span) return undefined;
       ledger.charge("allocationUnits", 2, signal);
       return Object.freeze({ start: offsets[span.start]!, end: offsets[span.end]! });
@@ -168,9 +168,9 @@ export async function prepareUtf8EreSubject(bytes: Uint8Array, ledger: EreLedger
   };
 }
 
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: true, leftmostFirst?: boolean): Promise<EreResult>;
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false, leftmostFirst?: boolean): Promise<EreSpan | undefined>;
-async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean, leftmostFirst = false): Promise<EreResult | EreSpan | undefined> {
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: true, leftmostFirst?: boolean, word?: boolean): Promise<EreResult>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: false, leftmostFirst?: boolean, word?: boolean): Promise<EreSpan | undefined>;
+async function runMatcher(program: EreProgram, subject: string, ledger: EreLedger, signal: AbortSignal | undefined, from: number, materialize: boolean, leftmostFirst = false, word = false): Promise<EreResult | EreSpan | undefined> {
   const root = resolveEreProgram(program, ledger);
   const width = program.groups + 1;
   ledger.charge("work", width * 2, signal);
@@ -189,6 +189,11 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
     pending.push({ position, task: next, captures, histories });
   };
   for (let start = from; start <= subject.length; start++) {
+    if (word) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      if (isAsciiWord(subject.charCodeAt(start - 1))) continue;
+    }
     push(start, task(() => ({ kind: "node", node: root, next: null })), emptyCaptures, emptyHistories);
     let best: State | undefined;
     while (pending.length > 0) {
@@ -197,6 +202,9 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
       const state = pending.pop()!;
       const current = state.task;
       if (current === null) {
+        // Reject invalid ends before choosing the longest match, so shorter
+        // alternatives and repetition endpoints remain eligible at this start.
+        if (word && isAsciiWord(subject.charCodeAt(state.position))) continue;
         if (leftmostFirst) { best = state; break; }
         if (!best || await preferred(state, best, ledger, signal)) best = state;
         continue;

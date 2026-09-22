@@ -61,7 +61,7 @@ test("fixed literals, BRE subset, pattern lists, whole and empty patterns retain
 
 test("unsupported dialects and flags are rejected even without subject rows", async () => {
   const unsupported: Descriptor[] = [
-    grep(["x"], { word: true }),
+    { kind: "rg", patterns: ["x"], fixed: true, case: "sensitive", whole: false, word: true, nullData: false },
     grep(["a\\+"], { extended: false }), grep(["é"]),
     ...["a^", "$a", "a^b", "a$b", "*a", "^*a", "^^*"].map(pattern => grep([pattern], { extended: false })),
     { kind: "rg", patterns: ["(?=a)"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false },

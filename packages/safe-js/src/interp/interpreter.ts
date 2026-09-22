@@ -229,7 +229,7 @@ export type LoopIterationSnapshot =
       values: InterpreterValue[];
     };
 
-export type InterpreterErrorCode = "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
+export type InterpreterErrorCode = "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE" | "UNCAUGHT_EXCEPTION";
 
 export type InterpreterError = {
   code: InterpreterErrorCode;
@@ -271,6 +271,7 @@ export type InterpretOptions = {
   scope?: Scope;
   signal?: AbortSignal;
   surfaceUnhandledThrows?: boolean;
+  reportUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number, yieldedResult?: SandboxValue) => Promise<GeneratorCompletion>;
   asyncGenerator?: boolean;
@@ -567,6 +568,22 @@ export async function interpret(
     }
 
     if (evaluation.kind === "throw") {
+      if (options.reportUnhandledThrows === true) {
+        const surfaced = surfaceThrownValue(evaluation.value, budget, evaluation.stackFrames, evaluation.span);
+        return {
+          ok: false,
+          error: {
+            code: "UNCAUGHT_EXCEPTION",
+            name: surfaced.name as string,
+            message: surfaced.message as string,
+            stack: surfaced.stack as string,
+            span: evaluation.span ?? node.span,
+            nodeType: node.type
+          },
+          snapshot,
+          stats
+        };
+      }
       if (options.surfaceUnhandledThrows === true) {
         throw surfaceThrownValue(evaluation.value, budget, evaluation.stackFrames, evaluation.span);
       }

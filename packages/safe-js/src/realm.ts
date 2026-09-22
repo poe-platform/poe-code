@@ -85,6 +85,7 @@ export type RealmLimits = {
 export type RealmOptions = {
   stringCompilation?: "allow" | "deny";
   classicScripts?: boolean;
+  classicScriptErrors?: "fatal" | "report";
   callbackScheduling?: "after-prefix";
   sourceResolver?: SourceResolver;
   clock?: RunClock;
@@ -103,9 +104,10 @@ export type RealmResult =
   | (Omit<Extract<InterpreterResult, { ok: true }>, "snapshot" | "returnValue"> & {
       returnValue?: unknown;
     })
-  | Omit<Extract<InterpreterResult, { ok: false }>, "snapshot">;
+  | (Omit<Extract<InterpreterResult, { ok: false }>, "snapshot"> & { recoverable?: true });
 export type SafeJSRealm = ExecutionControl & {
   readonly stringCompilation: "allow" | "deny";
+  readonly classicScriptErrors: "fatal" | "report";
   readonly extensions: readonly SafeJSExtension["manifest"][];
   evaluate(source: string, options?: { filename?: string; sourceType?: "module" }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
@@ -869,7 +871,8 @@ class RealmState {
     source: string,
     filename = "<realm>",
     nested = false,
-    sourceType?: "module"
+    sourceType?: "module",
+    reportUnhandledThrows = false
   ): Promise<InterpreterResult> {
     this.assertOpen();
     if (typeof source !== "string") throw new TypeError("Realm source must be a string.");
@@ -931,6 +934,7 @@ class RealmState {
           compilation: this.compilation,
           signal: this.controller.signal,
           surfaceUnhandledThrows: true,
+          reportUnhandledThrows: script !== undefined && reportUnhandledThrows,
           jobs: this.queue,
           nested,
           assertActive: this.assertOpen
@@ -975,17 +979,19 @@ class RealmState {
   };
 
   evaluate = async (source: string, options: { filename?: string; sourceType?: "module" } = {}): Promise<RealmResult> =>
-    this.perform(async () => {
+    this.perform<RealmResult>(async () => {
       const scheduled = this.options.callbackScheduling === "after-prefix";
+      const reportUnhandledThrows = options.sourceType !== "module" && this.options.classicScriptErrors === "report";
       const result = scheduled && options.sourceType !== "module"
-        ? await this.queue.run(() => this.evaluateRaw(source, options.filename, true))
-        : await this.evaluateRaw(source, options.filename, false, options.sourceType);
+        ? await this.queue.run(() => this.evaluateRaw(source, options.filename, true, undefined, reportUnhandledThrows))
+        : await this.evaluateRaw(source, options.filename, false, options.sourceType, reportUnhandledThrows);
       if (!result.ok) {
-        if (!scheduled) await this.dispose();
-        return { ok: false, error: result.error, stats: result.stats };
+        const recoverable = reportUnhandledThrows && result.error.code === "UNCAUGHT_EXCEPTION";
+        if (!scheduled && !recoverable) await this.dispose();
+        return { ok: false, error: result.error, stats: result.stats, ...(recoverable ? { recoverable: true } : {}) };
       }
       return { ok: true, returnValue: this.exportValue(result.returnValue), stats: result.stats };
-    }, result => !result.ok);
+    }, result => !result.ok && !result.recoverable);
 
   async checkUnhandledRejection(owner?: object): Promise<void> {
     const unhandled = await this.tracker.findUnhandledRejection(owner);
@@ -1160,6 +1166,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
   const state = new RealmState(readRealmOptions(options));
   return Object.freeze(attachExecutionControl({
     stringCompilation: state.options.stringCompilation ?? "allow",
+    classicScriptErrors: state.options.classicScriptErrors ?? "fatal",
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
     startCallback: state.startCallback,
@@ -1225,6 +1232,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
   ]);
   if (!oneShot) supported.add("stringCompilation");
   if (!oneShot) supported.add("classicScripts");
+  if (!oneShot) supported.add("classicScriptErrors");
   if (!oneShot) supported.add("callbackScheduling");
   for (const [key, entry] of Object.entries(options)) {
     if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
@@ -1234,5 +1242,9 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     throw new TypeError("Realm callbackScheduling must be 'after-prefix'.");
   if (options.stringCompilation !== undefined && options.stringCompilation !== "allow" && options.stringCompilation !== "deny")
     throw new TypeError("Realm stringCompilation must be 'allow' or 'deny'.");
+  if (options.classicScriptErrors !== undefined && options.classicScriptErrors !== "fatal" && options.classicScriptErrors !== "report")
+    throw new TypeError("Realm classicScriptErrors must be 'fatal' or 'report'.");
+  if (options.classicScriptErrors === "report" && options.classicScripts !== true)
+    throw new TypeError("Reporting classic Script errors requires classicScripts:true.");
   return options as RealmOptions;
 }

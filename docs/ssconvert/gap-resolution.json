@@ -539,12 +539,17 @@
           "kind": "independent-whitespace-newline-explicit-octal-byte-escapes",
           "path": "docs/ssconvert/perl-sed-escape-gap-proof.json",
           "outcome": "476originalred controls repaired;462valid SDK/Shell/replay/browser/worker cases exact after CHAR13 fixture preserves originalCR bytes. Original native exactCSV then knownshutdownabort; correctedstandard/ASAN profiles exit0/stderr0.12389maintained tests,lint/types/build pass."
+        },
+        {
+          "kind": "actual-native-invalidUTF8-CSV-and-recalc-checkpoint-representation",
+          "path": "docs/ssconvert/perl-invalid-byte-native-qualification.json",
+          "outcome": "All38invalidUTF8 source outputs exportexact870rawCSVbytes onoriginal/correctedstandard/ASAN loaders,exit0 with retainedvariablewarnings. Correctednativecheckpoint/recalc replay exact. Productexplicitrefusal remains requiredlosslessrepresentation gap."
         }
       ],
       "delivery": {
-        "localCommit": "a2c5552e9ff7adae9ecb8986b280f8dda11c7208",
-        "remoteMain": "Variable lookbehind/atomic/POSIX/named/runtime improvements verified separately on origin/main; escape delivery pending.",
-        "publication": "Containing release pending. Fatal Bash3/4 assertions reproduced/repaired as81b134aa0/6c94bcf59; final publication not claimed."
+        "localCommit": "77a70d0fa7c447263a06e0ca7f223a388b8f3c89",
+        "remoteMain": "Byte escapes/variable lookbehind/atomic/POSIX/named/runtime improvements verified separately on origin/main.",
+        "publication": "Containing35793736655pending; earlier35790563033still freshunitlive after both fatal Bashassertions nowverifiedfixed onmain."
       }
     },
     {

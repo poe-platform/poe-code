@@ -3867,8 +3867,8 @@
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": "Pending"
+    "localCommit": "2106b0fd1ead20921c82a71ed53b5ce5acabb83e",
+    "remoteMain": "Verified after rebase overe6641560a and normal push",
+    "publication": "Containing Release35789637737 pending; root cipher dependency declaration repair under local actual build."
   }
 }

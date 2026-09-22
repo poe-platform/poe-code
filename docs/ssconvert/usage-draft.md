@@ -159,8 +159,8 @@ and `PERL_SED`. `PERL_DATE` returns `YYYYMMDD` using the injected clock and
 timezone. `PERL_SED("abc","b","d")` returns `adc`; replacement text stays
 literal, including `$1` and backslashes. Its bounded byte-pattern grammar covers
 ordered alternatives, groups, greedy/lazy repetition, classes, anchors, flags
-and lookahead, with captures, numeric backreferences `\1`–`\9`, and explicit
-positive/relative `\g{n}` references. Lookbehind, advanced pattern syntax and native
+and lookahead/fixed-width lookbehind, with captures, numeric backreferences `\1`–`\9`, and explicit
+positive/relative `\g{n}` references. Variable-width lookbehind, advanced pattern syntax and native
 invalid-pattern/invalid-UTF-8 result representation remain required gaps. Supply
 the binding as `runtimeFunctions` to enable these names. Without it they remain
 absent. An activated native Perl 5.34.1 profile matches 645 substitution controls

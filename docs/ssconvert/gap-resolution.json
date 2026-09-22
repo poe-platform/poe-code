@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded port qualifies original645controls plus382valid capture/backreference controls on SDK/Shell/browser/worker/replay;8910maintained tests. Expanded native loader CSV matches382 but aborts in GOffice shutdown,not a successful parity run.15invalidUTF8 outputs,native invalid-pattern diagnostics,lookbehind/named/advanced grammar,widerprofiles and publication remain required.",
+      "currentFinding": "Bounded explicit port qualifies1260valid public SDK/Shell/browser/worker/replay controls across original645,captures382,fixed-width lookbehind233;9144maintained tests pass. Native expanded CSV bytes exact but aborts in GOffice shutdown,not whole CLI parity.16invalidUTF8 outputs,native invalid-pattern diagnostics,variable-width/named/advanced grammar,wider profiles and publication remain required.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -504,12 +504,17 @@
           "kind": "independent-capture-source-and-native-lifecycle-observation",
           "path": "docs/ssconvert/perl-sed-capture-gap-proof.json",
           "outcome": "216originalred and11holdoutstate regressions repaired;382valid public cases exact,2additional invalid-byte outputs refused. Native bytesexact with shutdownabort retained;54cases on4native shards succeed."
+        },
+        {
+          "kind": "independent-fixed-width-lookbehind-and-public-surfaces",
+          "path": "docs/ssconvert/perl-sed-lookbehind-gap-proof.json",
+          "outcome": "234originalred controls;233valid public/nativeCSVbytes exact and1additional invalidUTF8 result refused;9144maintained and1281focused tests,lint/types/build. Native shutdownabort preserved asrequiredgap."
         }
       ],
       "delivery": {
-        "localCommit": "dfbfd238e027ff59c201fb4668b2385c78f89a57",
-        "remoteMain": "Verified normal push to origin/main",
-        "publication": "Containing publication pending; root cipher dependency declaration failure validated."
+        "localCommit": "2106b0fd1ead20921c82a71ed53b5ce5acabb83e",
+        "remoteMain": "Capture/backreference commit verified; cipher declaration repair81390f7c0 verified separately",
+        "publication": "Containing successor pending; root cipher declaration failure repaired, actual full root build stillrunning."
       }
     },
     {

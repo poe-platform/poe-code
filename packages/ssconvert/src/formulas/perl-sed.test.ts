@@ -1,3 +1,4 @@
+import { perlSedLookbehindCases, perlSedInvalidLookbehindByteCases } from "./perl-sed-lookbehind-fixtures.js";
 import { perlSedCaptureCases, perlSedInvalidCaptureByteCases, perlSedCaptureHoldouts } from "./perl-sed-capture-fixtures.js";
 import { expect, it } from "vitest";
 import { perlSedCases, perlSedInvalidByteCases } from "./perl-sed-fixtures.js";
@@ -43,7 +44,7 @@ it("keeps native C-string input boundaries and literal replacement output", () =
   expect(recalculateWorkbook(book, context).sheets[0]!.cells[3]!.value).toEqual({ kind: "string", value: "a$1c" });
 });
 it("refuses unsafe or unqualified pattern execution explicitly", () => {
-  for (const pattern of ['(?{die "owned unsafe code"})', '(??{die "owned unsafe code"})', '(a)\\11', '(?<=a)b'])
+  for (const pattern of ['(?{die "owned unsafe code"})', '(??{die "owned unsafe code"})', '(a)\\11', '(?<=a+)b'])
     expect(() => calculate(expression(["aab", pattern, "X"]))).toThrow("PERL_SED pattern syntax or diagnostic");
 });
 it("bounds output amplification and ordered backtracking work", () => {
@@ -75,4 +76,11 @@ it.each(perlSedInvalidCaptureByteCases)("refuses unresolved capture byte result 
 
 it.each(perlSedCaptureHoldouts)("matches independent capture holdout $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
+});
+
+it.each(perlSedLookbehindCases)("matches independent fixed lookbehind $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
+});
+it.each(perlSedInvalidLookbehindByteCases)("refuses unresolved lookbehind byte result $id", vector => {
+  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
 });

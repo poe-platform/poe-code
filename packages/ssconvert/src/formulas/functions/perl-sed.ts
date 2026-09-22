@@ -11,6 +11,7 @@ type Node = { kind: "char"; test: (byte: number) => boolean }
   | { kind: "repeat"; node: Node; min: number; max: number; lazy: boolean }
   | { kind: "capture"; node: Node; index: number }
   | { kind: "reference"; index: number; insensitive: boolean }
+  | { kind: "behind"; node: Node; negative: boolean; width: number }
   | { kind: "assert"; node: Node; negative: boolean };
 const unsupported = (feature = "pattern syntax or diagnostic"): never => { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PERL_SED ${feature}`); };
 const word = (byte: number) => byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 || byte === 95;
@@ -114,11 +115,15 @@ function compile(pattern: string, host: FunctionHost): Node {
   function group(mode: Flags): Node {
     if (++depth > 64) throw new SsconvertError("resource-limit", "ssconvert PERL_SED pattern depth limit exceeded");
     let assertion: boolean | undefined;
+    let behind = false;
     const capture = pattern[at] === "?" ? undefined : ++captures;
     if (pattern[at] === "?") {
       at++;
       if (pattern[at] === ":") at++;
       else if (pattern[at] === "=" || pattern[at] === "!") assertion = pattern[at++] === "!";
+      else if (pattern[at] === "<" && (pattern[at + 1] === "=" || pattern[at + 1] === "!")) {
+        at++; assertion = pattern[at++] === "!"; behind = true;
+      }
       else {
         let disabled = false, found = false;
         while (at < pattern.length && "imsxad-".includes(pattern[at]!)) {
@@ -136,8 +141,28 @@ function compile(pattern: string, host: FunctionHost): Node {
       }
     }
     const inner = alternative(mode); if (pattern[at++] !== ")") return unsupported(); depth--;
-    if (assertion !== undefined) return node({ kind: "assert", node: inner, negative: assertion });
+    if (assertion !== undefined) return behind
+      ? node({ kind: "behind", node: inner, negative: assertion, width: fixedWidth(inner) })
+      : node({ kind: "assert", node: inner, negative: assertion });
     return capture === undefined ? inner : node({ kind: "capture", node: inner, index: capture });
+  }
+  function fixedWidth(value: Node): number {
+    host.tick(); let width: number;
+    if (value.kind === "char") width = 1;
+    else if (value.kind === "anchor" || value.kind === "assert" || value.kind === "behind") width = 0;
+    else if (value.kind === "reference") return unsupported();
+    else if (value.kind === "capture") width = fixedWidth(value.node);
+    else if (value.kind === "repeat") {
+      if (value.min !== value.max) return unsupported();
+      width = fixedWidth(value.node) * value.min;
+    } else if (value.kind === "sequence") {
+      width = 0; for (const child of value.nodes) width += fixedWidth(child);
+    } else {
+      width = fixedWidth(value.nodes[0]!);
+      for (const child of value.nodes) if (fixedWidth(child) !== width) return unsupported();
+    }
+    if (width > 255) return unsupported();
+    return width;
   }
   function integer(): number {
     let value = 0, count = 0;
@@ -222,6 +247,13 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
     const inner = match(node.node, source, state, host), result = inner.next(); inner.return(undefined);
     if (result.done) { if (node.negative) yield state; }
     else if (!node.negative) yield { ...result.value, position };
+  } else if (node.kind === "behind") {
+    if (position < node.width) { if (node.negative) yield state; return; }
+    const inner = match(node.node, source, { ...state, position: position - node.width }, host);
+    let result: MatchState | undefined;
+    for (const candidate of inner) if (candidate.position === position) { result = candidate; break; }
+    if (result === undefined) { if (node.negative) yield state; }
+    else if (!node.negative) yield { ...result, position };
   } else if (node.kind === "alternative") { for (const child of node.nodes) yield* match(child, source, state, host); }
   else if (node.kind === "sequence") {
     const stack: { index: number; iterator: Generator<MatchState> }[] = [];
@@ -239,7 +271,7 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
       while (nested.length) {
         host.tick(); const child = nested.pop()!;
         if (child.kind === "capture") cleared.add(child.index);
-        if (child.kind === "capture" || child.kind === "repeat" || child.kind === "assert") nested.push(child.node);
+        if (child.kind === "capture" || child.kind === "repeat" || child.kind === "assert" || child.kind === "behind") nested.push(child.node);
         else if (child.kind === "sequence" || child.kind === "alternative") for (const descendant of child.nodes) { host.tick(); nested.push(descendant); }
       }
       if (cleared.size) {

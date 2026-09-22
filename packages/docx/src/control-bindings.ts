@@ -55,7 +55,7 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
       return customXmlDataNamespaces.includes(root.namespace) && root.localName === "datastoreItem" && root.attributes.some(attribute => attribute.namespace === root.namespace && attribute.localName === "itemID" && attribute.value.toLowerCase() === descriptor.storeItemId!.toLowerCase());
     }));
     if (stores.length !== 1) reject(); const part = stores[0]!;
-    const edges = owners.flatMap(owner => pkg.relationships(owner.partname)).filter(edge => customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXml") && !edge.is_external && edge.target_part.partname === part.partname);
+    const edges = ["/", ...owners.map(owner => owner.partname)].flatMap(owner => pkg.relationships(owner)).filter(edge => customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXml") && !edge.is_external && edge.target_part.partname === part.partname);
     if (!edges.length || pkg.relationships(part.partname).filter(edge => customXmlRelationshipNamespaces.some(namespace => edge.reltype === namespace + "customXmlProps")).length !== 1) reject();
     const xml = editor.xml(part.partname.slice(1)); let leaf = xml.root;
     for (let index = 0; index < steps.length; index++) { const [namespace, localName] = steps[index]!; const nodes = (index ? leaf.children : [leaf]).filter(node => node.namespace === namespace && node.localName === localName); if (nodes.length !== 1) reject(); leaf = nodes[0]!; }

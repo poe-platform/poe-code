@@ -28,6 +28,8 @@ export interface ServiceDescriptor {
   readonly selectionSource?: "view" | "runtime";
   readonly interactiveOnly?: boolean;
   readonly contentProbe?: boolean;
+  /** Explicit native-byte writer contract; absence requires Unicode values. */
+  readonly byteStrings?: "utf8-text" | "formula-only";
   readonly exporterOptionKeys?: readonly string[];
 }
 export interface Codec extends ServiceDescriptor {

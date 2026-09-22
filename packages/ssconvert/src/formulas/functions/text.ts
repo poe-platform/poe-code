@@ -2,10 +2,11 @@ import { isUnicodeAlpha } from "../../workbook/unicode-sheet-name.js";
 import { foldSheetName } from "../../workbook/case-fold.js";
 import { isUnicodePrintable, simpleUnicodeCase } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
-import { byteTextLength, encodeByteText, sliceByteText } from "../../encoding/byte-text.js";
+import { byteTextLength, sliceByteText } from "../../encoding/byte-text.js";
+import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
-import { admitMatrix, asBoolean, bool, boundedText, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
+import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
 import type { FunctionHost, FunctionImplementation, SpecialForm, Value } from "./types.js";
 import { fixedNumber, formatText } from "../../formatting/number-format.js";
 import { canonicalTextPattern, formattingLocale } from "../../formatting/locale.js";
@@ -22,15 +23,15 @@ function byteOffsets(s: string, host: FunctionHost): number[] {
   return offsets;
 }
 function sliceText(name: string, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
-  const source = textArg(args, 0, host), bytes = name.endsWith("B");
+  const bytes = name.endsWith("B");
   const middle = name.startsWith("MID"), right = name.startsWith("RIGHT");
   const count = numberArg(args, middle ? 2 : 1, host, 1), start = numberArg(args, 1, host, 1);
   if (count < 0 || middle && start < 1) return error("#VALUE!");
   if (!bytes) {
-    const result = sliceByteText(encodeByteText(source, host.tick), middle ? "mid" : right ? "right" : "left", start, count, host.tick);
-    return result === undefined ? error("#VALUE!") : str(new TextDecoder("UTF-8", { fatal: true }).decode(result));
+    const result = sliceByteText(byteTextArg(args, 0, host), middle ? "mid" : right ? "right" : "left", start, count, host.tick);
+    return result === undefined ? error("#VALUE!") : byteStringValue(result, host.tick, host.context.limits.outputBytes);
   }
-  const chars = Array.from(source), offsets = byteOffsets(source, host), length = offsets.at(-1)!;
+  const source = textArg(args, 0, host), chars = Array.from(source), offsets = byteOffsets(source, host), length = offsets.at(-1)!;
   const from = middle ? Math.trunc(start) - 1 : right ? Math.max(0, length - Math.trunc(count)) : 0;
   if (middle && (from >= length || !offsets.includes(from))) return error("#VALUE!");
   const first = right ? offsets.findIndex(offset => offset >= from) : offsets.indexOf(from);
@@ -219,13 +220,16 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
   },
   UNICHAR: (args, host) => { const n = numberArg(args, 0, host), point = Math.trunc(n); return n >= 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) && !(point >= 0xfdd0 && point <= 0xfdef) && (point & 0xffff) < 0xfffe ? str(point === 0 ? "" : String.fromCodePoint(point)) : error("#VALUE!"); },
   CODE: (args, host) => {
-    const point = textArg(args, 0, host).codePointAt(0);
+    const bytes = sliceByteText(byteTextArg(args, 0, host), "left", 1, 1, host.tick)!;
+    let point: number | undefined;
+    try { point = new TextDecoder("UTF-8", { fatal: true, ignoreBOM: true }).decode(bytes).codePointAt(0); }
+    catch (caught) { if (!(caught instanceof TypeError)) throw caught; return error("#VALUE!"); }
     if (point === undefined) return error("#VALUE!");
     const mapped = cp1252.indexOf(point);
     return point < 128 || point >= 160 && point < 256 ? numericResult(point) : mapped >= 0 ? numericResult(mapped + 128) : error("#VALUE!");
   },
   UNICODE: (args, host) => { const point = textArg(args, 0, host).codePointAt(0); return point === undefined ? error("#VALUE!") : numericResult(point); },
-  LEN: (args, host) => numericResult(byteTextLength(encodeByteText(textArg(args, 0, host), host.tick), host.tick)),
+  LEN: (args, host) => numericResult(byteTextLength(byteTextArg(args, 0, host), host.tick)),
   LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
   LOWER: (args, host) => boundedText(textArg(args, 0, host).toLowerCase(), host),
   UPPER: (args, host) => boundedText(textArg(args, 0, host).toUpperCase(), host),
@@ -338,20 +342,21 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
 };
 export const textSpecialForms: Readonly<Record<string, SpecialForm>> = {
   ...Object.fromEntries(["CONCAT", "CONCATENATE", "TEXTJOIN"].map(name => [name, ((args, host) => {
-    let separator = "", ignore = true, from = 0;
+    let separator: Uint8Array = new Uint8Array(), ignore = true, from = 0;
     if (name === "TEXTJOIN") {
       if (args.length < 3) return error("#VALUE!");
-      const delimiter = host.scalar(host.evaluate(args[0]!)); if (delimiter.kind === "error") return delimiter; separator = rendered(delimiter);
+      const delimiter = host.scalar(host.evaluate(args[0]!)); if (delimiter.kind === "error") return delimiter; separator = byteTextArg([delimiter], 0, host);
       const value = host.scalar(host.evaluate(args[1]!)); if (value.kind === "error") return value;
       const b = asBoolean(value); if (b === undefined) return error("#VALUE!"); ignore = b; from = 2;
     }
-    let result = "", first = true;
+    const parts: Uint8Array[] = []; let size = 0;
     for (const arg of args.slice(from)) for (const cell of collect(host.evaluate(arg), host)) {
       if (cell.kind === "error") return cell;
-      const text = rendered(cell); if (ignore && !text) continue;
-      if (!first) result += separator; result += text; first = false;
-      if (result.length > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+      const bytes = byteTextArg([cell], 0, host); if (ignore && !bytes.length) continue;
+      size += bytes.length + (parts.length ? separator.length : 0);
+      if (size > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+      parts.push(bytes);
     }
-    return boundedText(result, host);
+    return joinByteText(parts, separator, host.context.limits.outputBytes, host.tick);
   }) satisfies SpecialForm]))
 };

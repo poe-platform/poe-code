@@ -10,6 +10,7 @@ import type {
   Workbook
 } from "../workbook.js";
 import { foldSheetName } from "./case-fold.js";
+import { decodeByteString, byteStringValue } from "../encoding/byte-value.js";
 
 export const DEFAULT_SHEET_SIZE: SheetSize = Object.freeze({ rows: 65536, columns: 256 });
 export const MAX_SHEET_SIZE: SheetSize = Object.freeze({ rows: 16777216, columns: 16384 });
@@ -259,6 +260,10 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
   const owned = snapshotRecords(book, limits);
   const { workLimit } = budgets;
   let relationshipWork = 0;
+  const tick = () => {
+    if (++relationshipWork > workLimit)
+      throw new SsconvertError("resource-limit", "ssconvert workbook work limit exceeded");
+  };
   checkRecord(
     owned,
     ["names", "dependencies", "unsupportedRecords"],
@@ -308,14 +313,16 @@ export function snapshotWorkbook(book: Workbook, limits: RuntimeLimits): Workboo
         ...(cell.cachedResult === undefined ? [] : [cell.cachedResult])
       ]) {
         if (value === null || typeof value !== "object") invalid("Invalid cell value");
-        if (!["blank", "string", "number", "boolean", "error"].includes(value.kind))
+        if (!["blank", "string", "byte-string", "number", "boolean", "error"].includes(value.kind))
           invalid("Invalid cell value");
         if (
           value.kind !== "blank" &&
           typeof value.value !==
-            { string: "string", number: "number", boolean: "boolean", error: "string" }[value.kind]
+            { string: "string", "byte-string": "string", number: "number", boolean: "boolean", error: "string" }[value.kind]
         )
           invalid("Invalid cell value");
+        if (value.kind === "byte-string" && byteStringValue(decodeByteString(value.value, tick), tick, budgets.textLimit).kind !== "byte-string")
+          invalid("Valid UTF-8 must use an ordinary string value");
       }
       const boundaries = new Set<number>();
       for (const run of cell.richText ?? []) {

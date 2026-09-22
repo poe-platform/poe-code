@@ -1,6 +1,7 @@
 import { SsconvertError } from "../../contracts.js";
 import type { CellValue } from "../../workbook.js";
-import { boundedText, textArg } from "./common.js";
+import { byteTextArg } from "./common.js";
+import { byteStringValue } from "../../encoding/byte-value.js";
 import type { FunctionHost, Value } from "./types.js";
 
 type Flags = { insensitive: boolean; multiline: boolean; dotall: boolean; extended: boolean };
@@ -403,16 +404,15 @@ function* match(node: Node, source: string, state: MatchState, host: FunctionHos
 }
 
 export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
-  const inputs = args.map((_value, index) => textArg(args, index, host).split("\0", 1)[0]!);
+  const inputs = args.map((_value, index) => byteTextArg(args, index, host));
   let inputSize = 0;
-  for (const text of inputs) for (const char of text) {
-    host.tick(); const code = char.codePointAt(0)!;
-    if (code >= 0xd800 && code <= 0xdfff) return unsupported();
-    inputSize += code < 128 ? 1 : code < 2048 ? 2 : code < 65536 ? 3 : 4;
+  for (const bytes of inputs) for (const byte of bytes) {
+    host.tick(); void byte;
+    inputSize++;
     if (inputSize > host.context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PERL_SED input byte limit exceeded");
   }
-  const raw = inputs.map(text => {
-    const bytes = new TextEncoder().encode(text), output: string[] = [];
+  const raw = inputs.map(bytes => {
+    const output: string[] = [];
     for (const byte of bytes) { host.tick(); output.push(String.fromCharCode(byte)); }
     return output.join("");
   });
@@ -434,7 +434,5 @@ export function perlSed(args: readonly (Value | undefined)[], host: FunctionHost
   }
   emit(source.slice(published));
   const bytes = Uint8Array.from(output.join(""), char => char.charCodeAt(0));
-  const zero = bytes.indexOf(0), visible = zero < 0 ? bytes : bytes.subarray(0, zero);
-  try { return boundedText(new TextDecoder("UTF-8", { fatal: true }).decode(visible), host); }
-  catch (error) { if (error instanceof SsconvertError) throw error; return unsupported("byte result representation"); }
+  return byteStringValue(bytes, host.tick, host.context.limits.outputBytes);
 }

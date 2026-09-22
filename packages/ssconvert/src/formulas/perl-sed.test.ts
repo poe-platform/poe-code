@@ -67,16 +67,16 @@ it("observes cancellation within matching without more ticks", () => {
   expect(checks).toBe(100);
 });
 
-it.each(perlSedInvalidByteCases)("refuses unresolved native byte-result representation $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidByteCases)("preserves native native byte-result representation $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedCaptureCases)("matches independent native capture state $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
 
-it.each(perlSedInvalidCaptureByteCases)("refuses unresolved capture byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidCaptureByteCases)("preserves native capture byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedCaptureHoldouts)("matches independent capture holdout $id", vector => {
@@ -86,15 +86,15 @@ it.each(perlSedCaptureHoldouts)("matches independent capture holdout $id", vecto
 it.each(perlSedLookbehindCases)("matches independent fixed lookbehind $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidLookbehindByteCases)("refuses unresolved lookbehind byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidLookbehindByteCases)("preserves native lookbehind byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedPosixCases)("matches native POSIX class $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidPosixByteCases)("refuses unresolved POSIX byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidPosixByteCases)("preserves native POSIX byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it("refuses unknown, truncated and native-reserved POSIX syntax explicitly", () => {
@@ -105,27 +105,27 @@ it("refuses unknown, truncated and native-reserved POSIX syntax explicitly", () 
 it.each(perlSedNamedCases)("matches native named capture $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidNamedByteCases)("refuses unresolved named-capture byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidNamedByteCases)("preserves native named-capture byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedAtomicCases)("matches native atomic and possessive state $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidAtomicByteCases)("refuses unresolved atomic byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidAtomicByteCases)("preserves native atomic byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedVariableBehindCases)("matches native bounded variable lookbehind $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidVariableBehindByteCases)("refuses unresolved variable-lookbehind byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidVariableBehindByteCases)("preserves native variable-lookbehind byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });
 
 it.each(perlSedEscapeCases)("matches native escape and possessive state $id", vector => {
   expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "string", value: decode(vector.outputHex) });
 });
-it.each(perlSedInvalidEscapeByteCases)("refuses unresolved escape byte result $id", vector => {
-  expect(() => calculate(expression(vector.argumentsHex.map(decode)))).toThrow("PERL_SED byte result representation");
+it.each(perlSedInvalidEscapeByteCases)("preserves native escape byte result $id", vector => {
+  expect(calculate(expression(vector.argumentsHex.map(decode)))).toEqual({ kind: "byte-string", value: vector.outputHex });
 });

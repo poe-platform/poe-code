@@ -1,0 +1,755 @@
+{
+  "scope": "Lossless native byte-string workbook values, qualified scalar/array text operations and libgsf-compatible CSV export. Other byte consumers, warnings and broader profiles remain required.",
+  "recordedAt": "2026-09-22T23:20:11.100534+00:00",
+  "baseHead": "b1a42bfecacabecddbf633c21592608b8a957ecd",
+  "contract": "docs/ssconvert/byte-string-contract.md",
+  "nativeReference": "Ownership-corrected authenticated Gnumeric1.12.61 Perl5.34.1 loader; historical unmodified shutdown-abort receipts remain unchanged.",
+  "redEvidence": {
+    "originalScalarAndSdk": "39failed:38invalid-byte scalar results and public CSV SDK call reproduce product refusals.",
+    "downstream": "1failed /39passed on unqualified CODE traversal; native380scalar output comparisons match after qualified cursors/predicates/CODE/CONCATENATE/repeatedPERL_SED.",
+    "quoting": "3failed /1passed against48native fields in4quoting modes. Source confirms quoted g_string_append_unichar conversion, including unsigned-1 historical six-byte form; unquoted fields preserve source bytes.",
+    "array": "1failed /4passed before allowing explicit byte-string values through native string array coercion.",
+    "publication": "1failed /12passed: legacy-charset request opened output before refusal; guard now rejects before opening.",
+    "harnessFailures": "First ownership writer test used an unowned workbook and failed engine provenance admission; corrected harness acquires fixture through engine reader. A workspace run overlapped the new publication test and runtime repair and is not a frozen-candidate pass."
+  },
+  "libgsfSource": {
+    "version": "1.14.59",
+    "url": "https://download.gnome.org/sources/libgsf/1.14/libgsf-1.14.59.tar.xz",
+    "archiveSha256": "0d03cb6fadfe735caa13498a024ccd8fdb6cab77df6d9d283a64410c96f2fa49",
+    "officialSha256Matched": true,
+    "csvSourceSha256": "068704733d80d097d03a3e5339ef4731fb248e29531f153850a4ca9801799e2e",
+    "locations": "gsf/gsf-output-csv.c:109\u2013155",
+    "behavior": "Auto quote triggers use native character traversal, not each raw byte; terminal whitespace uses backward continuation scan. Quoted fields reencode GLib points; unquoted fields copy original bytes."
+  },
+  "nativeQuoting": {
+    "expressions": [
+      [
+        "suffix-0",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\")"
+      ],
+      [
+        "suffix-1",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"tail\")"
+      ],
+      [
+        "suffix-2",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\",\")"
+      ],
+      [
+        "suffix-3",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\" \")"
+      ],
+      [
+        "suffix-4",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\t\")"
+      ],
+      [
+        "suffix-5",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\n\")"
+      ],
+      [
+        "suffix-6",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),CHAR(13))"
+      ],
+      [
+        "suffix-7",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),(CHAR(13)&\"\n\"))"
+      ],
+      [
+        "suffix-8",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\\\"\")"
+      ],
+      [
+        "suffix-9",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"x\\\"y\")"
+      ],
+      [
+        "suffix-10",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),CHAR(11))"
+      ],
+      [
+        "suffix-11",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),CHAR(12))"
+      ],
+      [
+        "suffix-12",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u0085\")"
+      ],
+      [
+        "suffix-13",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u00a0\")"
+      ],
+      [
+        "suffix-14",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u1680\")"
+      ],
+      [
+        "suffix-15",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u2000\")"
+      ],
+      [
+        "suffix-16",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u2028\")"
+      ],
+      [
+        "suffix-17",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u2029\")"
+      ],
+      [
+        "suffix-18",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u202f\")"
+      ],
+      [
+        "suffix-19",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u205f\")"
+      ],
+      [
+        "suffix-20",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u3000\")"
+      ],
+      [
+        "suffix-21",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\ufeff\")"
+      ],
+      [
+        "suffix-22",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\u00e4\")"
+      ],
+      [
+        "suffix-23",
+        "CONCATENATE(PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"),\"\ud83d\ude00\")"
+      ],
+      [
+        "prefix-0",
+        "CONCATENATE(\"\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-1",
+        "CONCATENATE(\"tail\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-2",
+        "CONCATENATE(\",\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-3",
+        "CONCATENATE(\" \",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-4",
+        "CONCATENATE(\"\t\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-5",
+        "CONCATENATE(\"\n\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-6",
+        "CONCATENATE(CHAR(13),PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-7",
+        "CONCATENATE((CHAR(13)&\"\n\"),PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-8",
+        "CONCATENATE(\"\\\"\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-9",
+        "CONCATENATE(\"x\\\"y\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-10",
+        "CONCATENATE(CHAR(11),PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-11",
+        "CONCATENATE(CHAR(12),PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-12",
+        "CONCATENATE(\"\u0085\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-13",
+        "CONCATENATE(\"\u00a0\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-14",
+        "CONCATENATE(\"\u1680\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-15",
+        "CONCATENATE(\"\u2000\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-16",
+        "CONCATENATE(\"\u2028\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-17",
+        "CONCATENATE(\"\u2029\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-18",
+        "CONCATENATE(\"\u202f\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-19",
+        "CONCATENATE(\"\u205f\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-20",
+        "CONCATENATE(\"\u3000\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-21",
+        "CONCATENATE(\"\ufeff\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-22",
+        "CONCATENATE(\"\u00e4\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ],
+      [
+        "prefix-23",
+        "CONCATENATE(\"\ud83d\ude00\",PERL_SED(\"\u00e4\",\"\\\\xA4\",\"\"))"
+      ]
+    ],
+    "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c2222293c2f43656c6c3e3c43656c6c20526f773d22312220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c227461696c22293c2f43656c6c3e3c43656c6c20526f773d22322220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c222c22293c2f43656c6c3e3c43656c6c20526f773d22332220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c222022293c2f43656c6c3e3c43656c6c20526f773d22342220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c220922293c2f43656c6c3e3c43656c6c20526f773d22352220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c220a22293c2f43656c6c3e3c43656c6c20526f773d22362220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c4348415228313329293c2f43656c6c3e3c43656c6c20526f773d22372220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c28434841522831332926616d703b220a2229293c2f43656c6c3e3c43656c6c20526f773d22382220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c225c2222293c2f43656c6c3e3c43656c6c20526f773d22392220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22785c227922293c2f43656c6c3e3c43656c6c20526f773d2231302220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c4348415228313129293c2f43656c6c3e3c43656c6c20526f773d2231312220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c4348415228313229293c2f43656c6c3e3c43656c6c20526f773d2231322220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22c28522293c2f43656c6c3e3c43656c6c20526f773d2231332220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22c2a022293c2f43656c6c3e3c43656c6c20526f773d2231342220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e19a8022293c2f43656c6c3e3c43656c6c20526f773d2231352220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e2808022293c2f43656c6c3e3c43656c6c20526f773d2231362220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e280a822293c2f43656c6c3e3c43656c6c20526f773d2231372220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e280a922293c2f43656c6c3e3c43656c6c20526f773d2231382220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e280af22293c2f43656c6c3e3c43656c6c20526f773d2231392220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e2819f22293c2f43656c6c3e3c43656c6c20526f773d2232302220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22e3808022293c2f43656c6c3e3c43656c6c20526f773d2232312220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22efbbbf22293c2f43656c6c3e3c43656c6c20526f773d2232322220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22c3a422293c2f43656c6c3e3c43656c6c20526f773d2232332220436f6c3d2230223e3d434f4e434154454e415445285045524c5f5345442822c3a4222c225c5c784134222c2222292c22f09f988022293c2f43656c6c3e3c43656c6c20526f773d2232342220436f6c3d2230223e3d434f4e434154454e4154452822222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2232352220436f6c3d2230223e3d434f4e434154454e41544528227461696c222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2232362220436f6c3d2230223e3d434f4e434154454e41544528222c222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2232372220436f6c3d2230223e3d434f4e434154454e415445282220222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2232382220436f6c3d2230223e3d434f4e434154454e415445282209222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2232392220436f6c3d2230223e3d434f4e434154454e41544528220a222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233302220436f6c3d2230223e3d434f4e434154454e4154452843484152283133292c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233312220436f6c3d2230223e3d434f4e434154454e4154452828434841522831332926616d703b220a22292c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233322220436f6c3d2230223e3d434f4e434154454e41544528225c22222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233332220436f6c3d2230223e3d434f4e434154454e4154452822785c2279222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233342220436f6c3d2230223e3d434f4e434154454e4154452843484152283131292c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233352220436f6c3d2230223e3d434f4e434154454e4154452843484152283132292c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233362220436f6c3d2230223e3d434f4e434154454e4154452822c285222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233372220436f6c3d2230223e3d434f4e434154454e4154452822c2a0222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233382220436f6c3d2230223e3d434f4e434154454e4154452822e19a80222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2233392220436f6c3d2230223e3d434f4e434154454e4154452822e28080222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234302220436f6c3d2230223e3d434f4e434154454e4154452822e280a8222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234312220436f6c3d2230223e3d434f4e434154454e4154452822e280a9222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234322220436f6c3d2230223e3d434f4e434154454e4154452822e280af222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234332220436f6c3d2230223e3d434f4e434154454e4154452822e2819f222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234342220436f6c3d2230223e3d434f4e434154454e4154452822e38080222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234352220436f6c3d2230223e3d434f4e434154454e4154452822efbbbf222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234362220436f6c3d2230223e3d434f4e434154454e4154452822c3a4222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c43656c6c20526f773d2234372220436f6c3d2230223e3d434f4e434154454e4154452822f09f9880222c5045524c5f5345442822c3a4222c225c5c784134222c222229293c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+    "results": [
+      {
+        "label": "plain",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_csv"
+        ],
+        "exit": 0,
+        "stdoutHex": "c30ac37461696c0ac32c0a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf0a220ac3220a22ffbfbfbfbfbf222279220ac30b0a22ffbfbfbfbfbf220ac3c2850a22ffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220ac3efbbbf0ac3c3a40ac3f09f98800ac30a7461696cc30a222cffbfbfbfbfbf220a2220ffbfbfbfbfbf220a2209ffbfbfbfbfbf220a220affbfbfbfbfbf220a220dffbfbfbfbfbf220a220d0affbfbfbfbfbf220a222222ffbfbfbfbfbf220a2278222279ffbfbfbfbfbf220a0bc30a220cffbfbfbfbfbf220ac285c30a22c2a0ffbfbfbfbfbf220a22e19a80ffbfbfbfbfbf220a22e28080ffbfbfbfbfbf220a22e280a8ffbfbfbfbfbf220a22e280a9ffbfbfbfbfbf220a22e280afffbfbfbfbfbf220a22e2819fffbfbfbfbfbf220a22e38080ffbfbfbfbfbf220aefbbbfc30ac3a4c30af09f9880c30a",
+        "stderrHex": ""
+      },
+      {
+        "label": "never",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "quoting-mode=never"
+        ],
+        "exit": 0,
+        "stdoutHex": "c30ac37461696c0ac32c0ac3200ac3090ac30a0ac30d0ac30d0a0ac3220ac37822790ac30b0ac30c0ac3c2850ac3c2a00ac3e19a800ac3e280800ac3e280a80ac3e280a90ac3e280af0ac3e2819f0ac3e380800ac3efbbbf0ac3c3a40ac3f09f98800ac30a7461696cc30a2cc30a20c30a09c30a0ac30a0dc30a0d0ac30a22c30a782279c30a0bc30a0cc30ac285c30ac2a0c30ae19a80c30ae28080c30ae280a8c30ae280a9c30ae280afc30ae2819fc30ae38080c30aefbbbfc30ac3a4c30af09f9880c30a",
+        "stderrHex": ""
+      },
+      {
+        "label": "always",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "quoting-mode=always"
+        ],
+        "exit": 0,
+        "stdoutHex": "22ffbfbfbfbfbf220a22ffbfbfbfbfbf61696c220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf0a220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf222279220a22ffbfbfbfbfbf220a22ffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf220a22ffbfbfbfbfbf220a227461696cffbfbfbfbfbf220a222cffbfbfbfbfbf220a2220ffbfbfbfbfbf220a2209ffbfbfbfbfbf220a220affbfbfbfbfbf220a220dffbfbfbfbfbf220a220d0affbfbfbfbfbf220a222222ffbfbfbfbfbf220a2278222279ffbfbfbfbfbf220a220bffbfbfbfbfbf220a220cffbfbfbfbfbf220a22c285ffbfbfbfbfbf220a22c2a0ffbfbfbfbfbf220a22e19a80ffbfbfbfbfbf220a22e28080ffbfbfbfbfbf220a22e280a8ffbfbfbfbfbf220a22e280a9ffbfbfbfbfbf220a22e280afffbfbfbfbfbf220a22e2819fffbfbfbfbfbf220a22e38080ffbfbfbfbfbf220a22efbbbfffbfbfbfbfbf220a22c3a4ffbfbfbfbfbf220a22f09f9880ffbfbfbfbfbf220a",
+        "stderrHex": ""
+      },
+      {
+        "label": "ascii-quote",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "quote='"
+        ],
+        "exit": 1,
+        "stdoutHex": "",
+        "stderrHex": "7373636f6e766572743a2051756f74656420737472696e67206e6f74207465726d696e617465640a"
+      },
+      {
+        "label": "no-whitespace",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "quoting-on-whitespace=false"
+        ],
+        "exit": 0,
+        "stdoutHex": "c30ac37461696c0ac32c0ac3200ac3090ac30a0ac30d0a22ffbfbfbfbfbf0a220ac3220a22ffbfbfbfbfbf222279220ac30b0ac30c0ac3c2850ac3c2a00ac3e19a800ac3e280800ac3e280a80ac3e280a90ac3e280af0ac3e2819f0ac3e380800ac3efbbbf0ac3c3a40ac3f09f98800ac30a7461696cc30a222cffbfbfbfbfbf220a2220ffbfbfbfbfbf220a2209ffbfbfbfbfbf220a220affbfbfbfbfbf220a0dc30a220d0affbfbfbfbfbf220a222222ffbfbfbfbfbf220a2278222279ffbfbfbfbfbf220a0bc30a0cc30ac285c30ac2a0c30ae19a80c30ae28080c30ae280a8c30ae280a9c30ae280afc30ae2819fc30ae38080c30aefbbbfc30ac3a4c30af09f9880c30a",
+        "stderrHex": ""
+      },
+      {
+        "label": "pipe-quote",
+        "args": [
+          "-T",
+          "Gnumeric_stf:stf_assistant",
+          "-O",
+          "quote=|"
+        ],
+        "exit": 0,
+        "stdoutHex": "c30ac37461696c0ac32c0a7cffbfbfbfbfbf7c0a7cffbfbfbfbfbf7c0a7cffbfbfbfbfbf7c0a7cffbfbfbfbfbf7c0a7cffbfbfbfbfbf0a7c0ac3220a7cffbfbfbfbfbf22797c0ac30b0a7cffbfbfbfbfbf7c0ac3c2850a7cffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0a7cffbfbfbfbfbfffbfbfbfbfbfffbfbfbfbfbf7c0ac3efbbbf0ac3c3a40ac3f09f98800ac30a7461696cc30a7c2cffbfbfbfbfbf7c0a7c20ffbfbfbfbfbf7c0a7c09ffbfbfbfbfbf7c0a7c0affbfbfbfbfbf7c0a7c0dffbfbfbfbfbf7c0a7c0d0affbfbfbfbfbf7c0a7c22ffbfbfbfbfbf7c0a7c782279ffbfbfbfbfbf7c0a0bc30a7c0cffbfbfbfbfbf7c0ac285c30a7cc2a0ffbfbfbfbfbf7c0a7ce19a80ffbfbfbfbfbf7c0a7ce28080ffbfbfbfbfbf7c0a7ce280a8ffbfbfbfbfbf7c0a7ce280a9ffbfbfbfbfbf7c0a7ce280afffbfbfbfbfbf7c0a7ce2819fffbfbfbfbfbf7c0a7ce38080ffbfbfbfbfbf7c0aefbbbfc30ac3a4c30af09f9880c30a",
+        "stderrHex": ""
+      }
+    ]
+  },
+  "nativeArray": {
+    "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22312220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22612a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22322220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22613f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22332220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22612a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22342220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22613f3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22352220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22617b302c327d222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22362220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22283f3a617c6162292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22372220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c227c61222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22382220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22617c222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22392220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c2228613f292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231302220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c2228612a292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231312220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c225c5c42222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231322220436f6c3d2230223e3d5045524c5f5345442822c3a462c3a9222c22283f216129222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231332220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c2228612a295c5c31222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231342220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c2228612a3f295c5c31222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231352220436f6c3d2230223e3d5045524c5f5345442822c3a462222c22283f266c743b216129222c225822293c2f43656c6c3e3c43656c6c20526f773d2231362220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f266c743b612667743b612a295c5c6b266c743b612667743b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231372220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f266c743b612667743b612a3f295c5c6b266c743b612667743b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231382220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f2667743b612a29222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231392220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22612a2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232302220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f2667743b28612a29295c5c31222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232312220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f3a613f292a2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232322220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c2228612a3f292a2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232332220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c22283f266c743b3d28617b302c327d29295c5c31222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232342220436f6c3d2230223e3d5045524c5f5345442822c2a0222c225c5c682b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232352220436f6c3d2230223e3d5045524c5f5345442822c2a0222c225c5c482b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232362220436f6c3d2230223e3d5045524c5f5345442822c285222c225c5c762b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232372220436f6c3d2230223e3d5045524c5f5345442822c285222c225c5c562b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232382220436f6c3d2230223e3d5045524c5f5345442822c285222c225c5c52222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2232392220436f6c3d2230223e3d5045524c5f5345442822c285222c225c5c522b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233302220436f6c3d2230223e3d5045524c5f5345442822c2a0222c225b5c5c685d2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233312220436f6c3d2230223e3d5045524c5f5345442822c2a0222c225b5c5c485d2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233322220436f6c3d2230223e3d5045524c5f5345442822c285222c225b5c5c765d2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233332220436f6c3d2230223e3d5045524c5f5345442822c285222c225b5c5c565d2b222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233342220436f6c3d2230223e3d5045524c5f5345442822c3a461c3a461222c225c5c682a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233352220436f6c3d2230223e3d5045524c5f5345442822c285222c225c5c682a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233362220436f6c3d2230223e3d5045524c5f5345442822c2a0222c225c5c682a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2233372220436f6c3d2230223e3d5045524c5f5345442822e280a8222c225c5c682a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22312220526f77733d2233382220436f6c733d2231223e3d5045524c5f5345442841313a4133382c2261222c226222293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22322220526f77733d2233382220436f6c733d2231223e3d4c4546542841313a4133382c31293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22332220526f77733d2233382220436f6c733d2231223e3d52494748542841313a4133382c31293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22342220526f77733d2233382220436f6c733d2231223e3d4d49442841313a4133382c322c33293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22352220526f77733d2233382220436f6c733d2231223e3d4c454e2841313a413338293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d22362220526f77733d2233382220436f6c733d2231223e3d4953544558542841313a413338293c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+    "exit": 0,
+    "stdoutHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c6ec324315c6ea462c324315c6ea924315c6e2c242c6e2c315c6e2c31392c545255450a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c242c6e2c315c6e2c32372c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a58c358a45862582c58c358a45862582c582c582cc358a4582c362c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c242c6e2c315c6e2c33302c545255450a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c242c6e2c315c6e2c33302c545255450a24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c24315c6ec324315c6ea46224315c6ec324315c6ea46224315c6e2c242c6e2c315c6e2c32342c545255450a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c242c6e2c315c6e2c33302c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec3a424315c6e6224315c6e2c242c6e2c315c6e2c32382c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450a24315c6ea02c24315c6ea02c242c6ea02c315c6e2c352c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450a24315c6e852c24315c6e852c242c6e852c315c6e2c352c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450a24315c6ea02c24315c6ea02c242c6ea02c315c6e2c352c545255450ac224315c6e2cc224315c6e2cc2242c6e2c315c6e2c342c545255450a24315c6e852c24315c6e852c242c6e852c315c6e2c352c545255450a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea424315c6e6224315c6e2c242c6e2c315c6e2c33322c545255450a24315c6ec224315c6e8524315c6e2c24315c6ec224315c6e8524315c6e2c242c6e2c315c6e2c31332c545255450a24315c6ec224315c6e24315c6e24315c6e2c24315c6ec224315c6e24315c6e24315c6e2c242c6e2c315c6e2c31362c545255450a24315c6ee224315c6e8024315c6ea824315c6e2c24315c6ee224315c6e8024315c6ea824315c6e2c242c6e2c315c6e2c31372c545255450a",
+    "stderrHex": "5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a"
+  },
+  "nativeRaw38": "docs/ssconvert/perl-invalid-byte-native-qualification.json",
+  "publicSdkShellCheckpoint": {
+    "results": [
+      {
+        "label": "raw38",
+        "caseCount": 38,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "array",
+        "caseCount": 228,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "plain",
+        "caseCount": 48,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "never",
+        "caseCount": 48,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "always",
+        "caseCount": 48,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "no-whitespace",
+        "caseCount": 48,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "pipe-quote",
+        "caseCount": 48,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointReplayExact": true,
+        "xmlValidUtf8": true,
+        "formulaCachesOmitted": true,
+        "inputUnchanged": true
+      }
+    ],
+    "unqualifiedXlsxRefusal": {
+      "exitCode": 1,
+      "targetUnchanged": true,
+      "stdoutEmpty": true,
+      "stderr": "Native byte-string export is not qualified for Gnumeric_Excel:xlsx\n"
+    }
+  },
+  "publicBrowserWorker": {
+    "browser": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "lookbehind": {
+        "caseCount": 233,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "posix": {
+        "caseCount": 1298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "named": {
+        "caseCount": 298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "atomic": {
+        "caseCount": 571,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "variableBehind": {
+        "caseCount": 593,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "escapes": {
+        "caseCount": 462,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteText": {
+        "caseCount": 224,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteStrings": [
+        {
+          "label": "raw38",
+          "caseCount": 38,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "array",
+          "caseCount": 228,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "plain",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "never",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "always",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "no-whitespace",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "pipe-quote",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    "worker": {
+      "sed": {
+        "caseCount": 645,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "family": [
+        {
+          "timezone": "UTC",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "timezone": "America/Los_Angeles",
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ],
+      "captures": {
+        "caseCount": 382,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "lookbehind": {
+        "caseCount": 233,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "posix": {
+        "caseCount": 1298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "named": {
+        "caseCount": 298,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "atomic": {
+        "caseCount": 571,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "variableBehind": {
+        "caseCount": 593,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "escapes": {
+        "caseCount": 462,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteText": {
+        "caseCount": 224,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      "byteStrings": [
+        {
+          "label": "raw38",
+          "caseCount": 38,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "array",
+          "caseCount": 228,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "plain",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "never",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "always",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "no-whitespace",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        },
+        {
+          "label": "pipe-quote",
+          "caseCount": 48,
+          "exitCode": 0,
+          "exact": true,
+          "stderrBytes": 0
+        }
+      ]
+    }
+  },
+  "checks": {
+    "focused": "4907earlierfocused +59quoting/textcontrols +19finalownership/array/quoting tests passed; broader frozen checks running",
+    "maintainedWorkspaceTests": "pending final frozen run",
+    "maintainedWorkspaceLint": "pending final result",
+    "rootBuild": "running",
+    "rootLint": "running",
+    "rootTests": "pending root build",
+    "screenshot": {
+      "path": "out/ssconvert-gap-resolution/byte-string-browser.png",
+      "sha256": "b2c1cc06a39e72d6c94e0b2e15fa23efe58f1c069fc063c88af6387c3ecca913",
+      "visuallyInspected": true
+    }
+  },
+  "candidateFiles": [
+    {
+      "path": "README.md",
+      "sha256": "835ce46a114bca3268c8a16cebec915850cca8101f1b57dd4c3d78d9e22ac1e3"
+    },
+    {
+      "path": "packages/ssconvert/README.md",
+      "sha256": "ae9b5fbd65d8dead88aa5b32c4ef4ac003a16a16fd672a4cd229f6cf27a2700e"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "sha256": "266ead7767cde42e6f6e01d65c90214931e09bd8ac47e7784a3aec387bdfb07f"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "sha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/providers/xml.ts",
+      "sha256": "ae76a20e59d57f68fd869bae6490e13a03886da669dda1942bc1522cb8b1384d"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/text-export.ts",
+      "sha256": "b19c0d2e20d292335871f0adcb1c709a506eff3d48429c802c46e5ddd0674032"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/types.ts",
+      "sha256": "6f50186abea8380b430cd639aee8eb01acf8051dc43c4f8d70545ff400ada591"
+    },
+    {
+      "path": "packages/ssconvert/src/encoding/byte-text.ts",
+      "sha256": "0c47173a3d7f81819d565de97ddb25165f2c1fc5603c1fd0892756c938186a7d"
+    },
+    {
+      "path": "packages/ssconvert/src/engine.ts",
+      "sha256": "46896d03b9b502543f3c858ecc97b407aef0e42b04beb4cbe2ef1754bf3addc0"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/evaluator.ts",
+      "sha256": "20633e6a126de85eff0d6217dcb77798161cb1c4e2feb78d56ff7fd6749ed8fe"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/common.ts",
+      "sha256": "3f3912248770e6f36640d1e6de40c2ab97c492a2f6f729bb87b355dfa6c0cba3"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/info.ts",
+      "sha256": "d0a0c4a127dbc7b893efbb8672095c56e5985728a2dde593c9db717c39450eda"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/perl-sed.ts",
+      "sha256": "4fb555cf10248c698b87b56b183c5f74118ef20875b59e816e11507e4e87fb56"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/registry.ts",
+      "sha256": "9b761558e7d9e92cdf81e2f119e9764569d41cc78c9266806fecaa17851f7955"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "sha256": "96467f240342c55a35fa7e47d72c0a7f40f10e7809d2fb5f6aab6521382d09bc"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/perl-sed.test.ts",
+      "sha256": "e2de2273146ba6be815735cfd954f1d84c6ff655c3e01a7b5be756fa40ffa53a"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/values.ts",
+      "sha256": "df94d489cc6397c8db29734bbd8e476566acf9521defef50fbfc003fe7b83110"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook.ts",
+      "sha256": "bca37a7b4d4ad150dc74227511a42389441577b68dcb3f2cd8fda768b2b928fa"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/model.ts",
+      "sha256": "2fb7b7803ee73b4f48bc31b28a5c75d630e992476b52635f0bdda1cc0ba938da"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/byte-string-array-fixtures.ts",
+      "sha256": "95262b7ca6eca2e662996dcfb63222bef3479ab00ed80aec0e69ce8bc1ebce84"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/byte-string-quoting-fixtures.ts",
+      "sha256": "16118e30d5e40fc262e28f6d118b2c9e28f3fc32c6f4f686ceaf1bbaf9a068a4"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/byte-string-quoting.test.ts",
+      "sha256": "dac7bc817fb39f16e7651904bf303cf45e9b331e66b1fbc17887597c9b1b77de"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/byte-strings.ts",
+      "sha256": "34a47b99f153523550178fefe4e6b022164ef18fc6da6bd711a1d8954a67eea6"
+    },
+    {
+      "path": "packages/ssconvert/src/encoding/byte-value.ts",
+      "sha256": "a60209174ba904bb9d7a068af0335177e5f6251d1d6722f799d43af77243a944"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/byte-string-fixtures.ts",
+      "sha256": "726abe9c0baaf3db39862f1b10831bbd4dec331550a028762dcb09e6b92c1d34"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/byte-string.test.ts",
+      "sha256": "e0fe191abb73743512e7cc832358e0b1d440bfaea4fb155630798bb9ec628cf3"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/byte-string.test.ts",
+      "sha256": "13760198014b7cb7327c4f26f48d151666b774c0479b3243b3a9bf0d93f77865"
+    }
+  ],
+  "remaining": [
+    "LOWER/UPPER invalid chunks and Unicode case profiles",
+    "Native warning/error diagnostics, including CODE and experimental lookbehind",
+    "Other byte text formulas/operators/arrays, legacy output charsets and ancillary formats",
+    "Raw nonformula Gnumeric cache/XML representation; normal formula writer deliberately omits caches",
+    "Wider Perl grammar/optional profiles and full plan format/rendering/solver/service obligations",
+    "Frozen integrated gates, containing GitHub publication, registry and installed smoke"
+  ]
+}

@@ -1,5 +1,8 @@
 import type { CellValue } from "../workbook.js";
 import { foldSheetName } from "../workbook/case-fold.js";
+import { SsconvertError } from "../contracts.js";
+import { decodeByteString, joinByteText } from "../encoding/byte-value.js";
+import { encodeByteText } from "../encoding/byte-text.js";
 
 export const blank: CellValue = Object.freeze({ kind: "blank" });
 export const error = (value: string): CellValue => ({ kind: "error", value });
@@ -67,6 +70,7 @@ export function product(values: readonly number[]): number {
   return exponent === 1024 ? (mantissa * 2) * 2 ** 1023 : mantissa * 2 ** exponent;
 }
 export function rendered(value: CellValue): string {
+  if (value.kind === "byte-string") throw new SsconvertError("unsupported-feature", "Native byte-string Unicode rendering is not qualified");
   if (value.kind === "number") {
     // value_get_as_gstring's !^G format: binary64 shortest digits, C-locale
     // notation boundaries and printf exponent spelling (go-dtoa.c:fmt_shortest).
@@ -79,9 +83,10 @@ export function rendered(value: CellValue): string {
   return value.kind === "blank" ? "" : value.kind === "boolean" ? value.value ? "TRUE" : "FALSE" : String(value.value);
 }
 export function comparison(a: CellValue, b: CellValue): number {
+  if (a.kind === "byte-string" || b.kind === "byte-string") throw new SsconvertError("unsupported-feature", "Native byte-string comparison is not qualified");
   if (a.kind === "blank") a = b.kind === "string" ? { kind: "string", value: "" } : b.kind === "boolean" ? { kind: "boolean", value: false } : numericResult(0);
   if (b.kind === "blank") b = a.kind === "string" ? { kind: "string", value: "" } : a.kind === "boolean" ? { kind: "boolean", value: false } : numericResult(0);
-  const rank = { blank: 0, number: 1, string: 2, boolean: 3, error: 4 };
+  const rank = { blank: 0, number: 1, string: 2, "byte-string": 2, boolean: 3, error: 4 };
   if (a.kind !== b.kind) return rank[a.kind] - rank[b.kind];
   const x = a.kind === "string" ? foldSheetName(a.value) : a.kind === "blank" ? 0 : a.value;
   const y = b.kind === "string" ? foldSheetName(b.value) : b.kind === "blank" ? 0 : b.value;
@@ -89,6 +94,7 @@ export function comparison(a: CellValue, b: CellValue): number {
 }
 /** value_diff's iteration metric is separate from spreadsheet comparison. */
 export function difference(a: CellValue, b: CellValue): number {
+  if (a.kind === "byte-string" || b.kind === "byte-string") return a.kind === "byte-string" && b.kind === "byte-string" && a.value === b.value ? 0 : Number.MAX_VALUE;
   if (a.kind === "string" || b.kind === "string") {
     if (a.kind === "string" && b.kind === "string") return a.value === b.value ? 0 : Number.MAX_VALUE;
     const string = a.kind === "string" ? a : b, other = a.kind === "string" ? b : a;
@@ -100,9 +106,19 @@ export function difference(a: CellValue, b: CellValue): number {
   if (a.kind === "boolean" || b.kind === "boolean") return (numeric(a) ?? 0) === (numeric(b) ?? 0) ? 0 : Number.MAX_VALUE;
   return Math.abs((numeric(a) ?? 0) - (numeric(b) ?? 0));
 }
-export function binary(op: string, left: CellValue, right: CellValue): CellValue {
+export function binary(op: string, left: CellValue, right: CellValue,
+  admission?: { readonly tick: () => void; readonly maximum: number }): CellValue {
   if (left.kind === "error") return left;
-  if (op === "&") return right.kind === "error" ? right : { kind: "string", value: rendered(left) + rendered(right) };
+  if (op === "&") {
+    if (right.kind === "error") return right;
+    if (left.kind === "byte-string" || right.kind === "byte-string") {
+      if (!admission) throw new SsconvertError("unsupported-feature", "Native byte-string concatenation requires bounded admission");
+      const parts = [left, right].map(value => value.kind === "byte-string" ? decodeByteString(value.value, admission.tick, admission.maximum)
+        : encodeByteText(rendered(value), admission.tick));
+      return joinByteText(parts, new Uint8Array(), admission.maximum, admission.tick);
+    }
+    return { kind: "string", value: rendered(left) + rendered(right) };
+  }
   if (["=", "<>", "<", ">", "<=", ">="].includes(op)) {
     if (right.kind === "error") return right;
     const order = comparison(left, right);

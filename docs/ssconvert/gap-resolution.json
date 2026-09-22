@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded byte grammar with captures/POSIX/names/finite lookbehind/atomic/possessive/whitespace-newline-octal escapes implemented;4482valid public controls exact;38invalid-byte representation cases,nativewarnings/diagnostics,broader grammar and profiles remain open.",
+      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -549,6 +549,11 @@
           "kind": "native-byte-cursor-downstream-and-public-cooperation",
           "path": "docs/ssconvert/byte-text-cursor-gap-proof.json",
           "outcome": "256executed GLib lead-byte controls,38actual native downstream rows and224unmodified-native Unicode/argument controls. Four public cancellation failures and one silent malformed-host replacement reproduced and repaired. SDK/Shell/checkpoint/browser/worker exact.38raw workbook value obligations still open; native normal XML replay evaluates formulas rather than preserving invalid caches."
+        },
+        {
+          "kind": "lossless-native-byte-value-csv-and-array-contract",
+          "path": "docs/ssconvert/byte-string-gap-proof.json",
+          "outcome": "39original runtime/SDK refusals reproduced and repaired.380scalar comparisons,38raw output results,228downstream array cells and240CSV quoting controls match actual native bytes. Legacy charset/unqualified writers refused before opening destinations. Broad checks and publication pending; family stays open."
         }
       ],
       "delivery": {

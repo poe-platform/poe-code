@@ -31,6 +31,25 @@ function advance(source: Uint8Array, position: number, end: number): number {
   return Math.min(end, position + width);
 }
 
+/** GLib's non-validating g_utf8_get_char accepts historical 2–6-byte forms.
+ * An invalid continuation or truncated owned chunk yields unsigned -1. */
+export function readByteTextCharacter(source: Uint8Array, position: number, tick: () => void): { point: number; next: number } {
+  tick();
+  const byte = source[position];
+  if (byte === undefined) return { point: 0, next: source.length };
+  const next = advance(source, position, source.length);
+  if (byte < 128) return { point: byte, next };
+  const width = byte < 192 || byte >= 254 ? 1 : byte < 224 ? 2 : byte < 240 ? 3 : byte < 248 ? 4 : byte < 252 ? 5 : 6;
+  if (width === 1 || position + width > source.length) return { point: 0xffffffff, next };
+  let point = byte & (127 >> width);
+  for (let offset = 1; offset < width; offset++) {
+    tick(); const continuation = source[position + offset]!;
+    if ((continuation & 192) !== 128) return { point: 0xffffffff, next };
+    point = point * 64 + (continuation & 63);
+  }
+  return { point, next };
+}
+
 export function byteTextLength(source: Uint8Array, tick: () => void): number {
   const end = visibleLength(source, tick);
   let position = 0, length = 0;

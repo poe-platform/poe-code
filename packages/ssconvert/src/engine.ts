@@ -18,6 +18,7 @@ import {
 } from "./contracts.js";
 import { snapshotWorkbook, type Workbook } from "./workbook.js";
 import { snapshotRecords } from "./workbook/model.js";
+import { admitByteStringExport } from "./codecs/byte-strings.js";
 import { parseRangeExpression } from "./workbook/expressions.js";
 import { exportOptionPairs } from "./cli/export-options.js";
 import { applyExportOption } from "./codecs/export-options.js";
@@ -352,8 +353,6 @@ export function createEngine(supplied: EngineConfig): Engine {
   ): Promise<OperationResult> {
     check(context);
     const selection = prepared ?? await prepareExport(book, destination, type, options, context);
-    const output = destination.kind === "resource" ? await config.filesystem?.openOutput?.(destination.uri, context) : undefined;
-    check(context);
     const active = book.activeSheet ?? book.sheets[0]?.id;
     const runtimeSheets = !selection.split && range ? [range.sheet] : selection.split ? selection.selected : undefined;
     const sheets = selection.codec.selectionSource === "view" ? (active === undefined ? [] : [active]) :
@@ -362,11 +361,15 @@ export function createEngine(supplied: EngineConfig): Engine {
       runtimeSheets ?? selection.selected ?? (selection.codec.saveScope !== "workbook"
         ? (active === undefined ? [] : [active]) : undefined);
     const exportRange = selection.codec.honorsExportRange ? range : undefined;
+    const writerSelection = sheets === undefined && exportRange === undefined ? undefined : Object.freeze({ sheets: Object.freeze([...(sheets ?? [])]),
+      ...(exportRange === undefined ? {} : { range: exportRange }) });
+    admitByteStringExport(book, selection.codec, context, writerSelection, selection.options);
+    const output = destination.kind === "resource" ? await config.filesystem?.openOutput?.(destination.uri, context) : undefined;
+    check(context);
     let bytes: Uint8Array;
     try {
       bytes = await selection.codec.write!(book, selection.options, destination.kind === "resource" ? { ...context, outputFilename: destination.uri } : context,
-        sheets === undefined && exportRange === undefined ? undefined : Object.freeze({ sheets: Object.freeze([...(sheets ?? [])]),
-          ...(exportRange === undefined ? {} : { range: exportRange }) }));
+        writerSelection);
     } catch (error) {
       if (error instanceof CodecWriteFailure) {
         await publishBytes(destination, error.bytes, context, inputBytes, maximumBytes, output);

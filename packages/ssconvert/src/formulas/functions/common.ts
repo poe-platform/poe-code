@@ -2,6 +2,8 @@ import { SsconvertError } from "../../contracts.js";
 import type { CellValue } from "../../workbook.js";
 import { numeric, rendered } from "../values.js";
 import type { FunctionHost, Matrix, Value } from "./types.js";
+import { decodeByteString } from "../../encoding/byte-value.js";
+import { encodeByteText } from "../../encoding/byte-text.js";
 
 export const bool = (value: boolean): CellValue => ({ kind: "boolean", value });
 export const str = (value: string): CellValue => ({ kind: "string", value });
@@ -21,6 +23,11 @@ export function numberArg(args: readonly (Value | undefined)[], index: number, h
 }
 export function textArg(args: readonly (Value | undefined)[], index: number, host: FunctionHost): string {
   return rendered(scalarArg(args, index, host));
+}
+export function byteTextArg(args: readonly (Value | undefined)[], index: number, host: FunctionHost): Uint8Array {
+  const value = scalarArg(args, index, host);
+  return value.kind === "byte-string" ? decodeByteString(value.value, host.tick, host.context.limits.inputBytes)
+    : encodeByteText(rendered(value), host.tick);
 }
 export function collect(value: Value, host: FunctionHost, result: CellValue[] = []): CellValue[] {
   if (value.kind === "set") { for (const child of value.values) collect(child, host, result); }

@@ -88,9 +88,9 @@ const predicates: Readonly<Record<string, (value: ReturnType<FunctionHost["scala
   ISERROR: value => value.kind === "error",
   ISLOGICAL: value => value.kind === "boolean",
   ISNA: value => value.kind === "error" && value.value === "#N/A",
-  ISNONTEXT: value => value.kind !== "string",
+  ISNONTEXT: value => value.kind !== "string" && value.kind !== "byte-string",
   ISNUMBER: value => value.kind === "number",
-  ISTEXT: value => value.kind === "string"
+  ISTEXT: value => value.kind === "string" || value.kind === "byte-string"
 };
 export const infoFunctions: Readonly<Record<string, FunctionImplementation>> = {
   ...Object.fromEntries(Object.entries(predicates).map(([name, predicate]) => [name, ((args, host) => bool(predicate(scalarArg(args, 0, host)))) satisfies FunctionImplementation])),

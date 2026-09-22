@@ -1,6 +1,9 @@
 export type CellValue =
   | { readonly kind: "blank" }
   | { readonly kind: "string"; readonly value: string }
+  /** Native C-string bytes that are not valid UTF-8, in canonical lowercase hex.
+   * Unicode consumers must explicitly qualify their interpretation. */
+  | { readonly kind: "byte-string"; readonly value: string }
   | { readonly kind: "number"; readonly value: number }
   | { readonly kind: "boolean"; readonly value: boolean }
   | { readonly kind: "error"; readonly value: string };

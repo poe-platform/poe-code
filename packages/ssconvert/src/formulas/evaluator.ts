@@ -156,13 +156,14 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     return { kind: "matrix", rows };
   }
   function mapBinary(op: string, a: Value, b: Value, position: ParsePosition, array: boolean): Value {
-    if (!array || a.kind !== "range" && a.kind !== "matrix" && b.kind !== "range" && b.kind !== "matrix") return binary(op, scalar(a, position), scalar(b, position));
+    const admission = { tick, maximum: context.limits.outputBytes };
+    if (!array || a.kind !== "range" && a.kind !== "matrix" && b.kind !== "range" && b.kind !== "matrix") return binary(op, scalar(a, position), scalar(b, position), admission);
     const x = matrix(a), y = matrix(b);
     const dimension = (a: number, b: number) => a === 1 ? b : b === 1 ? a : Math.min(a, b);
     const rows = dimension(x.rows.length, y.rows.length), columns = dimension(x.rows[0]?.length ?? 0, y.rows[0]?.length ?? 0);
     if (rows * columns > context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert calculation array limit exceeded");
     const at = (v: Matrix, r: number, c: number) => v.rows[v.rows.length === 1 ? 0 : r]?.[(v.rows[0]?.length ?? 0) === 1 ? 0 : c] ?? error("#N/A");
-    return { kind: "matrix", rows: Array.from({ length: rows }, (_, r) => Array.from({ length: columns }, (_, c) => { tick(); return binary(op, at(x, r, c), at(y, r, c)); })) };
+    return { kind: "matrix", rows: Array.from({ length: rows }, (_, r) => Array.from({ length: columns }, (_, c) => { tick(); return binary(op, at(x, r, c), at(y, r, c), admission); })) };
   }
   function evaluate(node: FormulaNode, position: ParsePosition, array = false, names = new Set<object>(), wantReference = true): Value {
     tick();

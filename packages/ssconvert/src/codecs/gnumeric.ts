@@ -564,8 +564,9 @@ function emitMetadata(book: Workbook, writer: XmlWriter): string {
   return writer.element("office:document-meta", { "xmlns:office": officeNamespace, "xmlns:xlink": "http://www.w3.org/1999/xlink", "xmlns:dc": dcNamespace,
     "xmlns:meta": metaNamespace, "xmlns:ooo": "http://openoffice.org/2004/office", "office:version": "1.2" }, "", writer.element("office:meta", {}, "", entries, 2), 1);
 }
-const types = { blank: 10, boolean: 20, number: 40, error: 50, string: 60 } as const;
+const types = { blank: 10, boolean: 20, number: 40, error: 50, string: 60, "byte-string": 60 } as const;
 function valueText(value: CellValue, context: CapabilityContext): string {
+  if (value.kind === "byte-string") throw new SsconvertError("unsupported-feature", "Native byte-string cannot be serialized as Unicode XML text");
   if (value.kind === "error" && !["#NULL!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#N/A"].includes(value.value))
     return "#" + quoteFormulaString(value.value, '"', gnumericGrammar);
   return value.kind === "blank" ? "" : value.kind === "boolean" ? value.value ? "TRUE" : "FALSE" :
@@ -635,7 +636,7 @@ export function writeClipboardGnumeric(book: Workbook, sheet: Sheet, range: impo
     attrs.ValueType = types[value.kind];
     const format = cell.richText ? richFormat(cell.richText) : typeof cell.style?.gnumericValueFormat === "string" ? cell.style.gnumericValueFormat : undefined;
     if (format) attrs.ValueFormat = format;
-    if (cell.formula) attrs.Value = valueText(value, context);
+    if (cell.formula && value.kind !== "byte-string") attrs.Value = valueText(value, context);
     cells += writer.element("gnm:Cell", attrs, cell.formula ?? valueText(value, context), "", 2, true);
   }
   body += emitRetained(clipboardStyleRecords(sheet, range, context), "Styles", 1, writer);

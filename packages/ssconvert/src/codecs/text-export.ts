@@ -8,6 +8,52 @@ import type { Codec } from "./types.js";
 import { encodeText } from "../encoding/encode.js";
 import { exportLocale } from "../locale/runtime.js";
 import { CodecWriteFailure, TextConverterUnavailable } from "./write-failure.js";
+import { decodeByteString } from "../encoding/byte-value.js";
+import { readByteTextCharacter } from "../encoding/byte-text.js";
+
+function byteField(source: Uint8Array, options: TextOptions, maximum: number, tick: () => void): Uint8Array {
+  if (!['utf-8', 'utf8'].includes(options.charset.toLowerCase()) || options.quote.length > 1 || options.quote.charCodeAt(0) >= 128)
+    throw new SsconvertError("unsupported-feature", "Native byte-string export requires UTF-8 and an ASCII CSV quote");
+  const whitespace = (point: number) => point >= 9 && point <= 13 && point !== 11 || point === 32 || point === 0xa0 || point === 0x1680 ||
+    point >= 0x2000 && point <= 0x200a || point === 0x2028 || point === 0x2029 || point === 0x202f || point === 0x205f || point === 0x3000;
+  let trigger = false;
+  const quote = options.quote.charCodeAt(0);
+  for (let position = 0; position < source.length;) {
+    const character = readByteTextCharacter(source, position, tick);
+    if ([44, 32, 9, 10, 34].includes(character.point)) trigger = true;
+    position = character.next;
+  }
+  let last = source.length - 1;
+  while (last > 0 && (source[last]! & 192) === 128) { tick(); last--; }
+  const quoted = !!options.quote && (options.mode === "always" || options.mode === "auto" &&
+    (trigger || options.whitespace && source.length > 0 && (whitespace(readByteTextCharacter(source, 0, tick).point) ||
+      whitespace(readByteTextCharacter(source, last, tick).point))));
+  if (!quoted) {
+    if (source.length > maximum) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
+    return source;
+  }
+  const result: number[] = [];
+  const append = (bytes: readonly number[]) => {
+    if (bytes.length > maximum - result.length) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
+    for (const byte of bytes) { tick(); result.push(byte); }
+  };
+  append([quote]);
+  // libgsf quoted fields use g_string_append_unichar, including GLib's historical
+  // six-byte encoding of unsigned -1. Unquoted fields keep their original bytes.
+  for (let position = 0; position < source.length;) {
+    const character = readByteTextCharacter(source, position, tick); position = character.next;
+    const point = character.point;
+    if (point === quote) append([quote]);
+    const width = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : point < 2097152 ? 4 : point < 67108864 ? 5 : 6;
+    if (width === 1) { append([point]); continue; }
+    const encoded = new Array<number>(width); let remaining = point;
+    for (let index = width - 1; index > 0; index--) { encoded[index] = 128 | (remaining & 63); remaining = Math.floor(remaining / 64); }
+    encoded[0] = [0, 0, 192, 224, 240, 248, 252][width]! | remaining;
+    append(encoded);
+  }
+  append([quote]);
+  return Uint8Array.from(result);
+}
 
 interface TextOptions {
   separator: string;
@@ -51,7 +97,7 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
         context.limits.workbookTextBytes ?? context.limits.inputBytes)) })
   };
   let length = 0, work = 0;
-  const chunks: string[] = [];
+  const chunks: (string | Uint8Array)[] = [];
   const tick = () => {
     context.signal.throwIfAborted();
     if (++work > (context.limits.workbookWork ?? context.limits.inputBytes))
@@ -89,12 +135,29 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
         tick();
         if (column !== (range?.startColumn ?? 0)) append(options.separator);
         const cell = cells.get(`${row}:${column}`);
-        appendField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options, append);
+        const value = cell?.cachedResult ?? cell?.value;
+        if (value?.kind === "byte-string") {
+          const bytes = byteField(decodeByteString(value.value, tick, context.limits.outputBytes), options,
+            renderingContext.limits.outputBytes - length, tick);
+          length += bytes.length; chunks.push(bytes);
+        } else appendField(cell ? await renderCellText(cell, book, renderingContext, options.format) : "", options, append);
       }
       append(options.eol);
     }
   }
   context.signal.throwIfAborted();
+  if (chunks.some(chunk => chunk instanceof Uint8Array)) {
+    const encoded: Uint8Array[] = []; let size = 0;
+    for (const chunk of chunks) {
+      tick();
+      const bytes = typeof chunk === "string" ? encodeText(chunk, "UTF-8", false, suppliedContext) : chunk;
+      if (bytes.length > context.limits.outputBytes - size) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
+      size += bytes.length; encoded.push(bytes);
+    }
+    const result = new Uint8Array(size); let offset = 0;
+    for (const bytes of encoded) for (const byte of bytes) { tick(); result[offset++] = byte; }
+    return result;
+  }
   const text = chunks.join("");
   try { return encodeText(text, options.charset, options.transliterate, suppliedContext); }
   catch (error) {

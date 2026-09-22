@@ -94,7 +94,7 @@ function coerce(value: Value, type: string, host: FunctionHost, iteration = fals
   const scalar = host.scalar(value);
   if (iteration && type === "s") {
     if (scalar.kind === "blank") return { kind: "string", value: "" };
-    return scalar.kind === "string" || scalar.kind === "error" ? scalar : error("#VALUE!");
+    return scalar.kind === "string" || scalar.kind === "byte-string" || scalar.kind === "error" ? scalar : error("#VALUE!");
   }
   if (!iteration && type === "b" && scalar.kind === "string") {
     const boolean = asBoolean(scalar); return boolean === undefined ? error("#VALUE!") : { kind: "boolean", value: boolean };

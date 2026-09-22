@@ -333,7 +333,18 @@
     "oxlint": "1.83.0",
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
-    "safe-bash-command-exiftool": "*"
+    "safe-bash-command-exiftool": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-fmt": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-csv-engine": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-command-csvsort": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-tesseract": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-command-soffice": "*"
   },
   "repository": {
     "type": "git",

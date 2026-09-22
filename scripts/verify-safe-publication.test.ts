@@ -77,6 +77,7 @@ describe("public safe-package verification", () => {
     expect(options).toMatchObject({ env: { HOME: expect.stringContaining("/out/"), npm_config_userconfig: expect.stringContaining("/out/") }, timeout: 120_000 });
     expect(Object.keys(options.env).sort()).toEqual(["HOME", "PATH", "npm_config_globalconfig", "npm_config_userconfig"]);
     expect(context.run.mock.calls[1][0]).toBe(process.execPath);
+    expect(context.run.mock.calls[1][2].env.PATH).toBe("");
     expect(context.run.mock.calls[1][1].join(" ")).toContain("@poe-platform/safe-bash/commands/");
     expect(await context.files.readdir("/out")).toEqual([]);
   });
@@ -215,6 +216,48 @@ describe("public safe-package verification", () => {
     await expect(context.verify()).rejects.toThrow("import failed");
     expect(context.log.mock.calls.flat().join(" ")).not.toContain("Verified");
     expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it.each(["safe-bash-command-example", "safe-bash-engine-pdf", "safe-bash-contracts"])("rejects an installed bare private requirement %s", async name => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      const filename = join(options.cwd, "node_modules", names[2], "package.json");
+      await context.files.writeFile(filename, JSON.stringify({ name: names[2], version, dependencies: { [name]: "0.0.1" } }));
+    });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("Private safe-bash requirement");
+    expect(context.run).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["safe-bash-command-example", "@private/safe-bash-engine-pdf", "safe-bash-contracts"])("rejects a transitive private installation %s", async name => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      const filename = join(options.cwd, "package-lock.json");
+      const lock = JSON.parse(await context.files.readFile(filename, "utf8") as string);
+      lock.packages[`node_modules/public-helper/node_modules/${name}`] = { version: "0.0.1" };
+      await context.files.writeFile(filename, JSON.stringify(lock));
+    });
+    await expect(context.verify({ maxAttempts: 1 })).rejects.toThrow("Private safe-bash installation");
+    expect(context.run).toHaveBeenCalledTimes(1);
+    expect(await context.files.readdir("/out")).toEqual([]);
+  });
+
+  it("allows public helpers with similar names in the installed closure", async () => {
+    const context = fixture();
+    const install = context.run.getMockImplementation()!;
+    context.run.mockImplementation(async (command, args, options) => {
+      await install(command, args, options);
+      if (command !== "npm") return;
+      const filename = join(options.cwd, "package-lock.json");
+      const lock = JSON.parse(await context.files.readFile(filename, "utf8") as string);
+      lock.packages["node_modules/public-safe-bash-command-helper"] = { version: "1.0.0" };
+      await context.files.writeFile(filename, JSON.stringify(lock));
+    });
+    await context.verify({ maxAttempts: 1 });
+    expect(context.run).toHaveBeenCalledTimes(2);
   });
 
   it.each([{ version: "latest" }, { version: "^0.1.669" }, { source: "main" }, { maxAttempts: 0 }, { timeoutMs: Infinity }])("rejects unbounded or non-exact inputs %j", async overrides => {

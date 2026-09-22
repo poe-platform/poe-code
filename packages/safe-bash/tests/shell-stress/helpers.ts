@@ -47,11 +47,13 @@ function checkChild(result: { error?: Error | undefined; signal: NodeJS.Signals 
 
 async function executeVirtual(request: ChildRequest | BatchRequest, dependencies = { sourceEvidence, isolatedSpawn }) {
   const before = dependencies.sourceEvidence();
+  const privateWorkspaces = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).poeCode.integration.privateWorkspaces;
   const bundled = await build({
     entryPoints: [fileURLToPath(new URL("./virtual-child.ts", import.meta.url))],
     bundle: true, packages: "external", platform: "node", format: "esm", target: "es2022", write: false,
     alias: {
-      "safe-bash-contracts": fileURLToPath(new URL("../../../safe-bash-contracts/dist", import.meta.url)),
+      ...Object.fromEntries(Object.keys(privateWorkspaces).map(name => [name,
+        fileURLToPath(new URL(`../../../${name}/dist`, import.meta.url))])),
       "@poe-code/safe-fs": fileURLToPath(new URL("../../../safe-fs/src", import.meta.url)),
     },
     plugins: [{

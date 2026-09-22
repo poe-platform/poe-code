@@ -1,0 +1,626 @@
+{
+  "formatVersion": 1,
+  "provenance": "Original first-party byte fixtures authored for parser-research; no upstream fixture or source copied.",
+  "encoding": "hex is authoritative; all offsets count bytes, not text characters.",
+  "fixtures": [
+    {
+      "id": "whitespace",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "00090a0c0d20747275652025780d66616c7365206e756c6c",
+      "byteLength": 24,
+      "sha256": "b5cc684c53e20ae1bc06ae609a9b4a6442fbb7c91bf64e1d994ad4e81a4e6fe1",
+      "expected": "tokens true,false,null",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "name-escapes",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2f41233230233266233030",
+      "byteLength": 11,
+      "sha256": "f9bba1507b5cd026e0b2d7bfb399f050c6158d4c33cdf9658c727c1f09e57f14",
+      "expected": "name bytes 41202f00",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "name-malformed",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2f4123474723",
+      "byteLength": 6,
+      "sha256": "07a4b4de49f238837accc93f8b2a2c0b0dd99bd4af460699d778e0097cfecfd6",
+      "expected": "strict malformed escape; repair retains 4123474723 with diagnostic",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "literal-octal",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "285c315c31325c3132335c37373729",
+      "byteLength": 15,
+      "sha256": "5ae6d8c72fac9f235c98b5dd20eaeb98b7d6b264ee00c44a151d754a6223d7d4",
+      "expected": "decoded bytes 010a53ff",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "literal-nesting",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "28612862296329",
+      "byteLength": 7,
+      "sha256": "b15f626a1eb193ed7af80f65fae3bdee2f4bd4e71c922fee384f308de43594b8",
+      "expected": "decoded bytes 6128622963",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "literal-continuation",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "28615c0d0a625c0a6329",
+      "byteLength": 10,
+      "sha256": "8d28560687aa8ad811eed41bb06805105b932a2858630327a6c4dbe7a4306c90",
+      "expected": "decoded bytes 616263",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "literal-line-endings",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "28610d0a620d630a6429",
+      "byteLength": 10,
+      "sha256": "3f42a9c6daa7e37dcbfc297cb72ff4734dc4deadeaf992eab22062b2e49ac788",
+      "expected": "spec decoded bytes 610a620a630a64; raw lexical bytes unchanged",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "literal-unterminated",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "28616263",
+      "byteLength": 4,
+      "sha256": "4947b82cfa081fbd96b6e98995ec44fd64a6a236bb69cb1d85c56ea98ea0af55",
+      "expected": "strict truncated; partial recovery bytes 616263 with diagnostic",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "hex-odd",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "3c363e",
+      "byteLength": 3,
+      "sha256": "270f604cdab3d50169262f53082e418b88f2cf92288912344bfb394b5ced98e9",
+      "expected": "decoded bytes 60",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "hex-eof",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "3c36",
+      "byteLength": 2,
+      "sha256": "63f1645404a3c8ddb559de3261300333a8dcd6d89333262870b2e093a6dd1b50",
+      "expected": "strict truncated; partial recovery separately admitted",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "hex-invalid",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "3c367a313e",
+      "byteLength": 5,
+      "sha256": "0786cf63e7caee8149faaa9d91b242411b80ab6dd6fd9bb3f46d0cf897f9f96d",
+      "expected": "strict invalid; permissive repair bytes 61 with diagnostic",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "duplicate-keys",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "3c3c202f412031202f412032202f42206e756c6c203e3e",
+      "byteLength": 23,
+      "sha256": "a6acdf23bc48c7de250454470224a0157388446e1325f8ef44c771feb391ed2f",
+      "expected": "retain both A entries and null B; strict duplicate diagnostic; explicit repair last A=2",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "array-truncated",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "5b312032",
+      "byteLength": 4,
+      "sha256": "7b447a9790d3910395b488e010463f5ceef8affb0379eef149052da45a20f71a",
+      "expected": "strict truncated; explicit partial recovery [1,2]",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "dict-truncated",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "3c3c202f412031",
+      "byteLength": 7,
+      "sha256": "3cc8e08feebe1cc92d05b5b819054fd80feaafb0d0cd2cc335238489089f5505",
+      "expected": "strict truncated; explicit partial recovery A=1",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "negative-ref",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2d3120302052",
+      "byteLength": 6,
+      "sha256": "29a43acd553a95c825e845331b39fc4842961df20c3160f04c1c10caea37a99c",
+      "expected": "graph rejects negative object number",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "unsafe-number",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "39303037313939323534373430393933",
+      "byteLength": 16,
+      "sha256": "a1c367c29158357e62a3ff5d3e800fb7698a22396439dbc0a9d4929322afd35d",
+      "expected": "retain exact numeric token; reject unsafe number conversion for offsets/identity",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "exponent",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "316533",
+      "byteLength": 3,
+      "sha256": "0b11ca015456e85e4a21de2d495f6bde1f3a7d8624c6d1ab181c4221bc1935eb",
+      "expected": "object context invalid command e3 after number1; never number1000",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "double-sign",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2d2d32",
+      "byteLength": 3,
+      "sha256": "995c2a0e5f3574145dafcc9389489be5186cd1d20ec02803de12ac691ea18278",
+      "expected": "strict malformed number; reference repair -2 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "embedded-sign",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "312d32",
+      "byteLength": 3,
+      "sha256": "412a4789b02cad19bacb029f5c8ec8e9b115375d82b97df1d6b15997a8e70e01",
+      "expected": "strict malformed adjacency; reference repair12 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "sign-newline",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2d0a33",
+      "byteLength": 3,
+      "sha256": "ef6f923a556be8c206af5fa7f9785f438db4406e1a47b0a8a82de33485891ca4",
+      "expected": "strict invalid number; reference repair -3 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "bare-plus",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2b",
+      "byteLength": 1,
+      "sha256": "a318c24216defe206feeb73ef5be00033fa9c4a74d0b967f6532a26ca5906d3b",
+      "expected": "strict invalid number; reference repair0 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "bare-dot",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2e",
+      "byteLength": 1,
+      "sha256": "cdb4ee2aea69cc6a83331bbe96dc2caa9a299d21329efb0336fc02a82e1839a8",
+      "expected": "strict invalid number; reference repair0 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "bare-minus",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "2d",
+      "byteLength": 1,
+      "sha256": "3973e022e93220f9212c18d0d0c543ae7c309e46640da93a4a0314de999f5112",
+      "expected": "strict invalid number; reference repair0 only compatibility evidence",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "uppercase-boolean",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "54727565",
+      "byteLength": 4,
+      "sha256": "3cbc87c7681f34db4617feaa2c8801931bc5e42d8d0f560e756dd4cd92885f18",
+      "expected": "object context unsupported command, never boolean",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "stray-close",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "29",
+      "byteLength": 1,
+      "sha256": "ba5ec51d07a4ac0e951608704431d59a02b21a4e951acc10505a8dc407c501ee",
+      "expected": "strict unexpected delimiter",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "binary-string",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "28ff008029",
+      "byteLength": 5,
+      "sha256": "44506457b0e47a4fc8f67bd40d9b81552ca08c7399c31d2865ba4c2877eb13a2",
+      "expected": "decoded bytes ff0080; no UTF8 normalization",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "utf8-text-role",
+      "kind": "object-fragment",
+      "gate": "text-strings",
+      "hex": "3c454642424246343146303946393838303e",
+      "byteLength": 18,
+      "sha256": "afed2ba5c3ad8af9f6229ecd8c7e8576f65f49fad124d8cc991d9f8427afeaeb",
+      "expected": "lexical bytes efbbbf41f09f9880; text role A plus U+1F600; ciphertext role unchanged",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "utf16-text-role",
+      "kind": "object-fragment",
+      "gate": "text-strings",
+      "hex": "3c464546463030343144383344444530303e",
+      "byteLength": 18,
+      "sha256": "b56a1ae13c3f8180d2600df51426dad615901cd165cfc47a1c6869597c07777c",
+      "expected": "lexical bytes feff0041d83dde00; text role A plus U+1F600",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "utf16-unpaired",
+      "kind": "object-fragment",
+      "gate": "text-strings",
+      "hex": "3c46454646443830303e",
+      "byteLength": 10,
+      "sha256": "6d11a8bafcca3913ee6bf6daa0385395088b88f7c9ac9ad5b974c4d72d2699d7",
+      "expected": "retain bytes; text role reports invalid surrogate",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "content-glued",
+      "kind": "object-fragment",
+      "gate": "syntax",
+      "hex": "71312030203020312030203020636d51",
+      "byteLength": 16,
+      "sha256": "33967c5a875050b92a86157422335a997c9396f25757880c0e0b47bc9fe91401",
+      "expected": "object lexer and content operator repair independently qualified",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "asciihex-odd",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "363e",
+      "byteLength": 2,
+      "sha256": "94189820030d4d54a1dae77c2c7f55fcd6129dfc63f686c78b1ea18e4ea93aa1",
+      "expected": "decoded60",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "asciihex-eof",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "36",
+      "byteLength": 1,
+      "sha256": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683",
+      "expected": "missing EOD diagnostic; reference stream EOF differs from lexical hex",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "asciihex-invalid",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "367a313e",
+      "byteLength": 4,
+      "sha256": "95d9e6064e7d0428f5e5ee7a08986ca939925fb0d53212f5061b4acfe5a691aa",
+      "expected": "strict invalid; repair61 with diagnostic",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "ascii85-zero",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "7a7e3e",
+      "byteLength": 3,
+      "sha256": "7df96eee293cba4381eb37263ab4e5855a0104c27059ac00ff556af53423b1aa",
+      "expected": "decoded00000000",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "runlength",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "0241424380",
+      "byteLength": 5,
+      "sha256": "4c0172ceebb57a1e1fa88cae29e1da99dd371e643fe05423e58d28413b82d3e3",
+      "expected": "decoded414243",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "flate-stored",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "7801010300fcff414243018d00c7",
+      "byteLength": 14,
+      "sha256": "951e66f8496ce4611d4c043afad5f5e8d5fd1f9091e590f5db8886f0dad268ae",
+      "expected": "decoded414243; validate zlib wrapper/checksum",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "chain-hex-flate",
+      "kind": "filter-payload",
+      "gate": "filters",
+      "hex": "373830313031303330306663666634313432343330313864303063373e",
+      "byteLength": 29,
+      "sha256": "6000a457496036faa35983f7f0a211252a8024b74fe103664e175969a154a6d7",
+      "expected": "ASCIIHexDecode then FlateDecode gives414243",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "xref-zero-type",
+      "kind": "xref-payload",
+      "gate": "revisions",
+      "hex": "0700",
+      "byteLength": 2,
+      "sha256": "0a6361b3a802f55cd5ae06101c88a1e216320fe11cc0cfe1d791eed08a1200fd",
+      "expected": "default type1 offset7 gen0",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "W": [
+          0,
+          1,
+          1
+        ],
+        "Index": [
+          0,
+          1
+        ],
+        "Size": 1
+      }
+    },
+    {
+      "id": "xref-unsigned4",
+      "kind": "xref-payload",
+      "gate": "revisions",
+      "hex": "018000000000",
+      "byteLength": 6,
+      "sha256": "2b5a7e9cbaa1ec074d4c5cf6bb48eddbf544cbeb3283aeb5b7cedca3cb05d2a9",
+      "expected": "type1 exact offset2147483648; reject outside source length, never negative",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "W": [
+          1,
+          4,
+          1
+        ],
+        "Index": [
+          0,
+          1
+        ],
+        "Size": 1
+      }
+    },
+    {
+      "id": "xref-unsigned5",
+      "kind": "xref-payload",
+      "gate": "revisions",
+      "hex": "01010000000100",
+      "byteLength": 7,
+      "sha256": "92279f2e8f32b4c8d8122e22f6d185424b36d678cf5a4dd041e99482977dac3c",
+      "expected": "type1 exact offset4294967297; never1",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "W": [
+          1,
+          5,
+          1
+        ],
+        "Index": [
+          0,
+          1
+        ],
+        "Size": 1
+      }
+    },
+    {
+      "id": "xref-unsigned8",
+      "kind": "xref-payload",
+      "gate": "revisions",
+      "hex": "01ffffffffffffffff00",
+      "byteLength": 10,
+      "sha256": "37a5518d2b8c5b10e253f1136e2bfd7d0999c434cc9736007ad7a25b5d412aa8",
+      "expected": "preserve exact18446744073709551615; reject unsafe offset",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "W": [
+          1,
+          8,
+          1
+        ],
+        "Index": [
+          0,
+          1
+        ],
+        "Size": 1
+      }
+    },
+    {
+      "id": "xref-truncated",
+      "kind": "xref-payload",
+      "gate": "revisions",
+      "hex": "010000",
+      "byteLength": 3,
+      "sha256": "fb50dc0717ff266cf9baf82b1ce7a1c2ef6d9247859680b11a19fb7077f5f222",
+      "expected": "reject truncated fields",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "W": [
+          1,
+          4,
+          1
+        ],
+        "Index": [
+          0,
+          1
+        ],
+        "Size": 1
+      }
+    },
+    {
+      "id": "objstm-pairs",
+      "kind": "object-stream-payload",
+      "gate": "revisions",
+      "hex": "3420302035203220312074727565",
+      "byteLength": 14,
+      "sha256": "d94b1961c4526a989c301b47746a9750a4364f1a70df1c4584f55ee7a12746ec",
+      "expected": "N2 First8; object4=1 object5=true; offsets0,2",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "N": 2,
+        "First": 8
+      }
+    },
+    {
+      "id": "objstm-decreasing",
+      "kind": "object-stream-payload",
+      "gate": "revisions",
+      "hex": "3420322035203020312074727565",
+      "byteLength": 14,
+      "sha256": "74a89a9b3cda617579aa322ed7c944b80f4bde4308a9cd06a8ceb3b1f34707e5",
+      "expected": "reject decreasing header offsets before object parse",
+      "qualification": "draft-not-executed",
+      "parameters": {
+        "N": 2,
+        "First": 8
+      }
+    },
+    {
+      "id": "inline-ei-payload",
+      "kind": "content-fragment",
+      "gate": "content",
+      "hex": "4249202f572038202f482031202f4250432038202f4353202f472049442061204549206162630a4549",
+      "byteLength": 41,
+      "sha256": "1feefc3adf3222058db88e8f1be7741cd05d7151d65917a381a763ba89625a15",
+      "expected": "8 pixel bytes are 6120454920616263; embedded EI is data; terminator after8 bytes",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "stream-marker-payload",
+      "kind": "object-fragment",
+      "gate": "streams",
+      "hex": "3c3c202f4c656e677468203135203e3e0a73747265616d0a61626320656e6473747265616d207a0a656e6473747265616d",
+      "byteLength": 49,
+      "sha256": "5c755967087323d63f7ab3aa9a0f5201ff5ac2ea54fc8a0a038a1339d52a0fe9",
+      "expected": "exact15 payload bytes 61626320656e6473747265616d207a; embedded marker is data",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "tounicode-supplementary",
+      "kind": "cmap-fragment",
+      "gate": "fonts",
+      "hex": "3120626567696e636f6465737061636572616e6765203c30303e203c46463e20656e64636f6465737061636572616e6765203120626567696e626663686172203c34313e203c44383344444530303e20656e64626663686172",
+      "byteLength": 89,
+      "sha256": "940033cac579c44a903d8a8928924706a120da26106e79fb6fbd9b32c2e20998",
+      "expected": "code41 maps U+1F600 via UTF16BE; retain code and raw mapping bytes",
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "classic-one-page",
+      "kind": "complete-pdf",
+      "gate": "pages",
+      "hex": "255044462d312e300a312030206f626a0a3c3c202f54797065202f436174616c6f67202f5061676573203220302052203e3e0a656e646f626a0a322030206f626a0a3c3c202f54797065202f5061676573202f4b696473205b33203020525d202f436f756e742031203e3e0a656e646f626a0a332030206f626a0a3c3c202f54797065202f50616765202f506172656e74203220302052202f4d65646961426f78205b30203020323030203130305d203e3e0a656e646f626a0a787265660a3020340a303030303030303030302036353533352066200a30303030303030303039203030303030206e200a30303030303030303538203030303030206e200a30303030303030313135203030303030206e200a747261696c65720a3c3c202f53697a652034202f526f6f74203120302052203e3e0a7374617274787265660a3138360a2525454f460a",
+      "byteLength": 329,
+      "sha256": "f3096a9bd8f9027c0aa2e03fb72f0dad7980045598da454a987072c8d26dad78",
+      "expected": {
+        "pageCount": 1,
+        "mediaBox": [
+          0,
+          0,
+          200,
+          100
+        ],
+        "objectOffsets": [
+          9,
+          58,
+          115
+        ],
+        "startxref": 186
+      },
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "incremental-page",
+      "kind": "complete-pdf",
+      "gate": "revisions",
+      "hex": "255044462d312e300a312030206f626a0a3c3c202f54797065202f436174616c6f67202f5061676573203220302052203e3e0a656e646f626a0a322030206f626a0a3c3c202f54797065202f5061676573202f4b696473205b33203020525d202f436f756e742031203e3e0a656e646f626a0a332030206f626a0a3c3c202f54797065202f50616765202f506172656e74203220302052202f4d65646961426f78205b30203020323030203130305d203e3e0a656e646f626a0a787265660a3020340a303030303030303030302036353533352066200a30303030303030303039203030303030206e200a30303030303030303538203030303030206e200a30303030303030313135203030303030206e200a747261696c65720a3c3c202f53697a652034202f526f6f74203120302052203e3e0a7374617274787265660a3138360a2525454f460a332030206f626a0a3c3c202f54797065202f50616765202f506172656e74203220302052202f4d65646961426f78205b30203020333030203135305d203e3e0a656e646f626a0a787265660a3320310a30303030303030333239203030303030206e200a747261696c65720a3c3c202f53697a652034202f526f6f74203120302052202f5072657620313836203e3e0a7374617274787265660a3430300a2525454f460a",
+      "byteLength": 493,
+      "sha256": "16da16c7cd73208adf52245bbee734b1f0ba681969745b1a866ebcb385316dd6",
+      "expected": {
+        "pageCount": 1,
+        "mediaBox": [
+          0,
+          0,
+          300,
+          150
+        ],
+        "revisionXrefs": [
+          400,
+          186
+        ],
+        "newPageOffset": 329
+      },
+      "qualification": "draft-not-executed"
+    },
+    {
+      "id": "xref-stream-one-page",
+      "kind": "complete-pdf",
+      "gate": "revisions",
+      "hex": "255044462d312e350a312030206f626a0a3c3c202f54797065202f436174616c6f67202f5061676573203220302052203e3e0a656e646f626a0a322030206f626a0a3c3c202f54797065202f5061676573202f4b696473205b33203020525d202f436f756e742031203e3e0a656e646f626a0a332030206f626a0a3c3c202f54797065202f50616765202f506172656e74203220302052202f4d65646961426f78205b30203020323030203130305d203e3e0a656e646f626a0a342030206f626a0a3c3c202f54797065202f58526566202f53697a652035202f526f6f74203120302052202f57205b31203420325d202f4c656e677468203335203e3e0a73747265616d0a0000000000ffff01000000090000010000003a00000100000073000001000000ba00000a656e6473747265616d0a656e646f626a0a7374617274787265660a3138360a2525454f460a",
+      "byteLength": 334,
+      "sha256": "9e7f64af70b8f71806c600390a3e64a678c1d5d5a75cd3cfbbae2504a8a479b6",
+      "expected": {
+        "pageCount": 1,
+        "mediaBox": [
+          0,
+          0,
+          200,
+          100
+        ],
+        "objectOffsets": [
+          9,
+          58,
+          115,
+          186
+        ],
+        "startxref": 186,
+        "W": [
+          1,
+          4,
+          2
+        ],
+        "IndexDefault": [
+          0,
+          5
+        ]
+      },
+      "qualification": "draft-not-executed"
+    }
+  ]
+}

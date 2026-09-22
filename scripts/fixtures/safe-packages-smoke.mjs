@@ -1,5 +1,10 @@
+import "./safe-packages-unrtf.mjs";
 import assert from "node:assert/strict";
+import "./safe-packages-fmt.mjs";
+import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
+await privateCommandVerification;
 import "./safe-packages-atomic.mjs";
+import "./safe-packages-diff3.mjs";
 import "./safe-packages-mkdir.mjs";
 import { posix } from "node:path";
 import { posixPath as contractPath } from "@poe-platform/safe-bash/contracts";
@@ -237,3 +242,5 @@ import { verifyLlmCommands } from "./safe-packages-llm.mjs";
 await verifyLlmCommands();
 await verifyLineEndingCommands(defaultEntry);
 await verifyLineEndingCommands(nodeEntry);
+
+await import("./safe-packages-soffice.mjs");

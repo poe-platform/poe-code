@@ -370,6 +370,46 @@
     "./commands/exiftool": {
       "types": "./dist/commands/exiftool/index.d.ts",
       "import": "./dist/commands/exiftool/index.js"
+    },
+    "./commands/fold": {
+      "types": "./dist/commands/fold/index.d.ts",
+      "import": "./dist/commands/fold/index.js"
+    },
+    "./commands/diff3": {
+      "types": "./dist/commands/diff3/index.d.ts",
+      "import": "./dist/commands/diff3/index.js"
+    },
+    "./commands/fmt": {
+      "types": "./dist/commands/fmt/index.d.ts",
+      "import": "./dist/commands/fmt/index.js"
+    },
+    "./commands/unrtf": {
+      "types": "./dist/commands/unrtf/index.d.ts",
+      "import": "./dist/commands/unrtf/index.js"
+    },
+    "./commands/csvgrep": {
+      "types": "./dist/commands/csvgrep/index.d.ts",
+      "import": "./dist/commands/csvgrep/index.js"
+    },
+    "./commands/csvcut": {
+      "types": "./dist/commands/csvcut/index.d.ts",
+      "import": "./dist/commands/csvcut/index.js"
+    },
+    "./commands/tesseract": {
+      "types": "./dist/commands/tesseract/index.d.ts",
+      "import": "./dist/commands/tesseract/index.js"
+    },
+    "./commands/soffice": {
+      "types": "./dist/commands/soffice/index.d.ts",
+      "import": "./dist/commands/soffice/index.js"
+    },
+    "./commands/htmlq": {
+      "types": "./dist/commands/htmlq/index.d.ts",
+      "import": "./dist/commands/htmlq/index.js"
+    },
+    "./commands/pdftotext": {
+      "types": "./dist/commands/pdftotext/index.d.ts",
+      "import": "./dist/commands/pdftotext/index.js"
     }
   },
   "files": [
@@ -459,7 +499,18 @@
     "safe-bash-contracts": "*",
     "safe-bash-command-wkhtmltopdf": "*",
     "safe-bash-command-exiftool": "*",
-    "@poe-code/package-lint": "*"
+    "@poe-code/package-lint": "*",
+    "safe-bash-command-fold": "*",
+    "safe-bash-command-diff3": "*",
+    "safe-bash-command-fmt": "*",
+    "safe-bash-command-unrtf": "*",
+    "safe-bash-command-csvgrep": "*",
+    "safe-bash-csv-engine": "*",
+    "safe-bash-command-csvcut": "*",
+    "safe-bash-command-tesseract": "*",
+    "safe-bash-command-soffice": "*",
+    "safe-bash-command-htmlq": "*",
+    "safe-bash-command-pdftotext": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -542,6 +593,90 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-fold": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "assets": [
+            "./dist/LICENSE",
+            "./dist/COPYING",
+            "./dist/COPYING.LESSER",
+            "./dist/width-data.ts"
+          ]
+        },
+        "safe-bash-command-diff3": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-fmt": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-command-unrtf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-csv-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {}
+        },
+        "safe-bash-command-csvgrep": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-csv-engine": "*"
+          }
+        },
+        "safe-bash-command-csvcut": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-csv-engine": "*",
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-tesseract": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-soffice": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-htmlq": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          }
+        },
+        "safe-bash-command-pdftotext": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
           }
         }
       }

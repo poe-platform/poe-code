@@ -68,7 +68,7 @@ jobs:
       - run: npm run build
       - name: Verify Cloudflare Worker transport and resource lifecycle
         run: npm run test:workers --workspace=@poe-code/safe-playwright-cloudflare
-      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts
+      - run: npx vitest run scripts/package-safe.test.ts scripts/root-optional-package.test.ts scripts/safe-bash-optional-build.test.ts scripts/safe-bash-optional-lifecycle.test.ts scripts/verify-safe-publication.test.ts scripts/safe-command-publication.test.ts scripts/bundle-safe-bash-private.test.ts
       - run: npm run lint:packages
       - name: Prepare scoped artifacts
         env:
@@ -103,7 +103,22 @@ jobs:
           cp "$GITHUB_WORKSPACE"/scripts/fixtures/safe-packages-* "$CONSUMER/"
           cd "$CONSUMER"
           npm init --yes
-          npm install --ignore-scripts --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
+          npm install --workspaces=false --ignore-scripts --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
+          NODE_EXECUTABLE=$(command -v node)
+          env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" safe-packages-publication-boundary.mjs
+          env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" safe-packages-registration.mjs
+          env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" safe-packages-fold.mjs
+          env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" safe-packages-diff3.mjs
+          "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module NodeNext --moduleResolution NodeNext --target ES2023 --typeRoots "$GITHUB_WORKSPACE/node_modules/@types" --types node safe-packages-private-command-types.mts safe-packages-registration-types.mts safe-packages-fold-types.mts safe-packages-diff3-types.mts
+          for PROFILE in browser workerd; do
+            "$GITHUB_WORKSPACE/node_modules/.bin/esbuild" safe-packages-publication-boundary.mjs --bundle --platform=browser --conditions="$PROFILE" --format=cjs --outfile=private-realm.cjs
+            env -i PATH= HOME="$CONSUMER" "$NODE_EXECUTABLE" --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          import { createContext, runInContext } from "node:vm";
+          const realm = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TypeError, TransformStream, ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });
+          await runInContext(`(async () => { const module = { exports: {} }; ${readFileSync("private-realm.cjs", "utf8")}; await module.exports.verification; })()`, realm);
+          NODE
+          done
           node safe-packages-smoke.mjs
           bun safe-packages-smoke.mjs
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --module NodeNext --moduleResolution NodeNext --target ES2022 safe-packages-types.mts

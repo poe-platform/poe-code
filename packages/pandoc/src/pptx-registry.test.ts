@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 import { createFormatRegistry, convert } from "./index.js";
 import { createPandocCommand } from "./safe-bash.js";
+// Load the lazy capability during setup, before timing the registry/adapter contract.
+import "./pptx.js";
 
 it("exposes verified PPTX conversion through the registry and byte command adapter", async () => {
   const registry = createFormatRegistry();

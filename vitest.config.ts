@@ -148,6 +148,13 @@ export default defineConfig({
       "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
       "packages/safe-bash-command-exiftool/src/*.test.ts",
       "packages/safe-bash-command-fmt/src/*.test.ts",
+      "packages/safe-bash-command-htmlq/src/*.test.ts",
+      "packages/safe-bash-command-fold/src/*.test.ts",
+      "packages/safe-bash-command-csvgrep/src/*.test.ts",
+      "packages/safe-bash-command-csvcut/src/*.test.ts",
+      "packages/safe-bash-csv-engine/src/*.test.ts",
+      "packages/safe-bash-command-diff3/src/*.test.ts",
+      "packages/safe-bash-command-unrtf/src/*.test.ts",
       "packages/safe-bash-contracts/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately

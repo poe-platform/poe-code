@@ -1,3 +1,4 @@
+import { arrayBufferDetached, arrayBufferLength, arrayBufferOptions, isSandboxArrayBuffer } from "./interp/array-buffer.js";
 import {hashParsedAst} from "./parse/hash.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { types } from "node:util";
@@ -320,6 +321,46 @@ class RealmState {
       return { args: values, rollback };
     } catch (error) {
       rollback();
+      if (error instanceof SandboxError) this.poison(error);
+      throw error;
+    }
+  };
+
+  createArrayBufferReference = (buffer: ArrayBuffer): GuestReference => {
+    this.assertOpen();
+    if (
+      !isSandboxArrayBuffer(buffer) ||
+      arrayBufferDetached(buffer) ||
+      arrayBufferOptions(buffer) !== undefined ||
+      Reflect.ownKeys(buffer).length !== 0
+    )
+      throw new TypeError(
+        "Live buffer references require a fixed, attached, plain ArrayBuffer without metadata.",
+      );
+    let reference: GuestReference | undefined;
+    try {
+      this.budget.allocateArrayLength(arrayBufferLength(buffer));
+      this.checkCollection(
+        this.guestReferences.size + 1,
+        this.limits.guestReferences,
+        "guest reference",
+      );
+      const root: [SandboxValue] = [buffer];
+      reference = createGuestReference(root, this, this.assertOpen);
+      this.guestReferences.set(reference, root);
+      this.budget.reconcileDataUsage(
+        measureSandboxData([
+          ...(this.scope?.retainedDataRoots() ?? []),
+          ...this.retainedRoots(),
+          ...this.budget.retainedValues(),
+        ]),
+      );
+      return reference;
+    } catch (error) {
+      if (reference !== undefined) {
+        revokeGuestReference(reference, this);
+        this.guestReferences.delete(reference);
+      }
       if (error instanceof SandboxError) this.poison(error);
       throw error;
     }
@@ -654,6 +695,12 @@ class RealmState {
         onCleanup: cleanup => { this.onCleanup(cleanup); },
         chargeWork: this.chargeWork,
         createHostObject: this.createHostObject,
+        createArrayBufferReference: buffer => {
+          this.assertOpen();
+          if (!extension.manifest.capabilities?.includes("array-buffer:share"))
+            throw new TypeError("Live buffers require the array-buffer:share grant.");
+          return this.createArrayBufferReference(buffer);
+        },
         startCallback: this.startCallback,
         invokeCallback: this.invokeCallback,
         releaseCallback: this.releaseCallback,

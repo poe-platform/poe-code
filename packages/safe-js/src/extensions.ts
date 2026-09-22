@@ -1,5 +1,5 @@
 import { types } from "node:util";
-import type { HostObjectDefinition, HostObject } from "./interp/host-capabilities.js";
+import type { HostObjectDefinition, HostObject, GuestReference } from "./interp/host-capabilities.js";
 import type { ModuleRegistry } from "./modules/registry.js";
 import type { CallerInjectedBinding } from "./interp/host-bridge.js";
 
@@ -25,6 +25,8 @@ export type ExtensionContext = {
   onCleanup(cleanup: () => void | Promise<void>): void;
   chargeWork(units?: number): void;
   createHostObject(definition: HostObjectDefinition): HostObject;
+  /** Explicit realm-owned live fixed buffer; default host ingress still copies. */
+  createArrayBufferReference(buffer: ArrayBuffer): GuestReference;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;

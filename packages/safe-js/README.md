@@ -288,6 +288,7 @@ Supply your own bounded `journal`; this does not add browser console behavior. W
 | `onCleanup(fn)` | Register a sync/async disposer. Cleanup runs in reverse order, awaits every disposer, and reports failures without skipping the rest. |
 | `chargeWork(units = 1)` | Charge a nonnegative integer against the shared execution budget. Fatal exhaustion cannot be swallowed to continue execution. |
 | `createHostObject({ properties?, methods?, indexed?, named? })` | Create a realm-owned capability. Properties declare synchronous `get`/`set` functions; methods are host functions. Optional `indexed` and `named` expose bounded live members. Undeclared members expose no native prototype. |
+| `createArrayBufferReference(buffer)` | Create an opaque live reference to a fixed, attached, plain ArrayBuffer without own metadata. Requires declared and granted `array-buffer:share`; full buffer bytes count against array/data budgets and `limits.guestReferences`. |
 | `invokeCallback(callback, { thisValue?, args? })` | Invoke a captured guest function with the realm's state, cancellation and budgets. Same operation as on the realm. |
 | `startCallback(callback, { thisValue?, args? })` | Return separate `synchronous` and `result` promises for the same realm-owned invocation. Also available on the realm. |
 | `releaseCallback(callback)` | Revoke the callback and release its retained guest state. |
@@ -297,6 +298,8 @@ Supply your own bounded `journal`; this does not add browser console behavior. W
 | `evaluateNested(source)` | Only inside that extension's authorized operation. Completes before the enclosing call returns to guest code, shares scope/budgets, and propagates errors. Parallel nested evaluations and ordinary source reentry are rejected. |
 
 For a timer-shaped `schedule(callback, delay, ...args)`, register `context.retainGuestArguments(schedule, 2)`. The host receives normal callback/delay values and opaque `GuestReference` handles for the remaining arguments. Pass those handles to `context.invokeCallback(callback, { args })` to recover the original guest objects and observe mutations made after scheduling. References also work as callback receivers and host return values, including cycles, closures, primitives and live host objects.
+
+For a trusted native buffer such as WebAssembly memory, use `context.createArrayBufferReference(buffer)` and return the handle from a host property or operation. Guest ArrayBuffer views then share its bytes with the host, preserving identity and bidirectional writes. Ordinary host buffers still copy. Shared, resizable, detached, subclassed and proxy buffers reject, as do buffers with own properties or symbols. After native memory growth detaches the old buffer, create a new reference to the new buffer; the old reference continues to denote the detached buffer.
 
 Release each reference when the host no longer needs it; returning it does not release it. Retained graphs count against data budgets and `limits.guestReferences`. Synchronous native failure releases references captured for that call; asynchronous operations must release theirs in host cleanup. Close revokes all remaining references. Handles cannot be inspected, used in another realm, or serialized into replay/error data. Unmarked operations still copy values.
 

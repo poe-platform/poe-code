@@ -871,8 +871,8 @@
     "True external workbooks, registration/order/loops, DDE/OLE/builtins, arrays/other tokens, ODF global qualification and broader profiles remain open."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "3c3f2fa817800bc5c9b29403590229b789f682fa",
+    "remoteMain": "Exact ls-remote main verified after push",
+    "publication": "Release35764753346 pending; add-in release35764056574 cancelled by this containing head"
   }
 }

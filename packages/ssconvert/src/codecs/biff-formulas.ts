@@ -16,6 +16,8 @@ export interface BiffFormulaContext {
   readonly nameSheets?: readonly (string | undefined)[];
   /** null is the legacy self-reference placeholder; undefined is an unbound link. */
   readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
+  /** NameX uses the first display sheet; null is its deleted/self scope marker. */
+  readonly externalNameSheets?: readonly (string | null | undefined)[];
   /** Associated add-in names; undefined denotes an unbound/unsupported namespace. */
   readonly externalNames?: readonly (readonly ({ readonly name: string; readonly expression?: string } | undefined)[] | undefined)[];
   /** Deleted local link endpoints; true external namespaces stay unsupported. */
@@ -150,7 +152,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       }
       if (context.revision < 8 && signedSheet >= 0)
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
-      const binding = context.externalSheets[context.revision >= 8 ? rawSheet : -signedSheet - 1];
+      const binding = context.revision >= 8 ? (context.externalNameSheets ?? context.externalSheets)[rawSheet] : context.externalSheets[-signedSheet - 1];
       if (binding === undefined)
         throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
       const name = context.names[index - 1];

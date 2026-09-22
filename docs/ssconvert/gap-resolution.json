@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T18:03:26.772718+00:00",
+  "recordedAt": "2026-09-22T18:09:53.825877+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -221,7 +221,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Indexed names/custom255/add-in imports verified on remote main. Modern deleted local Ref3D/Area3D links now match18 native/public CSV cases and18 matching BIFF roundtrips. NameX deleted/self display scopes, DDE/OLE/builtins, registration loops/order, true external books, ODF global qualification, arrays/other tokens and broader profiles remain open.",
+      "currentFinding": "Add-in imports and ordinary deleted local links verified on remote main. Modern NameX deleted/self/last-deleted display scopes preserve indexed identity across18 native/public imports and18 matching BIFF readbacks. DDE/OLE/builtins, registration loops/order, true external books, ODF global qualification, arrays/other tokens, modern self cell-reference applicability and broader profiles remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -297,6 +297,16 @@
           "kind": "BIFF8-deleted-local-link-endpoints",
           "path": "docs/ssconvert/biff-deleted-link-gap-proof.json",
           "outcome": "Four original red/green regressions;5 own/6372 maintained tests, lint/types/build pass.18 native/public original imports and18 BIFF readbacks exact, no SDK warnings, readable screenshot inspected. Broader links remain open.",
+          "delivery": {
+            "localCommit": "3c3f2fa817800bc5c9b29403590229b789f682fa",
+            "remoteMain": "Exact ls-remote main verified after push",
+            "publication": "Release35764753346 pending; add-in release35764056574 cancelled by this containing head"
+          }
+        },
+        {
+          "kind": "BIFF8-indexed-NameX-display-scope-markers",
+          "path": "docs/ssconvert/biff-name-marker-gap-proof.json",
+          "outcome": "Seven original red/green regressions;9 own/6381 maintained tests, lint/types/build pass.18 native/public imports and18 BIFF readbacks exact, no SDK warnings or nonconfiguration native stderr, readable screenshot inspected. Broader names remain open.",
           "delivery": {
             "localCommit": null,
             "remoteMain": null,

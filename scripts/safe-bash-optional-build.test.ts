@@ -58,6 +58,21 @@ function fixture() {
 }
 
 describe("optional-owned compiled graph", () => {
+  it("strips multiple trailing source maps on runtimes without Array.toReversed", async () => {
+    const { volume, options } = fixture();
+    const filename = core + "/dist/commands/yes/helper.js";
+    volume.writeFileSync(filename, 'export const label = "//# sourceMappingURL=label.map";\n//# sourceMappingURL=first.map\n// retained comment\n//@ sourceMappingURL=second.map\n');
+    const descriptor = Object.getOwnPropertyDescriptor(Array.prototype, "toReversed");
+    Object.defineProperty(Array.prototype, "toReversed", { configurable: true, value: undefined });
+    try {
+      await buildOptionalPackage(options);
+    } finally {
+      if (descriptor) Object.defineProperty(Array.prototype, "toReversed", descriptor);
+      else Reflect.deleteProperty(Array.prototype, "toReversed");
+    }
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString()).toBe('export const label = "//# sourceMappingURL=label.map";\n\n// retained comment\n\n');
+  });
+
   it("rewrites real contract routes and declared support bindings without copying core identity", async () => {
     const { volume, options } = fixture();
     const result = await buildOptionalPackage(options);

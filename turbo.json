@@ -80,7 +80,9 @@
         "!tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/apps/physically moved/canonical/**",
         "!tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/**",
         "!tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build/**",
-        "!src/commands/xan/design-evidence/**"
+        "!src/commands/xan/design-evidence/**",
+        "scripts/**",
+        "tsconfig.optional.json"
       ],
       "outputs": [
         "dist/**"

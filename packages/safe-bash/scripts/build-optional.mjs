@@ -64,7 +64,8 @@ function moduleEdges(filename, text) {
   const lastStatement = source.statements.at(-1);
   const trailing = text.slice(lastStatement?.end ?? 0);
   const mapComments = ts.getLeadingCommentRanges(trailing, 0) ?? [];
-  for (const comment of mapComments.toReversed()) {
+  for (let index = mapComments.length - 1; index >= 0; index--) {
+    const comment = mapComments[index];
     const contents = trailing.slice(comment.pos, comment.end);
     if (contents.startsWith("//# sourceMappingURL=") || contents.startsWith("//@ sourceMappingURL=")) {
       const offset = lastStatement?.end ?? 0;

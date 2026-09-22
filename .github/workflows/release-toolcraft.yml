@@ -31,6 +31,31 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/release-toolcraft.yml"
+      - packages/csvkit/**
+      - packages/media-cli/**
+      - packages/office-package/**
+      - packages/op/**
+      - packages/package-lint/**
+      - packages/pandoc/**
+      - packages/pdf/**
+      - packages/pptx/**
+      - packages/remote-execution/**
+      - packages/safe-bash/**
+      - packages/safe-bash-command-csvcut/**
+      - packages/safe-bash-command-csvgrep/**
+      - packages/safe-bash-command-diff3/**
+      - packages/safe-bash-command-exiftool/**
+      - packages/safe-bash-command-fmt/**
+      - packages/safe-bash-command-fold/**
+      - packages/safe-bash-command-htmlq/**
+      - packages/safe-bash-command-unrtf/**
+      - packages/safe-bash-command-wkhtmltopdf/**
+      - packages/safe-bash-contracts/**
+      - packages/safe-bash-csv-engine/**
+      - packages/safe-fs/**
+      - packages/safe-playwright/**
+      - packages/ssconvert/**
+      - turbo.json
 concurrency:
   group: release-toolcraft
   cancel-in-progress: false
@@ -96,6 +121,31 @@ jobs:
             scripts/verify-toolcraft-cli-bundle.mjs
             scripts/verify-toolcraft-standalone.mjs
             scripts/verify-toolcraft-published-sdk-types.mjs
+            packages/csvkit
+            packages/media-cli
+            packages/office-package
+            packages/op
+            packages/package-lint
+            packages/pandoc
+            packages/pdf
+            packages/pptx
+            packages/remote-execution
+            packages/safe-bash
+            packages/safe-bash-command-csvcut
+            packages/safe-bash-command-csvgrep
+            packages/safe-bash-command-diff3
+            packages/safe-bash-command-exiftool
+            packages/safe-bash-command-fmt
+            packages/safe-bash-command-fold
+            packages/safe-bash-command-htmlq
+            packages/safe-bash-command-unrtf
+            packages/safe-bash-command-wkhtmltopdf
+            packages/safe-bash-contracts
+            packages/safe-bash-csv-engine
+            packages/safe-fs
+            packages/safe-playwright
+            packages/ssconvert
+            turbo.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22.14.0

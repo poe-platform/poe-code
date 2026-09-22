@@ -866,8 +866,8 @@
     "Integrated gates, final packed SDK/Shell and actual registry publication remain open."
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "060d67a30a6073b1e8fcf49beea146f976f816c5",
+    "remoteMain": "Exact remote main verified",
+    "publication": "Release35767648603 active; audit passed, build active; prior containing release cancelled"
   }
 }

@@ -323,7 +323,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Default native-password BIFF7/8 XOR gap reproduced and repaired. Seven encrypted inputs independently decrypt byte-identically;14 native/public imports and14 plaintext BIFF readbacks exact,2 native/public wrong-verifier refusals preserve targets. Explicit secret/password contracts, RC4/CryptoAPI, ancillary streams/writing, further versions and profiles remain open.",
+      "currentFinding": "Default native-password XOR BIFF7/8 and standard RC4 BIFF8 gaps repaired and independently decrypted byte-identically. RC4 qualifies five original encrypted vectors,10 public plaintext/encrypted imports and exports/readbacks,20 native comparisons,10 browser/worker successes and2 matching target-preserving refusals. Explicit password contracts, CryptoAPI, ancillary streams/writing and other versions/profiles remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -339,6 +339,16 @@
           "kind": "BIFF7/8-default-password-XOR-decoding",
           "path": "docs/ssconvert/biff-xor-gap-proof.json",
           "outcome": "Original7red,16 own/6397 maintained tests pass; lint/types/build pass. Primary crypto/XLS specifications,7 independent byte-identical decryptions,14 exact native/public imports and14 native/public plaintext readbacks;2 matching target-preserving native/public refusals, screenshots inspected. Remaining encryption families open.",
+          "delivery": {
+            "localCommit": "060d67a30a6073b1e8fcf49beea146f976f816c5",
+            "remoteMain": "Exact ls-remote main verified",
+            "publication": "Release35767648603 active; audit passed, build active; prior containing Release35765441617 cancelled"
+          }
+        },
+        {
+          "kind": "BIFF8-default-password-standard-RC4",
+          "path": "docs/ssconvert/biff-rc4-gap-proof.json",
+          "outcome": "Original10red,11 own/27 RC4+XOR/6408 maintained tests pass; lint/types/build pass. Five independent byte-identical decryptions,10 exact public imports/exports/readbacks,20 native comparisons,5 browser+5 worker exact successes;2 matching target-preserving native/public refusals. Readable screenshot inspected. Broader encryption requirements open.",
           "delivery": {
             "localCommit": null,
             "remoteMain": null,

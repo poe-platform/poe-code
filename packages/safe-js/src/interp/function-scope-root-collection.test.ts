@@ -4,17 +4,23 @@ import { parseModule } from "../parse/parser.js";
 import { createInterpretedClosure, type AsyncEvaluationContext } from "./async.js";
 import { Budget } from "./budget.js";
 import { captureScopeDataRoots, Scope } from "./scope.js";
-import { appendScopeDataRoot } from "./scope-data-roots.js";
-import { isSandboxClosure, measureSandboxData, reconcileCompiledValues } from "./values.js";
+import { appendScopeDataRoot, scopeDataRoots } from "./scope-data-roots.js";
+import {
+  createSandboxClosure,
+  isSandboxClosure,
+  measureSandboxData,
+  reconcileCompiledValues
+} from "./values.js";
 
-function fixture() {
-  const ast = parseModule("() => null;");
+function fixture(source = "() => null;") {
+  const ast = parseModule(source);
   const statement = ast.body[0];
   if (
     statement?.type !== "ExpressionStatement" ||
-    statement.expression.type !== "ArrowFunctionExpression"
+    (statement.expression.type !== "ArrowFunctionExpression" &&
+      statement.expression.type !== "FunctionExpression")
   )
-    throw new Error("Missing arrow");
+    throw new Error("Missing function");
   const node = statement.expression;
   const context: AsyncEvaluationContext = {
     scope: new Scope({ payload: "old" }),
@@ -32,6 +38,58 @@ function fixture() {
     }));
   return { context, make };
 }
+
+it.each([
+  "() => null;",
+  "(function () { return null; });",
+  "(async function () { return null; });",
+  "(function* () { yield 1; });",
+  "(async function* () { yield 1; });"
+])("does not let later iterator hooks hide the final native root vector: %s", (source) => {
+  const { context, make } = fixture(source);
+  context.scope = new Scope({ payload: "x".repeat(1000) });
+  const closure = make();
+  const before = measureSandboxData([closure]);
+  const iterator = Array.prototype[Symbol.iterator];
+  let after = -1;
+  try {
+    Array.prototype[Symbol.iterator] = function () {
+      const first = this[0];
+      const nativeRoots =
+        first !== null && typeof first === "object" && scopeDataRoots.get(first) !== undefined;
+      return iterator.call(nativeRoots ? [] : this);
+    };
+    after = measureSandboxData([closure]);
+    const budget = new Budget({ dataSize: 500 });
+    const resume = budget.deferReconciliation();
+    try {
+      expect(() => reconcileCompiledValues(budget, [closure])).toThrow(
+        expect.objectContaining({ budget: "dataSize" })
+      );
+    } finally {
+      resume();
+    }
+  } finally {
+    Array.prototype[Symbol.iterator] = iterator;
+  }
+  expect(before).toBeGreaterThan(1000);
+  expect(after).toBe(before);
+});
+
+it("keeps caller-provided closure array iterators observable", () => {
+  const values = ["ignored"];
+  values[Symbol.iterator] = function* () {
+    yield "charged";
+    return undefined;
+  };
+  const closure = createSandboxClosure({ call: () => undefined, retainedValues: () => values });
+  expect(measureSandboxData([closure])).toBe(8);
+  const failure = new Error("caller iterator failed");
+  values[Symbol.iterator] = () => {
+    throw failure;
+  };
+  expect(() => measureSandboxData([closure])).toThrow(failure);
+});
 
 it("does not send function scope root vectors through later array iterator hooks", async () => {
   const result = await run("const payload = 'x'.repeat(1000); return () => payload;");

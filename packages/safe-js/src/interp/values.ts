@@ -102,6 +102,7 @@ import {
 
 export { createSandboxArguments, isSandboxArguments } from "./arguments.js";
 export { isSandboxMap, isSandboxSet } from "./collection-brands.js";
+import { hasIndexedClosureCaptures } from "./indexed-closure-captures.js";
 
 // SDK-created closure shapes are frozen. Snapshot their own symbol identities
 // once; foreign frozen objects and mutable function property tables stay fresh.
@@ -1001,8 +1002,13 @@ function measureSandboxDataWithSeen(
           }
         } else visit(value.properties, depth + 1);
       }
-      if (!options.ignoreClosureCaptures)
-        for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained, depth + 1);
+      if (!options.ignoreClosureCaptures) {
+        const retained = value[sandboxRetainedValues]?.();
+        if (hasIndexedClosureCaptures(value)) {
+          const roots = retained as readonly SandboxValue[];
+          for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
+        } else for (const root of retained ?? []) visit(root, depth + 1);
+      }
       return;
     }
     if (isSandboxBox(value)) {

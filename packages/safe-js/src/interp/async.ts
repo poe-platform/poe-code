@@ -27,6 +27,7 @@ import { awaitSandboxValue, awaitWithSignal } from "./cancel.js";
 import { observeSandboxPromise } from "./promise-tracker.js";
 import { appendScopeDataRoots, captureScopeDataRoots, type Scope } from "./scope.js";
 import { appendScopeDataRoot } from "./scope-data-roots.js";
+import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
@@ -311,6 +312,7 @@ export function createInterpretedClosure(
       }, context.budget, callContext, context.signal);
     }
   });
+  registerIndexedClosureCaptures(closure);
   registerClosureOrigin(closure, node, context);
   return closure;
 }
@@ -446,6 +448,7 @@ function createGeneratorClosure(
     Object.defineProperty(materializeFunctionProperties(closure), "prototype", { value: prototype, writable: true });
     setSandboxPrototype(closure, prototypes.functionPrototype);
   }
+  registerIndexedClosureCaptures(closure);
   registerClosureOrigin(closure, node, context);
   return closure;
 }

@@ -111,6 +111,20 @@ it("embeds declared private SDKs with portable conditional exports", async () =>
   expect(volume.readFileSync("/output/safe-bash/dist/csvkit/index.d.ts", "utf8")).toContain("commands");
 });
 
+it.each([
+  { types: "./dist/index.d.ts", import: null, default: "./dist/index.js" },
+  { types: "./dist/index.d.ts", import: { import: null, default: "./dist/index.js" } },
+  { types: { import: null, default: "./dist/index.d.ts" }, import: "./dist/index.js" },
+])("refuses private SDK export conditions explicitly blocked by null: %j", async (exported) => {
+  const { volume, options } = optionalLeftovers();
+  volume.mkdirSync("/repo/packages/csvkit/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/csvkit/package.json", JSON.stringify({ name: "@poe-code/csvkit", private: true, exports: { ".": exported } }));
+  volume.writeFileSync("/repo/packages/csvkit/dist/index.js", "export const commands = [];");
+  volume.writeFileSync("/repo/packages/csvkit/dist/index.d.ts", "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "@poe-code/csvkit";');
+  await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Missing private workspace");
+});
+
 it("preserves public contract exports when the browser bundle externalizes their canonical runtime", async () => {
   const entry = readFileSync(new URL("../packages/safe-bash/src/core.browser.ts", import.meta.url), "utf8");
   const publicContracts = {
@@ -812,6 +826,16 @@ function optionalArtifact() {
 }
 
 describe("explicit optional safe package artifact", () => {
+  it("rejects explicitly blocked optional peer declaration conditions", async () => {
+    const { volume, options } = optionalArtifact();
+    const manifest = JSON.parse(volume.readFileSync("/repo/packages/safe-bash/package.json", "utf8").toString());
+    manifest.exports["./optional-host"].types = { import: null, default: "./dist/optional-host.d.ts" };
+    volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Host = import("@poe-platform/safe-bash/optional-host").Host;');
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Unexported optional peer route");
+    expect(volume.existsSync("/output")).toBe(false);
+  });
+
   it("restores public peer routes in declarations rewritten by the root build", async () => {
     const { volume, options } = optionalArtifact();
     volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", 'export type Host = import("../optional-host.js").Host;');

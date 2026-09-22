@@ -94,7 +94,7 @@ async function prepareOptionalPackage({ rootDir, files, workspaces, excluded }) 
       const match = route === key ? "" : parts.length === 2 && key.startsWith(parts[0]) && key.endsWith(parts[1]) ? key.slice(parts[0].length, key.length - parts[1].length) : undefined;
       if (match === undefined) continue;
       let target = value;
-      while (target && typeof target === "object" && !Array.isArray(target)) target = declaration && target.types !== undefined ? target.types : target.import ?? target.default;
+      while (target && typeof target === "object" && !Array.isArray(target)) target = declaration && target.types !== undefined ? target.types : target.import !== undefined ? target.import : target.default;
       if (typeof target !== "string" || !target.startsWith("./dist/")) break;
       for (const value of [match, target.slice(2)]) {
         for (const segment of value.replaceAll("\\", "/").split("/")) {
@@ -168,7 +168,7 @@ async function prepareOptionalPackage({ rootDir, files, workspaces, excluded }) 
               let route;
               for (const [key, value] of Object.entries(peer.pkg.exports ?? {})) {
                 let types = value;
-                while (types && typeof types === "object" && !Array.isArray(types)) types = types.types ?? types.import ?? types.default;
+                while (types && typeof types === "object" && !Array.isArray(types)) types = types.types !== undefined ? types.types : types.import !== undefined ? types.import : types.default;
                 if (typeof types !== "string") continue;
                 const pattern = path.resolve(rootDir, "packages", peer.dir, types).split("*");
                 if (pattern.length === 1 && pattern[0] === target) route = key;
@@ -498,7 +498,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
               const route = "." + publicName.slice(workspace.pkg.name.length);
               const exported = workspace.pkg.exports?.[route];
               let entrypoint = declaration
-                ? exported?.types ?? (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)
+                ? exported?.types !== undefined ? exported.types : (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)
                 : exported;
               while (entrypoint && typeof entrypoint === "object" && !Array.isArray(entrypoint)) {
                 entrypoint = Object.entries(entrypoint).find(([condition]) => condition === "node" || condition === "import" || condition === "default")?.[1];

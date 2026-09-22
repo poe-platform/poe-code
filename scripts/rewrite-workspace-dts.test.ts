@@ -8,6 +8,16 @@ vi.mock(
 );
 
 describe("profile-specific emitted workspace declarations", () => {
+  it.each(["node", "browser"])("rejects an explicitly blocked %s declaration export", async profile => {
+    const filename = "/repo/packages/consumer/dist/index.d.ts";
+    const volume = Volume.fromJSON({ [filename]: 'export type Value = import("provider").Value;' });
+    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
+    await expect(rewriteWorkspaceDts("/repo/packages/consumer/dist", [{ dir: "provider", pkg: {
+      name: "provider", exports: { ".": { types: { [profile]: null, default: "./dist/index.d.ts" } } },
+    } }], { rootDir: "/repo", profile, files: createFsFromVolume(volume).promises })).rejects.toThrow("Blocked workspace declaration export");
+    expect(volume.readFileSync(filename, "utf8")).toContain('import("provider")');
+  });
+
   it("resolves conditional declaration exports before rewriting a workspace edge", async () => {
     const filename = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
     const volume = Volume.fromJSON({ [filename]: 'export type Value = import("@poe-platform/safe-bash/contracts").Value;' });

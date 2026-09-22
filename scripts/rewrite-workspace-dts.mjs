@@ -46,7 +46,8 @@ export async function rewriteWorkspaceDts(
           const exportKey = subpath ? `./${subpath}` : ".";
           let exported = workspace.pkg.exports?.[exportKey]?.types;
           while (exported && typeof exported === "object" && !Array.isArray(exported))
-            exported = exported[profile] ?? exported.import ?? exported.default;
+            exported = exported[profile] !== undefined ? exported[profile] : exported.import !== undefined ? exported.import : exported.default;
+          if (exported === null) throw new Error(`Blocked workspace declaration export: ${specifier}`);
           const target = route
             ? path.join(rootDir, route.types[profile])
             : path.join(

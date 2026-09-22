@@ -122,8 +122,8 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
     if (depth > 128) throw new SsconvertError("resource-limit", "ssconvert formula dependency depth limit exceeded");
     if (node.kind === "reference") return reference(node, position);
     if (node.kind === "parentheses") return indirectRange(node.child, position, names, depth + 1);
-    if (node.kind !== "name" || node.workbook !== undefined) return error("#REF!");
-    const sheet = node.sheet === undefined ? position.sheet : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
+    if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return error("#REF!");
+    const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
     const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
     const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
     if (!name || names.has(name)) return error("#REF!");
@@ -177,9 +177,9 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       if (node.kind === "parentheses") return evaluate(node.child, position, array, names, wantReference);
       if (node.kind === "array") return { kind: "matrix", rows: node.rows.map(row => row.map(child => scalar(evaluate(child, position, array, names), position))) };
       if (node.kind === "name") {
-        if (node.workbook !== undefined) return external({ kind: "name", workbook: node.workbook, name: node.name,
+        if (node.workbook !== undefined && node.workbook !== "") return external({ kind: "name", workbook: node.workbook, name: node.name,
           ...(node.sheet !== undefined ? { sheet: node.sheet } : {}), position });
-        const sheet = node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
+        const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");

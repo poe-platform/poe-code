@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T17:03:23.316924+00:00",
+  "recordedAt": "2026-09-22T17:23:58.286171+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -221,7 +221,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Legacy local3D/scoped tables verified on remote main3ebc4afa9; physically indexed BIFF7 spans now preserve writer roundtrip and correctly recalculate all6 directions. Native released reader shares prior misbinding; independent LibreOffice source and six native XLSX readbacks verify correction. Names, modern deleted links, external books and remaining profile cells stay open.",
+      "currentFinding": "Local/global BIFF7/8 indexed names repaired, including NameX display conflicts and shadowed workbook-global []Name.24 original native/public CLI CSV cases exact. ODF global qualification, add-in/true external names, custom255 and broader BIFF cells remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -257,7 +257,21 @@
           "kind": "BIFF7-physical-sheet-span-roundtrip-repair",
           "path": "docs/ssconvert/biff-legacy-roundtrip-gap-proof.json",
           "outcome": "red7/green7;6320 maintained tests, lint/types/build pass; prior14 native controls exact;6 original physical inputs correct,6 exported XLSX native readbacks exact; native BIFF7 reader bug retained as actual differing evidence",
-          "delivery": "local candidate, pending atomic commit/push and publication"
+          "delivery": {
+            "localCommit": "e2cc65884576de2def2acfcff9bc959b7957af38",
+            "remoteMain": "exact remote HEAD verified before subsequent upstream pushes",
+            "publication": "prior successor cancelled; containing Release35758467152 in_progress"
+          }
+        },
+        {
+          "kind": "indexed-BIFF7/8-qualified-name-and-global-namespace-repair",
+          "path": "docs/ssconvert/biff-qualified-name-gap-proof.json",
+          "outcome": "26 focused tests and6346 maintained workspace tests pass; maintained lint/type consumers and selected build pass;24 native/public CLI exact comparisons, corrected screenshot inspected; atomic delivery pending",
+          "delivery": {
+            "localCommit": null,
+            "remoteMain": null,
+            "publication": null
+          }
         }
       ],
       "delivery": {

@@ -42,8 +42,8 @@ export function buildDependencyGraph(
     }
   };
   function named(node: Extract<FormulaNode, { kind: "name" }>, position: ParsePosition): NamedExpression | undefined {
-    if (node.workbook !== undefined) return undefined;
-    const sheet = node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
+    if (node.workbook !== undefined && node.workbook !== "") return undefined;
+    const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
     const matches = (name: NamedExpression) => name.name === node.name;
     return book.names?.find(name => name.sheet === sheet && matches(name)) ?? book.names?.find(name => name.sheet === undefined && matches(name));
   }
@@ -126,7 +126,7 @@ export function buildDependencyGraph(
       if (node.kind === "reference") { const value = resolve(node, position); if (value) range(cell, value); }
       if (node.kind === "call" && (node.name === "INDIRECT" || node.name === "OFFSET")) for (const value of staticRanges(node, position, names, depth)) range(cell, value);
       if (node.kind === "binary" && node.op === ":") for (const value of staticRanges(node, position, names, depth)) range(cell, value);
-      if (node.kind === "name" && node.workbook === undefined) {
+      if (node.kind === "name" && (node.workbook === undefined || node.workbook === "")) {
         const name = named(node, position);
         if (name && !names.has(name)) {
           const next = name.position ?? { ...position, sheet: name.sheet ?? position.sheet };

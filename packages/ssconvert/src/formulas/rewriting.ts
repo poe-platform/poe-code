@@ -48,7 +48,7 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
         target.row === document.position.row && target.column === document.position.column;
       if (!unchanged) changes.push({ start: node.start, end: node.end, text: serializeReference(first, last, document.grammar,
         { ...target, sheet: document.sheetNames?.[target.sheet] ?? target.sheet }) });
-    } else if (node.kind === "name" && node.workbook === undefined && node.sheet && edit.sheets?.has(node.sheet)) {
+    } else if (node.kind === "name" && (node.workbook === undefined || node.workbook === "") && node.sheet && edit.sheets?.has(node.sheet)) {
       const text = quoteFormulaString(edit.sheets.get(node.sheet)!, "'", document.grammar) + document.grammar.sheetSeparator + node.name;
       changes.push({ start: node.start, end: node.end, text: document.grammar.bracketReferences ? "[" + text + "]" : text });
     }

@@ -48,6 +48,12 @@ try {
 The private workspace also exports `@poe-code/ssconvert` after building.
 Inspect installed IDs through `engine.listServices("read" | "write")`.
 
+BIFF7/8 imports preserve indexed local and global named expressions. In the
+native formula grammar, `=[]Rate` explicitly selects the workbook-global
+`Rate`, even when the current sheet defines another `Rate`. This namespace
+does not invoke an external-workbook resolver. Global qualification in ODF
+output remains explicitly unsupported.
+
 ## Virtual command
 
 ```ts

@@ -10,6 +10,7 @@ export interface BiffFormulaContext {
   readonly row: number;
   readonly column: number;
   readonly names: readonly string[];
+  readonly nameSheets?: readonly (string | undefined)[];
   /** null is the legacy self-reference placeholder; undefined is an unbound link. */
   readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
   readonly currentSheet?: string;
@@ -34,6 +35,20 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
     stack.push({ text, precedence });
   };
+  function nameText(index: number, fallbackSheet?: string): string {
+    const name = context.names[index - 1]!;
+    // NAME and self-SUPBOOK NameX select an object by index. Their optional
+    // display sheet must not select a different lexical definition.
+    const sheet = context.nameSheets === undefined ? fallbackSheet : context.nameSheets[index - 1];
+    if (sheet !== undefined) return "'" + sheet.split("'").join("''") + "'!" + name;
+    if (context.nameSheets !== undefined) for (let at = 0; at < context.names.length; at++) {
+      const other = context.names[at]!;
+      work += other.length + 1;
+      if (work > context.limit) throw new SsconvertError("resource-limit", "ssconvert BIFF formula work limit exceeded");
+      if (context.nameSheets[at] !== undefined && other.toUpperCase() === name.toUpperCase()) return "[]" + name;
+    }
+    return name;
+  }
   const pop = (): Expression => { const value = stack.pop(); if (!value) invalidBiff("formula stack underflow"); return value; };
   const protect = (value: Expression, precedence: number) => value.precedence < precedence ? `(${value.text})` : value.text;
   const reference = (at: number, relative: boolean): string => {
@@ -91,10 +106,26 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
       const count = argc ?? descriptor[1]; if (count < 0 || count > stack.length) invalidBiff("invalid function argument count");
       const args = stack.splice(stack.length - count, count).map(value => value.text);
       push(descriptor[0] + "(" + args.join(",") + ")");
+    } else if (token === 0x39) {
+      const width = context.revision >= 8 ? 6 : 24;
+      data.check(offset, width);
+      const rawSheet = data.u16(offset), signedSheet = rawSheet >= 32768 ? rawSheet - 65536 : rawSheet;
+      const index = data.u16(offset + (context.revision >= 8 ? 2 : 10));
+      offset += width;
+      if (context.revision < 8 && signedSheet >= 0)
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+      const binding = context.externalSheets[context.revision >= 8 ? rawSheet : -signedSheet - 1];
+      if (binding === undefined)
+        throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: external BIFF workbook reference");
+      const name = context.names[index - 1];
+      if (!name) { push("#REF!"); continue; }
+      const sheet = binding === null ? context.nameSheets?.[index - 1] ?? context.currentSheet : typeof binding === "string" ? binding : binding[0];
+      push(nameText(index, sheet));
     } else if (token === 0x23) {
       const index = data.u16(offset), width = context.revision >= 8 ? 4 : context.revision >= 5 ? 14 : 10;
       data.check(offset, width); offset += width;
-      const name = context.names[index - 1]; if (!name) invalidBiff("invalid formula name index"); push(name);
+      const name = context.names[index - 1]; if (!name) invalidBiff("invalid formula name index");
+      push(nameText(index));
     } else if (token === 0x24 || token === 0x2c) { push(reference(offset, token === 0x2c)); offset += context.revision >= 8 ? 4 : 3; }
     else if (token === 0x25 || token === 0x2d) { push(area(offset, token === 0x2d)); offset += context.revision >= 8 ? 8 : 6; }
     else if (token === 0x2a || token === 0x2b) { const size = context.revision >= 8 ? token === 0x2a ? 4 : 8 : token === 0x2a ? 3 : 6; data.check(offset, size); offset += size; push("#REF!"); }

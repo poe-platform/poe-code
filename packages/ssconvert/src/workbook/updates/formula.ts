@@ -7,7 +7,7 @@ import { foldSheetName } from "../case-fold.js";
 export type Expression =
   | { kind: "value"; value: CellValue }
   | { kind: "range"; range: CellRange; start: number; end: number; relative: { startRow: boolean; endRow: boolean; startColumn: boolean; endColumn: boolean } }
-  | { kind: "name"; name: string; sheet?: string }
+  | { kind: "name"; name: string; sheet?: string; global?: boolean }
   | { kind: "unary"; op: string; child: Expression }
   | { kind: "binary"; op: string; left: Expression; right: Expression }
   | { kind: "call"; name: string; args: Expression[] }
@@ -41,8 +41,9 @@ export function parseFormula(text: string, book: Workbook, sheet: string, onName
       case "call": return { kind: "call", name: node.name, args: node.args.map(convert) };
       case "name": {
         const target = resolve(node.sheet);
-        if (node.workbook !== undefined || !target) throw unresolved;
-        return { kind: "name", name: node.name, ...(node.sheet ? { sheet: target.id } : {}) };
+        if (node.workbook !== undefined && node.workbook !== "" || !target) throw unresolved;
+        return { kind: "name", name: node.name, ...(node.sheet ? { sheet: target.id } : {}),
+          ...(node.workbook === "" && node.sheet === undefined ? { global: true } : {}) };
       }
       case "reference": {
         const first = node.first, last = node.last ?? first;

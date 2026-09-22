@@ -13,7 +13,9 @@ export type FormulaNode = Span & (
   | { readonly kind: "literal"; readonly value: CellValue }
   | { readonly kind: "omitted" }
   | { readonly kind: "reference"; readonly first: ReferenceEndpoint; readonly last?: ReferenceEndpoint }
-  | { readonly kind: "name"; readonly name: string; readonly sheet?: string; readonly workbook?: string }
+  | { readonly kind: "name"; readonly name: string; readonly sheet?: string;
+      /** Empty means the current workbook; without a sheet it selects only global names. */
+      readonly workbook?: string }
   | { readonly kind: "unary"; readonly op: "+" | "-" | "%"; readonly child: FormulaNode }
   | { readonly kind: "binary"; readonly op: string; readonly left: FormulaNode; readonly right: FormulaNode }
   | { readonly kind: "parentheses"; readonly child: FormulaNode }

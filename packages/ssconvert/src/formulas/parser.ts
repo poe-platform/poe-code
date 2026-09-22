@@ -190,13 +190,13 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
     offset = scopeStart;
     const nameScope = qualifier();
     if (external !== undefined) nameScope.workbook = external;
-    if (nameScope.sheet || nameScope.workbook) {
+    if (nameScope.sheet !== undefined || nameScope.workbook !== undefined) {
       if (grammar.qualifiedNames === false) { offset = start; return undefined; }
       const begin = offset;
       while (word(source[offset])) offset++;
       if (begin !== offset && !digit(source[begin]) && source[offset] !== "(" && (!bracket || source[offset++] === "]")) {
         const name = source.slice(begin, bracket ? offset - 1 : offset);
-        if (nameScope.workbook === undefined) options.onName?.(name, nameScope.sheet);
+        if (nameScope.workbook === undefined || nameScope.workbook === "" && nameScope.sheet !== undefined) options.onName?.(name, nameScope.sheet);
         return node({ kind: "name", start, end: offset, name, ...nameScope });
       }
     }

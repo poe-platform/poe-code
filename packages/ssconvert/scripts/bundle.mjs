@@ -7,6 +7,5 @@ await build({
   platform: "node",
   target: "node22",
   format: "esm",
-  sourcemap: true,
-  banner: { js: 'import { createRequire as ssconvertCreateRequire } from "node:module"; const require = ssconvertCreateRequire(import.meta.url);' }
+  sourcemap: true
 });

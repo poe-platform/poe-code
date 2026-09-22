@@ -1,6 +1,24 @@
 import { build } from "esbuild";
 import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 import { expect, it } from "vitest";
+
+it("starts the bundled spreadsheet SDK in a Worker without Node module initialization", async () => {
+  const result = await build({
+    stdin: {
+      contents: 'import { snapshotRuntimeFunctions } from "./packages/ssconvert/dist/index.js"; globalThis.snapshot = snapshotRuntimeFunctions({});',
+      resolveDir: new URL("../", import.meta.url).pathname,
+    },
+    bundle: true,
+    platform: "browser",
+    format: "iife",
+    write: false,
+  });
+  const worker: Record<string, unknown> = { TextEncoder, TextDecoder };
+  runInNewContext(result.outputFiles[0]!.text, worker);
+  expect(worker.snapshot).toEqual({});
+  expect(Object.isFrozen(worker.snapshot)).toBe(true);
+});
 
 it("ships the spreadsheet SDK without unavailable private runtime dependencies", async () => {
   const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));

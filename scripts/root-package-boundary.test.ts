@@ -2,20 +2,23 @@ import { readFileSync } from 'node:fs';
 import { build } from 'esbuild';
 import { expect, it } from 'vitest';
 
-it('keeps sandbox entrypoints and files out of the published package', () => {
+it('ships the shell opt-in without publishing agent harness commands', () => {
   const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-  expect(Object.keys(manifest.exports).filter(key => key.startsWith('./safe'))).toEqual([]);
+  expect(manifest.exports).toHaveProperty('./safe-bash');
+  expect(manifest.exports).toHaveProperty('./safe-bash/commands/media');
+  expect(Object.keys(manifest.exports).filter(key => key.includes('agent-harness'))).toEqual([]);
   expect(Object.keys(manifest.bin).filter(key => key.startsWith('poe-safe'))).toEqual([]);
-  expect(manifest.files.filter((file: string) => !file.startsWith('!') && (file.includes('/safe-') || file.includes('/agent-harness/')))).toEqual([]);
+  expect(manifest.files.filter((file: string) => !file.startsWith('!') && file.includes('/agent-harness/'))).toEqual([]);
 });
 
-it('keeps sandbox runtimes out of the CLI and SDK import graph', async () => {
+it('wires the bash SDK while keeping agent harness commands outside its import graph', async () => {
   const result = await build({
     entryPoints: ['src/index.ts'], bundle: true, packages: 'external',
     platform: 'node', format: 'esm', write: false, metafile: true,
     loader: { '.md': 'text', '.mustache': 'text', '.log': 'text' },
   });
-  expect(Object.keys(result.metafile!.inputs).filter(file => file.includes('/commands/harness') || file.includes('/sdk/bash'))).toEqual([]);
+  expect(Object.keys(result.metafile!.inputs).filter(file => file.includes('/commands/harness'))).toEqual([]);
+  expect(Object.keys(result.metafile!.inputs)).toContain('src/sdk/bash.ts');
 });
 
 
@@ -35,5 +38,4 @@ it('keeps terminal automation and PowerPoint outside the published core', () => 
   for (const name of ['terminal-pilot', 'terminal-pilot-mcp', 'pptx', 'office-package']) {
     expect(manifest.files.some((file: string) => file.startsWith(`packages/${name}/`))).toBe(false);
   }
-  for (const name of ['pako', 'saxes', '@noble/hashes']) expect(manifest.dependencies).not.toHaveProperty(name);
 });

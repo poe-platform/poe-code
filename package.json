@@ -50,6 +50,157 @@
     "./ssconvert": {
       "types": "./packages/ssconvert/dist/index.d.ts",
       "import": "./packages/ssconvert/dist/index.js"
+    },
+    "./safe-bash": {
+      "types": {
+        "workerd": "./packages/safe-bash/dist/core.d.ts",
+        "browser": "./packages/safe-bash/dist/core.d.ts",
+        "default": "./dist/safe-bash.d.ts"
+      },
+      "workerd": "./packages/safe-bash/dist/core.browser.js",
+      "browser": "./packages/safe-bash/dist/core.browser.js",
+      "node": "./dist/safe-bash.js",
+      "default": "./dist/safe-bash.js"
+    },
+    "./safe-bash/commands/media": {
+      "types": "./dist/safe-bash-media.d.ts",
+      "workerd": "./packages/safe-bash/dist/commands/media/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/media/index.browser.js",
+      "node": "./dist/safe-bash-media.js",
+      "default": "./dist/safe-bash-media.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "workerd": "./dist/media.js",
+      "browser": "./dist/media.js",
+      "node": "./dist/media.js",
+      "default": "./dist/media.js"
+    },
+    "./remote-execution": {
+      "types": "./dist/remote-execution.d.ts",
+      "workerd": "./dist/remote-execution.js",
+      "browser": "./dist/remote-execution.js",
+      "node": "./dist/remote-execution.js",
+      "default": "./dist/remote-execution.js"
+    },
+    "./safe-fs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/core.d.ts"
+      },
+      "browser": "./packages/safe-js/dist/browser/safe-fs-core.js",
+      "import": "./packages/safe-js/dist/safe-fs-core.js"
+    },
+    "./safe-fs": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/core.d.ts",
+        "default": "./packages/safe-fs/dist/index.d.ts"
+      },
+      "browser": "./packages/safe-js/dist/browser/safe-fs.js",
+      "import": "./packages/safe-js/dist/safe-fs.js"
+    },
+    "./safe-fs/node": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node-host.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/safe-fs-node.js"
+    },
+    "./safe-fs/node/filesystem": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-fs/dist/node/filesystem.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-js": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/index.js"
+    },
+    "./safe-js/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/core.js"
+    },
+    "./safe-js/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/cli.js"
+    },
+    "./safejs": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/index.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/index.js"
+    },
+    "./safejs/core": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/core.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/core.js"
+    },
+    "./safejs/cli": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "default": "./packages/safe-js/dist/cli.d.ts"
+      },
+      "browser": null,
+      "import": "./packages/safe-js/dist/cli.js"
+    },
+    "./safe-playwright": {
+      "types": "./packages/safe-playwright/dist/index.d.ts",
+      "import": "./packages/safe-playwright/dist/index.js"
+    },
+    "./safe-playwright/adapter": {
+      "types": "./packages/safe-playwright/dist/adapter.d.ts",
+      "import": "./packages/safe-playwright/dist/adapter.js"
+    },
+    "./media/server": {
+      "types": {
+        "workerd": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "node": "./dist/media-server.d.ts",
+        "default": "./packages/safe-fs/dist/node-unavailable.d.ts"
+      },
+      "workerd": null,
+      "browser": null,
+      "node": "./dist/media-server.js",
+      "default": null
+    },
+    "./remote-execution/server": {
+      "types": {
+        "workerd": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "browser": "./packages/safe-fs/dist/node-unavailable.d.ts",
+        "node": "./dist/remote-execution-server.d.ts",
+        "default": "./packages/safe-fs/dist/node-unavailable.d.ts"
+      },
+      "workerd": null,
+      "browser": null,
+      "node": "./dist/remote-execution-server.js",
+      "default": null
+    },
+    "./remote-execution/providers/*": {
+      "types": "./packages/remote-execution/dist/providers/*.d.ts",
+      "workerd": "./packages/remote-execution/dist/providers/*.js",
+      "browser": "./packages/remote-execution/dist/providers/*.js",
+      "node": "./packages/remote-execution/dist/providers/*.js",
+      "default": "./packages/remote-execution/dist/providers/*.js"
     }
   },
   "workspaces": [
@@ -217,7 +368,25 @@
     "packages/ssconvert/src/encoding/ucs2-transliteration-tables.ts",
     "packages/ssconvert/src/codecs/html-NOTICE.md",
     "packages/ssconvert/src/codecs/legacy-binary-NOTICE.md",
-    "packages/ssconvert/src/rendering/print/NOTICE.md"
+    "packages/ssconvert/src/rendering/print/NOTICE.md",
+    "packages/safe-bash/dist",
+    "packages/safe-bash-contracts/dist",
+    "packages/media-cli/dist",
+    "packages/remote-execution/dist",
+    "packages/safe-bash-command-exiftool/dist",
+    "packages/safe-bash-command-fmt/dist",
+    "packages/safe-bash-command-wkhtmltopdf/dist",
+    "packages/safe-js/dist",
+    "packages/safe-fs/dist/**/*.d.ts",
+    "!packages/safe-js/dist/package.json",
+    "packages/safe-playwright/dist",
+    "packages/media-cli/README.md",
+    "packages/media-cli/COPYING",
+    "packages/media-cli/COPYING.ImageMagick",
+    "packages/media-cli/COPYING.LGPLv2.1",
+    "packages/media-cli/NOTICE",
+    "packages/media-cli/NOTICE.ImageMagick",
+    "packages/remote-execution/README.md"
   ],
   "engines": {
     "node": ">=18.18"
@@ -250,7 +419,11 @@
     "turndown": "^7.2.4",
     "yaml": "2.9.0",
     "tokenfill": "^0.0.14",
-    "@e965/xlsx": "0.20.3"
+    "@e965/xlsx": "0.20.3",
+    "saxes": "^6.0.0",
+    "@kayahr/text-encoding": "^2.2.0",
+    "@noble/hashes": "2.4.0",
+    "pako": "3.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -369,7 +542,9 @@
     "safe-bash-command-fmt": "*",
     "safe-bash-mcp": "*",
     "@poe-code/csvkit": "*",
-    "@poe-code/ssconvert": "*"
+    "@poe-code/ssconvert": "*",
+    "@poe-code/media-cli": "*",
+    "@poe-code/remote-execution": "*"
   },
   "repository": {
     "type": "git",
@@ -391,6 +566,21 @@
       "external": [
         "tokenfill"
       ]
+    }
+  },
+  "imports": {
+    "#safe-fs-platform": {
+      "types": {
+        "browser": "./packages/safe-fs/dist/platform/browser.d.ts",
+        "default": "./packages/safe-fs/dist/platform/node.d.ts"
+      },
+      "default": null
+    },
+    "#safe-fs-native-seek": {
+      "types": "./packages/safe-js/dist/native/fs-seek/loader.d.ts",
+      "workerd": null,
+      "browser": null,
+      "default": "./packages/safe-js/dist/native/fs-seek/loader.mjs"
     }
   }
 }

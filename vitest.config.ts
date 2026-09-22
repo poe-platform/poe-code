@@ -141,6 +141,9 @@ export default defineConfig({
       "**/node_modules/**",
       "packages/safe-bash/**",
       "packages/safe-playwright/**",
+      // These workspaces own unit suites and separate opt-in native/public/Worker routes.
+      "packages/media-cli/**",
+      "packages/remote-execution/**",
       "packages/op/src/*.test.ts",
       "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
       "packages/safe-bash-command-exiftool/src/*.test.ts",

@@ -31,7 +31,7 @@ function loadScanner(script: string, rootBundle: boolean): Scanner {
   const source = readFileSync(filename, "utf8");
   const first = 'const packagesDir = path.join(rootDir, "packages");';
   const last = rootBundle
-    ? "const consumerBuildOptions = {"
+    ? "const {\n  alias: workspaceAliases,"
     : 'async function getEntryPoints(directory, relative = "") {';
   expect(source.split(first)).toHaveLength(2);
   expect(source.split(last)).toHaveLength(2);
@@ -42,6 +42,7 @@ function loadScanner(script: string, rootBundle: boolean): Scanner {
   return compileFunction(
     `return (async () => {
 ${body}
+${rootBundle ? "const { alias: workspaceAliases, external: externalDeps, workspacePackageNames } = workspaceGraph;" : ""}
 return { aliases: workspaceAliases, names: [...workspacePackageNames], external: ${rootBundle ? "externalDeps" : "external"} };
 })();`,
     ["readdir", "readFile", "path", "rootDir", "packageDir", "resolveBundleGraph"]

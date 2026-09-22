@@ -14,6 +14,17 @@ function createFileSystem(rootPackageJson: object) {
   return createFsFromVolume(volume).promises;
 }
 
+it('resolves explicit Node server conditions without admitting schema assets as source', async () => {
+  const graph = await resolveBundleGraph('/repo', [{ dir: 'remote', pkg: {
+    name: '@example/remote', exports: {
+      './server': { browser: null, workerd: null, node: { types: './dist/server.d.ts', default: './dist/server.js' }, default: null },
+      './schemas/*': './schemas/*',
+    },
+  } }], createFileSystem({}));
+  expect(graph.alias['@example/remote/server']).toBe('/repo/packages/remote/src/server.ts');
+  expect(graph.alias['@example/remote/schemas/*']).toBeUndefined();
+});
+
 describe("findUnreachableBundleOutputs", () => {
   it("keeps declared entries, shared dependencies, dynamic imports, and their source maps", () => {
     const metafile = {

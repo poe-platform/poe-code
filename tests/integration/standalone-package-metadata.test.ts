@@ -174,7 +174,14 @@ describe("standalone package publish metadata", () => {
     expect(toolcraftPackage.optionalDependencies?.["mcp-oauth"]).toBeUndefined();
   });
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
-    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([".", "./agent", "./config", "./config/testing", "./credentials", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./memory", "./skills", "./ssconvert"]);
+    expect(Object.keys(readPackageJson("package.json").exports ?? {}).sort()).toEqual([
+      ".", "./agent", "./config", "./config/testing", "./credentials", "./memory", "./skills", "./csvkit", "./csvkit/codecs/python", "./csvkit/codecs/utf8", "./ssconvert",
+      "./safe-bash", "./safe-bash/commands/media", "./media", "./media/server",
+      "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
+      "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
+      "./safe-js", "./safe-js/core", "./safe-js/cli", "./safejs", "./safejs/core", "./safejs/cli",
+      "./safe-playwright", "./safe-playwright/adapter"
+    ].sort());
     const rootPackage = readPackageJson("package.json");
     expect(rootPackage.exports?.["./ssconvert"]).toEqual({
       types: "./packages/ssconvert/dist/index.d.ts",

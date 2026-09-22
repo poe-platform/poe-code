@@ -88,6 +88,17 @@ export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirec
  * @param {string} rootDir Absolute path to the workspace root.
  * @param {{ dir: string, pkg: any }[]} packageJsons Parsed `packages/*` manifests.
  */
+function nodeRuntimeTarget(target) {
+  if (typeof target === "string" || target === null) return target;
+  if (!target || typeof target !== "object") return undefined;
+  for (const [condition, value] of Object.entries(target)) {
+    if (condition !== "node" && condition !== "import" && condition !== "default") continue;
+    const resolved = nodeRuntimeTarget(value);
+    if (resolved !== undefined) return resolved;
+  }
+  return undefined;
+}
+
 export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile }) {
   const packagesDir = path.join(rootDir, "packages");
   const alias = {};
@@ -104,7 +115,9 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
       for (const [subpath, target] of Object.entries(pkg.exports)) {
         if (subpath === ".") continue;
         const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
-        const built = typeof target === "string" ? target : (target.import ?? target.default);
+        const built = nodeRuntimeTarget(target);
+        // Asset patterns retain package resolution; they have no source module.
+        if (typeof built === "string" && subpath.endsWith("*") && built.endsWith("*") && !built.startsWith("./dist/")) continue;
         if (typeof built !== "string" || !built.startsWith("./dist/") || !built.endsWith(".js")) {
           throw new Error(
             `${pkg.name} export "${subpath}" must target ./dist/*.js to be bundled from source, got ${JSON.stringify(target)}`

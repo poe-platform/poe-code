@@ -99,6 +99,7 @@ export function resolveBrowserShellBuild(rootDir) {
   return {
     absWorkingDir: rootDir,
     entryPoints: {
+      "commands/media/index.browser": path.join(directory, "src/commands/media/index.ts"),
       "commands/docx/index.browser": path.join(directory, "src/commands/docx/index.ts"),
       "commands/python/index.browser": path.join(directory, "src/commands/python/index.ts"),
       "commands/python/worker.browser": path.join(directory, "src/commands/python/worker.ts"),
@@ -131,7 +132,13 @@ export function resolveBrowserShellBuild(rootDir) {
     metafile: true,
     write: false,
     external: ["poe-code/safe-fs/core"],
-    alias: { "node:stream/web": platform, "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts"), "@poe-code/safe-fs": "poe-code/safe-fs" },
+    alias: {
+      "node:stream/web": platform,
+      "@poe-platform/op": path.join(rootDir, "packages/op/src/index.ts"),
+      "@poe-code/safe-fs": "poe-code/safe-fs",
+      "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
+      "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
+    },
     inject: [platform],
     plugins: [{
       name: "portable-shell-capabilities",

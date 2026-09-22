@@ -1,14 +1,17 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile, lstat, realpath } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
-import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
-import { collectPackageFiles, findBundleIssues } from "../packages/package-lint/dist/bundle-policy.js";
+import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, collectCanonicalDeclarations, collectCanonicalNativeAssets } from "../packages/package-lint/dist/bundle-policy.js";
 import { rewriteWorkspaceDts } from "./rewrite-workspace-dts.mjs";
+import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
+import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -32,11 +35,12 @@ for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
   packageJsons.push({ dir: dir.name, pkg });
 }
 
+const workspaceGraph = await resolveBundleGraph(rootDir, packageJsons);
 const {
   alias: workspaceAliases,
   external: externalDeps,
   workspacePackageNames
-} = await resolveBundleGraph(rootDir, packageJsons);
+} = { ...resolveConsumerGraph(workspaceGraph, canonicalFs), workspacePackageNames: workspaceGraph.workspacePackageNames };
 const consumerBuildOptions = {
   alias: workspaceAliases,
   external: externalDeps,
@@ -47,6 +51,18 @@ const consumerBuilds = [];
 
 // Root package.json is reused below to verify external imports are declared.
 const packageJson = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf8"));
+const nativeAssets = await readBuiltNativeAssets({ rootDir });
+const canonicalBuilds = {};
+for (const [profile, options] of Object.entries(resolveCanonicalFsBuilds(rootDir, workspaceGraph, {
+  index: path.join(rootDir, "packages/safe-js/src/index.ts"),
+  core: path.join(rootDir, "packages/safe-js/src/core.ts"),
+  cli: path.join(rootDir, "packages/safe-js/src/cli.ts"),
+}, nativeAssets.registry))) {
+  const result = await esbuild.build(options);
+  await publishBundleOutputs(result, { outdir: options.outdir, entryPoints: Object.values(options.entryPoints), workingDirectory: rootDir });
+  canonicalBuilds[profile] = { entryPoints: Object.values(options.entryPoints).map(filename => path.relative(rootDir, filename).split(path.sep).join("/")), metafile: result.metafile };
+}
+await copyNativeAssets({ rootDir, outDir: path.join(rootDir, "packages/safe-js/dist") });
 
 // Plugin to strip shebangs from source files
 const stripShebangPlugin = {
@@ -97,8 +113,10 @@ async function getProviderEntryPoints(root) {
   };
 }
 
+const mainEntryPoints = ["index", "safe-bash", "safe-bash-media", "media", "remote-execution", "media-server", "remote-execution-server"]
+  .map(entry => path.join(rootDir, `src/${entry}.ts`));
 const mainBuild = await esbuild.build({
-  entryPoints: [path.join(rootDir, "src/index.ts")],
+  entryPoints: mainEntryPoints,
   bundle: true,
   platform: "node",
   target: "node18",
@@ -116,10 +134,18 @@ const mainBuild = await esbuild.build({
 
 await publishBundleOutputs(mainBuild, {
   outdir: path.join(rootDir, "dist"),
-  entryPoints: [path.join(rootDir, "src/index.ts")],
+  entryPoints: mainEntryPoints,
   workingDirectory: rootDir
 });
 consumerBuilds.push(mainBuild);
+const browserShellOptions = resolveBrowserShellBuild(rootDir);
+browserShellOptions.alias = { ...workspaceAliases, ...browserShellOptions.alias };
+browserShellOptions.external = [...new Set([...browserShellOptions.external, ...canonicalFsRoutes.map(route => route.specifier)])];
+const browserShellBuild = await esbuild.build(browserShellOptions);
+await publishBundleOutputs(browserShellBuild, {
+  outdir: browserShellOptions.outdir, entryPoints: Object.values(browserShellOptions.entryPoints), workingDirectory: rootDir,
+});
+consumerBuilds.push(browserShellBuild);
 
 consumerBuilds.push(
   await esbuild.build({
@@ -402,7 +428,11 @@ await Promise.all(
 
 const metafile = {
   inputs: Object.assign({}, ...consumerBuilds.map(result => result.metafile.inputs)),
-  outputs: Object.assign({}, ...consumerBuilds.map(result => result.metafile.outputs))
+  outputs: Object.assign({}, ...consumerBuilds.map(result => result.metafile.outputs)),
+  canonicalBundle: canonicalBuilds.node,
+  browserCanonicalBundle: canonicalBuilds.browser,
+  ...await collectCanonicalDeclarations(rootDir, { readdir: directory => readdir(directory, { withFileTypes: true }), readFile: filename => readFile(filename, "utf8") }),
+  ...await collectCanonicalNativeAssets(rootDir, { readdir: directory => readdir(directory, { withFileTypes: true }), readFile: filename => readFile(filename, "utf8"), readBytes: filename => readFile(filename), lstat, realpath }),
 };
 const packedFiles = await collectPackageFiles(rootDir, packageJson.files, {
   readdir: (directory) => readdir(directory, { withFileTypes: true }),

@@ -10,7 +10,7 @@ vi.mock(
 describe("profile-specific emitted workspace declarations", () => {
   it("does not rewrite separately published outputs after their root exclusions are removed", async () => {
     const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
-    const optional = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
+    const optional = "/repo/packages/terminal-pilot/dist/optional.d.ts";
     const published = "/repo/packages/memory/dist/included.d.ts";
     const volume = Volume.fromJSON({ [optional]: source, [published]: source });
     const files = createFsFromVolume(volume).promises;

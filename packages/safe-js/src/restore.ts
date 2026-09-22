@@ -56,7 +56,7 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
   try {
     validateDumpEnvelope(snapshot, { resume: true });
   } catch (error) {
-    if (!(error instanceof SnapshotValidationError) || error.code !== "invalidState" ||
+    if (!(error instanceof SnapshotValidationError) || error.code !== "invalidState" || error.path === "$.replayError" ||
         !inMemoryRunSnapshots.has(snapshot)) throw error;
     // Runtime snapshots can retain guest descriptor state. Use the same portable
     // representation as dump(), then apply all normal validation below.

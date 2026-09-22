@@ -2,9 +2,11 @@ import { Budget, HexdumpError } from "./internal.js";
 
 const usage = "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]";
 
+export type Format = "default" | "C" | "b" | "c" | "d" | "x";
+
 export interface Parsed {
   readonly files: readonly string[];
-  readonly canonical: number;
+  readonly formats: readonly Format[];
   readonly verbose: boolean;
   readonly skip: number;
   readonly count: number;
@@ -36,7 +38,7 @@ function number(text: string, skip: boolean): number {
 export function parse(budget: Budget, name: string): Parsed {
   const args = budget.arguments();
   const files: string[] = [];
-  let canonical = name === "hd" ? 1 : 0;
+  const formats: Format[] = name === "hd" ? ["C"] : [];
   let verbose = false, ended = false, skip = 0, count = Infinity;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -50,9 +52,10 @@ export function parse(budget: Budget, name: string): Parsed {
       budget.charge();
       const flag = argument[offset]!;
       if (flag === "v") verbose = true;
-      else if (flag === "C") {
-        if (name === "hd") throw new HexdumpError(usage, true);
-        budget.check(++canonical, budget.limits.maxFormats, "format count");
+      else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "x") {
+        if (name === "hd" && flag === "C") throw new HexdumpError(usage, true);
+        budget.check(formats.length + 1, budget.limits.maxFormats, "format count");
+        formats.push(flag);
       } else if (flag === "n" || flag === "s") {
         const parameter = argument.slice(offset + 1) || args[++index];
         if (parameter === undefined) throw new HexdumpError(`${name}: option requires an argument -- '${flag}'\n${usage}`, true);
@@ -63,5 +66,5 @@ export function parse(budget: Budget, name: string): Parsed {
       else throw new HexdumpError(`unsupported option -- '${flag}'`);
     }
   }
-  return { files, canonical, verbose, skip, count };
+  return { files, formats: formats.length ? formats : ["default"], verbose, skip, count };
 }

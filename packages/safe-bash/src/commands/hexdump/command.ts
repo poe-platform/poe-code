@@ -21,10 +21,10 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
       if (!squeezed) await lifecycle.write("*\n");
       squeezed = true;
     } else {
-      for (let index = 0; index < Math.max(1, options.canonical); index++) {
+      for (const format of options.formats) {
         budget.charge(16);
         await budget.checkpointWork();
-        await lifecycle.write(formatBlock(block, used, address, options.canonical > 0));
+        await lifecycle.write(formatBlock(block, used, address, format));
       }
       previous.set(block);
       hasPrevious = true;
@@ -66,7 +66,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     await lifecycle.operation(() => reader.close());
   }
   if (used) await emit();
-  if (address > 0) await lifecycle.write(address.toString(16).padStart(options.canonical ? 8 : 7, "0") + "\n");
+  if (address > 0) await lifecycle.write(address.toString(16).padStart(options.formats.at(-1) === "C" ? 8 : 7, "0") + "\n");
   return exitCode;
 }
 

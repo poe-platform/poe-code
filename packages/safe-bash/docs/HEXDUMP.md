@@ -8,8 +8,8 @@
 ## Supported interface
 
 ```
-hexdump [-Cv] [-n LENGTH] [-s SKIP] [--] [FILE ...]
-hd      [-v] [-n LENGTH] [-s SKIP] [--] [FILE ...]
+hexdump [-bcCdxv] [-n LENGTH] [-s SKIP] [--] [FILE ...]
+hd      [-bcdxv] [-n LENGTH] [-s SKIP] [--] [FILE ...]
 ```
 
 Without file operands, read stdin. An explicit `-` names a VFS file literally;
@@ -26,7 +26,10 @@ Default output uses little-endian two-byte hexadecimal words and seven-digit
 minimum hexadecimal addresses. `-C` uses 16 one-byte hexadecimal fields, an
 eight-digit minimum address and printable ASCII (`0x20` through `0x7e`). Other
 bytes appear as dots only in the ASCII column; their hex values remain exact.
-Repeated `-C` prints repeated canonical rows, with one final address.
+`-b` prints octal bytes; `-c` prints ASCII characters, C control escapes and
+octal nonprintable bytes. `-d` and `-x` print little-endian two-byte words in
+zero-padded decimal and hexadecimal fields. Presets combine and repeat in
+option order, with one final address using the last preset's address width.
 `hd -C` fails with the historical BSD usage diagnostic because `hd` already
 implies `-C`; that historical diagnostic mentions native options outside this
 implementation's supported subset.
@@ -49,7 +52,7 @@ Combined short options, attached arguments and `--` work. Options are permuted
 past file operands unless `POSIXLY_CORRECT` is present in the command environment.
 
 Custom `-e` formats are optional in issue #684 and are intentionally not
-implemented. `-f`, other native presets (`-b`, `-c`, `-d`, `-o`, `-x`), long
+implemented. `-f`, the native `-o` preset, long
 options and locale-dependent byte classification are also outside this subset.
 Unsupported options fail before opening inputs; they never call a host utility.
 
@@ -67,7 +70,7 @@ safe-integer limits, validated when constructing a command:
 | `maxBufferedBytes` | 8388608 | Logical retained argument, reader, snapshot, chunk, block and output allocation budget |
 | `maxOutputBytes` | 134217728 | Cumulative stdout bytes; whole rows admitted before writing |
 | `maxDiagnosticBytes` | 65536 | Cumulative stderr bytes |
-| `maxFormats` | 64 | Repeated canonical formats |
+| `maxFormats` | 64 | Explicit preset formats |
 | `maxWork` | 536870912 | Accounted parsing, input and output work |
 | `maxEmptyChunks` | 4096 | Empty chunks per input source |
 

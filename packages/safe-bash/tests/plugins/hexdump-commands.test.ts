@@ -47,3 +47,15 @@ for (const command of ["hexdump", "hd"]) {
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [flag, fields] of [["b", "101 102"], ["c", "  A   B"], ["d", "  16961"], ["x", "   4241"]]) {
+  test(`agent commands stream stdin through hexdump -${flag}`, async () => {
+    const shell = new entry.Shell({ fs: entry.createMemoryFileSystem(), env: { LC_ALL: "C" } }).use(entry.agentCommands());
+    try {
+      const result = await shell.exec(`printf AB | hexdump -${flag}`);
+      assert.deepEqual({ exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+        exitCode: 0, stdout: `0000000 ${fields}${" ".repeat(56)}\n0000002\n`, stderr: "",
+      });
+    } finally { await shell.dispose(); }
+  });
+}

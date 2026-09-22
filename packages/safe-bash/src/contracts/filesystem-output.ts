@@ -139,7 +139,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
         return acknowledged;
       },
     };
-    const write = (chunk: Uint8Array): Promise<void> => {
+    const writer = (preserveReceipt: boolean) => (chunk: Uint8Array): Promise<void> => {
       try {
         check();
         if (!accepting) throw new FsError("EBADF", { path, syscall: "write" });
@@ -153,7 +153,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
             const count = await descriptor!.write(chunk.subarray(offset, end), null);
             if (!count) throw new FsError("EIO", { path, syscall: "write", message: "descriptor write made no progress" });
             offset += count;
-            if (offset < chunk.byteLength) check();
+            if (offset < chunk.byteLength || !preserveReceipt) check();
           }
         } catch (reason) {
           failure ??= { reason: context.signal.aborted ? context.signal.reason : reason, cancellation: context.signal.aborted };
@@ -173,7 +173,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     };
     return {
       descriptor: exposed, signal,
-      sink: { write, [outputFailure]: abort, ownedOutput: { consumerClosed: controller.signal, write } },
+      sink: { write: writer(false), [outputFailure]: abort, ownedOutput: { consumerClosed: controller.signal, write: writer(true) } },
       finish() {
         const retired = retire();
         finishing ??= (async () => {

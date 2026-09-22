@@ -41,6 +41,9 @@ Local QA:
 - Run the disposable native media cases with read-only storage, no network,
   bounded resources and a scratch tmpfs. Check PCM bytes, independent output
   descriptors, retained partial ImageMagick writes and non-UTF8 filenames.
+- Abort an in-flight descriptor-backed sink write with undefined and falsy reasons.
+  Join cooperative work before closing, reject the sink write, and preserve
+  successful native receipts and remote credit for fully accepted descriptor writes.
 - Run generic remote execution container cases and inspect authenticated HTTPS
   jobs, original argv bytes, stream retirement, signals and cooperative shutdown.
 - Capture and inspect `poe-code bash --help` with the maintained screenshot route.

@@ -3904,7 +3904,7 @@ describe("runCLI", () => {
     });
 
     expect(loggerState.error).toEqual([
-      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root. Use --debug for a stack trace.'
+      expect.stringContaining('Service name "params" is reserved. Choose a different name. Available reserved names:')
     ]);
     expect(process.exitCode).toBe(1);
   });

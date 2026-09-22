@@ -176,6 +176,7 @@ interface CollectedCliSchema {
 interface ExecutionState<TServices extends object> {
   command: Command<TServices, any, any, any>;
   commandPath: string;
+  declarationPath: readonly string[];
   casing: Casing;
   dynamicFields: DynamicFieldDefinition[];
   fields: FieldDefinition[];
@@ -299,6 +300,16 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   version?: string;
   presets?: boolean;
   errorReports?: ErrorReportsOption;
+}
+
+/** Invocation-local transport used by the native command executor. */
+export interface CLIInvocationRuntime {
+  signal: AbortSignal;
+  write(chunk: string, stream?: "stdout" | "stderr"): void;
+  flush(): Promise<void>;
+  exitCode: number;
+  defaults?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  capabilities?: Readonly<Record<string, unknown>>;
 }
 
 export interface CLICommandTreeSnapshotOption {
@@ -473,19 +484,20 @@ function splitWords(value: string): string[] {
   return words;
 }
 
-function formatSegment(segment: string, casing: Casing): string {
+/** @internal */
+export function formatCLIName(segment: string, casing: Casing): string {
   const separator = casing === "snake" ? "_" : "-";
   return splitWords(segment).join(separator);
 }
 
 function toOptionFlag(path: string[], casing: Casing): string {
-  return `--${path.map((segment) => formatSegment(segment, casing)).join(".")}`;
+  return `--${path.map((segment) => formatCLIName(segment, casing)).join(".")}`;
 }
 
 function toOptionAttribute(path: string[], casing: Casing): string {
   return path
     .map((segment) => {
-      const formatted = formatSegment(segment, casing);
+      const formatted = formatCLIName(segment, casing);
 
       if (casing === "snake") {
         return formatted;
@@ -539,7 +551,7 @@ function createSyntheticEnumSchema(values: string[]): EnumSchema<[string, ...str
 function getRequiredBranchFingerprint(branch: ObjectSchema<any>, casing: Casing): string {
   const requiredKeys = (Object.entries(branch.shape) as Array<[string, AnySchema]>)
     .filter(([, schema]) => schema.kind !== "optional")
-    .map(([key]) => formatSegment(key, casing))
+    .map(([key]) => formatCLIName(key, casing))
     .sort();
 
   return requiredKeys.join("+");
@@ -1997,7 +2009,7 @@ function collectDynamicObjectHelpRows(
 
   for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
     const childSchema = unwrapOptional(rawChildSchema);
-    const optionFlag = `${optionPrefix}.${formatSegment(key, casing)}`;
+    const optionFlag = `${optionPrefix}.${formatCLIName(key, casing)}`;
     const displayPath = `${displayPrefix}.${key}`;
     const rawDescription = childSchema.description ?? displayPath;
     const description = suppressEchoHelpDescription(rawDescription, displayPath);
@@ -2867,8 +2879,10 @@ function renderHelpDocument(input: {
 async function renderGeneratedHelp<TServices extends object>(
   root: Group<TServices>,
   argv: string[],
-  options: RunCLIOptions<TServices>
+  options: RunCLIOptions<TServices>,
+  invocation?: CLIInvocationRuntime
 ): Promise<void> {
+  const write = invocation?.write ?? ((chunk: string) => { process.stdout.write(chunk); });
   const output = resolveHelpOutput(argv);
   const casing = options.casing ?? "kebab";
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
@@ -2876,7 +2890,7 @@ async function renderGeneratedHelp<TServices extends object>(
   const controls = resolveCLIControls(options.controls);
 
   if (output === "json") {
-    process.stdout.write(
+    write(
       renderJsonHelp(
         target,
         root,
@@ -2920,7 +2934,7 @@ async function renderGeneratedHelp<TServices extends object>(
             rootUsageName
           );
 
-    process.stdout.write(rendered);
+    write(rendered);
   });
 }
 
@@ -3011,6 +3025,7 @@ function createNodeCommand<TServices extends object>(
         await execute({
           command: node,
           commandPath: nextPathSegments.join("."),
+          declarationPath: nextPathSegments,
           casing,
           dynamicFields: collected.dynamicFields,
           fields,
@@ -4273,9 +4288,10 @@ async function resolveFixtureRuntime<TServices extends object>(
   requirementOptions: CommandRequirementOptions,
   runtimeFetch: typeof globalThis.fetch,
   runtimeEnv?: Record<string, string>,
-  runtimeFs?: HandlerFs
+  runtimeFs?: HandlerFs,
+  embedded = false
 ): Promise<ResolvedFixtureRuntime<TServices>> {
-  const selector = process.env.TOOLCRAFT_FIXTURE;
+  const selector = embedded ? undefined : process.env.TOOLCRAFT_FIXTURE;
 
   if (selector === undefined || selector.length === 0) {
     return {
@@ -4647,7 +4663,7 @@ function resolveDynamicLeaf(
       for (const [key, childSchema] of Object.entries(unwrappedSchema.shape) as Array<
         [string, AnySchema]
       >) {
-        if (formatSegment(key, casing) !== head) {
+        if (formatCLIName(key, casing) !== head) {
           continue;
         }
 
@@ -4669,7 +4685,7 @@ function resolveDynamicLeaf(
           Object.keys(unwrappedSchema.shape).map((key) =>
             qualifyDisplayPath(
               displayPathPrefix,
-              toDisplayPath([...displayPath, formatSegment(key, casing)])
+              toDisplayPath([...displayPath, formatCLIName(key, casing)])
             )
           )
         )}`
@@ -4913,7 +4929,7 @@ function resolveDynamicOption(dynamicFields: DynamicFieldDefinition[], flagName:
   const match = [...dynamicFields]
     .sort((left, right) => right.optionPath.length - left.optionPath.length)
     .find((field) => {
-      const optionPath = field.optionPath.map((segment) => formatSegment(segment, casing));
+      const optionPath = field.optionPath.map((segment) => formatCLIName(segment, casing));
       return flagPath.length > optionPath.length &&
         optionPath.every((segment, index) => flagPath[index] === segment);
     });
@@ -5189,12 +5205,28 @@ async function resolveParams(
   presetPath: string | undefined,
   shouldPrompt: boolean,
   missingParameterContext: CliMissingParameterContext | undefined,
-  promptStreams: PromptStreams
+  promptStreams: PromptStreams,
+  parameterDefaults: Readonly<Record<string, unknown>> = {}
 ): Promise<Record<string, unknown>> {
   const params: Record<string, unknown> = {};
   const errors: ValidationError[] = [];
   const dynamicResults = parseDynamicValues(dynamicFields, rawArgv, casing, errors);
   const positionalTokens = [...positionalValues, ...dynamicResults.positionals];
+  const fieldRoot = (field: FieldDefinition): string => field.synthetic
+    ? (field.path.length === 1 ? field.path[0]!.slice(0, -"Kind".length) : field.path[0]!)
+    : field.path[0]!;
+  const explicitRoots = new Set<string>();
+  for (const field of fields) {
+    if (hasFieldValue(optionValues[field.commanderOptionAttribute]) ||
+        (field.positionalIndex !== undefined && positionalTokens[field.positionalIndex] !== undefined)) {
+      explicitRoots.add(fieldRoot(field));
+    }
+  }
+  for (const field of dynamicFields) {
+    if (dynamicResults.values.has(field.id)) explicitRoots.add(field.path[0]!);
+  }
+  const defaultRoots = new Set(Object.keys(parameterDefaults).filter(key => !explicitRoots.has(key)));
+  for (const key of defaultRoots) params[key] = cloneDefaultValue(parameterDefaults[key]);
   const positionalFields = fields.filter((field) => field.positionalIndex !== undefined);
   if (
     !positionalFields.some((field) => field.variadicPosition === true) &&
@@ -5212,6 +5244,7 @@ async function resolveParams(
   const resolvedFieldValues = new Map<string, unknown>();
 
   for (const field of fields) {
+    if (defaultRoots.has(fieldRoot(field))) continue;
     let value: unknown;
     let resolvedMissing = false;
     let source: "default" | "option" | "positional" | "preset" | "prompt" | undefined;
@@ -5382,6 +5415,7 @@ async function resolveParams(
   }
 
   for (const field of dynamicFields) {
+    if (defaultRoots.has(field.path[0]!)) continue;
     let value = dynamicResults.values.get(field.id);
 
     if (presetValues.dynamic.has(field.id)) {
@@ -5412,7 +5446,7 @@ async function resolveParams(
     params,
     fields,
     dynamicFields,
-    variants,
+    variants.filter(variant => !defaultRoots.has(fieldRoot(fields.find(field => field.id === variant.controlFieldId)!))),
     resolvedFieldValues,
     dynamicResults.providedFieldIds,
     providedFieldIds,
@@ -5460,7 +5494,8 @@ async function executeCommand<TServices extends object>(
     commandPath: string;
     params?: unknown;
     secrets?: Record<string, string | undefined>;
-  }) => void
+  }) => void,
+  invocation?: CLIInvocationRuntime
 ): Promise<void> {
   const logger = createLogger(outputEmitter);
   const optionValues = getResolvedFlags(state.actionCommand);
@@ -5470,7 +5505,7 @@ async function executeCommand<TServices extends object>(
     logger,
     renderTable,
     getTheme,
-    note,
+    note: invocation ? (message, title) => invocation.write(`${title ? `${title}\n` : ""}${message}\n`) : note,
     outputFormat: output
   };
   const diagnostics = createRuntimeLogger({
@@ -5479,10 +5514,12 @@ async function executeCommand<TServices extends object>(
       (diagnosticsOptions.verboseControlEnabled && resolvedFlags.verbose
         ? "trace"
         : diagnosticsOptions.logLevel),
-    logger: diagnosticsOptions.logger ?? writeCLIDiagnosticEvent
+    logger: diagnosticsOptions.logger ?? (invocation
+      ? (event) => invocation.write(`${event.message}\n`, "stderr")
+      : writeCLIDiagnosticEvent)
   });
-  const promptInput = promptStreams.input ?? process.stdin;
-  const promptOutput = promptStreams.output ?? process.stdout;
+  const promptInput = promptStreams.input ?? (invocation ? { isTTY: false } : process.stdin);
+  const promptOutput = promptStreams.output ?? (invocation ? { isTTY: false } : process.stdout);
   const stdinTTY = Boolean((promptInput as NodeJS.ReadStream).isTTY);
   const stdoutTTY = Boolean((promptOutput as NodeJS.WriteStream).isTTY);
   const shouldPrompt = !resolvedFlags.yes && stdinTTY;
@@ -5502,10 +5539,13 @@ async function executeCommand<TServices extends object>(
     requirementOptions,
     runtimeFetch,
     runtimeEnv,
-    runtimeFs
+    runtimeFs,
+    invocation !== undefined
   );
   const preflightContext = {
     ...runtime.services,
+    ...invocation?.capabilities,
+    ...(invocation ? { signal: invocation.signal } : {}),
     secrets: runtime.secrets,
     fetch: runtime.fetch,
     fs: runtime.fs,
@@ -5522,7 +5562,7 @@ async function executeCommand<TServices extends object>(
 
   try {
     await withOutputFormat(toDesignSystemOutput(output), async () => {
-      await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
+      if (!invocation) await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
 
       const params = await resolveParams(
         state.fields,
@@ -5535,12 +5575,26 @@ async function executeCommand<TServices extends object>(
         state.presetsEnabled ? resolvedFlags.preset : undefined,
         shouldPrompt,
         missingParameterContext,
-        promptStreams
+        promptStreams,
+        invocation?.defaults?.[state.declarationPath.join("/")]
       );
       const paramsSchema = state.command.params;
       if (paramsSchema !== undefined && (paramsSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
         const validation = validateSchema(paramsSchema, params);
         if (!validation.ok) throwValidationErrors(validation.issues.map((issue) => formatFieldValidationIssue(issue, "")));
+      }
+      if (invocation) {
+        const validation = validateSchema(state.command.params, params);
+        if (!validation.ok) {
+          throwValidationErrors(validation.issues.map((issue) => formatFieldValidationIssue(issue, "")));
+          return;
+        }
+        Object.assign(params, validation.value);
+        invocation.signal.throwIfAborted();
+        await assertCommandRequirements(state.command, { ...preflightContext, params }, runtime.requirementOptions);
+        if (state.command.confirm && !state.command.humanInLoop && !resolvedFlags.yes) {
+          throw new UserError("Confirmation required; supply --yes to authorize this command.");
+        }
       }
       resolvedParams = params;
       runtimeSecrets = runtime.secrets;
@@ -5553,6 +5607,7 @@ async function executeCommand<TServices extends object>(
       if (state.command.stream !== undefined) {
         const stream = createManagedStream({
           eventSchema: state.command.stream.event,
+          signal: invocation?.signal,
           onStatus(event) {
             diagnostics.emit({
               level: "info",
@@ -5577,9 +5632,10 @@ async function executeCommand<TServices extends object>(
         const interrupt = (): void => {
           void stream.cancel(new UserError("Operation cancelled.")).catch(() => undefined);
         };
-        process.once("SIGINT", interrupt);
+        if (!invocation) process.once("SIGINT", interrupt);
         try {
           for await (const event of stream) {
+            invocation?.signal.throwIfAborted();
             if (output === "json") {
               const line = JSON.stringify(event);
               if (outputEmitter === undefined) {
@@ -5595,15 +5651,17 @@ async function executeCommand<TServices extends object>(
                 output,
                 primitives,
                 outputFormats,
-                outputEmitter === undefined
+                invocation?.write ?? (outputEmitter === undefined
                   ? undefined
-                  : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk),
+                  : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)),
                 outputEmitter
               );
             }
+            await invocation?.flush();
           }
+          invocation?.signal.throwIfAborted();
         } finally {
-          process.removeListener("SIGINT", interrupt);
+          if (!invocation) process.removeListener("SIGINT", interrupt);
           await stream.cancel();
         }
         return;
@@ -5652,6 +5710,7 @@ async function executeCommand<TServices extends object>(
         writeRichHeader(`${state.command.name} (fixture)`);
       }
 
+      invocation?.signal.throwIfAborted();
       const pendingApproval = isHumanInLoopPending(result);
       if (pendingApproval && output === "rich") {
         renderHumanInLoopPending(result, rootUsageName, outputEmitter);
@@ -5665,13 +5724,14 @@ async function executeCommand<TServices extends object>(
         output,
         primitives,
         outputFormats,
-        outputEmitter === undefined
+        invocation?.write ?? (outputEmitter === undefined
           ? undefined
-          : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk),
+          : (chunk) => outputEmitter(chunk.endsWith("\n") ? chunk.slice(0, -1) : chunk)),
         outputEmitter
       );
       if (renderStatus.mcpError) {
-        process.exitCode = 1;
+        if (invocation) invocation.exitCode = 1;
+        else process.exitCode = 1;
       }
     });
   } catch (error) {
@@ -6521,6 +6581,15 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   enableSourceMaps();
+  await executeCLICommand(roots, options);
+}
+
+/** Shared parser, validation and dispatch; native callers supply a local runtime. */
+export async function executeCLICommand<TServices extends object>(
+  roots: Group<TServices> | Group<TServices>[],
+  options: RunCLIOptions<TServices>,
+  invocation?: CLIInvocationRuntime
+): Promise<void> {
   const controls = resolveCLIControls(options.controls);
   let argv = [...(options.argv ?? process.argv)];
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
@@ -6547,6 +6616,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const root = mergeApprovalsRoot(normalizedRoot, options);
     assertHumanInLoopWired(root, options.humanInLoop);
     if (hasMcpProxyConfig(root)) {
+      if (invocation) throw new UserError("MCP proxy discovery requires the standalone CLI; native library plugins support in-process handlers only.");
       const proxyRuntime = await importOptionalModule<typeof import("./mcp-proxy.js")>(optionalModulePaths.mcpProxy);
       await proxyRuntime.resolveMcpProxies(root, { projectRoot: options.projectRoot });
       proxyCleanup = { dispose: proxyRuntime.disposeMcpProxies, root };
@@ -6555,7 +6625,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const services = (options.services ?? {}) as TServices;
     const humanInLoop = options.humanInLoop;
     const runtimeFetch = options.fetch ?? globalThis.fetch;
-    version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
+    version = options.version ?? (invocation ? undefined : findEntrypointPackageMetadata(argv[1])?.version);
     const servicesWithBuiltIns = {
       ...services,
       humanInLoop,
@@ -6570,7 +6640,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     if (argv.length <= 2 && root.default?.scope.includes("cli") !== true) {
       userErrorPattern = "usage";
-      await renderGeneratedHelp(root, argv, { ...options, version });
+      await renderGeneratedHelp(root, argv, { ...options, version }, invocation);
       return;
     }
 
@@ -6624,7 +6694,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         },
         (context) => {
           errorReportContext = context;
-        }
+        },
+        invocation
       );
     };
 
@@ -6655,11 +6726,18 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       addCommanderChild(program, command, isDefaultChild, rootChildNames);
     }
     configureCommanderSuggestionOutput(program, version);
+    if (invocation) {
+      const configure = (command: CommanderCommand): void => {
+        command.configureOutput({ writeOut: chunk => invocation.write(chunk), writeErr: chunk => invocation.write(chunk, "stderr") });
+        command.commands.forEach(configure);
+      };
+      configure(program);
+    }
     const prepared = prepareCliArguments(program, argv, fieldLoaders, casing, controls);
     argv = prepared.argv;
     if (prepared.helpArgv !== undefined) {
       userErrorPattern = "usage";
-      await renderGeneratedHelp(root, prepared.helpArgv, { ...options, version });
+      await renderGeneratedHelp(root, prepared.helpArgv, { ...options, version }, invocation);
       return;
     }
     for (const loadFields of fieldLoaders.values()) {
@@ -6668,6 +6746,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     const unknownCommand = findUnknownCommanderCommand(program, argv);
     if (unknownCommand !== undefined) {
+      if (invocation) throw new UserError(formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand));
       await withOutputFormat(toDesignSystemOutput(resolveOutputFromArgv(argv, controls.outputFormats)), async () => {
         renderCliErrorPattern(
           {
@@ -6685,6 +6764,14 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     userErrorPattern = "usage";
     await program.parseAsync(argv);
   } catch (error) {
+    if (invocation) {
+      if (invocation.signal.aborted) throw invocation.signal.reason;
+      invocation.exitCode = error instanceof CommanderError ? error.exitCode : 1;
+      if (!(error instanceof CommanderError && error.exitCode === 0)) {
+        invocation.write(`${error instanceof Error ? error.message : String(error)}\n`, "stderr");
+      }
+      return;
+    }
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     if (error instanceof ApprovalDeclinedError) {
       await withOutputFormat(
@@ -6736,6 +6823,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       userErrorPattern: errorReportContext?.params === undefined ? userErrorPattern : "runtime-user"
     });
   } finally {
+    await invocation?.flush();
     if (proxyCleanup !== undefined) {
       try {
         await proxyCleanup.dispose(proxyCleanup.root);

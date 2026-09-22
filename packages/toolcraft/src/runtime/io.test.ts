@@ -65,9 +65,13 @@ describe("validateServices", () => {
   it("rejects every reserved service name", () => {
     for (const name of RESERVED_SERVICE_NAMES) {
       expect(() => validateServices({ [name]: true })).toThrow(
-        `Service name "${name}" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.`
+        `Service name "${name}" is reserved. Choose a different name.`
       );
     }
+  });
+
+  it.each(["signal", "stdin", "stdout", "stderr", "cwd", "regex"])("rejects services that replace the invocation's %s", (name) => {
+    expect(() => validateServices({ [name]: {} })).toThrow(`Service name "${name}" is reserved`);
   });
 
   it("accepts non-reserved service names", () => {

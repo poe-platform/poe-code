@@ -97,6 +97,10 @@
     "./tiny-mcp-client": {
       "types": "./dist/tiny-mcp-client.d.ts",
       "import": "./dist/tiny-mcp-client.js"
+    },
+    "./safe-bash": {
+      "types": "./dist/safe-bash.d.ts",
+      "import": "./dist/safe-bash.js"
     }
   },
   "scripts": {
@@ -175,6 +179,7 @@
     "auth-store": "*"
   },
   "devDependencies": {
-    "tiny-stdio-mcp-test-server": "*"
+    "tiny-stdio-mcp-test-server": "*",
+    "@poe-platform/safe-bash": "*"
   }
 }

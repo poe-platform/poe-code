@@ -10,11 +10,17 @@ export const RESERVED_SERVICE_NAMES = new Set([
   "diagnostics",
   "progress",
   "runtimeOptions",
-  "root"
+  "root",
+  "signal",
+  "stdin",
+  "stdout",
+  "stderr",
+  "cwd",
+  "regex"
 ]);
 
 const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
+  `Available reserved names: ${[...RESERVED_SERVICE_NAMES].join(", ")}.`;
 
 export function createFs(fs?: HandlerFs): HandlerFs {
   if (fs !== undefined) {

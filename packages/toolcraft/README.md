@@ -13,10 +13,86 @@ You have one-off scripts and MCP servers. Each one re-derives argument parsing, 
 - `runCLI` — argv parsing, `--help`, kebab/snake flags, exit codes.
 - `createMCPServer` / `runMCP` — JSON-RPC over stdio with auto-generated tool schemas.
 - `createSDK` — typed in-process function calls.
+- `toolcraftCommands` — register a whole library in Safe Bash with captured help, local status and streaming output.
 
 Same handler runs everywhere. Schema, secrets, preconditions, and human-in-loop gating are declared once.
 
 Building from an OpenAPI spec? Use [`toolcraft-openapi`](../toolcraft-openapi/) to generate toolcraft commands from the API contract.
+
+## Use a library inside Safe Bash
+
+Install `toolcraft` and `@poe-platform/safe-bash` in the application that owns the shell.
+
+```ts
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { toolcraftCommands, toolcraftDefaults } from "toolcraft/safe-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem(), env: {} });
+shell.use(toolcraftCommands(myToolcraftLibrary));
+const result = await shell.exec("tools list-users --limit 10 --output json");
+await shell.dispose();
+```
+
+Each root name and alias becomes a virtual command. Nested groups, command aliases,
+default commands, positional arguments, schema defaults, scalar/enum/array/object/
+record/union inputs and CLI scope filtering reuse Toolcraft's CLI parser. Hidden
+commands are excluded from this surface. Standalone CLI behavior remains unchanged.
+No CLI subprocess or per-tool adapter is needed.
+
+Configure services or declared parameter defaults once for the library:
+
+```ts
+shell.use(toolcraftCommands(myToolcraftLibrary, {
+  services: { baseUrl: "https://api.example.com", api: existingApiClient },
+  defaults: toolcraftDefaults(myToolcraftLibrary, {
+    "users/list_users": { limit: 25 },
+  }),
+  version: "1.0.0",
+}));
+```
+
+The `toolcraftDefaults` helper infers declaration paths and parameter types from
+`defineGroup`/`defineCommand` metadata; keep child arrays as tuples (`as const`) for
+precise inference. Runtime defaults also accept a record. Paths use original
+names, separated by `/`, relative to a single root; arrays of roots require the
+root name prefix. Aliases share the same defaults. Unknown paths/parameters and
+invalid values fail at registration. Schema defaults come first, then plugin
+defaults, then explicit argv (including false, zero, empty strings and null).
+Arrays and objects replace the lower-priority value as a whole. Defaults are
+snapshotted, and resolved parameters are validated before requirements and approvals.
+Service objects retain their client identities and cannot override runtime fields.
+
+`createToolcraftCommandExecutor(library, options).execute(argv, invocation)` is the
+same public execution contract without plugin registration. A single-root executor
+accepts arguments after the root command; a multiple-root executor expects the root
+name/alias as its first token. `ToolcraftInvocation` supplies async byte sinks,
+stdin, cancellation, virtual filesystem/cwd, explicit environment, services and
+optional authorized fetch/human-in-loop capabilities. The result is `{ exitCode }`.
+Help/version/results use stdout; errors and diagnostics use stderr. Both sinks are
+awaited, and streaming commands wait for writes before consuming the next event.
+Cancellation preserves the abort reason and closes the active iterator. A sink
+failure propagates to the shell, including its output budget failures. The plugin
+never sets host exit status, installs host signal listeners or prompts host stdin.
+`confirm` commands require explicit `--yes`; wire approval policy with the optional
+`humanInLoop` runtime. `controls` configures existing output formats and log controls.
+
+Handlers are trusted application code; this adapter does not sandbox JavaScript.
+The filesystem bridge uses the invocation's virtual cwd and original filesystem,
+including middleware and budget state. Text reads/writes support Node encodings;
+writes support `w`, `wx` and `a`. Other flags fail explicitly. Missing fetch is
+denied; there is no native network fallback. Callers own supplied capabilities;
+plugin disposal does not close them. Synchronous rendering is bounded to 1 MiB of
+pending output; use `defineStreamCommand` or the invocation's async sinks for larger
+outputs. Binary/artifact results have no automatic binary renderer; existing MCP
+structured/text rendering is retained.
+
+Native plugins currently exclude MCP proxy discovery, host fixture loading,
+file presets, interactive parameter resolvers and detached approval runners.
+Use an explicitly supplied in-process approval provider; providers that spawn a
+runner remain application code. Automatic propagation of configured shell regex
+providers/limits and other application-specific shell capabilities is tracked in
+issue #254; the registration surface here does not advertise those capabilities.
+Schema pattern validation currently follows Toolcraft's existing validator.
 
 ## What the owner decides
 

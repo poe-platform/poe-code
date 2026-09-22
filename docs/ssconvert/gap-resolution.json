@@ -382,15 +382,15 @@
         }
       ],
       "delivery": {
-        "localCommit": null,
-        "remoteMain": null,
-        "publication": null
+        "localCommit": "8fb72e38e2c4bd51877bedfbe00226e9cd54a1b2",
+        "remoteMain": "verified on origin/main",
+        "publication": "Release35786134915 pending"
       }
     },
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish atomic delivery pending; encrypted writing,broader profiles and final publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
@@ -421,9 +421,9 @@
         }
       ],
       "delivery": {
-        "localCommit": "6977e7be0676ca019d96c18e1fa7ae3b73d1de85",
+        "localCommit": "12329f88d57c417c7ec929699ff01224fc925d2a",
         "remoteMain": "verified on origin/main",
-        "publication": "Release35784455740 pending"
+        "publication": "Containing Release35786134915 pending"
       }
     },
     {

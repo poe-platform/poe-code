@@ -1828,8 +1828,8 @@
     }
   ],
   "delivery": {
-    "localCommit": null,
-    "remoteMain": null,
-    "publication": null
+    "localCommit": "8fb72e38e2c4bd51877bedfbe00226e9cd54a1b2",
+    "remoteMain": "verified on origin/main; ancestry retained",
+    "publication": "Containing Release35786134915 pending; preceding release runs cancelled by later main pushes. No successful publication claim."
   }
 }

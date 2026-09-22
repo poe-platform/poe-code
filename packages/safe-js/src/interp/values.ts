@@ -1271,7 +1271,7 @@ export function measureSandboxData(
     const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
     const keys = proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value));
     const metadata = hostFunctionMetadata.get(value);
-    const retained: unknown[] = [];
+    let retained: unknown[] | undefined;
     for (let index = 0; index < keys.length; index++) {
       const key = keys[index]!;
       const descriptor = proxyDescriptors === undefined
@@ -1283,10 +1283,17 @@ export function measureSandboxData(
           initial.enumerable === descriptor.enumerable && initial.configurable === descriptor.configurable &&
           initial.writable === descriptor.writable) continue;
       usage += 1 + key.length;
-      if ("value" in descriptor) retained.push(descriptor.value);
-      else for (const closure of retainedAccessorClosures(descriptor)) retained.push(closure);
+      if ("value" in descriptor) {
+        const data = descriptor.value;
+        // String leaves can be charged during capture. Inert primitives retain
+        // no graph edges; only references and observable primitives need a visit.
+        if (typeof data === "string") usage += data.length;
+        else if (typeof data === "bigint" || typeof data === "symbol" ||
+            (typeof data === "object" && data !== null)) (retained ??= []).push(data);
+      }
+      else for (const closure of retainedAccessorClosures(descriptor)) (retained ??= []).push(closure);
     }
-    for (const entry of retained) visit(entry, depth + 1);
+    if (retained !== undefined) for (const entry of retained) visit(entry, depth + 1);
   };
 
   for (const value of values) visit(value);

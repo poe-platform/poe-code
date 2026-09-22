@@ -87,7 +87,11 @@ for (const [name, factory] of routes.slice(0, 2)) {
       assert.equal(insensitive.exitCode, 0, insensitive.stderr);
       assert.equal(insensitive.stdout, "aa\nAA\n");
       assert.equal(insensitive.stderr, "");
-      for (const command of ["grep -w a", "rg 'a+'", "expr aa : '\\w'"]) {
+      const defaultRegex = await shell.exec("printf 'a\\naa\\n' | grep -w a; printf 'aa\\nbb\\n' | rg 'a+'");
+      assert.equal(defaultRegex.exitCode, 0, defaultRegex.stderr);
+      assert.equal(defaultRegex.stdout, "a\naa\n");
+      assert.equal(defaultRegex.stderr, "");
+      for (const command of ["expr aa : '\\w'"]) {
         const unsupported = await shell.exec(command, { stdin: "aa\n" });
         assert.equal(unsupported.exitCode, 2, command);
         assert.match(unsupported.stderr, /unsupported/u, command);

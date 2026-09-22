@@ -195,7 +195,14 @@ test("all regex consumers use the injected provider and retire their workers", a
     assert.equal(expression.stdout, "2\n");
     assert.equal(expression.stderr, "");
     assert.equal(requests[0]!.descriptor.kind, "expr-match");
-    const unsupported = await shell.exec("printf 'aa\\n' | rg 'a+'");
+    requests.length = 0;
+    const defaultSearch = await shell.exec("printf 'aa\\n' | rg 'a+'");
+    assert.equal(defaultSearch.exitCode, 0, defaultSearch.stderr);
+    assert.equal(defaultSearch.stdout, "aa\n");
+    assert.equal(defaultSearch.stderr, "");
+    assert.equal(requests[0]!.descriptor.kind, "rg");
+    assert.equal(created, retired);
+    const unsupported = await shell.exec("printf 'aa\\n' | rg -P 'a+'");
     assert.equal(unsupported.exitCode, 2);
     assert.equal(unsupported.stdout, "");
     assert.match(unsupported.stderr, /unsupported/);

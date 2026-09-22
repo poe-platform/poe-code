@@ -1,0 +1,130 @@
+{
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-sequence-reader-imb5i_ms",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "source": "/tmp/frontend-registers-20260920-current/ffmpeg-release/ffmpeg-9.0.1/libavformat/utils.c",
+  "sourceSha256": "0319471d1aebe3fe9c8cfe71c8ac95b43a5a15754eccbfe9550b9d4af0b00489",
+  "fixturesSha256": {
+    "Case雪\n-%d-%02d.ppm": "8dee30e2caa26a23f15a2e903788b34b4bd247a15ccb4feed7ec8b3db1bc71ee",
+    "Case雪\n-%%.ppm": "ea0b45017eacf87d28293d911af4b45cf169652eeabaafbc413a353b893b0e79",
+    "Case雪\n-%-01.ppm": "ba3b4641493e89727797429b49e76ef1ca217b497be0445ccecf9d128d0169a7"
+  },
+  "fixturesUnchanged": true,
+  "cases": [
+    {
+      "operand": "Case雪\n-%d-%02d.ppm",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%d-%02d.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%d-%02d.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[image2 @ 0x149705d60] Opening 'Case雪\n-%d-%02d.ppm' for reading\n[file @ 0x600000300200] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x14b004080] Statistics: 14 bytes read, 0 seeks\nInput #0, image2, from 'Case雪\n-%d-%02d.ppm':\n  Duration: 00:00:00.04, start: 0.000000, bitrate: N/A\n  Stream #0:0, 1, 1/25: Video: ppm, 1 reference frame, rgb24, 1x1, 0/1, 25 fps, 25 tbr, 25 tbn\n"
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "operand": "Case雪\n-%%.ppm",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%%.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%%.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[image2 @ 0x1346048b0] Opening 'Case雪\n-%%.ppm' for reading\n[file @ 0x600002ff9c70] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x134705500] Statistics: 14 bytes read, 0 seeks\nInput #0, image2, from 'Case雪\n-%%.ppm':\n  Duration: 00:00:00.04, start: 0.000000, bitrate: N/A\n  Stream #0:0, 1, 1/25: Video: ppm, 1 reference frame, rgb24, 1x1, 0/1, 25 fps, 25 tbr, 25 tbn\n"
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "operand": "Case雪\n-%%-%02d.ppm",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%%-%02d.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "image2",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "Case雪\n-%%-%02d.ppm"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 1,\n            \"height\": 1\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[image2 @ 0x137e06230] Opening 'Case雪\n-%-01.ppm' for reading\n[file @ 0x600000ddf700] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x137f04080] Statistics: 14 bytes read, 0 seeks\nInput #0, image2, from 'Case雪\n-%%-%02d.ppm':\n  Duration: 00:00:00.04, start: 0.000000, bitrate: N/A\n  Stream #0:0, 1, 1/25: Video: ppm, 1 reference frame, rgb24, 1x1, 0/1, 25 fps, 25 tbr, 25 tbn\n"
+        }
+      ],
+      "equalStatusStdout": true
+    }
+  ],
+  "scope": "Partial native AVIO debug reads; no exhaustive syscall, network, frame reload or remote mediation qualification."
+}

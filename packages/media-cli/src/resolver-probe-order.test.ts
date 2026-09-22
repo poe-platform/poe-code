@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { Volume } from 'memfs';
 import { discover } from './discover.js';
 import { resolveDependencies } from './resolver.js';
-import evidence from '../test-fixtures/native/dependency-ffprobe-writer-order-native-evidence.json';
+import evidence from '../tests/fixtures/native/dependency-ffprobe-writer-order-native-evidence.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/work'), budgets: { nodes: 100, bytes: 100000, depth: 10, symlinks: 10 } };

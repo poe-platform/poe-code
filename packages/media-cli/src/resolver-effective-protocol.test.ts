@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DependencyResolver } from './resolver.js';
-import evidence from '../test-fixtures/native/dependency-effective-protocol-native-evidence.json';
+import evidence from '../tests/fixtures/native/dependency-effective-protocol-native-evidence.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/work'), budgets: { nodes: 100, bytes: 100000, depth: 10, symlinks: 10 } };

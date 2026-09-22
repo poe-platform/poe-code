@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Volume } from 'memfs';
 import { DependencyResolver } from './resolver.js';
-import evidence from '../test-fixtures/native/js-resolver-qualification-20260918/native.json';
+import evidence from '../tests/fixtures/native/js-resolver-qualification-20260918/native.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const t = (value: Uint8Array) => new TextDecoder().decode(value);

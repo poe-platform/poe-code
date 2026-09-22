@@ -1,0 +1,59 @@
+{
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/resolver-effective-protocol-gu0tazk5",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "sha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "manifest": "ffconcat version 1.0\nfile Case雪.wav\n",
+  "fixtures": {
+    "Case雪.wav": "853be557603b6a603403eb17b7b256de2c20765b1d2a7052364730bb79c0fbeb",
+    "lists/root": "430a182d14051c6036cff7108a4a950bda8ac98653b5345d410ad51fdf3a8277",
+    "lists/Case雪.wav": "60c0b6c740c791f5d9c1b7d688aa4e6719b93c8f4e7c4b7919ab86ad78b74068"
+  },
+  "fixturesUnchanged": true,
+  "equalStatusStdout": true,
+  "runs": [
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+        "-v",
+        "error",
+        "-protocol_whitelist",
+        "file,cache,async",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-show_entries",
+        "stream=sample_rate",
+        "-of",
+        "json",
+        "cache:lists/root"
+      ],
+      "status": 0,
+      "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"sample_rate\": \"8000\"\n        }\n    ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+        "-v",
+        "debug",
+        "-protocol_whitelist",
+        "file,cache,async",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-show_entries",
+        "stream=sample_rate",
+        "-of",
+        "json",
+        "cache:lists/root"
+      ],
+      "status": 0,
+      "stdout": "{\n    \"programs\": [\n\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"sample_rate\": \"8000\"\n        }\n    ]\n}\n",
+      "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'sample_rate' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[concat @ 0x123c04900] Opening 'cache:lists/root' for reading\n[AVFormatContext @ 0x123c04b60] Opening 'cache:lists/Case雪.wav' for reading\n[wav @ 0x123c04b60] Format wav probed with size=2048 and score=99\n[wav @ 0x123c04b60] Before avformat_find_stream_info() pos: 44 bytes read:204 seeks:0 nb_streams:1\n[wav @ 0x123c04b60] probing stream 0 pp:32\n[wav @ 0x123c04b60] probing stream 0 pp:31\n[wav @ 0x123c04b60] probed stream 0\n[wav @ 0x123c04b60] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x123c04b60] After avformat_find_stream_info() pos: 204 bytes read:204 seeks:0 frames:1\n[concat @ 0x123c04900] Before avformat_find_stream_info() pos: 38 bytes read:38 seeks:0 nb_streams:1\n[concat @ 0x123c04900] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x123c04900] All info found\n[concat @ 0x123c04900] After avformat_find_stream_info() pos: 38 bytes read:38 seeks:0 frames:1\nInput #0, concat, from 'cache:lists/root':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\n[AVIOContext @ 0x122e04780] Statistics: 204 bytes read, 0 seeks\n[cache @ 0x600002e14100] Statistics, cache hits:0 cache misses:1\n[AVIOContext @ 0x123c040c0] Statistics: 38 bytes read, 0 seeks\n[cache @ 0x600002e14080] Statistics, cache hits:0 cache misses:1\n"
+    }
+  ],
+  "traceScope": "FFmpeg debug AVIO opening diagnostics; not complete kernel access timing or network qualification",
+  "qualificationNote": "Host filesystem aliases case-only names; native collision uses a distinct cwd base. Case-sensitive collisions are qualified in memory."
+}

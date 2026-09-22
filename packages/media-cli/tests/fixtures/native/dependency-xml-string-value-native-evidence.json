@@ -1,0 +1,334 @@
+{
+  "captured_utc": "2026-09-19T12:38:29.960035+00:00",
+  "scope": "Native libxml2 string-value semantics and partial attempted libc direct-input read coverage. Direct inputs do not execute DASH. Not exhaustive syscalls, exact timing, production mediation or product dependencies.",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-xml-string-value-1a80db4t",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executable_sha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "registered_executable_match": true,
+  "source_path": "/tmp/endpoint-source-review/ffmpeg-9.0.1/libavformat/dashdec.c",
+  "source_sha256": "843e00984890bc265d467b846b76ee8a4f07367e8d5c038a1a9794e795f3c541",
+  "registered_source_match": true,
+  "xml_library": "/usr/lib/libxml2.dylib",
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-xml-string-value-1a80db4t/observer.c",
+    "-o",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-xml-string-value-1a80db4t/observer.dylib"
+  ],
+  "fixture_bytes_base64": {
+    "lists/Case雪.mp4": "UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQgAAABoAMwAmP80/w==",
+    "Case雪.mp4": "b3JpZ2luYWwgY3dkIGNvbGxpc2lvbg==",
+    "lists/case雪.mp4": "UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQgAAABoAMwAmP80/w==",
+    "case雪.mp4": "b3JpZ2luYWwgY3dkIGNvbGxpc2lvbg==",
+    "lists/Case雪\nx.mp4": "UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQgAAABmAMoAmv82/w==",
+    "Case雪\nx.mp4": "b3JpZ2luYWwgY3dkIGNvbGxpc2lvbg==",
+    "lists/Case雪&&.mp4": "UklGRiwAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQgAAABnAMsAmf81/w==",
+    "Case雪&&.mp4": "b3JpZ2luYWwgY3dkIGNvbGxpc2lvbg=="
+  },
+  "hashes_before": {
+    "lists/Case雪.mp4": "245728a86302b95e8dcf97d61b91c576a9020f0c803a0c3a36ef69f23c092566",
+    "Case雪.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/case雪.mp4": "245728a86302b95e8dcf97d61b91c576a9020f0c803a0c3a36ef69f23c092566",
+    "case雪.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/Case雪\nx.mp4": "d79d8e612acd2ef67b27e5b99fd6f4b1c9f135ff27358fe2d04ade3c14d5c967",
+    "Case雪\nx.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/Case雪&&.mp4": "43289890794e58ac20b86bd4d143023a6d904361d24fa2fc68c612b80ddc3a64",
+    "Case雪&&.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560"
+  },
+  "hashes_after": {
+    "lists/Case雪.mp4": "245728a86302b95e8dcf97d61b91c576a9020f0c803a0c3a36ef69f23c092566",
+    "Case雪.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/case雪.mp4": "245728a86302b95e8dcf97d61b91c576a9020f0c803a0c3a36ef69f23c092566",
+    "case雪.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/Case雪\nx.mp4": "d79d8e612acd2ef67b27e5b99fd6f4b1c9f135ff27358fe2d04ade3c14d5c967",
+    "Case雪\nx.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560",
+    "lists/Case雪&&.mp4": "43289890794e58ac20b86bd4d143023a6d904361d24fa2fc68c612b80ddc3a64",
+    "Case雪&&.mp4": "898884ee53a45c63949cc45b1ac088c26fd7425f83c0645c712a205c6d51d560"
+  },
+  "fixtures_unchanged": true,
+  "results": [
+    {
+      "id": "mixed",
+      "baseurl_xml": "Case<part>雪</part>.mp4",
+      "xml_utf8_hex": "3c4261736555524c3e436173653c706172743ee99baa3c2f706172743e2e6d70343c2f4261736555524c3e",
+      "native_xml_content_hex": "43617365e99baa2e6d7034",
+      "argv": [
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "json",
+        "lists/Case雪.mp4"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [],
+          "all_accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa2e6d7034"
+            }
+          ],
+          "all_accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa2e6d7034"
+            }
+          ]
+        }
+      ],
+      "paired_status_stdout_equal": true
+    },
+    {
+      "id": "case",
+      "baseurl_xml": "<part>case</part>雪.mp4",
+      "xml_utf8_hex": "3c4261736555524c3e3c706172743e636173653c2f706172743ee99baa2e6d70343c2f4261736555524c3e",
+      "native_xml_content_hex": "63617365e99baa2e6d7034",
+      "argv": [
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "json",
+        "lists/case雪.mp4"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [],
+          "all_accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f63617365e99baa2e6d7034"
+            }
+          ],
+          "all_accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f63617365e99baa2e6d7034"
+            }
+          ]
+        }
+      ],
+      "paired_status_stdout_equal": true
+    },
+    {
+      "id": "nested",
+      "baseurl_xml": "Case<part>雪<inner>\n</inner>x</part>.mp4",
+      "xml_utf8_hex": "3c4261736555524c3e436173653c706172743ee99baa3c696e6e65723e0a3c2f696e6e65723e783c2f706172743e2e6d70343c2f4261736555524c3e",
+      "native_xml_content_hex": "43617365e99baa0a782e6d7034",
+      "argv": [
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "json",
+        "lists/Case雪\nx.mp4"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [],
+          "all_accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa0a782e6d7034"
+            }
+          ],
+          "all_accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa0a782e6d7034"
+            }
+          ]
+        }
+      ],
+      "paired_status_stdout_equal": true
+    },
+    {
+      "id": "entities",
+      "baseurl_xml": "Case<part><![CDATA[雪&]]></part>&amp;.mp4",
+      "xml_utf8_hex": "3c4261736555524c3e436173653c706172743e3c215b43444154415be99baa265d5d3e3c2f706172743e26616d703b2e6d70343c2f4261736555524c3e",
+      "native_xml_content_hex": "43617365e99baa26262e6d7034",
+      "argv": [
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "json",
+        "lists/Case雪&&.mp4"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [],
+          "all_accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa26262e6d7034"
+            }
+          ],
+          "all_accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa26262e6d7034"
+            }
+          ]
+        }
+      ],
+      "paired_status_stdout_equal": true
+    },
+    {
+      "id": "comments",
+      "baseurl_xml": "Case<!-- ignored --><part>雪</part><?reader ignored?>.mp4",
+      "xml_utf8_hex": "3c4261736555524c3e436173653c212d2d2069676e6f726564202d2d3e3c706172743ee99baa3c2f706172743e3c3f7265616465722069676e6f7265643f3e2e6d70343c2f4261736555524c3e",
+      "native_xml_content_hex": "43617365e99baa2e6d7034",
+      "argv": [
+        "-v",
+        "error",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "json",
+        "lists/Case雪.mp4"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [],
+          "all_accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "ewogICAgInByb2dyYW1zIjogWwoKICAgIF0sCiAgICAic3RyZWFtX2dyb3VwcyI6IFsKCiAgICBdLAogICAgInN0cmVhbXMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfbmFtZSI6ICJwY21fczE2bGUiCiAgICAgICAgfQogICAgXQp9Cg==",
+          "stderr_base64": "",
+          "named_accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa2e6d7034"
+            }
+          ],
+          "all_accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6c697374732f43617365e99baa2e6d7034"
+            }
+          ]
+        }
+      ],
+      "paired_status_stdout_equal": true
+    }
+  ],
+  "native_dash_qualified": false
+}

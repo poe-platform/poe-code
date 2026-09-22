@@ -1,0 +1,1173 @@
+{
+  "scope": "Paired native debug AVIO attempted-open diagnostics; partial access evidence, not exhaustive kernel tracing or exact native timing. No product dependency or replay.",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j",
+  "executable": "/opt/homebrew/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "sources": {
+    "libavformat/concatdec.c": {
+      "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/concatdec.c",
+      "sha256": "b739c121b0280ed45b94fee82163773640ca99d01cf51e93e24efbfe06d4bdae"
+    },
+    "libavutil/parseutils.c": {
+      "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavutil/parseutils.c",
+      "sha256": "67554a40cf238f09fc583764a65363f9b34b4f784fe6564cf4da9d9c17d10999"
+    }
+  },
+  "cases": [
+    {
+      "duration": "",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration \nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x127f05d60] Line 3: invalid duration ''\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12e606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0' for reading\n[file @ 0x600002ee8300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x12e606230] Line 3: invalid duration ''\n[AVIOContext @ 0x12e605b40] Statistics: 69 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-0: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-0": "d85d929eca633ccdf801ff5384fad192131d251ce2181bb11b21cf3689fc5665",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-0": "d85d929eca633ccdf801ff5384fad192131d251ce2181bb11b21cf3689fc5665",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "nope",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration nope\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x128f05d60] Line 3: invalid duration 'nope'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x135606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1' for reading\n[file @ 0x6000011fc300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x135606230] Line 3: invalid duration 'nope'\n[AVIOContext @ 0x135605b40] Statistics: 73 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-1: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-1": "58598d78b3e2a8c4b1afd29c72945aaa8374b0bf0558bb03d0ea297fa7d1bb7d",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-1": "58598d78b3e2a8c4b1afd29c72945aaa8374b0bf0558bb03d0ea297fa7d1bb7d",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "'1'",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration '1'\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x14d606230] Line 3: invalid duration ''1''\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x129e06230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2' for reading\n[file @ 0x600000e14300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x129e06230] Line 3: invalid duration ''1''\n[AVIOContext @ 0x129e05b40] Statistics: 72 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-2: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-2": "cffb4e0c64b24a1a4db8c4d9aa49191c9f7c2c67696e4bc584ca61b806fb04e6",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-2": "cffb4e0c64b24a1a4db8c4d9aa49191c9f7c2c67696e4bc584ca61b806fb04e6",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1e3",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1e3\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x14e606230] Line 3: invalid duration '1e3'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12c004080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3' for reading\n[file @ 0x6000026080c0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x12c004080] Line 3: invalid duration '1e3'\n[AVIOContext @ 0x12a705500] Statistics: 72 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-3: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-3": "18a99b4f74f344b9d1927b3adccd3ea6c29a41a3b26ec8384b6e44e87ee358e7",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-3": "18a99b4f74f344b9d1927b3adccd3ea6c29a41a3b26ec8384b6e44e87ee358e7",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1:60",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1:60\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x13bf05d60] Line 3: invalid duration '1:60'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x13b606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4' for reading\n[file @ 0x600003988300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x13b606230] Line 3: invalid duration '1:60'\n[AVIOContext @ 0x13b605b40] Statistics: 73 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-4: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-4": "650f0dd990a364bd9c41ccfbf8875e7d876458502049c019d2720d4f89d7fe58",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-4": "650f0dd990a364bd9c41ccfbf8875e7d876458502049c019d2720d4f89d7fe58",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "10000:00:00",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 10000:00:00\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x146606230] Line 3: invalid duration '10000:00:00'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5: Invalid argument\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x143e060b0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5' for reading\n[file @ 0x600001f58300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x143e060b0] Line 3: invalid duration '10000:00:00'\n[AVIOContext @ 0x143f04280] Statistics: 80 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-5: Invalid argument\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-5": "ccff7d4eacea375c788e92d7ecf3d273f196902bbf2130ddafad65d53e590296",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-5": "ccff7d4eacea375c788e92d7ecf3d273f196902bbf2130ddafad65d53e590296",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "9223372036854775808us",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 9223372036854775808us\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x11f705d60] Line 3: invalid duration '9223372036854775808us'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6: Result too large\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x14b606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6' for reading\n[file @ 0x600002e9c300] Setting default whitelist 'file,crypto,data'\n[concat @ 0x14b606230] Line 3: invalid duration '9223372036854775808us'\n[AVIOContext @ 0x14b605b40] Statistics: 90 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-6: Result too large\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-6": "738734e8e9adfcc1006e01c89d3a3cf4dd328fa9334c50a6850def82943df2aa",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-6": "738734e8e9adfcc1006e01c89d3a3cf4dd328fa9334c50a6850def82943df2aa",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "9223372036854.775808",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 9223372036854.775808\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "[concat @ 0x147f05d60] Line 3: invalid duration '9223372036854.775808'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7: Result too large\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x124f05d60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7' for reading\n[file @ 0x600001b9c0c0] Setting default whitelist 'file,crypto,data'\n[concat @ 0x124f05d60] Line 3: invalid duration '9223372036854.775808'\n[AVIOContext @ 0x126804080] Statistics: 89 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-7: Result too large\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-7": "eaabdfd47bd357e99007d893a55819be85610e0b2490644cb45fbb5c82953d3e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-7": "eaabdfd47bd357e99007d893a55819be85610e0b2490644cb45fbb5c82953d3e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "0",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 0\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-8",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-8"
+          ],
+          "status": 0,
+          "stdout": "0\n0\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-8"
+          ],
+          "status": 0,
+          "stdout": "0\n0\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x15a705d60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-8' for reading\n[file @ 0x600000c640c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x15a705fc0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x15a705fc0] Format wav probed with size=2048 and score=99\n[wav @ 0x15a705fc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x15a705fc0] probing stream 0 pp:32\n[wav @ 0x15a705fc0] probing stream 0 pp:31\n[wav @ 0x15a705fc0] probed stream 0\n[wav @ 0x15a705fc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x15a705fc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x15a705d60] Before avformat_find_stream_info() pos: 70 bytes read:70 seeks:0 nb_streams:1\n[concat @ 0x15a705d60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x15a705d60] All info found\n[concat @ 0x15a705d60] After avformat_find_stream_info() pos: 70 bytes read:70 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-8':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x15a705a00] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x15a705fc0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x15a705fc0] Format wav probed with size=2048 and score=99\n[wav @ 0x15a705fc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x15a705fc0] probing stream 0 pp:32\n[wav @ 0x15a705fc0] probing stream 0 pp:31\n[wav @ 0x15a705fc0] probed stream 0\n[wav @ 0x15a705fc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x15a705fc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x15a705d60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[AVIOContext @ 0x14a604080] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x15a705500] Statistics: 70 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-8": "63522b7803d752f84dd1d587c6cf5194dc5a9d29b557a551ab680225ca883654",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-8": "63522b7803d752f84dd1d587c6cf5194dc5a9d29b557a551ab680225ca883654",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "-1",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration -1\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12f606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9' for reading\n[file @ 0x600002570300] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x12f704080] Statistics: 71 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-9: Invalid data found when processing input\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-9": "90bc30688dbc5d1fbcec0fe1f3c57fd739df8da23586728ac685d96f607e071a",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-9": "90bc30688dbc5d1fbcec0fe1f3c57fd739df8da23586728ac685d96f607e071a",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "+1",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration +1\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-10",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-10"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-10"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x121606100] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-10' for reading\n[file @ 0x600001af8300] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x121704300] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x121704300] Format wav probed with size=2048 and score=99\n[wav @ 0x121704300] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x121704300] probing stream 0 pp:32\n[wav @ 0x121704300] probing stream 0 pp:31\n[wav @ 0x121704300] probed stream 0\n[wav @ 0x121704300] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x121704300] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x121606100] Before avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 nb_streams:1\n[concat @ 0x121606100] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x121606100] All info found\n[concat @ 0x121606100] After avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-10':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x122104080] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x122104080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x122104080] Format wav probed with size=2048 and score=99\n[wav @ 0x122104080] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x122104080] probing stream 0 pp:32\n[wav @ 0x122104080] probing stream 0 pp:31\n[wav @ 0x122104080] probed stream 0\n[wav @ 0x122104080] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x122104080] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x121606100] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:8000 pts_time:1 dts:8000 dts_time:1\n[AVIOContext @ 0x122004280] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x121704080] Statistics: 71 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-10": "90c955e39c00ebc08c7258e5a51201f494d1c6e255500e78f0a0ffc3ece914e1",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-10": "90c955e39c00ebc08c7258e5a51201f494d1c6e255500e78f0a0ffc3ece914e1",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "--1",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration --1\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-11",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-11"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-11"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x134604ab0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-11' for reading\n[file @ 0x600003628300] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x134604d10] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x134604d10] Format wav probed with size=2048 and score=99\n[wav @ 0x134604d10] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x134604d10] probing stream 0 pp:32\n[wav @ 0x134604d10] probing stream 0 pp:31\n[wav @ 0x134604d10] probed stream 0\n[wav @ 0x134604d10] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x134604d10] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x134604ab0] Before avformat_find_stream_info() pos: 72 bytes read:72 seeks:0 nb_streams:1\n[concat @ 0x134604ab0] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x134604ab0] All info found\n[concat @ 0x134604ab0] After avformat_find_stream_info() pos: 72 bytes read:72 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-11':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x134705300] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x134705b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x134705b60] Format wav probed with size=2048 and score=99\n[wav @ 0x134705b60] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x134705b60] probing stream 0 pp:32\n[wav @ 0x134705b60] probing stream 0 pp:31\n[wav @ 0x134705b60] probed stream 0\n[wav @ 0x134705b60] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x134705b60] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x134604ab0] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:8000 pts_time:1 dts:8000 dts_time:1\n[AVIOContext @ 0x136004080] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x134604780] Statistics: 72 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-11": "070f18ba0cbdd2abe8d6c57a7cf18eaaa927b4df53ca6551eaa7c43a1e15510d",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-11": "070f18ba0cbdd2abe8d6c57a7cf18eaaa927b4df53ca6551eaa7c43a1e15510d",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "-+1",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration -+1\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12: Invalid data found when processing input\n"
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x147805b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12' for reading\n[file @ 0x6000009900c0] Setting default whitelist 'file,crypto,data'\n[AVIOContext @ 0x147904080] Statistics: 72 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-12: Invalid data found when processing input\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-12": "3f79befbc10e08deaaba69c9f3e9a8f3e831d4793f68a30c130006438ee3a184",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-12": "3f79befbc10e08deaaba69c9f3e9a8f3e831d4793f68a30c130006438ee3a184",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1.",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1.\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-13",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-13"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-13"
+          ],
+          "status": 0,
+          "stdout": "0\n8000\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x136904080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-13' for reading\n[file @ 0x6000028680c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x136a042f0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x136a042f0] Format wav probed with size=2048 and score=99\n[wav @ 0x136a042f0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x136a042f0] probing stream 0 pp:32\n[wav @ 0x136a042f0] probing stream 0 pp:31\n[wav @ 0x136a042f0] probed stream 0\n[wav @ 0x136a042f0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x136a042f0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x136904080] Before avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 nb_streams:1\n[concat @ 0x136904080] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x136904080] All info found\n[concat @ 0x136904080] After avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-13':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x136a041a0] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x135f05cc0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x135f05cc0] Format wav probed with size=2048 and score=99\n[wav @ 0x135f05cc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x135f05cc0] probing stream 0 pp:32\n[wav @ 0x135f05cc0] probing stream 0 pp:31\n[wav @ 0x135f05cc0] probed stream 0\n[wav @ 0x135f05cc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x135f05cc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x136904080] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:8000 pts_time:1 dts:8000 dts_time:1\n[AVIOContext @ 0x135f052c0] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x136a04080] Statistics: 71 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-13": "297d6862ddb7349d5746d1bd0d85da32677b5d6c6479f9c1609882008e76c4b0",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-13": "297d6862ddb7349d5746d1bd0d85da32677b5d6c6479f9c1609882008e76c4b0",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1.123456789s",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1.123456789s\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-14",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-14"
+          ],
+          "status": 0,
+          "stdout": "0\n8988\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-14"
+          ],
+          "status": 0,
+          "stdout": "0\n8988\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12d705b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-14' for reading\n[file @ 0x6000004e80c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x12f0042f0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x12f0042f0] Format wav probed with size=2048 and score=99\n[wav @ 0x12f0042f0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x12f0042f0] probing stream 0 pp:32\n[wav @ 0x12f0042f0] probing stream 0 pp:31\n[wav @ 0x12f0042f0] probed stream 0\n[wav @ 0x12f0042f0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x12f0042f0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x12d705b60] Before avformat_find_stream_info() pos: 81 bytes read:81 seeks:0 nb_streams:1\n[concat @ 0x12d705b60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x12d705b60] All info found\n[concat @ 0x12d705b60] After avformat_find_stream_info() pos: 81 bytes read:81 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-14':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x12d604780] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x12d604a80] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x12d604a80] Format wav probed with size=2048 and score=99\n[wav @ 0x12d604a80] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x12d604a80] probing stream 0 pp:32\n[wav @ 0x12d604a80] probing stream 0 pp:31\n[wav @ 0x12d604a80] probed stream 0\n[wav @ 0x12d604a80] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x12d604a80] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x12d705b60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:8988 pts_time:1.1235 dts:8988 dts_time:1.1235\n[AVIOContext @ 0x12d604ce0] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x12f004080] Statistics: 81 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-14": "23af525ae0676610e0b388488feba246f9bffd4e545200e5f73408743c42bd48",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-14": "23af525ae0676610e0b388488feba246f9bffd4e545200e5f73408743c42bd48",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1.5ms",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1.5ms\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-15",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-15"
+          ],
+          "status": 0,
+          "stdout": "0\n12\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-15"
+          ],
+          "status": 0,
+          "stdout": "0\n12\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x154f04820] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-15' for reading\n[file @ 0x6000039980c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x154e05c70] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x154e05c70] Format wav probed with size=2048 and score=99\n[wav @ 0x154e05c70] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x154e05c70] probing stream 0 pp:32\n[wav @ 0x154e05c70] probing stream 0 pp:31\n[wav @ 0x154e05c70] probed stream 0\n[wav @ 0x154e05c70] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x154e05c70] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x154f04820] Before avformat_find_stream_info() pos: 74 bytes read:74 seeks:0 nb_streams:1\n[concat @ 0x154f04820] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x154f04820] All info found\n[concat @ 0x154f04820] After avformat_find_stream_info() pos: 74 bytes read:74 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-15':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x156804080] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x156804080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x156804080] Format wav probed with size=2048 and score=99\n[wav @ 0x156804080] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x156804080] probing stream 0 pp:32\n[wav @ 0x156804080] probing stream 0 pp:31\n[wav @ 0x156804080] probed stream 0\n[wav @ 0x156804080] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x156804080] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x154f04820] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:12 pts_time:0.0015 dts:12 dts_time:0.0015\n[AVIOContext @ 0x154e04290] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x154e05b00] Statistics: 74 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-15": "b0faf89275355c8bae4373561524213aa0cf1be4a968101b26b926f2a1e2e074",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-15": "b0faf89275355c8bae4373561524213aa0cf1be4a968101b26b926f2a1e2e074",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1.5us",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1.5us\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-16",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-16"
+          ],
+          "status": 0,
+          "stdout": "0\n0\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-16"
+          ],
+          "status": 0,
+          "stdout": "0\n0\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x14bf05b60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-16' for reading\n[file @ 0x6000028840c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x14be04ab0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x14be04ab0] Format wav probed with size=2048 and score=99\n[wav @ 0x14be04ab0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x14be04ab0] probing stream 0 pp:32\n[wav @ 0x14be04ab0] probing stream 0 pp:31\n[wav @ 0x14be04ab0] probed stream 0\n[wav @ 0x14be04ab0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x14be04ab0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x14bf05b60] Before avformat_find_stream_info() pos: 74 bytes read:74 seeks:0 nb_streams:1\n[concat @ 0x14bf05b60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x14bf05b60] All info found\n[concat @ 0x14bf05b60] After avformat_find_stream_info() pos: 74 bytes read:74 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-16':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x14bf05300] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x14bf05dc0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x14bf05dc0] Format wav probed with size=2048 and score=99\n[wav @ 0x14bf05dc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x14bf05dc0] probing stream 0 pp:32\n[wav @ 0x14bf05dc0] probing stream 0 pp:31\n[wav @ 0x14bf05dc0] probed stream 0\n[wav @ 0x14bf05dc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x14bf05dc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x14bf05b60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[AVIOContext @ 0x14d804080] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x14be04780] Statistics: 74 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-16": "9300ea4bffe5cf188ba56f92ebce60c169221b2cd096187819a597206396b204",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-16": "9300ea4bffe5cf188ba56f92ebce60c169221b2cd096187819a597206396b204",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "1:2",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 1:2\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-17",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-17"
+          ],
+          "status": 0,
+          "stdout": "0\n496000\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-17"
+          ],
+          "status": 0,
+          "stdout": "0\n496000\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x127804080] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-17' for reading\n[file @ 0x6000019580c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x1267049d0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x1267049d0] Format wav probed with size=2048 and score=99\n[wav @ 0x1267049d0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x1267049d0] probing stream 0 pp:32\n[wav @ 0x1267049d0] probing stream 0 pp:31\n[wav @ 0x1267049d0] probed stream 0\n[wav @ 0x1267049d0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x1267049d0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x127804080] Before avformat_find_stream_info() pos: 72 bytes read:72 seeks:0 nb_streams:1\n[concat @ 0x127804080] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x127804080] All info found\n[concat @ 0x127804080] After avformat_find_stream_info() pos: 72 bytes read:72 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-17':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x1278042e0] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x1278042e0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x1278042e0] Format wav probed with size=2048 and score=99\n[wav @ 0x1278042e0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x1278042e0] probing stream 0 pp:32\n[wav @ 0x1278042e0] probing stream 0 pp:31\n[wav @ 0x1278042e0] probed stream 0\n[wav @ 0x1278042e0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x1278042e0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x127804080] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:496000 pts_time:62 dts:496000 dts_time:62\n[AVIOContext @ 0x116604080] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x126704760] Statistics: 72 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-17": "0601aedf77b653510e97f5fddc7e986564302071629e4fc6f401e3eb31deb771",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-17": "0601aedf77b653510e97f5fddc7e986564302071629e4fc6f401e3eb31deb771",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "9999:59:59",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 9999:59:59\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-18",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-18"
+          ],
+          "status": 0,
+          "stdout": "0\n287999992000\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-18"
+          ],
+          "status": 0,
+          "stdout": "0\n287999992000\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x12bf05d60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-18' for reading\n[file @ 0x6000035dc0c0] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x12d8042f0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x12d8042f0] Format wav probed with size=2048 and score=99\n[wav @ 0x12d8042f0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x12d8042f0] probing stream 0 pp:32\n[wav @ 0x12d8042f0] probing stream 0 pp:31\n[wav @ 0x12d8042f0] probed stream 0\n[wav @ 0x12d8042f0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x12d8042f0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x12bf05d60] Before avformat_find_stream_info() pos: 79 bytes read:79 seeks:0 nb_streams:1\n[concat @ 0x12bf05d60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x12bf05d60] All info found\n[concat @ 0x12bf05d60] After avformat_find_stream_info() pos: 79 bytes read:79 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-18':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x12bf05500] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x12bf05fc0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x12bf05fc0] Format wav probed with size=2048 and score=99\n[wav @ 0x12bf05fc0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x12bf05fc0] probing stream 0 pp:32\n[wav @ 0x12bf05fc0] probing stream 0 pp:31\n[wav @ 0x12bf05fc0] probed stream 0\n[wav @ 0x12bf05fc0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x12bf05fc0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x12bf05d60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:287999992000 pts_time:35999999 dts:287999992000 dts_time:35999999\n[AVIOContext @ 0x12d904080] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x12d804080] Statistics: 79 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-18": "9ab6d6c0e052f2ec6a9c0ef33b14cee076a6d2c041be31ea81c37cacfbdf527f",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-18": "9ab6d6c0e052f2ec6a9c0ef33b14cee076a6d2c041be31ea81c37cacfbdf527f",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "9223372036854775807us",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 9223372036854775807us\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-19",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-19"
+          ],
+          "status": 0,
+          "stdout": "0\n73786976294838206\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-19"
+          ],
+          "status": 0,
+          "stdout": "0\n73786976294838206\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x147606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-19' for reading\n[file @ 0x60000114c300] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x147606490] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x147606490] Format wav probed with size=2048 and score=99\n[wav @ 0x147606490] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x147606490] probing stream 0 pp:32\n[wav @ 0x147606490] probing stream 0 pp:31\n[wav @ 0x147606490] probed stream 0\n[wav @ 0x147606490] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x147606490] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x147606230] Before avformat_find_stream_info() pos: 90 bytes read:90 seeks:0 nb_streams:1\n[concat @ 0x147606230] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x147606230] All info found\n[concat @ 0x147606230] After avformat_find_stream_info() pos: 90 bytes read:90 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-19':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x147604290] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x147704230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x147704230] Format wav probed with size=2048 and score=99\n[wav @ 0x147704230] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x147704230] probing stream 0 pp:32\n[wav @ 0x147704230] probing stream 0 pp:31\n[wav @ 0x147704230] probed stream 0\n[wav @ 0x147704230] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x147704230] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x147606230] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:73786976294838206 pts_time:9223372036854.775391 dts:73786976294838206 dts_time:9223372036854.775391\n[AVIOContext @ 0x147604290] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x147605b40] Statistics: 90 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-19": "a7fd376a6b1b62f5435b6fc21a1d0e857931066cb01ae90c3a5e57d35d2bf38e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-19": "a7fd376a6b1b62f5435b6fc21a1d0e857931066cb01ae90c3a5e57d35d2bf38e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    },
+    {
+      "duration": "9223372036854.775807s",
+      "content": "ffconcat version 1.0\nfile 'Case雪.wav'\nduration 9223372036854.775807s\nfile 'Case雪.wav'\n",
+      "manifest": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-20",
+      "runs": [
+        {
+          "argv": [
+            "-v",
+            "error",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-20"
+          ],
+          "status": 0,
+          "stdout": "0\n73786976294838206\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "-v",
+            "debug",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-show_packets",
+            "-show_entries",
+            "packet=pts",
+            "-of",
+            "csv=p=0",
+            "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-20"
+          ],
+          "status": 0,
+          "stdout": "0\n73786976294838206\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'pts' to the entries to show in section 'packet'\n'packet' matches section with unique name 'packet'\n[concat @ 0x11d606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-20' for reading\n[file @ 0x600002638300] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x11d7042f0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x11d7042f0] Format wav probed with size=2048 and score=99\n[wav @ 0x11d7042f0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x11d7042f0] probing stream 0 pp:32\n[wav @ 0x11d7042f0] probing stream 0 pp:31\n[wav @ 0x11d7042f0] probed stream 0\n[wav @ 0x11d7042f0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x11d7042f0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x11d606230] Before avformat_find_stream_info() pos: 90 bytes read:90 seeks:0 nb_streams:1\n[concat @ 0x11d606230] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x11d606230] All info found\n[concat @ 0x11d606230] After avformat_find_stream_info() pos: 90 bytes read:90 seeks:0 frames:1\nInput #0, concat, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/case-20':\n  Duration: N/A, start: 0.000000, bitrate: 128 kb/s\n  Stream #0:0, 1, 1/8000: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 8000 Hz, 1 channels, s16, 128 kb/s\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x11d7041a0] Statistics: 60 bytes read, 0 seeks\n[AVFormatContext @ 0x11d7041a0] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-concat-duration-wen2fl8j/lists/Case雪.wav' for reading\n[wav @ 0x11d7041a0] Format wav probed with size=2048 and score=99\n[wav @ 0x11d7041a0] Before avformat_find_stream_info() pos: 44 bytes read:60 seeks:0 nb_streams:1\n[wav @ 0x11d7041a0] probing stream 0 pp:32\n[wav @ 0x11d7041a0] probing stream 0 pp:31\n[wav @ 0x11d7041a0] probed stream 0\n[wav @ 0x11d7041a0] parser not found for codec pcm_s16le, packets or times may be invalid.\n[wav @ 0x11d7041a0] After avformat_find_stream_info() pos: 60 bytes read:60 seeks:0 frames:1\n[concat @ 0x11d606230] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:73786976294838206 pts_time:9223372036854.775391 dts:73786976294838206 dts_time:9223372036854.775391\n[AVIOContext @ 0x11d704400] Statistics: 60 bytes read, 0 seeks\n[AVIOContext @ 0x11d704080] Statistics: 90 bytes read, 0 seeks\n"
+        }
+      ],
+      "equalStatusStdout": true,
+      "fixturesUnchanged": true,
+      "before": {
+        "lists/case-20": "681f5dda85ea6054bb7744df96d340462d89feeb21973e2f805933bf8dcc775e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      },
+      "after": {
+        "lists/case-20": "681f5dda85ea6054bb7744df96d340462d89feeb21973e2f805933bf8dcc775e",
+        "lists/Case雪.wav": "86b5f5a4a69b226cef532cb4019df8ff0c08a804fa919af5d116e6e257cd9eac"
+      }
+    }
+  ]
+}

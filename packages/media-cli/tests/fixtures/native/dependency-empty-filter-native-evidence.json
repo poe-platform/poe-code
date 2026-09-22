@@ -1,0 +1,183 @@
+{
+  "captured_utc": "2026-09-19T20:14:31.177325+00:00",
+  "qualification": "Partial attempted libc open/fopen accesses; not exhaustive syscalls, exact timing, network, delegates or remote mediation",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-empty-filter-apzyill8",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+  "executable_sha256": "733eab555d50593370ae810b20405d22ed255748ee39a76b53c1fe3b6aaaa5f0",
+  "registered_executable_match": true,
+  "graphparser_sha256": "59d70103a55dabc2b36fef605ef4d391f5988ceb007a540ce1e9a4eda1c5a3e5",
+  "registered_graphparser_match": true,
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-empty-filter-apzyill8/observer.c",
+    "-o",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-empty-filter-apzyill8/observer.dylib"
+  ],
+  "fixtures": {
+    "Case雪\n.cube": "TFVUXzNEX1NJWkUgMgowIDAgMAoxIDAgMAowIDEgMAoxIDEgMAowIDAgMQoxIDAgMQowIDEgMQoxIDEgMQo=",
+    "case雪.cube": "Y2FzZSBjb2xsaXNpb246IGludmFsaWQgTFVUCg=="
+  },
+  "fixturesUnchanged": true,
+  "results": [
+    {
+      "id": "valid",
+      "graph": "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+      "argv": [
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+        "-frames:v",
+        "1",
+        "-threads",
+        "1",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_base64": "/wAA/wAA/wAA/wAA",
+          "stderr": "",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_base64": "/wAA/wAA/wAA/wAA",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 43617365e99baa0a2e63756265\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e63756265"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "leading",
+      "graph": ",color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+      "argv": [
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        ",color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+        "-frames:v",
+        "1",
+        "-threads",
+        "1",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "[AVFilterGraph @ 0x600001194180] No such filter: ''\n[AVFilterGraph @ 0x600001194180] Error processing filtergraph: Filter not found\n[in#0 @ 0x125905a40] Error opening input: Filter not found\nError opening input file ,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'.\nError opening input files: Filter not found\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x6000039f0000] No such filter: ''\n[AVFilterGraph @ 0x6000039f0000] Error processing filtergraph: Filter not found\n[in#0 @ 0x12fa04200] Error opening input: Filter not found\nError opening input file ,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'.\nError opening input files: Filter not found\n",
+          "accesses": []
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "instance",
+      "graph": "@instance,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+      "argv": [
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "@instance,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+        "-frames:v",
+        "1",
+        "-threads",
+        "1",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "[AVFilterGraph @ 0x6000014bc200] No such filter: ''\n[AVFilterGraph @ 0x6000014bc200] Error processing filtergraph: Filter not found\n[in#0 @ 0x159705c40] Error opening input: Filter not found\nError opening input file @instance,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'.\nError opening input files: Filter not found\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x600000340080] No such filter: ''\n[AVFilterGraph @ 0x600000340080] Error processing filtergraph: Filter not found\n[in#0 @ 0x134604450] Error opening input: Filter not found\nError opening input file @instance,color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'.\nError opening input files: Filter not found\n",
+          "accesses": []
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "middle",
+      "graph": "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',,lut3d=file=case雪.cube",
+      "argv": [
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',,lut3d=file=case雪.cube",
+        "-frames:v",
+        "1",
+        "-threads",
+        "1",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "[AVFilterGraph @ 0x60000046c000] No such filter: ''\n[AVFilterGraph @ 0x60000046c000] Error processing filtergraph: Filter not found\n[in#0 @ 0x124904200] Error opening input: Filter not found\nError opening input file color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',,lut3d=file=case雪.cube.\nError opening input files: Filter not found\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 8,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x600001c77780] No such filter: ''\n[AVFilterGraph @ 0x600001c77780] Error processing filtergraph: Filter not found\n[in#0 @ 0x14d606470] Error opening input: Filter not found\nError opening input file color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',,lut3d=file=case雪.cube.\nError opening input files: Filter not found\n",
+          "accesses": []
+        }
+      ],
+      "equalStatusStdout": true
+    }
+  ]
+}

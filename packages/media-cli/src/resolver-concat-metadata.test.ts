@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
 import { Volume } from 'memfs';
 import { DependencyResolver } from './resolver.js';
-import evidence from '../test-fixtures/native/dependency-concat-metadata-native-evidence.json';
-import registered from '../test-fixtures/native/dependency-concat-directives-native-evidence.json';
+import evidence from '../tests/fixtures/native/dependency-concat-metadata-native-evidence.json';
+import registered from '../tests/fixtures/native/dependency-concat-directives-native-evidence.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/work'), budgets: { nodes: 100, bytes: 100000, depth: 10, symlinks: 10 } };

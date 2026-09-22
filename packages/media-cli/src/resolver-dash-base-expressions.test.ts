@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DependencyResolver } from './resolver.js';
-import evidence from '../test-fixtures/native/js-resolver-dash-base-expressions-20260920.json';
+import evidence from '../tests/fixtures/native/js-resolver-dash-base-expressions-20260920.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/scratch/case'), budgets: { nodes: 100, bytes: 100000, depth: 20, symlinks: 10 } };

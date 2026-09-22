@@ -1,0 +1,319 @@
+{
+  "captured_utc": "2026-09-20T22:11:07.465352+00:00",
+  "qualification": "Partial attempted libc accesses, not exhaustive syscall timing, dynamic discovery, network or remote mediation",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-empty-filter-apzyill8",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+  "executable_sha256": "733eab555d50593370ae810b20405d22ed255748ee39a76b53c1fe3b6aaaa5f0",
+  "registered_executable_match": true,
+  "source": "/tmp/remote-media-source-accounting-20260919-current/ffmpeg-release/ffmpeg-9.0.1/libavfilter/graphparser.c",
+  "graphparser_sha256": "59d70103a55dabc2b36fef605ef4d391f5988ceb007a540ce1e9a4eda1c5a3e5",
+  "registered_graphparser_match": true,
+  "observer": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-empty-filter-apzyill8/observer.dylib",
+  "observer_sha256": "6d2e68e6eb8312466a4ec4d152f7776fc0b637dc41dc71fb8d4797d1adf7d20f",
+  "observer_provenance": "dependency-empty-filter-native-evidence.json",
+  "fixtures_sha256": {
+    "Case雪\n.cube": "c8bce4299c8606d5ca59a4724f46e484e430c42d506cfc2a3f30bbe84d5199cc",
+    "case雪.cube": "2f3b49bda9e564480f0289373c5e30204875ebc4e4d02b48dcc104b5367ad642"
+  },
+  "fixturesUnchanged": true,
+  "results": [
+    {
+      "id": "empty",
+      "graph": "",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "[AVFilterGraph @ 0x6000003d8200] No filters specified in the graph description\n[AVFilterGraph @ 0x6000003d8200] Error processing filtergraph: Invalid argument\n[in#0 @ 0x12f005500] Error opening input: Invalid argument\nError opening input file .\nError opening input files: Invalid argument\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x60000014b700] No filters specified in the graph description\n[AVFilterGraph @ 0x60000014b700] Error processing filtergraph: Invalid argument\n[in#0 @ 0x14d605b40] Error opening input: Invalid argument\nError opening input file .\nError opening input files: Invalid argument\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "whitespace",
+      "graph": " \t\r\n",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        " \t\r\n",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "[AVFilterGraph @ 0x600002ea8200] No filters specified in the graph description\n[AVFilterGraph @ 0x600002ea8200] Error processing filtergraph: Invalid argument\n[in#0 @ 0x123f05500] Error opening input: Invalid argument\nError opening input file  \t\r\n.\nError opening input files: Invalid argument\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x600002a1c200] No filters specified in the graph description\n[AVFilterGraph @ 0x600002a1c200] Error processing filtergraph: Invalid argument\n[in#0 @ 0x151705500] Error opening input: Invalid argument\nError opening input file  \t\r\n.\nError opening input files: Invalid argument\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "scaler-only",
+      "graph": "sws_flags=bilinear;",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "sws_flags=bilinear;",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "[AVFilterGraph @ 0x600000784200] No filters specified in the graph description\n[AVFilterGraph @ 0x600000784200] Error processing filtergraph: Invalid argument\n[in#0 @ 0x133f05500] Error opening input: Invalid argument\nError opening input file sws_flags=bilinear;.\nError opening input files: Invalid argument\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x6000028af380] No filters specified in the graph description\n[AVFilterGraph @ 0x6000028af380] Error processing filtergraph: Invalid argument\n[in#0 @ 0x12bf05440] Error opening input: Invalid argument\nError opening input file sws_flags=bilinear;.\nError opening input files: Invalid argument\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "unterminated-scaler",
+      "graph": "sws_flags=bilinear",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "sws_flags=bilinear",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "[AVFilterGraph @ 0x600000890000] sws_flags not terminated with ';'.\n[AVFilterGraph @ 0x600000890000] Error processing filtergraph: Invalid argument\n[in#0 @ 0x130605b40] Error opening input: Invalid argument\nError opening input file sws_flags=bilinear.\nError opening input files: Invalid argument\n",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 234,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_length": 0,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\n[AVFilterGraph @ 0x600001a40200] sws_flags not terminated with ';'.\n[AVFilterGraph @ 0x600001a40200] Error processing filtergraph: Invalid argument\n[in#0 @ 0x130f05500] Error opening input: Invalid argument\nError opening input file sws_flags=bilinear.\nError opening input files: Invalid argument\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "scaler-read",
+      "graph": "sws_flags=bilinear;color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "sws_flags=bilinear;color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube'",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_sha256": "fcf067f6323bb42b8292a565a8f826ec5fdb1b142b7a69bf7f7721f0d5d46ef8",
+          "stdout_length": 12,
+          "stderr": "",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_sha256": "fcf067f6323bb42b8292a565a8f826ec5fdb1b142b7a69bf7f7721f0d5d46ef8",
+          "stdout_length": 12,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 43617365e99baa0a2e63756265\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e63756265"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "id": "trailing-separator",
+      "graph": "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',",
+      "argv": [
+        "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=red:s=2x2:r=1,lut3d=file='Case雪\n.cube',",
+        "-frames:v",
+        "1",
+        "-f",
+        "rawvideo",
+        "pipe:1"
+      ],
+      "runs": [
+        {
+          "traced": false,
+          "status": 0,
+          "stdout_sha256": "fcf067f6323bb42b8292a565a8f826ec5fdb1b142b7a69bf7f7721f0d5d46ef8",
+          "stdout_length": 12,
+          "stderr": "",
+          "accesses": []
+        },
+        {
+          "traced": true,
+          "status": 0,
+          "stdout_sha256": "fcf067f6323bb42b8292a565a8f826ec5fdb1b142b7a69bf7f7721f0d5d46ef8",
+          "stdout_length": 12,
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 43617365e99baa0a2e63756265\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "43617365e99baa0a2e63756265"
+            }
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    }
+  ]
+}

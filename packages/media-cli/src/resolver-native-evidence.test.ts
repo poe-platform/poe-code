@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { DependencyResolver } from './resolver.js';
-import evidence from '../test-fixtures/native/js-resolver-qualification-20260918/native.json';
+import evidence from '../tests/fixtures/native/js-resolver-qualification-20260918/native.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/scratch'), budgets: { nodes: 100, bytes: 100000, depth: 10, symlinks: 10 } };

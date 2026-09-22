@@ -1,0 +1,81 @@
+{
+  "scope": "Original manual native qualification. Diagnostic opens are partial attempted-access evidence, not syscalls, product dependencies or replay. No DASH qualification. Empty stdin supplied only to this manual native run.",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/resolver-spelling-pbp8tex8",
+  "fixtures": {
+    "lists/root": "ffconcat version 1.0\nfile child\noption safe 0\nfile child\noption safe 0\n",
+    "lists/child": "ffconcat version 1.0\nfile '../frames/ Case雪.ppm '\nfile '../frames/case.ppm'\n"
+  },
+  "media": {
+    "frames/ Case雪.ppm ": "UDYKMSAxCjI1NQr/AAA=",
+    "frames/case.ppm": "UDYKMSAxCjI1NQoAAP8=",
+    "frames/Case.ppm": "Y3dkIGNvbGxpc2lvbg==",
+    " Case雪.ppm ": "Y3dkIGNvbGxpc2lvbg=="
+  },
+  "hashesBefore": {
+    "lists/root": "5cc98b477ff9e250078bac9e5be4ba08d269abe602d9dc7e9194ee9a73929b04",
+    "lists/child": "7ce992ef953fe7b2e27cf4a522b4aa6e94b6480a88f30c88c302f399e98520fa",
+    "frames/ Case雪.ppm ": "8dee30e2caa26a23f15a2e903788b34b4bd247a15ccb4feed7ec8b3db1bc71ee",
+    "frames/case.ppm": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2",
+    "frames/Case.ppm": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2",
+    " Case雪.ppm ": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2"
+  },
+  "hashesAfter": {
+    "lists/root": "5cc98b477ff9e250078bac9e5be4ba08d269abe602d9dc7e9194ee9a73929b04",
+    "lists/child": "7ce992ef953fe7b2e27cf4a522b4aa6e94b6480a88f30c88c302f399e98520fa",
+    "frames/ Case雪.ppm ": "8dee30e2caa26a23f15a2e903788b34b4bd247a15ccb4feed7ec8b3db1bc71ee",
+    "frames/case.ppm": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2",
+    "frames/Case.ppm": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2",
+    " Case雪.ppm ": "397ab0d6a3676cea7a3d914016d733f55b4f7eade9a5c37aa3964caf7def5ad2"
+  },
+  "runs": [
+    {
+      "argv": [
+        "-v",
+        "error",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        "lists/root",
+        "-show_packets",
+        "-of",
+        "json"
+      ],
+      "status": 0,
+      "stdout": "ewogICAgInBhY2tldHMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIsCiAgICAgICAgICAgICJzdHJlYW1faW5kZXgiOiAwLAogICAgICAgICAgICAicHRzIjogMCwKICAgICAgICAgICAgInB0c190aW1lIjogIjAuMDAwMDAwIiwKICAgICAgICAgICAgImR0cyI6IDAsCiAgICAgICAgICAgICJkdHNfdGltZSI6ICIwLjAwMDAwMCIsCiAgICAgICAgICAgICJkdXJhdGlvbiI6IDEsCiAgICAgICAgICAgICJkdXJhdGlvbl90aW1lIjogIjAuMDQwMDAwIiwKICAgICAgICAgICAgInNpemUiOiAiMTQiLAogICAgICAgICAgICAicG9zIjogIjAiLAogICAgICAgICAgICAiZmxhZ3MiOiAiS19fIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIsCiAgICAgICAgICAgICJzdHJlYW1faW5kZXgiOiAwLAogICAgICAgICAgICAicHRzIjogLTIzMDU4NDMwMDkyMTM2OSwKICAgICAgICAgICAgInB0c190aW1lIjogIi05MjIzMzcyMDM2ODU0Ljc1OTc2NiIsCiAgICAgICAgICAgICJkdHMiOiAtMjMwNTg0MzAwOTIxMzY5LAogICAgICAgICAgICAiZHRzX3RpbWUiOiAiLTkyMjMzNzIwMzY4NTQuNzU5NzY2IiwKICAgICAgICAgICAgImR1cmF0aW9uIjogMSwKICAgICAgICAgICAgImR1cmF0aW9uX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAic2l6ZSI6ICIxMyIsCiAgICAgICAgICAgICJmbGFncyI6ICJLX18iCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJjb2RlY190eXBlIjogInZpZGVvIiwKICAgICAgICAgICAgInN0cmVhbV9pbmRleCI6IDAsCiAgICAgICAgICAgICJwdHMiOiAxLAogICAgICAgICAgICAicHRzX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAiZHRzIjogMSwKICAgICAgICAgICAgImR0c190aW1lIjogIjAuMDQwMDAwIiwKICAgICAgICAgICAgImR1cmF0aW9uIjogMSwKICAgICAgICAgICAgImR1cmF0aW9uX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAic2l6ZSI6ICIxNCIsCiAgICAgICAgICAgICJwb3MiOiAiMCIsCiAgICAgICAgICAgICJmbGFncyI6ICJLX18iCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJjb2RlY190eXBlIjogInZpZGVvIiwKICAgICAgICAgICAgInN0cmVhbV9pbmRleCI6IDAsCiAgICAgICAgICAgICJwdHMiOiAtMjMwNTg0MzAwOTIxMzY4LAogICAgICAgICAgICAicHRzX3RpbWUiOiAiLTkyMjMzNzIwMzY4NTQuNzIwNzAzIiwKICAgICAgICAgICAgImR0cyI6IC0yMzA1ODQzMDA5MjEzNjgsCiAgICAgICAgICAgICJkdHNfdGltZSI6ICItOTIyMzM3MjAzNjg1NC43MjA3MDMiLAogICAgICAgICAgICAiZHVyYXRpb24iOiAxLAogICAgICAgICAgICAiZHVyYXRpb25fdGltZSI6ICIwLjA0MDAwMCIsCiAgICAgICAgICAgICJzaXplIjogIjEzIiwKICAgICAgICAgICAgImZsYWdzIjogIktfXyIKICAgICAgICB9CiAgICBdCn0K",
+      "stderr": "",
+      "diagnosticOpens": []
+    },
+    {
+      "argv": [
+        "-v",
+        "debug",
+        "-f",
+        "concat",
+        "-safe",
+        "0",
+        "-i",
+        "lists/root",
+        "-show_packets",
+        "-of",
+        "json"
+      ],
+      "status": 0,
+      "stdout": "ewogICAgInBhY2tldHMiOiBbCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIsCiAgICAgICAgICAgICJzdHJlYW1faW5kZXgiOiAwLAogICAgICAgICAgICAicHRzIjogMCwKICAgICAgICAgICAgInB0c190aW1lIjogIjAuMDAwMDAwIiwKICAgICAgICAgICAgImR0cyI6IDAsCiAgICAgICAgICAgICJkdHNfdGltZSI6ICIwLjAwMDAwMCIsCiAgICAgICAgICAgICJkdXJhdGlvbiI6IDEsCiAgICAgICAgICAgICJkdXJhdGlvbl90aW1lIjogIjAuMDQwMDAwIiwKICAgICAgICAgICAgInNpemUiOiAiMTQiLAogICAgICAgICAgICAicG9zIjogIjAiLAogICAgICAgICAgICAiZmxhZ3MiOiAiS19fIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgICAiY29kZWNfdHlwZSI6ICJ2aWRlbyIsCiAgICAgICAgICAgICJzdHJlYW1faW5kZXgiOiAwLAogICAgICAgICAgICAicHRzIjogLTIzMDU4NDMwMDkyMTM2OSwKICAgICAgICAgICAgInB0c190aW1lIjogIi05MjIzMzcyMDM2ODU0Ljc1OTc2NiIsCiAgICAgICAgICAgICJkdHMiOiAtMjMwNTg0MzAwOTIxMzY5LAogICAgICAgICAgICAiZHRzX3RpbWUiOiAiLTkyMjMzNzIwMzY4NTQuNzU5NzY2IiwKICAgICAgICAgICAgImR1cmF0aW9uIjogMSwKICAgICAgICAgICAgImR1cmF0aW9uX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAic2l6ZSI6ICIxMyIsCiAgICAgICAgICAgICJmbGFncyI6ICJLX18iCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJjb2RlY190eXBlIjogInZpZGVvIiwKICAgICAgICAgICAgInN0cmVhbV9pbmRleCI6IDAsCiAgICAgICAgICAgICJwdHMiOiAxLAogICAgICAgICAgICAicHRzX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAiZHRzIjogMSwKICAgICAgICAgICAgImR0c190aW1lIjogIjAuMDQwMDAwIiwKICAgICAgICAgICAgImR1cmF0aW9uIjogMSwKICAgICAgICAgICAgImR1cmF0aW9uX3RpbWUiOiAiMC4wNDAwMDAiLAogICAgICAgICAgICAic2l6ZSI6ICIxNCIsCiAgICAgICAgICAgICJwb3MiOiAiMCIsCiAgICAgICAgICAgICJmbGFncyI6ICJLX18iCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJjb2RlY190eXBlIjogInZpZGVvIiwKICAgICAgICAgICAgInN0cmVhbV9pbmRleCI6IDAsCiAgICAgICAgICAgICJwdHMiOiAtMjMwNTg0MzAwOTIxMzY4LAogICAgICAgICAgICAicHRzX3RpbWUiOiAiLTkyMjMzNzIwMzY4NTQuNzIwNzAzIiwKICAgICAgICAgICAgImR0cyI6IC0yMzA1ODQzMDA5MjEzNjgsCiAgICAgICAgICAgICJkdHNfdGltZSI6ICItOTIyMzM3MjAzNjg1NC43MjA3MDMiLAogICAgICAgICAgICAiZHVyYXRpb24iOiAxLAogICAgICAgICAgICAiZHVyYXRpb25fdGltZSI6ICIwLjA0MDAwMCIsCiAgICAgICAgICAgICJzaXplIjogIjEzIiwKICAgICAgICAgICAgImZsYWdzIjogIktfXyIKICAgICAgICB9CiAgICBdCn0K",
+      "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\n[concat @ 0x126205b60] Opening 'lists/root' for reading\n[file @ 0x600002770150] Setting default whitelist 'file,crypto,data'\n[AVFormatContext @ 0x126205dc0] Opening 'lists/child' for reading\n[concat @ 0x126205dc0] Format concat probed with size=2048 and score=100\n[AVFormatContext @ 0x1261043a0] Opening 'lists/../frames/ Case雪.ppm ' for reading\n[ppm_pipe @ 0x1261043a0] Format ppm_pipe probed with size=2048 and score=52\n[ppm_pipe @ 0x1261043a0] Before avformat_find_stream_info() pos: 0 bytes read:14 seeks:0 nb_streams:1\n[ppm_pipe @ 0x1261043a0] After avformat_find_stream_info() pos: 14 bytes read:14 seeks:0 frames:1\n[concat @ 0x126205dc0] Before avformat_find_stream_info() pos: 78 bytes read:78 seeks:0 nb_streams:1\n[concat @ 0x126205dc0] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x126205dc0] All info found\n[concat @ 0x126205dc0] After avformat_find_stream_info() pos: 78 bytes read:78 seeks:0 frames:1\n[concat @ 0x126205b60] Before avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 nb_streams:1\n[concat @ 0x126205b60] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x126205b60] All info found\n[concat @ 0x126205b60] After avformat_find_stream_info() pos: 71 bytes read:71 seeks:0 frames:1\nInput #0, concat, from 'lists/root':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0, 1, 1/25: Video: ppm, 1 reference frame, rgb24, 1x1, 0/1, 25 fps, 25 tbr, 25 tbn\nProcessing read interval id:0 start:N/A end:N/A\n[AVIOContext @ 0x126404080] Statistics: 14 bytes read, 0 seeks\n[AVFormatContext @ 0x1261043a0] Opening 'lists/../frames/case.ppm' for reading\n[image2 @ 0x1261043a0] Format image2 probed with size=2048 and score=50\n[image2 @ 0x1261043a0] Before avformat_find_stream_info() pos: 0 bytes read:13 seeks:0 nb_streams:1\n[image2 @ 0x1261043a0] Could not find codec parameters for stream 0 (Video: ppm, 1 reference frame, none): unspecified size\nConsider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\n[image2 @ 0x1261043a0] After avformat_find_stream_info() pos: 13 bytes read:13 seeks:0 frames:1\n[concat @ 0x126205dc0] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:-230584300921369 pts_time:-9223372036854.759766 dts:-230584300921369 dts_time:-9223372036854.759766\n[concat @ 0x126205dc0] DTS -230584300921369 < 0 out of order\n[concat @ 0x126205b60] file:0 stream:0 pts:-230584300921369 pts_time:-9223372036854.759766 dts:-230584300921369 dts_time:-9223372036854.759766 -> pts:-230584300921369 pts_time:-9223372036854.759766 dts:-230584300921369 dts_time:-9223372036854.759766\n[concat @ 0x126205b60] DTS -230584300921369 < 0 out of order\n[AVIOContext @ 0x126504080] Statistics: 13 bytes read, 0 seeks\n[AVIOContext @ 0x126104280] Statistics: 78 bytes read, 0 seeks\n[AVFormatContext @ 0x126105990] Opening 'lists/child' for reading\n[concat @ 0x126105990] Format concat probed with size=2048 and score=100\n[AVFormatContext @ 0x126104360] Opening 'lists/../frames/ Case雪.ppm ' for reading\n[ppm_pipe @ 0x126104360] Format ppm_pipe probed with size=2048 and score=52\n[ppm_pipe @ 0x126104360] Before avformat_find_stream_info() pos: 0 bytes read:14 seeks:0 nb_streams:1\n[ppm_pipe @ 0x126104360] After avformat_find_stream_info() pos: 14 bytes read:14 seeks:0 frames:1\n[concat @ 0x126105990] Before avformat_find_stream_info() pos: 78 bytes read:78 seeks:0 nb_streams:1\n[concat @ 0x126105990] file:0 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:0 pts_time:0 dts:0 dts_time:0\n[concat @ 0x126105990] All info found\n[concat @ 0x126105990] After avformat_find_stream_info() pos: 78 bytes read:78 seeks:0 frames:1\n[concat @ 0x126205b60] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:1 pts_time:0.04 dts:1 dts_time:0.04\n[AVIOContext @ 0x1261045c0] Statistics: 14 bytes read, 0 seeks\n[AVFormatContext @ 0x126104360] Opening 'lists/../frames/case.ppm' for reading\n[image2 @ 0x126104360] Format image2 probed with size=2048 and score=50\n[image2 @ 0x126104360] Before avformat_find_stream_info() pos: 0 bytes read:13 seeks:0 nb_streams:1\n[image2 @ 0x126104360] Could not find codec parameters for stream 0 (Video: ppm, 1 reference frame, none): unspecified size\nConsider increasing the value for the 'analyzeduration' (0) and 'probesize' (5000000) options\n[image2 @ 0x126104360] After avformat_find_stream_info() pos: 13 bytes read:13 seeks:0 frames:1\n[concat @ 0x126105990] file:1 stream:0 pts:0 pts_time:0 dts:0 dts_time:0 -> pts:-230584300921369 pts_time:-9223372036854.759766 dts:-230584300921369 dts_time:-9223372036854.759766\n[concat @ 0x126105990] DTS -230584300921369 < 0 out of order\n[concat @ 0x126205b60] file:1 stream:0 pts:-230584300921369 pts_time:-9223372036854.759766 dts:-230584300921369 dts_time:-9223372036854.759766 -> pts:-230584300921368 pts_time:-9223372036854.720703 dts:-230584300921368 dts_time:-9223372036854.720703\n[concat @ 0x126205b60] DTS -230584300921368 < 1 out of order\n[AVIOContext @ 0x126106cb0] Statistics: 13 bytes read, 0 seeks\n[AVIOContext @ 0x126104240] Statistics: 78 bytes read, 0 seeks\n[AVIOContext @ 0x126205300] Statistics: 71 bytes read, 0 seeks\n",
+      "diagnosticOpens": [
+        "lists/root",
+        "lists/child",
+        "lists/../frames/ Case雪.ppm ",
+        "lists/../frames/case.ppm",
+        "lists/child",
+        "lists/../frames/ Case雪.ppm ",
+        "lists/../frames/case.ppm"
+      ]
+    }
+  ],
+  "pairedStatusStdoutEqual": true
+}

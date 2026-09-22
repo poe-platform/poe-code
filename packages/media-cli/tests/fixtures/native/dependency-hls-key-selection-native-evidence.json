@@ -1,0 +1,624 @@
+{
+  "scope": "Named attempted AVIO read diagnostics only; no exhaustive kernel access or exact timing claim. Native execution is qualification evidence only.",
+  "executable": "/opt/homebrew/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "sourceUrl": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/hls.c",
+  "sourceSha256": "65ebf928221ea73aa3623e7227c9a5e5ea2e734f4784b08afe9fd75cc21676df",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6",
+  "before": {
+    "Case雪.ts": "91fa8422a54ad8bdd9e8e14e7ecfd40b1b0e0dcd934d422f0b0f4a0aff24d40b",
+    "lists/unknown.m3u8": "c45b0637826d74dc8f09accd8171682cd7d6dab6af7ad13eed8c719de7c90277",
+    "lists/missing.m3u8": "0732eae66faa0fc921b9a46e01b12bc3b68a0d3ac6b1d0312cb79ca6b7a4a48f",
+    "lists/Case雪.ts": "f98bf3a9137538a6f31583c0ed7910fee7a57d12ed6d126650f5d4ce3ebf5122",
+    "lists/lowercase.m3u8": "312bbf78ca092180a35e7e4b90c0672486e09bc89acafd3d3a8cf35618c00db0",
+    "lists/active.m3u8": "13678fbb71ab29e271040501804213f1fea8afac354143e42514424601db3d02"
+  },
+  "after": {
+    "Case雪.ts": "91fa8422a54ad8bdd9e8e14e7ecfd40b1b0e0dcd934d422f0b0f4a0aff24d40b",
+    "lists/unknown.m3u8": "c45b0637826d74dc8f09accd8171682cd7d6dab6af7ad13eed8c719de7c90277",
+    "lists/missing.m3u8": "0732eae66faa0fc921b9a46e01b12bc3b68a0d3ac6b1d0312cb79ca6b7a4a48f",
+    "lists/Case雪.ts": "f98bf3a9137538a6f31583c0ed7910fee7a57d12ed6d126650f5d4ce3ebf5122",
+    "lists/lowercase.m3u8": "312bbf78ca092180a35e7e4b90c0672486e09bc89acafd3d3a8cf35618c00db0",
+    "lists/active.m3u8": "13678fbb71ab29e271040501804213f1fea8afac354143e42514424601db3d02"
+  },
+  "fixturesUnchanged": true,
+  "cases": [
+    {
+      "label": "missing",
+      "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+      "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "error",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "",
+          "opens": []
+        },
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "debug",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x132f05e60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8' for reading\n[file @ 0x600003e1c0d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x132f05e60] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x132f05e60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts' for reading\nFormat mpegts probed with size=2048 and score=100\n[mpegts @ 0x1348041a0] stream=0 stream_type=2 pid=100 prog_reg_desc=\n[hls @ 0x132f05e60] Before avformat_find_stream_info() pos: 100 bytes read:100 seeks:0 nb_streams:1\n[mpegts @ 0x1348041a0] All programs have pmt, headers found\n[mpeg2video @ 0x134805130] Format yuv420p chosen by get_format().\n[AVIOContext @ 0x132e04290] Statistics: 6016 bytes read, 0 seeks\n[hls @ 0x132f05e60] rfps: 1.916667 0.006944\n[hls @ 0x132f05e60] rfps: 2.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 2.083333 0.006944\n[hls @ 0x132f05e60] rfps: 3.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 4.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 4.083333 0.006944\n[hls @ 0x132f05e60] rfps: 5.916667 0.006944\n[hls @ 0x132f05e60] rfps: 6.000000 0.000000\n[hls @ 0x132f05e60] rfps: 6.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 6.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 7.916667 0.006944\n[hls @ 0x132f05e60] rfps: 8.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 8.083333 0.006944\n[hls @ 0x132f05e60] rfps: 9.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 10.000000 0.000000\n[hls @ 0x132f05e60] rfps: 10.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 11.916667 0.006944\n[hls @ 0x132f05e60] rfps: 12.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 12.083333 0.006944\n[hls @ 0x132f05e60] rfps: 13.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 14.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 14.083333 0.006944\n[hls @ 0x132f05e60] rfps: 15.916667 0.006944\n[hls @ 0x132f05e60] rfps: 16.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 16.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 17.916667 0.006944\n[hls @ 0x132f05e60] rfps: 18.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 18.083333 0.006944\n[hls @ 0x132f05e60] rfps: 19.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 20.000000 0.000000\n[hls @ 0x132f05e60] rfps: 20.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 21.916667 0.006944\n[hls @ 0x132f05e60] rfps: 22.000000 0.000000\n[hls @ 0x132f05e60] rfps: 22.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 22.083333 0.006944\n[hls @ 0x132f05e60] rfps: 23.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 24.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 24.083333 0.006944\n[hls @ 0x132f05e60] rfps: 25.916667 0.006944\n[hls @ 0x132f05e60] rfps: 26.000000 0.000000\n[hls @ 0x132f05e60] rfps: 26.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 26.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 27.916667 0.006944\n[hls @ 0x132f05e60] rfps: 28.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 28.083333 0.006944\n[hls @ 0x132f05e60] rfps: 29.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 30.000000 0.000000\n[hls @ 0x132f05e60] rfps: 32.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 32.000000 0.000000\n[hls @ 0x132f05e60] rfps: 34.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 36.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 38.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 40.000000 0.000000\n[hls @ 0x132f05e60] rfps: 42.000000 0.000000\n[hls @ 0x132f05e60] rfps: 42.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 44.000000 0.000000\n[hls @ 0x132f05e60] rfps: 44.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 46.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 46.000000 0.000000\n[hls @ 0x132f05e60] rfps: 48.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 50.000000 0.000000\n[hls @ 0x132f05e60] rfps: 52.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 52.000000 0.000000\n[hls @ 0x132f05e60] rfps: 54.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 54.000000 0.000000\n[hls @ 0x132f05e60] rfps: 56.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 56.000000 0.000000\n[hls @ 0x132f05e60] rfps: 58.000000 -0.000000\n[hls @ 0x132f05e60] rfps: 58.000000 0.000000\n[hls @ 0x132f05e60] rfps: 60.000000 0.000000\n[hls @ 0x132f05e60] rfps: 80.000000 0.000000\n[hls @ 0x132f05e60] rfps: 120.000000 0.000000\n[hls @ 0x132f05e60] rfps: 240.000000 0.000000\n[hls @ 0x132f05e60] rfps: 23.976024 0.000575\n[hls @ 0x132f05e60] rfps: 29.970030 0.000898\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 59.940060 0.003593\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 11.988012 0.000144\n    Last message repeated 1 times\n[hls @ 0x132f05e60] rfps: 47.952048 0.002299\n[hls @ 0x132f05e60] After avformat_find_stream_info() pos: 100 bytes read:100 seeks:0 frames:8\nInput #0, hls, from '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8':\n  Duration: 00:00:01.00, start: 1.900000, bitrate: 0 kb/s\n  Program 0 \n    Metadata:\n      variant_bitrate : 0\n  Stream #0:0[0x0], 8, 1/90000: Video: mpeg2video (Main), 1 reference frame ([2][0][0][0] / 0x0002), yuv420p(tv, left), 16x16 [SAR 1:1 DAR 1:1], 0/1, 2 fps, 2 tbr, 90k tbn, start 1.900000\n    Metadata:\n      variant_bitrate : 0\n    Side data:\n      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 49152 vbv_delay: N/A\n[AVIOContext @ 0x134804080] Statistics: 100 bytes read, 0 seeks\n",
+          "opens": [
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/missing.m3u8",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts"
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "label": "unknown",
+      "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=UNKNOWN,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+      "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "error",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "",
+          "opens": []
+        },
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "debug",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x15a805b60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8' for reading\n[file @ 0x6000030100d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x15a805b60] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x15a805b60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts' for reading\nFormat mpegts probed with size=2048 and score=100\n[mpegts @ 0x159f043a0] stream=0 stream_type=2 pid=100 prog_reg_desc=\n[hls @ 0x15a805b60] Before avformat_find_stream_info() pos: 115 bytes read:115 seeks:0 nb_streams:1\n[mpegts @ 0x159f043a0] All programs have pmt, headers found\n[mpeg2video @ 0x159e052d0] Format yuv420p chosen by get_format().\n[AVIOContext @ 0x15a904080] Statistics: 6016 bytes read, 0 seeks\n[hls @ 0x15a805b60] rfps: 1.916667 0.006944\n[hls @ 0x15a805b60] rfps: 2.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 2.083333 0.006944\n[hls @ 0x15a805b60] rfps: 3.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 4.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 4.083333 0.006944\n[hls @ 0x15a805b60] rfps: 5.916667 0.006944\n[hls @ 0x15a805b60] rfps: 6.000000 0.000000\n[hls @ 0x15a805b60] rfps: 6.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 6.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 7.916667 0.006944\n[hls @ 0x15a805b60] rfps: 8.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 8.083333 0.006944\n[hls @ 0x15a805b60] rfps: 9.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 10.000000 0.000000\n[hls @ 0x15a805b60] rfps: 10.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 11.916667 0.006944\n[hls @ 0x15a805b60] rfps: 12.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 12.083333 0.006944\n[hls @ 0x15a805b60] rfps: 13.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 14.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 14.083333 0.006944\n[hls @ 0x15a805b60] rfps: 15.916667 0.006944\n[hls @ 0x15a805b60] rfps: 16.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 16.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 17.916667 0.006944\n[hls @ 0x15a805b60] rfps: 18.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 18.083333 0.006944\n[hls @ 0x15a805b60] rfps: 19.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 20.000000 0.000000\n[hls @ 0x15a805b60] rfps: 20.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 21.916667 0.006944\n[hls @ 0x15a805b60] rfps: 22.000000 0.000000\n[hls @ 0x15a805b60] rfps: 22.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 22.083333 0.006944\n[hls @ 0x15a805b60] rfps: 23.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 24.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 24.083333 0.006944\n[hls @ 0x15a805b60] rfps: 25.916667 0.006944\n[hls @ 0x15a805b60] rfps: 26.000000 0.000000\n[hls @ 0x15a805b60] rfps: 26.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 26.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 27.916667 0.006944\n[hls @ 0x15a805b60] rfps: 28.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 28.083333 0.006944\n[hls @ 0x15a805b60] rfps: 29.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 30.000000 0.000000\n[hls @ 0x15a805b60] rfps: 32.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 32.000000 0.000000\n[hls @ 0x15a805b60] rfps: 34.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 36.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 38.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 40.000000 0.000000\n[hls @ 0x15a805b60] rfps: 42.000000 0.000000\n[hls @ 0x15a805b60] rfps: 42.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 44.000000 0.000000\n[hls @ 0x15a805b60] rfps: 44.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 46.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 46.000000 0.000000\n[hls @ 0x15a805b60] rfps: 48.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 50.000000 0.000000\n[hls @ 0x15a805b60] rfps: 52.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 52.000000 0.000000\n[hls @ 0x15a805b60] rfps: 54.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 54.000000 0.000000\n[hls @ 0x15a805b60] rfps: 56.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 56.000000 0.000000\n[hls @ 0x15a805b60] rfps: 58.000000 -0.000000\n[hls @ 0x15a805b60] rfps: 58.000000 0.000000\n[hls @ 0x15a805b60] rfps: 60.000000 0.000000\n[hls @ 0x15a805b60] rfps: 80.000000 0.000000\n[hls @ 0x15a805b60] rfps: 120.000000 0.000000\n[hls @ 0x15a805b60] rfps: 240.000000 0.000000\n[hls @ 0x15a805b60] rfps: 23.976024 0.000575\n[hls @ 0x15a805b60] rfps: 29.970030 0.000898\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 59.940060 0.003593\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 11.988012 0.000144\n    Last message repeated 1 times\n[hls @ 0x15a805b60] rfps: 47.952048 0.002299\n[hls @ 0x15a805b60] After avformat_find_stream_info() pos: 115 bytes read:115 seeks:0 frames:8\nInput #0, hls, from '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8':\n  Duration: 00:00:01.00, start: 1.900000, bitrate: 0 kb/s\n  Program 0 \n    Metadata:\n      variant_bitrate : 0\n  Stream #0:0[0x0], 8, 1/90000: Video: mpeg2video (Main), 1 reference frame ([2][0][0][0] / 0x0002), yuv420p(tv, left), 16x16 [SAR 1:1 DAR 1:1], 0/1, 2 fps, 2 tbr, 90k tbn, start 1.900000\n    Metadata:\n      variant_bitrate : 0\n    Side data:\n      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 49152 vbv_delay: N/A\n[AVIOContext @ 0x159f04280] Statistics: 115 bytes read, 0 seeks\n",
+          "opens": [
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/unknown.m3u8",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts"
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "label": "lowercase",
+      "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=aes-128,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+      "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "error",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "",
+          "opens": []
+        },
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "debug",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8"
+          ],
+          "status": 0,
+          "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x13d804080] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8' for reading\n[file @ 0x600002a80000] Setting default whitelist 'file,crypto,data'\n[hls @ 0x13d804080] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x13d804080] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts' for reading\nFormat mpegts probed with size=2048 and score=100\n[mpegts @ 0x13be048b0] stream=0 stream_type=2 pid=100 prog_reg_desc=\n[hls @ 0x13d804080] Before avformat_find_stream_info() pos: 115 bytes read:115 seeks:0 nb_streams:1\n[mpegts @ 0x13be048b0] All programs have pmt, headers found\n[mpeg2video @ 0x12be04c60] Format yuv420p chosen by get_format().\n[AVIOContext @ 0x13d904080] Statistics: 6016 bytes read, 0 seeks\n[hls @ 0x13d804080] rfps: 1.916667 0.006944\n[hls @ 0x13d804080] rfps: 2.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 2.083333 0.006944\n[hls @ 0x13d804080] rfps: 3.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 4.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 4.083333 0.006944\n[hls @ 0x13d804080] rfps: 5.916667 0.006944\n[hls @ 0x13d804080] rfps: 6.000000 0.000000\n[hls @ 0x13d804080] rfps: 6.000000 -0.000000\n[hls @ 0x13d804080] rfps: 6.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 7.916667 0.006944\n[hls @ 0x13d804080] rfps: 8.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 8.083333 0.006944\n[hls @ 0x13d804080] rfps: 9.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 10.000000 0.000000\n[hls @ 0x13d804080] rfps: 10.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 11.916667 0.006944\n[hls @ 0x13d804080] rfps: 12.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 12.083333 0.006944\n[hls @ 0x13d804080] rfps: 13.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 14.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 14.083333 0.006944\n[hls @ 0x13d804080] rfps: 15.916667 0.006944\n[hls @ 0x13d804080] rfps: 16.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 16.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 17.916667 0.006944\n[hls @ 0x13d804080] rfps: 18.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 18.083333 0.006944\n[hls @ 0x13d804080] rfps: 19.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 20.000000 0.000000\n[hls @ 0x13d804080] rfps: 20.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 21.916667 0.006944\n[hls @ 0x13d804080] rfps: 22.000000 0.000000\n[hls @ 0x13d804080] rfps: 22.000000 -0.000000\n[hls @ 0x13d804080] rfps: 22.083333 0.006944\n[hls @ 0x13d804080] rfps: 23.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 24.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 24.083333 0.006944\n[hls @ 0x13d804080] rfps: 25.916667 0.006944\n[hls @ 0x13d804080] rfps: 26.000000 0.000000\n[hls @ 0x13d804080] rfps: 26.000000 -0.000000\n[hls @ 0x13d804080] rfps: 26.083333 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 27.916667 0.006944\n[hls @ 0x13d804080] rfps: 28.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 28.083333 0.006944\n[hls @ 0x13d804080] rfps: 29.916667 0.006944\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 30.000000 0.000000\n[hls @ 0x13d804080] rfps: 32.000000 -0.000000\n[hls @ 0x13d804080] rfps: 32.000000 0.000000\n[hls @ 0x13d804080] rfps: 34.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 36.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 38.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 40.000000 0.000000\n[hls @ 0x13d804080] rfps: 42.000000 0.000000\n[hls @ 0x13d804080] rfps: 42.000000 -0.000000\n[hls @ 0x13d804080] rfps: 44.000000 0.000000\n[hls @ 0x13d804080] rfps: 44.000000 -0.000000\n[hls @ 0x13d804080] rfps: 46.000000 -0.000000\n[hls @ 0x13d804080] rfps: 46.000000 0.000000\n[hls @ 0x13d804080] rfps: 48.000000 -0.000000\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 50.000000 0.000000\n[hls @ 0x13d804080] rfps: 52.000000 -0.000000\n[hls @ 0x13d804080] rfps: 52.000000 0.000000\n[hls @ 0x13d804080] rfps: 54.000000 -0.000000\n[hls @ 0x13d804080] rfps: 54.000000 0.000000\n[hls @ 0x13d804080] rfps: 56.000000 -0.000000\n[hls @ 0x13d804080] rfps: 56.000000 0.000000\n[hls @ 0x13d804080] rfps: 58.000000 -0.000000\n[hls @ 0x13d804080] rfps: 58.000000 0.000000\n[hls @ 0x13d804080] rfps: 60.000000 0.000000\n[hls @ 0x13d804080] rfps: 80.000000 0.000000\n[hls @ 0x13d804080] rfps: 120.000000 0.000000\n[hls @ 0x13d804080] rfps: 240.000000 0.000000\n[hls @ 0x13d804080] rfps: 23.976024 0.000575\n[hls @ 0x13d804080] rfps: 29.970030 0.000898\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 59.940060 0.003593\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 11.988012 0.000144\n    Last message repeated 1 times\n[hls @ 0x13d804080] rfps: 47.952048 0.002299\n[hls @ 0x13d804080] After avformat_find_stream_info() pos: 115 bytes read:115 seeks:0 frames:8\nInput #0, hls, from '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8':\n  Duration: 00:00:01.00, start: 1.900000, bitrate: 0 kb/s\n  Program 0 \n    Metadata:\n      variant_bitrate : 0\n  Stream #0:0[0x0], 8, 1/90000: Video: mpeg2video (Main), 1 reference frame ([2][0][0][0] / 0x0002), yuv420p(tv, left), 16x16 [SAR 1:1 DAR 1:1], 0/1, 2 fps, 2 tbr, 90k tbn, start 1.900000\n    Metadata:\n      variant_bitrate : 0\n    Side data:\n      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 49152 vbv_delay: N/A\n[AVIOContext @ 0x13be04780] Statistics: 115 bytes read, 0 seeks\n",
+          "opens": [
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/lowercase.m3u8",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts"
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    },
+    {
+      "label": "active",
+      "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=AES-128,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+      "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "error",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8"
+          ],
+          "status": 1,
+          "stdout": "{\n\n}\n",
+          "stderr": "[hls @ 0x147004080] Unable to open key file /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/absent雪.key, No such file or directory\n[hls @ 0x147004080] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts'\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8: Invalid data found when processing input\n",
+          "opens": []
+        },
+        {
+          "argv": [
+            "/opt/homebrew/bin/ffprobe",
+            "-v",
+            "debug",
+            "-f",
+            "hls",
+            "-allowed_extensions",
+            "ALL",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "json",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8"
+          ],
+          "status": 1,
+          "stdout": "{\n\n}\n",
+          "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x158f05b10] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8' for reading\n[file @ 0x600000fd80d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x158f05b10] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x158f05b10] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/absent雪.key' for reading\n[hls @ 0x158f05b10] Unable to open key file /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/absent雪.key, No such file or directory\n[hls @ 0x158f05b10] Failed to open segment 0 of playlist 0\n[hls @ 0x158f05b10] Segment 0 of playlist 0 failed too many times, skipping\n[hls @ 0x158f05b10] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/Case雪.ts'\n[AVIOContext @ 0x159904080] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8: Invalid data found when processing input\n",
+          "opens": [
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/active.m3u8",
+            "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selected-v0in01p6/lists/absent雪.key"
+          ]
+        }
+      ],
+      "equalStatusStdout": true
+    }
+  ],
+  "initialCohort": {
+    "scope": "Named attempted AVIO read diagnostics only; no exhaustive kernel access or exact timing claim. Native execution is qualification evidence only.",
+    "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l",
+    "executable": "/opt/homebrew/bin/ffprobe",
+    "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+    "sourceUrl": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/hls.c",
+    "sourceSha256": "65ebf928221ea73aa3623e7227c9a5e5ea2e734f4784b08afe9fd75cc21676df",
+    "before": {
+      "Case雪.ts": "1c9becad1f0e23d32e685ff6918cf947dd2a513addfe7f71676456ac49d694d1",
+      "lists/Case雪.ts": "60c89b9cf2dfbd84fba8056dc6dd30171cc726badb0aea9b6cc18253620b009a",
+      "lists/missing": "0732eae66faa0fc921b9a46e01b12bc3b68a0d3ac6b1d0312cb79ca6b7a4a48f",
+      "lists/lowercase": "312bbf78ca092180a35e7e4b90c0672486e09bc89acafd3d3a8cf35618c00db0",
+      "lists/unknown": "c45b0637826d74dc8f09accd8171682cd7d6dab6af7ad13eed8c719de7c90277",
+      "lists/active": "13678fbb71ab29e271040501804213f1fea8afac354143e42514424601db3d02"
+    },
+    "after": {
+      "Case雪.ts": "1c9becad1f0e23d32e685ff6918cf947dd2a513addfe7f71676456ac49d694d1",
+      "lists/Case雪.ts": "60c89b9cf2dfbd84fba8056dc6dd30171cc726badb0aea9b6cc18253620b009a",
+      "lists/missing": "0732eae66faa0fc921b9a46e01b12bc3b68a0d3ac6b1d0312cb79ca6b7a4a48f",
+      "lists/lowercase": "312bbf78ca092180a35e7e4b90c0672486e09bc89acafd3d3a8cf35618c00db0",
+      "lists/unknown": "c45b0637826d74dc8f09accd8171682cd7d6dab6af7ad13eed8c719de7c90277",
+      "lists/active": "13678fbb71ab29e271040501804213f1fea8afac354143e42514424601db3d02"
+    },
+    "fixturesUnchanged": true,
+    "cases": [
+      {
+        "label": "missing",
+        "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+        "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing",
+        "runs": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "[hls @ 0x13cf04280] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x13cf04280] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x12a705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing' for reading\n[file @ 0x600003b240d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x12a705d60] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x12a705d60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts' for reading\n[AVIOContext @ 0x12a604780] Statistics: 1504 bytes read, 0 seeks\nFormat mpeg detected only with low score of 25, misdetection possible!\n[hls @ 0x12a705d60] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x12a705d60] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n[AVIOContext @ 0x12a705500] Statistics: 100 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts"
+            ]
+          }
+        ],
+        "equalStatusStdout": true,
+        "unselectedDemuxerRuns": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "Not detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[AVFormatContext @ 0x151804080] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing' for reading\n[file @ 0x600000048000] Setting default whitelist 'file,crypto,data'\nNot detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n[AVIOContext @ 0x1518042e0] Statistics: 100 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/missing"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "unknown",
+        "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=UNKNOWN,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+        "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown",
+        "runs": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "[hls @ 0x144f04390] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x144f04390] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x151e06230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown' for reading\n[file @ 0x6000003500d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x151e06230] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x151e06230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts' for reading\n[AVIOContext @ 0x151f04080] Statistics: 1504 bytes read, 0 seeks\nFormat mpeg detected only with low score of 25, misdetection possible!\n[hls @ 0x151e06230] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x151e06230] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n[AVIOContext @ 0x151e05b40] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts"
+            ]
+          }
+        ],
+        "equalStatusStdout": true,
+        "unselectedDemuxerRuns": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "Not detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[AVFormatContext @ 0x130905b60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown' for reading\n[file @ 0x600000a2c0d0] Setting default whitelist 'file,crypto,data'\nNot detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n[AVIOContext @ 0x130905300] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/unknown"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "lowercase",
+        "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=aes-128,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+        "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase",
+        "runs": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "[hls @ 0x127f05d60] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x127f05d60] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x159e06230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase' for reading\n[file @ 0x600003d780d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x159e06230] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x159e06230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts' for reading\n[AVIOContext @ 0x159f04080] Statistics: 1504 bytes read, 0 seeks\nFormat mpeg detected only with low score of 25, misdetection possible!\n[hls @ 0x159e06230] detected format mpeg extension none mismatches allowed extensions in url /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts\n[hls @ 0x159e06230] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n[AVIOContext @ 0x159e05b40] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts"
+            ]
+          }
+        ],
+        "equalStatusStdout": true,
+        "unselectedDemuxerRuns": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "Not detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[AVFormatContext @ 0x136805b60] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase' for reading\n[file @ 0x6000033780d0] Setting default whitelist 'file,crypto,data'\nNot detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n[AVIOContext @ 0x136805300] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/lowercase"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "active",
+        "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-KEY:METHOD=AES-128,URI=\"absent雪.key\"\n#EXTINF:1,\nCase雪.ts\n#EXT-X-ENDLIST\n",
+        "path": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active",
+        "runs": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "[hls @ 0x147f05d60] Unable to open key file /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/absent雪.key, No such file or directory\n[hls @ 0x147f05d60] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-f",
+              "hls",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x11c606230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active' for reading\n[file @ 0x600002d7c0d0] Setting default whitelist 'file,crypto,data'\n[hls @ 0x11c606230] HLS request for url '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts', offset 0, playlist 0\n[hls @ 0x11c606230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/absent雪.key' for reading\n[hls @ 0x11c606230] Unable to open key file /private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/absent雪.key, No such file or directory\n[hls @ 0x11c606230] Failed to open segment 0 of playlist 0\n[hls @ 0x11c606230] Segment 0 of playlist 0 failed too many times, skipping\n[hls @ 0x11c606230] Error when loading first segment '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/Case雪.ts'\n[AVIOContext @ 0x11c605b40] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/absent雪.key"
+            ]
+          }
+        ],
+        "equalStatusStdout": true,
+        "unselectedDemuxerRuns": [
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "error",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "Not detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active: Invalid data found when processing input\n",
+            "opens": []
+          },
+          {
+            "argv": [
+              "/opt/homebrew/bin/ffprobe",
+              "-v",
+              "debug",
+              "-allowed_extensions",
+              "ALL",
+              "-show_entries",
+              "stream=width,height",
+              "-of",
+              "json",
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active"
+            ],
+            "status": 1,
+            "stdout": "{\n\n}\n",
+            "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[AVFormatContext @ 0x127e06230] Opening '/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active' for reading\n[file @ 0x600002b940d0] Setting default whitelist 'file,crypto,data'\nNot detecting m3u8/hls with non standard extension and non standard mime type\n    Last message repeated 1 times\n[AVIOContext @ 0x127f04080] Statistics: 115 bytes read, 0 seeks\n/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active: Invalid data found when processing input\n",
+            "opens": [
+              "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-key-selection-gl47k83l/lists/active"
+            ]
+          }
+        ]
+      }
+    ],
+    "selectionNote": "Initial extensionless autodetection controls failed before HLS selection and are retained separately. Qualified pairs explicitly select the HLS demuxer with -f hls; fixture bytes remain unchanged."
+  },
+  "qualificationNote": "Initial short-stream and extensionless autodetection controls remain separate. Final original fixture cohort uses eight-frame transport streams and explicitly selects HLS; no prefetch or native replay is used in product discovery."
+}

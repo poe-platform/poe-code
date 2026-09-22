@@ -1,0 +1,333 @@
+{
+  "captured_utc": "2026-09-20T00:37:19.763738+00:00",
+  "qualification": "Partial attempted libc open/fopen evidence; not complete kernel access, exact timing, network or runtime mediation",
+  "cwd": "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-key-info-qualified-o9ve3pb7",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+  "executable_sha256": "733eab555d50593370ae810b20405d22ed255748ee39a76b53c1fe3b6aaaa5f0",
+  "registered_executable_match": true,
+  "tracer_source": "#include <fcntl.h>\n#include <stdarg.h>\n#include <stdio.h>\n#include <unistd.h>\nstatic void record(const char *operation,const char *path,int flags) {\n char line[16384]; int n=snprintf(line,sizeof(line),\"ACCESS %s %d \",operation,flags);\n for(const unsigned char *p=(const unsigned char *)path;*p && n+3<sizeof(line);p++) n+=snprintf(line+n,sizeof(line)-n,\"%02x\",*p);\n line[n++]='\\n'; write(2,line,n);\n}\nstatic int observed_open(const char *path,int flags,...) {\n mode_t mode=0; if(flags&O_CREAT){va_list ap;va_start(ap,flags);mode=va_arg(ap,int);va_end(ap);}\n record(\"open\",path,flags);return open(path,flags,mode);\n}\nstatic FILE *observed_fopen(const char *path,const char *mode) {\n record(\"fopen\",path,mode[0]=='r'?O_RDONLY:O_WRONLY);return fopen(path,mode);\n}\n__attribute__((used)) static struct {const void *replacement;const void *original;} hooks[]\n__attribute__((section(\"__DATA,__interpose\"))) = {{(const void *)observed_open,(const void *)open},{(const void *)observed_fopen,(const void *)fopen}};\n",
+  "tracer_build_argv": [
+    "clang",
+    "-dynamiclib",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-key-info-qualified-o9ve3pb7/observer.c",
+    "-o",
+    "/private/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-key-info-qualified-o9ve3pb7/observer.dylib"
+  ],
+  "fixtures": {
+    "secrets/Case雪.bin": "AAECAwQFBgcICQoLDA0ODw==",
+    "keys/secrets/Case雪.bin": "d3JvbmctZGlyZWN0b3J5LWtleQ==",
+    "keys/Case雪.info": "aHR0cHM6Ly9jZG4uaW52YWxpZC9rZXk/c2lnPSslMmYja2V5CnNlY3JldHMvQ2FzZembqi5iaW4K",
+    "presets/Job雪\n.ffpreset": "aGxzX2tleV9pbmZvX2ZpbGU9a2V5cy9DYXNl6ZuqLmluZm8K",
+    "secrets/lower/case雪.bin": "Dw4NDAsKCQgHBgUEAwIBAA=="
+  },
+  "cases": [
+    {
+      "route": "direct",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-hls_key_info_file",
+            "keys/Case雪.info",
+            "-f",
+            "hls",
+            "out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "",
+          "accesses": [],
+          "outputs": {
+            "out.m3u8": "27c8477abd20c757af226f14baefdb3fc389eee5fe5a38e4bad0bcd6118ed992",
+            "out0.ts": "a544a63acbb0f7c102978b946d052560aaee6db21fe7fc7d335071f0b0a47273"
+          }
+        },
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-hls_key_info_file",
+            "keys/Case雪.info",
+            "-f",
+            "hls",
+            "out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 6b6579732f43617365e99baa2e696e666f\nACCESS open 16777216 736563726574732f43617365e99baa2e62696e\nACCESS open 16778753 6f7574302e7473\nACCESS open 16778753 6f75742e6d3375382e746d70\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6b6579732f43617365e99baa2e696e666f"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "736563726574732f43617365e99baa2e62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f7574302e7473"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f75742e6d3375382e746d70"
+            }
+          ],
+          "outputs": {
+            "out.m3u8": "27c8477abd20c757af226f14baefdb3fc389eee5fe5a38e4bad0bcd6118ed992",
+            "out0.ts": "a544a63acbb0f7c102978b946d052560aaee6db21fe7fc7d335071f0b0a47273"
+          }
+        }
+      ],
+      "equalStatusStdoutOutputs": true,
+      "fixturesUnchanged": true
+    },
+    {
+      "route": "preset",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-fpre",
+            "presets/Job雪\n.ffpreset",
+            "-f",
+            "hls",
+            "out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "",
+          "accesses": [],
+          "outputs": {
+            "out.m3u8": "491dff2fc95dfc9e00f22c513f377593eba0e340cb0f5482e568f465dbd3466f",
+            "out0.ts": "d41173b23760a48645f61b32754d9db8350ac6a8bb35b14532ccbae69174f583"
+          }
+        },
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-fpre",
+            "presets/Job雪\n.ffpreset",
+            "-f",
+            "hls",
+            "out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS fopen 0 707265736574732f4a6f62e99baa0a2e6666707265736574\nACCESS open 16778753 6f7574302e7473\nACCESS open 16778753 6f75742e6d3375382e746d70\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "fopen",
+              "flags": 0,
+              "path_hex": "707265736574732f4a6f62e99baa0a2e6666707265736574"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f7574302e7473"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f75742e6d3375382e746d70"
+            }
+          ],
+          "outputs": {
+            "out.m3u8": "491dff2fc95dfc9e00f22c513f377593eba0e340cb0f5482e568f465dbd3466f",
+            "out0.ts": "d41173b23760a48645f61b32754d9db8350ac6a8bb35b14532ccbae69174f583"
+          }
+        }
+      ],
+      "equalStatusStdoutOutputs": true,
+      "fixturesUnchanged": true
+    },
+    {
+      "route": "tee",
+      "runs": [
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-f",
+            "tee",
+            "[f=hls:hls_key_info_file=keys/Case雪.info]out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "",
+          "accesses": [],
+          "outputs": {
+            "out.m3u8": "27c8477abd20c757af226f14baefdb3fc389eee5fe5a38e4bad0bcd6118ed992",
+            "out0.ts": "50685faad155654ba7d0861e1b27b62d9fc8748df910df85586e37556a3a1f11"
+          }
+        },
+        {
+          "argv": [
+            "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+            "-nostdin",
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=size=16x16:rate=5",
+            "-t",
+            "0.2",
+            "-map",
+            "0:v",
+            "-c:v",
+            "mpeg2video",
+            "-f",
+            "tee",
+            "[f=hls:hls_key_info_file=keys/Case雪.info]out.m3u8"
+          ],
+          "status": 0,
+          "stdout_base64": "",
+          "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 6b6579732f43617365e99baa2e696e666f\nACCESS open 16777216 736563726574732f43617365e99baa2e62696e\nACCESS open 16778753 6f7574302e7473\nACCESS open 16778753 6f75742e6d3375382e746d70\n",
+          "accesses": [
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 0,
+              "path_hex": "2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "6b6579732f43617365e99baa2e696e666f"
+            },
+            {
+              "operation": "open",
+              "flags": 16777216,
+              "path_hex": "736563726574732f43617365e99baa2e62696e"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f7574302e7473"
+            },
+            {
+              "operation": "open",
+              "flags": 16778753,
+              "path_hex": "6f75742e6d3375382e746d70"
+            }
+          ],
+          "outputs": {
+            "out.m3u8": "27c8477abd20c757af226f14baefdb3fc389eee5fe5a38e4bad0bcd6118ed992",
+            "out0.ts": "50685faad155654ba7d0861e1b27b62d9fc8748df910df85586e37556a3a1f11"
+          }
+        }
+      ],
+      "equalStatusStdoutOutputs": true,
+      "fixturesUnchanged": true
+    }
+  ],
+  "limitations": [
+    "Native filesystem is case-insensitive; case distinctions are covered by original in-memory tests only.",
+    "Initial qualification used same-directory case-colliding fixtures and failed fixture preservation; fresh cohort separates them without modifying product semantics.",
+    "Preset run opens the preset only and does not qualify predicted HLS key-info or key-file accesses."
+  ]
+}

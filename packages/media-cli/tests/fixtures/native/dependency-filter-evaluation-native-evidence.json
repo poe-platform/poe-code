@@ -1,0 +1,118 @@
+{
+  "captured_utc": "2026-09-20T17:08:05.615237+00:00",
+  "qualification": "Partial attempted libc open/fopen trace; no complete syscall coverage or exact timing claim. Native trace is qualification evidence only.",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-filter-evaluation-e170nhw8",
+  "executable": "/opt/homebrew/Cellar/ffmpeg/9.0.1_1/bin/ffmpeg",
+  "executable_sha256": "733eab555d50593370ae810b20405d22ed255748ee39a76b53c1fe3b6aaaa5f0",
+  "registered_executable_match": true,
+  "sources": {
+    "fftools/ffmpeg_filter.c": "85a5f5fec249430381d43ecbda28170ee6f4f2b86adfd5991c23cfeb1d57e273",
+    "libavfilter/graphparser.c": "59d70103a55dabc2b36fef605ef4d391f5988ceb007a540ce1e9a4eda1c5a3e5"
+  },
+  "observer": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-filter-boundaries-0h87ehox/observer.dylib",
+  "observer_sha256": "4e14ae12834298aa73049b1e0ddcad5940d315099f4fcaa968417a6d0aedb4d2",
+  "observer_source_matches_prior_evidence": true,
+  "argv": [
+    "-v",
+    "error",
+    "-f",
+    "lavfi",
+    "-i",
+    "color=c=red:s=16x16:d=0.04",
+    "-vf",
+    "lut3d=file='Case雪\n.cube',lut3d=/file=options/first:/file=options/selected:file='profiles/case雪\n.cube'",
+    "-frames:v",
+    "1",
+    "-f",
+    "rawvideo",
+    "pipe:1"
+  ],
+  "graph": "lut3d=file='Case雪\n.cube',lut3d=/file=options/first:/file=options/selected:file='profiles/case雪\n.cube'",
+  "fixtures": {
+    "Case雪\n.cube": {
+      "content_hex": "4c55545f33445f53495a4520320a30203020300a31203020300a30203120300a31203120300a30203020310a31203020310a30203120310a31203120310a",
+      "sha256": "c8bce4299c8606d5ca59a4724f46e484e430c42d506cfc2a3f30bbe84d5199cc"
+    },
+    "profiles/case雪\n.cube": {
+      "content_hex": "4c55545f33445f53495a4520320a30203020300a31203020300a30203120300a31203120300a30203020310a31203020310a30203120310a31203120310a",
+      "sha256": "c8bce4299c8606d5ca59a4724f46e484e430c42d506cfc2a3f30bbe84d5199cc"
+    },
+    "options/first": {
+      "content_hex": "6e6f6e6578697374656e742d6f7074696f6e616c2e63756265",
+      "sha256": "e09cd8c601498ddb5f5c2ffab2c415e087ca893a5ab6cd75e907d873a0643efa"
+    },
+    "options/selected": {
+      "content_hex": "616e6f746865722d6e6f6e6578697374656e742e63756265",
+      "sha256": "da70589ae0889388dfb445d2741068293d3c1844716bd7403d69123de1e93e63"
+    }
+  },
+  "fixtures_unchanged": true,
+  "equal_status_stdout": true,
+  "expected_read_order_per_evaluation": [
+    "options/first",
+    "options/selected",
+    "Case雪\n.cube",
+    "profiles/case雪\n.cube"
+  ],
+  "observed_evaluations": 2,
+  "qualification_note": "Initial qualification expected one evaluation and failed: native evaluates the graph twice. Both groups preserve option-load then initialization order; repetitions remain runtime obligations.",
+  "runs": [
+    {
+      "traced": false,
+      "status": 0,
+      "stdout_sha256": "0314c4f30cc637f0c81c81cba133c1fa3b76eab94146329bb44e275996757cbe",
+      "stdout_bytes": 768,
+      "stderr": "",
+      "named_accesses": []
+    },
+    {
+      "traced": true,
+      "status": 0,
+      "stdout_sha256": "0314c4f30cc637f0c81c81cba133c1fa3b76eab94146329bb44e275996757cbe",
+      "stdout_bytes": 768,
+      "stderr": "ACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e\nACCESS open 0 2f6f70742f686f6d65627265772f43656c6c61722f66666d7065672f392e302e315f312f62696e2f496e666f2e706c697374\nACCESS open 16777216 6f7074696f6e732f6669727374\nACCESS open 16777216 6f7074696f6e732f73656c6563746564\nACCESS open 16777216 43617365e99baa0a2e63756265\nACCESS open 16777216 70726f66696c65732f63617365e99baa0a2e63756265\nACCESS open 16777216 6f7074696f6e732f6669727374\nACCESS open 16777216 6f7074696f6e732f73656c6563746564\nACCESS open 16777216 43617365e99baa0a2e63756265\nACCESS open 16777216 70726f66696c65732f63617365e99baa0a2e63756265\n",
+      "named_accesses": [
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "6f7074696f6e732f6669727374"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "6f7074696f6e732f73656c6563746564"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "43617365e99baa0a2e63756265"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "70726f66696c65732f63617365e99baa0a2e63756265"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "6f7074696f6e732f6669727374"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "6f7074696f6e732f73656c6563746564"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "43617365e99baa0a2e63756265"
+        },
+        {
+          "operation": "open",
+          "flags": 16777216,
+          "path_hex": "70726f66696c65732f63617365e99baa0a2e63756265"
+        }
+      ]
+    }
+  ]
+}

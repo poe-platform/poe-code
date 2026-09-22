@@ -1,0 +1,115 @@
+{
+  "scope": "Named attempted AVIO reads and skipped-comment diagnostics only; not exhaustive kernel access or exact timing. Native evidence is not loaded by product discovery.",
+  "cwd": "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r",
+  "executable": "/opt/homebrew/bin/ffprobe",
+  "executableSha256": "860eadc7b01d86126a208601c83602feb8eab952da232ce603066fb2f65471d8",
+  "sourceUrl": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/639ee849526cfe61ceb312776335c245b98bd9d4/libavformat/hls.c",
+  "sourceSha256": "65ebf928221ea73aa3623e7227c9a5e5ea2e734f4784b08afe9fd75cc21676df",
+  "manifest": "#EXTM3U\n#EXT-X-TARGETDURATION:1\n#EXT-X-SESSION-KEY:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-I-FRAME-STREAM-INF:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-PART:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-PRELOAD-HINT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-RENDITION-REPORT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-SESSION-DATA:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"\n#EXT-X-CONTENT-STEERING:METHOD=AES-128,SERVER-URI=\"optional-absent.key?sig=+%2f#part\"\n#EXTINF:1,\nCase.ts\n#EXT-X-ENDLIST\n",
+  "before": {
+    "Case.ts": "481a9702fae601140727fb7f1c5a18fb1d851428c6e505593e6ba40bd5c40658",
+    "lists/Case.ts": "9865037b8d43ef0f9937568af679491fabfb00c794d45242ea67bc09488000cf",
+    "lists/master.m3u8": "660f4c2d224b1eb7d98b4b605afdda9a3ce0ad828966d35729a6aed06b03f540"
+  },
+  "after": {
+    "Case.ts": "481a9702fae601140727fb7f1c5a18fb1d851428c6e505593e6ba40bd5c40658",
+    "lists/Case.ts": "9865037b8d43ef0f9937568af679491fabfb00c794d45242ea67bc09488000cf",
+    "lists/master.m3u8": "660f4c2d224b1eb7d98b4b605afdda9a3ce0ad828966d35729a6aed06b03f540"
+  },
+  "fixturesUnchanged": true,
+  "runs": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/ffprobe",
+        "-v",
+        "error",
+        "-f",
+        "hls",
+        "-allowed_extensions",
+        "ALL",
+        "-show_entries",
+        "stream=width,height",
+        "-of",
+        "json",
+        "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8"
+      ],
+      "status": 0,
+      "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/ffprobe",
+        "-v",
+        "debug",
+        "-f",
+        "hls",
+        "-allowed_extensions",
+        "ALL",
+        "-show_entries",
+        "stream=width,height",
+        "-of",
+        "json",
+        "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8"
+      ],
+      "status": 0,
+      "stdout": "{\n    \"programs\": [\n        {\n            \"streams\": [\n                {\n                    \"width\": 16,\n                    \"height\": 16,\n                    \"side_data_list\": [\n                        {\n\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"stream_groups\": [\n\n    ],\n    \"streams\": [\n        {\n            \"width\": 16,\n            \"height\": 16,\n            \"side_data_list\": [\n                {\n\n                }\n            ]\n        }\n    ]\n}\n",
+      "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x123f05d60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8' for reading\n[file @ 0x600003a00000] Setting default whitelist 'file,crypto,data'\n[hls @ 0x123f05d60] Skip ('#EXT-X-SESSION-KEY:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-I-FRAME-STREAM-INF:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-PART:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-PRELOAD-HINT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-RENDITION-REPORT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-SESSION-DATA:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] Skip ('#EXT-X-CONTENT-STEERING:METHOD=AES-128,SERVER-URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x123f05d60] HLS request for url '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts', offset 0, playlist 0\n[hls @ 0x123f05d60] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts' for reading\nFormat mpegts probed with size=2048 and score=100\n[mpegts @ 0x123e048b0] stream=0 stream_type=2 pid=100 prog_reg_desc=\n[hls @ 0x123f05d60] Before avformat_find_stream_info() pos: 603 bytes read:603 seeks:0 nb_streams:1\n[mpegts @ 0x123e048b0] All programs have pmt, headers found\n[mpeg2video @ 0x123e056f0] Format yuv420p chosen by get_format().\n[hls @ 0x123f05d60] All info found\n[hls @ 0x123f05d60] After avformat_find_stream_info() pos: 603 bytes read:603 seeks:0 frames:21\nInput #0, hls, from '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8':\n  Duration: 00:00:01.00, start: 1.440000, bitrate: 4 kb/s\n  Program 0 \n    Metadata:\n      variant_bitrate : 0\n  Stream #0:0[0x0], 21, 1/90000: Video: mpeg2video (Main), 1 reference frame ([2][0][0][0] / 0x0002), yuv420p(tv, left), 16x16 [SAR 1:1 DAR 1:1], 0/1, 25 fps, 25 tbr, 90k tbn, start 1.440000\n    Metadata:\n      variant_bitrate : 0\n    Side data:\n      CPB properties: bitrate max/min/avg: 0/0/0 buffer size: 49152 vbv_delay: N/A\n[AVIOContext @ 0x123e04290] Statistics: 16544 bytes read, 0 seeks\n[AVIOContext @ 0x123e04780] Statistics: 603 bytes read, 0 seeks\n"
+    }
+  ],
+  "equalStatusStdout": true,
+  "initialShortStreamAttempt": {
+    "before": {
+      "Case.ts": "c5431b9f136e860f0d7dfc9dd6c6ab409dbcf85f1ba1857341f2d9814afd79df",
+      "lists/Case.ts": "fba0eacedfa179da21fca717f6d55cec50a39f1c69bd9e69a10469552797a07a",
+      "lists/master.m3u8": "660f4c2d224b1eb7d98b4b605afdda9a3ce0ad828966d35729a6aed06b03f540"
+    },
+    "after": {
+      "Case.ts": "c5431b9f136e860f0d7dfc9dd6c6ab409dbcf85f1ba1857341f2d9814afd79df",
+      "lists/Case.ts": "fba0eacedfa179da21fca717f6d55cec50a39f1c69bd9e69a10469552797a07a",
+      "lists/master.m3u8": "660f4c2d224b1eb7d98b4b605afdda9a3ce0ad828966d35729a6aed06b03f540"
+    },
+    "runs": [
+      {
+        "argv": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "error",
+          "-f",
+          "hls",
+          "-allowed_extensions",
+          "ALL",
+          "-show_entries",
+          "stream=width,height",
+          "-of",
+          "json",
+          "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8"
+        ],
+        "status": 1,
+        "stdout": "{\n\n}\n",
+        "stderr": "[hls @ 0x12e804080] detected format mpegvideo extension none mismatches allowed extensions in url /var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts\n[hls @ 0x12e804080] Error when loading first segment '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts'\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8: Invalid data found when processing input\n"
+      },
+      {
+        "argv": [
+          "/opt/homebrew/bin/ffprobe",
+          "-v",
+          "debug",
+          "-f",
+          "hls",
+          "-allowed_extensions",
+          "ALL",
+          "-show_entries",
+          "stream=width,height",
+          "-of",
+          "json",
+          "/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8"
+        ],
+        "status": 1,
+        "stdout": "{\n\n}\n",
+        "stderr": "ffprobe version 9.0.1 Copyright (c) 2007-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/9.0.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      61.  1.101 / 61.  1.101\n  libavcodec     63.  1.101 / 63.  1.101\n  libavformat    63.  1.101 / 63.  1.101\n  libavdevice    63.  1.101 / 63.  1.101\n  libavfilter    12.  1.101 / 12.  1.101\n  libswscale     10.  1.101 / 10.  1.101\n  libswresample   7.  1.101 /  7.  1.101\nAdding 'width' to the entries to show in section 'stream'\nAdding 'height' to the entries to show in section 'stream'\n'stream' matches section with unique name 'program_stream'\n'stream' matches section with unique name 'stream_group_stream'\n'stream' matches section with unique name 'stream'\n[hls @ 0x11f606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8' for reading\n[file @ 0x600002e98240] Setting default whitelist 'file,crypto,data'\n[hls @ 0x11f606230] Skip ('#EXT-X-SESSION-KEY:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-I-FRAME-STREAM-INF:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-PART:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-PRELOAD-HINT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-RENDITION-REPORT:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-SESSION-DATA:METHOD=AES-128,URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] Skip ('#EXT-X-CONTENT-STEERING:METHOD=AES-128,SERVER-URI=\"optional-absent.key?sig=+%2f#part\"')\n[hls @ 0x11f606230] HLS request for url '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts', offset 0, playlist 0\n[hls @ 0x11f606230] Opening '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts' for reading\n[AVIOContext @ 0x11f604290] Statistics: 752 bytes read, 0 seeks\nFormat mpegvideo detected only with low score of 12, misdetection possible!\n[hls @ 0x11f606230] detected format mpegvideo extension none mismatches allowed extensions in url /var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts\n[hls @ 0x11f606230] Error when loading first segment '/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/Case.ts'\n[AVIOContext @ 0x11f605b40] Statistics: 603 bytes read, 0 seeks\n/var/folders/dd/5_48r3_n6_lf1blr1_1nvyrh0000gn/T/poe-hls-reader-tags-p5azs_6r/lists/master.m3u8: Invalid data found when processing input\n"
+      }
+    ],
+    "fixturesUnchanged": true,
+    "equalStatusStdout": true
+  }
+}

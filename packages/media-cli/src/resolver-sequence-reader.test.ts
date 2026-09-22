@@ -3,7 +3,7 @@ import { discover } from './discover.js';
 import { createDependencyResolver, resolveDependencies } from './resolver.js';
 import { parseFilenameExpression } from './filename-expression.js';
 import { Volume } from 'memfs';
-import evidence from '../test-fixtures/native/dependency-sequence-reader-native-evidence.json';
+import evidence from '../tests/fixtures/native/dependency-sequence-reader-native-evidence.json';
 
 const b = (value: string) => new TextEncoder().encode(value);
 const options = { cwd: b('/work'), budgets: { nodes: 100, bytes: 100000, depth: 10, symlinks: 10 } };

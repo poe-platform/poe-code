@@ -109,8 +109,9 @@ export type RealmResult =
 export type SafeJSRealm = ExecutionControl & {
   readonly stringCompilation: "allow" | "deny";
   readonly classicScriptErrors: "fatal" | "report";
+  readonly supportsDiscardResult: true;
   readonly extensions: readonly SafeJSExtension["manifest"][];
-  evaluate(source: string, options?: { filename?: string; sourceType?: "module" }): Promise<RealmResult>;
+  evaluate(source: string, options?: { filename?: string; sourceType?: "module"; discardResult?: boolean }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
@@ -981,8 +982,11 @@ class RealmState {
     }
   };
 
-  evaluate = async (source: string, options: { filename?: string; sourceType?: "module" } = {}): Promise<RealmResult> =>
+  evaluate = async (source: string, options: { filename?: string; sourceType?: "module"; discardResult?: boolean } = {}): Promise<RealmResult> =>
     this.perform<RealmResult>(async () => {
+      const discard = Object.getOwnPropertyDescriptor(options, "discardResult");
+      if (discard && (!("value" in discard) || (discard.value !== undefined && typeof discard.value !== "boolean")))
+        throw new TypeError("Realm evaluation discardResult must be an own-data boolean.");
       const scheduled = this.options.callbackScheduling === "after-prefix";
       const reportUnhandledThrows = options.sourceType !== "module" && this.options.classicScriptErrors === "report";
       const result = scheduled && options.sourceType !== "module"
@@ -993,7 +997,7 @@ class RealmState {
         if (!scheduled && !recoverable) await this.dispose();
         return { ok: false, error: result.error, stats: result.stats, ...(recoverable ? { recoverable: true } : {}) };
       }
-      return { ok: true, returnValue: this.exportValue(result.returnValue), stats: result.stats };
+      return { ok: true, ...(discard?.value === true ? {} : { returnValue: this.exportValue(result.returnValue) }), stats: result.stats };
     }, result => !result.ok && !result.recoverable);
 
   async checkUnhandledRejection(owner?: object): Promise<void> {
@@ -1170,6 +1174,7 @@ export function createRealm(options: RealmOptions = {}): SafeJSRealm {
   return Object.freeze(attachExecutionControl({
     stringCompilation: state.options.stringCompilation ?? "allow",
     classicScriptErrors: state.options.classicScriptErrors ?? "fatal",
+    supportsDiscardResult: true as const,
     extensions: Object.freeze(state.extensions.map((extension) => extension.manifest)),
     evaluate: state.evaluate,
     startCallback: state.startCallback,

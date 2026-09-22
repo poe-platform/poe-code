@@ -214,6 +214,8 @@ try {
 
 This prints `2`. Evaluations share declarations, closures and object identity without rerunning earlier source. Budgets are cumulative. `evaluate(source, { filename? })` returns `ok`, `returnValue` or `error`, and `stats`; it can also reject. Concurrent evaluations are rejected. Deferred callbacks can run while guest code awaits their result; overlapping invocation of the same callback is rejected. Close cancels pending work, revokes capabilities and awaits cleanup; repeated close does not rerun cleanup. Unhandled execution failures also close the realm.
 
+For scripts whose completion value is unused, call `evaluate(source, { discardResult: true })`. A successful result omits `returnValue`, so guest values with custom prototypes can remain inside the realm without crossing the data-copy boundary. Effects, resource limits and error handling still apply. `realm.supportsDiscardResult` is an immutable `true` marker for adapters that support older SDK versions.
+
 `createRealm(options?)` accepts `bindings`, `modules`, `budget`, `clock`, `signal`, `sink` and `randomSeed` as described below, plus:
 
 | Option | Purpose / default |

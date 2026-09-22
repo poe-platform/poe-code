@@ -349,6 +349,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(exported?.types, "./packages/ssconvert/dist/index.d.ts", "canonical public ssconvert declaration entry");
           assert.equal(exported?.import, "./packages/ssconvert/dist/index.js", "canonical public ssconvert runtime entry");
           peerPaths["poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
+          peerPaths["@poe-code/ssconvert"] = [resolve(peerRoot, exported.types)];
           toolRoots.push(join(peerRoot, "packages/ssconvert/dist"));
         }
         if (manifest.devDependencies?.["@poe-code/csvkit"] !== undefined) {

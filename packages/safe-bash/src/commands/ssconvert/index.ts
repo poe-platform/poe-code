@@ -1,4 +1,4 @@
-import { createEngine, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, runCommand, type EngineConfig, type ResourceIOOptions } from "poe-code/ssconvert";
+import { createEngine, snapshotRuntimeFunctions, createResourceIO, createVfsOutput, runCommand, type EngineConfig, type ResourceIOOptions } from "@poe-code/ssconvert";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import {
   createOutputOperation,
@@ -12,7 +12,7 @@ import { writeFileOutput } from "../../contracts/filesystem-output.js";
 export interface SsconvertCommandsOptions extends Omit<EngineConfig, "filesystem"> {
   readonly io?: Pick<ResourceIOOptions, "descriptors" | "adapters" | "transport">;
   readonly replace?: boolean;
-  readonly profile?: import("poe-code/ssconvert").CommandProfile;
+  readonly profile?: import("@poe-code/ssconvert").CommandProfile;
 }
 /** Explicit opt-in; the domain engine is the only conversion implementation. */
 export function createSsconvertCommand(options: SsconvertCommandsOptions): CommandDefinition {

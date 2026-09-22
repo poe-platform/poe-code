@@ -8,6 +8,23 @@ import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifier
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 
+it("ships the spreadsheet command SDK without a CLI dependency", async () => {
+  const { volume, options } = optionalLeftovers();
+  const command = ts.createSourceFile("index.ts", readFileSync(new URL("../packages/safe-bash/src/commands/ssconvert/index.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
+  const imported = command.statements.find(ts.isImportDeclaration)!.moduleSpecifier as ts.StringLiteral;
+  volume.mkdirSync("/repo/packages/ssconvert/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/ssconvert/package.json", JSON.stringify({
+    name: "@poe-code/ssconvert", private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync("/repo/packages/ssconvert/dist/index.js", "export const createEngine = () => ({});");
+  volume.writeFileSync("/repo/packages/ssconvert/dist/index.d.ts", "export declare const createEngine: () => object;");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/ssconvert/index." + suffix, `export { createEngine } from ${JSON.stringify(imported.text)};`);
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/ssconvert/index.js", "utf8")).toContain('"../../../ssconvert/index.js"');
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("poe-code");
+});
+
 it("ships an explicitly declared private command SDK with its runtime graph", async () => {
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);

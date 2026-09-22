@@ -8,6 +8,28 @@ vi.mock(
 );
 
 describe("profile-specific emitted workspace declarations", () => {
+  it("preserves optional public peers when the root bundle rewrites its shipped declarations", async () => {
+    const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
+    const optional = "/repo/packages/safe-bash/dist/opt-in/optional.d.ts";
+    const core = "/repo/packages/safe-bash/dist/core.d.ts";
+    const volume = Volume.fromJSON({ [optional]: source, [core]: source });
+    const files = createFsFromVolume(volume).promises;
+    const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+    const { collectPackageFiles } = await import("../packages/package-lint/src/bundle-policy.js");
+    const packed = await collectPackageFiles("/repo", manifest.files.filter((entry: string) => !entry.startsWith("!")), {
+      readdir: directory => files.readdir(directory, { withFileTypes: true }),
+      stat: filename => files.stat(filename),
+    });
+    const { rewriteWorkspaceDts } = await import("./rewrite-workspace-dts.mjs");
+    await rewriteWorkspaceDts("/repo/packages/safe-bash/dist", [{ dir: "safe-bash", pkg: { name: "@poe-platform/safe-bash" } }], {
+      rootDir: "/repo", files,
+      includedFiles: new Set([...packed].map(filename => path.resolve("/repo", filename))),
+      excludedPaths: manifest.files.filter((entry: string) => entry.startsWith("!") && !entry.includes("*")).map((entry: string) => path.resolve("/repo", entry.slice(1))),
+    });
+    expect(volume.readFileSync(optional, "utf8")).toBe(source);
+    expect(volume.readFileSync(core, "utf8")).toContain('import("./optional-host.js")');
+  });
+
   it("does not rewrite separately published outputs after their root exclusions are removed", async () => {
     const source = 'export type Value = import("@poe-platform/safe-bash/optional-host").Value;';
     const optional = "/repo/packages/terminal-pilot/dist/optional.d.ts";

@@ -370,6 +370,7 @@
     "packages/ssconvert/src/codecs/legacy-binary-NOTICE.md",
     "packages/ssconvert/src/rendering/print/NOTICE.md",
     "packages/safe-bash/dist",
+    "!packages/safe-bash/dist/opt-in",
     "packages/safe-bash-contracts/dist",
     "packages/media-cli/dist",
     "packages/remote-execution/dist",

@@ -7,8 +7,11 @@ import { getSandboxPropertyDescriptor } from "./object-model.js";
 import type { SandboxObject } from "./values.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
+import { ScopeBindingMap, ScopeBindingSet } from "./scope-binding-storage.js";
 
 type ScopeBinding = {
+  // Permits the literal syntax that removes inherited host metadata hooks.
+  __proto__?: null;
   kind: VariableDeclarationKind;
   deletable?: true;
   silentImmutable?: true;
@@ -75,8 +78,8 @@ export class Scope {
   private withEnvironment = false;
   resourceState?: ResourceScopeState;
   privateNames?: Map<string, PrivateName>;
-  readonly #bindings = new Map<string, ScopeBinding>();
-  readonly #replacedBindings = new Set<ScopeBinding>();
+  readonly #bindings = new ScopeBindingMap<string, ScopeBinding>();
+  readonly #replacedBindings = new ScopeBindingSet<ScopeBinding>();
   readonly #restoredBindings: Map<string, InterpreterValue>;
   #frameHydrated = false;
   #bindingDataRoots?: SandboxObject[];
@@ -100,6 +103,7 @@ export class Scope {
     this.objectEnvironment = builtinGlobalObjects.get(bindings);
     for (const [name, value] of Object.entries(this.objectEnvironment === undefined ? bindings : {})) {
       this.#bindings.set(name, {
+        __proto__: null,
         kind: mutable?.has(name) ? "var" : "const",
         value
       });
@@ -193,7 +197,11 @@ export class Scope {
     const binding = this.#bindings.get(name);
     if (binding?.deletable !== true) return false;
     this.#bindings.delete(name);
-    if (![...this.#bindings.values()].includes(binding)) this.#replacedBindings.delete(binding);
+    let aliased = false;
+    for (const remaining of this.#bindings.values()) {
+      if (remaining === binding) { aliased = true; break; }
+    }
+    if (!aliased) this.#replacedBindings.delete(binding);
     this.#bindingDataRoots = undefined;
     return true;
   }
@@ -335,14 +343,14 @@ export class Scope {
 
     if (existing !== undefined) this.writeBindingValue(existing, value);
     else {
-      this.#bindings.set(name, { kind, value, ...options });
+      this.#bindings.set(name, { __proto__: null, kind, value, ...options, accounting: undefined });
       if (isChargedBindingValue(value)) this.#bindingDataRoots = undefined;
     }
   }
 
   declareImport(name: string, target: Scope, targetName: string): void {
     if (this.#bindings.has(name)) throw new SyntaxError(`Cannot redeclare imported binding '${name}'.`);
-    this.#bindings.set(name, {kind: "const", value: undefined, importTarget: {scope: target, name: targetName}});
+    this.#bindings.set(name, {__proto__: null, kind: "const", value: undefined, importTarget: {scope: target, name: targetName}});
   }
 
   declareAlias(name: string, target: string): void {
@@ -392,6 +400,7 @@ export class Scope {
     }
 
     this.#bindings.set(name, {
+      __proto__: null,
       kind: "var",
       ...(options?.deletable ? {deletable: true} : {}),
       value: options?.functionValue
@@ -471,6 +480,7 @@ export class Scope {
     }
 
     this.#bindings.set(name, {
+      __proto__: null,
       kind,
       value: uninitialized
     });
@@ -501,7 +511,7 @@ export class Scope {
     let binding = this.#bindings.get(name);
     if (binding === undefined) {
       if (strict) throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
-      binding = {kind: "var", deletable: true, value};
+      binding = {__proto__: null, kind: "var", deletable: true, value};
       this.#bindings.set(name, binding);
       this.#bindingDataRoots = undefined;
       this.trackReplacement(name, binding);
@@ -581,7 +591,8 @@ export class Scope {
           if ("value" in descriptor) defineSnapshotBinding(bindings, name, descriptor.value);
         }
       }
-      for (const [name, binding] of scopes[index].#bindings.entries()) {
+      for (const entry of scopes[index].#bindings.entries()) {
+        const name = entry[0], binding = entry[1];
         if (binding.value === uninitialized) {
           continue;
         }
@@ -596,10 +607,11 @@ export class Scope {
   }
 
   captureFrame(): ScopeFrame {
-    const ids = new Map<ScopeBinding, number>();
+    const ids = new ScopeBindingMap<ScopeBinding, number>();
     const cells: ScopeFrame["cells"] = [];
     const bindings: ScopeFrame["bindings"] = [];
-    for (const [name, binding] of this.#bindings) {
+    for (const entry of this.#bindings) {
+      const name = entry[0], binding = entry[1];
       if (binding.importTarget !== undefined) throw new TypeError("Source module import frames require graph checkpoint encoding.");
       let id = ids.get(binding);
       if (id === undefined) {
@@ -643,21 +655,26 @@ export class Scope {
       throw new TypeError("Scope frame does not match its allocation.");
     if (this.parent !== undefined && frame.restoredBindings !== undefined)
       throw new TypeError("Only root scopes own restored bindings.");
-    const cells: ScopeBinding[] = frame.cells.map(cell => ({
-      kind: cell.kind,
-      ...(cell.deletable ? {deletable: true as const} : {}),
-      ...(cell.silentImmutable ? {silentImmutable: true as const} : {}),
-      value: cell.initialized ? cell.value : uninitialized
-    }));
-    const bindings = new Map<string, ScopeBinding>();
+    const cells = new ScopeBindingMap<number, ScopeBinding>();
+    for (let index = 0; index < frame.cells.length; index++) {
+      const cell = frame.cells[index];
+      cells.set(index, {
+        __proto__: null,
+        kind: cell.kind,
+        ...(cell.deletable ? {deletable: true as const} : {}),
+        ...(cell.silentImmutable ? {silentImmutable: true as const} : {}),
+        value: cell.initialized ? cell.value : uninitialized
+      });
+    }
+    const bindings = new ScopeBindingMap<string, ScopeBinding>();
     const referenced = new Set<number>();
     for (const [name, id] of frame.bindings) {
-      if (typeof name !== "string" || bindings.has(name) || !Number.isSafeInteger(id) || id < 0 || id >= cells.length)
+      if (typeof name !== "string" || bindings.has(name) || !Number.isSafeInteger(id) || id < 0 || id >= cells.size)
         throw new TypeError("Invalid scope binding cell.");
-      bindings.set(name, cells[id]);
+      bindings.set(name, cells.get(id)!);
       referenced.add(id);
     }
-    if (referenced.size !== cells.length) throw new TypeError("Unreferenced scope binding cell.");
+    if (referenced.size !== cells.size) throw new TypeError("Unreferenced scope binding cell.");
     let globalVarNames: Set<string> | undefined;
     if (Object.hasOwn(frame, "globalVarNames")) {
       if (!Array.isArray(frame.globalVarNames) || frame.globalEnvironment !== true || frame.functionBoundary ||
@@ -681,7 +698,8 @@ export class Scope {
     this.withEnvironment = frame.withObject !== undefined;
     this.resourceState = frame.resourceState;
     if (frame.privateNames !== undefined) this.privateNames = new Map(frame.privateNames);
-    for (const [name, binding] of bindings) {
+    for (const entry of bindings) {
+      const name = entry[0], binding = entry[1];
       this.#bindings.set(name, binding);
       this.trackReplacement(name, binding);
     }

@@ -50,6 +50,9 @@ export function readerSettings(limits: ColumnLimits): TableTextLimits {
 
 export interface ParsedOptions {
   readonly table: boolean;
+  readonly json: boolean;
+  readonly names: readonly string[];
+  readonly tableName: string;
   readonly across: boolean;
   readonly separator: Set<string> | undefined;
   readonly outputSeparator: string;
@@ -70,7 +73,8 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
     argumentBytes += Buffer.byteLength(token);
     if (argumentBytes > limits.maxArgumentBytes) usage("argument limit exceeded");
   }
-  let table = false, across = false, literal = false, help = false;
+  let table = false, json = false, across = false, literal = false, help = false;
+  let names: string[] = [], tableName = "table";
   let separator: Set<string> | undefined, outputSeparator = "  ", width = 80, outputSet = false;
   const files: string[] = [];
   const setValue = (option: string, value: string): void => {
@@ -78,6 +82,14 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
       if (!value) usage("input separator must not be empty");
       separator = new Set(value);
     } else if (option === "o") { outputSeparator = value; outputSet = true; }
+    else if (option === "N") {
+      names = value.split(",");
+      if (names.length > limits.maxFields) usage("column names exceed configured field limit");
+      if (names.some(name => !name || name.includes("\0"))) usage("column names must be nonempty and contain no NUL");
+    } else if (option === "n") {
+      if (!value || value.includes("\0")) usage("table name must be nonempty and contain no NUL");
+      tableName = value;
+    }
     else {
       if (!value || value.length > 8) usage("output width must be a positive bounded decimal integer");
       for (const character of value) if (character < "0" || character > "9") usage("invalid output width");
@@ -96,11 +108,13 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
     if (token === "--") { literal = true; continue; }
     if (token.startsWith("--")) {
       if (token === "--table") { table = true; continue; }
+      if (token === "--json") { json = true; table = true; continue; }
       if (token === "--fillrows") { across = true; continue; }
       if (token === "--help") { help = true; continue; }
       const equals = token.indexOf("="), name = equals < 0 ? token : token.slice(0, equals);
       const option = name === "--separator" || name === "--input-separator" ? "s"
-        : name === "--output-separator" ? "o" : name === "--output-width" ? "c" : undefined;
+        : name === "--output-separator" ? "o" : name === "--output-width" ? "c"
+        : name === "--table-columns" ? "N" : name === "--table-name" ? "n" : undefined;
       if (!option) usage(`unsupported option: ${token}`);
       let value: string;
       [value, index] = argument(args, index, equals < 0 ? undefined : token.slice(equals + 1), name);
@@ -110,9 +124,10 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
     for (let offset = 1; offset < token.length; offset++) {
       const option = token[offset]!;
       if (option === "t") table = true;
+      else if (option === "J") { json = true; table = true; }
       else if (option === "x") across = true;
       else if (option === "h") help = true;
-      else if (option === "s" || option === "o" || option === "c") {
+      else if (option === "s" || option === "o" || option === "c" || option === "N" || option === "n") {
         let value: string;
         [value, index] = argument(args, index, offset + 1 < token.length ? token.slice(offset + 1) : undefined, `-${option}`);
         setValue(option, value);
@@ -121,13 +136,17 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
     }
   }
   if (table && across) usage("-x/--fillrows cannot be combined with table mode");
+  if (json && !names.length && !help) usage("JSON output requires --table-columns");
   if (!table && (separator !== undefined || outputSet)) usage("input/output separators require -t/--table");
   if (!table && width > limits.maxWidth) width = limits.maxWidth;
-  return { table, across, separator, outputSeparator, width, files: files.length ? files : ["-"], help };
+  return { table, json, names, tableName, across, separator, outputSeparator, width, files: files.length ? files : ["-"], help };
 }
 
 export const helpText = `Usage: column [-t] [-s characters] [-o string] [-c width] [-x] [file ...]
   -t, --table              align fields; default ASCII whitespace splitting
+  -J, --json               JSON table output (requires named columns)
+  -N, --table-columns      comma-separated column names for table mode
+  -n, --table-name         JSON table name (default table)
   -s, --separator          table input delimiter characters; preserve empty fields
       --input-separator   alias for --separator
   -o, --output-separator   table output separator (default two spaces)
@@ -136,5 +155,5 @@ export const helpText = `Usage: column [-t] [-s characters] [-o string] [-c widt
   -h, --help              show this supported profile
   --                      end options; - reads shared stdin
 Strict UTF-8; deterministic scalar widths; retained tabs expand at 8-column stops.
-No terminal/locale detection, ANSI controls, wrapping, headers, JSON, or tree mode.
+No terminal/locale detection, ANSI controls, wrapping, or tree mode.
 `;

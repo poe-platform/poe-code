@@ -70,7 +70,8 @@ for (const fixture of effective) test(`${fixture.profile === "exact" ? "BSD exac
     assert.equal(Buffer.from(actual.stderr).toString("hex"), native.stderrHex);
   } else {
     assert.ok(fixture.qualification);
-    if (fixture.profile === "product-unsupported") assert.match(actual.stderr, /unsupported option/);
+    if (fixture.id === "unsupported-json") assert.match(actual.stderr, /JSON output requires --table-columns/);
+    else if (fixture.profile === "product-unsupported") assert.match(actual.stderr, /unsupported option/);
     else assert.ok(actual.stdoutBytes.toString("hex") !== native.stdoutHex || actual.exitCode !== native.status);
   }
 });

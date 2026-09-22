@@ -8,6 +8,66 @@ import { run, shell } from "./helpers.js";
 
 const paddingProfile = JSON.parse(readFileSync(new URL("./padding-evolution/profile-deltas.json", import.meta.url), "utf8")) as { behavior: { stdout: string } };
 
+test("JSON table output matches the reported bytes through a VFS file", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a 1\n"));
+  const result = await run(["-J", "-t", "-N", "letter,number", "input"], "", {}, { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, '{\n   "table": [\n      {\n         "letter": "a",\n         "number": "1"\n      }\n   ]\n}\n');
+});
+
+test("JSON long options, escaping, ragged rows and custom table name", async () => {
+  const result = await run(["--json", "--table-columns=NAME,N", "--table-name=demo", "-s:"], 'a"b:1\nsingle\n');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, '{\n   "demo": [\n      {\n         "name": "a\\"b",\n         "n": "1"\n      },\n      {\n         "name": "single",\n         "n": null\n      }\n   ]\n}\n');
+});
+
+test("JSON preserves tabs, null empty fields and ASCII name folding", async () => {
+  const result = await run(["-JNÄ,EMPTY", "-nDEMO", "-s:"], "a\tb:\n");
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(JSON.parse(result.stdout), { demo: [{ "Ä": "a\tb", empty: null }] });
+  assert.equal((await run(["-JNname"])).stdout, '{\n   "table": [\n\n   ]\n}\n');
+});
+
+test("JSON rejects unnamed data columns before publication", async () => {
+  const result = await run(["-JNname"], "a b\n");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /name of the column 2 is required/);
+});
+
+test("JSON uses the shell pipeline and file redirection", async () => {
+  const instance = shell();
+  try {
+    const result = await instance.exec("printf 'a 1\\n' | column -JNletter,number > /result; cat /result");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), { table: [{ letter: "a", number: "1" }] });
+  } finally { await instance.dispose(); }
+});
+
+test("named text tables align headings and rows", async () => {
+  const result = await run(["-tNNAME,N"], "a 1\n");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "NAME  N\na     1\n");
+});
+
+test("JSON enforces output, field and work bounds", async () => {
+  const bounded = await run(["-JNname"], "a\n", { limits: { maxOutputBytes: 16 } });
+  assert.equal(bounded.exitCode, 1);
+  assert.ok(bounded.stdoutBytes.length <= 16);
+  assert.match(bounded.stderr, /output.*limit/);
+  const fields = await run(["-JNone,two"], "a b\n", { limits: { maxFields: 1 } });
+  assert.equal(fields.exitCode, 1);
+  assert.equal(fields.stdout, "");
+  const work = await run(["-JNname"], "a\n", { limits: { maxSteps: 1 } });
+  assert.equal(work.exitCode, 1);
+  assert.equal(work.stdout, "");
+  assert.match(work.stderr, /work limit/);
+});
+
 test("table whitespace, ragged rows, blanks and unterminated final record", async () => {
   const result = await run(["-t"], " a\tb \n\nlong z\nsingle\n\t \nlast q");
   assert.equal(result.stdout, paddingProfile.behavior.stdout);
@@ -131,7 +191,7 @@ test("actual shell pipeline preserves downstream stdin and exit state", async ()
   try {
     const result = await instance.exec("printf 'a b\\nlong z\\n' | column -t | cat; column --json; printf 'status=%s\\n' \"$?\"");
     assert.equal(result.stdout, "a     b\nlong  z\nstatus=1\n");
-    assert.match(result.stderr, /unsupported option/);
+    assert.match(result.stderr, /JSON output requires --table-columns/);
   } finally { await instance.dispose(); }
 });
 

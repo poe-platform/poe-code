@@ -1,6 +1,26 @@
 import type { Cell } from "./display.js";
 import { ColumnBudget } from "./internal.js";
 
+export async function jsonOutput(rows: readonly Cell[][], names: readonly string[], tableName: string, budget: ColumnBudget): Promise<void> {
+  const lower = (value: string): string => Array.from(value, character => character >= "A" && character <= "Z" ? character.toLowerCase() : character).join("");
+  await budget.work(names.length);
+  const keys = names.map(name => JSON.stringify(lower(name)));
+  await budget.text(`{\n   ${JSON.stringify(lower(tableName))}: [\n`);
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+    await budget.step();
+    const row = rows[rowIndex]!;
+    await budget.text("      {\n");
+    for (let index = 0; index < keys.length; index++) {
+      await budget.step();
+      const entry = row[index];
+      const value = entry?.text ? JSON.stringify(entry.text) : "null";
+      await budget.text(`         ${keys[index]}: ${value}${index + 1 < keys.length ? "," : ""}\n`);
+    }
+    await budget.text(`      }${rowIndex + 1 < rows.length ? "," : ""}\n`);
+  }
+  await budget.text(`${rows.length ? "" : "\n"}   ]\n}\n`);
+}
+
 class TailPadding {
   private readonly sizes: number[] = [];
   private readonly next: number[] = [];

@@ -4,7 +4,7 @@ import { createColumnCommand, type ColumnLimits } from "../../../src/commands/co
 import { FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { run } from "./helpers.js";
 
-for (const args of [["--json"], ["--tree", "1"], ["-N", "heading"], ["-S", "2"], ["-c0"], ["-c", "unlimited"], ["-c", "1e3"], ["-c", "-3"], ["-c", "999999999999999999999"], ["-c"], ["-s"], ["-t", "-s", ""], ["-o", "|"], ["-s:"], ["-tx"], ["--table=yes"]]) {
+for (const args of [["--json"], ["--tree", "1"], ["-N", ""], ["-S", "2"], ["-c0"], ["-c", "unlimited"], ["-c", "1e3"], ["-c", "-3"], ["-c", "999999999999999999999"], ["-c"], ["-s"], ["-t", "-s", ""], ["-o", "|"], ["-s:"], ["-tx"], ["--table=yes"]]) {
   test(`unsupported/invalid argv ${JSON.stringify(args)}`, async () => {
     let acquired = false;
     const result = await run(args, "", {}, { stdin: { [Symbol.asyncIterator]() { acquired = true; throw new Error("unexpected acquisition"); } } });

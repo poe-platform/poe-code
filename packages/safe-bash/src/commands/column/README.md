@@ -34,6 +34,9 @@ There is no default aggregation or network capability.
 | Option | Behavior |
 | --- | --- |
 | `-t`, `--table` | Align fields in a buffered table; default separator is ASCII space, TAB, CR, VT, FF. Runs collapse and leading/trailing whitespace is discarded. |
+| `-J`, `--json` | Emit a JSON table; implies table mode and requires named columns. Empty and absent cells become `null`; values remain strings. |
+| `-N names`, `--table-columns names` | Comma-separated column names; table output includes aligned headings. JSON keys fold ASCII uppercase to lowercase. |
+| `-n name`, `--table-name name` | JSON table name, default `table`; folds ASCII uppercase to lowercase. |
 | `-s chars`, `--separator chars`, `--input-separator chars` | Table-only set of Unicode scalar delimiters, not a substring, regex, CSV parser, or escape parser. Repeated/leading/trailing delimiters produce empty cells. Empty delimiter set is an error. |
 | `-o text`, `--output-separator text` | Table-only output delimiter, default two spaces. Empty text is allowed; controls, tabs and newlines are rejected. Delimiters follow alignment padding; this does not turn output into CSV. |
 | `-c width`, `--output-width width` | Positive decimal fill width up to `maxWidth`; default 80, reduced to `maxWidth` if the host sets a smaller bound. Accepted in table mode but does not wrap, truncate, or constrain the natural table. |
@@ -59,7 +62,7 @@ add data cells. Explicit empty fields keep their original meaning. For example,
 pad after its last entry. This is a root-authorized compatibility evolution from
 the previous absent-tail omission policy, not a retroactive bug designation.
 
-JSON, headers, named columns, column selection/reordering/alignment, wrapping,
+Column selection/reordering/alignment, wrapping,
 truncation, colors/ANSI handling, tree/depth processing, keep-empty-lines,
 `--use-spaces`/`-S`, `--version`, legacy `--columns`, zero/unlimited width and all
 other unlisted options are rejected, not silently ignored. No `maxDepth` is

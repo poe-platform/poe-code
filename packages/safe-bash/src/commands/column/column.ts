@@ -1,8 +1,8 @@
 import { type CommandDefinition, type CommandResult } from "../../contracts/index.js";
 import { cell, decode, fields, validateScalar, type Cell } from "./display.js";
 import { ColumnInputs, diagnostics, type ColumnBudget } from "./internal.js";
-import { helpText, parse, settings, type ColumnCommandsOptions, type ParsedOptions } from "./options.js";
-import { tableOutput } from "./table.js";
+import { helpText, parse, settings, usage, type ColumnCommandsOptions, type ParsedOptions } from "./options.js";
+import { jsonOutput, tableOutput } from "./table.js";
 
 async function fillOutput(rows: readonly Cell[][], options: ParsedOptions, budget: ColumnBudget): Promise<void> {
   let maximum = 0;
@@ -72,17 +72,33 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
                 if (blank) continue;
               }
               budget.check(values.length, limits.maxCells - cellCount, "cells");
+              if (parsed.json && values.length > parsed.names.length) {
+                usage(`line ${rows.length + 1}: for JSON the name of the column ${parsed.names.length + 1} is required`);
+              }
               cellCount += values.length;
               const row: Cell[] = [];
               for (let index = 0; index < values.length; index++) {
                 const entry = await cell(values[index]!, budget);
-                row.push(entry);
+                row.push(parsed.json ? { text: values[index]!, width: entry.width } : entry);
                 widths[index] = Math.max(widths[index] ?? 0, entry.width);
               }
               rows.push(row);
             }
           }
-          if (parsed.table) await tableOutput(rows, widths, parsed.outputSeparator, budget);
+          if (parsed.json) await jsonOutput(rows, parsed.names, parsed.tableName, budget);
+          else if (parsed.table) {
+            if (parsed.names.length && rows.length) {
+              const header: Cell[] = [];
+              budget.check(parsed.names.length, limits.maxCells - cellCount, "cells");
+              for (let index = 0; index < parsed.names.length; index++) {
+                const entry = await cell(parsed.names[index]!, budget);
+                header.push(entry);
+                widths[index] = Math.max(widths[index] ?? 0, entry.width);
+              }
+              rows.unshift(header);
+            }
+            await tableOutput(rows, widths, parsed.outputSeparator, budget);
+          }
           else if (rows.length) await fillOutput(rows, parsed, budget);
           result = { exitCode };
         }

@@ -3,7 +3,7 @@ import {
   readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
 import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
-import { escapeText } from "../escaping.js";
+import { escapeText, quoteShellOperand } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
@@ -169,6 +169,8 @@ async function copy(
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
+  if (!preflight && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
+    && settings.confirmOverwrite && !await settings.confirmOverwrite(displayTarget)) return;
   const metadata = settings.sourceMetadata.get(physicalSource) ?? sourceStat;
   if (preserve.has("timestamps") && !settings.sourceMetadata.has(physicalSource)) settings.sourceMetadata.set(physicalSource, metadata);
   await admitCopyPreservation(context, preserve, sourceStat, target, targetStat);
@@ -457,13 +459,29 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       parsed.copiedLinks.clear();
       parsed.copiedTargets.clear();
-      return eachOperand(context, destination.sources, async operand => {
-        const source = pathOf(context, operand);
-        const targetOperand = destination.targetOperand;
-        await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed, readDirectory, true, new Set(), false, operand,
-          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
-      });
+      const answers = lines(readBytes(context.stdin, context.signal));
+      let declined = false;
+      const settings: CopyOptions = {
+        ...parsed,
+        ...parsed.flags.has("i") ? { confirmOverwrite: async (operand: string): Promise<boolean> => {
+          await writeBytes(context.stderr, new TextEncoder().encode(`cp: overwrite ${quoteShellOperand(operand)}? `), context.signal);
+          const answer = await answers.next();
+          const first = answer.done ? undefined : answer.value.bytes[0];
+          const accepted = first === 0x79 || first === 0x59;
+          if (!accepted) declined = true;
+          return accepted;
+        } } : {},
+      };
+      try {
+        const result = await eachOperand(context, destination.sources, async operand => {
+          const source = pathOf(context, operand);
+          const targetOperand = destination.targetOperand;
+          await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
+            settings, readDirectory, true, new Set(), false, operand,
+            destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
+        });
+        return { exitCode: declined ? 1 : result.exitCode };
+      } finally { await answers.return(undefined); }
     }),
     define("mv", async context => {
       let ended = false;

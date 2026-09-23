@@ -63,7 +63,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `ls` | Sorted one-per-line names; `-1`, `-a`, `-A`, `-d`, `-F`, `-p`, `-r`, `-R`, `-L`, `-l`. Long records use numeric metadata and UTC dates. |
 | `mkdir` | Multiple directories, recursive parents `-p`, octal mode `-m`, verbose `-v`. |
 | `touch` | Create without truncation; `-c`, `-a`, `-m`, reference times `-r`. New files without `-r` retain filesystem-assigned creation timestamps; existing files and reference times require provider timestamp support. |
-| `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`, `-P`, `-L`; nested symlink preservation by default; same-file, descendant-copy and cycle checks. |
+| `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`, `-P`, `-L`; `-i`/`--interactive` reads stdin confirmation before overwriting; nested symlink preservation by default; same-file, descendant-copy and cycle checks. |
 | `mv` | Virtual rename, multiple sources into directories; `-n`, `-f`, `-v`. |
 | `rm` | Files and links; `-r`/`-R`, `-f`, empty directories `-d`, `-v`; root and dot-entry protection. |
 | `rmdir` | Directory/type/emptiness checks, parent removal `-p`, `-v`. |
@@ -124,7 +124,7 @@ options. Invalid options and malformed operands produce diagnostics and status
   JavaScript numbers rather than the platform C floating-point library. Unicode
   `\u`/`\U` escapes support C/POSIX and UTF-8 output, with `LC_ALL`, `LC_CTYPE`,
   then `LANG` precedence; UTF-8 is the default. Other locale encodings are absent.
-- Metadata preservation/archive copying, interactive prompts, cross-device
+- Metadata preservation/archive copying, cross-device
   move fallback, symbolic permission expressions, parsed touch dates, and atomic
   recursive operations are absent. `cp` rejects combined `-P`/`-L` instead of
   interpreting their order. `readlink -f`/`realpath -m` do not yet resolve

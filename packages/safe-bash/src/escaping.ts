@@ -27,6 +27,24 @@ export function escapeText(value: string, mode: "display" | "diagnostic", checkO
   return result;
 }
 
+/** GNU shell-escape-always operand quoting in the C locale. */
+export function quoteShellOperand(value: string): string {
+  if (value.includes("'") && !["$", "`", "\\", '"'].some(character => value.includes(character))
+    && [...value].every(character => character >= " " && character <= "~")) return `"${value}"`;
+  const escapes: Readonly<Record<number, string>> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
+  let result = "'", escaped = false;
+  for (const byte of encoder.encode(value)) {
+    const special = byte < 32 || byte >= 127;
+    if (special !== escaped) {
+      result += special ? "'$'" : byte === 39 ? "" : "''";
+      escaped = special;
+    }
+    result += special ? escapes[byte] ?? `\\${byte.toString(8).padStart(3, "0")}`
+      : byte === 39 ? "'\\''" : String.fromCharCode(byte);
+  }
+  return `${result}'`;
+}
+
 export async function writeDiagnostic(sink: ByteSink, value: string, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
   let chunk = "", bytes = 0, work = 0;

@@ -4,7 +4,9 @@ import { admitFilesystemModes } from "./filesystem-requirements.js";
 
 export type CopyAttribute = "mode" | "ownership" | "timestamps" | "links";
 
-export type CopyOptions = ReturnType<typeof copyOptions>;
+export type CopyOptions = ReturnType<typeof copyOptions> & {
+  readonly confirmOverwrite?: (operand: string) => Promise<boolean>;
+};
 
 export async function admitCopyPreservation(
   context: CommandContext, preserve: ReadonlySet<CopyAttribute>, source: FileStat, target: string, existing?: FileStat,

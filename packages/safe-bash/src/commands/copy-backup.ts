@@ -14,6 +14,7 @@ export function copyOptions(context: CommandContext) {
   const args: string[] = [];
   const preserve = new Set<CopyAttribute>();
   let ended = false;
+  let overwrite: "i" | "n" | undefined;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
     if (!ended && argument.startsWith("--preserve=")) {
@@ -28,15 +29,25 @@ export function copyOptions(context: CommandContext) {
     if (argument === "--") ended = true;
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
       ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t" || character === "B")) : -1;
+    if (!ended) {
+      if (argument === "--interactive") overwrite = "i";
+      else if (argument === "--no-clobber") overwrite = "n";
+      else if (argument.startsWith("-") && !argument.startsWith("--")) {
+        for (const flag of argument.slice(1, valueOffset > 0 ? valueOffset : undefined)) {
+          if (flag === "i" || flag === "n") overwrite = flag;
+        }
+      }
+    }
     if (!ended && (argument === "--suffix" || argument === "--target-directory" || valueOffset > 0 && valueOffset === argument.length - 1)) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "arRfnuvPHLpdbB:S:t:Tlsx", {
+  const parsed = options(args, "arRfinuvPHLpdbB:S:t:Tlsx", {
     archive: "a", preserve: "p", "attributes-only": false, link: "l", "symbolic-link": "s",
-    recursive: "R", "one-file-system": "x", force: "f", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
+    recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
   });
+  if (overwrite) parsed.flags.delete(overwrite === "i" ? "n" : "i");
   if (parsed.flags.has("l") && parsed.flags.has("s")) throw new UsageError("cannot make both hard and symbolic links");
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");

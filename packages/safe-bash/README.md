@@ -130,6 +130,10 @@ Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
+`cp -i` / `--interactive` prompts on stderr before overwriting each existing file
+and reads one response from stdin. Responses beginning with `y` or `Y` allow
+replacement; refusal or EOF preserves the destination and returns status 1.
+The last `-i` or `-n` wins; `-f` does not disable confirmation.
 `stat -t FILE` / `--terse` prints file metadata in GNU field order, using `?` for
 fields the backend does not expose. `-c` / `--format` and `--printf` override
 terse output. Filesystem terse output (`-ft`) remains unsupported.

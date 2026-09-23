@@ -574,6 +574,86 @@
       }
     }
   },
+  "sourceRuntimeConditionFollowup": {
+    "commit": "6777dca69",
+    "classification": "private package development condition selects actual source runtime without changing default built entry or root public exports",
+    "patch": "types and import entries stay built; poe-code-source selects source only when explicitly supplied by maintained SafeBash test runner; ten fixture imports use package entry",
+    "controls": {
+      "runnerRed": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2
+      },
+      "runnerGreen": {
+        "tests": 2,
+        "pass": 2,
+        "fail": 0
+      },
+      "maintainedRunner": {
+        "tests": 120,
+        "pass": 120,
+        "fail": 0,
+        "skipped": 0
+      },
+      "expandedNode": {
+        "tests": 314,
+        "pass": 314,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 20118.179125
+      },
+      "maintainedPacker": {
+        "tests": 172,
+        "pass": 172,
+        "fail": 0
+      },
+      "builtImports": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0
+      },
+      "nativeSourceIdentity": {
+        "run": true,
+        "makeFsModule": true
+      },
+      "nativeDefaultIdentity": {
+        "runSourceIdentity": false
+      },
+      "guardedRootLint": {
+        "complete": true,
+        "exitCode": 0,
+        "configured": 16386,
+        "linted": 16386,
+        "errorCount": 0,
+        "warningCount": 0
+      }
+    },
+    "hashes": {
+      "packages/safe-js/package.json": "5594bd289e0fa4f832969daf6d7a4daf951c52832930c77feac0c757f828750a",
+      "packages/safe-bash/scripts/test.mjs": "38bf3714947255d02c6e808e2daefc532c3b438705208c2edbb780e04d68bb58",
+      "packages/safe-bash/scripts/integration-inputs.test.mjs": "05502f4aede8b922f1230db7789cdf2a27b21b16ee6ee8c373b01b80388fea95",
+      "packages/safe-bash/tests/commands/node-buffer.test.ts": "4c438eba19c32fa7bec1a6bc5a1d100c9e33a133537aa7d76afc389ef48f3334",
+      "packages/safe-bash/tests/commands/node-check.test.ts": "89c45ef68855140085be9e14b2b4795478b9022a1a908a463b166a7a6a5e5840",
+      "packages/safe-bash/tests/commands/node-fs-callback.test.ts": "30dca38d5e8e5b57f330883c656c5141b59e63632c013a04f42115a96a4ae505",
+      "packages/safe-bash/tests/commands/node-fs-promises.test.ts": "677c9362349b5a712c7f543eed695cea5c49251e809823f3b621f1748ffe62e2",
+      "packages/safe-bash/tests/commands/node-json.test.ts": "ea3128b860a590d9ccfb7f1d894967392bfe1ffc21d716ddfba2d14a2b7f3118",
+      "packages/safe-bash/tests/commands/node-path.test.ts": "c2cdb7ea7611156122de688a7aee57a664b955761f018a8c75afc607cacd9c40",
+      "packages/safe-bash/tests/commands/node-preload.test.ts": "854ac49bd9aba1009d3cac0f0e283af33c9d87a2be645b2b6dddc992674f41ea",
+      "packages/safe-bash/tests/commands/node-safejs.test.ts": "bacf553eb876205f1183b3cbff1773beba98d53e9a27e41d19935751c3b6803f",
+      "packages/safe-bash/tests/commands/node-source-maps.test.ts": "a61908849220eb32acea249068a21217805a55d0bf9fe7cf3c4b23ad22b49fc3",
+      "packages/safe-bash/tests/commands/node-text-encoder.test.ts": "20bc64b16d68d5d5050416b689dd5be3b72d913f1a226f19e866eebcaca449b6",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/runner-condition-red.log": "3677dc03e85e20497329e54323049153da04629dadf3802b08cf8ee64bad6a5d",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/runner-condition-green.log": "80e16ec6ae2d566debebb4fb7ab9e26e7cca4a894325a2beb10e0fbdade087ac",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/runner-condition-maintained.log": "fbfd26b9222f3d83d50c1ce2f5fe2329bf659dc018e0856a769e4a9f6ee6c2fe",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/condition-source-suite.log": "48ac7bd10c83e243103290821b3d2a1eb14815baa63ed4f9f7c28af6b4296f95",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/source-condition-packer.log": "eef8204cf939e455c69b35a306b366859ad70fb4461c698533ff14535c66f411",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/source-condition-built-imports.log": "847c4ff424680b22a9a3cd276bd9642b4ce73ae78b057250d92f881a21908f24",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/source-condition-identity.log": "e05882f925b819ec66d04fa45888c66cb35dd793bd69ec53d33240da60a0b1d3",
+      "out/ssconvert-gap-resolution/node-rebase-feedback/default-condition-identity.log": "cbd8e9d570d9ac7a47b2b5e6076a4696870c9be16bea9bf324b967262074a029"
+    },
+    "remaining": "Maintained source/historical typechecker and isolated declaration closure remain unresolved; no typecheck or actual publication pass claimed."
+  },
   "rootVerification": {
     "normalBuild": "passed:126 declared workspace builds plus root suffix bundle; one no-declared-build workspace is not a pass",
     "guardedLint": {

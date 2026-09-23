@@ -352,3 +352,10 @@ See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic dire
 - **Browser support is filesystem-only.** The `browser` export condition selects the portable surface: memory, mounts, overlays, read-only, WebDAV, and the codec-based bridge. Real storage, S3, the Node bridge, and the configuration registry are not browser exports. WebDAV still needs server CORS support; no OPFS or directory-handle adapter is included. This does not make the SafeJS runtime browser-compatible.
 - **Portable temporary names require secure randomness.** Browser overlay staging and portable bridge `mkdtemp` require `crypto.randomUUID` or `crypto.getRandomValues`; without either, they fail with `ENOTSUP` rather than use `Math.random`.
 - **Allocation and identity may be unknown.** Optional `FileStat.allocatedBytes` is provider-reported allocation, not logical length or reclaimable space. Do not infer identity from size, timestamps, or inode numbers across unrelated backends.
+
+`MemoryFileSystem.confineExtraction(roots)` returns a view for archive extraction.
+It retains each root directory and its ancestors, refuses symlink ancestry at
+mutation commit, and keeps streamed writes attached to the opened file node.
+Other adapters omit this operation unless they can enforce the same boundary.
+Trusted host decorators must explicitly preserve confinement when forwarding it;
+custom mutation hooks must preserve the atomic commit contract.

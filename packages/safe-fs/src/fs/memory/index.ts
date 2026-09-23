@@ -175,6 +175,57 @@ export class MemoryFileSystem implements FileSystem {
     return resolveMissingTarget(owner.root, path || ".", options.signal);
   }
 
+  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+    options.signal?.throwIfAborted();
+    const retained = new Map<string, MemoryNode>();
+    for (const root of roots) {
+      this.validatePath(root, "confineExtraction");
+      let path = "";
+      for (const component of root.split("/").filter(Boolean)) {
+        if (component === "." || component === "..") this.fail("EINVAL", "confineExtraction", root);
+        path += `/${component}`;
+        const node = this.entry(path, "confineExtraction").node!;
+        if (node.type !== "directory") this.fail("ENOTDIR", "confineExtraction", path);
+        retained.set(path, node);
+      }
+      retained.set("/", this.root);
+    }
+    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream"]);
+    const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
+    const check = (path: string, followFinal: boolean): void => {
+      if (!roots.some(root => root === "/" || path === root || path.startsWith(`${root}/`))) this.fail("EPERM", "confineExtraction", path);
+      const components = path.split("/").filter(Boolean);
+      if (components.some(component => component === "." || component === "..")) this.fail("EINVAL", "confineExtraction", path);
+      let current = "";
+      for (const [index, component] of components.entries()) {
+        current += `/${component}`;
+        const node = this.entry(current, "confineExtraction", true).node;
+        if (retained.has(current) && node !== retained.get(current)) this.fail("EAGAIN", "confineExtraction", current);
+        if (index < components.length - 1 && node?.type !== "directory") this.fail("ENOTDIR", "confineExtraction", current);
+        if (followFinal && index === components.length - 1 && node?.type === "symlink") this.fail("ELOOP", "confineExtraction", current);
+      }
+    };
+    return new Proxy(this, {
+      get: (target, property) => {
+        if (property === "objects" || property === "confineExtraction") return undefined;
+        const value: unknown = Reflect.get(target, property);
+        if (typeof value !== "function") return value;
+        if (reads.has(String(property))) return value.bind(target);
+        return (...args: unknown[]) => {
+          if (!allowed.has(String(property))) throw new FsError("ENOTSUP", { syscall: String(property) });
+          // Stock mutations resolve and commit synchronously; writeStream retains
+          // its file node before its first await, so later chunks cannot redirect.
+          const paths = property === "symlink" ? [args[1]] : property === "link" || property === "rename" ? args.slice(0, 2) : [args[0]];
+          for (const path of paths) {
+            if (typeof path !== "string") throw new FsError("EINVAL");
+            check(path, ["chmod", "utimes", "appendFile", "writeFile", "writeStream", "link"].includes(String(property)));
+          }
+          return Reflect.apply(value, target, args);
+        };
+      },
+    });
+  }
+
   private metadata(mode: number): Metadata {
     const now = Date.now();
     return {

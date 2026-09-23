@@ -253,6 +253,11 @@ export interface ConditionalFilePublicationOptions extends FsOptions {
 }
 
 export interface FileSystem {
+  /** Retain each extraction root and enforce no-symlink ancestry atomically with
+   * every mutation (including metadata and both hardlink paths). Returned views
+   * must refuse unsupported mutations; no check-then-write emulation is allowed.
+   * Roots and their ancestors must remain the retained directories. */
+  confineExtraction?(roots: readonly string[], options?: FsOptions): Promise<FileSystem>;
   /** Explicit retained-object capability for qualified byte-path backends. */
   readonly objects?: ObjectFileSystem;
   /** Consume the complete source privately, then atomically compare/publish.

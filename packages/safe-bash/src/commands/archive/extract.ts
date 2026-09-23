@@ -135,6 +135,14 @@ export interface ArchiveVisitor {
 }
 
 export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget, visitor?: ArchiveVisitor): Promise<void> {
+  if (options.mode === "x" && !options.toStdout && !visitor) {
+    if (!context.fs.confineExtraction) fail("filesystem does not support race-safe archive extraction");
+    const fs = await operation(context, () => context.fs.confineExtraction!(
+      [...new Set([options.cwd, ...options.operands.map(operand => operand.cwd)].map(root => resolvePath(root)))],
+      { signal: context.signal },
+    ));
+    context = { ...context, fs };
+  }
   const reader = new Reader(source, context.signal);
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
   const transformedNames = new TransformedNames(context, options.transforms, budget.limits);

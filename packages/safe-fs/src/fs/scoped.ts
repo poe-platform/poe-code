@@ -9,7 +9,7 @@ import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabi
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined }>();
 const operations = new Set<keyof FileSystem>([
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
-  "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
+  "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
   "readlink", "realpath", "rename", "resizeFile", "rm", "rmdir", "unlink", "stat", "symlink", "truncate", "utimes",
   "writeFile", "writeStream",
@@ -209,7 +209,9 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         })();
         return Reflect.apply(method, original, args);
       };
-      const scoped = property === "open"
+      const scoped = property === "confineExtraction"
+        ? async (...args: unknown[]) => scopeFileSystem(await dispatch(...args) as FileSystem, charge, signal, cleanupCharge, options)
+        : property === "open"
         ? async (path: string, options: OpenFileOptions) => {
           admit(options);
           const selected = resizeOptions(creationOptions(options));

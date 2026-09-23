@@ -536,6 +536,14 @@ export class DeviceFileSystem implements FileSystem {
     await this.#filesystem.symlink(target, path, options);
   }
 
+  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+    options.signal?.throwIfAborted();
+    if (!this.#filesystem.confineExtraction) throw new FsError("ENOTSUP", { syscall: "confineExtraction" });
+    // Extraction uses only the backing namespace; synthetic devices must never
+    // become archive publication destinations.
+    return this.#filesystem.confineExtraction(roots, options);
+  }
+
   async link(existingPath: string, newPath: string, options: FsOptions = {}): Promise<void> {
     await this.#mutable(existingPath, options, false); await this.#mutable(newPath, options, false);
     if (!this.#filesystem.link) throw new FsError("ENOTSUP", { path: newPath });

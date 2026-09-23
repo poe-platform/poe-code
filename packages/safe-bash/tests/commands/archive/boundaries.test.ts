@@ -134,13 +134,17 @@ test("file-list, argument and pattern work budgets fail explicitly", async () =>
   }
 });
 
-test("actual S3 mock filesystem supports ordinary tar payloads without invented metadata", async () => {
+test("S3 supports archive creation but refuses extraction without atomic confinement", async () => {
   const fs = new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }) });
   const { shell } = await fixture({}, fs);
   try {
     await fs.writeFile("/work/file", binary);
     const result = await shell.exec("tar czf archive file; tar xzf archive -C /out");
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual(await fs.readFile("/out/file"), binary);
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.match(result.stderr, /not supported|race-safe archive extraction/u);
+    await assert.rejects(fs.stat("/out/file"), { code: "ENOENT" });
+    const stdout = await shell.exec("tar xzf archive -O");
+    assert.equal(stdout.exitCode, 0, stdout.stderr);
+    assert.deepEqual(stdout.stdoutBytes, binary);
   } finally { await shell.dispose(); }
 });

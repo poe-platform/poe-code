@@ -59,6 +59,13 @@ with U+FEFF: tar preserves the UTF-8 BOM bytes, but the shared Shell's `stdout`
 convenience decoder removes an initial BOM. The author test asserts
 `stdoutBytes`; that shared text-decoder behavior is outside archive ownership.
 
+Filesystem extraction requires a backend `confineExtraction` operation that
+retains the destination roots and enforces their boundary atomically with every
+mutation, including link creation and metadata restoration. MemoryFileSystem
+supports it. Real, S3, WebDAV, mount and overlay backends currently refuse
+filesystem extraction; `tar -xO`, listing and creation remain available.
+A second pathname check cannot substitute for this backend guarantee.
+
 ## CLI profile
 
 Choose exactly one operation: `-c`/`--create`, `-t`/`--list`,

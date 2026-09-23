@@ -224,7 +224,7 @@ test("input archive pathname and inode aliases cannot be overwritten during extr
   } finally { await shell.dispose(); }
 });
 
-test("RealFS extraction stays inside selected virtual root and rejects host symlink ancestors", async () => {
+test("RealFS refuses extraction without an atomic confinement guarantee", async () => {
   const temporary = await mkdtemp(join(directory, ".native-real-"));
   try {
     await mkdir(join(temporary, "root"));
@@ -238,8 +238,77 @@ test("RealFS extraction stays inside selected virtual root and rejects host syml
       assert.deepEqual(await readFile(join(temporary, "outside/keep")), Buffer.from(binary));
       await fs.writeFile("/work/file", binary);
       const roundtrip = await shell.exec("tar czf archive file; tar xzf archive -C /out");
-      assert.equal(roundtrip.exitCode, 0, roundtrip.stderr);
-      assert.deepEqual(await fs.readFile("/out/file"), binary);
+      assert.equal(roundtrip.exitCode, 2, roundtrip.stderr);
+      assert.match(roundtrip.stderr, /race-safe archive extraction|not supported/u);
+      await assert.rejects(fs.lstat("/out/file"), { code: "ENOENT" });
     } finally { await shell.dispose(); }
   } finally { await rm(temporary, { recursive: true, force: true }); }
+});
+
+test("concurrent parent symlink swap cannot redirect extraction", async () => {
+  const { fs, shell } = await fixture();
+  await shell.dispose();
+  await fs.mkdir("/out/sub");
+  await fs.mkdir("/private");
+  let swapped = false;
+  const originalLstat = fs.lstat.bind(fs);
+  fs.lstat = async (path, options) => {
+    const stat = await originalLstat(path, options);
+    if (path === "/out/sub" && !swapped) {
+      swapped = true;
+      await fs.rmdir!(path);
+      await fs.symlink!("../private", path);
+    }
+    return stat;
+  };
+  const result = await direct(["xf", "-", "-C", "/out"], fs, { stdin: source(archive(member("sub/file", binary))) });
+  assert.equal(swapped, true);
+  assert.equal(result.exitCode, 2, result.stderr);
+  assert.deepEqual(await fs.readdir("/private"), []);
+});
+
+for (const [name, type, target] of [["directory", "5", ""], ["symlink", "2", "../file"], ["hardlink", "1", "file"]]) {
+  test(`concurrent parent swap cannot redirect ${name} extraction`, async () => {
+    const { fs, shell } = await fixture();
+    await shell.dispose();
+    await fs.mkdir("/out/sub");
+    await fs.mkdir("/private");
+    const original = fs.lstat.bind(fs);
+    let swapped = false;
+    fs.lstat = async (path, options) => {
+      const stat = await original(path, options);
+      if (path === "/out/sub" && !swapped) {
+        swapped = true;
+        await fs.rmdir!(path);
+        await fs.symlink!("../private", path);
+      }
+      return stat;
+    };
+    const result = await direct(["xf", "-", "-C", "/out"], fs, {
+      stdin: source(archive(member("file", binary), member("sub/entry", new Uint8Array(), type, target))),
+    });
+    assert.equal(swapped, true);
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.deepEqual(await fs.readdir("/private"), []);
+  });
+}
+
+test("metadata restoration refuses a final symlink swapped before chmod", async () => {
+  const { fs, shell } = await fixture();
+  await shell.dispose();
+  await fs.writeFile("/private", binary, { mode: 0o600 });
+  fs.capabilitiesFor = async (path) => {
+    if (path === "/out/file" && (await fs.readdir("/out")).length) {
+      await fs.rm(path);
+      await fs.symlink!("/private", path);
+    }
+    return fs.capabilities;
+  };
+  const input = source(archive(member("file", binary)));
+  const before = await fs.stat("/private");
+  const result = await direct(["xf", "-", "-C", "/out"], fs, { stdin: input });
+  assert.equal(result.exitCode, 2, result.stderr);
+  const after = await fs.stat("/private");
+  assert.equal(after.mode, before.mode);
+  assert.equal(after.mtimeMs, before.mtimeMs);
 });

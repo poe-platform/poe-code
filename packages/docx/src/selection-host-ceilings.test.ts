@@ -50,7 +50,7 @@ it(`${route} preserves admitted host ceilings through selection; strict=${strict
 for (const strict of [false, true])
 for (const route of ["sdk-text", "sdk-table", "sdk-batch", "cli-text", "cli-table", "cli-batch"] as const)
 for (const boundary of ["host-at", "host-over", "input-over"] as const)
-it(`${route} enforces ${boundary} independently of selection defaults; strict=${strict}`, async () => {
+it(`${route} applies explicit ${boundary} selection limits; strict=${strict}`, async () => {
   const text = "Boundary 日本 עברית é 🌊";
   const input = await textFixture(`<w:tbl><w:tblGrid><w:gridCol w:w="1440"/></w:tblGrid><w:tr><w:tc><w:p><w:r><w:t>${text}</w:t></w:r></w:p></w:tc></w:tr></w:tbl>`, {}, strict);
   const memory = Volume.fromJSON({ "/input": "", "/destination": "Retained destination" }); memory.writeFileSync("/input", input);
@@ -58,7 +58,7 @@ it(`${route} enforces ${boundary} independently of selection defaults; strict=${
   const limit = [{ name: "xmlDepth" as const, value: boundary === "host-at" ? 1024 : boundary === "host-over" ? 1025 : 1 }];
   const context = { ...textContext, budget: new api.DocumentBudget({ xmlDepth: 1024 }), encoding: { order: "input" as const, compression: "store" as const } };
   const batch = { version: 1, operations: [{ operation: "tables.set", arguments: { table: 1, cell: "A1", text: "Changed" } }] };
-  const code = boundary === "host-over" ? "usage" : boundary === "input-over" ? "limit-exceeded" : undefined;
+  const code = boundary === "input-over" ? "limit-exceeded" : undefined;
   if (route.startsWith("sdk-")) {
     const result = route === "sdk-text" ? api.extractDocumentText(original, context, { limit }) : route === "sdk-table" ? api.editDocumentTables(original, { operation: "tables.set", options: { table: 1, cell: "A1", text: "Changed", limit, dryRun: true } }, context) : api.executeDocumentBatch(original, batch, { limit, dryRun: true }, context);
     if (code) await expect(result).rejects.toMatchObject({ code });
@@ -74,7 +74,7 @@ it(`${route} enforces ${boundary} independently of selection defaults; strict=${
     try {
       const command = route === "cli-text" ? "docx text /input" : route === "cli-table" ? "docx tables set /input --table 1 --cell A1 --text Changed --dry-run --output /destination --force" : `docx batch /input --ops-json '${JSON.stringify(batch)}' --dry-run --output /destination --force`;
       const result = await shell.exec(command + ` --limit xmlDepth=${limit[0]!.value} --json`), envelope = JSON.parse(result.stdout);
-      expect(result.exitCode, result.stdout + result.stderr).toBe(code === "usage" ? 2 : code ? 4 : 0);
+      expect(result.exitCode, result.stdout + result.stderr).toBe(code ? 4 : 0);
       if (code) expect(envelope).toMatchObject({ ok: false, data: null, affected: 0, errors: [{ code }] });
       else { expect(envelope.ok).toBe(true); expect(envelope.errors).toEqual([]); if (route === "cli-text") expect(envelope.data.text).toBe(text); else expect(route === "cli-batch" ? envelope.data.publication.output : envelope.data.output).toBe(null); }
       expect(await fs.readFile("/input")).toEqual(original); expect(await fs.readFile("/destination")).toEqual(retained);

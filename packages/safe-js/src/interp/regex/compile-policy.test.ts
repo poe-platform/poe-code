@@ -251,7 +251,7 @@ describe("compile checkpoint hash compatibility", () => {
       expect(pair[1]).toBe(regex);
       const serialized: SafeJSSnapshot = JSON.parse(await dump(result));
       expect(restore(serialized, { source })).toBe(serialized);
-      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal"]);
+      expectLegacyDumpGraph(serialized, expectedCompleted, ["globalThis", "eval", "Proxy", "Atomics", "SharedArrayBuffer", "WeakRef", "FinalizationRegistry", "Temporal", "TextEncoder"]);
       for (const field of [
         "hostCalls",
         "replay",

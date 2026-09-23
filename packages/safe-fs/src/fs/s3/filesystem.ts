@@ -426,7 +426,8 @@ export class S3FileSystem implements FileSystem {
       if (output.ContentLength !== undefined && output.ContentLength !== bytes.byteLength) fail("EIO", "readFile", path, "response body length does not match ContentLength");
       return bytes;
     }).catch((error: unknown) => {
-      this.dispose(iterator ?? output.Body);
+      this.dispose(iterator);
+      this.dispose(output.Body, iterator === undefined);
       throw error;
     });
   }

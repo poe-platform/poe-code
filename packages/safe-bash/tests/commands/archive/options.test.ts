@@ -1,6 +1,65 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { archive, binary, fixture, member, record, wrapped } from "./helpers.js";
+import { MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
+import { archive, binary, direct, fixture, gate, member, record, source, wrapped } from "./helpers.js";
+
+for (const backend of ["memory", "s3-mock"]) test(`stdout extraction on ${backend} accepts short, long and traditional options without publishing members`, async () => {
+  const adapter = backend === "s3-mock" ? new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }) }) : undefined;
+  const { fs, shell } = await fixture({}, adapter);
+  try {
+    const bytes = archive(member("dir/", undefined, "5"), member("dir/record", binary), member("other", Uint8Array.of(0, 255, 10)), member("link", undefined, "2", "dir/record"), member("hard", undefined, "1", "dir/record"));
+    await fs.writeFile("/work/owned.tar", bytes);
+    await fs.mkdir("/work/dir");
+    await fs.writeFile("/work/dir/record", Buffer.from("existing"));
+    const before = await fs.stat("/work/dir/record");
+    for (const flags of ["-xOf", "-x -O -f", "--extract --to-stdout --file", "xOf"]) {
+      const result = await shell.exec(`tar ${flags} owned.tar dir/record`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, binary);
+    }
+    const all = await shell.exec("tar -xOvf owned.tar");
+    assert.equal(all.exitCode, 0, all.stderr);
+    assert.deepEqual(all.stdoutBytes, new Uint8Array(Buffer.concat([binary, Uint8Array.of(0, 255, 10)])));
+    assert.match(all.stderr, /dir\/record\n/u);
+    assert.equal(Buffer.from(await fs.readFile("/work/dir/record")).toString(), "existing");
+    const after = await fs.stat("/work/dir/record");
+    assert.equal(after.mode, before.mode);
+    assert.equal(after.mtimeMs, before.mtimeMs);
+    await assert.rejects(fs.stat("/work/other"), { code: "ENOENT" });
+    const piped = await shell.exec("cat owned.tar | tar -xOf - dir/record > recovered");
+    assert.equal(piped.exitCode, 0, piped.stderr);
+    assert.deepEqual(await fs.readFile("/work/recovered"), binary);
+    const excluded = await shell.exec("tar -xOf owned.tar --exclude=other --strip-components=1");
+    assert.equal(excluded.exitCode, 0, excluded.stderr);
+    assert.deepEqual(excluded.stdoutBytes, binary);
+    assert.equal((await shell.exec("tar -xOf owned.tar missing")).exitCode, 2);
+    assert.equal((await shell.exec("tar -xOf -", { stdin: archive(member("../escape", binary)) })).exitCode, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("stdout extraction uses byte output authority and keeps archive limits", async () => {
+  const { fs, shell } = await fixture();
+  await shell.dispose();
+  const bytes = archive(member("file", binary));
+  const result = await direct(["-xOf", "-"], fs, { stdin: source(bytes, 29) }, { limits: { maxTextBytes: 1 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(new Uint8Array(result.stdoutBytes), binary);
+  const limited = await direct(["-xOf", "-"], fs, { stdin: source(bytes) }, { limits: { maxEntryBytes: 32 } });
+  assert.equal(limited.exitCode, 2);
+  assert.equal(limited.stdoutBytes.length, 0);
+  const closed = gate();
+  const reason = new Error("output rejected");
+  let reported: unknown;
+  const failing = await direct(["-xOf", "-"], fs, {
+    stdin: { async *[Symbol.asyncIterator]() { try { yield bytes; } finally { closed.resolve(); } } },
+    stdout: { write() { throw reason; } },
+    onInternalError(error) { reported = error; },
+  });
+  assert.equal(failing.exitCode, 2);
+  assert.equal(failing.stderr, "tar: internal error\n");
+  assert.equal(reported, reason);
+  await closed.promise;
+});
 
 test("creation admits sorting, dereference and cache exclusion on regular operands", async () => {
   const { fs, shell } = await fixture();

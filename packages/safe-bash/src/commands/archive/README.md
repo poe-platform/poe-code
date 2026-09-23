@@ -80,6 +80,7 @@ missing filesystem metadata capabilities. Supported common options:
 | `-f`, `--file` | Named VFS archive, or `-` for binary stdin/stdout. Omission also means `-`; no host tape/environment default. |
 | `-z`, `--gzip` | Streaming gzip creation or decoding. Input compression is not guessed; use `-z` explicitly. |
 | `-v`, `--verbose` | Names for creation/extraction; metadata listing for `-t`. Repeated `-v` is the same boolean setting. |
+| `-O`, `--to-stdout` | Extract selected regular-file contents to stdout in archive order without publishing members or restoring metadata. Verbose names go to stderr; directories and links contribute no payload. |
 | `-C`, `--directory` | Position-sensitive, VFS-resolved directory changes. Relative changes are relative to the previous directory. Archive and file-list filenames remain relative to the invocation cwd. |
 | `--strip-components=N` | Extract after removing N original nonempty slash components, including leading `.` components. A name entirely removed is skipped. Listing keeps original names, as in the frozen GNU observation. |
 | `--transform=EXPR`, `--xform=EXPR` | Listing-only name substitutions: `s/old/new/` with basic regular expressions, `g` (global), `i` (ignore case), or `x` (extended expressions). Repeated options and semicolon-separated substitutions apply in order; replacement `&` and capture references are supported. Empty patterns, occurrence/scope/case-conversion flags, and creation/extraction transforms are unsupported. |

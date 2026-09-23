@@ -52,7 +52,7 @@ test("blocked stdout backpressures before payload acquisition and abort settles"
   controller.abort(reason); await settle(checked);
 });
 
-test("blocked extractor writer backpressures input and receives cancellation", async () => {
+for (const toStdout of [false, true]) test(`blocked extractor ${toStdout ? "stdout" : "file"} writer backpressures input and receives cancellation`, async () => {
   const { fs, shell } = await fixture(); await shell.dispose();
   const controller = new AbortController(); const entered = gate(); const closed = gate();
   let produced = 0;
@@ -64,7 +64,10 @@ test("blocked extractor writer backpressures input and receives cancellation", a
     for await (const ignoredChunk of content) { entered.resolve(); await pause(options!.signal!); }
   } });
   const reason = new Error("cancel extraction write");
-  const checked = assert.rejects(direct(["xf", "-", "-C", "/out"], adapter, { stdin: input, signal: controller.signal }), error => error === reason);
+  const checked = assert.rejects(direct([toStdout ? "xOf" : "xf", "-", "-C", "/out"], adapter, {
+    stdin: input, signal: controller.signal,
+    ...(toStdout ? { stdout: { async write() { entered.resolve(); await pause(controller.signal); } } } : {}),
+  }), error => error === reason);
   await settle(entered.promise); await new Promise(resolve => setTimeout(resolve, 15));
   assert.equal(produced, 1);
   controller.abort(reason); await settle(checked); await settle(closed.promise);

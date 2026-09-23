@@ -1,4 +1,4 @@
-import { dirname, isPathWithin, resolvePath, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
+import { dirname, isPathWithin, resolvePath, writeBytes, type ByteSource, type CommandContext, type FileStat } from "../../contracts/index.js";
 import { applyPax, numberField, parseHeader, parsePax, type ReadEntry } from "./format.js";
 import { Budget, checkPath, display, fail, hasIdentity, maybeStat, operation, publish, sameIdentity, text, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
@@ -153,11 +153,11 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
   const directories = new Map<string, { root: string; entry: ReadEntry }>();
   let archivePath: string | undefined;
   let archiveStat: FileStat | undefined;
-  if (options.mode === "x" && options.archive !== "-") {
+  if (options.mode === "x" && !options.toStdout && options.archive !== "-") {
     archivePath = await operation(context, () => context.fs.realpath(vfsPath(context.cwd, options.archive), { signal: context.signal }));
     archiveStat = await operation(context, () => context.fs.stat(archivePath!, { signal: context.signal }));
   }
-  if (options.mode === "x") await checkRoot(context, options.cwd);
+  if (options.mode === "x" && !options.toStdout) await checkRoot(context, options.cwd);
   try {
     while (true) {
       let block: Uint8Array;
@@ -234,7 +234,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
             if (count !== options.occurrence) continue;
           }
           if (!selected) {
-            if (options.mode === "x") await checkRoot(context, operand.cwd);
+            if (options.mode === "x" && !options.toStdout) await checkRoot(context, operand.cwd);
             root = resolvePath(operand.cwd);
           }
           selected = true;
@@ -263,6 +263,12 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await budget.output("tar: removing leading '/' from member names\n", true); warnedAbsolute = true;
       }
       if (relative === undefined) { await reader.discard(entry.size); await reader.padding(entry.size); continue; }
+      if (options.toStdout) {
+        if (options.verbose) await budget.output(`${quoteName(entry.name, options.quotingStyle)}\n`, true);
+        for await (const chunk of reader.body(entry.size)) await writeBytes(context.stdout, chunk, context.signal);
+        await reader.padding(entry.size);
+        continue;
+      }
       const path = resolvePath(root, relative);
       if (path === root && entry.type !== "5") fail("non-directory entry would replace extraction root");
       let hardTarget: string | undefined;

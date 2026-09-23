@@ -8,6 +8,7 @@ export interface TarOptions {
   archive: string;
   compression?: "gzip" | "bzip2" | "xz";
   verbose: boolean;
+  toStdout: boolean;
   utc: boolean;
   recordSize: number;
   ignoreZeros: boolean;
@@ -36,6 +37,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let compression: TarOptions["compression"];
   let autoCompress = false;
   let verbose = false;
+  let toStdout = false;
   let utc = false;
   let recordSize = 512;
   let ignoreZeros = false;
@@ -118,6 +120,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       compression = selected;
     } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
+    else if (flag === "O" || flag === "to-stdout") toStdout = true;
     else if (flag === "utc") { utc = true; verbose = true; }
     else if (flag === "totals") totals = true;
     else if (flag === "i") ignoreZeros = true;
@@ -232,7 +235,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBin".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBinO".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -261,7 +264,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

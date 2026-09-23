@@ -31,6 +31,7 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
   -c, --create             Create an archive
   -t, --list               List archive members
   -x, --extract, --get      Extract archive members
+  -O, --to-stdout          Extract file contents to standard output
   -r, --append             Append files to an uncompressed archive
   -u, --update             Append files newer than archived members
   -d, --compare, --diff    Compare archive members with filesystem entries

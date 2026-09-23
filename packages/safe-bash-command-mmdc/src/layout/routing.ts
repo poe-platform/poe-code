@@ -32,12 +32,13 @@ function choosePortFaces(
   dst: SceneNode,
   direction: FlowDirection,
   isSelfLoop: boolean,
-  isBackEdge: boolean
+  isBackEdge: boolean,
+  backEdgeIndex: number
 ): { readonly srcFace: PortFace; readonly dstFace: PortFace } {
   if (isSelfLoop) {
     return direction === "LR" || direction === "RL"
-      ? { srcFace: "top", dstFace: "right" }
-      : { srcFace: "right", dstFace: "top" };
+      ? { srcFace: "top", dstFace: "top" }
+      : { srcFace: "right", dstFace: "right" };
   }
 
   const isHorizontal = direction === "LR" || direction === "RL";
@@ -48,9 +49,26 @@ function choosePortFaces(
 
   if (isBackEdge) {
     if (isHorizontal) {
-      return { srcFace: "top", dstFace: "top" };
+      return backEdgeIndex % 2 === 0
+        ? { srcFace: "top", dstFace: "top" }
+        : { srcFace: "bottom", dstFace: "bottom" };
     }
-    return { srcFace: "right", dstFace: "right" };
+    return backEdgeIndex % 2 === 0
+      ? { srcFace: "right", dstFace: "right" }
+      : { srcFace: "left", dstFace: "left" };
+  }
+
+  // Decision diamonds branch cleanly from their side/top/bottom tips into an L-elbow when target center is >= 22px beyond the vertex tip
+  if (src.shape === "diamond") {
+    if (isHorizontal) {
+      const targetFace: PortFace = dstCx >= srcCx ? "left" : "right";
+      if (dstCy <= src.y - 22) return { srcFace: "top", dstFace: targetFace };
+      if (dstCy >= src.y + src.height + 22) return { srcFace: "bottom", dstFace: targetFace };
+    } else {
+      const targetFace: PortFace = dstCy >= srcCy ? "top" : "bottom";
+      if (dstCx <= src.x - 22) return { srcFace: "left", dstFace: targetFace };
+      if (dstCx >= src.x + src.width + 22) return { srcFace: "right", dstFace: targetFace };
+    }
   }
 
   if (isHorizontal) {
@@ -123,33 +141,37 @@ function findSafePillCenter(
   obstacles: readonly Rect[],
   placedPills: Rect[]
 ): SceneLabelPill {
-  // Rank straight segments by length (prefer interior routing segments first)
+  const testPill = buildLabelPill(rawText, { x: 0, y: 0 }, theme);
+
+  // Rank straight segments by how cleanly the pill fits along the segment without touching elbows
   const candidates: { p0: Point; p1: Point; length: number; priority: number }[] = [];
   for (let i = 0; i < waypoints.length - 1; i++) {
     const p0 = waypoints[i]!;
     const p1 = waypoints[i + 1]!;
     const length = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-    const isInterior = i > 0 && i < waypoints.length - 2;
+    const isHoriz = Math.abs(p1.y - p0.y) < 1;
+    const neededLen = (isHoriz ? testPill.width : testPill.height) + 24;
+    const fitsWithoutElbowOverlap = length >= neededLen;
     candidates.push({
       p0,
       p1,
       length,
-      priority: (isInterior ? 1000 : 0) + length
+      priority: (fitsWithoutElbowOverlap ? 2000 : 0) + length
     });
   }
   candidates.sort((a, b) => b.priority - a.priority);
 
-  const sampleFractions = [0.5, 0.4, 0.6, 0.3, 0.7, 0.25, 0.75];
+  const sampleFractions = [0.5, 0.45, 0.55, 0.38, 0.62, 0.3, 0.7];
   const normalOffsets = [0, -18, 18, -32, 32, -48, 48];
 
-  for (const seg of candidates) {
-    const dx = seg.p1.x - seg.p0.x;
-    const dy = seg.p1.y - seg.p0.y;
-    const len = Math.max(1, Math.hypot(dx, dy));
-    const nx = -dy / len;
-    const ny = dx / len;
+  for (const offset of normalOffsets) {
+    for (const seg of candidates) {
+      const dx = seg.p1.x - seg.p0.x;
+      const dy = seg.p1.y - seg.p0.y;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const nx = -dy / len;
+      const ny = dx / len;
 
-    for (const offset of normalOffsets) {
       for (const t of sampleFractions) {
         const cx = seg.p0.x + dx * t + nx * offset;
         const cy = seg.p0.y + dy * t + ny * offset;
@@ -164,7 +186,6 @@ function findSafePillCenter(
     }
   }
 
-  // Fallback: spiral search around midpoint of longest segment so collision is strictly impossible
   const primary = candidates[0] ?? { p0: { x: 100, y: 100 }, p1: { x: 100, y: 100 } };
   const midX = (primary.p0.x + primary.p1.x) / 2;
   const midY = (primary.p0.y + primary.p1.y) / 2;
@@ -213,7 +234,6 @@ export function routeGraphEdges(
       .map((g) => ({ x: g.x, y: g.y, width: g.width, height: g.headerHeight }))
   ];
 
-  // Collect port requests per (nodeId, face)
   const faceBuckets = new Map<string, PortRequest[]>();
   const edgeMeta = new Map<
     string,
@@ -222,11 +242,23 @@ export function routeGraphEdges(
       readonly dstFace: PortFace;
       readonly isSelfLoop: boolean;
       readonly isBackEdge: boolean;
+      readonly backEdgeIndex: number;
       readonly pairIndex: number;
+      readonly pairTotal: number;
     }
   >();
 
+  // Count total edges per node pair first
+  const pairTotals = new Map<string, number>();
+  for (const edge of edges) {
+    if (edge.from === edge.to) continue;
+    const pairKey =
+      edge.from < edge.to ? `${edge.from}::${edge.to}` : `${edge.to}::${edge.from}`;
+    pairTotals.set(pairKey, (pairTotals.get(pairKey) ?? 0) + 1);
+  }
+
   const pairCounts = new Map<string, number>();
+  let backEdgeCounter = 0;
 
   for (const edge of edges) {
     const src = nodeById.get(edge.from);
@@ -237,29 +269,40 @@ export function routeGraphEdges(
     const rSrc = nodeRanks.get(edge.from) ?? 0;
     const rDst = nodeRanks.get(edge.to) ?? 0;
     const isBackEdge = !isSelfLoop && rSrc > rDst;
+    const currentBackIdx = isBackEdge ? backEdgeCounter++ : 0;
 
     const pairKey =
       edge.from < edge.to ? `${edge.from}::${edge.to}` : `${edge.to}::${edge.from}`;
     const pairIndex = pairCounts.get(pairKey) ?? 0;
     pairCounts.set(pairKey, pairIndex + 1);
+    const pairTotal = isSelfLoop ? 1 : (pairTotals.get(pairKey) ?? 1);
 
     const { srcFace, dstFace } = choosePortFaces(
       src,
       dst,
       direction,
       isSelfLoop,
-      isBackEdge
+      isBackEdge,
+      currentBackIdx
     );
-    edgeMeta.set(edge.id, { srcFace, dstFace, isSelfLoop, isBackEdge, pairIndex });
+    edgeMeta.set(edge.id, {
+      srcFace,
+      dstFace,
+      isSelfLoop,
+      isBackEdge,
+      backEdgeIndex: currentBackIdx,
+      pairIndex,
+      pairTotal
+    });
 
     const srcSortKey =
       srcFace === "top" || srcFace === "bottom"
-        ? dst.x + dst.width / 2 + pairIndex * 24
-        : dst.y + dst.height / 2 + pairIndex * 24;
+        ? dst.x + dst.width / 2 + pairIndex * 36
+        : dst.y + dst.height / 2 + pairIndex * 36;
     const dstSortKey =
       dstFace === "top" || dstFace === "bottom"
-        ? src.x + src.width / 2 + pairIndex * 24
-        : src.y + src.height / 2 + pairIndex * 24;
+        ? src.x + src.width / 2 + pairIndex * 36
+        : src.y + src.height / 2 + pairIndex * 36;
 
     const srcBucketKey = `${src.id}:${srcFace}`;
     const dstBucketKey = `${dst.id}:${dstFace}`;
@@ -284,32 +327,37 @@ export function routeGraphEdges(
     faceBuckets.set(dstBucketKey, dstList);
   }
 
-  // Distribute ports along each face with >= 14px spacing centered on face midpoint
   const assignedOffsets = new Map<string, number>();
   for (const [, requests] of faceBuckets) {
     requests.sort((a, b) => a.sortKey - b.sortKey);
     const count = requests.length;
-    const spacing = 16;
+    // Use wider 34px port spacing when parallel edges share a face so edge label pills have vertical clearance
+    const hasParallel = requests.some((r) => (edgeMeta.get(r.edgeId)?.pairTotal ?? 1) > 1);
+    const isSelfLoopFace = requests.some((r) => edgeMeta.get(r.edgeId)?.isSelfLoop === true);
+    const spacing = hasParallel ? 42 : isSelfLoopFace ? 44 : 16;
     for (let i = 0; i < count; i++) {
       const offset = (i - (count - 1) / 2) * spacing;
       assignedOffsets.set(`${requests[i]!.edgeId}:${requests[i]!.endpoint}`, offset);
     }
   }
 
-  // Compute global bounds for back-edge outer corridors
   let maxRight = 0;
+  let minLeft = Infinity;
   let minTop = Infinity;
+  let maxBottom = 0;
   for (const n of nodes) {
     if (n.x + n.width > maxRight) maxRight = n.x + n.width;
+    if (n.x < minLeft) minLeft = n.x;
     if (n.y < minTop) minTop = n.y;
+    if (n.y + n.height > maxBottom) maxBottom = n.y + n.height;
   }
   for (const g of groups) {
     if (g.x + g.width > maxRight) maxRight = g.x + g.width;
+    if (g.x < minLeft) minLeft = g.x;
     if (g.y < minTop) minTop = g.y;
+    if (g.y + g.height > maxBottom) maxBottom = g.y + g.height;
   }
 
-  let backEdgeLane = 0;
-  let channelLaneCounter = 0;
   const placedPills: Rect[] = [];
   const sceneEdges: SceneEdge[] = [];
 
@@ -327,49 +375,84 @@ export function routeGraphEdges(
     let waypoints: Point[];
 
     if (meta.isSelfLoop) {
-      const loopOut = 32 + meta.pairIndex * 18;
-      if (meta.srcFace === "right" && meta.dstFace === "top") {
-        const cornerX = Math.max(srcAttach.stubPoint.x, src.x + src.width + loopOut);
-        const cornerY = Math.min(dstAttach.stubPoint.y, src.y - loopOut);
+      const loopOut = 38 + meta.pairIndex * 20;
+      if (meta.srcFace === "top" && meta.dstFace === "top") {
+        const topY = src.y - loopOut;
         waypoints = [
           srcAttach.port,
-          { x: cornerX, y: srcAttach.port.y },
-          { x: cornerX, y: cornerY },
-          { x: dstAttach.port.x, y: cornerY },
+          { x: srcAttach.port.x, y: topY },
+          { x: dstAttach.port.x, y: topY },
           dstAttach.port
         ];
       } else {
-        const cornerY = Math.min(srcAttach.stubPoint.y, src.y - loopOut);
-        const cornerX = Math.max(dstAttach.stubPoint.x, src.x + src.width + loopOut);
+        const rightX = src.x + src.width + loopOut;
         waypoints = [
           srcAttach.port,
-          { x: srcAttach.port.x, y: cornerY },
-          { x: cornerX, y: cornerY },
-          { x: cornerX, y: dstAttach.port.y },
+          { x: rightX, y: srcAttach.port.y },
+          { x: rightX, y: dstAttach.port.y },
           dstAttach.port
         ];
       }
     } else if (meta.isBackEdge) {
-      backEdgeLane++;
+      const laneNum = Math.floor(meta.backEdgeIndex / 2) + 1;
       if (isHorizontal) {
-        const corridorY = Math.min(srcAttach.stubPoint.y, dstAttach.stubPoint.y, minTop) - 24 - backEdgeLane * 24;
-        waypoints = [
-          srcAttach.port,
-          { x: srcAttach.port.x, y: corridorY },
-          { x: dstAttach.port.x, y: corridorY },
-          dstAttach.port
-        ];
+        if (meta.srcFace === "top") {
+          const corridorY = Math.min(srcAttach.stubPoint.y, dstAttach.stubPoint.y, minTop) - 28 * laneNum;
+          waypoints = [
+            srcAttach.port,
+            { x: srcAttach.port.x, y: corridorY },
+            { x: dstAttach.port.x, y: corridorY },
+            dstAttach.port
+          ];
+        } else {
+          const corridorY = Math.max(srcAttach.stubPoint.y, dstAttach.stubPoint.y, maxBottom) + 28 * laneNum;
+          waypoints = [
+            srcAttach.port,
+            { x: srcAttach.port.x, y: corridorY },
+            { x: dstAttach.port.x, y: corridorY },
+            dstAttach.port
+          ];
+        }
       } else {
-        const corridorX = Math.max(srcAttach.stubPoint.x, dstAttach.stubPoint.x, maxRight) + 28 + backEdgeLane * 28;
-        waypoints = [
-          srcAttach.port,
-          { x: corridorX, y: srcAttach.port.y },
-          { x: corridorX, y: dstAttach.port.y },
-          dstAttach.port
-        ];
+        if (meta.srcFace === "right") {
+          const corridorX = Math.max(srcAttach.stubPoint.x, dstAttach.stubPoint.x, maxRight) + 42 * laneNum;
+          waypoints = [
+            srcAttach.port,
+            { x: corridorX, y: srcAttach.port.y },
+            { x: corridorX, y: dstAttach.port.y },
+            dstAttach.port
+          ];
+        } else {
+          const corridorX = Math.min(srcAttach.stubPoint.x, dstAttach.stubPoint.x, minLeft) - 42 * laneNum;
+          waypoints = [
+            srcAttach.port,
+            { x: corridorX, y: srcAttach.port.y },
+            { x: corridorX, y: dstAttach.port.y },
+            dstAttach.port
+          ];
+        }
       }
+    } else if (
+      (meta.srcFace === "left" || meta.srcFace === "right") &&
+      (meta.dstFace === "top" || meta.dstFace === "bottom")
+    ) {
+      // Single-elbow L-route from side of source (e.g. diamond left/right vertex) into top/bottom of target
+      waypoints = [
+        srcAttach.port,
+        { x: dstAttach.port.x, y: srcAttach.port.y },
+        dstAttach.port
+      ];
+    } else if (
+      (meta.srcFace === "top" || meta.srcFace === "bottom") &&
+      (meta.dstFace === "left" || meta.dstFace === "right")
+    ) {
+      // Single-elbow L-route from top/bottom of source (e.g. diamond top/bottom vertex) into side of target
+      waypoints = [
+        srcAttach.port,
+        { x: srcAttach.port.x, y: dstAttach.port.y },
+        dstAttach.port
+      ];
     } else if (meta.srcFace === "bottom" && meta.dstFace === "top") {
-      // Choose midY in the safe corridor between src.bottom and dst.top avoiding any group header band
       let lowY = srcAttach.stubPoint.y;
       let highY = dstAttach.stubPoint.y;
       if (src.groupId && src.groupId !== dst.groupId) {
@@ -384,13 +467,9 @@ export function routeGraphEdges(
           highY = Math.min(highY, dstGroup.y - 10);
         }
       }
-      const laneShift =
-        meta.pairIndex > 0
-          ? (meta.pairIndex % 2 === 1 ? 1 : -1) * Math.ceil(meta.pairIndex / 2) * 14
-          : 0;
-      const midY = Math.round((lowY + highY) / 2 + laneShift);
+      const midY = Math.round((lowY + highY) / 2);
 
-      if (Math.abs(srcAttach.port.x - dstAttach.port.x) < 1 && meta.pairIndex === 0) {
+      if (Math.abs(srcAttach.port.x - dstAttach.port.x) < 1 && meta.pairTotal === 1) {
         waypoints = [srcAttach.port, dstAttach.port];
       } else {
         waypoints = [
@@ -401,12 +480,8 @@ export function routeGraphEdges(
         ];
       }
     } else if (meta.srcFace === "top" && meta.dstFace === "bottom") {
-      const laneShift =
-        meta.pairIndex > 0
-          ? (meta.pairIndex % 2 === 1 ? 1 : -1) * Math.ceil(meta.pairIndex / 2) * 14
-          : 0;
-      const midY = Math.round((srcAttach.stubPoint.y + dstAttach.stubPoint.y) / 2 + laneShift);
-      if (Math.abs(srcAttach.port.x - dstAttach.port.x) < 1 && meta.pairIndex === 0) {
+      const midY = Math.round((srcAttach.stubPoint.y + dstAttach.stubPoint.y) / 2);
+      if (Math.abs(srcAttach.port.x - dstAttach.port.x) < 1 && meta.pairTotal === 1) {
         waypoints = [srcAttach.port, dstAttach.port];
       } else {
         waypoints = [
@@ -420,20 +495,13 @@ export function routeGraphEdges(
       (meta.srcFace === "right" && meta.dstFace === "left") ||
       (meta.srcFace === "left" && meta.dstFace === "right")
     ) {
-      channelLaneCounter++;
-      const laneShift =
-        meta.pairIndex > 0
-          ? (meta.pairIndex % 2 === 1 ? 1 : -1) * Math.ceil(meta.pairIndex / 2) * 16
-          : 0;
-      const midX = Math.round((srcAttach.stubPoint.x + dstAttach.stubPoint.x) / 2 + laneShift);
-      if (Math.abs(srcAttach.port.y - dstAttach.port.y) < 1 && meta.pairIndex === 0) {
+      const midX = Math.round((srcAttach.stubPoint.x + dstAttach.stubPoint.x) / 2);
+      if (Math.abs(srcAttach.port.y - dstAttach.port.y) <= 4) {
+        const sharedY = Math.round((srcAttach.port.y + dstAttach.port.y) / 2);
         waypoints = [
-          srcAttach.port,
-          { x: midX, y: srcAttach.port.y + laneShift },
-          { x: midX, y: dstAttach.port.y + laneShift },
-          dstAttach.port
+          { x: srcAttach.port.x, y: sharedY },
+          { x: dstAttach.port.x, y: sharedY }
         ];
-        if (laneShift === 0) waypoints = [srcAttach.port, dstAttach.port];
       } else {
         waypoints = [
           srcAttach.port,
@@ -443,7 +511,6 @@ export function routeGraphEdges(
         ];
       }
     } else {
-      // Orthogonal L/Z connection between perpendicular faces
       waypoints = [
         srcAttach.port,
         srcAttach.stubPoint,

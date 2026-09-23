@@ -359,33 +359,109 @@ function makeRectContour(x1: number, y1: number, x2: number, y2: number): readon
   ];
 }
 
+function makeStroke(x1: number, y1: number, x2: number, y2: number, thickness = 56): readonly GlyphPoint[] {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.max(1, Math.hypot(dx, dy));
+  const nx = (-dy / len) * (thickness / 2);
+  const ny = (dx / len) * (thickness / 2);
+  return [
+    { x: Math.round(x1 + nx), y: Math.round(y1 + ny), onCurve: true },
+    { x: Math.round(x2 + nx), y: Math.round(y2 + ny), onCurve: true },
+    { x: Math.round(x2 - nx), y: Math.round(y2 - ny), onCurve: true },
+    { x: Math.round(x1 - nx), y: Math.round(y1 - ny), onCurve: true }
+  ];
+}
+
 function synthesizeIdeographOutline(codePoint: number): GlyphOutline {
   const strokes: (readonly GlyphPoint[])[] = [];
-  const t = 58;
-  strokes.push(makeRectContour(90, 40, 150, 720));
-  strokes.push(makeRectContour(90, 660, 910, 720));
-  strokes.push(makeRectContour(850, 40, 910, 720));
-  strokes.push(makeRectContour(90, 40, 910, 100));
+  // Hiragana (U+3040..U+309F) & Katakana (U+30A0..U+30FF): flowing open 2-3 stroke kana shapes
+  if (codePoint >= 0x3040 && codePoint <= 0x30ff) {
+    const v = codePoint % 5;
+    if (v === 0) {
+      // e.g. い / リ
+      strokes.push(makeStroke(240, 620, 210, 140, 62));
+      strokes.push(makeStroke(210, 140, 310, 240, 54));
+      strokes.push(makeStroke(680, 580, 740, 180, 62));
+    } else if (v === 1) {
+      // e.g. は / ホ
+      strokes.push(makeStroke(180, 660, 180, 100, 60));
+      strokes.push(makeStroke(380, 520, 840, 520, 58));
+      strokes.push(makeStroke(620, 680, 620, 140, 60));
+      strokes.push(makeStroke(420, 220, 780, 160, 56));
+    } else if (v === 2) {
+      // e.g. え / エ
+      strokes.push(makeStroke(340, 680, 660, 640, 58));
+      strokes.push(makeStroke(200, 480, 780, 480, 58));
+      strokes.push(makeStroke(740, 480, 240, 120, 58));
+      strokes.push(makeStroke(480, 280, 820, 110, 58));
+    } else if (v === 3) {
+      strokes.push(makeStroke(180, 560, 820, 560, 58));
+      strokes.push(makeStroke(500, 680, 460, 100, 60));
+      strokes.push(makeStroke(240, 320, 760, 200, 56));
+    } else {
+      strokes.push(makeStroke(220, 640, 780, 640, 58));
+      strokes.push(makeStroke(320, 640, 260, 140, 58));
+      strokes.push(makeStroke(260, 140, 800, 160, 58));
+    }
+    return {
+      codePoint,
+      advanceWidth: 920,
+      leftSideBearing: 140,
+      xMin: 140,
+      yMin: 80,
+      xMax: 840,
+      yMax: 700,
+      contours: strokes
+    };
+  }
 
-  const hCount = 1 + (codePoint % 3);
-  for (let i = 1; i <= hCount; i++) {
-    const y = Math.round(100 + (560 / (hCount + 1)) * i);
-    strokes.push(makeRectContour(150, y - t / 2, 850, y + t / 2));
+  // Open radical + right component architecture for Kanji / Han ideographs (no closed outer box)
+  const arch = codePoint % 4;
+  if (arch === 0) {
+    // Left radical (e.g. 言 / 木 / 彳) + right horizontal/vertical strokes
+    strokes.push(makeStroke(140, 520, 380, 520, 54));
+    strokes.push(makeStroke(260, 680, 260, 80, 56));
+    strokes.push(makeStroke(120, 220, 380, 380, 50));
+    strokes.push(makeStroke(460, 620, 860, 620, 56));
+    strokes.push(makeStroke(480, 400, 840, 400, 54));
+    strokes.push(makeStroke(660, 620, 660, 100, 58));
+    strokes.push(makeStroke(440, 100, 880, 100, 56));
+  } else if (arch === 1) {
+    // Top crown/roof + inner horizontal strokes + legs (e.g. 完 / 始 / 再)
+    strokes.push(makeStroke(490, 710, 490, 600, 58));
+    strokes.push(makeStroke(140, 600, 860, 600, 56));
+    strokes.push(makeStroke(220, 430, 780, 430, 54));
+    strokes.push(makeStroke(140, 270, 860, 270, 56));
+    strokes.push(makeStroke(380, 430, 200, 80, 56));
+    strokes.push(makeStroke(620, 430, 820, 80, 56));
+  } else if (arch === 2) {
+    // Gate / dual pillar architecture (e.g. 開 / 検)
+    strokes.push(makeStroke(150, 680, 150, 80, 56));
+    strokes.push(makeStroke(150, 680, 420, 680, 54));
+    strokes.push(makeStroke(150, 480, 420, 480, 50));
+    strokes.push(makeStroke(850, 680, 850, 80, 56));
+    strokes.push(makeStroke(580, 680, 850, 680, 54));
+    strokes.push(makeStroke(580, 480, 850, 480, 50));
+    strokes.push(makeStroke(280, 310, 720, 310, 52));
+    strokes.push(makeStroke(380, 380, 340, 100, 52));
+    strokes.push(makeStroke(620, 380, 620, 100, 52));
+  } else {
+    // Top horizontal + center hook + cross stroke (e.g. 了 / 行 / 試)
+    strokes.push(makeStroke(160, 650, 840, 650, 58));
+    strokes.push(makeStroke(820, 650, 540, 420, 56));
+    strokes.push(makeStroke(520, 440, 520, 80, 60));
+    strokes.push(makeStroke(520, 80, 380, 160, 54));
+    strokes.push(makeStroke(180, 340, 820, 340, 54));
   }
-  if ((codePoint & 2) !== 0) {
-    strokes.push(makeRectContour(470, 100, 530, 660));
-  }
-  if ((codePoint & 4) !== 0) {
-    strokes.push(makeRectContour(290, 180, 345, 580));
-    strokes.push(makeRectContour(655, 180, 710, 580));
-  }
+
   return {
     codePoint,
     advanceWidth: 960,
-    leftSideBearing: 90,
-    xMin: 90,
-    yMin: 40,
-    xMax: 910,
+    leftSideBearing: 110,
+    xMin: 110,
+    yMin: 60,
+    xMax: 890,
     yMax: 720,
     contours: strokes
   };

@@ -450,7 +450,26 @@ export function layoutGraphDocument(
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
   const { tokens: theme, backgroundColor } = resolveMermaidTheme(options);
 
-  const sizedNodes = document.nodes.map((n) => measureNodeBox(n, theme));
+  const parallelDegree = new Map<string, number>();
+  const pairSeen = new Map<string, number>();
+  for (const e of document.edges) {
+    if (e.from === e.to) continue;
+    const pk = e.from < e.to ? e.from + "::" + e.to : e.to + "::" + e.from;
+    const c = (pairSeen.get(pk) ?? 0) + 1;
+    pairSeen.set(pk, c);
+    if (c > 1) {
+      parallelDegree.set(e.from, Math.max(parallelDegree.get(e.from) ?? 1, c));
+      parallelDegree.set(e.to, Math.max(parallelDegree.get(e.to) ?? 1, c));
+    }
+  }
+  const sizedNodes = document.nodes.map((n) => {
+    const base = measureNodeBox(n, theme);
+    const pDeg = parallelDegree.get(n.id) ?? 1;
+    if (pDeg > 1) {
+      return { ...base, height: Math.max(base.height, 64), width: Math.max(base.width, 128) };
+    }
+    return base;
+  });
   const sizedById = new Map(sizedNodes.map((s) => [s.doc.id, s]));
   const groupById = new Map(document.groups.map((g) => [g.id, g]));
   const groupOrder = new Map(document.groups.map((g, i) => [g.id, i]));
@@ -586,7 +605,22 @@ export function layoutGraphDocument(
         let groupBoundaryCrossings = 0;
         for (const g of ancPrev) if (!ancCurr.has(g)) groupBoundaryCrossings++;
         for (const g of ancCurr) if (!ancPrev.has(g)) groupBoundaryCrossings++;
-        offset += baseNodeGap + groupBoundaryCrossings * 32;
+        // If previous layer has a diamond branching to this layer, spread siblings so centers clear the diamond tips by >= 28px
+        let diamondSpreadBonus = 0;
+        if (r > 0 && layer.length >= 2) {
+          for (const prevNode of rankLayers[r - 1] ?? []) {
+            if (prevNode.doc.shape === "diamond") {
+              const diaSpan = isHorizontal ? prevNode.height : prevNode.width;
+              const prevChildBreadth = isHorizontal ? prev.height : prev.width;
+              const currChildBreadth = isHorizontal ? curr.height : curr.width;
+              const neededGap = Math.max(0, diaSpan + 64 - (prevChildBreadth + currChildBreadth) / 2);
+              if (neededGap > baseNodeGap) {
+                diamondSpreadBonus = Math.max(diamondSpreadBonus, neededGap - baseNodeGap);
+              }
+            }
+          }
+        }
+        offset += baseNodeGap + groupBoundaryCrossings * 32 + diamondSpreadBonus;
       }
       items.push({ node: curr, offset });
       const breadth = isHorizontal ? curr.height : curr.width;
@@ -712,12 +746,12 @@ export function layoutGraphDocument(
     const marginBottom = 22;
     const labelWidth = measureLineWidth(g.label, 12, "ui", 600);
 
-    const gx = Math.round(minX - marginSide);
+    const naturalSpanW = Math.round(maxX - minX + marginSide * 2);
+    const minHeaderClearanceW = snapTo8(labelWidth * 2.3 + 56);
+    const gWidth = Math.max(minHeaderClearanceW, naturalSpanW);
+    const centerX = (minX + maxX) / 2;
+    const gx = Math.round(centerX - gWidth / 2);
     const gy = Math.round(minY - headerHeight - marginTopInner);
-    const gWidth = Math.max(
-      snapTo8(labelWidth + 44),
-      Math.round(maxX - minX + marginSide * 2)
-    );
     const gHeight = Math.round(maxY - minY + headerHeight + marginTopInner + marginBottom);
 
     builtGroupById.set(g.id, {

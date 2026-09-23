@@ -6,6 +6,7 @@ import { pwdRequirements } from "./portable-requirements.js";
 import { printfInteger } from "./printf-integer.js";
 import { printfHex } from "./printf-hex.js";
 import { parsePrintfFloat } from "./printf-float.js";
+import { printfDecimal } from "./printf-decimal.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -155,9 +156,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         }
         if (specialFloat !== undefined) text = specialFloat;
         else if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"));
-        else if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
-        else if (/[eE]/u.test(specifier)) text = number.toExponential(precision ?? 6).replace(/e([+-])(\d)$/u, "e$10$2");
-        else if (/[gG]/u.test(specifier)) text = Number(number.toPrecision(Math.max(1, precision ?? 6))).toString();
+        else if ("fFeEgG".includes(specifier)) text = printfDecimal(number, specifier, precision, flags.includes("#"));
         else {
           const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
           const unsigned = /[uoxX]/u.test(specifier);

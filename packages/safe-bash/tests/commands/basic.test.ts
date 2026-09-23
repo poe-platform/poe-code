@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { escapeBytes } from "../../src/commands/internal.js";
 import { CommandRegistry, createCommandArguments, toByteSource } from "../../src/contracts/index.js";
 import { shellValueFromBytes, type ShellValue } from "../../src/contracts/value.js";
@@ -61,6 +62,40 @@ test("printf integer errors preserve shell status and pipeline output", async ()
   } finally { await shell.dispose(); }
 });
 
+
+for (const [format, operand, expected] of [
+  ["%.0f", "4.5", "4"], ["%.0f", "-4.5", "-4"],
+  ["%.0f", "5.5", "6"], ["%.2f", "3.125", "3.12"],
+  ["%.2e", "3.125", "3.12e+00"], ["%.3g", "3.125", "3.12"],
+  ["%#.0f", "7", "7."], ["%#.0e", "7", "7.e+00"],
+  ["%#.4g", "7", "7.000"], ["%.3G", "2000000", "2E+06"],
+  ["%.3g", "0.00002", "2e-05"], ["%#.3g", "2000000", "2.00e+06"],
+  ["%.3g", "999.5", "1e+03"], ["%.3g", "0.00009999", "0.0001"],
+  ["%.0g", "7", "7"], ["%#.0g", "7", "7."],
+  ["%.2f", "-0.001", "-0.00"], ["%+08.0f", "4.5", "+0000004"],
+  ["%.2f", "1.25", "1.25"], ["%.2e", "125", "1.25e+02"],
+  ["%.0f", "1e21", "1000000000000000000000"],
+  ["%.6g", "5e-324", "4.94066e-324"],
+  ["%.2f", "2.675", "2.67"],
+] as const) test(`printf decimal formatting ${format} ${operand}`, async () => {
+  const result = await run("printf", [format, operand]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, expected);
+});
+
+test("printf decimal formats match native Bash through variables, pipes and virtual files", async () => {
+  const script = "printf -v value '%.0f|%.0f|%.2f|%#.0f|%#.4g|%.3G|%.3g|%.2e|%#.0e|%.3g|%#.3g' 4.5 -4.5 3.125 7 7 2000000 0.00002 3.125 7 999.5 2000000; printf '%s' \"$value\" | cat";
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", script], { env: { ...process.env, LC_ALL: "C" }, encoding: "utf8" });
+  assert.equal(native.status, 0, native.stderr);
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const result = await shell.exec(script + " > /work/decimal; cat /work/decimal");
+    assert.equal(result.exitCode, native.status);
+    assert.equal(result.stderr, native.stderr);
+    assert.equal(result.stdout, native.stdout);
+  } finally { await shell.dispose(); }
+});
 
 for (const [format, negative, positive] of [
   ["%f", "-0.000000", "0.000000"],
@@ -544,7 +579,7 @@ test("printf rejects malformed floating tokens and nonfinite integer operands", 
 
 test("printf preserves hex signed zero, subnormals and exponent cancellation", async () => {
   const result = await run("printf", ["%g\n", "-0x0p0", "0x1p-1074", "0x1" + "0".repeat(300) + "p-1200"]);
-  assert.equal(result.stdout, "-0\n5e-324\n1\n");
+  assert.equal(result.stdout, "-0\n4.94066e-324\n1\n");
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
 });

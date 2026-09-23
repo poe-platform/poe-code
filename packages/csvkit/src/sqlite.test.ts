@@ -45,6 +45,17 @@ const blockedQueries = new Set(['PRAGMA encoding', "SELECT CAST(x'80' AS TEXT) A
   'CREATE VIRTUAL TABLE docs USING fts3(content)', 'CREATE VIRTUAL TABLE docs4 USING fts4(content)', 'CREATE VIRTUAL TABLE geo USING geopoly(a,b,c)',
   "SELECT 'abc' REGEXP '^a' AS matches"]);
 const differentials = [
+  ...[
+    { label: 'NULL token', flags: [], stdin: 'n,label\nNULL,SYNTHETIC\n', stdout: 'n,label\n,SYNTHETIC\n' },
+    { label: 'empty cell', flags: [], stdin: 'n,label\n,SYNTHETIC\n', stdout: 'n,label\n,SYNTHETIC\n' },
+    { label: 'mixed numbers and NULL', flags: [], stdin: 'n,label\n2,FIRST\nNULL,SECOND\n', stdout: 'n,label\n2.0,FIRST\n,SECOND\n' },
+    { label: 'custom NULL token', flags: ['--null-value', 'MISSING'], stdin: 'n,label\nMISSING,SYNTHETIC\n', stdout: 'n,label\n,SYNTHETIC\n' },
+    { label: 'NULL without inference', flags: ['-I'], stdin: 'n,label\nNULL,SYNTHETIC\n', stdout: 'n,label\n,SYNTHETIC\n' },
+    { label: 'literal NULL with blanks', flags: ['--blanks'], stdin: 'n,label\nNULL,SYNTHETIC\n', stdout: 'n,label\nNULL,SYNTHETIC\n' },
+    { label: 'non-NULL control', flags: [], stdin: 'n,label\n2,SYNTHETIC\n', stdout: 'n,label\n2.0,SYNTHETIC\n' }
+  ].map(({ label, flags, ...item }) => ({ ...item, command: 'csvsql',
+    argv: ['-y', '0', ...flags, '--tables', 'data', '--query', 'SELECT n,label FROM data'],
+    stderr: '', status: 0, label: `csvsql ${label}` })),
   ...['echo False', 'future True', 'echo False future True'].flatMap(options => {
     const tokens = options.split(' ');
     const flags = tokens.flatMap((token, index) => index % 2 === 0 ? ['--engine-option', token, tokens[index + 1]!] : []);
@@ -170,6 +181,31 @@ test('SQLite preserves reference double-quoted string literals and exposes compi
     await assert.rejects(session.query("SELECT 'abc' REGEXP '^a'", [], {}, signal), /host divergence.*regexp/);
     const invalid = await session.query("SELECT CAST(x'80' AS TEXT)", [], {}, signal);
     await assert.rejects(async () => { for await (const ignoredRow of invalid.rows) assert.fail(`invalid UTF-8 was replaced: ${String(ignoredRow)}`); }, /SQLite invalid UTF-8 TEXT/);
+  } finally { await session.close(); }
+});
+
+test('SQLite binds NULL parameters alongside non-NULL values', async () => {
+  const session = await provider.connect('sqlite://', {}, signal);
+  try {
+    const result = await session.query('SELECT ? AS first, ? AS label, ? AS last', [null, 'SYNTHETIC', null], {}, signal);
+    const rows = []; for await (const row of result.rows) rows.push(row);
+    assert.deepEqual(result.columns, ['first', 'label', 'last']);
+    assert.deepEqual(rows, [[null, 'SYNTHETIC', null]]);
+    await result.close();
+  } finally { await session.close(); }
+});
+
+test('SQLite reports genuine NOT NULL constraint failures for bound NULL values', async () => {
+  const session = await provider.connect('sqlite://', {}, signal);
+  try {
+    await (await session.query('CREATE TABLE data (n TEXT NOT NULL)', [], {}, signal)).close();
+    await assert.rejects(session.query('INSERT INTO data (n) VALUES (?)', [null], {}, signal), {
+      message: 'IntegrityError: (sqlite3.IntegrityError) NOT NULL constraint failed: data.n\n[SQL: INSERT INTO data (n) VALUES (?)]\n[parameters: (None,)]\n(Background on this error at: https://sqlalche.me/e/20/gkpj)'
+    });
+    const result = await session.query('SELECT count(*) FROM data', [], {}, signal);
+    const rows = []; for await (const row of result.rows) rows.push(row);
+    assert.deepEqual(rows, [[0n]]);
+    await result.close();
   } finally { await session.close(); }
 });
 

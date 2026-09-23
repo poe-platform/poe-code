@@ -140,6 +140,9 @@ export function createSqliteDatabaseProvider(settings: SQLiteOptions): SQLiteDat
         c.sqlite3_db_config(pointer, c.SQLITE_DBCONFIG_DQS_DDL, 1, 0);
         const getAutocommit = wasm.xWrap('sqlite3_get_autocommit', 'int', ['*']) as (db: number) => number;
         const columnText = wasm.xWrap('sqlite3_column_text', '*', ['*', 'int']) as (statement: number, index: number) => number;
+        // The pinned upstream NULL wrapper discards the C return code. Bind
+        // directly so the normal SQLite error checks receive the real status.
+        const bindNull = wasm.xWrap('sqlite3_bind_null', 'int', ['*', 'int']) as (statement: number, index: number) => number;
         const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
         let closed = false, work = 0, activeSignal = signal, blocked: CsvkitBlocked | undefined;
         const statements = new Set<number>();
@@ -279,7 +282,7 @@ export function createSqliteDatabaseProvider(settings: SQLiteOptions): SQLiteDat
               for (const [index, rawValue] of values.entries()) {
                 const value = rawValue && typeof rawValue === 'object' && !(rawValue instanceof Uint8Array) ? sqliteDialect.bindValue!(rawValue) : rawValue;
                 let rc: number;
-                if (value === null) rc = c.sqlite3_bind_null(statement, index + 1);
+                if (value === null) rc = bindNull(statement, index + 1);
                 else if (typeof value === 'bigint') rc = c.sqlite3_bind_int64(statement, index + 1, value);
                 else if (typeof value === 'number') rc = c.sqlite3_bind_double(statement, index + 1, value);
                 else if (typeof value === 'boolean') rc = c.sqlite3_bind_int64(statement, index + 1, value ? 1n : 0n);

@@ -100,6 +100,7 @@ const shellBuiltinNames = new Set([
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
+const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
   "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
@@ -4191,7 +4192,7 @@ export class Runtime {
     }
   }
 
-  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>): Promise<number> {
+  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     const scope = io[invocationScope].child();
     const runtime = new Runtime(
       this.fs, this.commands, this.middleware, this.budget,
@@ -4199,11 +4200,11 @@ export class Runtime {
       this.cancellation, this.cancellationState, this.cancellationOwner,
       this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile,
     );
-    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath); }
     finally { await scope.close(); }
   }
 
-  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>): Promise<number> {
+  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     Reflect.deleteProperty(publicIO, valueScope);
     Reflect.deleteProperty(publicIO, declarationArrays);
@@ -4462,7 +4463,7 @@ export class Runtime {
             if (special && status !== 0) throw new Flow("exit", status);
             return { exitCode: status };
           }
-          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
+          if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments, defaultPath) };
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
@@ -4478,8 +4479,8 @@ export class Runtime {
         }
         if (!definition) {
           if (context.command === "bash" || context.command === "sh") return { exitCode: await this.interpreter(context, state, io) };
-          if (context.command.includes("/") || state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
-          const target = await this.searchPath(context.command, state);
+          if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
+          const [target] = await this.searchPaths(context.command, state, false, false, defaultPath);
           if (target !== undefined) return { exitCode: await this.scriptFile(context, state, io, target, context.args, true) };
           const localeValue = (key: string) => temporaryEnvironment?.has(key) && !previous.has(key)
             ? temporaryEnvironment.get(key)!.value ?? "" : state.variables[key] ?? "";
@@ -4536,7 +4537,7 @@ export class Runtime {
     return matches;
   }
 
-  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>): Promise<number> {
+  async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
     const args = [...context.args];
     const command = context.command === "command";
     const builtin = context.command === "builtin";
@@ -4545,18 +4546,20 @@ export class Runtime {
     let all = false;
     let skipFunctions = false;
     let forcePath = false;
+    let defaultPath = false;
     while (args[0]?.startsWith("-") && args[0] !== "-") {
       const option = args.shift()!;
       if (option === "--") break;
       if (builtin) { await this.diagnostic({ ...io, ...context }, `builtin: ${option}: invalid option`); return 2; }
       for (const flag of option.slice(1)) {
         if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; }
+        else if (command && flag === "p") defaultPath = true;
         else if (!command && flag === "a") all = true;
         else if (!command && flag === "f") skipFunctions = true;
         else if (!command && flag === "t") mode = "kind";
         else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; }
         else {
-          if (command && flag !== "p") {
+          if (command) {
             await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
             await writeDiagnostic(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
           } else await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option\n`);
@@ -4578,7 +4581,8 @@ export class Runtime {
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length)); }
+      // Nested command execution retains -p; discovery and other builtins use their own options.
+      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath)); }
       finally {
         const restore = () => { state.depth--; };
         if (restoration) restoration.apply(restore);
@@ -4591,7 +4595,7 @@ export class Runtime {
       let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
       if (!all) matches = matches.slice(0, 1);
       if (all || !matches.length) {
-        const paths = await this.searchPaths(name, state, all, true);
+        const paths = await this.searchPaths(name, state, all, true, defaultPath);
         matches.push(...paths.map(path => {
           const absolute = command && mode === "describe";
           if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
@@ -4619,15 +4623,11 @@ export class Runtime {
     return (command ? found > 0 || args.length === 0 : found === args.length) ? 0 : 1;
   }
 
-  async searchPath(name: string, state: State): Promise<string | undefined> {
-    return (await this.searchPaths(name, state))[0];
-  }
-
-  async searchPaths(name: string, state: State, all = false, discovery = false): Promise<string[]> {
+  async searchPaths(name: string, state: State, all = false, discovery = false, defaultPath = false): Promise<string[]> {
     if (!name) return [];
     let denied: CommandFailure | undefined;
     const matches: string[] = [];
-    for (const target of pathTargets(name, state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+    for (const target of pathTargets(name, defaultPath ? defaultCommandPath : state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
       const resolved = pathOf(state, target);
       try {
         const options = { signal: this.signal };

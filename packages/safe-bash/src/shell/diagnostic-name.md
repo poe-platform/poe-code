@@ -66,7 +66,8 @@ The formatter computes the exact output length before allocation, bounded by
 `4 * inputByteLength + 3`, using the invocation's existing value allocation.
 Diagnostics still flow through the awaited, budgeted stderr route.
 
-The native `command -p` forwarding witness remains a separate pending feature
-test, recorded by `/tmp/command-name-runtime-UTF8-frozen-handoff.json`. Its
-unsupported-option failure is not a formatter failure or a passing qualification
-case. This formatter increment does not deliver `command -p` support.
+The native `command -p` forwarding witness was originally a separate pending
+feature, recorded by `/tmp/command-name-runtime-UTF8-frozen-handoff.json`.
+Portable lookup now forwards raw command-name bytes through the same formatter;
+`tests/shell/extensions/core/command-default-path.test.ts` compares the result
+against the unchanged primary Bash 5.3 capture.

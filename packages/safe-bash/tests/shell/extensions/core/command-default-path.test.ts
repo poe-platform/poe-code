@@ -23,17 +23,15 @@ function setup() {
   return shell;
 }
 
-for (const fixture of reference.records) test(`documented default-path divergence from primary C: ${fixture.name}`, async context => {
+for (const fixture of reference.records) test(`portable command matches primary C: ${fixture.name}`, async context => {
   const shell = setup(); context.after(() => shell.dispose());
   const result = await shell.exec(fixture.source);
-  // Keep the native capture unchanged: virtual command -p deliberately has no default PATH.
-  assert.equal(fixture.status, 127);
-  assert.equal(result.exitCode, 2);
-  assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "command: -p: unsupported option\n");
+  assert.equal(result.exitCode, fixture.status);
+  assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(fixture.stdoutHex, "hex"));
+  assert.deepEqual(Buffer.from(result.stderrBytes), Buffer.from(fixture.stderrHex, "hex"));
 });
 
-test("nested command flags preserve raw FF without unsupported default-path lookup", async context => {
+test("nested command flags preserve raw FF without portable lookup", async context => {
   const shell = setup(); context.after(() => shell.dispose());
   const fixture = reference.records[0]!;
   const result = await shell.exec('name=$\'\\377\'; command -- command -- "$name"');

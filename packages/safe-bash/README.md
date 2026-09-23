@@ -74,6 +74,9 @@ Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`
 `shift`, `export`, `local`, `declare`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`, `umask`,
 `exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
 `eval`. `pwd`, `true`, and `false` also work without a command bundle.
+`command -p` bypasses functions and searches `/bin:/usr/bin` in the supplied
+filesystem while preserving `PATH`; registered commands remain available.
+Combine it with `-v` or `-V` for discovery, including `command -pV printf`.
 `read -a NAME` replaces an indexed array with the record's IFS-separated fields.
 `export -n NAME` removes a variable's export attribute while keeping its value;
 `export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`

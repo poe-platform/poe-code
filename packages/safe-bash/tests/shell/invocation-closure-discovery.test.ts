@@ -61,7 +61,7 @@ test("unknown permission capability never advertises executable availability", a
 });
 
 test("unsupported discovery options do not silently dispatch", async () => {
-  for (const source of ["command -p say bad", "command -x say bad", "type -x say"]) {
+  for (const source of ["command -x say bad", "type -x say"]) {
     const result = await setup().shell.exec(source);
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");

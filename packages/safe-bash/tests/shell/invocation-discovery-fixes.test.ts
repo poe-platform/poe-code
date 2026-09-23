@@ -36,15 +36,15 @@ test("honest builtin, registry and interpreter labels remain distinct", async ()
   assert.equal(result.exitCode, 0);
 });
 
-test("unsupported command-p never supplies host defaults", async () => {
+test("portable command lookup never supplies host tools", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   for (const source of ["command -p true", "command -Vp true", "command -pV true"]) {
     const result = await shell.exec(source);
-    assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, "");
-    assert.match(result.stderr, /unsupported option/u);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, source === "command -p true" ? "" : "true is a shell builtin\n");
+    assert.equal(result.stderr, "");
   }
-  const missing = await shell.exec("PATH=; command -v ls env node");
+  const missing = await shell.exec("PATH=; command -pv ls env node");
   assert.equal(missing.exitCode, 1);
   assert.equal(missing.stdout, "");
   assert.equal(missing.stderr, "");

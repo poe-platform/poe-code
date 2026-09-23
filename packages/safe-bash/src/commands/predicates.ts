@@ -28,12 +28,25 @@ export function predicateCommands(): CommandDefinition[] {
     if (name === "[") {
       if (args.pop() !== "]") throw new UsageError("missing ']'");
     }
-    if (!args.length) return { exitCode: 1 };
-    if (args.length === 1) return { exitCode: args[0] ? 0 : 1 };
-    if (args.length === 2 && args[0] === "!") return { exitCode: args[1] ? 1 : 0 };
     const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
+    // Small expressions use argc rules before recursive operator precedence.
+    let negate = false;
+    if (args.length === 4) {
+      if (args[0] === "!") { negate = true; args.shift(); }
+      else if (args[0] === "(" && args[3] === ")") { args.pop(); args.shift(); }
+    }
+    if (args.length === 3 && !binary.has(args[1]!)) {
+      if (args[1] === "-a" || args[1] === "-o") {
+        const value = args[1] === "-a" ? Boolean(args[0]) && Boolean(args[2]) : Boolean(args[0]) || Boolean(args[2]);
+        return { exitCode: value !== negate ? 0 : 1 };
+      }
+      if (args[0] === "!") { negate = !negate; args.shift(); }
+      else if (args[0] === "(" && args[2] === ")") { args.pop(); args.shift(); }
+    }
+    if (args.length === 2 && args[0] === "!") { negate = !negate; args.shift(); }
+    if (args.length < 2) return { exitCode: Boolean(args[0]) !== negate ? 0 : 1 };
     let offset = 0;
     const number = (text: string): bigint => {
       if (!/^[ \t]*[+-]?[0-9]+[ \t]*$/u.test(text)) throw new UsageError(`integer expression expected: '${text}'`);
@@ -132,6 +145,6 @@ export function predicateCommands(): CommandDefinition[] {
     };
     const evaluate = disjunction(0);
     if (offset !== args.length) throw new UsageError(`unexpected argument '${args[offset]}'`);
-    return { exitCode: await evaluate() ? 0 : 1 };
+    return { exitCode: await evaluate() !== negate ? 0 : 1 };
   })).map(command => ({ ...command, filesystemRequirements: predicateRequirements }));
 }

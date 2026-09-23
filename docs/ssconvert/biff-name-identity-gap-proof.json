@@ -517,7 +517,9 @@
     "All 19 original families remain open."
   ],
   "delivery": {
-    "status": "pending"
+    "commit": "1ed2d59491c70694c2b36f2b6e5ceebf3788ab8c",
+    "exactRemoteMainVerified": true,
+    "recordedBindingsUnchangedAfterRebase": true
   },
   "publication": {
     "status": "pending",

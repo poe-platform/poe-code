@@ -567,7 +567,9 @@
     "All 19 original families remain open; root publication is separate."
   ],
   "delivery": {
-    "status": "pending"
+    "commit": "4b31570df3ec152046a2837deed83abf76e135c2",
+    "exactRemoteMainVerified": true,
+    "recordedBindingsUnchangedAfterRebase": true
   },
   "publication": {
     "status": "pending",

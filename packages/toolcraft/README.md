@@ -33,7 +33,7 @@ const result = await shell.exec("tools list-users --limit 10 --output json");
 await shell.dispose();
 ```
 
-Each root name and alias becomes a virtual command. Nested groups, command aliases,
+Each root name, its kebab-case spelling and aliases become virtual commands. Nested groups, command aliases,
 default commands, positional arguments, schema defaults, scalar/enum/array/object/
 record/union inputs and CLI scope filtering reuse Toolcraft's CLI parser. Hidden
 commands are excluded from this surface. Standalone CLI behavior remains unchanged.

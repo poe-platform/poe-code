@@ -47,6 +47,31 @@ describe("native toolcraft commands", () => {
 });
 
 describe("library discovery and configuration", () => {
+  it("registers normalized root names and resolves them in a multiple-root executor", async () => {
+    const root = defineGroup({ name: "my_tools", children: library.children });
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: {} }).use(toolcraftCommands([root]));
+    try {
+      const result = await shell.exec("my-tools echo --message normalized --output json");
+      expect(result.exitCode, result.stderr).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual({ message: "normalized" });
+      const call = invocation();
+      expect(await createToolcraftCommandExecutor([root]).execute(["my-tools", "echo", "--message", "direct", "--output", "json"], call)).toEqual({ exitCode: 0 });
+      expect(JSON.parse(call.output.join(""))).toEqual({ message: "direct" });
+    } finally { await shell.dispose(); }
+  });
+
+  it("keeps CLI-excluded roots inaccessible through the public executor", async () => {
+    const handler = vi.fn(() => "private");
+    const root = defineGroup({ name: "private", scope: ["sdk"], children: [defineCommand({ name: "run", scope: ["cli"], params: S.Object({}), handler })] });
+    for (const roots of [root, [root]]) {
+      const call = invocation();
+      expect(await createToolcraftCommandExecutor(roots).execute(Array.isArray(roots) ? ["private", "run"] : ["run"], call)).toEqual({ exitCode: 1 });
+      expect(call.output).toEqual([]);
+      expect(call.errors.join("")).toContain("Unknown toolcraft root");
+    }
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("uses nested declaration paths for alias defaults, including false/zero/null and whole objects", async () => {
     const checked = vi.fn(() => ({ ok: true }));
     const handler = vi.fn(({ params }) => params);

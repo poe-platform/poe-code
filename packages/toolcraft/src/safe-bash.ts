@@ -138,7 +138,8 @@ export function createToolcraftCommandExecutor<TServices extends object>(
   library: Group<TServices> | readonly Group<TServices>[],
   options: ToolcraftCommandsOptions<TServices> = {}
 ): { execute(argv: readonly string[], invocation: ToolcraftInvocation<TServices>): Promise<{ exitCode: number }> } {
-  const roots: readonly Group<TServices>[] = Array.isArray(library) ? library : [library as Group<TServices>];
+  const roots: readonly Group<TServices>[] = (Array.isArray(library) ? library : [library as Group<TServices>])
+    .filter(root => !root.scope || root.scope.includes("cli"));
   const multiple = Array.isArray(library);
   const commands = new Map(roots.flatMap(root => [...discoverCommands(root, multiple ? `${root.name}/` : "")]));
   const defaults = cloneDefaultValue(options.defaults ?? {});
@@ -161,7 +162,7 @@ export function createToolcraftCommandExecutor<TServices extends object>(
         const configuredServices = typeof options.services === "function" ? options.services(invocation) : options.services;
         services = { ...configuredServices, ...invocation.services } as TServices;
         const rootName = multiple ? argv[0] : roots[0]?.name;
-        const selectedRoot = multiple ? roots.find(candidate => candidate.name === rootName || candidate.aliases.includes(rootName ?? "")) : roots[0];
+        const selectedRoot = multiple ? roots.find(candidate => candidate.name === rootName || formatCLIName(candidate.name, "kebab") === rootName || candidate.aliases.includes(rootName ?? "")) : roots[0];
         if (!selectedRoot) throw new TypeError(`Unknown toolcraft root: ${rootName}`);
         root = selectedRoot;
       } catch (error) {
@@ -225,7 +226,7 @@ export function toolcraftCommands<TServices extends object>(
       if (typeof host.provideCapabilities !== "function") throw new Error("Toolcraft requires a safe-bash runtime with invocation capabilities");
       for (const root of roots) {
         if (root.scope && !root.scope.includes("cli")) continue;
-        for (const name of [root.name, ...root.aliases]) {
+        for (const name of new Set([root.name, formatCLIName(root.name, "kebab"), ...root.aliases])) {
           host.commands.register({
             name,
             description: root.description,

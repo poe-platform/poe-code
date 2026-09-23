@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "improvement": "Apply implicit umask modes only to a backend that advertises permissions for the creation path",
+  "capturedAt": "2026-09-23T04:42:26.828697+00:00",
+  "files": [
+    {
+      "path": "packages/safe-bash/src/shell/umask.ts",
+      "sha256": "cb371488e4230c76ffea3c4ea4fb5ae29d2b3cca9b4a508976a05973c27e62bb"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/umask.test.ts",
+      "sha256": "7eebe0ef8addf61e39866834f21d7929edc7beb084c3bb3edf399187feab4e05"
+    }
+  ],
+  "originalReleaseFeedback": {
+    "runId": 35817641756,
+    "jobId": 107044626782,
+    "cases": [
+      "fresh numeric/split pipelines: webdav",
+      "webdav:ENOENT"
+    ],
+    "log": {
+      "scratchFile": "release-35817641756-bash4.log",
+      "bytes": 455198,
+      "sha256": "630a55845eb180e708f2f030519f2c109552244c2e162d969f114cc39dd42260"
+    }
+  },
+  "newRegressions": {
+    "count": 3,
+    "coverage": [
+      "Global permissions:false actual Shell touch/mkdir/redirection/append; assert no implicit mode sent",
+      "Global true plus path permissions:false actual Shell flow; assert path contract overrides global",
+      "Explicit creation mode remains untouched on permissionless adapter"
+    ],
+    "filesystem": "Owned MemoryFileSystem only; no host files"
+  },
+  "validation": {
+    "red": {
+      "scratchFile": "umask-permissions-red.log",
+      "bytes": 29719,
+      "sha256": "acaf3ce7c3e1e052afbf3a7903fd84968b7b6ac408bf84000e90f3b8a60e4aae",
+      "tests": 22,
+      "suites": 0,
+      "pass": 18,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "firstBroadenedObservation": {
+      "scratchFile": "umask-permissions-green.log",
+      "bytes": 36679,
+      "sha256": "47c89d9d4b4d126be29dfb81d7ad3013127d813dc9db7b43eab45ff341d40417",
+      "tests": 113,
+      "suites": 0,
+      "pass": 111,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "recursiveCreationFailure": {
+      "scratchFile": "umask-recursive-query-green.log",
+      "bytes": 2539,
+      "sha256": "c07b567e468420ee8594e6e9a1bae37843efd0310bf5b4227f4a50618cb01c4d",
+      "tests": 2,
+      "suites": 0,
+      "pass": 0,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "focusedGreen": {
+      "scratchFile": "umask-permissions-focused-green.log",
+      "bytes": 20346,
+      "sha256": "aee4f7dc987b225529274d2d986f3196de1349f1c90a84e3c826af8668c6b467",
+      "tests": 34,
+      "suites": 0,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "finalMaintainedGreen": {
+      "scratchFile": "umask-permissions-complete-green.log",
+      "bytes": 34626,
+      "sha256": "9e94b70a2181d2c29292231386508366cb9feeaf17ce41335502fe4474e5b327",
+      "tests": 113,
+      "suites": 0,
+      "pass": 113,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "command": "node --import tsx --test tests/shell/umask.test.ts tests/commands/structured-stress/final-increment/fresh-interop.test.ts tests/integration/adapter-tools-diagnostics/eight-cases.test.ts tests/commands/archive/permissions.test.ts tests/integration/adapter-tools/matrix.test.ts",
+    "cwd": "packages/safe-bash",
+    "rawScopedLint": {
+      "scratchFile": "umask-permissions-scoped-eslint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "lintCaveat": "Package-cwd ESLint exit0 was a raw scoped observation. Root requires guarded npm run lint:eslint and is running it separately; raw scope receipt is not admitted root-route clearance"
+  },
+  "recursiveCreationQualification": "First broad113 run exposed2 capability-query errors for absent recursive mkdir parents (mount/overlay). Query now walks only typedENOENT to parent for recursive mkdir; arbitrary errors/cancellation propagate. Actual backend still owns recursive creation; final113/113 pass",
+  "limits": [
+    "No successful release publication claim",
+    "Peer-identity forwarding fix remains separate and unedited at this snapshot",
+    "Root Git staging/commit/push remains root-owned"
+  ],
+  "taskOwnedNativeScratch": {
+    "path": "/Users/kjopek/Workspace/poe-code/packages/safe-bash/tests/integration/adapter-tools/.real-zxNYtA",
+    "exists": false,
+    "entries": [],
+    "purged": false
+  },
+  "resolvedCandidate": {
+    "capturedAt": "2026-09-23T04:44:15.305111+00:00",
+    "commit": "a31d91c902d749e14d44c43f6aecbe34d8d0ad09",
+    "incomingOverlapCommit": "c5d4d8caa",
+    "ownedResolvedCommit": "a31d91c90",
+    "semanticsCorrection": "Incoming independent permissionless fix uses permissions!==false; resolution preserves legacy default mode hints for undefined permission capability while rejecting explicit false. Initial own candidate used permissions===true; its source hashes and113green receipt remain historical and do not certify this changed candidate. Explicit mode bypass, create:true path queries, typedENOENT ancestor handling and cancellation checks retained",
+    "files": [
+      {
+        "path": "packages/safe-bash/src/shell/umask.ts",
+        "sha256": "7f8bff2edde8e804bfdffd290ba20616ac389003818d8d9daa3a868fdd061c6f"
+      },
+      {
+        "path": "packages/safe-bash/tests/shell/umask.test.ts",
+        "sha256": "7eebe0ef8addf61e39866834f21d7929edc7beb084c3bb3edf399187feab4e05"
+      }
+    ],
+    "maintainedGreen": {
+      "scratchFile": "umask-permissions-resolved-green.log",
+      "bytes": 34627,
+      "sha256": "861c93024b063891c8a1831768e88ee94ace0f77e05ecc2bb3528115aedce157",
+      "tests": 113,
+      "pass": 113,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "publication": "Local committed candidate only; root push and guarded lint remain separate"
+  },
+  "verifiedRemoteMainDelivery": {
+    "recordedAt": "2026-09-23T04:48:44.966614+00:00",
+    "implementationCommit": "8e281e3019cf9aec95e559d8ea860a74d3b8e3e9",
+    "observedRemoteMain": "586fd9c4a6587658fccc3a473c75893acdd4e98a",
+    "ancestryVerified": true,
+    "rebase": "Preserved incoming c5d4d8caa permissionless behavior and replayed113tests on resolved source. Initial/local/pre-rebase identities remain historical.",
+    "publication": "Not verified;containing workflow pending and older45case CI feedback under repair.",
+    "guardedRootLint": "Not claimed;integrated candidate changes remain under active work."
+  }
+}

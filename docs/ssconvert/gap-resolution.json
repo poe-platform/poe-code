@@ -961,5 +961,11 @@
     "authenticatedFilesystemDeclarations": 84,
     "runtimeExecutions": 0,
     "publication": "unverified"
+  },
+  "umaskPermissionCapabilityFollowup": {
+    "proof": "docs/ssconvert/umask-permission-capability-gap-proof.json",
+    "implementationCommit": "8e281e301",
+    "status": "remote-main verified;full integrated gate/publication pending",
+    "result": "Original4red controls;113maintained current adapter/umask controls pass after preserving incoming overlap. Recursive mount/overlay creation and cancellation/explicit modes retained;peer forwarding stays separate."
   }
 }

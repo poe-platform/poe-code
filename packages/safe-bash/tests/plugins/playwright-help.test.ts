@@ -62,3 +62,12 @@ test('built-in and custom command help use the same official target forms withou
     for (const phrase of ['[limited]', 'Client capabilities', 'Host limits', 'reopen explicitly']) assert.ok(!help.includes(phrase));
   }
 });
+
+test('a configured dashboard is reported as supported in general and command help', () => {
+  const abilities = registerPlaywrightAbilities({ show: { execute: async () => {} } }, false);
+  for (const topic of [undefined, 'show'] as const) {
+    const help = formatPlaywrightHelp(topic, abilities);
+    assert.match(help, /show: supported/);
+    assert.ok(!help.includes('show: unsupported'));
+  }
+});

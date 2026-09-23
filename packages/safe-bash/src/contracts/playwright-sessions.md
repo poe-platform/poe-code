@@ -31,6 +31,12 @@ are checked before host JSON parsing and schema rendering. Input schemas must
 be JSON objects or booleans; annotations must contain boolean values. Pages
 exceeding the budgets fail with a resource-limit error.
 
+General help and `playwright-cli show --help` also report whether the host has a
+configured dashboard ability. When `show` is unsupported, agents must not direct
+the user to a dashboard or login window through that command. The standard
+command vocabulary is retained; a configured dashboard ability is reported as
+supported without implying an authenticated website profile.
+
 The safe-bash controller has no default snapshot byte or reference cap. Configure
 `limits.maxSnapshotBytes` or `limits.maxSnapshotRefs` to opt in independently;
 setting another limit does not impose either snapshot cap. Other controller and

@@ -107,8 +107,35 @@ test("xxd: skip, count, displayed offsets", async () => {
   assert.equal((await run("xxd", ["-s4"], "abc")).exitCode, 1);
 });
 
-test("xxd: strict reversal rejects corrupt data and random access", async () => {
-  for (const text of ["0", "0g", "ff:aa", "00 1", "💥"]) assert.equal((await run("xxd", ["-rp"], text)).exitCode, 1, text);
+test("xxd: issue 420 native reverse lexical inputs across chunk boundaries", async () => {
+  for (const [args, input, expected] of [
+    [["-r"], "00000000: 7879 xy\n", "xy"],
+    [["-r", "-p"], "787", "x"],
+    [["-r", "-p"], "78#comment\n79", "xy"],
+    [["-r", "-p"], "7#8", ""],
+    [["-r", "-p"], "7 \n8", "x"],
+    [["-r", "-p"], "0g", ""],
+    [["-r", "-p"], "ff:aa", "\xff\xaa"],
+    [["-r", "-p"], "00 1", "\0"],
+    [["-r", "-p"], "💥", ""],
+  ] as const) {
+    const actual = await run("xxd", args, sliced(Buffer.from(input)));
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.bytes, Buffer.from(expected, "latin1"));
+    assert.equal(actual.stderr, "");
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from(input));
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`xxd ${args.join(" ")} input`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(expected, "latin1"));
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("xxd: normal reversal retains address and line bounds", async () => {
   assert.equal((await run("xxd", ["-rp"], " 61\t62\r\n63 ")).stdout, "abc");
   for (const text of ["garbage", "00000000: 6g", "00000001: 61", "00000000: 61\n00000000: 62", "00000000: 6", "x".repeat(4097)]) {
     assert.equal((await run("xxd", ["-r"], text)).exitCode, 1, text.slice(0, 30));

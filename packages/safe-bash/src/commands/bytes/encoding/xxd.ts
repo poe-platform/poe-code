@@ -14,18 +14,15 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
   let high = -1;
   for await (const chunk of sources(context, files, maxInputBytes)) {
     const pending: number[] = [];
-    let invalid = false;
     for (const byte of chunk) {
       if (byte === 32 || (byte >= 9 && byte <= 13)) continue;
       const digit = hexDigit(byte);
-      if (digit < 0) { invalid = true; break; }
+      if (digit < 0) { high = -1; continue; }
       if (high < 0) high = digit;
       else { pending.push((high << 4) | digit); high = -1; }
     }
     if (pending.length) await output(context, Uint8Array.from(pending));
-    if (invalid) throw new PublicDiagnostic("invalid input: expected hexadecimal digits or ASCII whitespace");
   }
-  if (high >= 0) throw new PublicDiagnostic("invalid input: unmatched hexadecimal digit");
 }
 
 async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number): Promise<void> {
@@ -33,16 +30,37 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
   let offset = 0;
   const emitLine = async (): Promise<void> => {
     if (!line.trim()) { line = ""; return; }
-    const match = /^([0-9a-fA-F]{1,14}):[ \t]?(.*)$/u.exec(line.replace(/\r$/u, ""));
-    if (!match) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
-    const address = Number.parseInt(match[1]!, 16);
+    const colon = line.indexOf(":");
+    if (colon < 1 || colon > 14) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
+    let address = 0;
+    for (let index = 0; index < colon; index++) {
+      const digit = hexDigit(line.charCodeAt(index));
+      if (digit < 0) throw new PublicDiagnostic("invalid input: expected hexadecimal address and colon");
+      address = address * 16 + digit;
+    }
     if (!Number.isSafeInteger(address) || address !== offset) throw new PublicDiagnostic("invalid input: reverse requires contiguous addresses starting at zero");
-    const field = match[2]!.split(/ {2,}|\t/u, 1)[0]!;
-    if (!/^(?:[0-9a-fA-F]{2})+(?: (?:[0-9a-fA-F]{2})+)*$/u.test(field)) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
-    const digits = field.replaceAll(" ", "");
-    if (digits.length > columns * 2) throw new PublicDiagnostic("invalid input: data exceeds configured columns");
-    const bytes = new Uint8Array(digits.length / 2);
-    for (let index = 0; index < bytes.length; index++) bytes[index] = Number.parseInt(digits.slice(index * 2, index * 2 + 2), 16);
+    const pending: number[] = [];
+    let high = -1;
+    let spaces = 0;
+    for (let index = colon + 1; index < line.length; index++) {
+      const byte = line.charCodeAt(index);
+      if (byte === 32 || byte === 9 || byte === 13) {
+        spaces++;
+        if (pending.length && spaces >= 2) break;
+        continue;
+      }
+      const digit = hexDigit(byte);
+      if (digit < 0) break;
+      spaces = 0;
+      if (high < 0) high = digit;
+      else {
+        pending.push((high << 4) | digit);
+        high = -1;
+        if (pending.length === columns) break;
+      }
+    }
+    if (!pending.length) throw new PublicDiagnostic("invalid input: malformed hexadecimal data field");
+    const bytes = Uint8Array.from(pending);
     offset = addOffset(offset, bytes.length);
     await output(context, bytes);
     line = "";

@@ -96,9 +96,11 @@ decode, verification, or decompression failure.
   failure, as pinned native evidence shows. There is no
   URL-safe alphabet or lowercase base32 extension. Encoding uses the declared
   wrap width, not locale or terminal settings.
-- `xxd -r -p` accepts hex and ASCII whitespace, rejecting other characters and
-  unmatched nibbles. Normal reverse requires contiguous hexadecimal addresses
-  starting at zero, at most the configured columns, and lines at most 4096
+- `xxd -r -p` decodes hex pairs across ASCII whitespace, ignores other
+  characters (discarding a pending nibble), and ignores a final unmatched nibble.
+  Normal reverse accepts a single-space ASCII separator and decodes up to the
+  configured columns. It requires contiguous hexadecimal addresses
+  starting at zero and lines at most 4096
   bytes. It is **not** native xxd's permissive, seekable/random-access patcher.
   It cannot write an explicit output-file operand; use shell redirection.
   Reverse rejects seek, length, displacement, and decimal-address options.

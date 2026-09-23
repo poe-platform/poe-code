@@ -99,15 +99,20 @@ GNU2.44's native behavior is preserved with a shorter utility diagnostic.
 This follows the GNU raw/all-data distinction; no object format is parsed.
 
 `-n N`, `--bytes=N` sets a positive minimum run length (default4). Runs contain
-ASCII bytes32–126 plus TAB; other bytes terminate them, including newline, CR,
-NUL, and bytes128–255. `-t d|o|x`, `--radix=...` prints the starting byte offset
+ASCII bytes32–126 plus TAB by default; other bytes terminate them. `-e`,
+`--encoding` selects `s` (7-bit), `S` (8-bit), `l`/`b` (16-bit little/big endian),
+or `L`/`B` (32-bit little/big endian). Wide encodings extract ASCII and TAB
+code units. `-U`, `--unicode` accepts default, invalid, locale, hex, escape,
+and highlight (or d/i/l/x/e/h). Nondefault modes inspect UTF-8; highlight uses
+uncolored escapes because command output is a byte sink, matching redirected
+GNU output. Minimum lengths count characters; offsets count original bytes.
+`-t d|o|x`, `--radix=...` prints the starting byte offset
 in a minimum seven-character right-aligned field. `-f`, `--print-file-name`
 prefixes the literal operand, or `{standard input}`, followed by `: `.
 Offsets reset for each file; each accepted run ends with LF, including at EOF.
 
-This is a useful binary marker extractor, not Unicode string decoding or a
-claim of object-section analysis. GNU `-d`, `-e`, `-U`, `-w`, output-separator
-options and `-o` are remaining compatibility gaps. Numeric `-NUMBER` syntax is
+This is a binary marker extractor with no object-section analysis. GNU `-d`,
+`-w` and `-o` are remaining compatibility gaps. Numeric `-NUMBER` syntax is
 supported under the pinned GNU strings2.44 Darwin profile, including leading-zero
 octal lengths and deferred numeric selection overriding valid ordinary `-n`.
 Zero and unsigned overflow are rejected. Legacy getopt ordering quirks are

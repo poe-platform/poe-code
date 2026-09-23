@@ -48,7 +48,7 @@ export async function prepareRows(args: Arguments, selection: Selection | undefi
   if (first) scope.own(first.free);
   let positions: number[] | undefined;
   try {
-    if (selection) {
+    if (selection && (first || !args.noHeaders)) {
       const metadata = (first?.width ?? 0) * 32;
       budget.hold(metadata);
       try { positions = await resolveSelection(selection, first?.cells.map(cell => cell.decoded.view()) ?? [], args.noHeaders, budget); }

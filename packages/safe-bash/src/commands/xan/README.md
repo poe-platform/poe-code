@@ -60,6 +60,10 @@ bare `!` selects zero fields. One trailing comma is permitted. Quoted numbers
 remain numeric; doubled selector quotes remain two characters. Range second
 endpoints treat stars as literal names. Syntax/numeric errors precede I/O;
 resolution errors consume only the first logical record and precede publication.
+Empty headerless select input emits nothing without resolving column positions;
+selector syntax is still validated before I/O.
+Run source-only select regression coverage from `packages/safe-bash` with
+`node --import tsx --conditions=poe-code-source --test tests/experimental/xan-select.test.mjs`.
 
 Headers decode only first records as fatal UTF-8. Count is a quote-state splitter
 without width validation unless `-c/--check-alignment` is set. Select/slice preserve bytes, refuse stray/post-close

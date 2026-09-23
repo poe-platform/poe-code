@@ -63,7 +63,7 @@ it.each<[string, CellValue]>([
   ['=DOLLAR(-1234.5,1)', s("($1,234.5)")], ['=DOLLAR(1,128)', e("#VALUE!")],
   ['=TEXT(-12.5,"0.0;(0.0)")', s("(12.5)")], ['=TEXT(0.125,"0.0%")', s("12.5%")],
   ['=VALUE("(1,234.5)")', n(-1234.5)], ['=NUMBERVALUE("1.234,5",",")', n(1234.5)],
-  ['=T(42)', n(0)], ['=T("abc")', s("abc")],
+  ['=T(42)', { kind: "blank" }], ['=T("abc")', s("abc")],
   ['=TEXTJOIN("-",FALSE,{"a","","b"})', s("a--b")],
   ['=TEXTAFTER("abc","")', e("#N/A")], ['=TEXTBEFORE("abc","")', e("#N/A")],
   ['=CONCAT(TEXTSPLIT("a,b;c",",",";",FALSE,0,7))', s("abc7")],

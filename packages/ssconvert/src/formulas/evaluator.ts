@@ -54,6 +54,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
   const fetchedCells = new Set<Cell>();
   for (const sheet of [...book.sheets, ...book.detachedSheets ?? []]) indexes.set(sheet, new Map(sheet.cells.map(cell => [`${cell.row}:${cell.column}`, cell])));
   const results = new Map<Cell, CellValue>(), visiting = new Set<Cell>(), iterated = new Set<Cell>();
+  const functionEmptyValues = new WeakSet<Value>();
   const cleared = new Set<Cell>(), tablePending = new Set<Cell>();
   const arrayKeys = new Map<Cell, string>();
   const expressions = new Map<Cell, FormulaNode>(), matrices = new Map<string, Value>();
@@ -327,7 +328,16 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       if (activeCell && ["INDIRECT", "OFFSET", "INDEX", "CHOOSE"].includes(node.name)) dynamicCells.add(activeCell);
       const result = callFunction(node.name, node.args, host);
       if (result) trackRange(result);
-      if (result !== undefined) return result;
+      if (result !== undefined) {
+        // Native function results retain explicit empty values; cell references become zero.
+        if (result.kind === "blank") {
+          const owned: CellValue = { kind: "blank" };
+          functionEmptyValues.add(owned);
+          return owned;
+        }
+        if (result.kind === "matrix") functionEmptyValues.add(result);
+        return result;
+      }
       if (!Object.hasOwn(functionDescriptors, node.name)) return error("#NAME?");
       throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: formula function ${node.name}`);
     } finally { depth--; }
@@ -434,7 +444,7 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
         if (!value) { value = evaluate(node, position, Boolean(group)); if (group) matrices.set(key, value); }
         const output = group ? matrix(value) : undefined;
         const next = output ? output.rows[output.rows.length === 1 ? 0 : cell.row - position.row]?.[(output.rows[0]?.length ?? 0) === 1 ? 0 : cell.column - position.column] ?? error("#N/A") : scalar(value, position);
-        const nonempty = next.kind === "blank" ? numericResult(0) : next;
+        const nonempty = next.kind === "blank" && (value.kind === "range" || !functionEmptyValues.has(next) && !functionEmptyValues.has(value)) ? numericResult(0) : next;
         if (iterationRoot !== cell || !iterated.has(cell)) { result = nonempty; if (iterationRoot === cell) iterationRoot = undefined; break; }
         iterated.delete(cell);
         if (remaining-- <= 0) { iterationRoot = undefined; break; }

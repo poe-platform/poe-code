@@ -164,7 +164,7 @@ it("ports PERL_DATE using the injected clock and timezone without enabling absen
     .toThrow("text limit");
 });
 
-it("retains typed optional sample coercion and exact arithmetic error propagation", async () => {
+it("retains typed optional sample coercion and outer arithmetic error propagation", async () => {
   const { perlSampleFunctions, pythonSampleFunctions } = await import("./optional-providers.js");
   const extended = { ...context, runtimeFunctions: { ...perlSampleFunctions, ...pythonSampleFunctions } };
   const value = (formula: string) => recalculateWorkbook(book(formula), extended).sheets[0]!.cells[0]!.value;
@@ -178,7 +178,58 @@ it("retains typed optional sample coercion and exact arithmetic error propagatio
     for (const [argumentsText, expected] of [["1/0,2", "#DIV/0!"], ["2,1/0", "#DIV/0!"], ['"bad",2', "#VALUE!"], ["1", "#N/A"], ["1,2,3", "#N/A"]] as const)
       expect(value(`=${name}(${argumentsText})`)).toEqual({ kind: "error", value: expected });
   expect(value("=PERL_ADDER(1e308,1e308)")).toEqual({ kind: "error", value: "#NUM!" });
-  expect(value("=PY_BITAND(-1,2)")).toEqual({ kind: "error", value: "#VALUE!" });
+});
+
+it("converts delegated Python BITAND errors to empty values with the native bridge warning", async () => {
+  const { pythonSampleFunctions } = await import("./optional-providers.js");
+  const diagnostics: unknown[] = [];
+  const extended = { ...context, runtimeFunctions: pythonSampleFunctions };
+  const input = book("=PY_BITAND(-1,3)");
+  expect(recalculateWorkbook(input, extended, false, diagnostic => diagnostics.push(diagnostic)).sheets[0]!.cells[0]!.value)
+    .toEqual({ kind: "blank" });
+  expect(diagnostics).toEqual([{ code: "python-loader", severity: "warning", message: "gnm_value_to_py_obj: unsupported value type" }]);
+  expect(input.sheets[0]!.cells[0]!.value).toEqual({ kind: "blank" });
+  expect(input.sheets[0]!.cells[0]!.formulaDirty).toBe(true);
+  diagnostics.length = 0;
+  for (const [formula, error] of [["=BITAND(-1,3)", "#VALUE!"], ["=PY_BITAND(NA(),3)", "#N/A"],
+    ['=PY_BITAND("bad",3)', "#VALUE!"], ["=PY_BITAND(3)", "#N/A"]] as const)
+    expect(recalculateWorkbook(book(formula), extended, false, diagnostic => diagnostics.push(diagnostic)).sheets[0]!.cells[0]!.value)
+      .toEqual({ kind: "error", value: error });
+  expect(diagnostics).toEqual([]);
+  expect(recalculateWorkbook(book("=A2"), extended).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 0 });
+  const referenced: Workbook = { sheets: [{ id: "s", name: "Sheet1", cells: [
+    ...book("=PY_BITAND(-1,3)").sheets[0]!.cells,
+    { row: 0, column: 1, formula: "=A1", formulaDirty: true, value: { kind: "blank" } }
+  ] }] };
+  expect(recalculateWorkbook(referenced, extended).sheets[0]!.cells.map(cell => cell.value))
+    .toEqual([{ kind: "blank" }, { kind: "number", value: 0 }]);
+});
+
+it("preserves cancellation triggered by the Python bridge warning", async () => {
+  const { pythonSampleFunctions } = await import("./optional-providers.js");
+  for (const reason of [null, false, 0, "", NaN]) {
+    const controller = new AbortController();
+    let caught: unknown = Symbol("not thrown");
+    try {
+      recalculateWorkbook(book("=PY_BITAND(-1,3)"), { ...context, signal: controller.signal, runtimeFunctions: pythonSampleFunctions },
+        false, () => controller.abort(reason));
+    } catch (error) { caught = error; }
+    expect(caught).toBe(reason);
+  }
+});
+
+it("retains empty Python bridge slots beside valid array results", async () => {
+  const { pythonSampleFunctions } = await import("./optional-providers.js");
+  const input: Workbook = { sheets: [{ id: "s", name: "Sheet1", cells: [], formulaGroups: [
+    { id: "a", kind: "array", expression: "=PY_BITAND({12,-1,7},3)",
+      range: { startRow: 0, endRow: 0, startColumn: 0, endColumn: 2 } }
+  ] }] };
+  const diagnostics: unknown[] = [];
+  expect(recalculateWorkbook(input, { ...context, runtimeFunctions: pythonSampleFunctions }, true,
+    diagnostic => diagnostics.push(diagnostic)).sheets[0]!.cells.map(cell => cell.value))
+    .toEqual([{ kind: "number", value: 0 }, { kind: "blank" }, { kind: "number", value: 3 }]);
+  expect(diagnostics).toHaveLength(1);
+  expect(input.sheets[0]!.cells).toEqual([]);
 });
 
 it("snapshots owned repeated-argument metadata without executing getters", () => {

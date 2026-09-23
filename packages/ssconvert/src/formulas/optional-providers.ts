@@ -27,6 +27,13 @@ export const pythonSampleFunctions: RuntimeFunctions = snapshotRuntimeFunctions(
   PY_BITAND: { signature: "ff", implementation(args, host) {
     const nodes = args.map(value => ({ kind: "literal" as const, start: 0, end: 0, value: host.scalar(value!) }));
     const result = callFunction("BITAND", nodes, host);
-    return result === undefined ? { kind: "error", value: "#NAME?" } : host.scalar(result);
+    if (result === undefined) return { kind: "error", value: "#NAME?" };
+    const value = host.scalar(result);
+    // The native Python bridge converts a delegated Gnumeric error to None.
+    if (value.kind === "error") {
+      host.diagnostic?.({ code: "python-loader", severity: "warning", message: "gnm_value_to_py_obj: unsupported value type" });
+      return { kind: "blank" };
+    }
+    return value;
   } }
 });

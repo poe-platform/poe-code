@@ -3,6 +3,7 @@ import { basename, dirname, getCommandArguments, type CommandContext, type Comma
 import { decoder, define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
+import { printfInteger } from "./printf-integer.js";
 import { printfHex } from "./printf-hex.js";
 import { parsePrintfFloat } from "./printf-float.js";
 
@@ -148,7 +149,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           number = parsed?.value ?? NaN;
           specialFloat = parsed?.special;
         }
-        if (!Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length) {
+        if ("fFeEgGaA".includes(specifier) && (!Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length)) {
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }
@@ -160,21 +161,14 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         else {
           const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
           const unsigned = /[uoxX]/u.test(specifier);
-          let integral: bigint;
-          try {
-            const token = supplied.trim();
-            if (!token || /^["']/u.test(token)) integral = BigInt(Math.trunc(number));
-            else {
-              const magnitude = token.replace(/^[+-]/u, "");
-              if (!/^(?:0[xX][0-9a-fA-F]+|0[0-7]*|[1-9][0-9]*)$/u.test(magnitude)) throw new Error("invalid integer");
-              integral = BigInt(/^0[0-7]+$/u.test(magnitude) ? `0o${magnitude.slice(1)}` : magnitude) * (token.startsWith("-") ? -1n : 1n);
-            }
-          } catch {
-            integral = 0n;
-            if (exitCode === 0) await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid integer\n`, context.signal);
+          const parsed = printfInteger(suppliedIndex < args.length ? supplied : "0", unsigned);
+          const integral = parsed.value;
+          if (parsed.error) {
+            await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
             exitCode = 1;
           }
-          text = (unsigned ? BigInt.asUintN(64, integral) : integral).toString(radix);
+          number = Number(integral);
+          text = integral.toString(radix);
           if (precision === 0 && integral === 0n) text = "";
           if (precision !== undefined) text = text.startsWith("-") ? `-${text.slice(1).padStart(precision, "0")}` : text.padStart(precision, "0");
           if (flags.includes("#")) {

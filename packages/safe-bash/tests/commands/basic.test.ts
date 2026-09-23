@@ -7,6 +7,61 @@ import { Shell } from "../../src/shell/index.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { fixture, run } from "./helpers.js";
 
+for (const [specifier, operand, expected, diagnostic] of [
+  ["d", "9223372036854775810", "9223372036854775807", "Numerical result out of range"],
+  ["i", "-9223372036854775810", "-9223372036854775808", "Numerical result out of range"],
+  ["u", "18446744073709551618", "18446744073709551615", "Numerical result out of range"],
+  ["x", "18446744073709551618", "ffffffffffffffff", "Numerical result out of range"],
+  ["d", "0x8000000000000002", "9223372036854775807", "Numerical result out of range"],
+  ["d", "17tail", "17", "value not completely converted"],
+  ["i", "17.25", "17", "value not completely converted"],
+  ["d", "071tail", "57", "value not completely converted"],
+  ["d", "-0x2tail", "-2", "value not completely converted"],
+  ["d", "09", "0", "value not completely converted"],
+  ["d", "17 ", "17", "value not completely converted"],
+  ["d", "OwnedWord", "0", "invalid number"],
+  ["u", "-18446744073709551616", "18446744073709551615", "Numerical result out of range"],
+  ["d", "9".repeat(10000), "9223372036854775807", "Numerical result out of range"],
+] as const) test(`printf integer conversion ${specifier} ${operand.slice(0, 30)}`, async () => {
+  const result = await run("printf", [`%${specifier}|`, operand, "2"]);
+  assert.equal(result.stdout, `${expected}|2|`);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, `printf: '${operand}': ${diagnostic}\n`);
+});
+
+test("printf preserves exact integer boundaries and C-style bases", async () => {
+  for (const [specifier, operand, expected] of [
+    ["d", "9223372036854775807", "9223372036854775807"],
+    ["i", "-9223372036854775808", "-9223372036854775808"],
+    ["u", "18446744073709551615", "18446744073709551615"],
+    ["X", "0xffffffffffffffff", "FFFFFFFFFFFFFFFF"],
+    ["o", "-1", "1777777777777777777777"],
+    ["u", "-18446744073709551615", "1"],
+    ["d", "  +071", "57"],
+    ["d", "-0x2", "-2"],
+  ]) {
+    const result = await run("printf", [`%${specifier}`, operand!]);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+  }
+});
+
+test("printf integer errors preserve shell status and pipeline output", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const script = "printf '%d|%u|%d' 17tail 18446744073709551618 -0x2tail; result=$?; printf '|STATUS:%s' \"$result\"; exit \"$result\"";
+    const result = await shell.exec(script);
+    assert.equal(result.stdout, "17|18446744073709551615|-2|STATUS:1");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr.split("\n").filter(Boolean).length, 3);
+    const piped = await shell.exec("printf '%d' 17tail | cat");
+    assert.equal(piped.stdout, "17");
+    assert.equal(piped.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+
 for (const [format, negative, positive] of [
   ["%f", "-0.000000", "0.000000"],
   ["%e", "-0.000000e+00", "0.000000e+00"],

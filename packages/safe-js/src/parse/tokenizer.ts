@@ -42,7 +42,11 @@ export type TokenizeOptions = {
   allowHtmlComments?: boolean;
   comments?: Comment[];
   compilation?: CompileScope;
+  // Internal source graphs can reuse immutable token boundary positions.
+  sharedPositions?: boolean;
 };
+
+const freezePosition = Object.freeze;
 
 const KEYWORDS = new Set([
   "class",
@@ -186,6 +190,7 @@ class Lexer {
   private lastClosedStatementBoundary = false;
   private legacyStringEscape = false;
   private lineHasToken = false;
+  private lastPosition?: Position;
 
   constructor(
     private readonly source: string,
@@ -1141,11 +1146,15 @@ class Lexer {
   }
 
   private position(): Position {
-    return {
+    if (this.options.sharedPositions && this.lastPosition?.offset === this.index)
+      return this.lastPosition;
+    const position = {
       line: this.line,
       column: this.column,
       offset: this.index
     };
+    if (!this.options.sharedPositions) return position;
+    return (this.lastPosition = freezePosition(position));
   }
 
   private advance(): void {

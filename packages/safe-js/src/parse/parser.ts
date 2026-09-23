@@ -20,6 +20,8 @@ import { SandboxError, type CompileOwner } from "../interp/budget.js";
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 export type { ParsedSourceModule, SourceImport, SourceExport } from "./module-syntax.js";
 
+const isFrozenPosition = Object.isFrozen;
+
 const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
 const MAX_IF_STATEMENT_DEPTH = 2_048;
 const STRICT_BINDING_NAMES = new Set(["eval", "arguments", "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"]);
@@ -703,7 +705,12 @@ export function parseModule(source: string, filename = "<input>", owner?: Compil
   }
 }
 
-export function parseSourceModule(source: string, filename = "<input>", owner?: CompileOwner): ParsedSourceModule {
+export function parseSourceModule(
+  source: string,
+  filename = "<input>",
+  owner?: CompileOwner,
+  options: { sharedPositions?: boolean } = {}
+): ParsedSourceModule {
   const compilation = new CompileScope(owner);
   const syntax: SourceModuleSyntax = {imports: [], exports: [], moduleRequests: []};
   let parser: Parser | undefined;
@@ -713,7 +720,7 @@ export function parseSourceModule(source: string, filename = "<input>", owner?: 
       throw new SandboxError({budget: "stringLength", current: source.length, limit});
     owner?.budget.visitNode(source.length);
     parser = new Parser(
-      tokenize(source, {allowRegexLiterals: true, statementList: true, compilation}),
+      tokenize(source, {allowRegexLiterals: true, statementList: true, compilation, sharedPositions: options.sharedPositions}),
       source, compilation, "top-level",
       {...ordinaryFunctionContext, newTarget: false, return: false, requireAsyncAwait: true,
         grammar: {await: true, yield: false, strict: true}}, true, syntax
@@ -5753,8 +5760,8 @@ function assertAllowedIdentifierReference(token: Token, strict: boolean): void {
 
 function createSpan(start: Position, end: Position): SourceSpan {
   return {
-    start: { ...start },
-    end: { ...end }
+    start: isFrozenPosition(start) ? start : { ...start },
+    end: isFrozenPosition(end) ? end : { ...end }
   };
 }
 

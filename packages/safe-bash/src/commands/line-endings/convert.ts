@@ -1,44 +1,23 @@
 import type { ConversionOptions, Direction } from "./internal.js";
 import { LineEndingError } from "./internal.js";
 import { Lifecycle, Reader, Writer } from "./io.js";
+import { encodingLabels, readEncoding } from "./encoding.js";
 
 export interface UnicodeState { high: number }
 export interface ConversionResult { readonly kind: "ok" | "binary" | "unicode" | "bom-error"; readonly encoding: string }
 
 export async function convert(direction: Direction, reader: Reader, writer: Writer, life: Lifecycle, options: ConversionOptions, state: UnicodeState, name: string, stdio: boolean): Promise<ConversionResult> {
-  const prefix: number[] = [];
-  let bom: "bytes" | "le" | "be" | "utf8" | "gb" = "bytes";
   const diagnostic = async (message: string) => { await life.diagnostic(`${direction}: ${message}\n`); };
-  const first = await reader.get();
-  let bomError = false;
-  if (first !== -1) {
-    if (first !== 0xff && first !== 0xfe && first !== 0xef && first !== 0x84) prefix.push(first);
-    else {
-      const second = await reader.get();
-      if (second === -1) bomError = true;
-      else if (first === 0xff && second === 0xfe) bom = "le";
-      else if (first === 0xfe && second === 0xff) bom = "be";
-      else {
-        const third = await reader.get();
-        if (third === -1) bomError = true;
-        else if (first === 0xef && second === 0xbb && third === 0xbf) bom = "utf8";
-        else {
-          prefix.push(first, second, third);
-          if (first === 0x84 && second === 0x31 && third === 0x95) {
-            const fourth = await reader.get();
-            if (fourth === -1) bomError = true;
-            else if (fourth === 0x33) { bom = "gb"; prefix.length = 0; }
-            else prefix.push(fourth);
-          }
-        }
-      }
-    }
-  }
-  if (bomError) {
+  const input = await readEncoding(reader);
+  if (input.error) {
     if (!options.quiet) await diagnostic("can not read from input file: Success");
     return { kind: "bom-error", encoding: "" };
   }
-  if (bom === "bytes") bom = options.assume;
+  const bom = input.bom === "bytes" ? options.assume : input.bom;
+  if (options.verbose) {
+    if (options.assume !== "bytes") await diagnostic(`Assuming UTF-16${options.assume === "le" ? "LE" : "BE"} encoding.`);
+    if (input.bom !== "bytes") await diagnostic(`Input file ${name} has ${encodingLabels[input.bom]} BOM.`);
+  }
   const wide = bom === "le" || bom === "be";
   const encoding = wide ? bom === "le" ? "UTF-16LE" : "UTF-16BE" : "";
   const env = life.budget.context.env;
@@ -48,9 +27,9 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
   if (options.addBom || options.keepBom && bom !== "bytes") {
     const bytes = options.keepUtf16 && wide ? bom === "le" ? [0xff, 0xfe] : [0xfe, 0xff] : bom === "gb" ? [0x84, 0x31, 0x95, 0x33] : [0xef, 0xbb, 0xbf];
     for (const byte of bytes) await writer.put(byte);
+    if (options.verbose) await diagnostic(`Writing ${options.keepUtf16 && wide ? encodingLabels[bom] : bom === "gb" ? "GB18030" : "UTF-8"} BOM.`);
   }
-  let prefixOffset = 0;
-  const byte = async () => prefixOffset < prefix.length ? prefix[prefixOffset++]! : await reader.get();
+  const byte = input.byte;
   let pushed = -1;
   const unit = async (): Promise<number> => {
     if (pushed !== -1) { const value = pushed; pushed = -1; return value; }
@@ -89,9 +68,11 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
     return true;
   };
   let previous = 0;
+  let last = -1, converted = 0;
   for (;;) {
     let current = await unit();
     if (current === -1) break;
+    last = current;
     if (!options.force && current < 32 && current !== 9 && current !== 10 && current !== 12 && current !== 13) {
       result.kind = "binary";
       if (!options.quiet) await diagnostic(`Binary symbol 0x${current.toString(16).toUpperCase().padStart(wide ? 4 : 2, "0")} found at line ${line}`);
@@ -101,17 +82,18 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
       if (current === 13) {
         pushed = await unit();
         if (pushed !== 10) { if (!await put(13)) break; }
-        else if (options.newline && !await put(10)) break;
+        else { converted++; last = 10; if (options.newline && !await put(10)) break; }
       } else {
         if (current === 10) line++;
         if (!await put(current)) break;
       }
     } else {
-      if (current === 10) { if (!await put(13)) break; }
+      if (current === 10) { converted++; if (!await put(13)) break; }
       else if (current === 13) {
         current = await unit();
         if (current === -1) current = 13;
         else { if (!await put(13)) break; previous = 13; }
+        last = current;
       }
       if (current === 10) line++;
       if (!await put(current)) break;
@@ -121,6 +103,12 @@ export async function convert(direction: Direction, reader: Reader, writer: Writ
       previous = current;
     }
   }
+  if (result.kind === "ok" && options.addEol && last !== -1 && last !== 10) {
+    if (options.verbose) await diagnostic("Added line break to last line.");
+    if (direction === "unix2dos") await put(13);
+    await put(10);
+  }
+  if (result.kind === "ok" && options.verbose) await diagnostic(`Converted ${converted} out of ${line - 1} line breaks.`);
   if (stdio || result.kind === "ok") await writer.flush();
   if (!options.quiet) {
     if (result.kind === "binary") await diagnostic(`Skipping binary file ${name}`);

@@ -31,6 +31,9 @@ export interface ConversionOptions {
   sevenBit: boolean;
   keepDate: boolean;
   newFile: boolean;
+  addEol: boolean;
+  verbose: boolean;
+  allowChown: boolean;
 }
 export function settings(options: LineEndingCommandsOptions): LineEndingLimits {
   const limits: LineEndingLimits = {

@@ -114,7 +114,7 @@ export class Stage {
   async publish(input: FileStat, options: ConversionOptions): Promise<void> {
     const { signal } = this.files.life.budget;
     await this.checked();
-    if (!options.newFile && ((input.uid !== undefined && input.uid !== this.identity!.uid) || (input.gid !== undefined && input.gid !== this.identity!.gid))) {
+    if (!options.newFile && !options.allowChown && ((input.uid !== undefined && input.uid !== this.identity!.uid) || (input.gid !== undefined && input.gid !== this.identity!.gid))) {
       throw new LineEndingError("filesystem cannot preserve input user/group ownership");
     }
     await this.files.call(fs => fs.chmod!, [this.temporary, (input.mode & 0o777) & (options.newFile ? ~0o022 : 0o777), { signal }]);

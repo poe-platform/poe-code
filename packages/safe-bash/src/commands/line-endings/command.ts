@@ -4,6 +4,7 @@ import { Budget, LineEndingError, sameIdentity, settings, type ConversionOptions
 import { Lifecycle, Reader, Writer } from "./io.js";
 import { Files, Stage } from "./stage.js";
 import { convert } from "./convert.js";
+import { FileInformation } from "./info.js";
 
 function definition(direction: Direction, options: LineEndingCommandsOptions): CommandDefinition {
   const limits = settings(options);
@@ -50,15 +51,26 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
       const active = life;
       const files = new Files(active);
       const args = await budget.arguments();
-      const flags: ConversionOptions = { keepBom: direction === "unix2dos", addBom: false, keepUtf16: false, assume: "bytes", force: false, quiet: false, newline: false, sevenBit: false, keepDate: false, newFile: false };
+      const flags: ConversionOptions = { keepBom: direction === "unix2dos", addBom: false, keepUtf16: false, assume: "bytes", force: false, quiet: false, newline: false, sevenBit: false, keepDate: false, newFile: false, addEol: false, verbose: false, allowChown: false };
+      let toStdout = false;
+      const information = new FileInformation(active);
       const state = { high: 1 };
       const diagnostic = async (text: string) => { await active.diagnostic(`${direction}: ${text}\n`); };
+      const converted = async (result: Awaited<ReturnType<typeof convert>>, name: string, destination: string) => {
+        if (flags.quiet) return;
+        const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
+        const outFormat = flags.keepUtf16 ? result.encoding : locale === "C" || locale === "POSIX" ? "ANSI_X3.4-1968" : "UTF-8";
+        const encoding = result.encoding ? `${result.encoding} ` : "";
+        const target = result.encoding ? `${outFormat} ` : "";
+        await diagnostic(`converting ${encoding}file ${name} to ${flags.newFile ? `${target}file ${destination} in ` : target}${direction === "dos2unix" ? "Unix" : "DOS"} format...`);
+      };
       const file = async (name: string, destination: string) => {
         budget.file();
         const inputPath = files.path(name);
         const outputPath = files.path(destination);
         const expected = await files.stat(outputPath);
-        if (expected?.type === "symlink") {
+        const readOnly = !flags.newFile && (toStdout || information.flags.size > 0);
+        if (!readOnly && expected?.type === "symlink") {
           if (!flags.quiet) await diagnostic(flags.newFile ? `Skipping ${name}, output file ${destination} is a symbolic link.` : `Skipping symbolic link ${name}.`);
           return;
         }
@@ -80,6 +92,22 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
             return;
           }
         }
+        if (readOnly) {
+          const reader = new Reader(active);
+          try {
+            await reader.open(path, input);
+            if (information.flags.size) await information.print(direction, reader, flags, name);
+            else {
+              const writer = new Writer(active, bytes => active.stdout(bytes));
+              try {
+                const result = await convert(direction, reader, writer, active, flags, state, name, true);
+                if (result.kind === "unicode") status ||= 1;
+                if (result.kind === "ok") await converted(result, name, destination);
+              } finally { writer.release(); }
+            }
+          } finally { await reader.close(); }
+          return;
+        }
         if (!sameIdentity(input, input) || expected && (expected.type !== "file" || !sameIdentity(expected, expected))) throw new LineEndingError("file conversion requires stable regular-file identities");
         const reader = new Reader(active);
         const stage = new Stage(files, outputPath, expected);
@@ -100,13 +128,7 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
           await reader.close();
           if (result?.kind === "ok") {
             await stage.publish(input, flags);
-            if (!flags.quiet) {
-              const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
-              const outFormat = flags.keepUtf16 ? result.encoding : locale === "C" || locale === "POSIX" ? "ANSI_X3.4-1968" : "UTF-8";
-              const encoding = result.encoding ? `${result.encoding} ` : "";
-              const target = result.encoding ? `${outFormat} ` : "";
-              await diagnostic(`converting ${encoding}file ${name} to ${flags.newFile ? `${target}file ${destination} in ` : target}${direction === "dos2unix" ? "Unix" : "DOS"} format...`);
-            }
+            await converted(result, name, destination);
           } else if (result?.kind === "unicode") status ||= 1;
           else if (result?.kind === "bom-error" && !flags.quiet) await diagnostic(`problems converting file ${name}${flags.newFile ? ` to file ${destination}` : ""}`);
         } catch (error) { failed = { reason: error }; }
@@ -127,7 +149,13 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
             case "-m": case "--add-bom": flags.addBom = true; break;
             case "-f": case "--force": flags.force = true; break;
             case "-s": case "--safe": flags.force = false; break;
-            case "-q": case "--quiet": flags.quiet = true; break;
+            case "-q": case "--quiet": flags.quiet = true; flags.verbose = false; break;
+            case "-v": case "--verbose": flags.verbose = true; flags.quiet = false; break;
+            case "-e": case "--add-eol": flags.addEol = true; break;
+            case "--no-add-eol": flags.addEol = false; break;
+            case "--allow-chown": flags.allowChown = true; break;
+            case "--no-allow-chown": flags.allowChown = false; break;
+            case "-i": case "--info": information.configure(""); break;
             case "-l": case "--newline": flags.newline = true; break;
             case "-k": case "--keepdate": flags.keepDate = true; break;
             case "-u": case "--keep-utf16": flags.keepUtf16 = true; break;
@@ -136,9 +164,11 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
             case "-7": flags.sevenBit = true; flags.assume = "bytes"; break;
             case "-ascii": flags.assume = "bytes"; flags.sevenBit = false; flags.keepUtf16 = false; break;
             case "-S": case "--skip-symlink": break;
-            case "-o": case "--oldfile": case "-n": case "--newfile":
+            case "-o": case "--oldfile": case "-n": case "--newfile": case "-O": case "--to-stdout":
               if (!paired) { await diagnostic(`target of file ${args[index - 1]} not specified in new-file mode`); status = 1; sawFile = true; stop = true; }
               flags.newFile = argument === "-n" || argument === "--newfile";
+              if (argument !== "-O" && argument !== "--to-stdout") information.flags.clear();
+              if (!flags.newFile) toStdout = argument === "-O" || argument === "--to-stdout";
               break;
             case "-c": case "--convmode": {
               const mode = args[++index];
@@ -149,10 +179,13 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
               break;
             }
             case "-h": case "--help": {
-              const bytes = new TextEncoder().encode(`Usage: ${direction} [options] [file ...] [-n infile outfile ...]\nVirtual byte/UTF-16 profile: -o -n -b -r -m -f -s -q -k -l -u -ul -ub -7 -ascii --\n`);
+              const bytes = new TextEncoder().encode(`Usage: ${direction} [options] [file ...] [-n infile outfile ...]\nVirtual byte/UTF-16 profile:\n  -o -n -O -i[FLAGS] -e -v -b -r -m -f -s -q -k -l -u -ul -ub -7 -ascii --\n  --no-add-eol --allow-chown --no-allow-chown\n`);
               budget.emitted(bytes.length); await active.stdout(bytes); stop = true; sawFile = true; break;
             }
-            default: throw new LineEndingError(`unsupported option in virtual profile: ${argument}`);
+            default:
+              if (argument.startsWith("--info=")) information.configure(argument.slice(7));
+              else if (argument.startsWith("-i")) information.configure(argument.slice(2));
+              else throw new LineEndingError(`unsupported option in virtual profile: ${argument}`);
           }
         } else {
           sawFile = true;
@@ -165,8 +198,11 @@ function definition(direction: Direction, options: LineEndingCommandsOptions): C
         const reader = new Reader(active);
         const writer = new Writer(active, bytes => active.stdout(bytes));
         await reader.open();
-        const result = await convert(direction, reader, writer, active, flags, state, "stdin", true);
-        if (result.kind === "binary" && !flags.quiet) status ||= 1;
+        if (information.flags.size) await information.print(direction, reader, flags, "");
+        else {
+          const result = await convert(direction, reader, writer, active, flags, state, "stdin", true);
+          if (result.kind === "binary" && !flags.quiet) status ||= 1;
+        }
       }
       if (!paired) { await diagnostic(`target of file ${args[Math.min(index - 1, args.length - 1)]} not specified in new-file mode`); status = 1; }
     } catch (error) {

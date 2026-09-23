@@ -237,7 +237,39 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
   LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
   LOWER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), false, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   UPPER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), true, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
-  EXACT: (args, host) => bool(textArg(args, 0, host).normalize("NFD") === textArg(args, 1, host).normalize("NFD")),
+  EXACT: (args, host) => {
+    const left = byteTextArg(args, 0, host), right = byteTextArg(args, 1, host);
+    let position = 0;
+    // Gnumeric compares the original byte prefix before canonical normalization.
+    while (position < left.length && position < right.length && left[position] === right[position]) { host.tick(); position++; }
+    if (position === left.length || position === right.length) return bool(left.length === right.length);
+    if (left[position]! < 128 && right[position]! < 128) return bool(false);
+    const normalize = (bytes: Uint8Array): number[] | null => {
+      const points: number[] = [];
+      let text = "", terminated = false;
+      const flush = () => {
+        for (const character of text.normalize("NFD")) { host.tick(); points.push(character.codePointAt(0)!); }
+        text = "";
+      };
+      for (let index = 0; index < bytes.length;) {
+        const { point, next } = readByteTextCharacter(bytes, index, host.tick);
+        index = next;
+        if (point === 0xffffffff) return null;
+        // GLib admits historical forms. A decoded zero ends its normalized
+        // C-string result, but the complete source must still be validated.
+        if (terminated) continue;
+        if (point === 0) { flush(); terminated = true; }
+        else if (point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff)) text += String.fromCodePoint(point);
+        else { flush(); host.tick(); points.push(point); }
+      }
+      flush();
+      return points;
+    };
+    const a = normalize(left), b = normalize(right);
+    // GLib returns NULL for invalid chunks; two NULL results compare equal.
+    if (a === null || b === null) return bool(a === b);
+    return bool(a.length === b.length && a.every((point, index) => { host.tick(); return point === b[index]; }));
+  },
   ENCODEURL: (args, host) => {
     let result = "";
     for (const byte of new TextEncoder().encode(textArg(args, 0, host))) {

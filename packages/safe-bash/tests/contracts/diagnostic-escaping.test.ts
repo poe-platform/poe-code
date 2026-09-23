@@ -236,14 +236,15 @@ test("jq queued errors account for escaped messages and source names", async () 
 
 test("Node diagnostic admission counts escaped bytes without filtering guest output", async () => {
   let written = 0, last = "";
+  const limits = { ...nodeLimits, outputBytes: 32 };
   const { value } = context({ stderr: { async write(bytes) { written += bytes.length; last = Buffer.from(bytes).toString(); } } });
   const host = new NodeHost({
-    context: value, signal: value.signal, ledger: new NodeLedger(), isClosed: () => false,
+    context: value, signal: value.signal, limits, ledger: new NodeLedger(limits), isClosed: () => false,
     check() { value.signal.throwIfAborted(); }, failure(reason) { throw reason; },
     async job(start) { return await start(); },
   }, { sourceRead: false, dataRead: false, dataWrite: false, jsonModules: false, stdinRead: false, stdoutWrite: false, stderrWrite: true }, "/", "/");
-  const payload = "\u001b".repeat(65_536);
-  let remaining = nodeLimits.outputBytes - 8;
+  const payload = "\u001b".repeat(16);
+  let remaining = limits.outputBytes - 8;
   for (let sequence = 1; remaining > 0; sequence++) {
     const text = payload.slice(0, Math.min(remaining, payload.length));
     const response = await host.request({ sequence, op: "writeOutput", authority: "stderr", text, path: null, flag: null, moduleKey: null });
@@ -253,9 +254,9 @@ test("Node diagnostic admission counts escaped bytes without filtering guest out
     remaining -= text.length;
   }
   await assert.rejects(host.diagnostic("a\u009b"), /diagnostic output bytes/);
-  assert.equal(written, nodeLimits.outputBytes - 8);
+  assert.equal(written, limits.outputBytes - 8);
   await host.diagnostic("\u009b");
   assert.equal(last, "\\302\\233");
-  assert.equal(written, nodeLimits.outputBytes);
+  assert.equal(written, limits.outputBytes);
   assert.equal(host.retire(), undefined);
 });

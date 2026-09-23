@@ -1,0 +1,157 @@
+{
+  "scope": "Four independently atomic expectation-only repairs validated on rebased main680bbd688f. No product changes, sourceconfig widening, Git or repositorybuildartifact mutation.",
+  "sourceBindings": [
+    {
+      "path": "packages/safe-bash/tests/shell/extensions/trap/infrastructure.test.ts",
+      "bytes": 10180,
+      "sha256": "9923427030e52b922cbef9f24f852e0412fcfb6d5cfe9586c377746f3a83ec14"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/raw-expansion-independent/handoff.test.ts",
+      "bytes": 2754,
+      "sha256": "fc60d1672749049275201eee297824322948598d6a3be2e7e4f6ff3a94f9319e"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/getopts/runtime/state.test.ts",
+      "bytes": 6834,
+      "sha256": "0dbb42c5c0f7459172986723c53beb0a1a97d786b3e3810b3ab314609855dd63"
+    },
+    {
+      "path": "scripts/fixtures/safe-packages-mkdir.mjs",
+      "bytes": 1487,
+      "sha256": "4ff1dd80ed523cffc14d6741fe646ab14b2c66449c8e0cc873093217e48a6462"
+    }
+  ],
+  "immutableHandoffCases": {
+    "path": "packages/safe-bash/tests/shell/raw-expansion-independent/handoff-cases.ts",
+    "bytes": 4645,
+    "sha256": "eba273ff9ce82ebce4455f7eb80a243e8dcb87c30430c247e40bb739ef5a244c"
+  },
+  "red": [
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-stale-rebased-current-red.log",
+      "bytes": 17506,
+      "sha256": "95fef19a2d6f9eb46dccd6fb22086578e67e336885827623a14a4edc8134eeda",
+      "exitCode": 1,
+      "counts": {
+        "tests": 78,
+        "pass": 75,
+        "fail": 3,
+        "skip": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-browser-rebased-current-red.log",
+      "bytes": 5467,
+      "sha256": "b99f13cd74f1e37ddee478ed93b76033e7e8e09619fdfebb2fe0d10c92af7d2d",
+      "exitCode": 1,
+      "counts": {
+        "tests": 44,
+        "pass": 0,
+        "fail": 1,
+        "skip": 43
+      },
+      "qualification": "OriginalmaintainedbrowserVMcase selected;43nonselected cases skipped, notpassed."
+    }
+  ],
+  "green": [
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-stale-expectations-final-corrected-green.log",
+      "bytes": 15258,
+      "sha256": "558e189c61f6812b65a51d2153de737aaec1340edbf939ea7ac7ac9a13323b8a",
+      "exitCode": 0,
+      "counts": {
+        "tests": 79,
+        "pass": 79,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-browser-expectations-final-green.log",
+      "bytes": 549,
+      "sha256": "a413aa92c61427d2a403fb18306bc47b493cb34e0b45045383fdae6141043f12",
+      "exitCode": 0,
+      "counts": {
+        "files": 1,
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "skip": 0,
+        "todo": 0
+      }
+    }
+  ],
+  "countQualification": "Removing staledeclareexclusion restoresoneoriginal sealedbracecase,78->79. No sealedcases edited, removed or expectations regenerated.",
+  "native": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-stale-options-declare-native.json",
+    "bytes": 3752,
+    "sha256": "176cbaac6c1a7d767111e5251274198ba0188a216089eb5cc0cfb02cbb288f35"
+  },
+  "currentMkdirObservation": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-browser-mkdir-current-observation.json",
+    "bytes": 117,
+    "sha256": "f4a646f3813c8fa5cad8a2a44fb61c0ef303478bf207ee3e2e78f09b5373c3e2"
+  },
+  "nativeExistingMkdir": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-existing-mkdir-native-proof.json",
+    "bytes": 482,
+    "sha256": "964c5f1bcaa0b1bc50c93f44f8b8b8c7c8137802ca865a4956f695bc8361f7d9"
+  },
+  "changes": [
+    {
+      "file": "packages/safe-bash/tests/shell/extensions/trap/infrastructure.test.ts",
+      "behavior": "Exactoption listing retainsdefaultnoexec off in declaredposition; extensioncustom state/list assertions unchanged."
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/raw-expansion-independent/handoff.test.ts",
+      "behavior": "Restoreoriginal rawdeclarebracecase; plain declare finalexpandedrightX exactbytes726967687458, status0, no diagnostic; yields/sentinel/fixture immutability controls unchanged."
+    },
+    {
+      "file": "packages/safe-bash/tests/shell/getopts/runtime/state.test.ts",
+      "behavior": "Integerdeclarevalue1 succeeds andpublishesexact1 newline withnostderr. InvalidOPTIND08fatalstatus1/nooutput/exactdiagnostic assertions preserved."
+    },
+    {
+      "file": "scripts/fixtures/safe-packages-mkdir.mjs",
+      "behavior": "Existingimplicitmkdirdelegateexactlyonce recursiveTRUE withNOownmode property andfinalmode755/nooutput/status0; no injectedexistingcreationmode assumption."
+    }
+  ],
+  "failedCandidate": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/ci-stale-expectations-final-green.log",
+    "bytes": 16167,
+    "sha256": "8936fbe6767017e053f0a38420aec0a9b7a2e81e933ac6003e78af95e95bd551",
+    "exitCode": 1,
+    "counts": {
+      "tests": 79,
+      "pass": 78,
+      "fail": 1,
+      "skip": 0,
+      "todo": 0
+    },
+    "qualification": "BytesmatchedrightX but deepStrictEqual compared Uint8Array output against Buffer expected. This is setup/prototype error, notproductfailure. Corrected exacthex as existing fixture controls do."
+  },
+  "lint": "No maintainednarrowESlint route. packages/safe-bash/AGENTS.md requires root npmrunlint:eslint wrapper andrejectsoperands; directnarroweslint/customconfig invocation notattempted. Finalguardedrootstylecoverage rootowned/pendingafterfreeze.",
+  "types": "Assertions/expectedvalues only, existingmethods/Bufferconversion; nonewtypeconcern. EarliermaintainedfullBashsource+26consumer phase0 rootowned; no additionalchildtypechecker run or fulltypeclaim for these edits.",
+  "execution": "RootbrowseroriginalmaintainedtestbuilderswritefalseandMemFS; emitted graphs existed onlyinmemory, no repo/distoutputs produced. Physicaleffects onlyownedoutlogs/oraclefixtures.",
+  "delivery": {
+    "noexec": "b647cc0c02",
+    "scalarDeclare": "94a665a7e9",
+    "integerDeclare": "4384e35424",
+    "implicitMkdir": "4bc40dc71a",
+    "verifiedRemoteMain": "55f9f69146",
+    "publication": "pending"
+  },
+  "rootGate": {
+    "eslintSubjects": 16456,
+    "errors": 0,
+    "warnings": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/ci-expectations-stable-eslint.log",
+      "bytes": 410,
+      "sha256": "810889f1ecc165a6069239ebaf3877b92f2d81ce64b2676baaf902ecb0f3d7ae"
+    },
+    "qualification": "Frozen source before subsequent incoming rebases; later incoming changes need containing CI"
+  }
+}

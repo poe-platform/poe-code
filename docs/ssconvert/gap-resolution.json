@@ -1147,5 +1147,17 @@
     "commit": "680bbd688f",
     "tests": 10,
     "wholeGoalComplete": false
+  },
+  "byteStringFindFollowup": {
+    "proof": "docs/ssconvert/byte-string-find-gap-proof.json",
+    "status": "verified-remote-main-publication-pending",
+    "commit": "d568f85efc",
+    "wholeGoalComplete": false
+  },
+  "ciStaleExpectationsFollowup": {
+    "proof": "docs/ssconvert/ci-stale-expectations-gap-proof.json",
+    "status": "verified-remote-main-publication-pending",
+    "verifiedRemoteHead": "55f9f69146",
+    "wholeGoalComplete": false
   }
 }

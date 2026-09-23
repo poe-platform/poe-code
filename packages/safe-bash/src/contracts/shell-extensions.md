@@ -90,18 +90,18 @@ The declaration is captured and propagated with the other syntax capabilities.
 Neither an extension's name nor `arrayKeys` alone enables it.
 
 An extension may independently declare `indexedElementOperators: true` to enable
-`${name[literal]-word}` and `${name[literal]+word}`. This is an own, positive data
-property captured and unioned with the other syntax capabilities; false values
-and accessors are rejected. Neither the extension's name nor keys/readonly
-capabilities alone enables it. The default shell still rejects these operators.
-The non-colon `-` form expands its operand only when the selected element is
-unset; `+` expands its operand only when the element is set. A set-empty element
-counts as set. Selected operands preserve their internal quoting, nested
-expansions and canonical bytes; unselected operands are not evaluated. Lookup
-uses existing canonical scalar/indexed bindings and the existing index, value
-and allocation limits. This capability does not admit colon, assignment, error,
-pattern or substring operators on elements, member/key operators, arithmetic or
-dynamic subscripts, associative arrays, or background-job syntax.
+indexed element `-`, `+`, `:-` and `:+` default/alternate operators and indexed
+member slices `${name[@]:offset:length}` / `${name[*]:offset:length}`. This is an
+own, positive data property captured and unioned with other syntax capabilities;
+false values and accessors are rejected. Neither the extension's name nor
+keys/readonly capabilities alone enables it. The default shell rejects these
+operators. Non-colon forms distinguish unset and empty; colon forms treat both
+as missing. Operands remain lazy and preserve quoting, nested expansions and
+canonical bytes. Indexed element subscripts use the bounded arithmetic evaluator,
+including relative negative indices, without widening read or assignment bounds.
+Slices preserve numeric ordering and member bytes through the shared allocation
+limits. Element assignment/error/pattern operators, element substrings, member
+default operators and key slices remain unsupported by this capability.
 
 The optional `arraysExtension()` factory declares `arrayKeys: true`,
 `indexedDeclarations: ["readonly"]` and `indexedElementOperators: true`, with

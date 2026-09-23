@@ -55,21 +55,34 @@ Enumeration, ordering, copied values and output use the existing shared array,
 value and output ledgers. Root cancellation and awaited extension cleanup retain
 their existing precedence. There is no host-shell execution in the implementation.
 
-## Literal indexed element operators
+## Indexed element operators and slices
 
-The separate own, positive `indexedElementOperators: true` capability admits
-`${name[1]-word}` and `${name[1]+word}` for existing literal-index selectors.
-It follows the same capture and fork rules. An extension name, keys capability
-or readonly declaration alone does not enable these operators; they remain
-invalid in the default shell.
+The own, positive `indexedElementOperators: true` capability admits
+`${name[index]-word}`, `${name[index]+word}`, `${name[index]:-word}` and
+`${name[index]:+word}`, plus `${name[@]:offset:length}` and
+`${name[*]:offset:length}` slices. It follows the same capture and fork rules.
+An extension name, keys capability or readonly declaration alone does not
+admit these operators; they remain invalid in the default shell.
 
-Non-colon `-` expands its operand only when the element is unset; `+` expands it
-only when the element is set. Set-empty counts as set. Operands are lazy and
-retain internal quoting, nested expansions and canonical bytes. Lookup uses
-existing scalar/indexed bindings and index/value/allocation limits without
-mutating the binding. Colon, assignment, error, pattern and substring operators
-on elements, member/key operators, arithmetic/dynamic subscripts and associative
-arrays are outside this increment. Ordinary assignment bounds remain unchanged.
+Non-colon forms distinguish unset elements from set-empty elements. Colon
+forms treat both unset and empty elements as missing. Operands remain lazy,
+retaining internal quoting, nested expansions and canonical bytes.
+
+Indexed element reads and writes evaluate arithmetic subscripts with the
+existing bounded arithmetic evaluator. Negative indices are relative to one
+past the highest existing index. Read and assignment index bounds remain
+unchanged; indices before zero are refused. Arithmetic side effects execute
+once per selected subscript, and writes retain readonly and stale-binding checks.
+
+Member slices start at the first populated index at or above the arithmetic
+offset, then select up to the requested number of members. Negative offsets
+are relative to one past the highest index; negative lengths are refused.
+Quoted `@` preserves individual members, including empty and raw-byte values;
+quoted `*` joins them with the existing IFS separator. Enumeration and selected
+values retain the shared array, value and output limits.
+
+Assignment, error and pattern operators on elements, element substrings,
+member default operators and key slices are outside this increment.
 
 ## Indexed readonly declarations
 

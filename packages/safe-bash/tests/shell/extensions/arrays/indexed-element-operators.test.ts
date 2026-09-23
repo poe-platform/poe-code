@@ -193,7 +193,7 @@ test("indexed operators preserve named subscript syntax", () => {
   assert.equal(part.operator, "-");
 });
 
-for (const expression of ["${values[1]:-x}", "${values[1]:+x}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[1]:1}", "${values[@]-x}", "${!values[@]+x}", "${#values[1]-x}"]) {
+for (const expression of ["${values[1]:=x}", "${values[1]:?x}", "${values[1]:1}", "${!values[@]:1}", "${values[1]=x}", "${values[1]?x}", "${values[1]#x}", "${values[@]-x}", "${!values[@]+x}", "${#values[1]-x}"]) {
   test(`broader indexed forms remain outside the increment: ${expression}`, () => {
     assert.throws(() => parseShell(`printf '${expression}' ${expression}`, 0, arraysExtension().syntax), ShellSyntaxError);
   });

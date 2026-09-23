@@ -55,7 +55,7 @@ import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
-import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker, prefixNameQuoteGroups } from "./arrays/syntax.js";
+import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker, prefixNameQuoteGroups, setArraySelector } from "./arrays/syntax.js";
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
@@ -2037,12 +2037,18 @@ export class Runtime {
     } finally { allocation?.close(); }
   }
 
-  private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false): Promise<number | undefined> {
+  private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
     if (!binding?.associative) {
-      const selected = index.source === undefined ? index : literalIndex(index.source, 0, this.budget.parsing);
-      const number = numericIndex(selected);
-      if (number === undefined) throw new ArrayFailure("index outside 0..2147483647");
-      return number;
+      if (index.source === "") throw new ArrayFailure("bad array subscript");
+      const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
+      const fields = await this.valueWord(word, state, io, false);
+      const source = shellValueText(concatShellValues(fields, io[valueScope]));
+      owner.reserve({ work: source.length + 1 }).release();
+      let number = this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
+      if (number < 0n) number += BigInt(relativeMaximum + 1);
+      const maximum = create ? 2147483647 : 4294967295;
+      if (number < 0n || number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
+      return Number(number);
     }
     const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
     const fields = await this.valueWord(word, state, io, false);
@@ -2071,10 +2077,11 @@ export class Runtime {
       const current = store.get(name);
       if (current?.associative && assignment.kind === "compound" && assignment.entries.length) throw new ArrayFailure("nonempty associative compound assignment is unsupported");
       const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      let selectedIndex: number | undefined;
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
       if (assignment.kind === "element") {
         operation.reserve({ work: assignment.index.decimal.length + 1 }).release();
-        if (!current?.associative && numericIndex(literalIndex(assignment.index.source ?? assignment.index.decimal, 0, this.budget.parsing)) === undefined) throw new ArrayFailure("index outside 0..2147483647");
+        if (!current?.associative) selectedIndex = await this.arrayIndex(current, assignment.index, state, io, operation, true, initialMaximum);
       } else for (const entry of assignment.entries) {
         operation.reserve({ work: entry.value.parts.length + (entry.index?.decimal.length ?? 0) + 2 }).release();
         if (entry.index) {
@@ -2121,7 +2128,7 @@ export class Runtime {
       const join = async (values: readonly ShellValue[]): Promise<ShellValue> => values.every(value => typeof value === "string")
         ? this.arrayJoin(operation, values as readonly string[], "") : concatShellValues(values, io[valueScope]);
       if (assignment.kind === "element") {
-        const index = (await this.arrayIndex(staged, assignment.index, state, io, operation, true))!;
+        const index = selectedIndex ?? (await this.arrayIndex(staged, assignment.index, state, io, operation, true))!;
         const fields = await this.valueWord(assignment.value, state, io, false);
         let value = await join(fields);
         if (assignment.append) value = await join([staged.getValue(index) ?? "", value]);
@@ -6426,7 +6433,22 @@ export class Runtime {
     } finally { allocation.close(); holding?.release(); }
   }
 
+  private async resolveArrayElement<T extends WordPart>(part: T, state: State, io: IO): Promise<T> {
+    const selector = getArraySelector(part);
+    if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
+    const store = requireArrays(state);
+    const binding = store.get(part.name);
+    if (binding?.associative) return part;
+    const maximum = binding?.maximum ?? (state.variables[part.name] === undefined ? -1 : 0);
+    const index = await this.arrayIndex(binding, selector.index, state, io, store.owner, false, maximum);
+    const resolved = { ...part };
+    copyArraySelector(part, resolved);
+    setArraySelector(resolved, { kind: "element", index: { decimal: String(index) } });
+    return resolved;
+  }
+
   private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
+    part = await this.resolveArrayElement(part, state, io);
     if (part.kind === "variable" && part.transform) {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
@@ -6614,16 +6636,17 @@ export class Runtime {
         const index = numericIndex(selector.index, 4294967295);
         if (index === undefined) throw new ArrayFailure("index outside 0..4294967295");
         const value = binding ? binding.getValue(index) : index === 0 && state.variables[part.name] !== undefined ? stateMonitor(state)?.values.get(part.name, state.variables[part.name]!) ?? state.variables[part.name] : undefined;
-        if (part.operator === "-" || part.operator === "+") {
-          const alternate = part.operator === "+" ? value !== undefined : value === undefined;
+        if (["-", "+", ":-", ":+"].includes(part.operator ?? "")) {
+          const missing = value === undefined || part.operator!.startsWith(":") && shellValueByteLength(value) === 0;
+          const alternate = part.operator!.endsWith("+") ? !missing : missing;
           if (alternate) return concatShellValues(await this.valueWord(part.alternate!, state, io, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
-          return part.operator === "+" ? "" : value ?? "";
+          return part.operator!.endsWith("+") ? "" : value ?? "";
         }
         this.requireParameter(value === undefined ? undefined : shellValueText(value), `${part.name}[${selector.index}]`, state, io, part.line);
         return part.length ? this.valueLength(value ?? "", state, io) : value ?? "";
       }
       if (part.length) return String(binding?.values.size ?? (state.variables[part.name] === undefined ? 0 : 1));
-      const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true);
+      const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
       const space = selector.kind === "keys" && (hereDocument || (selector.separator === "@"
         ? !part.quoted && !split || state.variables.IFS === ""
         : !part.quoted && split && state.variables.IFS === ""));
@@ -7041,7 +7064,9 @@ export class Runtime {
     };
     const parts = word.parts.map((part) => ({ part, splitText: false, io }));
     for (let index = 0; index < parts.length; index++) {
-      const { part, splitText, io: partIO } = parts[index]!;
+      let { part } = parts[index]!;
+      const { splitText, io: partIO } = parts[index]!;
+      part = await this.resolveArrayElement(part, state, partIO);
       quoteGroup = prefixNameQuoteGroups.get(part);
       const quotedPresence = part.quoted && !((arrayOwned || prefixOwned) && isQuoteMarker(part));
       const selector = getArraySelector(part);
@@ -7053,7 +7078,7 @@ export class Runtime {
           const binding = arrayStore(state)?.get(part.name);
           value = binding ? binding.getValue(index) : index === 0 ? value : undefined;
         }
-        const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
+        const missing = value === undefined || (part.operator!.startsWith(":") && shellValueByteLength(value) === 0);
         if (part.operator!.endsWith("+") ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
@@ -7075,7 +7100,7 @@ export class Runtime {
           emptyNameGroups.add(quoteGroup);
         }
       } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || part.transform && part.name === "@")) {
-        const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true) : this.positionalValues(state);
+        const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;
@@ -7261,16 +7286,32 @@ export class Runtime {
     return createCommandArguments(values, allocation);
   }
 
-  async arrayMembers(name: string, state: State, io: IO, keys = false): Promise<ShellValue[]> {
+  async arrayMembers(name: string, state: State, io: IO, keys = false, substring?: Extract<WordPart, { kind: "variable" }>["substring"]): Promise<ShellValue[]> {
     const store = requireArrays(state);
     const holding = store.owner.hold();
     try {
     const binding = store.get(name);
+    let offset = 0n;
+    let count: bigint | undefined;
+    if (substring) {
+      const evaluate = async (word: Word): Promise<bigint> => {
+        const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
+        const source = shellValueText(concatShellValues(fields, io[valueScope]));
+        return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
+      };
+      offset = await evaluate(substring.offset);
+      if (offset < 0n) offset += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
+      if (substring.length) {
+        count = await evaluate(substring.length);
+        if (count < 0n) throw new ExpansionFailure("substring expression < 0", io.diagnosticLine);
+      }
+    }
     store.owner.reserve({ metadata: 64, work: 3 });
+    if (offset < 0n || count === 0n) return [];
     if (!binding) {
       const text = state.variables[name];
       const value = text === undefined ? undefined : keys ? "0" : stateMonitor(state)?.values.get(name, text) ?? text;
-      if (value === undefined) return [];
+      if (value === undefined || offset > 0n) return [];
       store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
       await textToken(store.owner, value, this.signal);
       return [keys ? "0" : value];
@@ -7280,6 +7321,8 @@ export class Runtime {
       const indices = await binding.indices(store.owner, this.signal);
       const values: ShellValue[] = [];
       for (const index of indices) {
+        if (BigInt(index) < offset) continue;
+        if (count !== undefined && BigInt(values.length) >= count) break;
         store.owner.reserve({ metadata: 32, allocatedSlots: 1, work: 4 });
         const value = keys ? binding.associative ? binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue : String(index) : binding.getValue(index)!;
         await textToken(store.owner, value, this.signal);

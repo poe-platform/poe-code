@@ -53,7 +53,9 @@ physical permissions, and the host process mask remains unchanged.
   `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
-  `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays.
+  `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays with arithmetic
+  and relative negative element indices. The optional arrays extension adds
+  member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
   control failures; `shopt -s dotglob` includes dotfiles in globs.

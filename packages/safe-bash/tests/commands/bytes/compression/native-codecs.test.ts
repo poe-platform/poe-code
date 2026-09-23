@@ -64,7 +64,7 @@ for (const [name, factory] of Object.entries({ bz2, xz, zstd })) {
     const originalMemory = codec.memory.buffer;
     const grow: unknown = Reflect.get(codec.memory, 'grow');
     assert.equal(typeof grow, 'function');
-    assert.equal(Reflect.apply(grow as (...args: number[]) => number, codec.memory, [2049]), -1);
+    assert.equal(Reflect.apply(grow as (...args: number[]) => number, codec.memory, [65536]), -1);
     assert.equal(codec.memory.buffer, originalMemory);
 
     const plain = new TextEncoder().encode('bounded portable streaming\n'.repeat(3000));

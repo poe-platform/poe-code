@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { chunks, run } from './helpers.js';
+import { parseOptions } from '../../../../src/commands/bytes/compression/options.js';
+import { createCodec } from '../../../../src/commands/bytes/compression/codec-loader.js';
+
+test('XZ memory settings preserve individual limits above the former ceiling', async () => {
+  assert.equal(parseOptions('xz', ['--memlimit-decompress=1GiB']).xzDecompressMemory, 1024 ** 3);
+  assert.equal(parseOptions('xz', ['--memlimit-decompress=0']).xzDecompressMemory, 0);
+  for (const memory of [1024 ** 3, 8 * 1024 ** 3]) {
+    const codec = await createCodec({ format: 'xz', decompress: true, level: 1, xzDecompressMemory: memory }, new AbortController().signal);
+    codec.close();
+  }
+});
 
 for (const command of ['xz', 'unxz', 'xzcat']) {
   test(`${command} enforces decompression memory limits`, async () => {

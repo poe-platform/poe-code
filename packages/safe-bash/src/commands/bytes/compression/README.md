@@ -56,8 +56,7 @@ file-output passthrough or test-mode copying. Zstandard's explicit
 
 Zstandard decompression also detects gzip, XZ and legacy LZMA members, including
 mixed-format concatenations and standard skippable Zstandard frames. Detection
-runs at each member boundary using the bundled codecs; the existing memory and
-dictionary limits still apply. Recognized corrupt streams fail rather than pass
+runs at each member boundary using the bundled codecs; format representability limits still apply. Recognized corrupt streams fail rather than pass
 through as plaintext.
 
 The Zstandard family supports `--[no-]check` for checksum generation and
@@ -65,8 +64,8 @@ validation, `--stream-size=BYTES` for a pledged input size (written in the frame
 and enforced), `--size-hint=BYTES`, `--[no-]compress-literals`, and
 `--[no-]row-match-finder`. These settings reach the bounded Zstandard codec;
 checksum validation applies to every concatenated frame. `--long=LOG` enables
-long-distance matching for window logs 10–23. Bare `--long` requests the native
-default 27 and fails under the existing 8 MiB window policy.
+long-distance matching for window logs 10–30, within the codec’s 32-bit address space. Bare `--long`
+requests the native default 27.
 
 `--single-thread`, `-T1`, `-T 1`, `--threads=1` and `--threads 1` select the
 single-thread codec. `--auto-threads=physical` or `logical` is accepted but does
@@ -74,7 +73,7 @@ not enable automatic thread counts: `-T0` and counts above one fail.
 `--asyncio` enables input read-ahead (the default); `--no-asyncio` disables it.
 `--no-progress`, `--no-sparse`, `--no-dictID` and `--format=zstd` select the
 existing silent, dense-output, dictionary-free Zstandard profile. `--ultra`
-is admitted at supported presets; it does not lift the level 1–9 or memory cap.
+is admitted at supported presets; it does not lift the level 1–9 range.
 Fast presets, adaptive compression, rsyncable compression, forced progress,
 other output formats and unsupported thread/window values fail explicitly.
 
@@ -87,14 +86,13 @@ the `zstdcat` default. Last selection wins, and recognized frames still validate
 including stdout/force mode; stdin and decompression are unaffected.
 
 The XZ family (`xz`, `unxz`, `xzcat`) automatically decodes XZ containers and
-legacy LZMA-alone streams within the existing 64 MiB codec allocation cap.
+legacy LZMA-alone streams without an application allocation quota by default.
 Compression produces XZ containers. It accepts `--compress` to select
 compression, including when invoked through a decompression alias. `-e` and
 `--extreme` enable liblzma's extreme preset with the selected level. `-T1`,
 `-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded
 execution; other counts, including automatic selection (`0`), fail explicitly.
-The existing 64 MiB codec allocation cap still applies, including to extreme
-presets.
+High presets remain subject to available host memory and codec representability.
 
 `-q` and `--quiet` suppress warnings; repeating them also suppresses processing
 and filesystem error diagnostics, preserving failure status. `--single-stream`
@@ -113,7 +111,8 @@ The existing allocation ceiling still applies to every preset.
 `--memlimit-decompress=BYTES` (or a separate argument) limits allocations and
 XZ/LZMA decoder memory admission for every member, including test mode. Binary
 KiB/MiB/GiB suffixes and their XZ shorthand aliases are accepted. Zero disables
-the caller limit; values above 64 MiB retain the existing 64 MiB codec ceiling.
+the caller limit. Larger explicit limits are preserved without a second ceiling;
+values must fit the exact integer representation used by the SDK.
 The allocator's accounting includes allocation headers, so a tight limit may
 fail earlier than native XZ. Compression is unaffected.
 `--memlimit-mt-decompress` validates the same absolute values but has no effect
@@ -212,17 +211,14 @@ Tests cover delayed writers on parent cancellation and producer failure, as
 well as blocked byte sources/sinks and late rejections. This is cooperative
 cancellation, not a hard deadline or termination guarantee.
 
-File staging allows at most **256 MiB (268435456 bytes) of output per operand**,
-counted after compression/decompression and before forwarding each output chunk
-to the writer. Exceeding it fails with `EFBIG`; no larger archive is buffered as
-a workaround. Every decompression mode (including stdout, `-t`, forced passthrough, and file
-output) shares a finite **256 MiB decoded-byte budget per invocation** across all
-operands and members. Configure a smaller Worker budget with
+File staging and decoded bytes have no application quota by default.
+Configure an explicit decoded-byte budget across all operands and members with
 `byteCommands({ compression: { maxDecodedBytes: 1024 * 1024 } })` or
 `createCompressionCommands({ maxDecodedBytes: 1024 * 1024 })`. The value must be
 a nonnegative safe integer; zero admits only empty decoded output. Chunks that
 would exceed the budget are rejected before forwarding or discarding them, and
-later operands are not processed. This budget is separate from per-file staging
+later operands are not processed. Every decompression mode (including stdout,
+`-t`, forced passthrough, and file output) shares this budget. It is separate from file staging
 and applies even when shell output limits cannot see discarded data. Shell-level
 output, execution, or cancellation limits are separate and still apply when
 these definitions run through the shell. A provider may internally buffer the
@@ -317,8 +313,8 @@ node node_modules/typescript/bin/tsc --noEmit --target ES2023 --lib ES2023 --mod
 
 The type command matches the repository's strict settings and follows imports;
 it is not a whole-repository typecheck. The limit regression exercises the same
-output counter with a smaller injected limit and asserts the production 256 MiB
-constant; it does not allocate a 256 MiB archive. Independent verification and
+output counter with an explicit injected limit and verifies omitted quotas;
+it does not allocate a 256 MiB archive. Independent verification and
 package/root registration remain separate handoff tasks.
 
 Author checkpoint, August 26, 2026: Node v22.22.2 on Darwin 25.4.0 arm64;

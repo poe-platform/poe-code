@@ -32,13 +32,15 @@ for (const [command, flags] of [['xz', '-dc'], ['unxz', '-c'], ['xzcat', '-c']] 
   });
 }
 
-test('LZMA-alone decoding rejects truncation and dictionaries above the codec memory cap', async () => {
+test('LZMA-alone rejects truncation and honors explicit dictionary memory quotas', async () => {
   const input = Buffer.from(fixtures[0][0], 'base64');
   const oversized = Buffer.from(input);
   oversized.writeUInt32LE(128 * 1024 * 1024, 1);
-  for (const bytes of [input.subarray(0, input.length - 5), oversized]) {
-    const result = await run('xz', ['-dc'], chunks(bytes));
+  for (const [bytes, flags] of [[input.subarray(0, input.length - 5), []], [oversized, ['--memlimit-decompress=64MiB']]] as const) {
+    const result = await run('xz', ['-dc', ...flags], chunks(bytes));
     assert.equal(result.exitCode, 1);
     assert.ok(result.stderr.length > 0);
   }
+  const unlimited = await run('xz', ['-dc'], chunks(oversized));
+  assert.equal(unlimited.exitCode, 0, unlimited.stderr);
 });

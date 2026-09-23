@@ -42,7 +42,7 @@ try {
     const exports = ['create', 'destroy', 'step', 'consumed', 'produced', 'input', 'output', 'used', 'peak'];
     if (name === 'xz') exports.push('create_lzma');
     if (name === 'zstd') exports.push('zstd_config');
-    execFileSync(zig, ['cc', '-target', 'wasm32-wasi', '-mexec-model=reactor', '-O2', '-fno-sanitize=all', '-Wl,--max-memory=134217728', '-Wl,-z,stack-size=1048576', ...exports.map(value => '-Wl,--export=bridge_' + value), '-D' + ({ bz2: 'BZ', xz: 'XZ', zstd: 'ZS' })[name], ...codec.defines.map(value => '-D' + value), ...codec.include_dirs.map(value => '-I' + join(root, value)), join(directory, 'bridge.c'), ...codec.sources.map(value => join(root, value)), '-o', wasm], { stdio: 'inherit' });
+    execFileSync(zig, ['cc', '-target', 'wasm32-wasi', '-mexec-model=reactor', '-O2', '-fno-sanitize=all', '-Wl,-z,stack-size=1048576', ...exports.map(value => '-Wl,--export=bridge_' + value), '-D' + ({ bz2: 'BZ', xz: 'XZ', zstd: 'ZS' })[name], ...codec.defines.map(value => '-D' + value), ...codec.include_dirs.map(value => '-I' + join(root, value)), join(directory, 'bridge.c'), ...codec.sources.map(value => join(root, value)), '-o', wasm], { stdio: 'inherit' });
     execFileSync(process.execPath, [wasm2js, wasm, '-O2', '-o', js], { stdio: 'inherit' });
     const source = await readFile(js, 'utf8');
     const tree = ts.createSourceFile(js, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -55,7 +55,7 @@ try {
       if (ts.isFunctionDeclaration(node) && node.name?.text === '__wasm_memory_grow') {
         const branch = node.body.statements.find(ts.isIfStatement);
         if (!branch || branch.elseStatement) throw new Error('Unexpected Binaryen memory growth shape');
-        // Binaryen 132 omits the WASM grow failure return. Keep the fixed maximum,
+        // Binaryen 132 omits the WASM grow failure return. Keep the address-space maximum,
         // and return -1 so the native allocator cannot mistake refusal for success.
         edits.push([branch.thenStatement.end, branch.thenStatement.end, ' else { return -1; }']);
         growthFunctions++;

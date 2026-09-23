@@ -1,8 +1,8 @@
 export interface RawCodecModule {
   readonly memory: { readonly buffer: ArrayBuffer };
   _initialize?(): void;
-  bridge_create(decompress: number, level: number, memoryLimit: number, windowLog: number, smallOrCheck?: number, ignoreCheck?: number, alone?: number): number;
-  bridge_create_lzma?(decompress: number, level: number, memoryLimit: number, dictionary: number, properties: number, eos: number, sizeLow: number, sizeHigh: number): number;
+  bridge_create(decompress: number, level: number, memoryLimit: number, windowLog: number, smallOrCheck?: number, ignoreCheck?: number, alone?: number, memoryHigh?: number): number;
+  bridge_create_lzma?(decompress: number, level: number, memoryLimit: number, dictionary: number, properties: number, eos: number, sizeLow: number, sizeHigh: number, memoryHigh?: number): number;
   bridge_step(input: number, inputLength: number, output: number, outputLength: number, finish: number): number;
   bridge_destroy(): void;
   bridge_zstd_config?(check: number, literals: number, row: number, window: number, sizeLow: number, sizeHigh: number, sizeKnown: number, sizeHint: number): number;

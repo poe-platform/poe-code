@@ -118,15 +118,14 @@ test("actual codec instances run concurrently with independent bytes and cleanup
   }));
 });
 
-test("XZ dictionary and Zstandard advertised window are refused before large allocation", async () => {
+test("omitted quotas admit XZ dictionaries and Zstandard windows above former defaults", async () => {
   // Python lzma FORMAT_XZ, LZMA2 dict_size=128 MiB, payload 'hello'; native checksum retained.
   const hugeDictionary = Buffer.from("/Td6WFoAAATm1rRGAgAhAR4AAACbB1FmAQAEaGVsbG8AAAAAsTe52+XaHpsAAR0FuC2Arx+2830BAAAAAARZWg==", "base64");
   // RFC 8878 frame: no content size, window descriptor 0x70 => 16 MiB; empty last block.
   const hugeWindow = Uint8Array.of(0x28, 0xb5, 0x2f, 0xfd, 0, 0x70, 1, 0, 0);
   for (const [format, bytes] of [["xz", hugeDictionary], ["zstd", hugeWindow]] as const) {
     const state = tracked(), signal = new AbortController().signal;
-    await assert.rejects(collect(boundedCodec(reader(bytes, signal), { format, level: 1, decompress: true }, signal, state.create)), /memory/u);
-    assert.ok(state.modules.every(module => module.bridge_peak() < 1024 * 1024), "advertised dictionary/window must not be allocated");
+    assert.deepEqual(await collect(boundedCodec(reader(bytes, signal), { format, level: 1, decompress: true }, signal, state.create)), format === "xz" ? Buffer.from("hello") : Buffer.alloc(0));
     state.released();
   }
 });

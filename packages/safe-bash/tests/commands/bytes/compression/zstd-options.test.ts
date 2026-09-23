@@ -42,7 +42,7 @@ test('Zstd checksum controls affect framing and validation', async () => {
   assert.deepEqual(ignored.stdout, input);
 });
 test('Zstd rejects unsupported execution capabilities and malformed values before output', async () => {
-  for (const flag of ['--threads=2', '--threads=0', '--adapt', '--rsyncable', '--progress', '--long', '--format=lz4', '--stream-size=oops', '--size-hint=-1', '--auto-threads=unknown']) {
+  for (const flag of ['--threads=2', '--threads=0', '--adapt', '--rsyncable', '--progress', '--long=31', '--format=lz4', '--stream-size=oops', '--size-hint=-1', '--auto-threads=unknown']) {
     const result = await run('zstd', ['-c', flag], chunks(input));
     assert.equal(result.exitCode, 2, flag);
     assert.equal(result.stdout.length, 0);

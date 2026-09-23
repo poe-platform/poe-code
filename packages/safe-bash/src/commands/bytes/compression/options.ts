@@ -82,7 +82,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           const number = Number(supplied);
           if (name === "threads" && number !== 1) throw new UsageError("only --threads=1 is supported by the single-threaded Zstandard codec");
           if (name === "long") {
-            if (number < 10 || number > 23) throw new UsageError("long-distance matching requires a window log from 10 through 23 under the codec window limit");
+            if (number < 10 || number > 30) throw new UsageError("long-distance matching requires a window log from 10 through 30");
             result.zstd.window = number;
           }
           if (name === "stream-size") result.zstd.streamSize = number;
@@ -254,9 +254,8 @@ function parseXzMemory(value: string | undefined): number {
     : unit.endsWith("b") || unit.endsWith("i") ? unit.slice(0, -1) : unit);
   if (!end || power < 0 || (suffix && power === 0)) throw new UsageError(`invalid memory limit '${value}'`);
   const bytes = BigInt(value.slice(0, end)) * 1024n ** BigInt(power);
-  if (bytes > 0xffffffffffffffffn) throw new UsageError("memory limit exceeds the XZ uint64 limit");
-  // Zero disables the caller limit, never the codec's existing allocation ceiling.
-  return bytes === 0n ? 64 * 1024 * 1024 : Number(bytes > 67108864n ? 67108864n : bytes);
+  if (bytes > BigInt(Number.MAX_SAFE_INTEGER)) throw new UsageError("memory limit exceeds exact integer representation");
+  return Number(bytes);
 }
 
 function parseXzCheck(value: string | undefined): number {

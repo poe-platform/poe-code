@@ -52,7 +52,7 @@ describe.each([false, true])("execution controls with extensions=%s", (extension
       ...(extensions ? { extensions: [] } : {})
     });
     try {
-      await turn();
+      await vi.waitFor(() => expect(budget.stepsUsed).toBeGreaterThan(0), { interval: 1, timeout: 1000 });
       await task.pause();
       const stoppedAt = budget.stepsUsed;
       expect(stoppedAt).toBeGreaterThan(0);

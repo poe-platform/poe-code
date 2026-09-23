@@ -375,8 +375,7 @@ describe("independent AR-001 original workflows", () => {
             throw new Error("Finished before gate");
           })
         ]);
-        await new Promise<void>((resolve) => setImmediate(resolve));
-        expect(host.calls).toEqual(scenario.callsAtBoundary);
+        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         expect(() => dump(execution, { mode: "capture" })).toThrow(
           expect.objectContaining({ code: "reentry" })

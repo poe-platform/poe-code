@@ -76,6 +76,37 @@ async function finishReplay(execution: Promise<RunResult>): Promise<RunResult> {
   return execution;
 }
 
+describe("callback replay progress bound", () => {
+  it("allows host progress after the former wall-clock deadline", async () => {
+    const result = await run("return 42;");
+    let complete!: (result: RunResult) => void;
+    const execution = new Promise<RunResult>((resolve) => {
+      complete = resolve;
+    });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const replay = finishReplay(execution);
+      const assertion = expect(replay).resolves.toBe(result);
+      vi.advanceTimersByTime(101);
+      complete(result);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects a replay that never settles", async () => {
+    await expect(finishReplay(new Promise<RunResult>(() => {}))).rejects.toThrow(
+      "Callback replay stalled"
+    );
+  });
+
+  it("preserves the execution rejection", async () => {
+    const error = new Error("replay failed");
+    await expect(finishReplay(Promise.reject(error))).rejects.toBe(error);
+  });
+});
+
 describe("checkpoint interaction stress", () => {
   it("allows replay progress after a delayed host turn", async () => {
     const result = await run("return 1;");

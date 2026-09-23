@@ -288,6 +288,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   const depthMigrated = new Set<string>();
   const hazardStartupMigrated = new Set<string>();
   const optionalHazardLimitsMigrated = new Set<string>();
+  const optionalRawInputLimitMigrated = new Set<string>();
   const numericAsyncMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
@@ -310,6 +311,14 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       current = Buffer.from(original);
       assert.equal(digest(current), expected);
       optionalHazardLimitsMigrated.add(path);
+    }
+    if (path === "tests/commands/structured-stress/raw-input-safety.test.ts") {
+      assert.equal(digest(current), "c8b0dd37664f94082a8c1c1ffef658bac86f118ba991276ebb627f1a5f984134");
+      const source = current.toString("utf8"), updated = "assert.equal(options?.maxBytes, undefined)";
+      assert.equal(source.split(updated).length, 2);
+      current = Buffer.from(source.replace(updated, "assert.equal(options?.maxBytes, 64 * 1024 * 1024)"));
+      assert.equal(digest(current), expected);
+      optionalRawInputLimitMigrated.add(path);
     }
     if (path === numericAsyncMigration.path) {
       current = assertNumericAsyncMigration({ path, expected, current, ...(snapshot ? { snapshot } : {}) });
@@ -359,10 +368,11 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
   assert.deepEqual([...hazardStartupMigrated], [hazardStartupMigration.path], "only the reviewed hazard-startup migration");
   assert.deepEqual([...optionalHazardLimitsMigrated], ["tests/commands/structured/hazard-worker.ts"], "only the explicit hazard-limit migration");
+  assert.deepEqual([...optionalRawInputLimitMigrated], ["tests/commands/structured-stress/raw-input-safety.test.ts"], "only the omitted raw-input limit migration");
   assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
-  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size - optionalHazardLimitsMigrated.size;
-  assert.equal(unchangedComparisons, 132, "131 byte-unchanged current comparisons and one archived streaming image");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 3, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, optionalHazardLimitsMigrations: optionalHazardLimitsMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
+  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size - optionalHazardLimitsMigrated.size - optionalRawInputLimitMigrated.size;
+  assert.equal(unchangedComparisons, 131, "130 byte-unchanged current comparisons and one archived streaming image");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 3, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, optionalHazardLimitsMigrations: optionalHazardLimitsMigrated.size, optionalRawInputLimitMigrations: optionalRawInputLimitMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };

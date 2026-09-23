@@ -61,7 +61,7 @@ for (const operation of ["read", "write", "file-stream", "file-fallback", "clean
       assert.equal(options?.signal, controller.signal); return stdin;
     } }) });
     if (operation === "file-fallback") Object.assign(overrides, { fs: filesystem({ readStream: undefined, readFile: (_path, options) => {
-      assert.equal(options?.signal, controller.signal); assert.equal(options?.maxBytes, 64 * 1024 * 1024); return pending();
+      assert.equal(options?.signal, controller.signal); assert.equal(options?.maxBytes, undefined); return pending();
     } }) });
     const running = execute(["-Rr", ".", ...(operation.startsWith("file") ? ["input"] : [])], operation === "write" ? "record\n" : stdin,
       operation === "cleanup" ? { limits: { maxOutputBytes: 1 } } : {}, overrides);

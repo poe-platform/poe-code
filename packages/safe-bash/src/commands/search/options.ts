@@ -18,6 +18,7 @@ export class SearchError extends PublicDiagnostic {}
 
 export interface Arguments {
   help?: boolean;
+  version?: "short" | "long";
   patterns: string[];
   patternFiles: string[];
   paths: string[];
@@ -108,7 +109,9 @@ export function parse(args: readonly string[]): Arguments {
         return output;
       };
       switch (flag) {
-        case "help": result.help = true; break;
+        case "h": case "help": result.help = true; break;
+        case "V": result.version = "short"; break;
+        case "version": result.version = "long"; break;
         case "e": case "regexp": result.explicitPatterns = true; result.patterns.push(value()); break;
         case "f": case "file": result.explicitPatterns = true; result.patternFiles.push(value()); break;
         case "g": case "glob": result.globs.push({ source: value(), insensitive: false }); break;
@@ -199,7 +202,7 @@ export function parse(args: readonly string[]): Arguments {
   }
   if (result.before > 100000 || result.after > 100000) throw new SearchError("context limit exceeded");
   if (result.replacement?.includes("$")) throw new SearchError("replacement capture expansion is unsupported; use a literal replacement without '$'");
-  if (!result.help && result.mode !== "files" && !result.explicitPatterns) {
+  if (!result.help && !result.version && result.mode !== "files" && !result.explicitPatterns) {
     const pattern = operands.shift();
     if (pattern === undefined) throw new SearchError("a search pattern is required");
     result.patterns.push(pattern);

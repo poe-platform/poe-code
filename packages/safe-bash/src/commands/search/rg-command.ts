@@ -190,7 +190,8 @@ Default input depends on shell configuration.
       --heading           Group output by filename
       --sort=path         Sort paths
       --color=never       Disable color
-      --help              Display this help and exit
+  -h, --help              Display this help and exit
+  -V, --version           Display implementation information and exit
       --                  End options
 
 Exit status: 0 when a match is found, 1 when none is found, 2 on error.
@@ -200,6 +201,10 @@ Regex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.
 Case and word selection support ASCII patterns and subjects.
 Unicode selection and extended regex syntax require a configured executor.
 `));
+            return { exitCode: 0 };
+          }
+          if (args.version) {
+            await limits.output(Buffer.from(`rg (safe-bash bounded implementation)\n${args.version === "long" ? `Regex engine: ${options.regexExecutor === undefined ? "bounded ASCII regular expressions and UTF-8 literals" : "configured bounded regex executor (capabilities depend on provider)"}\nNative ripgrep revision, PCRE2 and SIMD capabilities are not reported by this implementation.\n` : ""}`));
             return { exitCode: 0 };
           }
           if (args.mode !== "files" && args.patternFiles.includes("-") && args.paths.includes("-")) {

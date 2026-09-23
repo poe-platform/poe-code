@@ -66,6 +66,7 @@ option parsing. Unknown flags and malformed numeric values are errors.
 
 | Area | Flags and behavior |
 | --- | --- |
+| Information | `-h`/`--help` print supported usage; `-V` prints the safe-bash implementation identity; `--version` also describes the configured regex engine. These exit successfully without searching and do not claim a native ripgrep revision, PCRE2 or SIMD capabilities. |
 | Patterns | Repeated `-e`/`--regexp`, `-f`/`--file`; otherwise the first operand is the pattern. Pattern files contain one UTF-8 pattern per line; `-f -` reads stdin. An empty pattern file matches nothing. |
 | Matching | `-F`/`--fixed-strings`, `--no-fixed-strings`, `-i`/`--ignore-case`, `-s`/`--case-sensitive`, `-S`/`--smart-case`, `-v`/`--invert-match`, `--no-invert-match`, `-w`/`--word-regexp`, `-x`/`--line-regexp`. |
 | Match output | `-n`/`--line-number`, `-N`/`--no-line-number`, `-H`/`--with-filename`, `-I`/`--no-filename`, `--column`/`--no-column`, `-b`/`--byte-offset`, `-o`/`--only-matching`, `--no-only-matching`, `--heading`/`--no-heading`, `-r`/`--replace` (literal replacement without `$` capture expansion), `--trim`/`--no-trim` (leading ASCII whitespace). JSON retains original records and ranges. |

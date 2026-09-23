@@ -123,9 +123,10 @@ function wcUtf8(consume: (point: number | undefined) => void) {
 }
 
 function wcSpace(point: number, posix: boolean): boolean {
-  return point === 32 || point >= 9 && point <= 13 || point === 0xa0 || point === 0x1680
-    || point >= 0x2000 && point <= 0x200a || point === 0x2028 || point === 0x2029
-    || point === 0x202f || point === 0x205f || point === 0x3000 || !posix && point === 0x2060;
+  return point === 32 || point >= 9 && point <= 13 || point === 0x1680
+    || point >= 0x2000 && point <= 0x200a && point !== 0x2007 || point === 0x2028 || point === 0x2029
+    || point === 0x205f || point === 0x3000
+    || !posix && (point === 0xa0 || point === 0x2007 || point === 0x202f || point === 0x2060);
 }
 
 function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefinition {

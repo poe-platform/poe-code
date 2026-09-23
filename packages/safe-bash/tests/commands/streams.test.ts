@@ -370,6 +370,45 @@ test("agent wc counts control-only words in files, redirections and pipelines", 
   }
 });
 
+test("wc GNU extra whitespace depends on POSIXLY_CORRECT presence", async () => {
+  for (const separator of ["\u00a0", "\u2007", "\u202f", "\u2060", " ", "\u2003"]) {
+    for (const posix of [undefined, "", "1", "yes"]) {
+      const env = { LC_ALL: "C.UTF-8", ...(posix === undefined ? {} : { POSIXLY_CORRECT: posix }) };
+      const count = posix === undefined || separator === " " || separator === "\u2003" ? 3 : 2;
+      const data = `orange${separator}pear apple\n`;
+      for (const width of [1, 2, 7]) {
+        const result = await run("wc", ["--words"], { stdin: chunks(data, width), env });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, `${count}\n`, JSON.stringify({ separator, posix, width }));
+      }
+      const fs = await fixture({ input: data });
+      const shell = new Shell({ fs, cwd: "/work", env }).use(agentCommands());
+      try {
+        for (const command of ["wc --words input > counts; cat counts", "cat input | wc --words"]) {
+          const result = await shell.exec(command);
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, `${count}${command.startsWith("wc") ? " input" : ""}\n`);
+        }
+      } finally { await shell.dispose(); }
+    }
+  }
+  for (const locale of ["C", "POSIX"]) {
+    for (const posix of [undefined, "", "yes"]) {
+      for (const separator of [Uint8Array.of(0xa0), new TextEncoder().encode("\u00a0"), Uint8Array.of(0x85), Uint8Array.of(32)]) {
+        const data = Buffer.concat([Buffer.from("lemon"), separator, Buffer.from("lime berry\n")]);
+        const env = { LC_ALL: locale, ...(posix === undefined ? {} : { POSIXLY_CORRECT: posix }) };
+        const count = separator[0] === 32 || posix === undefined && separator.includes(0xa0) ? 3 : 2;
+        const result = await run("wc", ["-w"], { stdin: chunks(data, 1), env });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, `${count}\n`);
+      }
+    }
+  }
+});
+
 test("wc accepts both maximum-line-length options for virtual files", async () => {
   const fs = await fixture({ input: "abc\n" });
   for (const option of ["-L", "--max-line-length"]) {

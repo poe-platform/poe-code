@@ -860,16 +860,17 @@ async function evaluateObjectExpression(
   if (restored !== undefined && (restored.kind !== "object" || restored.value === null ||
       typeof restored.value !== "object" || Array.isArray(restored.value)))
     throw new TypeError("Invalid object expression continuation.");
-  // Bulk static string tables amortize native Proxy overhead. Keep small literals
-  // and public runner results native; choose ownership before any root can escape.
-  let trackStrings = context.scriptScope !== undefined && node.properties.length >= 256;
-  if (trackStrings) for (let index = 0; index < node.properties.length; index++) {
+  // Own fixed-key classic data records before they escape so their property
+  // revisions can replace repeated descriptor capture. Public runner results stay native.
+  let trackRecord = context.scriptScope !== undefined;
+  if (trackRecord) for (let index = 0; index < node.properties.length; index++) {
     const property = node.properties[index]!;
-    if (property.type !== "Property" || property.computed || property.kind !== undefined ||
-        property.value.type !== "StringLiteral") { trackStrings = false; break; }
+    if (property.type !== "Property" || property.computed || property.kind !== undefined) {
+      trackRecord = false; break;
+    }
   }
   const object = restored?.kind === "object" ? restored.value as SandboxObject
-    : trackStrings ? createIntrinsicObject() : Object.create(null) as SandboxObject;
+    : trackRecord ? createIntrinsicObject() : Object.create(null) as SandboxObject;
   if (restored === undefined) {
     const prototype = getSandboxPrototype(object, context.budget);
     if (prototype !== null) setSandboxPrototype(object, prototype, context.budget);

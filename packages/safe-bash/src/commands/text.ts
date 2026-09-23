@@ -223,7 +223,7 @@ async function compareNumericValues(first: NumericValue, second: NumericValue, w
   return first.negative ? -compared : compared;
 }
 
-interface SortKey { start: number; startCharacter: number; end?: number; endCharacter?: number; flags: Set<string> }
+interface SortKey { start: number; startCharacter: number; startBlanks: boolean; endBlanks: boolean; end?: number; endCharacter?: number; flags: Set<string> }
 
 function sortKey(specification: string): SortKey {
   let offset = 0;
@@ -237,9 +237,14 @@ function sortKey(specification: string): SortKey {
   const endpoint = (minimumCharacter: number) => {
     const field = position(1);
     let character: number | undefined;
+    let blanks = false;
     if (specification[offset] === ".") { offset++; character = position(minimumCharacter); }
-    while (specification[offset] !== undefined && "bdfghiMnrV".includes(specification[offset]!)) flags.add(specification[offset++]!);
-    return { field, character };
+    while (specification[offset] !== undefined && "bdfghiMnrV".includes(specification[offset]!)) {
+      const flag = specification[offset++]!;
+      flags.add(flag);
+      if (flag === "b") blanks = true;
+    }
+    return { field, character, blanks };
   };
   const start = endpoint(1);
   let end: ReturnType<typeof endpoint> | undefined;
@@ -247,6 +252,7 @@ function sortKey(specification: string): SortKey {
   if (offset !== specification.length) throw new UsageError(`invalid key '${specification}'`);
   return {
     start: start.field, startCharacter: start.character ?? 1,
+    startBlanks: start.blanks, endBlanks: end?.blanks ?? false,
     ...(end === undefined ? {} : { end: end.field }),
     ...(end?.character === undefined || end.character === 0 ? {} : { endCharacter: end.character }), flags,
   };
@@ -409,7 +415,7 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
       while (offset < line.length && (line[offset] === 32 || line[offset] === 9)) {
         if (++offset % 1024 === 0) await work.charge(1024);
       }
-      const start = blanks ? offset : leading;
+      const start = leading;
       if (offset === line.length) break;
       while (offset < line.length && line[offset] !== 32 && line[offset] !== 9) {
         if (++offset % 1024 === 0) await work.charge(1024);
@@ -418,11 +424,21 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
     }
   }
   await work.charge(line.length % 1024);
-  const start = (fields[key.start - 1]?.start ?? line.length) + key.startCharacter - 1;
+  const fieldStart = async (field: { start: number; end: number } | undefined, skipBlanks: boolean) => {
+    let offset = field?.start ?? line.length;
+    if (skipBlanks) while (offset < (field?.end ?? line.length) && (line[offset] === 32 || line[offset] === 9)) {
+      const checkpoint = work.charge();
+      if (checkpoint) await checkpoint;
+      offset++;
+    }
+    return offset;
+  };
+  const inheritBlanks = key.flags.size === 0 && blanks;
+  const start = await fieldStart(fields[key.start - 1], key.startBlanks || inheritBlanks) + key.startCharacter - 1;
   const last = key.end === undefined ? undefined : fields[key.end - 1];
   // Explicit character positions can extend beyond a field, up to the record boundary.
   const end = key.end === undefined ? line.length : last === undefined ? line.length
-    : key.endCharacter === undefined ? last.end : Math.min(line.length, last.start + key.endCharacter);
+    : key.endCharacter === undefined ? last.end : Math.min(line.length, await fieldStart(last, key.endBlanks || inheritBlanks) + key.endCharacter);
   return line.subarray(Math.min(start, line.length), Math.max(start, end));
 }
 

@@ -19,6 +19,11 @@ selects `Q9` in `w|Q9`; stable and unique sorting compare those selected bytes,
 so unique mode preserves records with distinct keys and keeps the first record
 when keys compare equal. This applies to both LF and NUL record delimiters.
 
+The `b` modifier skips leading ASCII spaces and tabs independently at each key
+endpoint before applying its character offset, including with explicit field
+separators. For example, `-t '|' -k2.1b,2.1b` selects `Q` in `w| Q`.
+Global `-b` applies to both endpoints when a key has no local ordering modifiers.
+
 Month order recognizes case-insensitive English three-letter month prefixes
 after leading spaces or tabs, with unrecognized months before January.
 General numeric order places unrecognized numbers before NaNs, then orders

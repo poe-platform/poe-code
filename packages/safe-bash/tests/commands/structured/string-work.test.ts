@@ -46,6 +46,55 @@ test("string division enforces work and aggregate byte budgets", async () => {
   }
 });
 
+test("string division rejects oversized collections without native array materialization", async context => {
+  for (const separator of ["", ","]) {
+    const input = separator === "" ? "x".repeat(1000) : "x,".repeat(1000);
+    const from = context.mock.method(Array, "from");
+    const split = context.mock.method(String.prototype, "split");
+    const budget = new Budget(resolveJqLimits({ maxCollectionSize: 10 }), new AbortController().signal);
+    await assert.rejects(binary("/", input, separator, budget),
+      error => error instanceof JqLimitError && error.message === "maxCollectionSize limit exceeded");
+    assert.equal(from.mock.calls.filter(call => call.arguments[0] === input).length, 0);
+    assert.equal(split.mock.calls.filter(call => String(call.this) === input).length, 0);
+    from.mock.restore();
+    split.mock.restore();
+  }
+});
+
+test("string division charges scan work and result bytes", async () => {
+  for (const separator of ["", ","]) {
+    for (const limits of [{ maxSteps: 5 }, { maxValueBytes: 8 }]) {
+      const budget = new Budget(resolveJqLimits(limits), new AbortController().signal);
+      await assert.rejects(binary("/", separator === "" ? "abc" : "a,b", separator, budget),
+        error => error instanceof JqLimitError && error.message === `${Object.keys(limits)[0]} limit exceeded`);
+    }
+  }
+});
+
+test("jq division preserves Unicode, empty fields and empty input", async () => {
+  for (const [input, separator, expected] of [
+    ["😀é", "", ["😀", "é"]], ["", "", []], ["", ",", []],
+    [",a,,", ",", ["", "a", "", ""]], ["aaaaa", "aa", ["", "", "a"]],
+  ] as const) {
+    const result = await run(["-nc", `${JSON.stringify(input)} / ${JSON.stringify(separator)}`]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `${JSON.stringify(expected)}\n`);
+  }
+});
+
+test("jq division enforces collection boundaries through the command", async () => {
+  for (const separator of ["", ","]) {
+    const operand = separator === "" ? '"x" * 11' : '"x," * 10';
+    const rejected = await run(["-n", `${operand} / ${JSON.stringify(separator)}`], "", { limits: { maxCollectionSize: 10 } });
+    assert.equal(rejected.exitCode, 5);
+    assert.equal(rejected.stdout, "");
+    assert.match(rejected.stderr, /maxCollectionSize limit exceeded/);
+  }
+  const admitted = await run(["-nc", '"xxxxxxxxxx" / ""'], "", { limits: { maxCollectionSize: 10 } });
+  assert.equal(admitted.exitCode, 0);
+  assert.equal(admitted.stdout, `${JSON.stringify(Array(10).fill("x"))}\n`);
+});
+
 test("split fit proof covers JSON escapes and Unicode with one structural step per operand", async context => {
   for (const input of ["", "A", "\u0000", "\u001f", "\b\t\n\f\r", "\"\\", "é", "中", "\u2028\u2029", "\ud800", "\udfff", "😀", "\ud800A\udc00"]) {
     const separator = input + "!";

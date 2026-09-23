@@ -226,7 +226,7 @@ function definition(configuration: Settings): CommandDefinition {
       let result: { readonly exitCode: number } | undefined;
       let invocationFailure: unknown;
       try {
-        result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: deadline.signal, ...streams }]);
+        result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: AbortSignal.any([context.signal, deadline.signal]), ...streams }]);
         returned = true;
       } catch (error) {
         invocationFailure = error;

@@ -124,3 +124,23 @@ it("copies array data without calling provider-owned collection methods", () => 
     .toEqual({ kind: "number", value: 2 });
   expect(reads).toBe(0);
 });
+it("admits bounded runtime matrices wider than the default legacy sheet grid", () => {
+  for (const width of [257, 16384]) {
+    const functions = { HOST_ARRAY: { signature: "", implementation() { return { kind: "matrix" as const,
+      rows: [Array.from({ length: width }, () => ({ kind: "number" as const, value: 1 }))]
+    }; } } };
+    expect(recalculateWorkbook(book("=SUM(HOST_ARRAY())"), { ...context,
+      limits: { ...context.limits, cells: 20000, workbookWork: 1000000 }, runtimeFunctions: functions
+    }).sheets[0]!.cells[2]!.value).toEqual({ kind: "number", value: width });
+  }
+});
+it("preserves the supported matrix axis ceiling before traversing supplied members", () => {
+  const row = new Array(16385);
+  let reads = 0;
+  Object.defineProperty(row, "0", { get() { reads++; throw new Error("Unadmitted member"); } });
+  const functions = { HOST_ARRAY: { signature: "", implementation() { return { kind: "matrix" as const, rows: [row] }; } } };
+  expect(() => recalculateWorkbook(book("=SUM(HOST_ARRAY())"), { ...context,
+    limits: { ...context.limits, cells: 20000, workbookWork: 1000000 }, runtimeFunctions: functions
+  })).toThrow("runtime matrix axis limit exceeded");
+  expect(reads).toBe(0);
+});

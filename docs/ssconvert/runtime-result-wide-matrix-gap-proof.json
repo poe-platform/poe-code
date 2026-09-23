@@ -1,0 +1,48 @@
+{
+  "scope": "Repair runtime matrix admission above the legacy default sheet grid",
+  "status": "implemented-and-package-qualified",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "sourceApplicability": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "pythonPath": "plugins/python-loader/py-gnumeric.c",
+    "pythonSha256": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856",
+    "databasePath": "plugins/gda/plugin-gda.c",
+    "databaseSha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+    "behavior": "Both released bridges construct arrays from returned row/column counts; neither constrains a returned aggregate array to the current legacy default 256-column sheet grid."
+  },
+  "reproducedFailures": [
+    "A one-row 257-column cooperative matrix within its cell budget failed Invalid workbook cell index during ownership copying.",
+    "An over-maximum matrix walked member shape admission before enforcing its supported portable axis ceiling."
+  ],
+  "repair": "Validate supported workbook maximum axes before supplied member traversal; use MAX_SHEET_SIZE for the synthetic ownership-admission sheet rather than legacy defaults. Scalar ownership,rectangular validation,configured area budgets and actual reference sheet bounds remain intact.",
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-result.ts",
+      "sha256": "f6932ae9cc18b0c1fdb0f565dcc442b408e2efcdc3604538e6dda2464b964443"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-results.test.ts",
+      "sha256": "6eb4eb2aa7b661145408f6361a3ebff216c9b92d72d9038a033f635d699d00e5"
+    }
+  ],
+  "neighborControls": {
+    "acceptedColumnWidths": [
+      257,
+      16384
+    ],
+    "refusedColumnWidth": 16385,
+    "unadmittedAccessorReads": 0
+  },
+  "runtimeResultControls": 13,
+  "focusedTests": 23,
+  "packageTests": 22520,
+  "packageFiles": 365,
+  "packageLintAndTypes": "passed",
+  "maintainedRootBuild": "passed",
+  "qualificationLimits": [
+    "Supported portable axes remain 16384columns/16777216rows and configured cell/work budgets apply.",
+    "No actual native custom Python module or successful GTK database query execution is claimed.",
+    "All original whole-family requirements and containing publication remain open."
+  ]
+}

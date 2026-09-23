@@ -1,5 +1,5 @@
 import { SsconvertError } from "../contracts.js";
-import { DEFAULT_SHEET_SIZE, snapshotWorkbook, type Cell, type CellValue } from "../workbook.js";
+import { DEFAULT_SHEET_SIZE, MAX_SHEET_SIZE, snapshotWorkbook, type Cell, type CellValue } from "../workbook.js";
 import type { FunctionHost, Matrix, Reference } from "./functions/types.js";
 import type { RuntimeFunctionResult } from "./runtime-functions.js";
 
@@ -18,6 +18,8 @@ export function snapshotRuntimeResult(result: RuntimeFunctionResult, host: Funct
       throw new SsconvertError("invalid-request", "Invalid ssconvert runtime matrix");
     const width = first.value.length;
     if (width > host.context.limits.cells / rows.length) throw new SsconvertError("resource-limit", "ssconvert runtime matrix cell limit exceeded");
+    if (rows.length > MAX_SHEET_SIZE.rows || width > MAX_SHEET_SIZE.columns)
+      throw new SsconvertError("resource-limit", "ssconvert runtime matrix axis limit exceeded");
     const cells: Cell[] = [];
     for (let row = 0; row < rows.length; row++) {
       host.tick();
@@ -31,7 +33,7 @@ export function snapshotRuntimeResult(result: RuntimeFunctionResult, host: Funct
         cells.push({ row, column, value: value.value as CellValue });
       }
     }
-    const owned = snapshotWorkbook({ sheets: [{ id: "runtime", name: "Runtime", cells }] }, host.context.limits).sheets[0]!.cells;
+    const owned = snapshotWorkbook({ sheets: [{ id: "runtime", name: "Runtime", size: MAX_SHEET_SIZE, cells }] }, host.context.limits).sheets[0]!.cells;
     return Object.freeze({ kind: "matrix" as const, rows: Object.freeze(Array.from({ length: rows.length }, (_row, index) => {
       host.tick(); return Object.freeze(owned.slice(index * width, (index + 1) * width).map(cell => cell.value));
     })) });

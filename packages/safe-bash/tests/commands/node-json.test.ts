@@ -57,7 +57,7 @@ test("node JSON loading throws at the call site and does not cache failed parses
       try { require("./bad.json"); } catch (error) { console.log(error.name); }
       await require("fs").writeFile("bad.json", "[1,true,null]", "utf8");
       console.log(require("./bad.json"));
-      for (const name of ["data.json", "./local.js", "node:child_process"]) {
+      for (const name of ["data.json", "./local.mjs", "node:child_process"]) {
         try { require(name); console.log("loaded"); } catch (error) { console.log(error.name); }
       }
     '`);
@@ -82,13 +82,13 @@ test("node JSON loading propagates caller cancellation to the virtual read", asy
   let started!: () => void;
   const reading = new Promise<void>(resolve => { started = resolve; });
   class PendingFileSystem extends MemoryFileSystem {
-    override async readFile(path: string, options?: Parameters<MemoryFileSystem["readFile"]>[1]): Promise<Uint8Array> {
-      if (path !== "/data.json") return super.readFile(path, options);
+    override async *readStream(path: string, options?: Parameters<MemoryFileSystem["readStream"]>[1]): AsyncIterable<Uint8Array> {
+      if (path !== "/data.json") { yield* super.readStream(path, options); return; }
       const signal = options?.signal;
       assert.ok(signal);
       signal.throwIfAborted();
       started();
-      return new Promise((_, reject) => { signal.addEventListener("abort", () => reject(signal.reason), { once: true }); });
+      await new Promise((_, reject) => { signal.addEventListener("abort", () => reject(signal.reason), { once: true }); });
     }
   }
   const shell = new Shell({ fs: new PendingFileSystem() }).use(nodeCommands({ runtime }));

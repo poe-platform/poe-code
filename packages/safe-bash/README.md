@@ -243,9 +243,12 @@ is required. Async helpers remain available through `fs.promises` and
 Import async filesystem functions from `"fs"` or `"node:fs/promises"`, or use
 `const fs = require("node:fs/promises")`. `require("./data.json")` loads virtual
 JSON relative to the entry file's directory, or virtual cwd for inline and stdin
-source. JSON values share a cache within one invocation and retain interpreter
-limits and cancellation. Other synchronous fs operations, package/local
-JavaScript loading, `process.exit()`, and native module fallback are unavailable.
+source. `node --require ./setup.cjs` / `node -r ./setup.cjs` preloads virtual
+CommonJS modules before the program; repeated flags run in order from virtual cwd.
+Explicit `.cjs`, `.js`, and `.json` module paths share an invocation-local cache,
+including nested relative dependencies, and retain source limits, interpreter
+budgets, and cancellation. Other synchronous fs operations, package search,
+ESM loading, `process.exit()`, and native module fallback are unavailable.
 Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
 see [defaults and configuration](src/commands/node/README.md#configuration).
 

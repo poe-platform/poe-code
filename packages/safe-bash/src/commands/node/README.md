@@ -35,6 +35,12 @@ try {
 - `node -e SOURCE` / `--eval` evaluates JavaScript; `node -p EXPRESSION` /
   `--print` prints the expression, including `undefined`. Objects print as JSON,
   not Node's inspection format. Console formatting uses SafeJS, not Node format strings.
+- `node --require ./setup.cjs` / `node -r ./setup.cjs` runs a virtual CommonJS
+  module before the program. Repeat the flag to run preloads in order;
+  `--require=PATH` and `-rPATH` also work. Preload paths resolve from virtual cwd,
+  including for file entries in another directory. Use explicit `.cjs`, `.js`,
+  or `.json` paths, or the supported builtin names below. Check mode skips
+  preloads. No host modules or environment-driven preloads are loaded.
 - `node --check FILE` / `node -c FILE` checks the complete source without running
   statements or resolving imports. Omit `FILE` or use `-` to check stdin;
   `--input-type=module` and `--` remain available. Inject `parseSourceModule` as
@@ -93,9 +99,17 @@ try {
   a guest cache within one invocation, preserving object identity and mutations;
   filesystem writes do not invalidate the cache. Missing files throw
   `MODULE_NOT_FOUND`; invalid JSON throws `SyntaxError` and is not cached.
-  Reads and parsing retain cancellation and interpreter value limits. Package
-  search, extension inference, local JavaScript loading, and JSON imports are
-  not supplied.
+  Reads and parsing retain cancellation and interpreter value limits.
+- `require("./setup.cjs")` and `require("./setup.js")` execute virtual CommonJS
+  modules using guest Script evaluation, with `exports`, `require`, `module`,
+  `__filename`, `__dirname`, and `this === exports`. Nested relative dependencies
+  resolve from the requiring module's directory. Preloads and the entry program
+  share a cache, including partial exports during circular loads; failed loads
+  are removed from the cache. BOMs and shebangs are accepted. Modules share the
+  invocation's execution, output, deadline, and cancellation limits. Module reads
+  share `maxSourceBytes` with the entry source, counting every uncached read.
+  Package search, extension inference, ESM loading,
+  and JSON imports are not supplied.
 - `path` and `node:path` support `require`, default, named, and namespace imports.
   The POSIX helpers are `join`, `normalize`, `resolve`, `relative`, `basename`,
   `dirname`, `extname`, and `isAbsolute`, with `sep`, `delimiter`, and `posix`.
@@ -104,7 +118,7 @@ try {
 SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
 imports, and the explicit filesystem promise and path import names above.
 `--input-type=module` is accepted; CommonJS input mode, other synchronous fs,
-native modules, package/local JavaScript loading, `process.exit`, and the native Node
+native modules, package loading, `process.exit`, and the native Node
 event loop are not supplied. Other `node:` and slash-containing import specifiers
 remain rejected. Runtime hooks and filesystem adapters are trusted host code.
 
@@ -130,7 +144,9 @@ filename, and console sink. Use SafeJS's public factories as shown, or provide a
 implementation that honors that contract, including
 `declareHostOperation(operation, policy, { awaitResult: true })`: finish the
 host operation and copy its result or throw its error at the guest call site,
-without exposing a guest Promise. There are no runtime environment switches.
+without exposing a guest Promise. Virtual CommonJS modules use the interpreter's
+guest `eval` capability inside a wrapper. It never uses native eval. SafeJS syntax and value limits still apply.
+There are no runtime environment switches.
 
 | `limits` option | Default |
 | --- | --- |

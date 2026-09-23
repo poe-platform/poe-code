@@ -16,6 +16,8 @@ export interface SafeJsCommandDialect {
   readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>, lifecycle: {
     readonly signal: AbortSignal;
     readonly fail: (error: unknown) => void;
+    readonly sourceBytes: number;
+    readonly readSource: (filename: string, maxBytes?: number) => Promise<string>;
   }) => {
     readonly source: string;
     readonly importSpecifiers?: readonly string[];
@@ -101,6 +103,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         const reader = new GuestInput(bytes, limits.maxSourceBytes, signal, fail, "maxSourceBytes");
         try { source = await reader.readText(); } finally { await reader.close(); }
       } else if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
+      const sourceBytes = Buffer.byteLength(source);
       if (source.startsWith("\uFEFF")) source = source.slice(1);
       if (parsed.check) {
         const parse = runtime.parseSourceModule;
@@ -138,7 +141,17 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
           maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
         const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
-        const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail });
+        const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail, sourceBytes,
+          async readSource(path, maxBytes = limits.maxSourceBytes) {
+            const capabilities = await withSignal(signal, async () =>
+              await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities);
+            const reader = new GuestInput(context.fs.readStream && capabilities?.streamingRead !== false
+              ? context.fs.readStream(path, { signal, chunkSize: 65536 })
+              : toByteSource(await withSignal(signal, () => context.fs.readFile(path, { signal, maxBytes }))),
+              maxBytes, signal, fail, "maxSourceBytes");
+            try { return await reader.readText(); } finally { await reader.close(); }
+          },
+        });
         const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
           budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
             ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),

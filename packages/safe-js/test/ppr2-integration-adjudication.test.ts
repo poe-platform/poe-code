@@ -75,8 +75,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
             throw Error("No pending boundary");
           })
         ]);
-        await new Promise<void>((resolve) => setImmediate(resolve));
-        expect(host.calls).toEqual(scenario.callsAtBoundary);
+        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         captures.push(await dump(execution, { mode: "replay" }));
         const signals = new EventEmitter();

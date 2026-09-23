@@ -1,0 +1,130 @@
+name: Provision Linux ssconvert reference
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 55
+    container:
+      image: debian@sha256:1808211ab6f37c6fc6a75368651697536f7bf47993f2797befa8908b1254979d
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install isolated native build tooling
+        run: |
+          mkdir -p /out
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update > /out/ssconvert-bootstrap.log 2>&1
+          apt-get install -y --no-install-recommends \
+            build-essential ca-certificates curl git pkg-config intltool gettext \
+            libgtk-3-dev libgsf-1-dev libxml2-dev libglib2.0-dev libbz2-dev zlib1g-dev \
+            libglpk-dev liblpsolve55-dev glpk-utils lp-solve \
+            fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-yaml file \
+            >> /out/ssconvert-bootstrap.log 2>&1
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Build authenticated GOffice and Gnumeric sources
+        run: |
+          mkdir -p out/ssconvert-linux
+          mv /out/ssconvert-bootstrap.log out/ssconvert-linux/bootstrap.log
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess, tarfile, urllib.request
+          root = pathlib.Path('out/ssconvert-linux').resolve()
+          reference = json.loads(pathlib.Path('docs/ssconvert/reference-profile.json').read_text())
+          profile = json.loads(pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json').read_text())['profiles'][0]
+          assert profile['id'] == 'gnumeric-1.12.61-optional-none'
+          env = dict(os.environ, **reference['build']['configureEnvironment'])
+          for name, source, arguments in [
+              ('goffice', reference['supplementarySource'], reference['build']['gofficeConfigure'][1:]),
+              ('gnumeric', reference['source'], profile['configureArguments'])
+          ]:
+              archive = root / (name + '.tar.xz')
+              urllib.request.urlretrieve(source['url'], archive)
+              assert hashlib.sha256(archive.read_bytes()).hexdigest() == source['sha256']
+              with tarfile.open(archive) as tar:
+                  tar.extractall(root, filter='data')
+              cwd = root / (name + '-' + source['version'])
+              for stage, command in [('configure', ['./configure', *arguments]), ('make', ['make', '-j2']), ('install', ['make', 'install'])]:
+                  with (root / (name + '-' + stage + '.log')).open('wb') as log:
+                      subprocess.run(command, cwd=cwd, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+              shutil.rmtree(cwd)
+          PY
+      - name: Collect native identity and isolated base-profile captures
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, shutil, subprocess, yaml
+          root = pathlib.Path('out/ssconvert-linux')
+          profile_path = pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json')
+          reference_path = pathlib.Path('docs/ssconvert/reference-profile.json')
+          profile = json.loads(profile_path.read_text())['profiles'][0]
+          env = dict(os.environ, **profile['env'])
+          for key in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
+              pathlib.Path(env[key]).mkdir(parents=True, exist_ok=True)
+          binary = pathlib.Path('/opt/ssconvert-reference/bin/ssconvert')
+          metadata = []
+          def capture(label, command):
+              result = subprocess.run(command, env=env, capture_output=True, timeout=120)
+              (root / (label + '.stdout')).write_bytes(result.stdout)
+              (root / (label + '.stderr')).write_bytes(result.stderr)
+              metadata.append(dict(label=label, argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex()))
+              if result.returncode != 0:
+                  raise RuntimeError('Native capture failed: ' + label)
+          for label, command in [
+              ('uname', ['uname', '-a']), ('system', ['cat', '/etc/os-release']),
+              ('compiler', ['gcc', '--version']),
+              ('packages', ['dpkg-query', '-W', '-f=${Package}\t${Version}\n']),
+              ('libraries', ['ldd', str(binary)]),
+              ('versions', ['pkg-config', '--modversion', 'libgoffice-0.10', 'glib-2.0', 'gtk+-3.0', 'libgsf-1', 'pango', 'cairo']),
+              ('native-version', [str(binary), '--version']),
+              ('importers', [str(binary), '--list-importers']),
+              ('exporters', [str(binary), '--list-exporters'])
+          ]:
+              capture(label, command)
+          libraries = []
+          for word in (root / 'libraries.stdout').read_text().split():
+              if word.startswith('/'):
+                  path = pathlib.Path(word).resolve()
+                  if path.is_file():
+                      libraries.append(dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+          font_paths = subprocess.check_output(['fc-list', '--format', '%{file}\n'], env=env, text=True)
+          fonts = []
+          (root / 'fonts').mkdir()
+          for name in sorted(set(font_paths.splitlines())):
+              path = pathlib.Path(name)
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              shutil.copyfile(path, root / 'fonts' / (digest + path.suffix))
+              fonts.append(dict(path=name, bytes=path.stat().st_size, sha256=digest))
+          source = json.loads(pathlib.Path('docs/ssconvert/byte-search-wildcard-native-results.json').read_text())
+          input_path = root / 'search-wildcards.gnumeric'
+          input_path.write_bytes(bytes.fromhex(source['inputHex']))
+          capture('search-wildcards', [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(input_path), 'fd://1'])
+          workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
+          identity = dict(
+              status='native-base-collected-product-parity-unqualified',
+              sourceRevision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
+              profileId=profile['id'], environment=profile['env'],
+              referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
+              optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
+              binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+              inputSha256=hashlib.sha256(input_path.read_bytes()).hexdigest(),
+              linkedLibraries=libraries, fonts=fonts, captures=metadata)
+          (root / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')
+          PY
+      - name: Retain native oracle and credential-free receipts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ssconvert-linux-${{ github.sha }}-${{ github.run_id }}
+          path: |
+            out/ssconvert-linux
+            /out/ssconvert-bootstrap.log
+            /opt/ssconvert-reference
+          if-no-files-found: error
+          retention-days: 7

@@ -915,14 +915,23 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           relative.set(key, directory);
         } else args.push(argument);
       }
-      const parsed = options(args, "emsz", { "canonicalize-existing": "e", "canonicalize-missing": "m", strip: "s", "no-symlinks": "s", zero: "z" });
+      let mode = "E";
+      let traversal = "P";
+      const parsed = options(args, "EemszLPq", {
+        canonicalize: "E", "canonicalize-existing": "e", "canonicalize-missing": "m",
+        logical: "L", physical: "P", quiet: "q", strip: "s", "no-symlinks": "s", zero: "z",
+      }, false, undefined, undefined, key => {
+        if (key === "E" || key === "e" || key === "m") mode = key;
+        if (key === "L" || key === "P") traversal = key;
+      });
       requireOperands(parsed.operands);
       const canonical = async (operand: string): Promise<string> => {
-        const path = pathOf(context, operand);
+        const original = pathOf(context, operand);
+        const path = traversal === "L" ? normalizePath(original) : original;
         if (parsed.flags.has("s")) {
           context.signal.throwIfAborted();
           const lexical = normalizePath(path);
-          if (!parsed.flags.has("m")) {
+          if (mode !== "m") {
             let prefix = "/";
             const components = path.split("/");
             for (let index = 1; index < components.length; index++) {
@@ -933,26 +942,35 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
                 if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
               }
               prefix = normalizePath(component, prefix);
-              if (parsed.flags.has("e") || index < components.length - 1) {
-                const stat = parsed.flags.has("e") ? await context.fs.stat(prefix, { signal: context.signal }) : await maybeStat(context, prefix);
+              if (mode === "e" || index < components.length - 1) {
+                const stat = mode === "e" ? await context.fs.stat(prefix, { signal: context.signal }) : await maybeStat(context, prefix);
                 if (index < components.length - 1 && stat !== undefined && stat.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
               }
             }
-            if (parsed.flags.has("e")) await context.fs.stat(lexical, { signal: context.signal });
+            if (mode === "e") await context.fs.stat(lexical, { signal: context.signal });
           }
           return lexical;
         }
         await admitFilesystemModes(context, "realpath", ["canonical"], [path]);
         const existing = await maybeStat(context, path, false);
-        return parsed.flags.has("m") ? await canonicalMissing(context, path, "realpath")
-          : parsed.flags.has("e") || existing ? await context.fs.realpath(path, { signal: context.signal })
+        return mode === "m" ? await canonicalMissing(context, path, "realpath")
+          : mode === "e" || existing ? await context.fs.realpath(path, { signal: context.signal })
           : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));
       };
       const baseOperand = relative.get("--relative-base");
       const toOperand = relative.get("--relative-to") ?? baseOperand;
-      const base = baseOperand === undefined ? undefined : await canonical(baseOperand);
-      const to = toOperand === undefined ? undefined : await canonical(toOperand);
-      return eachOperand(context, parsed.operands, async operand => {
+      let base: string | undefined;
+      let to: string | undefined;
+      try {
+        base = baseOperand === undefined ? undefined : await canonical(baseOperand);
+        to = toOperand === undefined ? undefined : await canonical(toOperand);
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (!parsed.flags.has("q")) await diagnostic(context, error);
+        return { exitCode: 1 };
+      }
+      const operandContext = parsed.flags.has("q") ? { ...context, stderr: { async write() {} } } : context;
+      return eachOperand(operandContext, parsed.operands, async operand => {
         const resolved = await canonical(operand);
         const display = to !== undefined && (base === undefined || isPathWithin(base, to) && isPathWithin(base, resolved))
           ? relativePath(to, resolved) || "." : resolved;

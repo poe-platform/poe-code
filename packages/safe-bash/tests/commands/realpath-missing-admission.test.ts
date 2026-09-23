@@ -5,6 +5,8 @@ import { withFileSystemQuota } from "@poe-code/safe-fs";
 import { FsError, toByteSource, type FileSystem } from "../../src/contracts/index.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 
 function observe(fs: FileSystem, refuse = false) {
   const calls: { method: string; path: string }[] = [];
@@ -44,6 +46,41 @@ test("realpath -m admits the owned resolver without redundant missing-prefix cal
   assert.deepEqual(observed.calls, [
     { method: "lstat", path }, { method: "canonicalizeMissingTarget", path },
   ]);
+});
+
+for (const alias of ["-E", "--canonicalize", "-L", "--logical", "-P", "--physical", "-q", "--quiet"]) {
+  test(`realpath accepts ${alias} for an existing file through Shell`, async context => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/Changed folder");
+    await fs.writeFile("/Changed folder/Changed item.dat", new TextEncoder().encode("Changed12\r\n"));
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`realpath ${alias} --relative-to="/Changed folder" -- "/Changed folder/Changed item.dat"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "Changed item.dat\n");
+    assert.equal(result.stderr, "");
+  });
+}
+
+test("realpath uses the last canonicalization and traversal modes", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/target/deep", { recursive: true });
+  await fs.writeFile("/target/deep/file", new TextEncoder().encode("content"));
+  await fs.symlink("/target/deep", "/link");
+  assert.equal((await execute(fs, ["-L", "/link/../deep/file"])).exitCode, 1);
+  assert.deepEqual(await execute(fs, ["-L", "-P", "/link/../deep/file"]), { exitCode: 0, stdout: "/target/deep/file\n", stderr: "" });
+  assert.equal((await execute(fs, ["-e", "-E", "/absent"])).exitCode, 0);
+  assert.equal((await execute(fs, ["-E", "-e", "/absent"])).exitCode, 1);
+  assert.equal((await execute(fs, ["-e", "-m", "/absent/deep"])).exitCode, 0);
+  assert.equal((await execute(fs, ["-m", "-e", "/absent/deep"])).exitCode, 1);
+});
+
+test("realpath quiet suppresses operand diagnostics while continuing successful operands", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode("content"));
+  for (const quiet of ["-q", "--quiet"]) {
+    assert.deepEqual(await execute(fs, [quiet, "-e", "/absent", "/file"]), { exitCode: 1, stdout: "/file\n", stderr: "" });
+  }
 });
 
 for (const option of ["--relative-to", "--relative-base"]) {

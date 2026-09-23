@@ -23,7 +23,7 @@ export function createNumberFormatConstructor(budget: Budget): SandboxClosure {
       const release = retainValues(budget, () => [context?.thisValue, value]);
       try {
         value = await numberFormatValue(input, budget, context);
-        return allocateProducedSandboxValue(formatNumberValue(context?.thisValue, "format", [value]), budget);
+        return allocateProducedSandboxValue(formatNumberValue(context?.thisValue, "format", [value], budget), budget);
       } finally { release(); }
     }
   });
@@ -99,7 +99,7 @@ export function createNumberFormatConstructor(budget: Budget): SandboxClosure {
         try {
           values.push(await numberFormatValue(first, budget, context));
           if (range) values.push(await numberFormatValue(second, budget, context));
-          return allocateProducedSandboxValue(formatNumberValue(context?.thisValue, method, values), budget);
+          return allocateProducedSandboxValue(formatNumberValue(context?.thisValue, method, values, budget), budget);
         } finally { release(); }
       }
     }), writable: true, configurable: true });

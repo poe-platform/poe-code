@@ -45,6 +45,22 @@ it("normalizes empty scalar arguments to zero before loader conversion, preservi
 it("keeps unqualified native pointer representations explicit", () => {
   expect(() => calculate('=PY_PRINTF("%r",A2:B3)')).toThrow("Python RangeRef object representation");
 });
+it.each(["s", "r", "a"].flatMap(conversion => [0, 1, 9, 20, 22].map(precision => ({
+  format: `%${precision === 1 ? "25" : ""}.${precision}${conversion}`,
+  expected: "<RangeRef object at 0x".slice(0, precision).padStart(precision === 1 ? 25 : 0, " ")
+}))))("formats stable native RangeRef prefix $format", ({ format, expected }) => {
+  expect(calculate(`=PY_PRINTF("${format}",A2:B3)`)).toEqual({ kind: "string", value: expected });
+});
+it.each([
+  ["%-25.22s", "<RangeRef object at 0x   "],
+  ["%025.22r", "   <RangeRef object at 0x"],
+  ["%+25.0a", "                         "]
+])("pads precision-bounded RangeRef format %s", (format, expected) => {
+  expect(calculate(`=PY_PRINTF("${format}",A2:B3)`)).toEqual({ kind: "string", value: expected });
+});
+it.each(["%.23s", "%.23r", "%.23a", "%s"])("refuses RangeRef pointer bytes for %s", format => {
+  expect(() => calculate(`=PY_PRINTF("${format}",A2:B3)`)).toThrow("Python RangeRef object representation");
+});
 it("charges formatting work and stops when a loader diagnostic cancels the invocation", () => {
   expect(() => calculate('=PY_PRINTF("%.120f",1)', { limits: { ...context.limits, workbookWork: 50 } }))
     .toThrow("work limit exceeded");

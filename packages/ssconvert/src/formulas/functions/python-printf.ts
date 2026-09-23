@@ -27,13 +27,19 @@ function floatText(value: number): string {
   const text = String(value);
   return text.includes(".") ? text : text + ".0";
 }
-function pythonText(value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost): string {
+function pythonText(value: PythonValue, repr: boolean, ascii: boolean, host: FunctionHost, precision?: number): string {
   host.tick();
   if (value === null) return "None";
   if (typeof value === "number") return floatText(value);
   if (typeof value === "boolean") return value ? "True" : "False";
   if (typeof value === "object") {
-    if ("range" in value) throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation");
+    if ("range" in value) {
+      // The native default repr includes an address. Precision can exclude
+      // every address digit while retaining a portable, source-defined prefix.
+      const prefix = "<RangeRef object at 0x";
+      if (precision !== undefined && precision <= prefix.length) return prefix.slice(0, precision);
+      throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation");
+    }
     return "[" + value.columns.map(column => "[" + column.map(cell => pythonText(cell, true, ascii, host)).join(", ") + "]").join(", ") + "]";
   }
   if (!repr) return value;
@@ -177,7 +183,7 @@ export function pythonPrintf(args: readonly (Value | undefined)[], host: Functio
       const value = take();
       let text: string, sign = "", prefix = "", numeric = false;
       if ("sra".includes(conversion)) {
-        text = pythonText(value, conversion !== "s", conversion === "a", host);
+        text = pythonText(value, conversion !== "s", conversion === "a", host, precision);
         if (precision !== undefined) {
           let count = 0, truncated = "";
           for (const char of text) { host.tick(); if (count++ >= precision) break; truncated += char; }

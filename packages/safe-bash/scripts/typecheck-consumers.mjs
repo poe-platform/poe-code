@@ -4,7 +4,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, re
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import ts from "typescript";
-import { rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
+import { packageSafeLibraries, rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { resolvePeerProfile } from "../tests/plugins/qualified-current-release/peer.mjs";
@@ -54,6 +54,75 @@ function declaredTypePath(specifier, binding) {
       return nodeTypeTarget(entry.types)?.replace("*", key.slice(parts[0].length, key.length - parts[1].length));
     }
   }
+}
+
+export function publicDeclarationEntries(binding) {
+  const entries = new Map();
+  for (const [route, entry] of Object.entries(binding.exports)) {
+    const target = nodeTypeTarget(entry.types);
+    assert.ok(typeof target === "string" && target.startsWith("./dist/"), `public export requires a built declaration: ${route}`);
+    const routeParts = route.split("*"), targetParts = target.slice(2).split("*");
+    assert.ok(routeParts.length <= 2 && targetParts.length === routeParts.length, `public export wildcard must match its declaration target: ${route}`);
+    if (routeParts.length === 1) {
+      assert.ok(binding.declarations.has(target.slice(2)), `public export is outside the authenticated declarations: ${route}`);
+      entries.set(route, target.slice(2));
+      continue;
+    }
+    const matches = [...binding.declarations.keys()].filter(path => path.startsWith(targetParts[0]) && path.endsWith(targetParts[1]));
+    assert.ok(matches.length > 0, `public wildcard has no authenticated declarations: ${route}`);
+    for (const path of matches) {
+      const selector = routeParts[0] + path.slice(targetParts[0].length, path.length - targetParts[1].length) + routeParts[1];
+      if (!Object.hasOwn(binding.exports, selector)) entries.set(selector, path);
+    }
+  }
+  return entries;
+}
+
+export async function stageStandaloneConsumerPackage(root, temporary) {
+  const input = createBuiltPackageBinding(root);
+  const source = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+  const artifacts = join(temporary, "standalone-artifacts");
+  await packageSafeLibraries({ rootDir: resolve(root, "../.."), outDir: artifacts, version: source.version });
+  const candidate = join(artifacts, "safe-bash"), filesystemRoot = join(artifacts, "safe-fs");
+  const binding = createBuiltPackageBinding(candidate, { includePeer: false });
+  const filesystem = createBuiltPackageBinding(filesystemRoot, { includePeer: false });
+  const candidateManifest = JSON.parse(readFileSync(join(candidate, "package.json"), "utf8"));
+  const filesystemManifest = JSON.parse(readFileSync(join(filesystemRoot, "package.json"), "utf8"));
+  assert.equal(candidateManifest.dependencies[filesystem.name], filesystemManifest.version, "standalone filesystem dependency must match its artifact");
+  binding.publicAliases = ["virtual-bash"];
+  binding.filesystem = { ...filesystem, directory: filesystemRoot, version: filesystemManifest.version,
+    publicAliases: ["poe-code/safe-fs", "@poe-code/safe-fs"], publicEntries: new Map(), privateEntries: new Map() };
+  const paths = {};
+  for (const [route, target] of publicDeclarationEntries(binding)) {
+    for (const name of [binding.name, ...binding.publicAliases]) paths[name + (route === "." ? "" : route.slice(1))] = [resolve(candidate, target)];
+  }
+  for (const [route, target] of publicDeclarationEntries(filesystem)) {
+    for (const name of [filesystem.name, ...binding.filesystem.publicAliases]) {
+      const specifier = name + (route === "." ? "" : route.slice(1));
+      binding.filesystem.publicEntries.set(specifier, target);
+      paths[specifier] = [resolve(filesystemRoot, target)];
+    }
+  }
+  for (const [specifier, entry] of Object.entries(filesystemManifest.imports ?? {})) {
+    const target = nodeTypeTarget(entry.types);
+    assert.equal(typeof target, "string", `filesystem private type mapping is missing: ${specifier}`);
+    assert.ok(filesystem.declarations.has(target.slice(2)), `filesystem private mapping is outside the authenticated declarations: ${specifier}`);
+    binding.filesystem.privateEntries.set(specifier, target.slice(2));
+  }
+  for (const name of Object.keys(source.poeCode.integration.privateWorkspaces)) {
+    const metadata = JSON.parse(readFileSync(resolve(root, "..", name, "package.json"), "utf8"));
+    for (const [route, entry] of Object.entries(metadata.exports ?? {})) {
+      const target = nodeTypeTarget(entry.types);
+      if (!target?.startsWith("./dist/")) continue;
+      const declaration = join("dist", name, target.slice("./dist/".length));
+      if (!route.includes("*")) assert.ok(binding.declarations.has(declaration), `source helper type owner is outside the artifact: ${name}${route}`);
+      paths[name + (route === "." ? "" : route.slice(1))] = [join(candidate, declaration)];
+    }
+  }
+  const current = createBuiltPackageBinding(root);
+  assert.equal(current.metadataSha256, input.metadataSha256, "workspace metadata changed during artifact qualification");
+  assert.deepEqual(current.declarations, input.declarations, "workspace declarations changed during artifact qualification");
+  return { candidate, binding, paths, input, qualification: "Maintained standalone packaging route; authenticated candidate and canonical filesystem declarations, not raw private-workspace isolation or runtime acceptance." };
 }
 
 export function createPeerBinding(root, manifest, declarations = new Map(), publicImports = []) {
@@ -124,7 +193,7 @@ function installedPeer(packageRoot, binding) {
 }
 
 function assertPeerResolution(specifier, target, importer, peerRoot, binding, candidateRoot) {
-  const publicImport = specifier === binding.name || specifier.startsWith(`${binding.name}/`);
+  const publicImport = [binding.name, ...binding.publicAliases ?? []].some(name => specifier === name || specifier.startsWith(`${name}/`));
   const fromPeer = importer && existsSync(importer) && binding.declarations.has(relative(peerRoot, realpathSync(importer)));
   const privateImport = specifier.startsWith("#");
   // A checkout-root peer contains the candidate and ambient dependencies too.
@@ -151,13 +220,14 @@ function assertPeerResolution(specifier, target, importer, peerRoot, binding, ca
   }
 }
 
-function assertCandidateResolutions(stdout, installed, binding) {
+function assertCandidateResolutions(stdout, installed, binding, filesystemRoot) {
   const packageRoot = realpathSync(installed), dist = join(packageRoot, "dist");
   const actual = createBuiltPackageBinding(packageRoot, { includePeer: false });
   assert.equal(actual.metadataSha256, binding.metadataSha256, "candidate package metadata changed");
   assert.deepEqual(actual.declarations, binding.declarations, "candidate declaration bytes or file set changed");
-  const peerRoot = binding.peer && installedPeer(packageRoot, binding.peer);
-  if (peerRoot) assert.equal(sha256(readFileSync(join(peerRoot, "package.json"))), binding.peer.metadataSha256, "peer metadata changed");
+  const dependency = binding.filesystem ?? binding.peer;
+  const peerRoot = dependency && (filesystemRoot ?? installedPeer(packageRoot, dependency));
+  if (peerRoot) assert.equal(sha256(readFileSync(join(peerRoot, "package.json"))), dependency.metadataSha256, "peer metadata changed");
   let importer, checked = 0;
   for (const line of stdout.split("\n")) {
     const start = /^======== Resolving module '.*' from '(.*)'\. ========$/u.exec(line);
@@ -166,8 +236,9 @@ function assertCandidateResolutions(stdout, installed, binding) {
     if (!match) continue;
     const [, specifier, target] = match;
     const physicalTarget = realpathSync(target);
-    if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, binding.peer, packageRoot);
-    const publicImport = (specifier === "@poe-platform/safe-bash" || specifier.startsWith("@poe-platform/safe-bash/"));
+    if (peerRoot) assertPeerResolution(specifier, physicalTarget, importer, peerRoot, dependency, packageRoot);
+    const publicName = [binding.name, ...binding.publicAliases ?? []].find(name => specifier === name || specifier.startsWith(`${name}/`));
+    const publicImport = publicName !== undefined;
     const localLeaf = (specifier.startsWith("node_modules/@poe-platform/safe-bash/") || specifier.includes("/node_modules/@poe-platform/safe-bash/"));
     const relativeDeclaration = /^\.\.?\//u.test(specifier) && importer && existsSync(importer) && within(dist, realpathSync(importer));
     if (!publicImport && !localLeaf && !relativeDeclaration && !within(dist, physicalTarget)) continue;
@@ -176,7 +247,7 @@ function assertCandidateResolutions(stdout, installed, binding) {
     assert.ok(expected, `resolution is not an authenticated candidate declaration: ${specifier} -> ${target}`);
     assert.equal(sha256(readFileSync(physicalTarget)), expected, `candidate declaration bytes changed: ${target}`);
     if (publicImport) {
-      const declared = declaredTypePath(specifier, binding);
+      const declared = declaredTypePath(binding.name + specifier.slice(publicName.length), binding);
       assert.equal(typeof declared, "string", `public subpath has no candidate types export: ${specifier}`);
       assert.equal(physicalTarget, resolve(packageRoot, declared), `public subpath resolved to the wrong candidate export: ${specifier}`);
     }
@@ -189,19 +260,19 @@ export function assertBuiltConsumerResolution(stdout, consumer, root, binding = 
   assertCandidateResolutions(stdout, join(consumer, "node_modules/@poe-platform/safe-bash"), binding);
 }
 
-export function checkSourceConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
+export function checkSourceConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root), { candidate = root, paths } = {}) {
   const groups = currentSourceConsumerGroups.map(group => {
     const result = { name: group.name, files: group.files, qualification: group.qualification, status: "pending", runtime: "not executed: typecheck-only route" };
     try {
       const filename = join(temporary, `${group.name}.json`);
       writeFileSync(filename, JSON.stringify({
         extends: join(root, "tsconfig.json"),
-        compilerOptions: { noEmit: true, skipLibCheck: false, typeRoots: [typeRoots] },
+        compilerOptions: { noEmit: true, skipLibCheck: false, typeRoots: [typeRoots], ...(paths ? { paths } : {}) },
         files: group.files.map(path => join(root, path)), include: [], exclude: [],
       }));
       const checked = compile(`source-consumer-${group.name}`, ["-p", filename, "--traceResolution"]);
       assert.equal(checked.status, 0, `strict current source consumer failed: ${group.name}`);
-      assertCandidateResolutions(checked.stdout, root, binding);
+      assertCandidateResolutions(checked.stdout, candidate, binding, binding.filesystem?.directory);
       result.status = "pass";
     } catch (error) { result.status = "fail"; result.error = error.message; }
     return result;
@@ -209,25 +280,38 @@ export function checkSourceConsumerTypes(root, temporary, compile, binding = cre
   return { groups, passed: groups.every(group => group.status === "pass"), qualification: "Exact current .ts public consumers; explicit source fixture helpers are retained. Not isolated packed runtime or provider acceptance." };
 }
 
-export function checkCurrentConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
+export function checkCurrentConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root), { candidate = root } = {}) {
   validateRuntimeCoverage(consumerGroups);
   const publicSpecifier = specifier => {
+    const filesystem = binding.filesystem;
+    if (filesystem) {
+      const name = filesystem.publicAliases.find(name => specifier === name || specifier.startsWith(`${name}/`));
+      if (name) return filesystem.name + specifier.slice(name.length);
+    }
     for (const prefix of ["", "./node_modules/"]) {
       const legacy = prefix + "virtual-bash";
-      if (specifier === legacy || specifier.startsWith(legacy + "/")) return prefix + binding.name + specifier.slice(legacy.length);
+      if (specifier === legacy || specifier.startsWith(legacy + "/")) {
+        const suffix = specifier.slice(legacy.length);
+        if (suffix.startsWith("/dist/") && candidate !== root) {
+          const owner = dirname(declaredTypePath(binding.name, binding));
+          return prefix + binding.name + "/" + owner + suffix.slice("/dist".length);
+        }
+        return prefix + binding.name + suffix;
+      }
     }
     return specifier;
   };
   const consumer = join(temporary, "consumer"), installed = join(consumer, "node_modules/@poe-platform/safe-bash");
   mkdirSync(installed, { recursive: true });
-  cpSync(join(root, "package.json"), join(installed, "package.json"));
-  cpSync(join(root, "dist"), join(installed, "dist"), { recursive: true });
-  if (binding.peer) {
-    const peer = join(consumer, "node_modules", binding.peer.name);
+  cpSync(join(candidate, "package.json"), join(installed, "package.json"));
+  cpSync(join(candidate, "dist"), join(installed, "dist"), { recursive: true });
+  const dependency = binding.filesystem ?? binding.peer;
+  if (dependency) {
+    const peer = join(consumer, "node_modules", dependency.name);
     mkdirSync(peer, { recursive: true });
-    cpSync(join(binding.peer.directory, "package.json"), join(peer, "package.json"));
-    for (const [path, expected] of binding.peer.declarations) {
-      const source = join(binding.peer.directory, path);
+    cpSync(join(dependency.directory, "package.json"), join(peer, "package.json"));
+    for (const [path, expected] of dependency.declarations) {
+      const source = join(dependency.directory, path);
       assert.equal(sha256(readFileSync(source)), expected, `peer changed before admission: ${path}`);
       mkdirSync(resolve(peer, path, ".."), { recursive: true });
       cpSync(source, join(peer, path));

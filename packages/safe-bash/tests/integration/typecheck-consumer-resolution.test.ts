@@ -7,23 +7,50 @@ import test, { type TestContext } from "node:test";
 import { createFsFromVolume, Volume } from "memfs";
 
 interface Binding {
+  exports: Record<string, { types: string }>;
+  declarations: Map<string, string>;
+  publicAliases?: string[];
   peer?: {
     name: string;
     metadataSha256: string;
     declarations: Map<string, string>;
     publicEntries: Map<string, string>;
     privateEntries: Map<string, string>;
+    publicAliases?: string[];
   };
 }
-const { createBuiltPackageBinding, assertBuiltConsumerResolution } = await import(
+const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarationEntries } = await import(
   new URL("../../scripts/typecheck-consumers.mjs", import.meta.url).href
 ) as {
   createBuiltPackageBinding(root: string, options: { includePeer: boolean }): Binding;
   assertBuiltConsumerResolution(trace: string, consumer: string, root: string, binding: Binding): void;
+  publicDeclarationEntries(binding: { exports: Record<string, { types: string }>; declarations: Map<string, string> }): Map<string, string>;
 };
 const hash = (bytes: string | Buffer): string => createHash("sha256").update(bytes).digest("hex");
 const resolution = (specifier: string, target: string, importer: string): string =>
   `======== Resolving module '${specifier}' from '${importer}'. ========\n======== Module name '${specifier}' was successfully resolved to '${target}'. ========\n`;
+
+test("public wildcard selectors expand only authenticated artifact declarations and honor explicit exports", t => {
+  const exports = { "./contracts/*": { types: "./dist/contracts/*.d.ts" }, "./contracts/private": { types: "./dist/other.d.ts" } };
+  const memory = createFsFromVolume(Volume.fromJSON({
+    "/artifact/package.json": JSON.stringify({ name: "artifact", exports }),
+    "/artifact/dist/contracts/path.d.ts": "export {};", "/artifact/dist/contracts/private.d.ts": "export {};",
+    "/artifact/dist/contracts/nested/value.d.ts": "export {};", "/artifact/dist/other.d.ts": "export {};",
+    "/artifact/src/secret.ts": "export {};",
+  }));
+  for (const name of ["existsSync", "lstatSync", "readFileSync", "readdirSync", "realpathSync"] as const) t.mock.method(fs, name, memory[name]);
+  syncBuiltinESMExports();
+  t.after(() => { t.mock.restoreAll(); syncBuiltinESMExports(); });
+  const binding = createBuiltPackageBinding("/artifact", { includePeer: false });
+  const declarations = binding.declarations;
+  assert.deepEqual(publicDeclarationEntries(binding), new Map([
+    ["./contracts/path", "dist/contracts/path.d.ts"], ["./contracts/nested/value", "dist/contracts/nested/value.d.ts"],
+    ["./contracts/private", "dist/other.d.ts"],
+  ]));
+  assert.throws(() => publicDeclarationEntries({ exports: { "./empty/*": { types: "./dist/missing/*.d.ts" } }, declarations }), /authenticated declarations/);
+  assert.throws(() => publicDeclarationEntries({ exports: { ".": { types: "../src/index.ts" } }, declarations }), /built declaration/);
+  assert.throws(() => publicDeclarationEntries({ exports: { "./wrong/*": { types: "./dist/other.d.ts" } }, declarations }), /wildcard/);
+});
 
 function fixture(t: TestContext, overlapping = true) {
   const consumer = overlapping ? "/checkout" : "/consumer";
@@ -126,6 +153,24 @@ test("candidate public and relative resolutions retain export and dist checks", 
   assert.throws(() => f.check(resolution("@poe-platform/safe-bash", join(f.candidate, "dist/other.d.ts"), f.importer)), /wrong candidate export/);
   assert.throws(() => f.check(resolution("@poe-platform/safe-bash", join(f.candidate, "src/helper.ts"), f.importer)), /foreign candidate/);
   assert.throws(() => f.check(resolution("../src/helper.js", join(f.candidate, "src/helper.ts"), join(f.candidate, "dist/index.d.ts"))), /foreign candidate/);
+});
+
+test("legacy candidate aliases require the same authenticated public export", t => {
+  const f = fixture(t, false);
+  f.binding.publicAliases = ["virtual-bash"];
+  f.check(resolution("virtual-bash", join(f.candidate, "dist/index.d.ts"), f.importer));
+  assert.throws(() => f.check(f.publicTrace + resolution("virtual-bash", "/foreign/index.d.ts", f.importer)), /foreign candidate/);
+  assert.throws(() => f.check(f.publicTrace + resolution("virtual-bash", join(f.candidate, "dist/other.d.ts"), f.importer)), /wrong candidate export/);
+});
+
+test("legacy filesystem aliases cannot borrow foreign or private declarations", t => {
+  const f = fixture(t, false);
+  f.binding.peer!.publicAliases = ["@poe-code/safe-fs"];
+  const target = join(f.peer, "packages/safe-fs/dist/index.d.ts");
+  f.binding.peer!.publicEntries.set("@poe-code/safe-fs/core", "packages/safe-fs/dist/index.d.ts");
+  f.check(f.publicTrace + resolution("@poe-code/safe-fs/core", target, f.importer));
+  assert.throws(() => f.check(f.publicTrace + resolution("@poe-code/safe-fs/core", "/foreign/index.d.ts", f.importer)), /foreign peer/);
+  assert.throws(() => f.check(f.publicTrace + resolution("@poe-code/safe-fs/private", target, f.importer)), /unadmitted peer public/);
 });
 
 test("changed peer declaration bytes rejected", t => {

@@ -25,6 +25,7 @@ import {
 } from "./browser-run-code-native.js";
 import { createRunCodeRelay } from "./browser-run-code-relay.js";
 import { parseRunCodeState } from "./browser-run-code-state.js";
+import { parseRunCodeJson } from "./browser-run-code-json.js";
 
 const activeOwners = new Set<string>();
 const MAX_SOURCE_BYTES = 1024 * 1024;
@@ -303,7 +304,7 @@ async function runGuest(
 			new TextEncoder().encode(json).byteLength > input.maxOutputBytes
 		)
 			throw new PlaywrightResourceLimitError("Run-code output limit exceeded");
-		return JSON.parse(json) as unknown;
+		return parseRunCodeJson(json, signal);
 	} finally {
 		signal.removeEventListener("abort", dispose);
 		dispose();

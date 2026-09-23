@@ -1,4 +1,4 @@
-import type { FileSystem } from "../contracts/index.js";
+import type { FileSystem, FsOptions } from "../contracts/index.js";
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
@@ -8,10 +8,13 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       if (typeof method !== "function") return method;
       const creation = ["writeFile", "appendFile", "writeStream", "mkdir", "open"].includes(String(key));
       if (!creation) return method.bind(target);
-      return (...args: unknown[]) => {
+      return async (...args: unknown[]) => {
         const index = key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-        const options = (args[index] ?? {}) as { mode?: number };
-        args[index] = { ...options, mode: options.mode ?? ((key === "mkdir" ? 0o777 : 0o666) & ~mask) };
+        const options = (args[index] ?? {}) as FsOptions & { mode?: number };
+        const capabilities = await (target.capabilitiesFor?.(args[0] as string, options) ?? target.capabilities);
+        if (capabilities.permissions !== false || options.mode !== undefined) {
+          args[index] = { ...options, mode: options.mode ?? ((key === "mkdir" ? 0o777 : 0o666) & ~mask) };
+        }
         return Reflect.apply(method, target, args);
       };
     },

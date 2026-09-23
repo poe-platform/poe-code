@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, agentCommands, createMemoryFileSystem, parseShell, ShellSyntaxError, type FileSystem } from "../../src/index.js";
-import { MockS3Client, S3FileSystem } from "poe-code/safe-fs";
+import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 import { hereDocumentWords } from "../../src/shell/parser.js";
 
 const scenarios = [
@@ -46,10 +46,6 @@ for (const source of [
   'value=`printf "%s" "${array[0]!}"`',
   'value=`printf "%s" "${1!}"`',
   'value=`printf "%s" "${@!}"`',
-  'value=`printf "%s" "${value^}"`',
-  'value=`printf "%s" "${value^^}"`',
-  'value=`printf "%s" "${value,}"`',
-  'value=`printf "%s" "${value,,}"`',
   'value=`printf "%s" "${value@Q:-x}"`',
   'value=`cat <(printf "%s" "${value!}")`',
   'cat <(printf "%s" "${value!}")',
@@ -60,6 +56,18 @@ for (const source of [
 ]) test(`parameter failure exclusions stay parse errors: ${source}`, () => {
   assert.throws(() => parseShell(source), ShellSyntaxError);
 });
+
+for (const [operator, expected] of [["^", "Ab"], ["^^", "AB"], [",", "ab"], [",,", "ab"]]) {
+  test(`case modification works inside backticks: ${operator}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+    try {
+      const result = await shell.exec('value=ab; result=`printf "%s" "${value' + operator + '}"`; printf "%s" "$result"');
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("supported parameter quoting remains available inside backticks", async () => {
   const source = 'value="a b"; quoted=`printf "%s" "${value@Q}"`; printf "%s" "$quoted"';

@@ -4,8 +4,22 @@ import { getCommandArguments, writeText } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
 import { transformParameter } from "../../src/shell/parameter-transforms.js";
 import { shellValueBytes, type ValueAllocation } from "../../src/contracts/value.js";
+import { trimParameter } from "../../src/shell/parameter-trim.js";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { basicCommands } from "../../src/commands/basic.js";
+import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases: readonly [string, string[]][] = [
+  ['value=ab; args "${value^^}" "${value^}"', ["AB", "Ab"]],
+  ['value=AB; args "${value,,}" "${value,}"', ["ab", "aB"]],
+  ['value=abca; args "${value^^[ac]}" "${value^b}" "${value,,}"', ["AbCA", "abca", "abca"]],
+  ['value=abc; pattern="[ab]"; args "${value^^$pattern}" "${value^^"$pattern"}"', ["ABc", "abc"]],
+  ['value=; args "${missing^^}" "${value,,}"', ["", ""]],
+  ['value="éßİΣ"; args "${value^^}" "${value,,}"', ["ÉßİΣ", "éßiσ"]],
+  ['set -- ab CD; args "${@^}" "${*,,}"', ["Ab", "CD", "ab cd"]],
+  ['values=(ab cd); args "${values[@]^^}" "${values[*]^}" "${values[1]^^}"', ["AB", "CD", "Ab Cd", "CD"]],
+  ['set --; args "${@^^}" "${*,,}"', [""]],
   ['value=abc; args "${value@Q}"', ["'abc'"]],
   ["value=\"a'b\"; args \"${value@Q}\"", ["'a'\\''b'"]],
   ['value=; args "${value@Q}" "${missing@Q}"', ["''", ""]],
@@ -39,6 +53,7 @@ for (const [source, expected] of cases) test(`GNU Bash 5.2.37 parameter transfor
 });
 
 for (const [source, expected] of [
+  ["value=$'a\\377B'; rawargs \"${value^^}\" \"${value,,}\"", ["41ff42", "61ff62"]],
   ["value=$'\\377\\001\\n'; rawargs \"${value@Q}\"", [Buffer.from(String.raw`$'\377\001\n'`).toString("hex")]],
   ["value='\\377z'; rawargs \"${value@E}\"", ["ff7a"]],
   ["value='\\U00110000'; rawargs \"${value@E}\"", ["f4908080"]],
@@ -55,6 +70,62 @@ for (const [source, expected] of [
     assert.equal(result.stderr, "");
     assert.deepEqual(JSON.parse(result.stdout), expected);
   } finally { await shell.dispose(); }
+});
+
+test("C locale case modification changes only ASCII bytes", async () => {
+  const { shell } = setup({ env: { LC_ALL: "C" } });
+  try {
+    const result = await shell.exec('value="éaÉB"; args "${value^^}" "${value,,}"');
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), ["éAÉB", "éaÉb"]);
+  } finally { await shell.dispose(); }
+});
+
+test("case modification preserves nounset failures", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('set -u; args "${missing^^}"');
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /unbound variable/u);
+  } finally { await shell.dispose(); }
+});
+
+test("default Shell supports the reported case expansions in virtual scripts", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs, commands: new CommandRegistry(basicCommands()), env: { LC_ALL: "C" } });
+  try {
+    const source = 'x=ab; printf "%s\\n" "${x^^}"; x=AB; printf "%s\\n" "${x,,}"';
+    const inline = await shell.exec(source);
+    assert.equal(inline.exitCode, 0);
+    assert.equal(inline.stderr, "");
+    assert.equal(inline.stdout, "AB\nab\n");
+    await fs.writeFile("/case.sh", Buffer.from(source));
+    const script = await shell.exec("bash /case.sh");
+    assert.equal(script.exitCode, 0);
+    assert.equal(script.stderr, "");
+    assert.equal(script.stdout, inline.stdout);
+  } finally { await shell.dispose(); }
+});
+
+test("case modification admits growing UTF-8 output before allocating it", async () => {
+  const reservations: number[] = [];
+  const allocation: ValueAllocation = { assertOpen() {}, reserve(bytes) { reservations.push(bytes); return { commit() {}, release() {} }; } };
+  const reason = new Error("output byte limit");
+  await assert.rejects(trimParameter("ȿ", [], "^^", false, {
+    remaining: 10_000, signal: new AbortController().signal, exhausted() { throw reason; }, allocation,
+  }, allocation, 2), error => error === reason);
+  assert.ok(!reservations.includes(67), "the three-byte result buffer must not be reserved");
+});
+
+test("case modification cooperates with live cancellation", async () => {
+  const controller = new AbortController();
+  const reason = { cancelled: "case modification" };
+  const pending = trimParameter("a".repeat(100_000), [], "^^", true, {
+    remaining: 10_000_000, signal: controller.signal, exhausted() { assert.fail("unexpected limit"); },
+  });
+  const timer = setTimeout(() => controller.abort(reason), 0);
+  try { await assert.rejects(pending, error => error === reason); }
+  finally { clearTimeout(timer); }
 });
 
 for (const operator of ["P", "A", "a", "Q:-x"]) test(`unimplemented parameter transform remains refused: @${operator}`, async () => {

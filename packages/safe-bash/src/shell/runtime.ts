@@ -6763,7 +6763,7 @@ export class Runtime {
       return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
     }
     part = await this.resolveArrayElement(part, state, io);
-    if (part.kind === "variable" && part.transform) {
+    if (part.kind === "variable" && (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? ""))) {
       const selector = getArraySelector(part);
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
@@ -6772,7 +6772,7 @@ export class Runtime {
         const fragments: ShellValue[] = [];
         let bytes = 0;
         for (const member of members) {
-          const value = await this.transformValue(member, part.transform, state, io);
+          const value = part.transform ? await this.transformValue(member, part.transform, state, io) : await this.parameterPattern(part, member, state, io, hereString);
           bytes += shellValueByteLength(value) + (fragments.length ? Buffer.byteLength(separator) : 0);
           if (bytes > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           io[valueScope]?.reserve(32, 0);
@@ -6783,12 +6783,13 @@ export class Runtime {
       }
       const base: Extract<WordPart, { kind: "variable" }> = { ...part };
       delete base.transform;
+      if (!part.transform) { delete base.operator; delete base.alternate; }
       copyArraySelector(part, base);
       const existing = selector?.kind === "element" ? arrayStore(state)?.get(part.name)?.get(numericIndex(selector.index) ?? -1) ?? (numericIndex(selector.index) === 0 ? this.variable(state, part.name) : undefined)
         : /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name) ? this.variable(state, part.name)
         : /^[1-9][0-9]*$/u.test(part.name) ? state.positional[Number(part.name) - 1] : "";
       const value = await this.valuePart(base, state, io, hereString, split, hereDocument);
-      return existing === undefined ? "" : this.transformValue(value, part.transform, state, io);
+      return existing === undefined ? "" : part.transform ? this.transformValue(value, part.transform, state, io) : this.parameterPattern(part, value, state, io, hereString);
     }
     if (part.kind === "variable" && part.prefixNames) {
       const ifs = state.variables.IFS ?? " ";
@@ -6998,7 +6999,7 @@ export class Runtime {
       return this.substring(part, value, state, io);
     }
     if (part.operator) {
-      if (["#", "##", "%", "%%"].includes(part.operator) || part.operator.startsWith("/")) {
+      if (["#", "##", "%", "%%", "^", "^^", ",", ",,"].includes(part.operator) || part.operator.startsWith("/")) {
         this.requireParameter(value, part.name, state, io, part.line);
         return this.parameterPattern(part, retained ?? "", state, io, hereString);
       }
@@ -7142,7 +7143,7 @@ export class Runtime {
         scratch.reserve(64, 0);
         parts.push({ value: original, literal });
       });
-      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope]);
+      return await trimParameter(value, parts, part.operator!, byteLocale(state.variables), work, io[valueScope], limit);
     }
     const text = shellValueText(value);
     const patternFields = await this.word(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, true, hereString);
@@ -7260,7 +7261,7 @@ export class Runtime {
       return fields;
     }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
-    const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || part.transform && part.name === "@"));
+    const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@"));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
@@ -7421,16 +7422,16 @@ export class Runtime {
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);
         }
-      } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || part.transform && part.name === "@" || part.substring && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+      } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@" || part.substring && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;
-          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : original;
+          const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : ["^", "^^", ",", ",,"].includes(part.operator ?? "") ? await this.parameterPattern(part, original, state, partIO, hereString) : original;
           if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
-        if (part.transform && members.length === 0 && quoteGroup) {
+        if ((part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && members.length === 0 && quoteGroup) {
           io[valueScope]?.reserve(32, 0);
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);

@@ -49,7 +49,8 @@ physical permissions, and the host process mask remains unchanged.
 
 - Quoting and escapes, variables and positional arguments (including
   `${@:offset:length}` and `${*:offset:length}` slices), parameter expansion
-  (including scalar `${!name}` indirection),
+  (including scalar `${!name}` indirection and `^`/`^^` and `,`/`,,` case
+  conversion with optional patterns),
   `$(command)` and backtick substitution, arithmetic expansion, and pathname globs.
 - Pipelines (`|`, `|&`), lists (`;`, `&&`, `||`, `!`), file redirection (`<`, `>`,
   `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.

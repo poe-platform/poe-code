@@ -879,7 +879,7 @@ class Lexer {
         if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
         this.position = end + 1;
-        if (this.source[this.position] !== "}" && this.source[this.position] !== "@" && !(this.syntax.indexedElementOperators && !length && selector.kind === "element"
+        if (this.source[this.position] !== "}" && this.source[this.position] !== "@" && !(!length && !listing && (this.source[this.position] === "^" || this.source[this.position] === ",")) && !(this.syntax.indexedElementOperators && !length && selector.kind === "element"
           && (this.source[this.position] === "-" || this.source[this.position] === "+" || this.source[this.position] === ":" && "-+".includes(this.source[this.position + 1] ?? "")))
           && !(this.syntax.indexedElementOperators && !length && !listing && selector.kind === "members" && this.source[this.position] === ":"
             && !"-=+?".includes(this.source[this.position + 1] ?? ""))) this.error("Unsupported indexed-array operator");
@@ -896,7 +896,9 @@ class Lexer {
         transform = operation;
         this.position += 2;
       }
-      const operator = /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
+      const caseCharacter = this.source[this.position];
+      const caseOperator = caseCharacter === "^" || caseCharacter === "," ? caseCharacter.repeat(this.source[this.position + 1] === caseCharacter ? 2 : 1) : undefined;
+      const operator = caseOperator ?? /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
       let alternate: Word | undefined;
       let replacement: Word | undefined;
       let substring: Extract<WordPart, { kind: "variable" }>["substring"];
@@ -907,7 +909,7 @@ class Lexer {
           if (operator) {
             if (length) this.error("Invalid length expansion");
             this.position += operator.length;
-            alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
+            alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !caseOperator && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
             if (operator.startsWith("/") && this.source[this.position] === "/") {
               this.position++;
               replacement = this.word("}");

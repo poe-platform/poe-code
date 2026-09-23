@@ -42,7 +42,7 @@ async function project(bytes: Uint8Array, work: StringWork): Promise<Projection>
   return { bytes: binary, text, offsets, invalid };
 }
 
-export async function trimParameter(value: ShellValue, parts: readonly { value: ShellValue; literal: boolean }[], operator: string, byteMode: boolean, work: StringWork, allocation?: ValueAllocation): Promise<ShellValue> {
+export async function trimParameter(value: ShellValue, parts: readonly { value: ShellValue; literal: boolean }[], operator: string, byteMode: boolean, work: StringWork, allocation?: ValueAllocation, maximumBytes = Number.MAX_SAFE_INTEGER): Promise<ShellValue> {
   const bytes = shellValueBytes(value, work.allocation);
   const subject = await project(bytes, work);
   let bytePattern = "";
@@ -67,6 +67,49 @@ export async function trimParameter(value: ShellValue, parts: readonly { value: 
   const projectedPattern = await project(patternBytes, work);
   const unicodePattern = projectedPattern.text;
   const patternInvalid = projectedPattern.invalid.at(-1)! > 0;
+  if (["^", "^^", ",", ",,"].includes(operator)) {
+    const match = await compilePattern((byteMode ? bytePattern : unicodePattern) || "?", work);
+    let output: Uint8Array | undefined = undefined;
+    let size = 0;
+    const encoder = new TextEncoder();
+    const scan = async (): Promise<void> => {
+      size = 0;
+      for (let start = 0; start < bytes.length;) {
+        const pending = stringCheckpoint(work);
+        if (pending) await pending;
+        let end = start + 1;
+        if (!byteMode) while (subject.offsets[end] === -1) end++;
+        const character = byteMode ? subject.bytes[start]! : subject.text.slice(subject.offsets[start]!, subject.offsets[end]!);
+        let converted = character;
+        if ((operator.length === 2 || start === 0) && await match(character)
+          && subject.invalid[start] === subject.invalid[end]) {
+          if (byteMode) {
+            const byte = bytes[start]!;
+            if (operator.startsWith("^") && byte >= 97 && byte <= 122) converted = String.fromCharCode(byte - 32);
+            if (operator.startsWith(",") && byte >= 65 && byte <= 90) converted = String.fromCharCode(byte + 32);
+          } else {
+            // Bash applies one-code-point mappings, rather than full string case folding.
+            const mapped = operator.startsWith("^") ? character.toUpperCase() : character === "İ" ? "i" : character.toLowerCase();
+            if (nextCodePointOffset(mapped, 0) === mapped.length) converted = mapped;
+          }
+        }
+        const length = converted === character ? end - start : Buffer.byteLength(converted);
+        if (size + length > maximumBytes) work.exhausted();
+        if (output) {
+          if (converted === character) output.set(bytes.subarray(start, end), size);
+          else encoder.encodeInto(converted, output.subarray(size, size + length));
+        }
+        size += length;
+        start = end;
+      }
+    };
+    await scan();
+    work.allocation?.reserve(size + 64, 1);
+    output = new Uint8Array(size);
+    await scan();
+    work.signal.throwIfAborted();
+    return shellValueFromBytes(output, allocation);
+  }
   const prefix = operator.startsWith("#");
   const longest = operator.length === 2;
   let cut: number | undefined;

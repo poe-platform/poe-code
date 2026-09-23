@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { withFileSystemQuota } from "poe-code/safe-fs";
+import { withFileSystemQuota } from "@poe-code/safe-fs";
 import { FsError, toByteSource, type FileSystem } from "../../src/contracts/index.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";

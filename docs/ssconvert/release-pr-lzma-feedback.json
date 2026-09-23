@@ -1,0 +1,252 @@
+{
+  "scope": "PR whole-file fallback regression and LZMA dictionary/memory admission; incremental release feedback, no claim of complete ssconvert parity.",
+  "findings": [
+    "The original PR fallback retained Infinity before readFile, rejecting valid unlimited reads and preventing cancellation/getter lifecycle admission. Nine original lifecycle/getter failures plus the supplemental regression were independently reproduced. Upstream d595e2307860f6f15989f878f85177c6b3be0254 delivered the same runtime repair before integration; upstream source was kept exactly.",
+    "The PR supplement covers default unlimited reads, explicit input and retained-byte limits, exact output, admission refusal, original-byte preservation and cleanup. Independent40data/failure/cancellation controls plus4shared-budget controls preserve exact accounting after integration.",
+    "The original three LZMA failures assumed an obsolete8MiB default dictionary cap. Upstream381ad137df4c2d11926ad253f73538c74c2f96c3 corrected basic assertions; supplemental tests retain all6small real decode vectors and original offset8=255 as uint32dictionary0xff800000.",
+    "NaN,-1,fractional and2^32 dictionaries reject before factory acquisition. Valid dictionaries including0xff800000/0xffffffff use inert injected modules without giant native allocation. Dictionaries8388609/0xff800000 reject under an explicit8MiB native memory limit and release all owned allocation.",
+    "H02 and join failures were also independently reproduced, then resolved by upstream890369d4e and381ad137d. Stronger independent30controls preserve real confinement, hardlink refusal and caller-defined output/field boundaries; no duplicate runtime change was made."
+  ],
+  "checks": {
+    "pr-lifecycle-original.log": {
+      "counts": [
+        "# tests 34",
+        "# pass 29",
+        "# fail 5",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "6b3c9ac46ebb20ac4227ce9ce5520b275c401b67953dcb63ddf8766e18b0dd2e"
+    },
+    "pr-fallback-red.log": {
+      "counts": [
+        "# tests 67",
+        "# pass 57",
+        "# fail 10",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "9500b72de7a61ced6b22eca79c1cd2d3f042fe99697e2d5e1a973e19bc51108c"
+    },
+    "pr-fallback-green.log": {
+      "counts": [
+        "# tests 67",
+        "# pass 67",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "f387d9d41a9f136ceefb9bc8ca5b14f971cf9ac55d071c8185e6aa5f7a35d552"
+    },
+    "pr-scope-final.log": {
+      "counts": [
+        "# tests 336",
+        "# pass 336",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "e0a9d5e532e3bb391fd7706b6bc5fc75019fa60af29cc5ec719665e798413b87"
+    },
+    "bash4-lzma-current.log": {
+      "counts": [
+        "# tests 3",
+        "# pass 0",
+        "# fail 3",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "bf5e2520f9916cc703fa8b8359e74e15fd9123e0abbeb1c39f4a444b01992f70"
+    },
+    "lzma-final.log": {
+      "counts": [
+        "# tests 90",
+        "# pass 90",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "b53b77bcff7130dffe453ed8d42866c32f710f52cadcdd1e60d20eff0cbe5f2e"
+    },
+    "pr-lzma-upstream-integrated.log": {
+      "counts": [
+        "# tests 452",
+        "# pass 452",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0"
+      ],
+      "sha256": "8b7133b1e5c0a1ac11edcd53d46c7a5571319b871203fce669e184d3c13fcf09"
+    }
+  },
+  "guardedLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 8,
+    "scope": {
+      "configured": 17578,
+      "linted": 17578,
+      "ignored": 2241,
+      "unconfigured": 37995,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "logSha256": "3e688ed05d4feec93f35669fe62c0a70de7f7d6a9a4d74fb04617c44895a230e",
+    "timing": "Completed on frozen prerebase candidate. PR integration adopted semantically identical upstream source and its additional maxBytes assertion; final452test replay and44independent stress controls ran afterward. Not a full integrated release gate."
+  },
+  "independentPr": {
+    "cases": 40,
+    "sharedCases": 4,
+    "stable": true,
+    "receiptSha256": "87f188a2fffdf54c65619d92be40123178122e8d20b15aacdfcfa151adecf185"
+  },
+  "independentLzma": {
+    "node": "v22.23.2",
+    "args": [
+      "--import",
+      "tsx",
+      "--conditions=poe-code-source",
+      "--test",
+      "--test-concurrency=1",
+      "--test-name-pattern=pre-aborted|malformed properties|valid uint32|explicit memory budget|dictionary admission boundary",
+      "packages/safe-bash/tests/commands/zip-lzma.test.ts"
+    ],
+    "status": 0,
+    "bindings": [
+      {
+        "path": "packages/safe-bash/tests/commands/zip-lzma.test.ts",
+        "bytes": 25035,
+        "sha256": "7b2de90f4401254eda371955815841954a6933f938af6e0640e893d9d861b34e"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/fixtures/zip-lzma-independent.json",
+        "bytes": 6278,
+        "sha256": "f99238703cf7aeeccdd927dc05986864f87a7e5d372dd251e84504e0fade05fc"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/bytes/compression/codec-loader.ts",
+        "bytes": 6439,
+        "sha256": "6955307fead84f81ac0cb0e643f2d7b1a27b370e70706921fb10b5756f82f617"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/bytes/compression/native/bridge.c",
+        "bytes": 7775,
+        "sha256": "4cd7cb9ec6361196bd1901c8e5a027d516142148d1b8c457d53fad1f69ea9feb"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/bytes/compression/native/generated/xz.mjs",
+        "bytes": 215300,
+        "sha256": "8913a2f07da51a5a20eb1460176c96d934a1962f6b2b23d0618cebc467c03344"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/archive/zip/lzma.ts",
+        "bytes": 1947,
+        "sha256": "ff8c29b32005edb50d64991eac92a4b505fd98c898b91c7caede0cf309a88aaf"
+      }
+    ],
+    "stable": true,
+    "baselineTestSha256": "b640c63515c7ca51af48b8944f9bd6665d8465204c7c9f7c46ee5734603932da",
+    "currentTestSha256": "7b2de90f4401254eda371955815841954a6933f938af6e0640e893d9d861b34e",
+    "unchangedOriginalRegions": [
+      "prefix with exact oracle and rawOptions",
+      "all cancellation/retirement and production controls between first and second changed sections",
+      "all strict-prefix/EOS and subsequent controls"
+    ],
+    "retainedSmallDictionaryInputs": [
+      0,
+      1,
+      4095,
+      4096,
+      8388608,
+      8388609
+    ],
+    "largeDictionaryControls": "0xff800000 derived from original wire mutation; injected admission and real explicit8MiB refusal only. 0xffffffff injected only. Native bridge allocate rejects total>limit-used before malloc.",
+    "scope": "Eighteen focused canonical tests, six selected source/fixture/artifact bindings; not a full codec or package gate. No source or Git mutations."
+  },
+  "finalBindings": [
+    {
+      "path": "packages/safe-bash/src/commands/pr/io.ts",
+      "bytes": 8554,
+      "sha256": "b0dbc7829bdaa9ef0e82bd08a0f06f17dd40d66fb361e68d145851457fd3d722"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/pr/internal.ts",
+      "bytes": 7038,
+      "sha256": "ff17b9dee27d2bb3e3cc06197f028da3b33db5f4faffcff5fd57e253b1011b42"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/pr/command.ts",
+      "bytes": 6102,
+      "sha256": "4add72c0bc92cdb4655c1db4f6ba2c87a646d9260dabaa9376d8c1acb855793e"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/pr-independent/lifecycle.test.ts",
+      "bytes": 14247,
+      "sha256": "c535168d244bd6e4c4e54c6dacdb815266b5417916eaf1b025937268a12677d3"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/command-getter-admission/fs-getters.test.ts",
+      "bytes": 1963,
+      "sha256": "481e3439d324ba78c03b84a3dfc16cfc830d320424cacd4bf271936a5a549acb"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/zip-lzma.test.ts",
+      "bytes": 25035,
+      "sha256": "7b2de90f4401254eda371955815841954a6933f938af6e0640e893d9d861b34e"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/fixtures/zip-lzma-independent.json",
+      "bytes": 6278,
+      "sha256": "f99238703cf7aeeccdd927dc05986864f87a7e5d372dd251e84504e0fade05fc"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/bytes/compression/codec-loader.ts",
+      "bytes": 6439,
+      "sha256": "6955307fead84f81ac0cb0e643f2d7b1a27b370e70706921fb10b5756f82f617"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/bytes/compression/native/bridge.c",
+      "bytes": 7775,
+      "sha256": "4cd7cb9ec6361196bd1901c8e5a027d516142148d1b8c457d53fad1f69ea9feb"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/bytes/compression/native/generated/xz.mjs",
+      "bytes": 215300,
+      "sha256": "8913a2f07da51a5a20eb1460176c96d934a1962f6b2b23d0618cebc467c03344"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/archive/zip/lzma.ts",
+      "bytes": 1947,
+      "sha256": "ff8c29b32005edb50d64991eac92a4b505fd98c898b91c7caede0cf309a88aaf"
+    }
+  ],
+  "visual": {
+    "screenshotSha256": "664f4ad141264f9f4f157e1f456fc880107c61d4267d7ef28f7619200aa20a5b",
+    "observed": "Inspected readable terminal output: default nonstreaming PR read succeeds; explicit8byte cap emits buffered-input limit diagnostic and exit1. No clipped content."
+  },
+  "delivery": {
+    "pr": "7f9d2f5c4a7a123f27150ed620ad3005215362b2\trefs/heads/main",
+    "lzma": "3c2b5dbc9ab3ed0b564c86a4cfa5ea4d9b20cdd7\trefs/heads/main",
+    "verification": "Separate normal pushes and exact remote-main observations; all final listed bindings unchanged through rebases."
+  },
+  "publication": {
+    "status": "pending",
+    "latestObservedRoot": "17.0.34",
+    "activeContainingRun": 35914609267,
+    "oldRun": 35910092673,
+    "oldRunOutcome": "cancelled after preserved failures"
+  },
+  "limitations": [
+    "Focused tests and independent stress controls are not a full package or release gate.",
+    "Large valid LZMA dictionaries are syntax/admission controls, not multi-gigabyte decode qualification.",
+    "All19original ssconvert families remain open."
+  ]
+}

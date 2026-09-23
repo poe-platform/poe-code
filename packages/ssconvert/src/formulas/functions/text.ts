@@ -8,6 +8,7 @@ import { trimByteText } from "./byte-trim.js";
 import { properByteText } from "./byte-proper.js";
 import { findByteText } from "./byte-find.js";
 import { searchByteText } from "./byte-search.js";
+import { sliceBytes } from "./byte-slice.js";
 import { replaceByteText } from "./byte-replaceb.js";
 import { substituteByteText } from "./byte-substitute.js";
 import type { CellValue } from "../../workbook.js";
@@ -23,11 +24,6 @@ const katakana = "。「」、・ヲァィゥェォャュョッーアイウエ�
 const fullSpecial: Readonly<Record<string, string>> = { '"': "”", "'": "’", "\\": "￥", "`": "‘" };
 const halfSpecial: Readonly<Record<string, string>> = { "―": "ｰ", "‘": "`", "’": "'", "”": '"', "￥": "\\" };
 const byteLength = (s: string) => new TextEncoder().encode(s).length;
-function byteOffsets(s: string, host: FunctionHost): number[] {
-  const offsets = [0]; let size = 0;
-  for (const c of s) { host.tick(); size += byteLength(c); offsets.push(size); }
-  return offsets;
-}
 function sliceText(name: string, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   const bytes = name.endsWith("B");
   const middle = name.startsWith("MID"), right = name.startsWith("RIGHT");
@@ -37,14 +33,7 @@ function sliceText(name: string, args: readonly (Value | undefined)[], host: Fun
     const result = sliceByteText(byteTextArg(args, 0, host), middle ? "mid" : right ? "right" : "left", start, count, host.tick);
     return result === undefined ? error("#VALUE!") : byteStringValue(result, host.tick, host.context.limits.outputBytes);
   }
-  const source = textArg(args, 0, host), chars = Array.from(source), offsets = byteOffsets(source, host), length = offsets.at(-1)!;
-  const from = middle ? Math.trunc(start) - 1 : right ? Math.max(0, length - Math.trunc(count)) : 0;
-  if (middle && (from >= length || !offsets.includes(from))) return error("#VALUE!");
-  const first = right ? offsets.findIndex(offset => offset >= from) : offsets.indexOf(from);
-  const end = right ? length : Math.min(length, from + Math.trunc(count));
-  let last = offsets.length - 1;
-  while (offsets[last]! > end) { host.tick(); last--; }
-  return str(chars.slice(first, last).join(""));
+  return sliceBytes(byteTextArg(args, 0, host), middle ? "mid" : right ? "right" : "left", start, count, host.context.limits.outputBytes, host.tick);
 }
 function search(name: string, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
   const start = numberArg(args, 2, host, 1), bytes = name.endsWith("B");
@@ -234,7 +223,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     return bytes.length === 0 ? error("#VALUE!") : numericResult(readByteTextCharacter(bytes, 0, host.tick).point | 0);
   },
   LEN: (args, host) => numericResult(byteTextLength(byteTextArg(args, 0, host), host.tick)),
-  LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
+  LENB: (args, host) => numericResult(byteTextArg(args, 0, host).length),
   LOWER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), false, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   UPPER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), true, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   EXACT: (args, host) => {

@@ -82,3 +82,25 @@ export function sliceByteText(source: Uint8Array, operation: "left" | "right" | 
   for (let index = 0; index < result.length; index++) { tick(); result[index] = source[from + index]!; }
   return result;
 }
+
+/** Native boundary validation distinguishes an incomplete trailing sequence
+ * from a malformed one. Only malformed boundaries are rejected by REPLACEB. */
+export function validatedByteTextCharacter(source: Uint8Array, position: number, end: number, tick: () => void): number | "partial" | undefined {
+  tick();
+  const lead = source[position];
+  if (lead === undefined) return position;
+  if (lead < 128) return position + 1;
+  if (lead < 192 || lead >= 254) return undefined;
+  const width = lead < 224 ? 2 : lead < 240 ? 3 : lead < 248 ? 4 : lead < 252 ? 5 : 6;
+  let point = lead & (127 >> width);
+  for (let offset = 1; offset < width; offset++) {
+    tick();
+    if (position + offset >= end) return "partial";
+    const byte = source[position + offset]!;
+    if ((byte & 192) !== 128) return undefined;
+    point = point * 64 + (byte & 63);
+  }
+  const minimum = width === 2 ? 128 : width === 3 ? 2048 : 65536;
+  if (width > 4 || point < minimum || point > 0x10ffff || point >= 0xd800 && point <= 0xdfff) return undefined;
+  return position + width;
+}

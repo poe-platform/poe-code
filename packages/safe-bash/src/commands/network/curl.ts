@@ -447,7 +447,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             }
           }
         })();
-        try { await writeOutput(writing ? { ...context, stdout: writing.output } : context, output, source, bodySignal, append); }
+        try { await writeOutput(writing ? { ...context, stdout: writing.output } : context, output, source, bodySignal, append, args.failWithBody && failure !== undefined); }
         catch (error) {
           context.signal.throwIfAborted();
           if (!pipeClosed(error)) throw error;

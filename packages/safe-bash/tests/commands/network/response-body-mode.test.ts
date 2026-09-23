@@ -3,6 +3,43 @@ import test from "node:test";
 import { Shell, MemoryFileSystem, toByteSource } from "../../../src/index.js";
 import { networkCommands, type HttpRequest } from "../../../src/commands/network/index.js";
 
+for (const existing of [false, true]) {
+  for (const profile of [
+    { status: 404, body: "", flags: "--fail-with-body", preserved: true },
+    { status: 404, body: "", flags: "--fail-with-body -D headers", preserved: true },
+    { status: 404, body: "payload", flags: "--fail-with-body", preserved: false },
+    { status: 404, body: "", flags: "--fail-with-body -i", preserved: false },
+    { status: 404, body: "", flags: "", preserved: false },
+    { status: 200, body: "", flags: "--fail-with-body", preserved: false },
+    { status: 204, body: "", flags: "--fail-with-body", preserved: false },
+  ]) {
+    test(`curl empty output effects: ${JSON.stringify(profile)}, existing=${existing}`, async () => {
+      const fs = new MemoryFileSystem();
+      const original = Uint8Array.of(0, 254, 10);
+      if (existing) await fs.writeFile("/output", original);
+      const shell = new Shell({ fs }).use(networkCommands({
+        authorize: () => true,
+        async transport() {
+          return { status: profile.status, statusText: "Fixture", headers: [],
+            body: (async function* () { yield new Uint8Array(); yield* toByteSource(profile.body); })(),
+            async dispose() {} };
+        },
+      }));
+      try {
+        const result = await shell.exec(`curl -s ${profile.flags} -o /output -w '%{http_code}:%{size_download}:%{exitcode}' https://offline.invalid/empty`);
+        const exitCode = profile.status >= 400 && profile.flags.includes("--fail-with-body") ? 22 : 0;
+        assert.equal(result.exitCode, exitCode);
+        assert.equal(result.stdout, `${profile.status}:${profile.body.length}:${exitCode}`);
+        assert.equal(result.stderr, "");
+        if (profile.preserved && !existing) await assert.rejects(fs.stat("/output"), { code: "ENOENT" });
+        else assert.deepEqual(await fs.readFile("/output"), profile.preserved ? original :
+          new TextEncoder().encode(profile.flags.includes("-i") ? `HTTP/1.1 ${profile.status} Fixture\r\n\r\n` : profile.body));
+        if (profile.flags.includes("-D")) assert.equal(new TextDecoder().decode(await fs.readFile("/headers")), "HTTP/1.1 404 Fixture\r\n\r\n");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const profile of [
   { args: "", method: "GET", mode: "read" },
   { args: "-i", method: "GET", mode: "read" },

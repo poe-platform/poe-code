@@ -20,7 +20,7 @@ export function responseHeaders(response: HttpResponse, maxBytes: number): Uint8
   return new Uint8Array(Buffer.from(`${text}\r\n`, "latin1"));
 }
 
-export async function writeOutput(context: CommandContext, path: string | undefined, source: ByteSource, signal: AbortSignal, append = false): Promise<void> {
+export async function writeOutput(context: CommandContext, path: string | undefined, source: ByteSource, signal: AbortSignal, append = false, preserveEmpty = false): Promise<void> {
   if (path === undefined || path === "-") {
     try {
       for await (const chunk of readBytes(source, signal)) {
@@ -34,11 +34,15 @@ export async function writeOutput(context: CommandContext, path: string | undefi
     return;
   }
   try {
-    const target = await openFileOutput({ ...context, signal, outputBudget: "independent" }, pathOf(context, path), append ? "a" : "w");
+    let target = preserveEmpty ? undefined : await openFileOutput({ ...context, signal, outputBudget: "independent" }, pathOf(context, path), append ? "a" : "w");
     try {
-      for await (const chunk of readBytes(source, target.signal)) await target.sink.write(chunk);
-      await target.finish();
-    } catch (error) { await target.abort(error); throw error; }
+      for await (const chunk of readBytes(source, target?.signal ?? signal)) {
+        if (preserveEmpty && chunk.length === 0) continue;
+        target ??= await openFileOutput({ ...context, signal, outputBudget: "independent" }, pathOf(context, path), append ? "a" : "w");
+        await target.sink.write(chunk);
+      }
+      await target?.finish();
+    } catch (error) { await target?.abort(error); throw error; }
   } catch (error) {
     signal.throwIfAborted();
     if (error instanceof CurlError) throw error;

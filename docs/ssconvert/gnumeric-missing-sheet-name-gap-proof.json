@@ -261,5 +261,14 @@
     "This fixes ordinary Gnumeric XML qualified-name import, not every invalid expression, array-corner refusal or programmatic model binding.",
     "Native XML load-order scoped-name divergence remains separately open; no blanket BIFF/XML parity claim.",
     "All19 original families and containing root publication remain open."
-  ]
+  ],
+  "delivery": {
+    "commit": "63f4fb8d2b804ce5cdec537b34416085281a1049",
+    "exactRemoteMainVerified": true,
+    "recordedBindingsUnchangedAfterRebase": true
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34"
+  }
 }

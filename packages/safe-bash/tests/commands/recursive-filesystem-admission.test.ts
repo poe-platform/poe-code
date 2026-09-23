@@ -276,7 +276,7 @@ for (const command of ["ls", "cp"] as const) {
   }
 }
 
-test("cp preserves top-level/default nested symlink policy, -L, -P, and unsupported -H", async context => {
+test("cp preserves top-level/default nested symlink policy, -L, -P, and -H", async context => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/source/deep", { recursive: true });
   await fs.writeFile("/source/deep/file", encoder.encode("payload"));
@@ -292,10 +292,11 @@ test("cp preserves top-level/default nested symlink policy, -L, -P, and unsuppor
   assert.equal(await fs.readlink!("/default/link"), "deep");
   assert.equal((await fs.lstat("/followed/link")).type, "directory");
   assert.equal(await fs.readlink!("/preserved"), "source");
-  const unsupported = await shell.exec("cp -rH /alias /unsupported");
-  assert.equal(unsupported.exitCode, 2);
-  assert.match(unsupported.stderr, /invalid option.*H/u);
-  await assert.rejects(fs.lstat("/unsupported"), { code: "ENOENT" });
+  const commandLine = await shell.exec("cp -rH /alias /command-line");
+  assert.equal(commandLine.exitCode, 0, commandLine.stderr);
+  assert.equal((await fs.lstat("/command-line")).type, "directory");
+  assert.equal(await fs.readlink!("/command-line/link"), "deep");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/command-line/deep/file")), "payload");
 });
 
 test("cp verbose output stays postorder and ls recursive output keeps reverse sibling ordering", async context => {

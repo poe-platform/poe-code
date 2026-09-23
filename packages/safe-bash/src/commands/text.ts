@@ -704,7 +704,7 @@ export function textCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("cut", async context => {
-      const parsed = options(context.args, "b:c:f:d:szo:C", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "o", complement: "C" });
+      const parsed = options(context.args, "b:c:f:d:nszo:C", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "o", complement: "C" });
       await assertInputRequirements(context, parsed.operands);
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");

@@ -133,7 +133,9 @@ for (const wrapper of ["readonly-mount", "webdav-upper", "webdav-lower"] as cons
         const result = await execute(wrapped, `${command} ${path}`);
         assert.equal(result.exitCode, 1);
         assert.match(result.stderr, wrapper === "readonly-mount" ? /EROFS/ : wrapper === "webdav-upper" ? /ENOTSUP/ : /not empty|ENOTEMPTY/i);
-        assert.deepEqual(await wrapped.readFile(`${path}/child`), bytes);
+        if (wrapper === "readonly-mount") assert.deepEqual(await wrapped.readFile(`${path}/child`), bytes);
+        else await assert.rejects(wrapped.readFile(`${path}/child`), { code: "ENOTSUP" });
+        assert.deepEqual(await fs.readFile("/work/target/child"), bytes);
         assert.deepEqual(await snapshotTree(fs, "/"), before);
       }
       assert.equal(dav.requests.filter(request => request.init.method === "DELETE").length, 0);

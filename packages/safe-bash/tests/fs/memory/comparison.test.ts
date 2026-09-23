@@ -131,7 +131,7 @@ for (const kind of ["s3", "webdav"] as const) {
     }
   }
 
-  test(`qualified ${kind} resolves nested readonly source and overlay destination views`, async () => {
+  test(`qualified ${kind} comparison cannot grant unsupported overlay retained reads`, async () => {
     const memory = new MemoryFileSystem();
     const { filesystem: remote } = qualified(kind, memory);
     await memory.writeFile("/source", payload);
@@ -140,10 +140,10 @@ for (const kind of ["s3", "webdav"] as const) {
     const upper = new MemoryFileSystem();
     const overlay = createOverlayFileSystem({ lower: remote, upper });
     const filesystem = mounted(nested, overlay);
-    await filesystem.copyFile("/memory/nested/source", "/remote/target");
+    await assert.rejects(filesystem.copyFile("/memory/nested/source", "/remote/target"), { code: "ENOTSUP" });
     assert.deepEqual(await memory.readFile("/source"), payload);
     assert.deepEqual(await remote.readFile("/target"), previous);
-    assert.deepEqual(await upper.readFile("/target"), payload);
+    assert.deepEqual(await upper.readdir("/"), []);
     await assert.rejects(filesystem.copyFile("/remote/target", "/memory/nested/source"), { code: "EROFS" });
     assert.deepEqual(await memory.readFile("/source"), payload);
   });

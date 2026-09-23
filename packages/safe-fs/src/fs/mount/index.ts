@@ -264,7 +264,7 @@ export class MountFileSystem implements FileSystem {
   }
 
   private error(error: unknown, syscall: string, path: string, options: FsOptions, dest?: string): unknown {
-    if (options.signal?.aborted && error === options.signal.reason) return error;
+    if (options.signal?.aborted && Object.is(error, options.signal.reason)) return error;
     return new FsError(toFsError(error).code, {
       cause: error, syscall, path: globalPath(path), ...(dest === undefined ? {} : { dest: globalPath(dest) }),
     });

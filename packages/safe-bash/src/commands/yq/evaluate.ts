@@ -396,7 +396,10 @@ export class Evaluator {
         const base = dereference(input, yaml, this.work);
         const children: Candidate[] = [];
         if (yaml.isMap(base.node)) {
-          if (expression.kind === "recursive") base.node.items.forEach((pair, slot) => children.push(this.child(pair.value as Node, base, base.node as YAMLMap, slot)));
+          if (expression.kind === "recursive") base.node.items.forEach((pair, slot) => {
+            if (expression.includeKeys) children.push(this.child(pair.key as Node, base));
+            children.push(this.child(pair.value as Node, base, base.node as YAMLMap, slot));
+          });
           else children.push(...(await this.entries(base)).values());
         }
         else if (yaml.isSeq(base.node)) base.node.items.forEach((node, slot) => children.push(this.child(node as Node, base, base.node as YAMLSeq, slot)));

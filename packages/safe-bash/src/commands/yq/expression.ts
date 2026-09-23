@@ -1,7 +1,8 @@
 import { MikeError } from "./native-work.js";
 
 export type Expression =
-  | { kind: "identity" | "iterate" | "recursive" }
+  | { kind: "identity" | "iterate" }
+  | { kind: "recursive"; includeKeys?: boolean }
   | { kind: "literal"; value: string | boolean | bigint | number | null }
   | { kind: "group"; body: Expression }
   | { kind: "field"; base: Expression; key: Expression }
@@ -23,6 +24,9 @@ export function compileExpression(source: string, security: { readonly disableEn
     const character = source[offset]!;
     if (/\s/u.test(character)) { offset++; continue; }
     const start = offset;
+    if (source.startsWith("...", offset)) {
+      tokens.push({ text: "...", offset, kind: "symbol" }); offset += 3; continue;
+    }
     if (character === "#") { while (offset < source.length && source[offset] !== "\n") offset++; continue; }
     if (character === '"') {
       offset++;
@@ -55,7 +59,7 @@ export function compileExpression(source: string, security: { readonly disableEn
     if (token.text === ".") {
       result = { kind: "identity" };
       if (peek().kind === "name" || peek().kind === "string") { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
-    } else if (token.text === "..") result = { kind: "recursive" };
+    } else if (token.text === ".." || token.text === "...") result = { kind: "recursive", includeKeys: token.text === "..." };
     else if (token.text === "(") { result = { kind: "group", body: parse() }; expect(")"); }
     else if (token.text === "[") { result = peek().text === "]" ? { kind: "array" } : { kind: "array", body: parse() }; expect("]"); }
     else if (token.text === "{") {
@@ -90,7 +94,11 @@ export function compileExpression(source: string, security: { readonly disableEn
     } else if (token.kind === "end" && tokens.some(item => item.text === "[")) throw new MikeError("bad expression, could not find matching `]`");
     else throw new MikeError(`1:${token.offset + 1}: lexer: invalid input text ${JSON.stringify(source.slice(token.offset))}`);
     while (true) {
-      if (peek().text === ".") { take(); const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; continue; }
+      if (peek().text === ".") {
+        take(); const key = take();
+        if (key.kind !== "name" && key.kind !== "string") throw new MikeError("bad expression, please check expression syntax");
+        result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; continue;
+      }
       if (peek().text === "[") {
         take();
         if (peek().text === "]") result = { kind: "pipe", operator: "|", left: result, right: { kind: "iterate" } };

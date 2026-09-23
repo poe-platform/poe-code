@@ -108,7 +108,8 @@ The native executable is a test oracle only; tests never create host fixture fil
   stdin. Eval publishes earlier documents before a later YAML parse error;
   eval-all waits for all documents. All input bytes are bounded before parsing.
 - Query: identity, fields/indexes, bounded Unicode/array slices with omitted and
-  negative bounds, iteration/recursive traversal, pipes, comma,
+  negative bounds, iteration/recursive traversal (`..` visits values; `...` also
+  visits mapping keys before their values), pipes, comma,
   literals, arrays and quoted-key maps, selection/map, basic comparisons,
   boolean/default operators, scalar arithmetic, map merge/sequence concatenation,
   assignments and updates, tag/style operations, `head_comment`, `anchor`, `alias`,

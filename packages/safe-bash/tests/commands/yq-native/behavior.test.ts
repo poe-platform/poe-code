@@ -10,6 +10,40 @@ import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../..
 import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
 import { native, nativeOptions, run } from "./helpers.js";
 
+for (const [name, input, stdout] of [
+  ["mapping", "owned: 1\nnested:\n  leaf: value\n", "owned: 1\nnested:\n  leaf: value\nowned\n1\nnested\nleaf: value\nleaf\nvalue\n"],
+  ["sequence", "- owned\n- nested: value\n", "- owned\n- nested: value\nowned\nnested: value\nnested\nvalue\n"],
+  ["scalar", "OwnedScalar\n", "OwnedScalar\n"],
+  ["empty", "", "\n"],
+]) test(`Mike yq issue 456 recursively includes mapping keys for ${name}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/payload.yaml", Buffer.from(input!));
+  const internalErrors: unknown[] = [];
+  const shell = new Shell({ fs, onInternalError: error => { internalErrors.push(error); } }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec("yq ... payload.yaml");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(internalErrors, []);
+  } finally { await shell.dispose(); }
+});
+
+test("Mike yq issue 456 composes key-inclusive descent and preserves value-only descent", async () => {
+  assert.deepEqual(await run(['[... | select(tag == "!!str")]'], "a: b\n"), {
+    status: 0, stdout: "- a\n- b\n", stderr: "",
+  });
+  assert.deepEqual(await run([".."], "a: b\n"), { status: 0, stdout: "a: b\nb\n", stderr: "" });
+});
+
+test("Mike yq issue 456 reports malformed trailing fields without internal errors", async () => {
+  for (const expression of ["... .", ".. .", ".a."]) {
+    const result = await run([expression], "a: b\n");
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /bad expression/);
+  }
+});
+
 for (const flag of ["--security-disable-env-ops", "--security-disable-file-ops"]) {
   test(`Mike yq accepts ${flag} for ordinary input files`, async () => {
     const fs = createMemoryFileSystem();

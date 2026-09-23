@@ -11,3 +11,8 @@ const parsed = await resolveConversionArgs([], {}, new AbortController().signal)
 void convert(parsed.operands ?? [], parsed.options, {limits: parsed.limits});
 // @ts-expect-error Native engine configuration is not a public conversion option.
 void convert([], {from: "commonmark", to: "plain", nativeEngine: "pandoc"}, {});
+
+import {createLuaFilterCapability} from "@poe-code/pandoc/lua-filters";
+const luaFilters = createLuaFilterCapability({readFile: async (_path, _signal) => new Uint8Array()});
+void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: luaFilters});
+void pandocCommands({filters: luaFilters});

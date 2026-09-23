@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./lua-filters": {
+      "types": "./dist/lua-filters.d.ts",
+      "import": "./dist/lua-filters.js"
     }
   },
   "files": [
@@ -38,6 +42,7 @@
     "saxes": "6.0.0",
     "@poe-code/pdf": "0.0.1",
     "pptx": "*",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "fengari": "^0.1.5"
   }
 }

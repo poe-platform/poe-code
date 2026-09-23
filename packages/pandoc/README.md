@@ -99,7 +99,7 @@ same capability to `createPandocCommand`) to process them after metadata merges
 and before writing. The callback receives the target format as `context.to`.
 An optional `supports(request)` check rejects unsupported requests before any
 input is acquired. Requests are snapshotted before these checks. Returned documents
-are validated with the conversion limits; cancellation and callback errors prevent publication. No filter engine is bundled: without an
+are validated with the conversion limits; cancellation and callback errors prevent publication. Without an
 explicit capability these requests fail `E_CAPABILITY` before input acquisition.
 Paths identify requests for the trusted adapter; they never enable implicit
 host execution, filesystem access, or citation support.
@@ -118,8 +118,8 @@ publication. Document-level resources, language, and direction stay outside the
 JSON protocol and are preserved across filters. Source documents with relative
 image targets are rejected because their source-directory information cannot survive
 arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
-and resource policies. Lua and citeproc require their
-own explicitly supplied capabilities.
+and resource policies. Lua uses the explicit capability below; citeproc requires
+an explicitly supplied capability.
 
 The Safe Bash plugin accepts the same capability as `pandocCommands({filters})`.
 For example, with your already configured `jsonRuntime`:
@@ -135,6 +135,27 @@ await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
 
 The runtime owns filter loading and execution. Registration does not grant it
 filesystem or process authority, install an interpreter, or enable ambient lookup.
+
+Local Lua `Str` filters can run in the supplied JavaScript Lua VM. Configure a
+reader for trusted scripts, then pass the capability to the SDK or shell plugin:
+
+```ts
+import {createLuaFilterCapability} from "@poe-code/pandoc/lua-filters";
+const filters = createLuaFilterCapability({readFile: async (path, signal) => {
+  return configuredFileSystem.readFile(path, signal);
+}});
+await convert([{bytes: new TextEncoder().encode("Hello")}], {
+  from: "commonmark", to: "html", filters: [{kind: "lua", path: "uppercase.lua"}]
+}, {filters});
+// uppercase.lua: function Str(el) el.text = string.upper(el.text); return el end
+```
+
+The VM exposes basic Lua, string, table, math and UTF-8 libraries and `FORMAT`.
+It does not expose host filesystem/process libraries. Conversion work limits
+interrupt Lua instructions. Use trusted scripts: VM allocations and library
+calls are not isolated or individually metered. Only global `Str` callbacks
+returning a `Str` element or nil are supported; other callbacks, Pandoc
+constructors, filter tables and citeproc remain unsupported.
 
 `limits` can lower the exported `defaultLimits` ceilings: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,

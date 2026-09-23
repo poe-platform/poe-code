@@ -166,15 +166,22 @@ export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<
 
 const budgetedSinks = new WeakMap<ByteSink, { budget: Budget; write: ByteSink["write"]; file?: NonNullable<CommandContext["stdoutFile"]> }>();
 
-async function sortExpansionStrings(values: string[], work: StringWork): Promise<void> {
+async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
   const compare = async (left: string, right: string): Promise<number> => {
-    for (let index = 0; index < Math.min(left.length, right.length); index++) {
+    let first = 0, second = 0;
+    while (first < left.length && second < right.length) {
       const pending = stringCheckpoint(work);
       if (pending) await pending;
-      const difference = left.charCodeAt(index) - right.charCodeAt(index);
+      const a = utf8 ? left.codePointAt(first)! : left.charCodeAt(first);
+      const b = utf8 ? right.codePointAt(second)! : right.charCodeAt(second);
+      // UTF-8 preserves scalar order; lone surrogates encode as U+FFFD.
+      const difference = (utf8 && a >= 0xd800 && a <= 0xdfff ? 0xfffd : a)
+        - (utf8 && b >= 0xd800 && b <= 0xdfff ? 0xfffd : b);
       if (difference) return difference;
+      first += utf8 && a > 0xffff ? 2 : 1;
+      second += utf8 && b > 0xffff ? 2 : 1;
     }
-    return left.length - right.length;
+    return (left.length - first) - (right.length - second);
   };
   const sift = async (root: number, end: number): Promise<void> => {
     while (root * 2 + 1 < end) {
@@ -7926,9 +7933,9 @@ export class Runtime {
           found.push(candidate.path + slash);
         } catch (error) { if (!ignored(error)) throw error; }
       }
-      // In-place heap sort preserves ordinary UTF-16 pathname order while
+      // In-place heap sort uses C UTF-8 pathname order while
       // charging comparisons, including long common prefixes, and yielding.
-      await sortExpansionStrings(found, work);
+      await sortExpansionStrings(found, work, true);
       return found.length ? found : state.nullglob ? [] : [value];
     } finally { scratch.close(); }
   }
@@ -8000,6 +8007,14 @@ export class Runtime {
         if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
       }
     }
-    return found.length ? found.sort() : state.nullglob ? [] : [value];
+    // Heap sort inspects at most O(output bytes * log(fields)) characters.
+    // Keep sorting work separate from the pattern-matching allowance.
+    const sortingWork: StringWork = {
+      remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024),
+      signal: this.signal,
+      exhausted: (): never => this.budget.fail("maxExpansionBytes"),
+    };
+    await sortExpansionStrings(found, sortingWork, true);
+    return found.length ? found : state.nullglob ? [] : [value];
   }
 }

@@ -4,6 +4,29 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
+for (const names of [
+  ["prefix-\uf000", "prefix-\u{11000}"],
+  ["prefix-\ue000", "prefix-\u{10000}"],
+  ["prefix-A", "prefix-z", "prefix-é", "prefix-中", "prefix-\ufeff", "prefix-\uffff", "prefix-😀"],
+] as const) {
+  for (const pattern of ["prefix-*", "*/prefix-*", "**/prefix-*"]) {
+    test(`filename expansion uses C UTF-8 byte order: ${pattern} ${names.join(",")}`, async () => {
+      const { shell, fs, commands } = setup({ env: { LC_ALL: "C" } });
+      commands.register(basicCommands().find(command => command.name === "printf")!);
+      const directory = pattern === "prefix-*" ? "" : "nested/";
+      if (directory) await fs.mkdir("/nested", { recursive: true });
+      // Insert in reverse order so provider enumeration cannot supply the answer.
+      for (const name of [...names].reverse()) await fs.writeFile(`/${directory}${name}`, new Uint8Array());
+      try {
+        const result = await shell.exec(`${pattern.startsWith("**") ? "shopt -s globstar; " : ""}printf '%s\\n' ${pattern}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(names.map(name => `${directory}${name}\n`).join("")));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const [source, expected] of [
   ["set -f; printf '<%s>' *.txt", "<*.txt>"],
   ["set -f; args *.txt; set +f; args *.txt", '["*.txt"]["alpha.txt"]'],

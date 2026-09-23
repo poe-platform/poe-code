@@ -49,6 +49,8 @@ export class Formatter {
       if (!options.useSeparator) { options.useSeparator = true; options.separator = options.join ? "\t" : " "; }
       else if (!options.join && options.separator === "\t") options.separator = " ";
       options.truncate = true;
+      // Input tab stops are relative to each column; output stops span the row.
+      options.expand = true;
       options.tabify = true;
     }
     if (options.join) options.truncate = false;

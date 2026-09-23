@@ -40,6 +40,28 @@ test("custom header date requires an argument", async () => {
   } finally { await shell.dispose(); }
 });
 
+for (const [args, stdout] of [
+  ["-T -W 30 -2 data", "a\tb      c       d\n"],
+  ["-T -W 30 -2 -a data", "a\tb      c       d\n"],
+  ["-T -s: -2 data", "a\tb:c\t  d\n"],
+  ["-m -T left data", "LEFT\t\t\t\t    a\t    b\nRIGHT\t\t\t\t    c\t    d\n"],
+  ["-T data", "a\tb\nc\td\n"],
+  ["-T -e8 data", "a       b\nc       d\n"],
+  ["-T -W 30 -2 -e8 data", "a\tb      c       d\n"],
+] as const) test(`input tabs at column-relative stops: ${args}`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/data", Buffer.from("a\tb\nc\td\n"));
+  await fs.writeFile("/work/left", Buffer.from("LEFT\nRIGHT\n"));
+  const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C", TZ: "UTC" } }).use(prCommands());
+  try {
+    const result = await shell.exec(`pr ${args}`);
+    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, {
+      stdout, stderr: "", status: 0,
+    });
+  } finally { await shell.dispose(); }
+});
+
 for (const fixture of extraCases) test(`extra native: ${fixture.name}`, async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work/directory", { recursive: true });

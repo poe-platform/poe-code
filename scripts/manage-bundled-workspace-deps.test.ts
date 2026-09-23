@@ -7,6 +7,7 @@ import {
   collectInstalledDependencyTree,
   createBundledCompositionManifest,
   localizeBundledDependencySpecifiers,
+  omitLocalBundledDependencySpecifiers,
   restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
@@ -272,4 +273,18 @@ it("pins bundled runtime dependencies to shipped directories without public regi
   });
   expect(manifest.optionalDependencies["mcp-oauth"]).toBe("*");
   expect(localizeBundledDependencySpecifiers({}, ["private-package"])).toEqual({});
+});
+
+it("omits shipped file dependencies from registry metadata without changing ordinary bundles", () => {
+  const manifest = {
+    dependencies: { jose: "file:./node_modules/jose", core: "^1.0.0" },
+    optionalDependencies: { internal: "file:./node_modules/internal" },
+    bundleDependencies: ["jose", "internal", "core"]
+  };
+  expect(omitLocalBundledDependencySpecifiers(manifest, ["jose", "internal", "core"])).toEqual({
+    dependencies: { core: "^1.0.0" },
+    bundleDependencies: ["core"]
+  });
+  expect(manifest.optionalDependencies.internal).toBe("file:./node_modules/internal");
+  expect(omitLocalBundledDependencySpecifiers({}, ["internal"])).toEqual({});
 });

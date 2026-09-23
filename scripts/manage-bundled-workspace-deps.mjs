@@ -249,6 +249,31 @@ export function localizeBundledDependencySpecifiers(manifest, dependencyNames) {
   return localized;
 }
 
+// Registry clients resolve dependencies before extracting the tarball. Its local
+// bundle references belong in the packed manifest only, not registry metadata.
+export function omitLocalBundledDependencySpecifiers(manifest, dependencyNames) {
+  const published = structuredClone(manifest);
+  const omitted = new Set();
+  for (const field of ["dependencies", "optionalDependencies"]) {
+    const dependencies = published[field];
+    if (!isObject(dependencies)) continue;
+    for (const name of dependencyNames) {
+      if (dependencies[name] === `file:./node_modules/${name}`) {
+        delete dependencies[name];
+        omitted.add(name);
+      }
+    }
+    if (Object.keys(dependencies).length === 0) delete published[field];
+  }
+  // npm synthesizes wildcard dependencies for names left in either bundle list.
+  for (const field of ["bundleDependencies", "bundledDependencies"]) {
+    if (!Array.isArray(published[field])) continue;
+    published[field] = published[field].filter((name) => !omitted.has(name));
+    if (published[field].length === 0) delete published[field];
+  }
+  return published;
+}
+
 export function sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames) {
   const sanitized = structuredClone(manifest);
   const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
@@ -494,8 +519,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 
   if (mode === "prepare" || mode === "prepare-local") {
     prepare(packageDir, dependencyNames, mode === "prepare-local");
-  } else if (mode !== "cleanup-after-pack" || process.env.npm_command !== "publish") {
-    // npm publish rereads package.json after postpack to build registry metadata.
+  } else if (mode === "cleanup-after-pack" && process.env.npm_command === "publish") {
+    // npm rereads this manifest after postpack. The tarball already contains the
+    // local references and bundled files; registry resolution needs neither.
+    const manifestPath = path.join(packageDir, "package.json");
+    assertSafeBundledPath(packageDir, manifestPath);
+    writeFileSync(manifestPath, `${JSON.stringify(
+      omitLocalBundledDependencySpecifiers(readJson(manifestPath), dependencyNames),
+      null, 2
+    )}\n`, "utf8");
+  } else {
     cleanup(packageDir);
   }
 }

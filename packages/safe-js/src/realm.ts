@@ -30,7 +30,7 @@ import {
 } from "./interp/host-bridge.js";
 import {
   createLiveHostObject,
-  hostObjectGuestRoots,
+  hostObjectGuestRoot,
   createGuestReference,
   exportHostCapability,
   readGuestReference,
@@ -74,6 +74,13 @@ import { describeThrownValue } from "./error/shape.js";
 import { encodeReplayData } from "./snapshot/replay-data.js";
 import type { ConsoleSink } from "./interp/globals/console-json.js";
 import type { RunClock, RunOptions, RunResult } from "./run.js";
+
+const retainedArrayPrototype = Array.prototype;
+const nativeRetainedArrayPrototype = Object.setPrototypeOf;
+const nativeRetainedArrayAppend = Function.prototype.call.bind(Array.prototype.push) as (
+  values: SandboxValue[],
+  value: SandboxValue
+) => number;
 
 export type RealmLimits = {
   extensions?: number;
@@ -310,12 +317,19 @@ class RealmState {
     realm: this.bridge
   });
 
-  retainedRoots = (): SandboxValue[] => [
-    ...Array.from(this.hostObjects).flatMap(hostObjectGuestRoots),
-    ...this.callbacks.values(),
-    ...Array.from(this.pendingCallbacks, (pending) => pending.closure),
-    ...this.guestReferences.values()
-  ];
+  retainedRoots = (): SandboxValue[] => {
+    // Capture the complete ordered snapshot before accounting visits callbacks.
+    // Pinned own-slot writes avoid later Array hooks and inherited index setters.
+    const roots: SandboxValue[] = nativeRetainedArrayPrototype([], null);
+    for (const object of this.hostObjects) {
+      const root = hostObjectGuestRoot(object);
+      if (root !== undefined) nativeRetainedArrayAppend(roots, root);
+    }
+    for (const closure of this.callbacks.values()) nativeRetainedArrayAppend(roots, closure);
+    for (const pending of this.pendingCallbacks) nativeRetainedArrayAppend(roots, pending.closure);
+    for (const reference of this.guestReferences.values()) nativeRetainedArrayAppend(roots, reference);
+    return nativeRetainedArrayPrototype(roots, retainedArrayPrototype);
+  };
 
   captureArguments: RealmBridge["captureArguments"] = (operation, args, copy) => {
     const from = this.retainedOperations.get(operation)?.from ?? args.length;

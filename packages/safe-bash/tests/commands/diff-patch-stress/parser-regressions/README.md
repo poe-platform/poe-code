@@ -16,7 +16,7 @@ dependency closure. A changed source snapshot invalidates a single-version claim
 Every failure remains an assertion failure; no skip, TODO or known-failure exemption.
 Normal patches use the explicit absolute VFS target `/work/target`.
 
-The suite contains 76 product cases (54 handcrafted grammar cases, eight bounded
+The original captured cohort contains 76 product cases (54 handcrafted grammar cases, eight bounded
 deterministic invalid-prefix mutations, 14 budget/cancellation probes), plus four
 version-specific GNU diff-to-patch controls. Valid expected bytes are handcrafted,
 never inferred from product roundtrips. Native observations accompany all 62 grammar
@@ -25,6 +25,26 @@ automatically adopted as the product's strict acceptance policy. For invalid inp
 both original bytes and a filesystem mutation log are checked: a write followed by
 rollback is not a successful preflight rejection. The untouched second target and
 stdout are checked as well. Cancellation includes input and parser-checkpoint aborts.
+
+Issue 580 followup (2026-09-23): the original
+`context-duplicate-newline-marker` bytes are now a successful-input fixture.
+GNU patch 2.7.6 accepts single, duplicate and triple trailing new-side markers
+with both `patch --batch --forward target` (stdin) and
+`patch --batch --forward target input.patch` (positional input). For the fixture's
+`old\nkeep\nend\n` target, each returns 0, prints `patching file target\n`, leaves
+stderr empty, and writes exactly `new\nkeep\nend\n`; at true EOF the result is
+`new` without LF. An unrelated `old\n` file remains unchanged, with no backups or
+rejects. Old-side duplicates and markers before either body fail with status 2
+and unchanged files. The new in-memory tests also assert exact write accounting,
+unchanged patch input, explicit later sections, and atomic rejection of malformed
+later hunks. Historical captures below are preserved.
+
+This qualification used the available GNU patch 2.7.6, not the unavailable pinned
+2.8 executable. Adjacent native behavior is not fully adopted: 2.7.6 treats a
+duplicate marker followed by a bare context hunk delimiter as a new section,
+while the product retains its incomplete-line guard for that form. The matching
+single-marker native probe aborts on an internal assertion. Explicit subsequent
+context, unified and normal file sections are covered by successful product tests.
 
 The eight mutations use a fixed LCG seed `0x73a5c91d`, alternate normal/context seeds,
 and replace a required body prefix with a non-grammar prefix or NUL. They do not

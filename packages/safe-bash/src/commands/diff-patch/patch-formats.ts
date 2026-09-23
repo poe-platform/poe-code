@@ -89,6 +89,10 @@ async function contextSide(reader: Reader, old: boolean, range: Range): Promise<
     lines.push({ kind, text: await reader.content(kind) });
     if (lines.length > reader.budget.limits.maxLines) throw new ToolError("context body line limit exceeded");
   }
+  if (!old && lines.length === count && lines.at(-1)?.text.endsWith("\n") === false) {
+    // GNU accepts surplus markers after the complete new side, preserving its EOF.
+    while (reader.peek() === "\\ No newline at end of file") await reader.take();
+  }
   return lines;
 }
 

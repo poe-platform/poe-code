@@ -26,6 +26,28 @@ test("positional dash reads patch input from stdin", async () => {
   assert.equal(await contents(result.fs, "target"), "new\n");
 });
 
+for (const command of [
+  "patch --batch --forward target",
+  "patch --batch --forward target change.patch",
+  "patch --batch --forward -- target change.patch",
+  "patch --batch --forward --input=change.patch target",
+  "patch --batch --forward target -",
+]) {
+  test(`duplicate context newline markers through Shell: ${command}`, async () => {
+    const input = "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n"
+      + "\\ No newline at end of file\n\\ No newline at end of file\n";
+    const fs = await filesystem({ target: "old\nkeep\nend\n", other: "old\n", "change.patch": input });
+    const result = await new Shell({ fs, cwd: "/work" }).use(diffPatchCommands()).exec(command, { stdin: input });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "patching file target\n");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await namespace(fs), {
+      files: { target: "new\nkeep\nend\n", other: "old\n", "change.patch": input },
+      directories: [], rootExists: true,
+    });
+  });
+}
+
 test("more than two patch operands fail without changing the target", async () => {
   const result = await run("patch", ["target", "change.patch", "extra"], { files: { target: "old\n", "change.patch": replacement } });
   assert.equal(result.exitCode, 2);

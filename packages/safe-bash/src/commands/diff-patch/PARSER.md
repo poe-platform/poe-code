@@ -40,6 +40,16 @@ coordinates are now judged by GNU placement/applicability in both modes, not
 rejected merely by the parser. An old-coordinate zero-range insertion after an
 earlier edit can be valid; a genuinely conflicting overlap becomes a hunk reject.
 
+Repeated exact `\ No newline at end of file` markers after a complete, nonempty
+new context side are accepted. The first marker retains its incomplete-line
+meaning; extra markers consume the existing work/cancellation budget without
+changing replacement bytes. Markers before a body, duplicates on the old side,
+and markers before the declared new-side count is satisfied still fail. Later
+explicit file sections remain visible to parsing and atomic preflight.
+This acceptance was qualified with GNU patch 2.7.6; see the
+[marker qualification](../../../tests/commands/diff-patch-stress/parser-regressions/README.md)
+for the measured routes and adjacent limits.
+
 GNU Diffutils 3.12 documents `--suppress-blank-empty` for these formats in its
 “Omitting trailing blanks” section. The frozen independent native evidence shows
 GNU patch 2.8 rejects its own normal-format generated case; this implementation

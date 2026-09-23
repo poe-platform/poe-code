@@ -52,3 +52,11 @@ delivery, hard escalation, status selection and child cleanup. It must honor
 `context.signal`, register cooperative cleanup before resource acquisition, and
 settle only after owned work is retired. Supplying the callback does not confer
 capabilities on a host. Duration zero bypasses the policy and invokes normally.
+
+`--foreground` (`-f`) accepts the existing caller-scoped virtual invocation:
+the wrapper does not create a process group or change terminal ownership.
+It retains the same cooperative deadline and child status behavior, including
+`--preserve-status` and `--signal`. It does not provide native TTY or process-group
+control, and it cannot stop uncooperative host work.
+When combined with a configured `killAfterPolicy`, the policy receives
+`foreground: true` so the host can apply its actual foreground execution policy.

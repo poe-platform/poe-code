@@ -91,7 +91,7 @@ export async function* adaptCodex(
 
     if (eventType === "turn.failed" || eventType === "error") {
       const message = extractErrorMessage(event) ?? "Turn failed";
-      yield { event: "error", message };
+      yield { event: "error", message: explainEscalationPolicyRejection(message) };
       continue;
     }
 
@@ -158,7 +158,7 @@ export async function* adaptCodex(
 
     if (eventType === "item.completed") {
       if (itemType === "error" && isNonEmptyString(item.message)) {
-        yield { event: "error", message: item.message };
+        yield { event: "error", message: explainEscalationPolicyRejection(item.message) };
         continue;
       }
       if (itemType === "agent_message") {
@@ -234,6 +234,17 @@ use a host that supports bubblewrap and the required sandbox policy.`
       }
     }
   }
+}
+
+function explainEscalationPolicyRejection(message: string): string {
+  if (!message.toLowerCase().includes("active permission policy prohibits granting escalation")) return message;
+  return `${message}
+Escalation is unavailable under the active policy. For an authorized command,
+use normal sandbox execution with sandbox_permissions: "use_default"
+only if the active sandbox permits that command. This does not guarantee network access.
+If the sandboxed command also fails, report that permission or transport failure separately;
+earlier approvals and cached results do not establish current access or readiness.
+Do not bypass the policy or retry automatically outside the sandbox.`;
 }
 
 function extractErrorMessage(event: CodexEvent): string | undefined {

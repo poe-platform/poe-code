@@ -897,6 +897,22 @@ describe("adaptCodex", () => {
     ]);
   });
 
+  it.each([
+    { type: "error", message: "The active permission policy prohibits granting escalation." },
+    { type: "turn.failed", error: { message: "The active permission policy prohibits granting escalation." } },
+    { type: "item.completed", item: { type: "error", message: "The active permission policy prohibits granting escalation." } }
+  ])("explains the sandbox lane after an escalation policy rejection (%j)", async (payload) => {
+    const events = await collect(adaptCodex(fromArray([JSON.stringify(payload)])));
+    expect(events).toEqual([{ event: "error", message: expect.stringContaining("The active permission policy prohibits granting escalation.") }]);
+    const diagnostic = events[0];
+    if (diagnostic.event !== "error") throw new Error("Missing policy diagnostic");
+    expect(diagnostic.message).toContain('sandbox_permissions: "use_default"');
+    expect(diagnostic.message).toContain("only if the active sandbox permits that command");
+    expect(diagnostic.message).toContain("does not guarantee network access");
+    expect(diagnostic.message).toContain("transport failure separately");
+    expect(diagnostic.message).toContain("Do not bypass the policy");
+  });
+
   it("emits turn.failed as ErrorEvent with fallback message", async () => {
     const updates = await collect(adaptCodex(fromArray(['{"type":"turn.failed"}'])));
     expect(updates).toEqual([{ event: "error", message: "Turn failed" }]);

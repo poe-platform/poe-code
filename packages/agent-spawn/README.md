@@ -54,6 +54,13 @@ retry commands, switch to unrestricted mode, or bypass managed requirements.
 With `approval_policy=never`, or when managed policy forbids escalation, use a
 host supporting bubblewrap and the required sandbox policy.
 
+When Codex reports that the active permission policy prohibits granting escalation,
+Poe Code preserves the denial and recommends normal sandbox execution with
+`sandbox_permissions: "use_default"` only when the sandbox permits the authorized
+command. This does not guarantee network access. Report a sandboxed transport
+failure separately; earlier approvals or cached PR status do not verify current
+access or readiness. Poe Code does not change the reviewer or automatically retry.
+
 If a separately launched Codex session fails before executing a command with
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected
 bubblewrap's network namespace initialization. Verify the compatibility path

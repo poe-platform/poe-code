@@ -2,6 +2,69 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { archive, binary, fixture, member, record, wrapped } from "./helpers.js";
 
+test("creation admits sorting, dereference and cache exclusion on regular operands", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/file", binary);
+    for (const option of ["--sort=name", "--sort none", "--dereference", "-h", "--exclude-caches"]) {
+      const result = await shell.exec(`tar -cf archive ${option} file`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal((await shell.exec("tar -tf archive")).stdout, "file\n");
+    }
+    assert.equal((await shell.exec("tar -cf archive --sort=invalid file")).exitCode, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("name sorting orders directory children while preserving operand order", async () => {
+  const { fs } = await fixture();
+  await fs.mkdir("/work/dir");
+  for (const name of ["z", "a", "B"]) await fs.writeFile(`/work/dir/${name}`, binary);
+  const { shell } = await fixture({}, wrapped(fs, {
+    readdir: async (path, options) => (await fs.readdir(path, options)).sort((a, b) => b.name.localeCompare(a.name)),
+  }));
+  try {
+    const result = await shell.exec("tar -cf archive --sort=name dir/z dir");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await shell.exec("tar -tf archive")).stdout, "dir/z\ndir/\ndir/B\ndir/a\ndir/z\n");
+  } finally { await shell.dispose(); }
+});
+
+test("dereference archives referent content and directories and rejects cycles and output aliases", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.mkdir("/work/dir");
+    await fs.writeFile("/work/dir/file", binary);
+    await fs.symlink!("dir", "/work/link");
+    const created = await shell.exec("tar -cf archive --dereference link");
+    assert.equal(created.exitCode, 0, created.stderr);
+    assert.equal((await shell.exec("tar -tf archive")).stdout, "link/\nlink/file\n");
+    assert.equal((await shell.exec("tar -xf archive -C /out")).exitCode, 0);
+    assert.deepEqual(await fs.readFile("/out/link/file"), binary);
+    await fs.symlink!("..", "/work/dir/cycle");
+    assert.equal((await shell.exec("tar -cf failed --dereference dir")).exitCode, 2);
+    await assert.rejects(fs.stat("/work/failed"));
+    await fs.symlink!("archive", "/work/output-link");
+    const before = await fs.readFile("/work/archive");
+    assert.equal((await shell.exec("tar -cf archive -h output-link")).exitCode, 2);
+    assert.deepEqual(await fs.readFile("/work/archive"), before);
+  } finally { await shell.dispose(); }
+});
+
+test("cache exclusion retains tagged directories and tag files but omits their other contents", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    for (const name of ["cache", "ordinary"]) {
+      await fs.mkdir(`/work/${name}`);
+      await fs.writeFile(`/work/${name}/file`, binary);
+      await fs.writeFile(`/work/${name}/CACHEDIR.TAG`, Buffer.from(name === "cache"
+        ? "Signature: 8a477f597d28d172789f06886806bc55\n# cache\n" : "invalid tag"));
+    }
+    const created = await shell.exec("tar -cf archive --sort=name --exclude-caches cache ordinary");
+    assert.equal(created.exitCode, 0, created.stderr);
+    assert.equal((await shell.exec("tar -tf archive")).stdout, "cache/\ncache/CACHEDIR.TAG\nordinary/\nordinary/CACHEDIR.TAG\nordinary/file\n");
+  } finally { await shell.dispose(); }
+});
+
 test("tar lists transformed names only when requested, selecting original names", async () => {
   const { shell } = await fixture();
   try {

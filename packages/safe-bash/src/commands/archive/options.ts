@@ -15,6 +15,9 @@ export interface TarOptions {
   cwd: string;
   operands: Operand[];
   excludes: string[];
+  sort: "none" | "name";
+  dereference: boolean;
+  excludeCaches: boolean;
   metadata: { mtime?: number; uid?: number; gid?: number; mode?: number; touch?: boolean; permissions?: boolean; fullTime?: boolean; delayDirectories?: boolean; preserveAtime?: boolean };
   overwrite: "replace" | "keep" | "skip";
 }
@@ -26,6 +29,9 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let compression: TarOptions["compression"];
   let autoCompress = false;
   let verbose = false;
+  let sort: TarOptions["sort"] = "none";
+  let dereference = false;
+  let excludeCaches = false;
   let showTransformedNames = false;
   const transforms: NameTransform[] = [];
   let overwrite: TarOptions["overwrite"] = "replace";
@@ -92,6 +98,12 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       compression = selected;
     } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
+    else if (flag === "sort") {
+      if (value !== "name" && value !== "none") fail(`unsupported sort order: ${value}`);
+      sort = value;
+    }
+    else if (flag === "h" || flag === "dereference") dereference = true;
+    else if (flag === "exclude-caches") excludeCaches = true;
     else if (flag === "show-transformed-names") showTransformedNames = true;
     else if (flag === "transform") transforms.push(...parseTransform(value!));
     else if (flag === "atime-preserve") {
@@ -140,7 +152,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else fail(`unsupported option: ${flag}`);
   };
   const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", xform: "transform" };
-  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode"]);
+  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
@@ -156,7 +168,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTmpk".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTmpkh".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -183,7 +195,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, metadata, overwrite };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

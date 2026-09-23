@@ -82,6 +82,8 @@ filesystem and byte streams, not host executables.
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
+Tar creation also accepts `--sort=name` (bytewise directory-child order; operand order stays unchanged), `--sort=none` (default), `--dereference` / `-h` (archive symbolic-link targets), and `--exclude-caches` (retain directories with a valid `CACHEDIR.TAG` and their tag files, omitting other contents). Dereferencing retains backend containment and output-archive checks and rejects directory cycles.
+
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 `factor --exponents 72` prints `72: 2^3 3^2`; without operands, it reads numbers from stdin.
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined

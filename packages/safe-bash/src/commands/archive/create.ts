@@ -27,13 +27,18 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
   }
   const identities = new Map<object | symbol, Map<string, Map<string, SourceEntry>>>();
   const bindings = new Map<string, { scope: object | symbol; key: string }>();
-  const visit = async (path: string, name: string, depth: number, explicit: boolean): Promise<void> => {
+  const visit = async (path: string, name: string, depth: number, explicit: boolean, ancestors: readonly string[]): Promise<void> => {
     checkPath(name, budget.limits);
     if (depth > budget.limits.maxDepth) fail("source traversal depth limit exceeded");
     await budget.member();
     if (exclusions.matches(name)) return;
-    const stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
+    let stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
+    if (stat.type === "symlink" && options.dereference) {
+      path = await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
+      stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
+    }
     const canonical = stat.type === "symlink" ? path : await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
+    if (stat.type === "directory" && ancestors.includes(canonical)) fail(`source directory cycle: ${display(name)}`);
     if (output && (canonical === output || (outputStat && sameIdentity(stat, outputStat)))) {
       if (explicit) fail(`input is the output archive: ${display(name)}`);
       await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: file is the archive; not included\n`, true);
@@ -90,9 +95,26 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (stat.type === "directory") {
       const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal }));
       if (children.length > budget.limits.maxMembers - budget.members) fail("member/header limit exceeded");
+      if (options.sort === "name") children.sort((a, b) => Buffer.compare(Buffer.from(a.name), Buffer.from(b.name)));
+      let cache = false;
+      if (options.excludeCaches && children.some(child => child.name === "CACHEDIR.TAG")) {
+        const tag = resolvePath(canonical, "CACHEDIR.TAG");
+        const tagStat = await operation(context, () => context.fs.stat(tag, { signal: context.signal }));
+        if (tagStat.type === "file") {
+          const signature = Buffer.from("Signature: 8a477f597d28d172789f06886806bc55");
+          let offset = 0;
+          for await (const chunk of readBytes(fileSource(context, tag, budget.limits), context.signal)) {
+            const length = Math.min(chunk.length, signature.length - offset);
+            if (!Buffer.from(chunk.subarray(0, length)).equals(signature.subarray(offset, offset + length))) break;
+            offset += length;
+            if (offset === signature.length) { cache = true; break; }
+          }
+        }
+      }
       for (const child of children) {
         if (!child.name || child.name === "." || child.name === ".." || /[/\0]/u.test(child.name)) fail("invalid filesystem directory entry");
-        await visit(resolvePath(canonical, child.name), `${entry.name}${child.name}`, depth + 1, false);
+        if (cache && child.name !== "CACHEDIR.TAG") continue;
+        await visit(resolvePath(canonical, child.name), `${entry.name}${child.name}`, depth + 1, false, [...ancestors, canonical]);
       }
     }
   };
@@ -101,7 +123,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (base.type !== "directory") fail(`not a directory: ${display(operand.cwd)}`);
     if (operand.name.startsWith("/")) await budget.output("tar: removing leading '/' from member names\n", true);
     if (operand.name.split("/").includes("..")) await budget.output("tar: removing member-name prefix through '..'\n", true);
-    await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true);
+    await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, []);
   }
   return { entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
 }

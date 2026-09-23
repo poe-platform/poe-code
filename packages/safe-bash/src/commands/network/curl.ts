@@ -338,7 +338,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         })();
         try {
         response = await operation.acquire(async () => {
-          const acquired = await transport({ url: currentUrl, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
+          const acquired = await transport({ url: currentUrl, method, headers, signal, responseBodyMode: args.download && method === "HEAD" || args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
             ...(args.httpVersion === undefined ? {} : { httpVersion: args.httpVersion }),
             ...(args.ignoreContentLength ? { ignoreContentLength: true as const } : {}),
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
@@ -439,18 +439,19 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       if (resumeOffset && args.continueAt !== undefined && !append) throw new CurlError(33, "Server does not support resuming this transfer");
       if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
       const suppressBody = response.status === 304 || args.fail && failure !== undefined;
+      const readBody = !(args.download && method === "HEAD") && !args.head && !suppressBody;
       let published = 0;
       if (!args.download?.spider && (!suppressBody || included.length)) {
         if (args.download && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });
         const length = args.ignoreContentLength ? undefined : header(response.headers, "content-length");
-        if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
+        if (readBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
         const final = response;
         const encoding = header(final.headers, "content-encoding");
         const writing = output === undefined || output === "-" ? createOutputOperation({ ...context, signal }, context.stdout) : undefined;
         const bodySignal = writing?.signal ?? signal;
         const source: ByteSource = (async function* () {
           for (const bytes of included) { published += bytes.length; yield bytes; }
-          if (!args.head && !suppressBody) {
+          if (readBody) {
             if (args.raw && final.contentDecoded && encoding) throw new CurlError(61, "Transport cannot preserve encoded response bytes");
             if (args.raw && header(final.headers, "transfer-encoding")) throw new CurlError(61, "Raw transfer encoding is unsupported by this transport");
             let chunks = 0;

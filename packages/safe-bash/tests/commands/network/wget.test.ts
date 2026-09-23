@@ -18,6 +18,51 @@ async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   return { shell, fs, requests };
 }
 
+for (const method of ['--method HEAD', '--method=head', '--method GET']) {
+  for (const output of ['-O -', '--output-document="changed response"']) {
+    test(`wget representation length without a HEAD body: ${method} ${output}`, async () => {
+      const representation = Uint8Array.of(0, 243, 97, 10);
+      const methods: string[] = [];
+      const endpoint = await server((request, response) => {
+        methods.push(request.method!);
+        response.writeHead(200, { 'Content-Length': representation.length, 'Content-Type': 'application/octet-stream' });
+        response.end(request.method === 'HEAD' ? undefined : representation);
+        return true;
+      });
+      const { shell, fs } = await fixture({ transport: createNodeHttpTransport() });
+      try {
+        const result = await shell.exec(`wget -q --tries=1 ${output} ${method} ${endpoint.origin}/resource`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, '');
+        const expected = method.includes('GET') ? representation : new Uint8Array();
+        assert.deepEqual(methods, [method.includes('GET') ? 'GET' : 'HEAD']);
+        if (output === '-O -') assert.deepEqual(result.stdoutBytes, expected);
+        else {
+          assert.equal(result.stdout, '');
+          assert.deepEqual(await fs.readFile('/work/changed response'), expected);
+        }
+      } finally { await shell.dispose(); await endpoint.close(); }
+    });
+  }
+}
+
+test('wget HEAD omits transport bodies and ignores representation download size', async () => {
+  const { shell, fs } = await fixture({ limits: { maxDownloadBytes: 2 }, transport: async request => {
+    assert.equal(request.method, 'HEAD');
+    assert.equal(request.responseBodyMode, 'omit');
+    return { status: 200, statusText: 'OK', headers: [['Content-Length', '100']],
+      body: { [Symbol.asyncIterator](): AsyncIterator<Uint8Array> { throw new Error('HEAD body must not be read'); } }, async dispose() {} };
+  } });
+  await fs.writeFile('/work/result', Uint8Array.of(1));
+  try {
+    const result = await shell.exec('wget -q --tries=1 -O result --method HEAD https://example.test/resource');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, '');
+    assert.deepEqual(await fs.readFile('/work/result'), new Uint8Array());
+  } finally { await shell.dispose(); }
+});
+
 for (const flag of ['--spider', '--continue', '--no-clobber', '--directory-prefix=sub', '--input-file=urls.txt', '--content-disposition', '-T2 -t1']) {
   test(`wget download controls: ${flag}`, async () => {
     const { shell, fs, requests } = await fixture();

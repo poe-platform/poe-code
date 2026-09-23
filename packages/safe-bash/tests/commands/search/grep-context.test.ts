@@ -107,7 +107,7 @@ test("grep bounds retained before-context bytes and closes input on overflow", a
       async terminate() {},
     });
   } });
-  const result = await run(createGrepCommands(executor, { maxLineBytes: 1024 * 1024 })[0]!, ["-F", "-B1000", "alpha"], source);
+  const result = await run(createGrepCommands(executor, { maxContextBytes: 1024 * 1024 })[0]!, ["-F", "-B1000", "alpha"], source);
   await executor.dispose();
   assert.equal(result.code, 2);
   assert.equal(result.stdout.length, 0);

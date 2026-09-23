@@ -9,6 +9,7 @@ export interface GrepLimits {
   readonly maxPatterns?: number;
   readonly maxPatternBytes?: number;
   readonly maxLineBytes?: number;
+  readonly maxContextBytes?: number;
   readonly maxFileBytes?: number;
 }
 
@@ -200,7 +201,7 @@ inspect the resulting state before repeating the action.
                     pending.delete(oldest);
                   }
                   const size = line.bytes.length + 1;
-                  if (size > (limits.maxLineBytes ?? Infinity) - pendingBytes) throw new UsageError(`context byte limit exceeded (${bufferLimit} bytes)`);
+                  if (size > (limits.maxContextBytes ?? Infinity) - pendingBytes) throw new UsageError(`context byte limit exceeded (${limits.maxContextBytes} bytes)`);
                   pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated, offset: byteOffset });
                   pendingBytes += size;
                 }

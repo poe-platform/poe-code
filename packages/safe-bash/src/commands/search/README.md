@@ -25,11 +25,14 @@ not require a new registry or plugin lifecycle contract.
 | `defaultInput` | `"auto"` | Choose `"auto"`, `"stdin"`, or `"cwd"` when no paths are supplied. |
 | `maxOutputBytes` | unlimited | Maximum stdout bytes; a write that would exceed this limit is not performed. Diagnostics use stderr separately. |
 | `maxLineBytes` | unlimited | Maximum record content bytes. |
+| `maxPatternBytes` | unlimited | Maximum cumulative pattern bytes from argv and pattern files. |
 | `maxFileBytes` | unlimited | Maximum bytes read from each data source, also the retained before-context byte limit. |
 | `maxFiles` | unlimited | Maximum visited roots and directory entries, including entries later filtered out. |
 | `regex` | See `../regex-execution/README.md` | Optional matcher timeouts, worker and queue budgets; automatic idle retirement. |
 
 Omitted resource budgets are unlimited; each supplied budget is independent.
+The `grepCommands` factory also accepts independent `maxPatterns`,
+`maxPatternBytes`, `maxLineBytes`, `maxFileBytes`, and `maxContextBytes` budgets.
 Finite numeric limits must be positive safe integers. They limit individual buffers and
 operations, not total process memory or adapter allocations. The separate
 `regex` policy bounds active content-matcher requests, not whole invocations.

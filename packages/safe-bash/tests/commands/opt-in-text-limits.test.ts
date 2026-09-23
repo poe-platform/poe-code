@@ -168,3 +168,13 @@ test("awk high precision preserves integer places and honors exact output budget
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout.length, 103);
 });
+
+test("grep line and retained-context budgets are independent", async () => {
+  const args = ["-B2", "hit"];
+  const unlimited = await run("grep", args, { stdin: "aa\nbb\nhit\n", commands: grepCommands({ maxLineBytes: 3 }) });
+  assert.equal(unlimited.exitCode, 0, unlimited.stderr);
+  assert.equal(unlimited.stdout, "aa\nbb\nhit\n");
+  const limited = await run("grep", args, { stdin: "aa\nbb\nhit\n", commands: grepCommands({ maxContextBytes: 3 }) });
+  assert.equal(limited.exitCode, 2);
+  assert.match(limited.stderr, /context byte limit exceeded \(3 bytes\)/);
+});

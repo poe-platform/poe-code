@@ -9,11 +9,12 @@ export interface GrepCommandsOptions extends RegexExecutionOptions, GrepLimits {
 }
 
 export function grepCommands(options: GrepCommandsOptions = {}): CommandDefinition[] {
-  const { regexExecutor, maxPatterns, maxPatternBytes, maxLineBytes, maxFileBytes, ...regex } = options;
+  const { regexExecutor, maxPatterns, maxPatternBytes, maxLineBytes, maxContextBytes, maxFileBytes, ...regex } = options;
   const provider = regexExecutor === undefined ? createBoundedRegexProvider() : regexExecutor;
   return createGrepCommands(new RegexExecutor(provider, regex), {
     ...(maxPatterns === undefined ? {} : { maxPatterns }),
     ...(maxPatternBytes === undefined ? {} : { maxPatternBytes }),
+    ...(maxContextBytes === undefined ? {} : { maxContextBytes }),
     ...(maxLineBytes === undefined ? {} : { maxLineBytes }),
     ...(maxFileBytes === undefined ? {} : { maxFileBytes }),
   });

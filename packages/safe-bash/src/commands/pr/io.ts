@@ -114,14 +114,15 @@ export class Reader {
         else {
           const maximum = Math.min(budget.limits.maxInputBytes, Math.floor(budget.limits.maxBufferedBytes / 2));
           budget.check(this.stat!.size, maximum, "buffered input bytes");
-          budget.retain(maximum);
-          this.snapshotBytes = maximum;
+          const reserved = Number.isFinite(maximum) ? maximum : 0;
+          budget.retain(reserved);
+          this.snapshotBytes = reserved;
           const readFile = fs.readFile;
           this.lifecycle.assertOpen();
-          const content = await Reflect.apply(readFile, fs, [this.path, { signal: budget.signal, maxBytes: maximum }]);
+          const content = await Reflect.apply(readFile, fs, [this.path, { signal: budget.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) }]);
           if (!(content instanceof Uint8Array)) throw new TypeError("pr input requires bytes");
           budget.check(content.length, maximum, "buffered input bytes");
-          budget.retain(content.length - maximum);
+          budget.retain(content.length - reserved);
           this.snapshotBytes = content.length;
           const { releaseSnapshot } = this;
           source = { async *[Symbol.asyncIterator]() { try { yield content; } finally { releaseSnapshot(); } } };

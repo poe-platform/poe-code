@@ -24,6 +24,7 @@ for (const reason of [false, 0, "", null, "dispose"] as const) {
     let reads = 0, completed = false, settled = false, disposed = false;
     let operationSignal: AbortSignal | undefined;
     fs.readFile = async (path, options) => {
+      assert.equal(options?.maxBytes, undefined);
       reads++;
       operationSignal = options?.signal;
       entered.resolve();

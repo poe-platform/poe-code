@@ -20002,6 +20002,168 @@
           ]
         }
       ]
+    },
+    {
+      "id": "perl-raw-results",
+      "profileId": "gnumeric-1.12.61-optional-perl-samples",
+      "filename": "perl-raw-results.gnumeric",
+      "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230223e3d22657870616e6465642d39223c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22312220436f6c3d2230223e3d22657870616e6465642d313139223c2f43656c6c3e3c43656c6c20526f773d22312220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22612a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22322220436f6c3d2230223e3d22657870616e6465642d313431223c2f43656c6c3e3c43656c6c20526f773d22322220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22613f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22332220436f6c3d2230223e3d22657870616e6465642d313532223c2f43656c6c3e3c43656c6c20526f773d22332220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22612a3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22342220436f6c3d2230223e3d22657870616e6465642d313734223c2f43656c6c3e3c43656c6c20526f773d22342220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22613f3f222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22352220436f6c3d2230223e3d22657870616e6465642d313936223c2f43656c6c3e3c43656c6c20526f773d22352220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22617b302c327d222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22362220436f6c3d2230223e3d22657870616e6465642d323430223c2f43656c6c3e3c43656c6c20526f773d22362220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22283f3a617c6162292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22372220436f6c3d2230223e3d22657870616e6465642d323733223c2f43656c6c3e3c43656c6c20526f773d22372220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c227c61222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22382220436f6c3d2230223e3d22657870616e6465642d323834223c2f43656c6c3e3c43656c6c20526f773d22382220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22617c222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d22392220436f6c3d2230223e3d22657870616e6465642d333137223c2f43656c6c3e3c43656c6c20526f773d22392220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c2228613f292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231302220436f6c3d2230223e3d22657870616e6465642d333238223c2f43656c6c3e3c43656c6c20526f773d2231302220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c2228612a292a222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231312220436f6c3d2230223e3d22657870616e6465642d343933223c2f43656c6c3e3c43656c6c20526f773d2231312220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c225c5c42222c2224315c5c6e22293c2f43656c6c3e3c43656c6c20526f773d2231322220436f6c3d2230223e3d22657870616e6465642d363033223c2f43656c6c3e3c43656c6c20526f773d2231322220436f6c3d2231223e3d5045524c5f5345442822c3a462c3a9222c22283f216129222c2224315c5c6e22293c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+      "inputSha256": "6fe90732fc0ebee217bbf01424263656ac3f950d79f98e1bffd1a195368a7790",
+      "caseCount": 13,
+      "logicalFields": 26,
+      "cases": [
+        {
+          "id": "expanded-9",
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"\",\"$1\\\\n\")"
+        },
+        {
+          "id": "expanded-119",
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "612a",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a*\",\"$1\\\\n\")"
+        },
+        {
+          "id": "expanded-141",
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "613f",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a?\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-152",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "612a3f",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a*?\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-174",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "613f3f",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a??\",\"$1\\\\n\")"
+        },
+        {
+          "id": "expanded-196",
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "617b302c327d",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a{0,2}\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-240",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "283f3a617c6162292a",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"(?:a|ab)*\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-273",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "7c61",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"|a\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-284",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "617c",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"a|\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-317",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "28613f292a",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"(a?)*\",\"$1\\\\n\")"
+        },
+        {
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "id": "expanded-328",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "28612a292a",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"(a*)*\",\"$1\\\\n\")"
+        },
+        {
+          "id": "expanded-493",
+          "outputHex": "24315c6ec324315c6ea462c324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "5c42",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"\\\\B\",\"$1\\\\n\")"
+        },
+        {
+          "id": "expanded-603",
+          "outputHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+          "argumentsHex": [
+            "c3a462c3a9",
+            "283f216129",
+            "24315c6e"
+          ],
+          "formula": "=PERL_SED(\"äbé\",\"(?!a)\",\"$1\\\\n\")"
+        }
+      ],
+      "sourceBinding": {
+        "path": "docs/ssconvert/perl-sed-gap-proof.json",
+        "sha256": "c9b84134b731d448c6c4c4ad599a595dc2db58221d5c82987b1806213fcd3787"
+      },
+      "scope": "Previously excluded 13 malformed UTF8 results from valid UTF8 Perl inputs; actual Linux native bytes must be captured independently. Portable/source outputs are controls only.",
+      "sourceCandidateCsvHex": "657870616e6465642d392c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3131392c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3134312c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3135322c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3137342c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3139362c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3234302c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3237332c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3238342c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3331372c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3332382c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a657870616e6465642d3439332c24315c6ec324315c6ea462c324315c6ea924315c6e0a657870616e6465642d3630332c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e0a",
+      "captures": [
+        {
+          "label": "perl-raw-results",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
     }
   ],
   "numericSourceBindings": [

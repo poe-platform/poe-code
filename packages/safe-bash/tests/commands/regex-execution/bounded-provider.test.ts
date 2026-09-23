@@ -27,6 +27,18 @@ const literal = (kind: "grep" | "rg", patterns: string[], whole = false): Descri
   ? grep(patterns.map(pattern => Buffer.from(pattern).toString("latin1")), { fixed: true, whole })
   : { kind, patterns, fixed: true, case: "sensitive", whole, word: false, nullData: false };
 
+test("an explicit source byte limit does not impose a translated glob byte limit", async () => {
+  const descriptor: Descriptor = { kind: "glob", patterns: ["?".repeat(40)], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };
+  for (const options of [{}, { maxPatternBytes: 80 }]) {
+    const reply = await run({ id: 1, descriptor, rows: [{ bytes: new Uint8Array(Buffer.from("a".repeat(40), "utf16le")), all: false, terminated: false }] }, options);
+    assert.deepEqual(spans(reply), [[0, 0]]);
+  }
+});
+
+test("source byte limits admit multiple whole-line regexes without charging generated anchors", async () => {
+  assert.deepEqual(spans(await run(request(grep(["a", "b"], { whole: true }), ["a", "b"]), { maxPatternBytes: 2 })), [[0, 1], [0, 1]]);
+});
+
 async function exchange(worker: RegexWorker, input: RegexWorkerRequest): Promise<Reply> {
   return new Promise((resolve, reject) => {
     const listener = (value: unknown) => {

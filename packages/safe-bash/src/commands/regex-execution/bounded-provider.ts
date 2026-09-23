@@ -152,7 +152,9 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     bytes += length;
   }
   const ledger = new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }, {
-    patternBytes: limits.maxPatternBytes + (selected.kind === "glob" ? 32 : selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
+    // Glob source bytes were admitted above; generated ERE bytes are governed
+    // by the explicit work and allocation budgets.
+    patternBytes: selected.kind === "glob" ? Infinity : limits.maxPatternBytes + (selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
     work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
   });
   // Include snapshots, row/result metadata and worst-case match storage before copying.

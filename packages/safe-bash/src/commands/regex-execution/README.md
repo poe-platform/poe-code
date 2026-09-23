@@ -72,11 +72,12 @@ second allowance, descriptor-session allowance or exact wall-clock SLA. Host
 event-loop scheduling and worker termination can delay observed completion.
 An ordinary expensive expression may now fail with a resource diagnostic.
 
-No prototype 16-pattern, 256KiB UTF-16, 4096-hit, 64KiB-result, 8MiB-input,
-4MiB-output or 1024-call cap is inherited. Grep retains its 32MiB record/pattern-
-file collection and 65,536-code-unit translated nonfixed-pattern limit; it has
-no new pattern-count/hit-count cap. Rg retains 1024 patterns, 8192 UTF-8 bytes per
-pattern and its configured line/file/output limits.
+Resource quotas are unlimited when omitted. Grep and rg accept optional source,
+record, file and output limits through their command configuration. Regex
+providers independently accept explicit work, state, allocation and queue
+limits. Setting one allowance leaves omitted allowances unlimited. Glob source
+byte limits apply to the supplied glob; generated regex storage and work follow
+the provider's explicit allocation and work settings.
 Worker memory exhaustion remains a resource failure rather than semantic success.
 
 `worker_threads.resourceLimits` constrain selected JS-engine resources, not
@@ -143,8 +144,8 @@ Rule batches target 128 predicates or 64KiB accounted input (one larger valid
 predicate remains intact). CLI rules preserve order; ignore batches group only
 equal adjacent priorities and skip lower-priority groups after a higher match.
 No later filename is read or tested to fill a batch. Worker leases are released
-before VFS/input/output awaits. Existing glob limits (1024 CLI rules, 8192 UTF16
-code units per glob, nesting 8, 10000 ignore rules, 1MiB ignore files) remain.
+before VFS/input/output awaits. Glob rules and ignore files have no implicit
+resource quotas.
 This trades per-path request overhead for containment; it is not a speed claim.
 
 Available complete records from one already-read chunk share requests (targets:

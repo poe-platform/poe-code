@@ -8,6 +8,45 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const strip of ["", "--strip"]) {
+  for (const [strict, permissive] of [
+    ["-m -e", "-e -m"],
+    ["-me", "-em"],
+    ["--canonicalize-missing --canonicalize-existing", "--canonicalize-existing --canonicalize-missing"],
+    ["-e -m -e", "-m -e -m"],
+    ["-m --canonicalize-existing", "-e --canonicalize-missing"],
+  ]) {
+    test(`realpath ${strip} uses the last canonicalization mode: ${strict}`, async context => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/work/Changed folder", { recursive: true });
+      await fs.writeFile("/work/Changed folder/Existing.dat", new TextEncoder().encode("fixture"));
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      context.after(() => shell.dispose());
+      for (const operand of ["Changed folder/Absent.dat", "Absent folder/Absent.dat"]) {
+        const rejected = await shell.exec(`realpath ${strip} ${strict} --relative-to=. -- '${operand}'`);
+        assert.equal(rejected.exitCode, 1);
+        assert.equal(rejected.stdout, "");
+        assert.match(rejected.stderr, /realpath: .*no such file or directory/iu);
+        const accepted = await shell.exec(`realpath ${strip} ${permissive} --relative-to=. -- '${operand}'`);
+        assert.equal(accepted.exitCode, 0, accepted.stderr);
+        assert.equal(accepted.stdout, `${operand}\n`);
+        assert.equal(accepted.stderr, "");
+      }
+      const existing = await shell.exec(`realpath ${strip} ${strict} --relative-to=. -- 'Changed folder/Existing.dat'`);
+      assert.equal(existing.exitCode, 0, existing.stderr);
+      assert.equal(existing.stdout, "Changed folder/Existing.dat\n");
+      for (const relative of ["--relative-to", "--relative-base"]) {
+        const rejected = await shell.exec(`realpath ${strip} ${strict} ${relative}='/Absent base' /work`);
+        assert.equal(rejected.exitCode, 1);
+        assert.equal(rejected.stdout, "");
+        const accepted = await shell.exec(`realpath ${strip} ${permissive} ${relative}='/Absent base' /work`);
+        assert.equal(accepted.exitCode, 0, accepted.stderr);
+        assert.equal(accepted.stdout, relative === "--relative-to" ? "../work\n" : "/work\n");
+      }
+    });
+  }
+}
+
 function observe(fs: FileSystem, refuse = false) {
   const calls: { method: string; path: string }[] = [];
   const view = new Proxy(fs, { get(target, property) {

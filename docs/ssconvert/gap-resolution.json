@@ -204,7 +204,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 name records, WK3 op7/8 coordinate conversion and standard function names delivered; aggregate expression admission fixed. Local/wider profiles, dynamic namespace edits and cross-sheet-copy behavior remain unqualified.",
+      "currentFinding": "WK1/WK3 name records, WK3 op7/8 coordinate conversion and standard function names delivered; aggregate expression admission fixed. Existing libwps-style coordinates now have10new passing controls for cross-sheet copy, namespace replacement/deletion and sheet rename/move;55focused tests and maintained lint/source/test/consumer types pass. Twelve compiled public models survive48SDK/Shell XML/XLSX replays with zero diagnostics/link calls and unchanged inputs/namespace. Pinned libwps/LibreOffice readers provide no local-scope meaning for unknown range types, so no type2 semantics are invented. Cross-reader dynamic identity/relative-sheet behavior, external-variable fallback, local/wider profiles and native application qualification remain open.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -220,6 +220,11 @@
           "kind": "executed-named-token-function-budget",
           "path": "docs/ssconvert/lotus-name-tokens-gap-proof.json",
           "outcome": "35focused/13277maintained tests;8SDK/Shell/browser/worker cases,16portable/native XML/XLSX exact;2standard SUM controls per surface,140native-source names exact; corrected43-byte budget regression red on pinned baseline and green at42/43boundary"
+        },
+        {
+          "kind": "coordinate-copy-and-name-edit-qualification",
+          "path": "docs/ssconvert/lotus-name-edit-qualification.json",
+          "outcome": "No runtime repair:10new existing-behavior controls,55focused tests,lint/types and48compiledSDK/Shell XML/XLSX replays pass; unknown range types and cross-reader dynamic identity remain unresolved."
         }
       ],
       "delivery": {

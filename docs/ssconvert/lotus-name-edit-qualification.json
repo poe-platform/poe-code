@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "validatedBase": "b7df330795703442e7a07eb2b3c1b7de41b1fdcb",
+  "scope": "Qualification of existing WK3 coordinate conversion through public model transformations and XML/XLSX replay. No runtime change or native Lotus execution.",
+  "authority": {
+    "libwps": {
+      "commit": "52be0d79c7fe6c1c9df7eb939d33d978c1ddc144",
+      "repository": "https://git.code.sf.net/p/libwps/code",
+      "member": "src/lib/LotusSpreadsheet.cpp",
+      "sha256": "a95effe16c9de49f3044c15f6445f75695ff860393712ee1beb1e0dfc1db98fa",
+      "findings": [
+        "readCellName:2187-2260 describes range type0 or1, labels type1 user[unkn] and other types unknown; stores first exact name globally. It does not establish local-name scope for type2.",
+        "readFormula:3280-3340 converts named tokens to coordinates, omits current-sheet qualifiers and uses relative row/column axes only for opcode7. This is the portable extension's chosen representation.",
+        "parseVariable:3046-3100 recognizes external <<File>>Sheet:A1 and <<File>>Sheet:A1..OtherSheet:B2 forms. This fallback is not currently implemented. Its multi-letter column recurrence maps AA to A; that behavior is not assumed to define the format."
+      ]
+    },
+    "libreOffice": {
+      "commit": "390583e4ee2077448228e3ea51110131c1901236",
+      "files": [
+        {
+          "path": "out/ssconvert-lotus-local-qualification/lotimpop.cxx",
+          "sha256": "171aaaa0b300d66dd75f1d461cb0cc5eb8aa2180e6e8f1f619732be30fba74b5"
+        },
+        {
+          "path": "out/ssconvert-lotus-local-qualification/lotform.cxx",
+          "sha256": "1a6b859a76fe0ac7d7485b0b298996125a19ecfc4b170fcbeccd9ca0a00b2794"
+        },
+        {
+          "path": "out/ssconvert-lotus-local-qualification/tool.cxx",
+          "sha256": "ee7385baeaf6c04ff755143fa4753eedfa122c2943fb18751978dc0819c574df"
+        }
+      ],
+      "findings": [
+        "lotimpop.cxx:157-178 reads USER_RANGE type then ignores it while registering the global range. No local-scope interpretation is present.",
+        "lotform.cxx:575-602 handles named and absolute named tokens via lookup, retaining NRREF/ABSNREF text on lookup failure.",
+        "tool.cxx:439-524 retains indexed named references; absolute variants have fixed rows/columns and relative sheet flags. This differs from libwps coordinate representation and does not establish full cross-reader edit parity."
+      ]
+    }
+  },
+  "behavior": [
+    "Cross-sheet copies from the name's own sheet follow the destination sheet; foreign-sheet references retain their explicit sheet.",
+    "Opcode7 row/column offsets move during copying; opcode8 keeps absolute coordinates. Qualified two-sheet spans retain both endpoints.",
+    "Replacing or removing the separately retained workbook name affects a newly supplied =Value formula but leaves the imported coordinate token intact.",
+    "Sheet renaming, including an apostrophe, and physical movement preserve imported formula/name targets.",
+    "Unknown range types remain retained with existing diagnostics; no invented local-scope implementation."
+  ],
+  "validation": {
+    "runtimeChanged": false,
+    "unit": {
+      "added": 10,
+      "firstFocused": {
+        "tests": 43,
+        "passed": 43
+      },
+      "finalCohort": {
+        "files": 3,
+        "tests": 55,
+        "passed": 55
+      },
+      "command": "npx vitest run packages/ssconvert/src/codecs/lotus-names.test.ts packages/ssconvert/src/formulas/workbook-references.test.ts packages/ssconvert/src/formulas/workbook-independent.test.ts"
+    },
+    "lint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "exitCode": 0,
+      "scope": "ESLint plus source/test/consumer types"
+    },
+    "build": "Existing compiled package remains unchanged from f973d6615's maintained selected build; no production source changed. This test/documentation-only change does not claim a new build.",
+    "public": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/lotus.ts",
+          "sha256": "b4180103eb8b072d036bee959fb2086234fc95542de9a0aa5ae3c5a7da305480"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/rewriting.ts",
+          "sha256": "0ffbe9fdbf24fc4a8c27f9ad4a46f822e7e36dd89ca2a5c6c6885d3b4d2de7ac"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/workbook.ts",
+          "sha256": "eebf7b11693431efb70e11eeb8a030bbdd0f45d473ca007b3bf681f7b45d753d"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "51fde11cf11f8531b5b2fae91244e37542571e1793e65ca36559e66ae7e4f424"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "inputFiles": [
+        {
+          "opcode": 7,
+          "owner": 0,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000002000000000000000000000756616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "72a4e2de41f40068c238335d4f52c9ee7aa2622ac74507421323fad721204a28"
+        },
+        {
+          "opcode": 8,
+          "owner": 0,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000002000000000000000000000856616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "eacea991f65b42ff8ea502d2445bd9c179c6fb9109227424f5c6e893125bcc7c"
+        },
+        {
+          "opcode": 7,
+          "owner": 1,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000102000000000000000000000756616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "5e9bfef525f70b9970f59ae37690ba41c5c18a88ac2864984887dd9af765aa31"
+        },
+        {
+          "opcode": 8,
+          "owner": 1,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000102000000000000000000000856616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "142f11063a44ee601a5ba4e404499a7eca279ea7ef258f1a3254528f3235c30c"
+        },
+        {
+          "opcode": 7,
+          "owner": 0,
+          "span": true,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000001001900180002000002000000000000000000000756616c756500500103180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "5b55bf399b214079e026ba92e65e081f312be32e830469eb652117fac5862c37"
+        },
+        {
+          "opcode": 8,
+          "owner": 0,
+          "span": true,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000001001900180002000002000000000000000000000856616c756500500103180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "97e35adad53773c3c65ecb3f6a208be5b8499aaea0917862952d0e08fcc4134a"
+        },
+        {
+          "opcode": 7,
+          "owner": 0,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000002000000000000000000000756616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "72a4e2de41f40068c238335d4f52c9ee7aa2622ac74507421323fad721204a28"
+        },
+        {
+          "opcode": 7,
+          "owner": 1,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000102000000000000000000000756616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "5e9bfef525f70b9970f59ae37690ba41c5c18a88ac2864984887dd9af765aa31"
+        },
+        {
+          "opcode": 8,
+          "owner": 0,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000002000000000000000000000856616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "eacea991f65b42ff8ea502d2445bd9c179c6fb9109227424f5c6e893125bcc7c"
+        },
+        {
+          "opcode": 8,
+          "owner": 1,
+          "span": false,
+          "inputHex": "000013000210000000000000000000000000000001000009001a00000056616c7565000000000000000000000000000000000000001900160002000102000000000000000000000856616c75650003180006000000000016001800060000000100220018000600000002002e0018000600010000011a001800060001000101260018000600010002013a0001000000",
+          "sha256": "142f11063a44ee601a5ba4e404499a7eca279ea7ef258f1a3254528f3235c30c"
+        }
+      ],
+      "models": [
+        {
+          "id": "copy-7-0-false",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "29\n",
+          "formula": "=B2"
+        },
+        {
+          "id": "copy-8-0-false",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "23\n",
+          "formula": "=$A$1"
+        },
+        {
+          "id": "copy-7-1-false",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "13\n",
+          "formula": "='Sheet1'!B2"
+        },
+        {
+          "id": "copy-8-1-false",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "11\n",
+          "formula": "='Sheet1'!$A$1"
+        },
+        {
+          "id": "copy-7-0-true",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "32\n",
+          "formula": "=SUM('Sheet1':'Sheet2'!B2)"
+        },
+        {
+          "id": "copy-8-0-true",
+          "sheet": "lotus-2",
+          "row": 3,
+          "column": 3,
+          "range": "Sheet3!D4",
+          "expected": "28\n",
+          "formula": "=SUM('Sheet1':'Sheet2'!$A$1)"
+        },
+        {
+          "id": "name-7-replace",
+          "sheet": "lotus-0",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n"
+        },
+        {
+          "id": "name-7-delete",
+          "sheet": "lotus-0",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n"
+        },
+        {
+          "id": "rename-move-7",
+          "sheet": "lotus-1",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet2!C3",
+          "expected": "11\n"
+        },
+        {
+          "id": "name-8-replace",
+          "sheet": "lotus-0",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n"
+        },
+        {
+          "id": "name-8-delete",
+          "sheet": "lotus-0",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n"
+        },
+        {
+          "id": "rename-move-8",
+          "sheet": "lotus-1",
+          "row": 2,
+          "column": 2,
+          "range": "Sheet2!C3",
+          "expected": "11\n"
+        }
+      ],
+      "results": [
+        {
+          "id": "copy-7-0-false",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "29\n",
+          "sdk": "29\n",
+          "shell": "29\n",
+          "checkpointSha256": "9fee57a453be4cfeacc066c0fd0c148777430196b96c748000ddc0dc541b47e6",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-7-0-false",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "29\n",
+          "sdk": "29\n",
+          "shell": "29\n",
+          "checkpointSha256": "2f87824ea7d5b1112574d99c95e3c1010241a4ab5ef56aff43bad8066e82ae68",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-0-false",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "23\n",
+          "sdk": "23\n",
+          "shell": "23\n",
+          "checkpointSha256": "5cc7431ff8185c5ea52d503c6c9074d1b975a512976836ad5bc6d1d8c2a4a815",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-0-false",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "23\n",
+          "sdk": "23\n",
+          "shell": "23\n",
+          "checkpointSha256": "b87f853b970496d82e423c9fbf651d3a5863e243ad26af9559972ec9b175454b",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-7-1-false",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "13\n",
+          "sdk": "13\n",
+          "shell": "13\n",
+          "checkpointSha256": "d83836700293107b419461996dd1abcf00fddfed951649b79071a5a2dbc9496b",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-7-1-false",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "13\n",
+          "sdk": "13\n",
+          "shell": "13\n",
+          "checkpointSha256": "efb3810cfd0ed46e3e9a08f9ecfef63bb2d1eb8a45fa7b5298a91bc73cfcef4c",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-1-false",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "39974ed965407c8f46dcabe8606a4800e9d233cea60bc57dfb98aa6f9b3a0e4a",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-1-false",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "8d4e2a8bd285005da3bb7e45ba8a976c89ab6cd17dfd239254226fe70355e33a",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-7-0-true",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "32\n",
+          "sdk": "32\n",
+          "shell": "32\n",
+          "checkpointSha256": "abafe16368641b7d6813a12f2a583d7db6ec8adc47a669620684369a63b7cf51",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-7-0-true",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "32\n",
+          "sdk": "32\n",
+          "shell": "32\n",
+          "checkpointSha256": "af2d9a40201907cb5fc3119cccae936baf15d36f2002550ffc818363026d452b",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-0-true",
+          "extension": "gnumeric",
+          "range": "Sheet3!D4",
+          "expected": "28\n",
+          "sdk": "28\n",
+          "shell": "28\n",
+          "checkpointSha256": "a12f78c832c136956ca8ed6be88b4ccddfa2ddac8899fefcdd5d4064d683df42",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "copy-8-0-true",
+          "extension": "xlsx",
+          "range": "Sheet3!D4",
+          "expected": "28\n",
+          "sdk": "28\n",
+          "shell": "28\n",
+          "checkpointSha256": "de1f46c31b24b6067a20e98fa5377a0f0610d13d0d487c70715ff312f44d910d",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-7-replace",
+          "extension": "gnumeric",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n",
+          "sdk": "11,13\n",
+          "shell": "11,13\n",
+          "checkpointSha256": "612b8d2176aeccda8fdc8053416253989aa2dd497bd166a985e9f28894efc614",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-7-replace",
+          "extension": "xlsx",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n",
+          "sdk": "11,13\n",
+          "shell": "11,13\n",
+          "checkpointSha256": "aae226600ea18800848587c4a8c0351982fc03a2524577b3d475b38cf92666fd",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-7-delete",
+          "extension": "gnumeric",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n",
+          "sdk": "11,#NAME?\n",
+          "shell": "11,#NAME?\n",
+          "checkpointSha256": "6e4416a0d8e02cb75568cd7b1a3877749f77b756c3b9d257163eff3aa4dfb9fe",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-7-delete",
+          "extension": "xlsx",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n",
+          "sdk": "11,#NAME?\n",
+          "shell": "11,#NAME?\n",
+          "checkpointSha256": "f3843bde0edd46ce158c635eee88de0eab4b66aaa34a2aa864a66c5de29172a4",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "rename-move-7",
+          "extension": "gnumeric",
+          "range": "Sheet2!C3",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "b69e00ea5165bf48a02e0af6751c4a71e705d86c9026166fb5b5901dde5fde9a",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "rename-move-7",
+          "extension": "xlsx",
+          "range": "Sheet2!C3",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "56e65900f10c6feab43d5a126134c2c301c91de07ca1d1d4e4bac1e5b1d791e5",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-8-replace",
+          "extension": "gnumeric",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n",
+          "sdk": "11,13\n",
+          "shell": "11,13\n",
+          "checkpointSha256": "5c4b4796aed3bf536a15d1670f2cedfc1b2b4ac747803b50b8c5ddae4fe2df9e",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-8-replace",
+          "extension": "xlsx",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,13\n",
+          "sdk": "11,13\n",
+          "shell": "11,13\n",
+          "checkpointSha256": "0360b868e685b6b7ec0831b6abe826af7c45ae70262acef06a6247110ece9b21",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-8-delete",
+          "extension": "gnumeric",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n",
+          "sdk": "11,#NAME?\n",
+          "shell": "11,#NAME?\n",
+          "checkpointSha256": "cd84205250576d9c7c98e67d9c6870f0398ae4fbc477fee61566cf0204ff4e2e",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "name-8-delete",
+          "extension": "xlsx",
+          "range": "Sheet1!C3:D3",
+          "expected": "11,#NAME?\n",
+          "sdk": "11,#NAME?\n",
+          "shell": "11,#NAME?\n",
+          "checkpointSha256": "29bf48908465133d9863b97b32619201b2832d41acd37484704691026b7ae279",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "rename-move-8",
+          "extension": "gnumeric",
+          "range": "Sheet2!C3",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "662fe77979ae40db7f3246fa4d7ccb72d1d392619f32fdbf288480645d10c5ee",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "rename-move-8",
+          "extension": "xlsx",
+          "range": "Sheet2!C3",
+          "expected": "11\n",
+          "sdk": "11\n",
+          "shell": "11\n",
+          "checkpointSha256": "2651af793f7e81f2acbafb52d28ae1a39c665c6ffefa96686cec089d6eb98c2c",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        }
+      ],
+      "conversions": 48,
+      "resolutions": 0
+    },
+    "screenshot": {
+      "path": "out/ssconvert-lotus-local-qualification/public.png",
+      "sha256": "ca3ab43d999c8ce50db5b00877b32c3c0a0e70903b860b3bd7fd633910a5a5d8",
+      "inspected": true,
+      "finding": "All result rows and qualification boundary readable without clipping."
+    }
+  },
+  "draftCorrections": [
+    "Initial public assertion compared a null-prototype numeric value to an ordinary object with deepStrictEqual. Values already agreed; final assertion compares kind and number.",
+    "Initial public attempt wrote a newly transformed model through the original engine and correctly hit Workbook belongs to another engine. Final qualification admits the transformed model through an explicit host codec in a new engine, then exports the engine-owned result; ownership protection is unchanged.",
+    "First multi-path focused invocation included two nonexistent workbook/rewriting test paths and executed only43Lotus tests. Corrected maintained paths execute all55tests across3files; no nonexistent tests are counted."
+  ],
+  "logs": [
+    {
+      "path": "out/ssconvert-lotus-local-qualification/focused.log",
+      "sha256": "0a171b602be669b4187bb804e60fe7ecec28a2476da97ea76fe48be36da0366b"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/final-focused.log",
+      "sha256": "76cd633981c8a4cbbd6b8d3d162384745afa0c88a325950eb7f0b87d343180c7"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/final-cohort.log",
+      "sha256": "e8e102ff7a94bc2e3dbfa901dc1b888a1ae3fc27895a701ae708ea3e12503349"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/lint.log",
+      "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/public.mjs",
+      "sha256": "920c167caeb84d06e6cc1048185ff5a6be14426fb2c031885da304614645a3f4"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/public.log",
+      "sha256": "52e627991d2a99be5fc59d0a96d8402ee627eb98b86665312b3c4e465a772fc9"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/public-prototype-draft.log",
+      "sha256": "8727bc61dcd09a438623c3eeb38c950b6147ff4dd0840ac5b95001f701e3b82c"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/public-ownership-draft.log",
+      "sha256": "e69cb9d7f64e038e8fe4932920eefa4617b53b5ccaf2e8e19e991c60670746ca"
+    },
+    {
+      "path": "out/ssconvert-lotus-local-qualification/public.png",
+      "sha256": "ca3ab43d999c8ce50db5b00877b32c3c0a0e70903b860b3bd7fd633910a5a5d8"
+    }
+  ],
+  "limits": [
+    "These are source-backed extension controls and portable round trips, not actual Lotus application or native Gnumeric token execution.",
+    "Dynamic Lotus name identity across readers, relative sheet flags, unknown/local range types, external variable fallback, database fields and wider formats remain unqualified.",
+    "All19 original families and containing root publication remain open."
+  ],
+  "delivery": {
+    "status": "pending atomic commit and remote verification"
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34"
+  }
+}

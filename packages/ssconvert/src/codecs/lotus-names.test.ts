@@ -5,6 +5,7 @@ import { snapshotWorkbook } from "../workbook.js";
 import { parseExpression } from "../formulas/parser.js";
 import { rewriteReferences } from "../formulas/rewriting.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
+import { moveWorkbookSheet, renameWorkbookSheet } from "../formulas/workbook.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 10000, outputBytes: 10000, cells: 1000, sheets: 4, operations: 1000, workbookWork: 100000 } };
@@ -165,4 +166,58 @@ it("admits named definitions and expanded formula text under one aggregate budge
   expect(total).toBe(43);
   await expect(readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total - 1 } })).rejects.toThrow("expression text limit");
   expect((await readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total } })).names).toEqual(book.names);
+});
+
+it.each([
+  { opcode: 7, owner: 0, span: false, expected: 29 },
+  { opcode: 8, owner: 0, span: false, expected: 23 },
+  { opcode: 7, owner: 1, span: false, expected: 13 },
+  { opcode: 8, owner: 1, span: false, expected: 11 },
+  { opcode: 7, owner: 0, span: true, expected: 32 },
+  { opcode: 8, owner: 0, span: true, expected: 28 }
+])("copies WK3 token $opcode from sheet $owner across sheets (span=$span)", async ({ opcode, owner, span, expected }) => {
+  const input = modern(newName("Value", [0, 0, 0], [0, span ? 1 : 0, 0]),
+    formulaRecord([...namedToken("Value", opcode), ...(span ? [80, 1] : [])], 2, 2, owner),
+    ...[11, 17, 23].map((value, sheet) => record(24, [0, 0, sheet, 0, ...word(value * 2)])),
+    ...[13, 19, 29].map((value, sheet) => record(24, [1, 0, sheet, 1, ...word(value * 2)])));
+  const inputBefore = new Uint8Array(input);
+  const book = await readLotus(input, context), before = snapshotWorkbook(book, context.limits);
+  const original = book.sheets[owner]!.cells.find(cell => cell.row === 2 && cell.column === 2)!;
+  const parsed = parseExpression(original.formula!, { workbook: book, position: { sheet: `lotus-${owner}`, row: 2, column: 2 } });
+  expect(parsed.ok).toBe(true); if (!parsed.ok) return;
+  const formula = rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-2", row: 3, column: 3 } });
+  const copied = { ...book, sheets: book.sheets.map(sheet => sheet.id !== "lotus-2" ? sheet : { ...sheet,
+    cells: [...sheet.cells, { row: 3, column: 3, formula, formulaDirty: true, value: { kind: "blank" as const } }] }) };
+  const result = recalculateWorkbook(copied, context, true);
+  expect(result.sheets[2]!.cells.find(cell => cell.row === 3 && cell.column === 3)?.value).toEqual({ kind: "number", value: expected });
+  expect(book).toEqual(before);
+  expect(input).toEqual(inputBefore);
+});
+
+it.each([7, 8])("keeps imported token %i coordinates independent of later name replacement or deletion", async opcode => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 0, 2),
+    record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 0, 1, 26, 0])), context);
+  const before = snapshotWorkbook(book, context.limits);
+  const withNameFormula = { ...book, sheets: book.sheets.map(sheet => ({ ...sheet, cells: [...sheet.cells,
+    { row: 0, column: 3, formula: "=Value", formulaDirty: true, value: { kind: "blank" as const } }] })) };
+  for (const names of [[{ name: "Value", expression: "='Sheet1'!$B$1" }], []]) {
+    const result = recalculateWorkbook(snapshotWorkbook({ ...withNameFormula, names }, context.limits), context, true);
+    expect(result.sheets[0]!.cells.find(cell => cell.column === 2)?.value).toEqual({ kind: "number", value: 11 });
+    expect(result.sheets[0]!.cells.find(cell => cell.column === 3)?.value).toEqual(names.length
+      ? { kind: "number", value: 13 } : { kind: "error", value: "#NAME?" });
+  }
+  expect(book).toEqual(before);
+});
+
+it.each([7, 8])("preserves token %i and workbook name targets across sheet rename and movement", async opcode => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 0, 1, 1),
+    record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 1, 0, 34, 0])), context);
+  const before = snapshotWorkbook(book, context.limits);
+  const renamed = renameWorkbookSheet(book, "lotus-0", "O'Brian", context);
+  const moved = moveWorkbookSheet(renamed, "lotus-0", 1, context);
+  const result = recalculateWorkbook(moved, context, true);
+  expect(result.sheets.map(sheet => sheet.id)).toEqual(["lotus-1", "lotus-0"]);
+  expect(result.sheets[0]!.cells.find(cell => cell.column === 1)?.value).toEqual({ kind: "number", value: 11 });
+  expect(result.names).toEqual([{ name: "Value", expression: "='O\\'Brian'!$A$1" }]);
+  expect(book).toEqual(before);
 });

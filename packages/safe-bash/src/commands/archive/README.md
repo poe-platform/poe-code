@@ -121,12 +121,13 @@ than silently applying a misleading global/position-sensitive interpretation.
 
 Default newline file lists accept `-Cdir`, `-C` followed by a directory on the
 next line, and `--directory=dir`. Their changes affect subsequent operands.
-Other option lines, recursive `-T` directives, and backslash unquoting are
-rejected; use `--null` or `--verbatim-files-from` for literal filenames.
+Ordinary file lists decode backslash-quoted control characters, backslashes,
+and three-digit octal bytes. Other option lines and recursive `-T` directives
+are rejected; use `--null` or `--verbatim-files-from` for literal filenames.
 NUL autodetection is not implemented. Unlike prose in the GNU manual, the
 **pinned GNU 1.35 executable preserves surrounding filename whitespace**;
 the frozen `" alpha "` observation is retained and the implementation follows
-that behavior. Newlines inside names require NUL separation. Empty list
+that behavior. Newlines inside names can use `\n` quoting or NUL separation. Empty list
 records are ignored. An explicit empty `-T` can create an empty archive;
 creating without any operands or file list fails. Archive stdin and file-list
 stdin cannot be shared during list/extract, and a stdin file list is single-use.

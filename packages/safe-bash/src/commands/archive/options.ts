@@ -105,8 +105,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
         else if (line.startsWith("--directory=")) await directory(line.slice(12));
         else fail(`unsupported option in file list: ${line}; use --verbatim-files-from for literal names`);
       } else {
-        if (!nullFiles && !verbatim && line.includes("\\")) fail("backslash quoting in file lists is unsupported; use --verbatim-files-from or --null");
-        operand(line);
+        operand(!nullFiles && !verbatim ? unquoteFileName(line) : line);
       }
     }
   };
@@ -265,6 +264,32 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
   return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+}
+
+function unquoteFileName(name: string): string {
+  const input = Buffer.from(name);
+  const output: number[] = [];
+  const escapes: Record<string, number> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+  for (let index = 0; index < input.length; index++) {
+    const byte = input[index]!;
+    if (byte === 92 && index + 1 < input.length) {
+      const next = input[index + 1]!;
+      const escape = escapes[String.fromCharCode(next)];
+      if (escape !== undefined) {
+        output.push(escape);
+        index++;
+        continue;
+      }
+      const digits = input.subarray(index + 1, index + 4);
+      if (digits.length === 3 && digits.every(digit => digit >= 48 && digit <= 55)) {
+        output.push(((digits[0]! - 48) * 64 + (digits[1]! - 48) * 8 + digits[2]! - 48) & 255);
+        index += 3;
+        continue;
+      }
+    }
+    output.push(byte);
+  }
+  return text(Uint8Array.from(output));
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

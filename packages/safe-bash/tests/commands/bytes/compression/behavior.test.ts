@@ -146,7 +146,7 @@ test("zstd aliases accept quiet options and repeated quiet suppresses processing
       assert.equal(decoded.exitCode, 0, decoded.stderr);
       assert.deepEqual(decoded.stdout, Buffer.from(binary));
       assert.equal(decoded.stderr, "");
-      const invalid = await run(command, [...quiet, "-dc"], chunks(Buffer.from("plain")));
+      const invalid = await run(command, [...quiet, "-dc"], chunks(Buffer.from("28b52ffd", "hex")));
       assert.equal(invalid.exitCode, 1);
       assert.equal(invalid.stdout.length, 0);
       assert.equal(invalid.stderr.length === 0, quiet[0] === "-qq" || quiet.length === 2);
@@ -154,6 +154,40 @@ test("zstd aliases accept quiet options and repeated quiet suppresses processing
     const missing = await run(command, ["-qq", "-dc", "missing"]);
     assert.equal(missing.exitCode, 1);
     assert.equal(missing.stderr, "");
+  }
+});
+
+test("zstdcat implicitly passes plaintext through Shell while other aliases reject it", async () => {
+  const fs = createMemoryFileSystem();
+  const input = new TextEncoder().encode("x\n");
+  await fs.writeFile("/input", input);
+  const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+  try {
+    for (const command of ["zstdcat input", "zstdcat -dc input", "zstdcat < input"]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, input);
+      assert.equal(result.stderr, "");
+    }
+    for (const command of ["zstd", "unzstd"]) {
+      const result = await shell.exec(`${command} -dc input`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+    }
+    assert.deepEqual(await fs.readFile("/input"), input);
+  } finally { await shell.dispose(); }
+});
+
+test("zstdcat passthrough preserves split binary bytes and rejects recognized damaged frames", async () => {
+  for (const input of [Buffer.from("x\n"), Buffer.from(binary), Buffer.from("28b5", "hex")]) {
+    const result = await run("zstdcat", [], chunks(...Array.from(input, byte => Uint8Array.of(byte))));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdout, input);
+  }
+  for (const input of [Buffer.alloc(0), Buffer.from("28b52ffd", "hex"), Buffer.from("502a4d18", "hex"), helloMember.subarray(0, 4), Buffer.from("fd377a58", "hex"), Buffer.from("5d000080", "hex"), Buffer.from("04224d18", "hex")]) {
+    const result = await run("zstdcat", [], chunks(...Array.from(input, byte => Uint8Array.of(byte))));
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout.length, 0);
   }
 });
 

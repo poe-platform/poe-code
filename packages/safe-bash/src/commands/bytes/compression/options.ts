@@ -6,6 +6,7 @@ export interface CompressionOptions {
   stdout: boolean;
   keep: boolean;
   force: boolean;
+  passthrough?: boolean;
   test: boolean;
   help: boolean;
   quiet: number;
@@ -38,6 +39,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     format: profile.format,
     decompress: command !== profile.names[0], stdout: command === profile.names[2], keep: profile.keep,
     force: false, test: false, help: false, quiet: 0, recursive: false, level: profile.level, operands: [],
+    passthrough: command === "zstdcat",
   };
   let ended = false;
   for (let index = 0; index < args.length; index++) {

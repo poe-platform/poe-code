@@ -8,6 +8,39 @@ import { boundedCodec } from "./bounded-codec.js";
 export const chunkBytes = 64 * 1024;
 export const stagingLimit = 256 * 1024 * 1024;
 
+async function* zstdcatStream(reader: InstanceType<typeof CodecReader>, options: CompressionOptions, signal: AbortSignal, fail: (error: unknown) => void): ByteSource {
+  const header = new Uint8Array(4);
+  let length = 0;
+  while (length < header.length) {
+    const bytes = await reader.chunk();
+    if (!bytes) break;
+    const count = Math.min(bytes.length, header.length - length);
+    header.set(bytes.subarray(0, count), length);
+    length += count;
+    reader.restore(bytes.subarray(count));
+  }
+  // Native zstdcat only copies unrecognized input; recognized frames must decode.
+  const magic = new DataView(header.buffer).getUint32(0, true);
+  const recognized = length === 4 && (
+    magic === 0xfd2fb528 || (magic & 0xfffffff0) === 0x184d2a50 ||
+    (magic & 0xffff) === 0x8b1f || (magic & 0xffff) === 0x005d || magic === 0x587a37fd || magic === 0x184d2204
+  );
+  if (length && !recognized) {
+    yield header.subarray(0, length);
+    for (;;) {
+      const bytes = await reader.chunk();
+      if (!bytes) return;
+      yield bytes;
+    }
+  }
+  const remainder = await reader.chunk();
+  const restored = new Uint8Array(length + (remainder?.length ?? 0));
+  restored.set(header.subarray(0, length));
+  if (remainder) restored.set(remainder, length);
+  reader.restore(restored);
+  yield* boundedCodec(reader, { format: "zstd", decompress: true, level: options.level, onFailure: fail }, signal);
+}
+
 async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void): ByteSource {
   signal.throwIfAborted();
   const sourceIterator = source[Symbol.asyncIterator]();
@@ -70,7 +103,9 @@ export async function transform(
   let warned = false;
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
-  const transformed = options.format !== "gzip"
+  const transformed = options.passthrough && options.decompress && options.stdout && !options.test
+    ? zstdcatStream(reader!, options, signal, fail)
+    : options.format !== "gzip"
     ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;

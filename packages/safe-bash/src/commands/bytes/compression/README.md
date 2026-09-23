@@ -45,6 +45,11 @@ two or more suppress processing and filesystem error messages as well. Quiet
 does not change output bytes, validation, file handling or failure exit codes.
 Option-usage diagnostics remain visible.
 
+`zstdcat` implicitly copies unrecognized nonempty input to stdout without `-f`.
+Recognized compressed headers still go through decoding and validation; damaged
+frames fail. `zstd` and `unzstd` retain their default rejection of plaintext.
+Test mode (`-t`) validates compressed input rather than copying plaintext.
+
 The XZ family (`xz`, `unxz`, `xzcat`) accepts `--compress` to select
 compression, including when invoked through a decompression alias. `-e` and
 `--extreme` enable liblzma's extreme preset with the selected level. `-T1`,

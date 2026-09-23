@@ -824,8 +824,14 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "14 matching qualifications unresolved; source-disabled/GUI relevance census pending",
-      "proof": [],
+      "currentFinding": "Eight activation environments/fourteen capability obligations remain open. Complete Linux optional-none native identity with exact46active plugin IDs/49modules/eightfonts is collected; actual738SEARCHfields match all public surfaces. Perl/Python build and load three functions each, but their older receipts failed a fixed Git-ownership lookup; actual language execution probes are now delivered.",
+      "proof": [
+        {
+          "kind": "actual-linux-native-identity-and-activation",
+          "path": "docs/ssconvert/linux-complete-base-reference.json",
+          "outcome": "Workflow35839444498 success; source/profile/input/ELF/module/font identities authenticated and46declared IDs exactly active; inherited identity differences preserved,not rewritten into passes."
+        }
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,
@@ -1181,7 +1187,7 @@
   },
   "linuxNativeProvisioningFollowup": {
     "proof": "docs/ssconvert/linux-reference-provisioning-proof.json",
-    "status": "authenticated-linux-native-built-738-search-fields-public-exact-final-git-identity-setup-corrected-rerun-required",
+    "status": "complete-linux-base-identity-provisioned-native-language-probes-delivered",
     "prerequisiteCommit": "dc9bdd15abf5ca21772807c808e824601ad0e89c",
     "artifactPackagingCommit": "bda821d11a8412664155443e379061a3a6ccff75",
     "remoteMainVerified": true,
@@ -1189,7 +1195,7 @@
     "nativeHead": "b1758b65169adac3269f9cc154ee447fc40df771",
     "activationProfiles": 8,
     "capabilityObligations": 14,
-    "productParity": "executed-738-search-capture-only-whole-profile-unqualified",
+    "productParity": "exact-search738-and-base-activation-only-whole-profile-unqualified",
     "publication": "unverified",
     "wholeGoalComplete": false,
     "baseCapture": "docs/ssconvert/linux-native-base-capture.json",
@@ -1203,6 +1209,14 @@
       "dedicated-worker"
     ],
     "gitIdentityFixCommit": "b1758b65169adac3269f9cc154ee447fc40df771",
-    "moduleCollectorCommit": "9f473ead9c"
+    "moduleCollectorCommit": "9f473ead9c",
+    "completeBaseReference": "docs/ssconvert/linux-complete-base-reference.json",
+    "completeBaseRun": 35839444498,
+    "exactNativePluginIds": 46,
+    "nativeModules": 49,
+    "fontFiles": 8,
+    "languageProbeCommit": "59c37e061c",
+    "languageProbeCases": 1586,
+    "knownPortableExpectedControls": 1424
   }
 }

@@ -1,6 +1,6 @@
 {
   "scope": "Linux native reference provisioning",
-  "status": "linux-native-built-captures-exact-final-git-identity-setup-failure-corrected",
+  "status": "complete-linux-base-reference-provisioned-actual-language-evaluation-runs-required",
   "wholeGoalComplete": false,
   "initialRun": 35836474044,
   "initialHead": "5496dd7e634a29f97664b6505cef36af72ac2f02",
@@ -522,5 +522,46 @@
       ]
     },
     "requiredLinux": "exact-run identity and source hash; compare IDs/activation with declared profile and retain every difference; ldd module closure is not a claim that GUI/image services have executed"
-  }
+  },
+  "completeBaseReference": {
+    "proof": "docs/ssconvert/linux-complete-base-reference.json",
+    "run": 35839444498,
+    "head": "b1758b65169adac3269f9cc154ee447fc40df771",
+    "workflowConclusion": "success",
+    "pluginIdsExact": 46,
+    "installedModules": 49,
+    "fontFiles": 8,
+    "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+    "scope": "exact optional-none activation/native identity plus captured738SEARCH fields; whole profile/product goal remain unqualified"
+  },
+  "earlierLanguageBuilds": [
+    {
+      "run": 35838796927,
+      "profile": "gnumeric-1.12.61-optional-perl-samples",
+      "build": "success",
+      "loadedOptionalFunctions": [
+        "perl_adder",
+        "perl_date",
+        "perl_sed"
+      ],
+      "runtimeFunctions": 650,
+      "functionsStderrHex": "",
+      "finalReceipt": "failed stale git rev-parse container-ownership lookup; fix already delivered",
+      "evaluation": "not executed in this earlier collector"
+    },
+    {
+      "run": 35838801396,
+      "profile": "gnumeric-1.12.61-optional-python-samples",
+      "build": "success",
+      "loadedOptionalFunctions": [
+        "py_bitand",
+        "py_capwords",
+        "py_printf"
+      ],
+      "runtimeFunctions": 650,
+      "functionsStderrHex": "",
+      "finalReceipt": "failed stale git rev-parse container-ownership lookup; fix already delivered",
+      "evaluation": "not executed in this earlier collector"
+    }
+  ]
 }

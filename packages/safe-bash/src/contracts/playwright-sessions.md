@@ -169,6 +169,12 @@ Host-only `inspectRecovery({ name, signal? })` returns `live-page`,
 `operation: { operationId, status }`. It reads the optional persistence
 `inspectRecovery` callback's `{ hasStorage, operation? }` metadata without calling
 `restore`, acquiring a browser, navigating, submitting forms, or executing code.
+When the persistence inspection callback is installed, its receipts are
+authoritative: eviction or expiry cannot be bypassed by a controller cache.
+Without that callback, local operation receipts retain at most 16 aliases for
+24 hours from running admission, replacing repeated aliases. The controller
+option `operationClock` defaults to `Date.now` and lets hosts supply a
+deterministic millisecond clock for this fallback retention.
 It copies only validated correlation fields; URLs, cookies, provider objects,
 and exception messages are absent. `unavailable` means no retained page or
 confirmed saved storage, not proof that an interrupted effect did not happen.

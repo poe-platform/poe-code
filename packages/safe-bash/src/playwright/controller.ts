@@ -29,6 +29,8 @@ import { resolvePath } from '../contracts/path.js';
 import { parsePlaywrightOperationOutcome, type PlaywrightOperationOutcome, type PlaywrightRecoveryResult } from './recovery.js';
 
 export interface PlaywrightControllerOptions {
+  /** Clock for fallback operation receipts, retained for at most 24 hours across 16 aliases. */
+  readonly operationClock?: () => number;
   readonly adapter?: PlaywrightAdapter;
   readonly abilities?: PlaywrightAbilities;
   readonly persistence?: PlaywrightSessionPersistence;
@@ -66,7 +68,9 @@ export interface PlaywrightSessionCheckpoint {
   readonly configuration?: PlaywrightSessionConfiguration;
 }
 export interface PlaywrightSessionPersistence {
-  /** Metadata-only read. Must not acquire, navigate or execute browser code. */
+  /** Authoritative metadata-only read, including receipt eviction and expiry.
+   * The controller does not cache receipts when this hook is installed.
+   * Must not acquire, navigate or execute browser code. */
   inspectRecovery?(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
     readonly hasStorage: boolean; readonly operation?: PlaywrightOperationOutcome;
   }>;
@@ -131,7 +135,8 @@ interface Session {
 export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
   if (!options || typeof options !== 'object') throw new TypeError('Invalid Playwright configuration');
   if (options.adapter !== undefined && (!options.adapter || typeof options.adapter.acquire !== 'function')) throw new TypeError('An injected Playwright adapter is required');
-  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence', 'namedSessionAttachment'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (Object.keys(options).some(key => !['adapter', 'abilities', 'limits', 'billing', 'persistence', 'namedSessionAttachment', 'operationClock'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
+  if (options.operationClock !== undefined && typeof options.operationClock !== 'function') throw new TypeError('Invalid Playwright operation clock');
   if (options.namedSessionAttachment !== undefined && typeof options.namedSessionAttachment !== 'boolean') throw new TypeError('Invalid named session attachment capability');
   if (options.persistence && ['restore', 'checkpoint', 'delete'].some(key => typeof Reflect.get(options.persistence!, key) !== 'function')) throw new TypeError('Invalid Playwright persistence');
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
@@ -157,7 +162,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     ...[...sessions.values()].filter(session => session.state !== 'closed').map(session => session.name),
     ...pendingRestores,
   ].filter(name => name !== except)).size;
-  const outcomes = new Map<string, PlaywrightOperationOutcome>();
+  const operationClock = options.operationClock ?? Date.now;
+  const outcomes = new Map<string, { operation: PlaywrightOperationOutcome; expiresAt: number }>();
+  const pruneOutcomes = () => {
+    const now = operationClock();
+    for (const [name, receipt] of outcomes) if (receipt.expiresAt <= now) outcomes.delete(name);
+  };
   const explicitlyClosed = new Set<string>();
   let attachedSession: { name: string; selection: string } | undefined;
   let suppressUnknownRestores = false;
@@ -388,7 +398,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       && (session.expiresAt === undefined || session.expiresAt > Date.now())
       && session.page !== undefined && session.lease!.context.pages().includes(session.page);
     const live = retained && !session?.livePageStateLost;
-    const operation = outcomes.get(request.name) ?? saved?.operation;
+    pruneOutcomes();
+    const operation = options.persistence?.inspectRecovery ? saved?.operation : outcomes.get(request.name)?.operation;
     const copiedOperation = operation ? parsePlaywrightOperationOutcome(operation) : undefined;
     return Object.freeze({ name: request.name, status: live ? 'live-page' : saved?.hasStorage || retained && session?.livePageStateLost ? 'saved-storage' : 'unavailable',
       livePageStateLost: !live, ...(copiedOperation ? { operation: !live && copiedOperation.status === 'running'
@@ -923,7 +934,17 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const recordOutcome = async (status: PlaywrightOperationOutcome['status'], signal: AbortSignal) => {
           if (operationId === undefined || receiptRetired) return;
           const outcome = parsePlaywrightOperationOutcome({ operationId, status });
-          outcomes.set(parsed.session, outcome);
+          if (!options.persistence?.inspectRecovery) {
+            pruneOutcomes();
+            if (status === 'running') {
+              outcomes.delete(parsed.session);
+              outcomes.set(parsed.session, { operation: outcome, expiresAt: operationClock() + 24 * 60 * 60 * 1000 });
+              if (outcomes.size > 16) outcomes.delete(outcomes.keys().next().value!);
+            } else {
+              const receipt = outcomes.get(parsed.session);
+              if (receipt?.operation.operationId === operationId) receipt.operation = outcome;
+            }
+          }
           await options.persistence?.recordOperation?.({ name: parsed.session, operation: outcome }, signal);
         };
         check();

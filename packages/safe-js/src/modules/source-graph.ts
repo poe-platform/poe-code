@@ -169,7 +169,7 @@ export class SourceModuleGraph {
         return known;
       }
       this.options.budget?.chargeDataUsage(source.source.length + source.id.length + 1);
-      const parsed = parseSourceModule(source.source, source.id, this.options.compilation?.owner ?? this.options.compileOwner, { sharedPositions: true });
+      const parsed = parseSourceModule(source.source, source.id, this.options.compilation?.owner ?? this.options.compileOwner, { sharedPositions: true, compactAst: true });
       const importMeta = Object.create(null) as SandboxObject;
       setSandboxPrototype(importMeta,null);
       const record: RecordEntry = {id:source.id, source:source.source, parsed,

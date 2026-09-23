@@ -1,5 +1,5 @@
 import { CompactSourcePositions, compactSourceSpan, compactDerivedPosition } from "./compact-spans.js";
-import { CompactModuleAst } from "./compact-module-ast.js";
+import { CompactModuleAst, compilerElements, compilerField } from "./compact-module-ast.js";
 import { boundIdentifiers } from "./bindings.js";
 import { validatePrivateNames } from "./private-names.js";
 import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, tokenizeCompact, type Position, type Token } from "./tokenizer.js";
@@ -711,7 +711,7 @@ export function parseSourceModule(
   source: string,
   filename = "<input>",
   owner?: CompileOwner,
-  options: { sharedPositions?: boolean } = {}
+  options: { sharedPositions?: boolean; compactAst?: boolean } = {}
 ): ParsedSourceModule {
   const compilation = new CompileScope(owner);
   const syntax: SourceModuleSyntax = {imports: [], exports: [], moduleRequests: []};
@@ -721,13 +721,20 @@ export function parseSourceModule(
     if (limit !== undefined && source.length > limit)
       throw new SandboxError({budget: "stringLength", current: source.length, limit});
     owner?.budget.visitNode(source.length);
+    const tokenOptions = {allowRegexLiterals: true, statementList: true, compilation, sharedPositions: options.sharedPositions};
+    const tokens = options.compactAst
+      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source))
+      : tokenize(source, tokenOptions);
     parser = new Parser(
-      tokenize(source, {allowRegexLiterals: true, statementList: true, compilation, sharedPositions: options.sharedPositions}),
+      tokens,
       source, compilation, "top-level",
       {...ordinaryFunctionContext, newTarget: false, return: false, requireAsyncAwait: true,
         grammar: {await: true, yield: false, strict: true}}, true, syntax
     );
-    const module = assignIds(parser.parseModule());
+    if (options.compactAst) parser.enableCompactAst();
+    const parsed = parser.parseModule();
+    parser.finishAstStorage();
+    const module = (options.compactAst ? assignCompactIds : assignIds)(parsed);
     if (source.includes("#")) validatePrivateNames(module);
     let hasTLA = false;
     const pending: unknown[] = [module];
@@ -735,10 +742,11 @@ export function parseSourceModule(
       const node = pending.pop();
       if (node === null || typeof node !== "object") continue;
       owner?.budget.visitNode();
-      if ("type" in node && ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(String(node.type))) continue;
-      if ("type" in node && (node.type === "AwaitExpression" || ("await" in node && node.await === true) ||
-          (node.type === "VariableDeclaration" && "disposal" in node && node.disposal === "async"))) hasTLA = true;
-      pending.push(...Object.values(node));
+      const type = compilerField(node, "type");
+      if (["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(String(type))) continue;
+      if (type !== undefined && (type === "AwaitExpression" || compilerField(node, "await") === true ||
+          (type === "VariableDeclaration" && compilerField(node, "disposal") === "async"))) hasTLA = true;
+      for (const child of compilerElements(node)) pending.push(child);
     }
     return {...syntax, module, hasTLA, requests: [...new Set(syntax.moduleRequests.map(request => request.specifier))]};
   } catch (error) {
@@ -996,7 +1004,8 @@ class Parser {
         }
         if (this.isExportToken(token)) {
           const statement = this.parseSourceExport();
-          if (statement !== undefined) body.push(statement);
+          if (statement !== undefined)
+            body.push(this.astStorage?.pack(statement, false, true) ?? statement);
           continue;
         }
       }
@@ -1005,6 +1014,7 @@ class Parser {
       while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
         continue;
       }
+      if (this.astStorage) body[body.length - 1] = this.astStorage.pack(statement, false, true);
     }
 
     for (const [name, identifier] of this.sourceLocalExports) {
@@ -1013,11 +1023,12 @@ class Parser {
     }
 
     const end = this.currentToken().end;
-    return {
+    const module: Module = {
       type: "Module",
       body,
       span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
     };
+    return this.astStorage?.pack(module, false, true) ?? module;
   }
 
   parseScript(): Module {

@@ -512,7 +512,7 @@ export async function interpret(
       onSuspend: options.onSuspend,
       captureReplayState: options.captureReplayState,
       rootNode: node,
-      moduleInstantiated: options.modulePhase === "evaluate",
+      moduleInstantiated: options.modulePhase === undefined ? undefined : options.modulePhase === "evaluate",
       scope,
       signal: options.signal,
       stats,
@@ -860,9 +860,9 @@ async function evaluateObjectExpression(
   if (restored !== undefined && (restored.kind !== "object" || restored.value === null ||
       typeof restored.value !== "object" || Array.isArray(restored.value)))
     throw new TypeError("Invalid object expression continuation.");
-  // Own fixed-key classic data records before they escape so their property
-  // revisions can replace repeated descriptor capture. Public runner results stay native.
-  let trackRecord = context.scriptScope !== undefined;
+  // Own fixed-key classic and source module records before they escape. Their
+  // property revisions replace repeated capture; public runner results stay native.
+  let trackRecord = context.scriptScope !== undefined || context.moduleInstantiated !== undefined;
   if (trackRecord) for (let index = 0; index < node.properties.length; index++) {
     const property = node.properties[index]!;
     if (property.type !== "Property" || property.computed || property.kind !== undefined) {

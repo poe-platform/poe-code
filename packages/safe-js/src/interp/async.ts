@@ -104,6 +104,7 @@ export type AsyncEvaluationContext = {
   onSuspend?: () => void;
   captureReplayState?: () => unknown;
   rootNode?: ParseResult;
+  // Present only for source modules; functions hoisted during linking retain false.
   moduleInstantiated?: boolean;
   functionBody?: BlockStatement;
   restoredLoopIterations: Map<number, LoopIterationSnapshot>;

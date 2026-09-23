@@ -24,6 +24,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     if (literal || !arg.startsWith("-") || arg === "-") { result.files.push(arg); continue; }
     if (arg === "--") { literal = true; continue; }
     if (option === "-config") { if (value() !== "") throw new Error("User configuration modules are not supported"); continue; }
+    if (option === "-charset") { if (value().toLowerCase() !== "filename=utf8") throw new Error("Only UTF-8 filename charset is currently supported"); continue; }
     if (option === "-j" || option === "-json") { result.json = true; continue; }
     if (option === "-csv") { result.csv = true; continue; }
     if (arg === "-G1") { result.groupFamily = 1; continue; }

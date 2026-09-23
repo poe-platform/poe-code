@@ -58,3 +58,9 @@ test("typed presentation options preserve CLI parity", () => {
     ["-p", "$Title", "--", "image.png"]);
   assert.throws(() => createExiftoolArguments({ files: ["image.png"], format: "xml", template: "$Title" }, { signal }), /Conflicting/);
 });
+
+test("typed SDK exposes explicit UTF-8 filename charset with bounded CLI admission", () => {
+  const carrier = createExiftoolArguments({ files: ["café 水😀.png"], filenameCharset: "UTF8", tags: ["Title"] }, { signal });
+  assert.deepEqual(carrier.args, ["-charset", "filename=UTF8", "-Title", "--", "café 水😀.png"]);
+  assert.throws(() => createExiftoolArguments({ files: ["image.png"], filenameCharset: "Latin1" } as unknown as Parameters<typeof createExiftoolArguments>[0], { signal }), /UTF-8 filename charset/);
+});

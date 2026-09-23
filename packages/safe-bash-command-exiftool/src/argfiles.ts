@@ -118,7 +118,7 @@ export async function expandArgfiles(args: readonly string[], context: CommandCo
     }
     if (!literal && !takesValue && arg === "--") literal = true;
     const wasValue: boolean = takesValue;
-    takesValue = !literal && !wasValue && ["-config", "-api", "-o", "-if", "-p", "-stay_open"].includes(option);
+    takesValue = !literal && !wasValue && ["-config", "-charset", "-api", "-o", "-if", "-p", "-stay_open"].includes(option);
     resources.admit("retained", arg.length * 2 + 128);
     if (result.length >= 4096) throw new Error("ExifTool argument count exceeded");
     result.push(arg);

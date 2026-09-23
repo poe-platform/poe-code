@@ -7,6 +7,7 @@ import { Resources, type EngineOptions } from "./resources.js";
 /** Typed options for the currently admitted CLI profile, not the full native catalog. */
 export interface ExiftoolInvocationOptions {
   readonly files: readonly string[];
+  readonly filenameCharset?: "UTF8";
   readonly tags?: readonly string[];
   readonly assignments?: readonly TagAssignment[];
   readonly format?: "text" | "json" | "csv" | "binary" | "xml" | "tabular";
@@ -27,7 +28,7 @@ export interface ExiftoolInvocationOptions {
  */
 export function createExiftoolArguments(options: ExiftoolInvocationOptions, engine: EngineOptions): CommandArguments {
   const resources = new Resources(engine);
-  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination", "template"];
+  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination", "template", "filenameCharset"];
   resources.admit("retained", 256);
   for (const key in options) {
     if (!Object.hasOwn(options, key)) continue;
@@ -60,6 +61,7 @@ export function createExiftoolArguments(options: ExiftoolInvocationOptions, engi
       throw new Error("ExifTool option/tag not yet supported: " + name);
     }
   };
+  if (options.filenameCharset !== undefined) { append("-charset"); append("filename=", options.filenameCharset); }
   if (options.format !== undefined && options.format !== "text") {
     const flag = { json: "-j", csv: "-csv", binary: "-b", xml: "-X", tabular: "-T" }[options.format];
     if (!flag) throw new TypeError("Unsupported ExifTool output format");

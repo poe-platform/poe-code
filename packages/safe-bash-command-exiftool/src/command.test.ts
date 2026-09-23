@@ -586,3 +586,37 @@ test("repeated template expansion remains bounded before output", async () => {
   await assert.rejects(invoke(["-p", "$Title".repeat(100), "image.png"], fs, new AbortController().signal, undefined,
     { limits: { maxRetainedBytes: 150000 } }), /retained budget/);
 });
+
+test("explicit UTF-8 filename charset reads the issue fixture and Unicode VFS paths unchanged", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAC3RFWHRUaXRsZQBIZWxsb83PwM8AAAARdEVYdERlc2NyaXB0aW9uAFdvcmxkC2fZ1QAAAAxJREFUeJxj+M/AAAADAQEAyf6S7wAAAABJRU5ErkJggg==", "base64"));
+  for (const file of ["input.png", "café 水😀.png"]) {
+    await fs.writeFile("/" + file, bytes);
+    const before = await fs.stat("/" + file);
+    const result = await invoke(["-charset", "filename=UTF8", "-s3", "-Title", file], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "Hello\n");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await fs.readFile("/" + file), bytes);
+    assert.equal((await fs.stat("/" + file)).ino, before.ino);
+  }
+  await fs.writeFile("/args.txt", new TextEncoder().encode("-CHARSET\nFileName=utf8\n-s3\n-Title\ncafé 水😀.png\n"));
+  const expanded = await invoke(["-@", "args.txt"], fs);
+  assert.equal(expanded.exitCode, 0, expanded.stderr);
+  assert.equal(expanded.stdout, "Hello\n");
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["args.txt", "café 水😀.png", "input.png"]);
+});
+
+test("unsupported or missing filename charset is refused without expanding its value or acquiring input", async () => {
+  const fs = createMemoryFileSystem();
+  fs.lstat = async () => { throw new Error("unexpected VFS acquisition"); };
+  for (const charset of ["filename=Latin1", "exif=UTF8", "UTF8", "-@", ""]) {
+    const result = await invoke(["-charset", charset, "-Title=new", "input.png"], fs);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /Only UTF-8 filename charset is currently supported/);
+  }
+  const missing = await invoke(["-charset"], fs);
+  assert.equal(missing.exitCode, 1);
+  assert.match(missing.stderr, /Missing argument for -charset/);
+});

@@ -69,7 +69,7 @@ try {
 | Argument files | VFS `-@` expansion in argument order; initial BOM, physical lines, pinned whitespace/comment/CSTR rules and bounded nested includes |
 
 Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G1`, `-G4`, `-X`, `-T`, `-p TEMPLATE`,
-`-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`/`-s2`, `-s3`, `-n`,
+`-charset filename=UTF8`, `-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`/`-s2`, `-s3`, `-n`,
 `-overwrite_original`, `-overwrite_original_in_place`, `-o PATH` and `-@ PATH`.
 Selectors are `-Title`, `-Author`, `-Description`, `-Comment`, `-Copyright`,
 `-ModifyDate` and the missing-value probe `-MissingTag`; a trailing `#` requests
@@ -117,7 +117,9 @@ protocols remain open. Known unsupported readers and writers fail explicitly.
 PDF metadata removal is reversible and does not erase historical revisions or
 guarantee redaction; the required PDF parser/writer is not yet implemented.
 Native code evaluation, user config modules, host utilities and ambient polling
-are unavailable. Only UTF-8 argv is currently admitted. `-config ''` is accepted.
+are unavailable. Only UTF-8 argv is currently admitted. `-charset filename=UTF8` explicitly
+selects that existing filename encoding; other charsets are refused. The typed
+SDK exposes this as `filenameCharset: "UTF8"`. `-config ''` is accepted.
 
 Argument files must be regular UTF-8 VFS files, resolved against the invocation's
 working directory. They never search an executable directory or apply shell

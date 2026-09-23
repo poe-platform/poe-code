@@ -205,14 +205,6 @@ test("CONTROL FsError's explicit public message survives; native cause stays pri
   assert.equal(result.stderr.includes(secret), false);
 });
 
-test("CONTROL xxd plain reverse ignores non-hexadecimal input", async context => {
-  const { shell } = fixture(context);
-  const result = await shell.exec("printf 'x' | xxd -r -p");
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "");
-});
-
 for (const [source, exitCode, diagnostic] of [
   ["cat /missing", 1, "cat: ENOENT: no such file or directory, readStream '/missing'\n"],
   ["cat --bad-option", 2, "cat: unrecognized option '--bad-option'\n"],

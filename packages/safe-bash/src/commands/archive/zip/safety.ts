@@ -109,7 +109,7 @@ export class ZipScope {
     } else {
       const stat = await this.operation(() => fs.stat(path, { signal }));
       if (stat.size > this.limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-      const bytes = await this.operation(() => fs.readFile(path, { signal, maxBytes: this.limits.maxBufferedFileBytes }));
+      const bytes = await this.operation(() => fs.readFile(path, { signal, ...(Number.isFinite(this.limits.maxBufferedFileBytes) ? { maxBytes: this.limits.maxBufferedFileBytes } : {})}));
       if (bytes.length > this.limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
       yield bytes;
     }
@@ -225,7 +225,7 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     })());
     try {
       const receipt = await scope.operation(() => fs.publishFileConditional!(prepared.output, source, {
-        signal, parent: prepared.parentStat, expected: prepared.existing ?? null, maxBytes: scope.limits.maxArchiveBytes,
+        signal, parent: prepared.parentStat, expected: prepared.existing ?? null, maxBytes: Number.isFinite(scope.limits.maxArchiveBytes) ? scope.limits.maxArchiveBytes : Number.MAX_SAFE_INTEGER,
         ...(prepared.existing && capabilities.permissions !== false ? { mode: prepared.existing.mode & 0o7777 } : {}),
         ...(prepared.mtimeMs === undefined ? {} : { mtimeMs: prepared.mtimeMs }),
       }));

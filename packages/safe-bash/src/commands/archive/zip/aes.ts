@@ -72,7 +72,7 @@ export async function encryptAesPayload(source: ByteSource, encryption: ZipEncry
   let plaintext: Uint8Array | undefined;
   let derived: Buffer | undefined;
   try {
-    plaintext = await collectBytes(source, { maxBytes, signal });
+    plaintext = await collectBytes(source, { ...(Number.isFinite(maxBytes) ? { maxBytes } : {}), signal });
     let supplied: Uint8Array;
     try { supplied = await encryption.entropy(saltBytes, signal); }
     catch { signal.throwIfAborted(); fail("ZIP AES entropy capability failed"); }
@@ -98,7 +98,7 @@ export async function decryptAesPayload(wire: Uint8Array, password: Uint8Array, 
   const primitives = aesPrimitives();
   const { keyBytes, saltBytes } = aesParameters(aes);
   aes = { ...aes };
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("maxBytes must be a nonnegative safe integer");
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new RangeError("maxBytes must be a nonnegative safe integer");
   if (wire.length < saltBytes + 12) fail("ZIP truncated AES payload");
   const size = wire.length - saltBytes - 12;
   if (size > maxBytes) fail("ZIP AES authenticated staging limit exceeded");

@@ -17,12 +17,12 @@ export interface SplitCommandsOptions {
 
 export function settings(options: SplitCommandsOptions): SplitLimits {
   const limits: SplitLimits = {
-    maxInputBytes: 256 * 1024 * 1024, maxOutputBytes: 256 * 1024 * 1024,
-    maxFiles: 4096, maxBufferBytes: 8 * 1024 * 1024, maxChunkBytes: 64 * 1024,
-    maxArgumentBytes: 65536, maxSuffixLength: 128, maxSteps: 512 * 1024 * 1024,
+    maxInputBytes: Infinity, maxOutputBytes: Infinity,
+    maxFiles: Infinity, maxBufferBytes: Infinity, maxChunkBytes: 64 * 1024,
+    maxArgumentBytes: Infinity, maxSuffixLength: Infinity, maxSteps: Infinity,
     ...options.limits,
   };
-  for (const [name, value] of Object.entries(limits)) {
+  for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid split limit: ${name}`);
   }
   return limits;

@@ -99,7 +99,7 @@ class Invocation {
 
   private async read(path: string): Promise<Uint8Array> {
     const maximum = Math.min(this.work.limits.maxFileBytes, this.work.remaining("maxReadBytes"));
-    const bytes = await this.work.fs(path, () => this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: maximum }));
+    const bytes = await this.work.fs(path, () => this.context.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}));
     if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
     if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
     this.work.count("maxReadBytes", bytes.length);

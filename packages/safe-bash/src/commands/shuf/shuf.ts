@@ -91,7 +91,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
               inputSignal.throwIfAborted();
               if (context.fs.readStream) input = context.fs.readStream(path, { signal: inputSignal });
               else {
-                const bytes = await context.fs.readFile(path, { signal: inputSignal, maxBytes: limits.maxInputBytes });
+                const bytes = await context.fs.readFile(path, { signal: inputSignal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) });
                 if (bytes.byteLength > limits.maxInputBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
                 input = toByteSource(bytes);
               }
@@ -154,7 +154,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         const permutation: bigint[] = [];
         diagnostic = parsed.random === undefined ? "getrandom" : `${quote(parsed.random)}: read error`;
         if (!parsed.repeat) {
-          if (ahead > BigInt(limits.maxSampleSize)) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
+          if (Number.isFinite(limits.maxSampleSize) && ahead > BigInt(limits.maxSampleSize)) throw new Diagnostic("shuf: maxSampleSize limit exceeded\n");
           const swaps = new Map<bigint, bigint>();
           for (let index = 0n; index < ahead; index++) {
             const chosen = index + await random.choose(size - index);

@@ -22,12 +22,12 @@ export interface IconvCommandsOptions {
 
 export function settings(options: IconvCommandsOptions): IconvLimits {
   const limits: IconvLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxInputBytes: 8_388_608,
-    maxBufferedBytes: 33_554_432, maxOutputBytes: 67_108_864,
-    maxDiagnosticBytes: 65_536, maxWork: 134_217_728, maxChunks: 65_536,
-    maxEmptyChunks: 4096, ...options.limits,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity,
+    maxBufferedBytes: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxChunks: Infinity,
+    maxEmptyChunks: Infinity, ...options.limits,
   };
-  for (const [name, value] of Object.entries(limits)) {
+  for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid iconv limit: ${name}`);
   }
   return Object.freeze(limits);

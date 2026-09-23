@@ -144,7 +144,7 @@ test("argument, line-bytes window and numeric limits fail before effects", async
   for (const [args, options] of [
     [["-C9"], { limits: { maxBufferBytes: 8 } }],
     [["-b2"], { limits: { maxArgumentBytes: 2 } }],
-    [["-a129"], {}], [["-b9007199254740992"], {}], [["--numeric-suffixes=100"], {}],
+    [["-a129"], { limits: { maxSuffixLength: 128 } }], [["-b9007199254740992"], {}], [["--numeric-suffixes=100"], {}],
     [["-l1", "-b2"], {}], [["--additional-suffix=/bad"], {}], [["--filter=anything"], {}],
   ] as const) {
     const result = await run(args, "abc", options);

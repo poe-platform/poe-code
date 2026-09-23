@@ -477,7 +477,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits, defaults?: ArchiveC
   if (action === "copy" && output === undefined && showFiles === undefined) throw new ZipFailure(16, "Invalid command arguments", "-U (--copy) requires -O (--out)");
   const names: string[] = [];
   if (stdinNames) {
-    const input = await collectBytes(scope.stdin, { maxBytes: limits.maxFilesFromBytes, signal: context.signal });
+    const input = await collectBytes(scope.stdin, { ...(Number.isFinite(limits.maxFilesFromBytes) ? { maxBytes: limits.maxFilesFromBytes } : {}), signal: context.signal });
     let start = 0;
     let lines = 0;
     for (let end = 0; end <= input.length; end++) {
@@ -607,7 +607,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
   let inputSplit: number | undefined;
   if (existing && input) {
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
-    const bytes = await collectBytes(scope.input(input), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
+    const bytes = await collectBytes(scope.input(input), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
     const resolved = parsed.repair || parsed.adjust ? { bytes, paths: [input] } : await resolveZipVolumes(scope, input, bytes, host);
     inputPaths = resolved.paths;
@@ -724,7 +724,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         return;
       }
       const live = liveProfile;
-      const bytes = live ? scope.stdin : await collectBytes(scope.stdin, { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
+      const bytes = live ? scope.stdin : await collectBytes(scope.stdin, { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) } : {}), signal: context.signal });
       await budget.member(bytes instanceof Uint8Array ? bytes.length : 0);
       await encodeSelected(source, name, bytes, { modified, mode: 0o010660, directory: false, symlink: false });
       return;
@@ -813,7 +813,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
         } else {
           const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
           if (fifoSource) {
-            const bytes = await collectBytes(scope.input(path, true), { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
+            const bytes = await collectBytes(scope.input(path, true), { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes) } : {}), signal: context.signal });
             const current = await inspectSource(scope, path, parsed.storeLinks);
             if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
             budget.totalBytes += bytes.length;
@@ -855,7 +855,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
       if (ancestors.some(ancestor => ancestor.path === canonical || sameIdentity(ancestor.stat, stat))) fail(`directory cycle while archiving: ${source}`);
       ancestors.push({ path: canonical, stat });
       try {
-        const children = await scope.operation(() => context.fs.readdir(path, { signal: context.signal, maxEntries: limits.maxMembers - visits }));
+        const children = await scope.operation(() => context.fs.readdir(path, { signal: context.signal, ...(Number.isFinite(limits.maxMembers) ? { maxEntries: limits.maxMembers - visits } : {}) }));
         if (children.length > limits.maxMembers - visits) fail("traversal member limit exceeded");
         for (const child of children) {
           if (!child.name || child.name === "." || child.name === ".." || child.name.includes("/") || child.name.includes("\0")) fail("invalid filesystem directory entry");

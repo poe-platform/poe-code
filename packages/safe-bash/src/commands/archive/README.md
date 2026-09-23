@@ -304,24 +304,24 @@ Adapters may themselves buffer or perform noncooperative work; tar cannot
 change their memory/cancellation semantics. Source-provided chunks may already
 exist as larger allocations before tar receives them.
 
-All limits are positive safe integers; `chunkSize` must be 512–1,048,576 bytes.
+Resource quotas are unlimited unless explicitly supplied under `options.limits`. Each supplied quota is independent and must be a positive safe integer; `chunkSize` must be 512–1,048,576 bytes.
 Defaults, configurable under `options.limits`:
 
 | Limit | Default | Accounting |
 | --- | ---: | --- |
-| `maxArchiveBytes` | 268,435,456 | Each compressed and uncompressed archive stream, including headers/padding/trailers. |
-| `maxEntryBytes` | 67,108,864 | One regular-file payload. |
-| `maxTotalBytes` | 268,435,456 | Sum of regular-file payload sizes, including excluded/unselected entries when reading. |
-| `maxMembers` | 10,000 | Source traversal/operands and emitted/read headers; PAX/GNU extension headers count. |
-| `maxPathBytes` | 4,096 | UTF-8 member/link/source operand bytes. |
-| `maxDepth` | 128 | Path/traversal depth; target chains also have a 40-symlink ceiling. |
-| `maxPaxBytes` | 1,048,576 | One extended-header body and each accumulated local/global keyword state. |
-| `maxFilesFromBytes` | 1,048,576 | Aggregate input file-list bytes. |
-| `maxArgumentBytes` | 65,536 | CLI argument bytes. |
-| `maxTextBytes` | 1,048,576 | Listing, verbosity and warning output per command. |
-| `maxDiagnosticBytes` | 4,096 | One additional failure diagnostic (message also limited to 1,024 characters before escaping). |
-| `maxPatternSteps` | 10,000,000 | Exclusion matcher token/path state transitions. |
-| `maxBufferedFileBytes` | 1,048,576 | Non-streaming read fallback. |
+| `maxArchiveBytes` | Unlimited | Each compressed and uncompressed archive stream, including headers/padding/trailers. |
+| `maxEntryBytes` | Unlimited | One regular-file payload. |
+| `maxTotalBytes` | Unlimited | Sum of regular-file payload sizes, including excluded/unselected entries when reading. |
+| `maxMembers` | Unlimited | Source traversal/operands and emitted/read headers; PAX/GNU extension headers count. |
+| `maxPathBytes` | Unlimited | UTF-8 member/link/source operand bytes. |
+| `maxDepth` | Unlimited | Path/traversal depth; target chains also have a 40-symlink ceiling. |
+| `maxPaxBytes` | Unlimited | One extended-header body and each accumulated local/global keyword state. |
+| `maxFilesFromBytes` | Unlimited | Aggregate input file-list bytes. |
+| `maxArgumentBytes` | Unlimited | CLI argument bytes. |
+| `maxTextBytes` | Unlimited | Listing, verbosity and warning output per command. |
+| `maxDiagnosticBytes` | Unlimited | One additional failure diagnostic (message also limited to 1,024 characters before escaping). |
+| `maxPatternSteps` | Unlimited | Exclusion matcher token/path state transitions. |
+| `maxBufferedFileBytes` | Unlimited | Non-streaming read fallback. |
 | `chunkSize` | 65,536 | Archive/zlib chunk size and requested FS read chunk size. |
 
 The source manifest and identity/name maps are bounded metadata, not payload

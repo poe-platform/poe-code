@@ -66,7 +66,7 @@ test("archive plugin is explicit, collision-atomic, and validates limits", async
   assert.equal(registry.list().length, 3);
   assert.throws(() => createArchiveCommands({ limits: { maxMembers: 0 } }), /limit/u);
   assert.throws(() => createArchiveCommands({ limits: { chunkSize: 1 } }), /chunkSize/u);
-  assert.equal(DEFAULT_ARCHIVE_LIMITS.maxEntryBytes, 64 * 1024 * 1024);
+  assert.equal(DEFAULT_ARCHIVE_LIMITS.maxEntryBytes, Infinity);
 });
 
 for (const gzip of [false, true]) test(`Shell binary create/list/extract ${gzip ? "gzip" : "plain"}`, async () => {

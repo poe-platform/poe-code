@@ -83,18 +83,18 @@ export class Reader {
           const size = stat.size;
           this.lifecycle.assertOpen();
           budget.check(size, maximum, "buffered input bytes");
-          budget.retain(maximum);
+          budget.retain(Number.isFinite(maximum) ? maximum : size);
           try {
             const readFile = fs.readFile;
             this.lifecycle.assertOpen();
-            const content = await Reflect.apply(readFile, fs, [path, { signal: budget.signal, maxBytes: maximum }]);
+            const content = await Reflect.apply(readFile, fs, [path, { signal: budget.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}]);
             this.lifecycle.assertOpen();
             if (!(content instanceof Uint8Array)) throw new TypeError("iconv input requires bytes");
             const length = viewLength.call(content) as number;
             this.lifecycle.assertOpen();
             budget.check(length, maximum, "buffered input bytes");
             this.content = this.copy(content); this.ended = true;
-          } finally { budget.retain(-maximum); }
+          } finally { budget.retain(-(Number.isFinite(maximum) ? maximum : size)); }
           return;
         }
       }

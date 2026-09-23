@@ -158,7 +158,7 @@ export class Session {
         if (!input.stat || !Number.isSafeInteger(input.stat.size) || input.stat.size < 0 || input.stat.size > limits.maxFallbackBytes) {
           throw new Error("bounded comparison requires readStream or a file within maxFallbackBytes");
         }
-        const bytes = await observe(() => context.fs.readFile(input.path!, { signal, maxBytes: limits.maxFallbackBytes }), signal);
+        const bytes = await observe(() => context.fs.readFile(input.path!, { signal, ...(Number.isFinite(limits.maxFallbackBytes) ? { maxBytes: limits.maxFallbackBytes } : {})}), signal);
         if (bytes.length > limits.maxFallbackBytes) throw new Error("input fallback bytes limit exceeded");
         for (let offset = Number(skip < BigInt(bytes.length) ? skip : BigInt(bytes.length)); offset < bytes.length; offset += limits.maxChunkBytes) yield bytes.subarray(offset, offset + limits.maxChunkBytes);
       }

@@ -74,18 +74,18 @@ There is no native-process fallback for these flags.
 ## Bounded streaming
 
 `SplitCommandsOptions` has `replace?: boolean` and
-`limits?: Partial<SplitLimits>`. Limits are validated positive safe integers:
+`limits?: Partial<SplitLimits>`. Resource quotas are unlimited unless explicitly supplied. Each supplied quota is independent and must be a positive safe integer:
 
 | Limit | Default | Meaning |
 | --- | ---: | --- |
-| `maxInputBytes` | 256 MiB | Total yielded input bytes |
-| `maxOutputBytes` | 256 MiB | Total offered VFS output payload |
-| `maxFiles` | 4096 | Number of output files attempted |
-| `maxBufferBytes` | 8 MiB | `-C` window, `-n` input and each fallback collection |
+| `maxInputBytes` | Unlimited | Total yielded input bytes |
+| `maxOutputBytes` | Unlimited | Total offered VFS output payload |
+| `maxFiles` | Unlimited | Number of output files attempted |
+| `maxBufferBytes` | Unlimited | `-C` window, `-n` input and each fallback collection |
 | `maxChunkBytes` | 64 KiB | Output slice size / requested VFS read chunk |
-| `maxArgumentBytes` | 64 KiB | Total UTF-8 bytes of argv |
-| `maxSuffixLength` | 128 | Counter plus auto-extension characters |
-| `maxSteps` | 512 Mi | Work/input-iteration budget |
+| `maxArgumentBytes` | Unlimited | Total UTF-8 bytes of argv |
+| `maxSuffixLength` | Unlimited | Counter plus auto-extension characters |
+| `maxSteps` | Unlimited | Work/input-iteration budget |
 
 These are per invocation, not a replacement for shared Shell budgets. Shell
 pipe/stdout/stderr budgets still apply. Direct VFS payloads do not magically

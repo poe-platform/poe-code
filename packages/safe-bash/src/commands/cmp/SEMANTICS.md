@@ -90,8 +90,8 @@ for the C profile; translated locales are not supported.
 ## Streaming, limits and cancellation
 
 All factories accept an optional `comparisonBlockBytes` override,
-`limits.maxChunkBytes` (default 1,048,576) and `limits.maxFallbackBytes` (default
-8,388,608). Values must be positive safe integers. `replace` defaults to false.
+`limits.maxChunkBytes` and `limits.maxFallbackBytes`. Omitted quotas are unlimited;
+each explicitly supplied quota is independent and must be a positive safe integer. `replace` defaults to false.
 The selected block size bounds each comparison buffer; it is not reduced
 when the provider chunk limit is smaller. There are no ambient product environment
 reads; `POSIXLY_CORRECT` is read from `CommandContext.env`.

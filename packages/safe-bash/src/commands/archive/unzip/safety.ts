@@ -56,7 +56,7 @@ export class Extraction {
     } else {
       const stat = await this.operation(() => fs.stat(path, { signal }));
       if (stat.size > this.limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-      const bytes = await this.operation(() => fs.readFile(path, { signal, maxBytes: this.limits.maxBufferedFileBytes }));
+      const bytes = await this.operation(() => fs.readFile(path, { signal, ...(Number.isFinite(this.limits.maxBufferedFileBytes) ? { maxBytes: this.limits.maxBufferedFileBytes } : {})}));
       if (bytes.length > this.limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
       yield bytes;
     }

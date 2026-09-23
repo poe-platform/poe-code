@@ -69,7 +69,7 @@ function number(value: number, maximum: number, label: string): void {
 function admit(limits: ArchiveLimits, signal: AbortSignal): number {
   signal.throwIfAborted();
   for (const key of ["maxArchiveBytes", "maxEntryBytes", "maxTotalBytes", "maxMembers", "maxPathBytes", "maxDepth", "maxPaxBytes", "maxTextBytes", "maxPatternSteps", "chunkSize"] as const) {
-    number(limits[key], Number.MAX_SAFE_INTEGER, key);
+    if (limits[key] !== Infinity || key === "chunkSize") number(limits[key], Number.MAX_SAFE_INTEGER, key);
   }
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024) fail("ZIP chunk size must be between 512 and 1048576");
   return Math.min(limits.chunkSize, 64 * 1024);
@@ -419,7 +419,7 @@ export async function* decodeZipEntry(entry: ZipEntry, limits: ArchiveLimits, si
   const plaintext = await decryptAesPayload(entry.data, password, entry.aes, available, signal);
   let verified: Uint8Array | undefined;
   try {
-    verified = await collectBytes(decodeZipContent(entry, limits, signal, password, plaintext), { maxBytes: Math.floor((available - plaintext.length) / 2), signal });
+    verified = await collectBytes(decodeZipContent(entry, limits, signal, password, plaintext), { ...(Number.isFinite(Math.floor((available - plaintext.length) / 2)) ? { maxBytes: Math.floor((available - plaintext.length) / 2) } : {}), signal });
     yield* wireChunks(verified, Math.min(limits.chunkSize, 65536), signal);
   } finally { plaintext.fill(0); verified?.fill(0); }
 }
@@ -616,7 +616,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
       if (maximum < 0) fail("ZIP AES authenticated staging limit exceeded");
       let entry = original;
       if (original.source) {
-        const plaintext = await collectBytes(original.source, { maxBytes: Math.min(maximum, limits.maxEntryBytes, limits.maxTotalBytes - total), signal });
+        const plaintext = await collectBytes(original.source, { ...(Number.isFinite(Math.min(maximum, limits.maxEntryBytes, limits.maxTotalBytes - total)) ? { maxBytes: Math.min(maximum, limits.maxEntryBytes, limits.maxTotalBytes - total) } : {}), signal });
         total += plaintext.length;
         try {
           if (original.expectedSize !== undefined && plaintext.length !== original.expectedSize) fail("ZIP live input size mismatch");
@@ -661,7 +661,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
       const rounded = new Date(Math.ceil(Math.floor(original.modified.getTime() / 1000) / 2) * 2000);
       const time = original.dosTime ?? ((rounded.getHours() << 11) | (rounded.getMinutes() << 5) | (rounded.getSeconds() >>> 1));
       const descriptor = descriptors || original.descriptors === true;
-      const data = await collectBytes(encryptZipPayload((async function* () { yield original.data; })(), original.encryption, descriptor ? time >>> 8 : original.crc32 >>> 24, signal), { maxBytes: limits.maxArchiveBytes, signal });
+      const data = await collectBytes(encryptZipPayload((async function* () { yield original.data; })(), original.encryption, descriptor ? time >>> 8 : original.crc32 >>> 24, signal), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), signal });
       const entry = { ...original, data, dosTime: time, flags: (original.flags ?? 0x800) | 1 | (descriptor ? 8 : 0) };
       delete entry.encryption;
       entries.push(entry);
@@ -945,5 +945,5 @@ async function* wireChunks(bytes: Uint8Array, chunkSize: number, signal: AbortSi
 }
 
 export async function writeZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false, allowZip64 = true): Promise<Uint8Array> {
-  return collectBytes(streamZipArchive(archive, limits, signal, descriptors, forceZip64, allowZip64), { maxBytes: limits.maxArchiveBytes, signal });
+  return collectBytes(streamZipArchive(archive, limits, signal, descriptors, forceZip64, allowZip64), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), signal });
 }

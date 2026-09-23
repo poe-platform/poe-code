@@ -86,7 +86,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       const archivePath = await extraction.operation(() => context.fs.realpath(vfsPath(context.cwd, archive), { signal: context.signal }));
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
-      const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
+      const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {})});
       if (!parsed.pipe && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
       extraction.inputVolumes = resolved.volumes ?? [];
@@ -133,7 +133,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           for (let attempt = password !== undefined && parsed.password === undefined ? -1 : 0; attempt < 3; attempt++) {
             if (password === undefined) password = await extraction.operation(() => readZipPassword(options.zipHost, limits.maxArgumentBytes, signal, false));
             try {
-              const verified = await collectBytes(decodeZipEntry(entry, limits, signal, password), { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal), signal });
+              const verified = await collectBytes(decodeZipEntry(entry, limits, signal, password), { ...(Number.isFinite(Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal)) ? { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - actualTotal) } : {}), signal });
               actualTotal += verified.length;
               yield verified;
               return;

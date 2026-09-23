@@ -59,7 +59,10 @@ export function parseTransform(source: string): NameTransform[] {
 export class TransformedNames {
   private readonly budget: Budget;
   constructor(context: CommandContext, private readonly transforms: readonly NameTransform[], private readonly limits: ArchiveLimits) {
-    this.budget = new Budget(context, { maxSteps: limits.maxPatternSteps, maxBufferBytes: limits.maxPathBytes });
+    this.budget = new Budget(context, {
+      ...(Number.isFinite(limits.maxPatternSteps) ? { maxSteps: limits.maxPatternSteps } : {}),
+      ...(Number.isFinite(limits.maxPathBytes) ? { maxBufferBytes: limits.maxPathBytes } : {}),
+    });
   }
   async apply(name: string): Promise<string> {
     for (const transform of this.transforms) {

@@ -85,7 +85,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     filesFrom = true;
     if (path === "-" && stdinUsed) fail("standard input file list can only be read once");
     const bytes = path === "-"
-      ? await collectBytes(context.stdin, { maxBytes: limits.maxFilesFromBytes, signal: context.signal })
+      ? await collectBytes(context.stdin, { ...(Number.isFinite(limits.maxFilesFromBytes) ? { maxBytes: limits.maxFilesFromBytes } : {}), signal: context.signal })
       : await smallFile(context, vfsPath(context.cwd, path), limits);
     if (path === "-") stdinUsed = true;
     filesFromBytes += bytes.length;
@@ -189,7 +189,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "X") {
       if (value === "-" && stdinUsed) fail("standard input file list can only be read once");
       const bytes = value === "-"
-        ? await collectBytes(context.stdin, { maxBytes: limits.maxFilesFromBytes, signal: context.signal })
+        ? await collectBytes(context.stdin, { ...(Number.isFinite(limits.maxFilesFromBytes) ? { maxBytes: limits.maxFilesFromBytes } : {}), signal: context.signal })
         : await smallFile(context, vfsPath(context.cwd, value!), limits);
       if (value === "-") stdinUsed = true;
       filesFromBytes += bytes.length;

@@ -24,12 +24,12 @@ export interface HexdumpCommandsOptions {
 export function settings(options: HexdumpCommandsOptions): HexdumpLimits {
   if (options.dialect !== undefined && options.dialect !== "bsd" && options.dialect !== "util-linux") throw new RangeError("Invalid hexdump dialect");
   const limits: HexdumpLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxInputBytes: 33_554_432,
-    maxBufferedBytes: 8_388_608, maxOutputBytes: 134_217_728,
-    maxDiagnosticBytes: 65_536, maxFormats: 64, maxWork: 536_870_912,
-    maxEmptyChunks: 4096, ...options.limits,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity,
+    maxBufferedBytes: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxFormats: Infinity, maxWork: Infinity,
+    maxEmptyChunks: Infinity, ...options.limits,
   };
-  for (const [name, value] of Object.entries(limits)) {
+  for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid hexdump limit: ${name}`);
   }
   return Object.freeze(limits);

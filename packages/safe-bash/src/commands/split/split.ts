@@ -82,7 +82,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
           yield cursor!.take(bytes.length);
         }
       })();
-      chunkInput = await collectBytes(source, { signal, maxBytes: limits.maxBufferBytes });
+      chunkInput = await collectBytes(source, { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {})});
     }
     let files = 0;
     let chunkOffset = 0;
@@ -121,7 +121,7 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       if (context.fs.writeStream && capabilities.streamingWrite !== false) {
         await interruptible(() => context.fs.writeStream!(destination.path, source, { signal, flag: destination.flag }), signal);
       } else {
-        const bytes = await collectBytes(source, { signal, maxBytes: limits.maxBufferBytes });
+        const bytes = await collectBytes(source, { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {})});
         await interruptible(() => context.fs.writeFile(destination.path, bytes, { signal, flag: destination.flag }), signal);
       }
       await outputs.remember(destination.path);

@@ -515,18 +515,18 @@ for (const password of passwords) for (const method of [0, 8, 12]) for (const li
     if (live) { entry.data = new Uint8Array(); entry.source = toByteSource(bytes); entry.size = 0; entry.expectedSize = bytes.length; }
     entry.encryption = { password, entropy };
     const plain = await makeZipEntry("plain", new Uint8Array(), attributes, limits, signal, 0);
-    const archive = await collectBytes(streamZipArchive({ entries: [entry, plain], comment: Buffer.from("archive comment") }, limits, signal, descriptors), { maxBytes: limits.maxArchiveBytes, signal });
+    const archive = await collectBytes(streamZipArchive({ entries: [entry, plain], comment: Buffer.from("archive comment") }, limits, signal, descriptors), { ...(Number.isFinite(limits.maxArchiveBytes) ? { maxBytes: limits.maxArchiveBytes } : {}), signal });
     const read = await readZipArchive(archive, limits, signal);
     assert.equal(read.entries[0]!.flags! & 1, 1);
     assert.equal(Boolean(read.entries[0]!.flags! & 8), live || descriptors);
     assert.equal(read.entries[1]!.flags! & 1, 0);
     assert.equal(Buffer.from(read.comment).toString(), "archive comment");
-    assert.deepEqual(Buffer.from(await collectBytes(decodeZipEntry(read.entries[0]!, limits, signal, password), { maxBytes: limits.maxEntryBytes, signal })), bytes);
-    await assert.rejects(collectBytes(decodeZipEntry(read.entries[0]!, limits, signal, Buffer.from("wrong")), { maxBytes: limits.maxEntryBytes, signal }));
+    assert.deepEqual(Buffer.from(await collectBytes(decodeZipEntry(read.entries[0]!, limits, signal, password), { ...(Number.isFinite(limits.maxEntryBytes) ? { maxBytes: limits.maxEntryBytes } : {}), signal })), bytes);
+    await assert.rejects(collectBytes(decodeZipEntry(read.entries[0]!, limits, signal, Buffer.from("wrong")), { ...(Number.isFinite(limits.maxEntryBytes) ? { maxBytes: limits.maxEntryBytes } : {}), signal }));
     const copied = await readZipArchive(await writeZipArchive(read, limits, signal, !descriptors), limits, signal);
     assert.deepEqual(copied.entries[0]!.data, read.entries[0]!.data);
     assert.equal(copied.entries[0]!.flags! & 8, read.entries[0]!.flags! & 8);
-    assert.deepEqual(Buffer.from(await collectBytes(decodeZipEntry(copied.entries[0]!, limits, signal, password), { maxBytes: limits.maxEntryBytes, signal })), bytes);
+    assert.deepEqual(Buffer.from(await collectBytes(decodeZipEntry(copied.entries[0]!, limits, signal, password), { ...(Number.isFinite(limits.maxEntryBytes) ? { maxBytes: limits.maxEntryBytes } : {}), signal })), bytes);
   });
 }
 

@@ -37,12 +37,12 @@ export interface ConversionOptions {
 }
 export function settings(options: LineEndingCommandsOptions): LineEndingLimits {
   const limits: LineEndingLimits = {
-    maxArguments: 1024, maxArgumentBytes: 262_144, maxInputBytes: 16_777_216, maxOutputBytes: 33_554_432,
-    maxBufferedBytes: 2_097_152, maxDiagnosticBytes: 65_536, maxFiles: 128, maxWork: 134_217_728,
-    maxEmptyChunks: 1024, maxPathBytes: 4096, maxDepth: 64, maxTempAttempts: 128, chunkSize: 16_384,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity, maxOutputBytes: Infinity,
+    maxBufferedBytes: Infinity, maxDiagnosticBytes: Infinity, maxFiles: Infinity, maxWork: Infinity,
+    maxEmptyChunks: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxTempAttempts: Infinity, chunkSize: 16_384,
     ...options.limits,
   };
-  for (const [name, value] of Object.entries(limits)) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid line-ending limit: ${name}`);
+  for (const [name, value] of Object.entries(options.limits ?? {})) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid line-ending limit: ${name}`);
   return Object.freeze(limits);
 }
 export class LineEndingError extends PublicDiagnostic {

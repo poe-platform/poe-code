@@ -79,7 +79,7 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
   };
   const times = new Map<string, number | undefined>();
   const scan = async (inputPath: string, deleting: boolean) => {
-    const data = await collectBytes(fileSource(context, inputPath, budget.limits), { maxBytes: budget.limits.maxArchiveBytes, signal: context.signal });
+    const data = await collectBytes(fileSource(context, inputPath, budget.limits), { ...(Number.isFinite(budget.limits.maxArchiveBytes) ? { maxBytes: budget.limits.maxArchiveBytes } : {}), signal: context.signal });
     const prefix = data.subarray(0, 6);
     if ((prefix[0] === 31 && prefix[1] === 139) || Buffer.from(prefix.subarray(0, 3)).toString() === "BZh" || [253, 55, 122, 88, 90, 0].every((value, index) => prefix[index] === value)) fail("cannot modify compressed archives");
     await readArchive(context, (async function* () { yield data; })(), deleting ? options : { ...options, mode: "t", operands: [], excludes: [] }, budget, {
@@ -115,7 +115,7 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
       if (archived === undefined) fail("archive lacks mtime required for update");
       return source.stat.mtimeMs / 1000 > archived;
     }) : prepared.entries;
-    const created = await collectBytes(createArchive(context, entries, options, budget), { maxBytes: budget.limits.maxArchiveBytes - bytes + 1024, signal: context.signal });
+    const created = await collectBytes(createArchive(context, entries, options, budget), { ...(Number.isFinite(budget.limits.maxArchiveBytes - bytes + 1024) ? { maxBytes: budget.limits.maxArchiveBytes - bytes + 1024 } : {}), signal: context.signal });
     add(created.subarray(0, created.length - 1024));
     changed = entries.length > 0;
   }

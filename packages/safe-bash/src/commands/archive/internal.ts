@@ -38,29 +38,29 @@ export interface ZipHost {
   /** Supply cryptographically secure, fresh bytes. Product code never substitutes entropy. */
   readonly entropy?: (length: number, signal: AbortSignal) => Uint8Array | Promise<Uint8Array>;
   /** Host must suppress terminal echo and return owned password bytes, or undefined on EOF. */
-  readonly password?: (request: Readonly<{ prompt: string; maxBytes: number; signal: AbortSignal }>) => Promise<Uint8Array | undefined>;
+  readonly password?: (request: Readonly<{ prompt: string; maxBytes: number; signal: AbortSignal}>) => Promise<Uint8Array | undefined>;
 }
 
 export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({
-  maxArchiveBytes: 256 * 1024 * 1024,
-  maxEntryBytes: 64 * 1024 * 1024,
-  maxTotalBytes: 256 * 1024 * 1024,
-  maxMembers: 10_000,
-  maxPathBytes: 4096,
-  maxDepth: 128,
-  maxPaxBytes: 1024 * 1024,
-  maxFilesFromBytes: 1024 * 1024,
-  maxArgumentBytes: 64 * 1024,
-  maxTextBytes: 1024 * 1024,
-  maxDiagnosticBytes: 4096,
-  maxPatternSteps: 10_000_000,
-  maxBufferedFileBytes: 1024 * 1024,
+  maxArchiveBytes: Infinity,
+  maxEntryBytes: Infinity,
+  maxTotalBytes: Infinity,
+  maxMembers: Infinity,
+  maxPathBytes: Infinity,
+  maxDepth: Infinity,
+  maxPaxBytes: Infinity,
+  maxFilesFromBytes: Infinity,
+  maxArgumentBytes: Infinity,
+  maxTextBytes: Infinity,
+  maxDiagnosticBytes: Infinity,
+  maxPatternSteps: Infinity,
+  maxBufferedFileBytes: Infinity,
   chunkSize: 64 * 1024,
 });
 
 export function settings(options: ArchiveCommandsOptions): ArchiveLimits {
   const limits = { ...DEFAULT_ARCHIVE_LIMITS, ...options.limits };
-  for (const [key, value] of Object.entries(limits)) {
+  for (const [key, value] of Object.entries(options.limits ?? {})) {
     if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || !Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid archive limit: ${key}`);
   }
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024) throw new RangeError("Archive chunkSize must be between 512 and 1048576");
@@ -174,7 +174,7 @@ export async function* fileSource(context: CommandContext, path: string, limits:
   } else {
     const stat = await operation(context, () => context.fs.stat(path, { signal: context.signal }));
     if (stat.size > limits.maxBufferedFileBytes) fail("filesystem lacks streaming reads: buffered file limit exceeded");
-    const bytes = await operation(context, () => context.fs.readFile(path, { signal: context.signal, maxBytes: limits.maxBufferedFileBytes }));
+    const bytes = await operation(context, () => context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(limits.maxBufferedFileBytes) ? { maxBytes: limits.maxBufferedFileBytes } : {})}));
     if (bytes.length > limits.maxBufferedFileBytes) fail("buffered file limit exceeded");
     yield bytes;
   }
@@ -200,5 +200,5 @@ export async function publish(context: CommandContext, path: string, source: Byt
 }
 
 export async function smallFile(context: CommandContext, path: string, limits: ArchiveLimits): Promise<Uint8Array> {
-  return collectBytes(fileSource(context, path, limits), { signal: context.signal, maxBytes: limits.maxFilesFromBytes });
+  return collectBytes(fileSource(context, path, limits), { signal: context.signal, ...(Number.isFinite(limits.maxFilesFromBytes) ? { maxBytes: limits.maxFilesFromBytes } : {})});
 }

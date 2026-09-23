@@ -16,7 +16,7 @@ export class RandomIntegers {
   private readonly controller = new AbortController();
   private readonly signal: AbortSignal;
 
-  constructor(private readonly context: CommandContext, private readonly name: string | undefined, private readonly maxBytes = 64 * 1024 * 1024) {
+  constructor(private readonly context: CommandContext, private readonly name: string | undefined, private readonly maxBytes = Infinity) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
     context.registerCleanup?.(() => this.close());
   }
@@ -35,7 +35,7 @@ export class RandomIntegers {
       else {
         const maxBytes = this.maxBytes;
         this.source = ownedBytes((async function* () {
-          const bytes = await fs.readFile(path, { signal, maxBytes });
+          const bytes = await fs.readFile(path, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
           if (bytes.byteLength > maxBytes) throw new Diagnostic("shuf: maxInputBytes limit exceeded\n");
           yield bytes;
         })(), signal);

@@ -61,7 +61,7 @@ export async function resolveZipVolumes(scope: Pick<ZipScope, "context" | "limit
     if (!stat || stat.type !== "file" || !hasIdentity(stat) || stat.nlink !== 1) fail("ZIP volume requires a regular single-link file with known identity");
     if (index !== count - 1 && path === finalPath || paths.includes(path) || stats.some(other => sameIdentity(stat, other))) fail("ZIP repeated or aliased input volume");
     if (!Number.isSafeInteger(stat.size) || stat.size < 1 || stat.size > scope.limits.maxArchiveBytes - total) fail("ZIP volume byte limit exceeded");
-    const bytes = index === count - 1 ? final : await collectBytes(scope.input(path), { signal, maxBytes: stat.size });
+    const bytes = index === count - 1 ? final : await collectBytes(scope.input(path), { signal, ...(Number.isFinite(stat.size) ? { maxBytes: stat.size } : {})});
     const after = await scope.stat(path);
     if (bytes.length !== stat.size || !after || !sameIdentity(stat, after) || after.size !== stat.size || after.mtimeMs !== stat.mtimeMs || after.ctimeMs !== stat.ctimeMs) fail("ZIP input volume changed while reading");
     starts.push(total); lengths.push(bytes.length); paths.push(path); stats.push(stat);

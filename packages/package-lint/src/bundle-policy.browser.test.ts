@@ -34,13 +34,20 @@ describe("version-independent builtins retain released FS profile restrictions",
     }
   );
 
-  it.each(["node:nonexistent", "node:sqlite/extra", "node:node:fs", "sqlite", "fs/unknown"])(
+  it.each([
+    ["node:nonexistent", "invalid-external"],
+    ["node:sqlite/extra", "invalid-external"],
+    ["node:node:fs", "invalid-external"],
+    ["sqlite", "undeclared-dependency"],
+    ["fs/unknown", "undeclared-dependency"]
+  ])(
     "still rejects unknown or nonbuiltin %s in Node FS edges",
-    (name) => {
+    (name, reason) => {
       const { manifest, metafile, packed, chunk } = canonicalBundleFixture();
       metafile.canonicalBundle.metafile.outputs[chunk].imports.push({ path: name, external: true });
       metafile.canonicalTypes["packages/safe-fs/dist/platform/node.d.ts"].push(name);
       expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([
+        { external: name, reason },
         { external: "poe-code/safe-fs", reason: "external-canonical-dependency" },
         { external: "poe-code/safe-fs", reason: "external-canonical-types" }
       ]);

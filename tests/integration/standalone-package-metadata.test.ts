@@ -37,6 +37,20 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
+  it("installs the external SafeJS dependencies with the root package", () => {
+    const root = readPackageJson("package.json");
+    const safejs = readPackageJson("packages/safe-js/package.json");
+    const workspaces = new Set(
+      fs.readdirSync(path.join(ROOT, "packages"), { withFileTypes: true })
+        .filter(entry => entry.isDirectory() && fs.existsSync(path.join(ROOT, "packages", entry.name, "package.json")))
+        .map(entry => readPackageJson(`packages/${entry.name}/package.json`).name)
+    );
+    const external = Object.fromEntries(
+      Object.entries(safejs.dependencies ?? {}).filter(([name]) => !workspaces.has(name))
+    );
+    expect(root.dependencies).toMatchObject(external);
+  });
+
   it.each(["package.json", "packages/poe-agent/package.json"])(
     "%s requires a patched shell-quote consumer floor",
     (relativePath) => {

@@ -185,8 +185,13 @@ export function findBundleIssues(
   const nativeValid = isCanonicalNativeClosure(native, manifest.imports, packedFiles);
   const exported = record(manifest.exports);
   const routes = new Set<string>(canonicalFsRoutes.map((route) => route.specifier));
+  const outputs = [
+    ...Object.entries(metafile.outputs ?? {}),
+    ...Object.entries(metafile.canonicalBundle?.metafile.outputs ?? {}),
+    ...Object.entries(metafile.browserCanonicalBundle?.metafile.outputs ?? {})
+  ];
   const imports = new Set(
-    Object.values(metafile.outputs ?? {}).flatMap((output) =>
+    outputs.flatMap(([, output]) =>
       (output.imports ?? [])
         .filter((dependency) => dependency.external)
         .map((dependency) => dependency.path ?? "")
@@ -201,7 +206,7 @@ export function findBundleIssues(
     if (
       nativeValid &&
       specifier === native.specifier &&
-      Object.entries(metafile.outputs ?? {}).every(
+      outputs.every(
         ([filename, output]) =>
           !(output.imports ?? []).some((edge) => edge.external && edge.path === specifier) ||
           (filename.startsWith(`${canonicalFsProfiles.node.outdir}/`) &&

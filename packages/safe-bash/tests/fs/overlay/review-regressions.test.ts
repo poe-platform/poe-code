@@ -6,7 +6,7 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { OverlayFileSystem } from "../../../src/fs/overlay/index.js";
 import { decode, encode, errno, immutable, snapshot, wrapped } from "./helpers.js";
 
-type FixtureStat = Required<Omit<FileStat, "filesystemType">>;
+type FixtureStat = Required<FileStat>;
 type MutableStat = { -readonly [Field in keyof FixtureStat]: FixtureStat[Field] };
 
 class GetterStat implements FileStat {
@@ -15,6 +15,7 @@ class GetterStat implements FileStat {
   constructor(values: MutableStat) { this.#values = values; }
 
   get type() { return this.#values.type; }
+  get filesystemType() { return this.#values.filesystemType; }
   get size() { return this.#values.size; }
   get allocatedBytes() { return this.#values.allocatedBytes; }
   get ioBlockSize() { return this.#values.ioBlockSize; }
@@ -38,7 +39,7 @@ class GetterStat implements FileStat {
 }
 
 const metadata: MutableStat = {
-  type: "file", size: 5, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
+  type: "file", filesystemType: "fixture", size: 5, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, mode: 0o100640, mtimeMs: 101, atimeMs: 102,
   ctimeMs: 103, revision: 7, birthtimeMs: 104, identityScope: Symbol(), opaqueIdentity: "file-identity", opaqueVersion: "file-version", ino: 105, dev: 0, rdevMajor: 0, rdevMinor: 0, nlink: 1, uid: 0, gid: 0,
 };
 
@@ -78,7 +79,7 @@ for (const [name, shape] of Object.entries(shapes)) {
       assert.notEqual(stat, shaped);
       assert.notEqual(stat, lstat);
       for (const copied of [stat, lstat]) {
-        for (const field of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) {
+        for (const field of ["filesystemType", "ioBlockSize", "rdevMajor", "rdevMinor"] as const) {
           const descriptor = Object.getOwnPropertyDescriptor(copied, field);
           assert.ok(descriptor);
           assert.equal(descriptor.get, undefined);
@@ -88,6 +89,7 @@ for (const [name, shape] of Object.entries(shapes)) {
       const listing = await overlay.readdir("/");
       assert.deepEqual(listing, [{ name: "file", type: "file" }]);
       values.type = "directory";
+      values.filesystemType = "changed-fixture";
       values.size = 1234;
       values.allocatedBytes = 8192;
       values.ioBlockSize = 2048;
@@ -157,7 +159,7 @@ test("stat snapshots omit absent optional fields and backend-specific references
   assert.deepEqual(await overlay.lstat("/file"), required);
   for (const method of ["stat", "lstat"] as const) {
     const stat = await overlay[method]("/file");
-    for (const field of ["ioBlockSize", "rdevMajor", "rdevMinor"] as const) assert.equal(Object.hasOwn(stat, field), false);
+    for (const field of ["filesystemType", "ioBlockSize", "rdevMajor", "rdevMinor"] as const) assert.equal(Object.hasOwn(stat, field), false);
   }
 });
 

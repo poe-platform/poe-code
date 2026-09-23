@@ -41,8 +41,8 @@ function requiredStat(): Mutable<FileStat> {
   return { type: "file", size: 4, mode: 0o100755, mtimeMs: 11, atimeMs: 12, ctimeMs: 13 };
 }
 
-function fullStat(): Mutable<Required<Omit<FileStat, "filesystemType">>> {
-  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), opaqueIdentity: "file-identity", opaqueVersion: "file-version", ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
+function fullStat(): Mutable<Required<FileStat>> {
+  return { ...requiredStat(), filesystemType: "fixture", revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), opaqueIdentity: "file-identity", opaqueVersion: "file-version", ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {
@@ -66,6 +66,7 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
         if (representation === "prototype-accessors") assert.equal(delegate.reads.get(key), 1);
       }
       delegate.change("type", "directory");
+      delegate.change("filesystemType", "changed-fixture");
       delegate.change("size", 99);
       delegate.change("mode", 0);
       delegate.change("mtimeMs", 100);
@@ -94,7 +95,7 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       fixture.state[method] = metadata(expected, representation).view;
       const snapshot = await createReadOnlyFileSystem(fixture.filesystem)[method]("/file");
       assert.deepEqual(snapshot, expected);
-      for (const key of [...optionalFields, "opaqueIdentity", "opaqueVersion"] as const) assert.equal(Object.hasOwn(snapshot, key), false);
+      for (const key of [...optionalFields, "filesystemType", "opaqueIdentity", "opaqueVersion"] as const) assert.equal(Object.hasOwn(snapshot, key), false);
     });
 
     test(`${method} preserves all ${2 ** optionalFields.length} optional-field permutations for ${representation}`, async () => {

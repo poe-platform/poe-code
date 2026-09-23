@@ -20,10 +20,10 @@ function readOnly(syscall: string, path: string, dest?: string): never {
 }
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, filesystemType, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
-    ...(stat.filesystemType === undefined ? {} : { filesystemType: stat.filesystemType }),
+    ...(filesystemType === undefined ? {} : { filesystemType }),
     ...(revision === undefined ? {} : { revision }),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(ioBlockSize === undefined ? {} : { ioBlockSize }),

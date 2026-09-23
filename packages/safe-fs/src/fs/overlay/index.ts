@@ -55,10 +55,10 @@ interface LinkOrigin {
 type LinkMetadata = Pick<FileStat, "mode" | "atimeMs" | "mtimeMs">;
 
 function snapshotStat(stat: FileStat): FileStat {
-  const { type, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
+  const { type, filesystemType, size, allocatedBytes, ioBlockSize, preferredIoBlockSize, mode, mtimeMs, atimeMs, ctimeMs, birthtimeMs, revision, identityScope, opaqueIdentity, opaqueVersion, ino, dev, rdevMajor, rdevMinor, nlink, uid, gid } = stat;
   return {
     type, size, mode, mtimeMs, atimeMs, ctimeMs,
-    ...(stat.filesystemType === undefined ? {} : { filesystemType: stat.filesystemType }),
+    ...(filesystemType === undefined ? {} : { filesystemType }),
     ...(allocatedBytes === undefined ? {} : { allocatedBytes }),
     ...(ioBlockSize === undefined ? {} : { ioBlockSize }),
     ...(preferredIoBlockSize === undefined ? {} : { preferredIoBlockSize }),

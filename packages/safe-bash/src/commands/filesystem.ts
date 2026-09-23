@@ -677,6 +677,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       return eachOperand(context, parsed.operands, async operand => {
         let path = pathOf(context, operand);
+        let displayPath = operand;
         const stop = dirname(pathOf(context, operand.split("/").find(part => part && part !== ".") ?? operand));
         do {
           if (path === "/") throw new FsError("EBUSY", { path });
@@ -686,8 +687,9 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             if (parsed.flags.has("ignore-fail-on-non-empty") && codeOf(error) === "ENOTEMPTY") return;
             throw error;
           }
-          if (parsed.flags.has("v")) await output(context, `rmdir: removing directory '${escapeText(path, "display")}'\n`);
+          if (parsed.flags.has("v")) await output(context, `rmdir: removing directory, '${escapeText(displayPath, "display")}'\n`);
           path = dirname(path);
+          displayPath = dirname(displayPath);
         } while (parsed.flags.has("p") && path !== "/" && path !== stop);
       });
     }),

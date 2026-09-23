@@ -295,7 +295,7 @@ test("rmdir -pv uses directory-only removal for each parent and preserves cwd", 
   await observed.backing.mkdir("/work/parent/child", { recursive: true });
   const result = await run("rmdir", ["-pv", "parent/child"], { fs: observed.fs });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "rmdir: removing directory '/work/parent/child'\nrmdir: removing directory '/work/parent'\n");
+  assert.equal(result.stdout, "rmdir: removing directory, 'parent/child'\nrmdir: removing directory, 'parent'\n");
   assert.deepEqual(observed.removals.map(entry => entry.path), ["/work/parent/child", "/work/parent"]);
   assert.equal((await observed.backing.stat("/work")).type, "directory");
 });

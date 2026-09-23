@@ -6,6 +6,35 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const flags of ["-v", "--verbose", ""]) {
+  for (const operand of ["empty", "./empty", "empty/", "/work/empty"]) {
+    test(`rmdir ${flags} preserves operand spelling ${operand}`, async context => {
+      const fs = await fixture({});
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`mkdir empty; rmdir ${flags} ${operand}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, flags ? `rmdir: removing directory, '${operand}'\n` : "");
+      await assert.rejects(fs.stat("/work/empty"), { code: "ENOENT" });
+    });
+  }
+}
+
+for (const flags of ["-pv", "--parents --verbose"]) {
+  test(`rmdir ${flags} preserves parent operand spelling`, async context => {
+    const fs = await fixture({});
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`mkdir -p outer/inner; rmdir ${flags} outer/inner`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "rmdir: removing directory, 'outer/inner'\nrmdir: removing directory, 'outer'\n");
+    await assert.rejects(fs.stat("/work/outer"), { code: "ENOENT" });
+    assert.equal((await fs.stat("/work")).type, "directory");
+  });
+}
+
 for (const option of ["-l", "--link", "-s", "--symbolic-link"]) {
   test(`cp ${option} creates a filesystem link through Shell`, async () => {
     const fs = await fixture({ input: "original" });

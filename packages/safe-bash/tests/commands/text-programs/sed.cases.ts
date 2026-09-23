@@ -218,7 +218,7 @@ test("sed branch and regex work are budgeted and failed in-place execution prese
   assert.equal(loop.exitCode, 2);
   assert.match(loop.stderr.toString(), /step limit/u);
   assert.deepEqual(loop.files, { input: Buffer.from("a\n") });
-  const regex = await runVirtual("sed", { args: ["-E", "s/(a+)+b/X/"], stdin: "a".repeat(1000) }, { maxSteps: 2000 });
+  const regex = await runVirtual("sed", { args: ["-E", "s/(a+)+b/X/"], stdin: "a".repeat(1000) + "b" }, { maxSteps: 2000 });
   assert.equal(regex.exitCode, 2);
   assert.match(regex.stderr.toString(), /step limit/u);
 });

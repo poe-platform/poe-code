@@ -50,7 +50,7 @@ API void bridge_destroy(void) {
 }
 API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window_log) {
 #if defined(XZ)
- if(level<0)return -1;
+ if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9)return -1;
 #else
  if(level<1)return -1;
 #endif

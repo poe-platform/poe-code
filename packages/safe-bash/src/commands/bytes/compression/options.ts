@@ -11,6 +11,7 @@ export interface CompressionOptions {
   quiet: number;
   recursive: boolean;
   level: number;
+  extreme?: boolean;
   operands: string[];
 }
 
@@ -37,17 +38,39 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     force: false, test: false, help: false, quiet: 0, recursive: false, level: profile.level, operands: [],
   };
   let ended = false;
-  for (const argument of args) {
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
     if (ended || argument === "-" || !argument.startsWith("-")) {
       result.operands.push(argument);
       continue;
     }
     if (argument === "--") { ended = true; continue; }
+    if (profile.format === "xz") {
+      if (argument === "--compress") { result.decompress = false; result.test = false; continue; }
+      if (argument === "--extreme") { result.extreme = true; continue; }
+      if (argument === "--threads" || argument.startsWith("--threads=")) {
+        const threads = argument === "--threads" ? args[++index] : argument.slice("--threads=".length);
+        if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
+        continue;
+      }
+    }
     const flags = argument === "--fast" ? String(profile.minimumLevel)
       : argument.startsWith("--") ? aliases[argument.slice(2)] : argument.slice(1);
     if (!flags) throw new UsageError(`unrecognized option '${argument}'`);
-    for (const flag of flags) {
+    for (let offset = 0; offset < flags.length; offset++) {
+      const flag = flags[offset]!;
       switch (flag) {
+        case "e":
+          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          result.extreme = true;
+          break;
+        case "T": {
+          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          const threads = flags.slice(offset + 1) || args[++index];
+          if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
+          offset = flags.length;
+          break;
+        }
         case "c": result.stdout = true; break;
         case "d": result.decompress = true; break;
         case "k": result.keep = true; break;

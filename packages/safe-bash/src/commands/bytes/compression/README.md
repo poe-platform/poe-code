@@ -44,6 +44,14 @@ two or more suppress processing and filesystem error messages as well. Quiet
 does not change output bytes, validation, file handling or failure exit codes.
 Option-usage diagnostics remain visible.
 
+The XZ family (`xz`, `unxz`, `xzcat`) accepts `--compress` to select
+compression, including when invoked through a decompression alias. `-e` and
+`--extreme` enable liblzma's extreme preset with the selected level. `-T1`,
+`-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded
+execution; other counts, including automatic selection (`0`), fail explicitly.
+The existing 64 MiB codec allocation cap still applies, including to extreme
+presets. These options do not establish support for other native XZ controls.
+
 Force does not bypass integrity checks on input starting with gzip magic
 `1f 8b`. Only decompression to stdout (including stdin's implicit stdout and
 `zcat`) with `-f` passes non-gzip input and suffixes through unchanged.

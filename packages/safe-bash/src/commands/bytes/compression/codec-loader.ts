@@ -31,6 +31,7 @@ export async function createCodec(
   signal.throwIfAborted();
   const minimumLevel = profiles.find(profile => profile.format === options.format)?.minimumLevel ?? 1;
   if (!Number.isInteger(options.level) || options.level < minimumLevel || options.level > 9) throw new RangeError("invalid codec level");
+  if (options.extreme && options.format !== "xz") throw new RangeError("extreme preset requires XZ");
   const lzma = options.lzma;
   if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 8 * 1024 * 1024 ||
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
@@ -52,7 +53,7 @@ export async function createCodec(
     module._initialize?.();
     const initialized = lzma
       ? module.bridge_create_lzma?.(Number(options.decompress), options.level, 64 * 1024 * 1024, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000))
-      : module.bridge_create(Number(options.decompress), options.level, 64 * 1024 * 1024, 23);
+      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, 64 * 1024 * 1024, 23);
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
     const inputPointer = module.bridge_input();

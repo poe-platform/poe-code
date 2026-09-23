@@ -458,7 +458,7 @@ export class MountFileSystem implements FileSystem {
         if (location.synthetic) fail("EISDIR");
         if (admitted.access !== "read" || admitted.creation !== "never" || admitted.truncate || admitted.append) this.mutable(location);
         const backend = location.mount.backend;
-        const capabilities = admitted.noFollow || admitted.creation === "exclusive" ? backend.capabilities
+        const capabilities = admitted.noFollow ? backend.capabilities
           : await backend.capabilitiesFor?.(location.local, admitted) ?? backend.capabilities;
         if (!backend.open || capabilities.open === false) fail("ENOTSUP");
         admitted.signal?.throwIfAborted();

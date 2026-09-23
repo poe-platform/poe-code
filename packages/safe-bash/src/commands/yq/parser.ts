@@ -1095,19 +1095,33 @@ class BlockParser {
   }
 }
 
-function rawLines(text: string, lineOffset = 0): SourceLine[] {
-  const normalized = text.replace(/\r\n|\r/gu, "\n");
-  const finalBreak = normalized.endsWith("\n");
-  const pieces = normalized.split("\n");
-  if (pieces[pieces.length - 1] === "") pieces.pop();
-  return pieces.map((line, index) => {
-    const hadBreak = index < pieces.length - 1 || finalBreak;
-    return { text: line, number: lineOffset + index + 1, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
-  });
+// Bound retained line metadata to a few MiB independently of the byte cap.
+const maxYamlSourceLines = 65_536;
+
+async function* rawLines(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<SourceLine> {
+  let start = 0;
+  let count = 0;
+  let scanned = 0;
+  for (let index = 0; index < text.length; index++) {
+    if (++scanned === 256) {
+      await work.charge(scanned);
+      scanned = 0;
+    }
+    const character = text[index];
+    const hadBreak = character === "\r" || character === "\n";
+    if (!hadBreak && index + 1 < text.length) continue;
+    if (++count > maxYamlSourceLines) throw limit("LIMIT_MAX_SOURCE_LINES");
+    work.assertOpen();
+    const line = text.slice(start, hadBreak ? index : index + 1);
+    if (character === "\r" && text[index + 1] === "\n") index++;
+    start = index + 1;
+    yield { text: line, number: lineOffset + count, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
+  }
+  if (scanned > 0) await work.charge(scanned);
 }
 
-function* documents(text: string, lineOffset = 0): Generator<RawDocument> {
-  const lines = rawLines(text, lineOffset);
+async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<RawDocument> {
+  const lines = rawLines(text, work, lineOffset);
   let current: SourceLine[] = [];
   let explicit = false;
   let ended = false;
@@ -1123,7 +1137,7 @@ function* documents(text: string, lineOffset = 0): Generator<RawDocument> {
     directives = 0;
     return document;
   };
-  for (const original of lines) {
+  for await (const original of lines) {
     let line = original;
     if (line.number === 1 && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
     if (ended && line.text.startsWith("\ufeff")) line = { ...line, text: line.text.slice(1) };
@@ -1178,7 +1192,7 @@ function futureAnchorNames(lines: readonly SourceLine[]): string[] {
 export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledger: YqLedger, admittedRawBytes?: number, lineOffset = 0): AsyncGenerator<Json> {
   if (!wellFormed(text)) throw new YqError("input", "INPUT_INVALID_UTF8", 5);
   let admitted = false;
-  for (const document of documents(text, lineOffset)) {
+  for await (const document of documents(text, work, lineOffset)) {
     ledger.beginDocument(admittedRawBytes !== undefined && !admitted ? admittedRawBytes : document.rawBytes);
     admitted = true;
     let singleQuoted = false;

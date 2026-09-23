@@ -27,6 +27,7 @@ interface ConditionalContext {
   readonly work: StringWork;
   readonly ignoreCase?: boolean;
   expand(word: Word, pattern?: boolean): Promise<string>;
+  arithmetic(value: string): bigint;
   regex?(subject: string, pattern: Word): Promise<number>;
   present(name: string): boolean;
   option(name: string): boolean;
@@ -57,46 +58,23 @@ async function patternAdmission(pattern: string, context: ConditionalContext): P
     await charge(context);
     const character = pattern[index]!;
     if (character === "\\") { if (++index < pattern.length) await charge(context); continue; }
-    if ("?*+@!".includes(character) && pattern[index + 1] === "(") unsupported("extglob");
-    if (character === "[") {
-      if (bracket || [":", ".", "="].includes(pattern[index + 1] ?? "")) unsupported("bracket class or collation");
-      bracket = true; bracketStart = index;
+    if (!bracket && "?*+@!".includes(character) && pattern[index + 1] === "(") unsupported("extglob");
+    if (character === "[" && !bracket) {
+      bracket = true;
+      bracketStart = index + (["!", "^"].includes(pattern[index + 1] ?? "") ? 1 : 0);
+    } else if (character === "[" && bracket) {
+      const marker = pattern[index + 1];
+      if (marker === "." || marker === "=") unsupported("bracket collation");
+      if (marker === ":") {
+        while (index + 1 < pattern.length && !(pattern[index] === ":" && pattern[index + 1] === "]")) {
+          index++;
+          await charge(context);
+        }
+        if (index + 1 < pattern.length) { index++; await charge(context); }
+      }
     } else if (character === "]" && bracket && index > bracketStart + 1) bracket = false;
   }
   if (bracket) unsupported("unclosed bracket pattern");
-}
-
-async function integer(value: string, context: ConditionalContext): Promise<bigint> {
-  await charge(context, value.length);
-  const text = value.trim();
-  if (!text) return 0n;
-  let position = 0, sign = 1n;
-  if (text[position] === "+" || text[position] === "-") { if (text[position] === "-") sign = -1n; position++; }
-  let base = 10;
-  const separator = text.indexOf("#", position);
-  if (separator >= 0) {
-    base = 0;
-    if (separator === position) unsupported("numeric literal");
-    while (position < separator) {
-      const digit = text.charCodeAt(position++) - 48;
-      if (digit < 0 || digit > 9 || base > 64) unsupported("numeric literal");
-      base = base * 10 + digit;
-    }
-    if (base < 2 || base > 64) unsupported("numeric base");
-    position++;
-  } else if (text.slice(position, position + 2).toLowerCase() === "0x") { base = 16; position += 2; }
-  else if (text[position] === "0" && position + 1 < text.length) base = 8;
-  if (position >= text.length) unsupported("numeric literal");
-  let result = 0n;
-  const digits = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@_";
-  for (; position < text.length; position++) {
-    await charge(context);
-    const character = text[position]!;
-    const digit = digits.indexOf(base <= 36 ? character.toLowerCase() : character);
-    if (digit < 0 || digit >= base) unsupported("numeric expression or literal");
-    result = BigInt.asIntN(64, result * BigInt(base) + BigInt(digit));
-  }
-  return BigInt.asIntN(64, result * sign);
 }
 
 async function unary(operator: string, value: string, context: ConditionalContext): Promise<boolean> {
@@ -156,7 +134,8 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
     const order = Buffer.compare(Buffer.from(left), Buffer.from(right));
     return node.operator === "<" ? order < 0 : order > 0;
   }
-  const first = await integer(left, context), second = await integer(right, context);
+  await charge(context, left.length + right.length);
+  const first = context.arithmetic(left), second = context.arithmetic(right);
   switch (node.operator) {
     case "-eq": return first === second;
     case "-ne": return first !== second;

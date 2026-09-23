@@ -918,6 +918,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
   assert.ok(files.includes("tests/shell/parser-integration.test.ts"));
+  assert.ok(files.includes("tests/shell/conditional-pattern-arithmetic.test.ts"));
   assert.ok(files.includes("tests/shell/input-integration.test.ts"));
   assert.ok(files.includes("tests/shell/ifs-membership.test.ts"));
   assert.ok(files.includes("tests/shell/child-dispatch-retirement.test.ts"));

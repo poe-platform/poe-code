@@ -3480,6 +3480,7 @@ export class Runtime {
             ignoreCase: !!state.nocasematch,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
+            arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
             option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
             present: name => {
@@ -3505,6 +3506,10 @@ export class Runtime {
             try { await this.diagnostic(io, error.message); }
             catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
             return 2;
+          }
+          if (error instanceof PublicDiagnostic) {
+            await this.diagnostic(io, `[[: ${error.message}`);
+            return 1;
           }
           if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;
           diagnosticFailure = new NounsetDiagnosticFailure(error);

@@ -1071,21 +1071,18 @@ const unsupportedConditionalOperandReference = {
   "stderr": "shell: line 1: [[: 1/0: division by 0 (error token is \"0\")\nshell: line 1: [[: values: readonly variable\n"
 } as const;
 
-test("readonly indexed unsupported-operand boundary control: first diagnostic remains unmatched; downstream identity matches native", async context => {
+test("readonly indexed conditional arithmetic failure and downstream diagnostics match native", async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), extensions: [arraysExtension()] });
   context.after(() => shell.dispose());
   for (const command of basicCommands()) shell.register(command);
   const expected = unsupportedConditionalOperandReference;
   const actual = await shell.exec(expected.source, { env: { LC_ALL: "C" } });
   const nativeFirst = Buffer.from('shell: line 1: [[: 1/0: division by 0 (error token is "0")\n');
-  const virtualFirst = Buffer.from("shell: line 1: [[ numeric expression or literal: unsupported conditional profile\n");
   const downstream = Buffer.from("shell: line 1: [[: values: readonly variable\n");
   const nativeBytes = Buffer.from(expected.stderr);
   const virtualBytes = Buffer.from(actual.stderrBytes);
   assert.equal(actual.exitCode, expected.status);
   assert.deepEqual(Buffer.from(actual.stdoutBytes), Buffer.from(expected.stdout));
   assert.deepEqual(nativeBytes, Buffer.concat([nativeFirst, downstream]));
-  assert.deepEqual(virtualBytes, Buffer.concat([virtualFirst, downstream]));
-  assert.deepEqual(virtualBytes.subarray(virtualFirst.length), nativeBytes.subarray(nativeFirst.length));
-  assert.notDeepEqual(virtualBytes.subarray(0, virtualFirst.length), nativeFirst);
+  assert.deepEqual(virtualBytes, nativeBytes);
 });

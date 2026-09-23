@@ -305,6 +305,8 @@ export interface InputRequiredResult {
 
 export interface HandlerRequestContext {
   readonly signal: AbortSignal;
+  /** Opaque state provided by the transport, separate from untrusted request metadata. */
+  readonly localContext?: unknown;
   readonly requestState?: string;
   readonly inputResponses?: Record<string, unknown>;
   readonly clientCapabilities: Record<string, unknown>;

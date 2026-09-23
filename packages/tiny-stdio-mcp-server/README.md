@@ -245,3 +245,14 @@ per-tool schemas, and per-call content helper options such as `maxBytes` for rem
 ## License
 
 MIT
+
+## Protocol-only hosts
+
+Import `createProtocolServer` and `defineSchema` from
+`tiny-stdio-mcp-server/core` when your host supplies its own transport. This
+entry point loads no Node stdio modules. Use `createMessageSession()` for an
+isolated request lifecycle and close it when the transport completes. The
+`handleMessage` context accepts `localContext` for host-owned state; tool
+handlers receive it separately from client parameters and metadata. Use the
+ordinary root `createServer` export for `listen()` or `connect()`; the core
+entry point does not provide a stdio runtime.

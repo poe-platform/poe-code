@@ -22,6 +22,10 @@ fallback. No host process or implicit network capability is introduced.
 - `-P0` uses the configured cap, never unlimited concurrency.
 - Attached short options and `--max-procs` use the same rules.
 - Negative, fractional, unsafe and missing numeric arguments are usage errors.
+- `--process-slot-var=NAME` (or `--process-slot-var NAME`) exports the lowest
+  available zero-based slot number in each child's environment. Concurrent
+  children have distinct numbers; a number is reused after child settlement,
+  including cleanup. The parent's environment is preserved.
 
 The cap is per xargs invocation, not a shell-wide process or task count. Nested
 xargs invocations have their own caps while retaining the enclosing Shell's

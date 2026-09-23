@@ -48,9 +48,10 @@ export function options(
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const alias = long[name];
-      const key = alias === false ? name : alias;
-      if (!key || (alias !== false && !specifications.has(key))) throw new UsageError(`unrecognized option '${argument}'`);
-      if (specifications.get(key)) {
+      const longValue = typeof alias === "string" && alias.endsWith(":");
+      const key = alias === false ? name : longValue ? alias.slice(0, -1) : alias;
+      if (!key || (alias !== false && !longValue && !specifications.has(key))) throw new UsageError(`unrecognized option '${argument}'`);
+      if (longValue || specifications.get(key)) {
         const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
         if (value === undefined) throw new UsageError(`option '--${name}' requires an argument`);
         onValue?.(key, index, equals >= 0 ? equals + 1 : 0);

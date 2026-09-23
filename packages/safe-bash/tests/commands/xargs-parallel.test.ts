@@ -41,6 +41,31 @@ function launch(args: readonly string[], overrides: Partial<CommandContext> = {}
   return { completion, context, stdout, stderr, internalErrors, controller, get settled() { return settled; } };
 }
 
+test("xargs reuses the lowest free environment slot while another child is held", async () => {
+  const held = deferred();
+  const slots: string[] = [];
+  const definitions = createStandardCommands({ execute: async context => {
+    slots.push(context.env.SLOT!);
+    assert.equal(context.env.KEEP, "inherited");
+    if (context.args[0] === "one") await held.promise;
+    return { exitCode: 0 };
+  } });
+  const run = launch(["-P2", "-n1", "--process-slot-var=SLOT", "capture"], { env: { SLOT: "parent", KEEP: "inherited" } }, definitions);
+  try {
+    await until(() => slots.length === 3 || run.settled);
+    assert.deepEqual(slots, ["0", "1", "1"]);
+    assert.equal(run.context.env.SLOT, "parent");
+  } finally { held.resolve(); await run.completion; }
+  assert.equal((await run.completion).exitCode, 0);
+});
+
+for (const args of [["--process-slot-var"], ["--process-slot-var="], ["--process-slot-var=A=B"], ["--process-slot-var=A\0B"]]) test(`xargs rejects invalid slot variable ${JSON.stringify(args)}`, async () => {
+  let calls = 0;
+  const run = launch(args, { invoke: async () => { calls++; return { exitCode: 0 }; } });
+  assert.equal((await run.completion).exitCode, 2);
+  assert.equal(calls, 0);
+});
+
 for (const entry of [
   { args: [], cap: undefined, expected: 1 },
   { args: ["-P1"], cap: undefined, expected: 1 },

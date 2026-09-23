@@ -108,11 +108,13 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const operandIndices: number[] = [];
       let replacementOrigin: { index: number; offset: number } | undefined;
       const shortOptions = "0rn:s:I:d:tP:xE:";
-      const longOptions = { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E" };
+      const longOptions = { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
         (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; });
       const requested = integer(value(parsed, "P") ?? "1");
       const parallelism = requested === 0 ? maxParallelProcesses : Math.min(requested, maxParallelProcesses);
+      const slotVariable = value(parsed, "process-slot-var");
+      if (slotVariable !== undefined && (!slotVariable || slotVariable.includes("=") || slotVariable.includes("\0"))) throw new UsageError("invalid environment variable name");
       const replacement = value(parsed, "I");
       if (replacement === "") throw new UsageError("replacement string cannot be empty");
       if (replacement !== undefined && parsed.flags.has("n")) throw new UsageError("cannot combine -I and -n");
@@ -150,6 +152,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let inputReturn: Promise<IteratorResult<Uint8Array>> | undefined;
       let wake: (() => void) | undefined;
       const active = new Set<Promise<void>>();
+      const slots = new Set<number>();
       const children = new AbortController();
       const input = new AbortController();
       const inputStopped = new Error("xargs input admission closed");
@@ -209,13 +212,17 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         context.signal.throwIfAborted();
         executed = true;
         batch = []; bytes = baseBytes;
+        let slot = 0;
+        while (slots.has(slot)) slot++;
+        slots.add(slot);
         const pending = Promise.resolve().then(() => {
           childSignal.throwIfAborted();
+          const env = { ...context.env, ...(slotVariable === undefined ? {} : { [slotVariable]: String(slot) }) };
           if (context.invoke) return context.invoke(command, args, {
             argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true,
-            cwd: context.cwd, env: { ...context.env }, stdout: context.stdout, stderr: context.stderr, signal: childSignal,
+            cwd: context.cwd, env, stdout: context.stdout, stderr: context.stderr, signal: childSignal,
           });
-          return execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env: { ...context.env }, signal: childSignal });
+          return execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env, signal: childSignal });
         }).then(result => {
           const exitCode = result.exitCode;
           if (!terminal && (exitCode === 255 || exitCode === 126 || exitCode === 127)) {
@@ -223,7 +230,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
             status = exitCode === 255 ? 124 : exitCode;
             stopInput();
           } else if (!terminal && exitCode !== 0) status = 123;
-        }).catch(fail).then(() => { active.delete(pending); notify(); });
+        }).catch(fail).then(() => { slots.delete(slot); active.delete(pending); notify(); });
         active.add(pending);
       };
       const eof = value(parsed, "E");

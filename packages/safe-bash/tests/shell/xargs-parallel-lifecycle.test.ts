@@ -24,20 +24,32 @@ function fixture(browser = false) {
   return result;
 }
 
+for (const option of ["--process-slot-var=SLOT", "--process-slot-var SLOT"]) test(`xargs exports slot zero via ${option} without changing parent`, async () => {
+  const { shell } = fixture(true);
+  try {
+    const result = await shell.exec(`export SLOT=parent; xargs -P1 -n1 ${option} sh -c 'printf %s "$SLOT"'; printf %s "$SLOT"`, { stdin: "a b" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "00parent");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 test("xargs keeps a slot until the actual invocation cleanup finishes", async () => {
   const { shell, commands } = fixture();
   const cleanup = deferred();
   const sibling = deferred();
   const starts: string[] = [];
+  const slots: string[] = [];
   let cleaning = false;
   let settled = false;
   commands.register({ name: "held", async execute(context) {
     starts.push(context.args[0]!);
+    slots.push(context.env.SLOT!);
     if (context.args[0] === "one") context.registerCleanup!(() => { cleaning = true; return cleanup.promise; });
     else if (context.args[0] === "two") await sibling.promise;
     return { exitCode: 0 };
   } });
-  const running = shell.exec("xargs -P2 -n1 held", { stdin: "one two three" });
+  const running = shell.exec("xargs -P2 -n1 --process-slot-var=SLOT held", { stdin: "one two three" });
   void running.then(() => { settled = true; }, () => { settled = true; });
   try {
     await until(() => cleaning || settled);
@@ -50,6 +62,7 @@ test("xargs keeps a slot until the actual invocation cleanup finishes", async ()
     cleanup.resolve();
     await until(() => starts.length === 3 || settled);
     assert.equal(starts.length, 3);
+    assert.deepEqual(slots, ["0", "1", "0"]);
   } finally { cleanup.resolve(); sibling.resolve(); await running.catch(() => {}); await shell.dispose(); }
   assert.equal((await running).exitCode, 0);
 });

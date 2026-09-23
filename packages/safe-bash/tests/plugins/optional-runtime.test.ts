@@ -68,7 +68,10 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
 
   test("public host refuses a foreign registry before it can accept commands", async () => {
     const { published } = await runtimes();
-    for (const registry of [new SourceRegistry(), new SourceRegistry([{ ...sourceYesCommand(), runtimeIdentity: sourceRuntimeIdentity }])]) {
+    for (const registry of [new SourceRegistry(), new SourceRegistry([{
+      name: "yes", runtimeIdentity: sourceRuntimeIdentity,
+      execute() { throw new Error("foreign registry command must not execute"); },
+    }])]) {
       assert.throws(() => new published.Shell({
         fs: createMemoryFileSystem(),
         commands: registry as unknown as import("@poe-platform/safe-bash").CommandRegistry,

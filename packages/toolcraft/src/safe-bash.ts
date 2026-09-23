@@ -20,7 +20,7 @@ export interface ToolcraftInvocation<TServices extends object = Record<string, n
   signal: AbortSignal;
   services?: TServices;
   fetch?: typeof globalThis.fetch;
-  humanInLoop?: HumanInLoopRuntime;
+  humanInLoop?: HumanInLoopRuntime | undefined;
 }
 
 declare module "./index.js" {
@@ -159,7 +159,7 @@ export function createToolcraftCommandExecutor<TServices extends object>(
       let root: Group<TServices>;
       try {
         const configuredServices = typeof options.services === "function" ? options.services(invocation) : options.services;
-        services = { ...invocation.services, ...configuredServices } as TServices;
+        services = { ...configuredServices, ...invocation.services } as TServices;
         const rootName = multiple ? argv[0] : roots[0]?.name;
         const selectedRoot = multiple ? roots.find(candidate => candidate.name === rootName || candidate.aliases.includes(rootName ?? "")) : roots[0];
         if (!selectedRoot) throw new TypeError(`Unknown toolcraft root: ${rootName}`);
@@ -202,7 +202,7 @@ export function createToolcraftCommandExecutor<TServices extends object>(
         env: { ...invocation.env },
         fs: handlerFileSystem(invocation),
         fetch: invocation.fetch ?? deniedFetch as typeof globalThis.fetch,
-        humanInLoop: invocation.humanInLoop ?? options.humanInLoop,
+        humanInLoop: Object.prototype.hasOwnProperty.call(invocation, "humanInLoop") ? invocation.humanInLoop : options.humanInLoop,
         controls: { output: true, yes: true, ...options.controls },
         errorReports: false,
         outputEmitter: entry => runtime.write(`${entry}\n`)
@@ -236,7 +236,7 @@ export function toolcraftCommands<TServices extends object>(
                 services: capabilities?.services as TServices | undefined,
                 fetch: capabilities?.fetch,
                 regex: capabilities?.regex,
-                humanInLoop: capabilities?.humanInLoop
+                ...(Object.prototype.hasOwnProperty.call(capabilities ?? {}, "humanInLoop") ? { humanInLoop: capabilities?.humanInLoop } : {})
               });
             }
           });

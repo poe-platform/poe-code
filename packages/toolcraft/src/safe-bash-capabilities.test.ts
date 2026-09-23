@@ -166,6 +166,24 @@ describe("native policy capabilities", () => {
 });
 
 describe("library configuration retains invocation capabilities", () => {
+  it("keeps invocation-owned services when library configuration uses the same name", async () => {
+    const client = {};
+    const configuredClient = {};
+    const handler = vi.fn(({ client: received, baseUrl }) => {
+      expect(received).toBe(client);
+      return { baseUrl };
+    });
+    const root = defineGroup<{ client: object; baseUrl: string }>({ name: "configured", children: [defineCommand<{ client: object; baseUrl: string }>({ name: "run", params: S.Object({}), handler })] });
+    const shell = new Shell({ fs: createMemoryFileSystem(), env: {}, capabilities: { services: { client } } })
+      .use(toolcraftCommands(root, { services: { client: configuredClient, baseUrl: "https://synthetic.test" } }));
+    try {
+      const result = await shell.exec("configured run --output json");
+      expect(result.exitCode, result.stderr).toBe(0);
+      expect(JSON.parse(result.stdout)).toEqual({ baseUrl: "https://synthetic.test" });
+      expect(handler).toHaveBeenCalledOnce();
+    } finally { await shell.dispose(); }
+  });
+
   it("retains injected service identities alongside configured library services", async () => {
     const client = {};
     const root = defineGroup<{ client: object; baseUrl: string }>({ name: "configured", children: [defineCommand<{ client: object; baseUrl: string }>({ name: "run", params: S.Object({}), handler({ client: received, baseUrl }) {

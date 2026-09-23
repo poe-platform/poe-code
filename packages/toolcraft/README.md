@@ -98,8 +98,10 @@ provider and effective limits as `ctx.regex.executor` and `ctx.regex.limits`.
 safe-bash exports; missing regex never gains a native JavaScript fallback. Native
 handlers can use `signal`, byte `stdin`/`stdout`/`stderr`, `cwd`, `inputBudget`,
 `invoke` and `registerCleanup`. Dry-run readback uses an explicitly supplied mock
-or overlay filesystem. Library services combine with invocation services; runtime
-capability names are reserved and cannot be replaced through services.
+or overlay filesystem. Library services combine with invocation services, with
+invocation-owned services taking precedence on name collisions. Runtime capability
+names are reserved and cannot be replaced through services. Explicitly revoking
+`humanInLoop` also disables a library-configured approval provider.
 Schema pattern validation currently follows Toolcraft's existing validator.
 
 ## What the owner decides

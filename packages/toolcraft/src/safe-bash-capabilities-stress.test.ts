@@ -78,3 +78,22 @@ it("waits for a handler's registered asynchronous cleanup before rejecting cance
     expect(cleaned).toHaveBeenCalledOnce();
   } finally { release(); controller.abort(); await shell.dispose(); }
 });
+
+it("honors explicit approval revocation even when the library has a configured provider", async () => {
+  const { createHumanInLoop } = await import("./human-in-loop/index.js");
+  const approval = createHumanInLoop({ provider: { id: "synthetic", requestApproval: vi.fn() } });
+  const approve = vi.spyOn(approval, "invoke").mockImplementation(async (node, ctx) => node.handler(ctx));
+  const handler = vi.fn(() => ({ allowed: true }));
+  const root = defineGroup({ name: "policy", children: [defineCommand({ name: "run", params: S.Object({}), humanInLoop: { mode: "sync", message: () => "Allow?" }, handler })] });
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: {} }).use(toolcraftCommands(root, { humanInLoop: approval }));
+  try {
+    const denied = await shell.exec("policy run --output json", { capabilities: { humanInLoop: undefined } });
+    expect(denied.exitCode).toBe(1);
+    expect(approve).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+    const allowed = await shell.exec("policy run --output json");
+    expect(allowed.exitCode, allowed.stderr).toBe(0);
+    expect(approve).toHaveBeenCalledOnce();
+    expect(handler).toHaveBeenCalledOnce();
+  } finally { await shell.dispose(); }
+});

@@ -38,6 +38,9 @@ try {
 Filesystem and network access require explicit host bindings. The engine never
 uses a native spreadsheet converter as a fallback. Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
+Configurable text export (`Gnumeric_stf:stf_assistant`) remembers a text input's
+unique LF, CRLF or CR terminator unless an explicit `eol` option overrides it;
+plain CSV export continues to use LF.
 
 This workspace is private and is distributed through the `poe-code` SDK subpath.
 

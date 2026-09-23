@@ -39,14 +39,15 @@ export async function probeText(bytes: Uint8Array, context: CapabilityContext): 
   return true;
 }
 
-function lineEnding(text: string): string {
+function lineEnding(text: string): { ending: NonNullable<Workbook["textExportEol"]>; unique: boolean } {
   let cr = 0, lf = 0, crlf = 0;
   for (let i = 0; i < text.length; i++) {
     if (text[i] === "\r") { if (text[i + 1] === "\n") { crlf++; i++; } else cr++; }
     else if (text[i] === "\n") lf++;
   }
   const max = Math.max(cr, lf, crlf);
-  return max === lf ? "\n" : max === crlf ? "\r\n" : "\r";
+  return { ending: max === lf ? "\n" : max === crlf ? "\r\n" : "\r",
+    unique: [cr, lf, crlf].filter(count => count > 0).length === 1 };
 }
 
 function trimSpace(field: string): string {
@@ -110,14 +111,15 @@ export async function readText(bytes: Uint8Array, context: CapabilityContext, en
     "The file contains 1 NUL character. It has been changed to a space." :
     `The file contains ${nuls} NUL characters. They have been changed to spaces.` });
   context.signal.throwIfAborted();
-  const ending = lineEnding(text);
+  const { ending, unique } = lineEnding(text);
   const csv = context.inputFilename?.toLowerCase().endsWith(".csv") ?? false;
   const sep = separator(text, ending, csv, formattingLocale(context.environment.locale).decimal), collapse = sep.includes(" ");
   const separatorAt = (offset: number) => collapse ? (sep.includes(text[offset]!) ? 1 : 0) :
     (sep.length && text.startsWith(sep, offset) ? sep.length : 0);
   const cells: Cell[] = [];
   const name = context.inputFilename?.slice(context.inputFilename.lastIndexOf("/") + 1) ?? "Sheet1";
-  const book: Workbook = { sheets: [{ id: "s1", name, cells }] };
+  const book: Workbook = { sheets: [{ id: "s1", name, cells }],
+    ...(unique ? { textExportEol: ending } : {}) };
   let i = 0, row = 0, column = 0;
   let maximumColumns = 0, rowsExceeded = false;
   while (i < text.length) {

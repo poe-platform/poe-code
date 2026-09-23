@@ -85,6 +85,8 @@ export interface Sheet {
   readonly unsupportedRecords?: readonly UnsupportedRecord[];
 }
 export interface Workbook {
+  /** Unique terminator remembered by text import for configurable text export. */
+  readonly textExportEol?: "\n" | "\r\n" | "\r";
   readonly sheets: readonly Sheet[];
   readonly detachedSheets?: readonly Sheet[];
   readonly activeSheet?: string;

@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createEngine } from "../engine.js";
+import { runCommand } from "../index.js";
 
 function fixture(text: string | Uint8Array, filename = "/original.csv") {
   const volume = new Volume();
@@ -11,9 +12,42 @@ function fixture(text: string | Uint8Array, filename = "/original.csv") {
     limits: { inputBytes: 100000, outputBytes: 100000, cells: 1000, sheets: 2, operations: 1000 },
     filesystem: { async read(uri, signal) { signal.throwIfAborted(); return [new Uint8Array(volume.readFileSync(uri) as Uint8Array)]; },
       async write(uri, bytes) { volume.writeFileSync(uri, bytes); } } });
-  return { engine, read: (options = {}) => engine.readWorkbook({ kind: "resource", uri: filename }, options,
+  return { engine, volume, read: (options = {}) => engine.readWorkbook({ kind: "resource", uri: filename }, options,
     { signal: new AbortController().signal }) };
 }
+
+it.each(["\n", "\r\n", "\r"])("remembers unique input ending %j only for configurable export", async ending => {
+  const f = fixture(["a,b", "1,2", "3,4", ""].join(ending));
+  try {
+    for (const [type, options, separator, outputEnding] of [
+      ["stf_assistant", undefined, ",", ending],
+      ["stf_assistant", "separator=|", "|", ending],
+      ["stf_csv", undefined, ",", "\n"],
+      ["stf_assistant", "eol=unix", ",", "\n"],
+      ["stf_assistant", "eol=windows", ",", "\r\n"],
+      ["stf_assistant", "eol=mac", ",", "\r"]
+    ] as const) {
+      const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+      const result = await runCommand(["-T", `Gnumeric_stf:${type}`,
+        ...(options === undefined ? [] : ["-O", options]), "/original.csv", "/output"], f.engine,
+      { signal: new AbortController().signal,
+        stdout: { async write(bytes) { stdout.push(bytes); } },
+        stderr: { async write(bytes) { stderr.push(bytes); } } });
+      expect(result.exitCode).toBe(0);
+      expect(stdout).toEqual([]);
+      expect(stderr).toEqual([]);
+      expect(f.volume.readFileSync("/output", "utf8")).toBe(
+        ["a" + separator + "b", "1" + separator + "2", "3" + separator + "4", ""].join(outputEnding));
+    }
+  } finally { await f.engine.dispose(); }
+});
+
+it.each(["a,b", "a,b\r\n1,2\n3,4\r\n", "a,b\r1,2\n3,4\r"])(
+  "does not remember an absent or mixed input terminator in %j", async input => {
+    const f = fixture(input);
+    try { expect((await f.read()).textExportEol).toBeUndefined(); }
+    finally { await f.engine.dispose(); }
+  });
 
 it("imports multiline CSV and tolerates garbage after closing quotes and missing quotes", async () => {
   const f = fixture('name,value\r\n"a\r\nb"junk,2\r\n"c""d",3\r\n"unfinished');

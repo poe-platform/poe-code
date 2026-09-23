@@ -169,7 +169,7 @@ async function exportText(args: Parameters<NonNullable<Codec["write"]>>, options
 }
 
 export const writeConfigurableText: NonNullable<Codec["write"]> = async (...args) => {
-  const options: TextOptions = { separator: ",", quote: '"', eol: "\n", mode: "auto", whitespace: true,
+  const options: TextOptions = { separator: ",", quote: '"', eol: args[0].textExportEol ?? "\n", mode: "auto", whitespace: true,
     format: "automatic", charset: "UTF-8", transliterate: true };
   const context = args[2];
   for (const text of args[1]) for (const [key, value] of exportOptionPairs(text)) {

@@ -1165,5 +1165,18 @@
     "status": "verified-remote-main-publication-pending",
     "commit": "d1923f7ec216b5e1da8bda95cfbdf2d615d799e0",
     "wholeGoalComplete": false
+  },
+  "byteStringSliceFollowup": {
+    "proof": "docs/ssconvert/byte-string-slice-gap-proof.json",
+    "status": "verified-remote-main-publication-pending",
+    "commit": "a17648d50bf19949258f6379ebd33d6a32993b1b",
+    "wholeGoalComplete": false
+  },
+  "bytePhaseCanonicalRootReplay": {
+    "proof": "docs/ssconvert/byte-string-slice-gap-proof.json#manualGates",
+    "fields": 4818,
+    "sourceBuildHead": "8b32660ef0131d71413117e9fadf9ee694098d61",
+    "exact": true,
+    "publication": "pending"
   }
 }

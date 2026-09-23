@@ -81,6 +81,19 @@ for (const command of ['click', 'check', 'select'] as const) for (const change o
   } finally { await controller.dispose(); }
 });
 
+for (const limits of [undefined, { maxArtifactBytes: 1024 }]) test(`omitted session count permits more than four sessions with partial limits ${limits !== undefined}`, async () => {
+  const f = fixture();
+  const controller = createPlaywrightController({ adapter: f.adapter, ...(limits ? { limits } : {}) });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'open']);
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'tab-list']);
+    assert.equal(f.leases.length, 6);
+    assert.ok(f.leases.every(lease => lease.releases === 0));
+  } finally { await controller.dispose(); }
+  assert.ok(f.leases.every(lease => lease.releases === 1));
+});
+
 for (const limits of [undefined, { maxSessions: 1 }]) test(`omitted snapshot limits admit large pages with partial limits ${limits !== undefined}`, async () => {
   const f = fixture();
   const acquire = f.adapter.acquire.bind(f.adapter);

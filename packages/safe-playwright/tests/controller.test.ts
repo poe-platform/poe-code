@@ -178,6 +178,19 @@ for (const cleanupFails of [false, true]) {
   });
 }
 
+for (const limits of [undefined, { maxArtifactBytes: 1024 }]) test(`omitted session count permits more than four sessions with partial limits ${limits !== undefined}`, async () => {
+  const f = fixture();
+  const controller = createPlaywrightController({ adapter: f.adapter, ...(limits ? { limits } : {}) });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'open']);
+    for (let index = 0; index < 6; index++) await run([`--session=capacity-${index}`, 'tab-list']);
+    assert.equal(f.leases.length, 6);
+    assert.ok(f.leases.every(lease => lease.releases === 0));
+  } finally { await controller.dispose(); }
+  assert.ok(f.leases.every(lease => lease.releases === 1));
+});
+
 test('session selection, retained ownership, explicit engine, and idempotent disposal', async () => {
   const f = fixture(3);
   await f.run(['open']);

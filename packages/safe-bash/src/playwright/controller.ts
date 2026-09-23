@@ -144,7 +144,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   for (const key of ['inspectRecovery', 'recordOperation'] as const) if (options.persistence?.[key] !== undefined && typeof options.persistence[key] !== 'function') throw new TypeError('Invalid Playwright recovery persistence');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
-  const maxSessions = options.limits?.maxSessions ?? 4;
+  const maxSessions = options.limits?.maxSessions ?? Infinity;
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 5_000;
   // Isolated startup and multiple native actions share this host budget, not one action's timeout.
   const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? 30_000;
@@ -156,7 +156,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const maxCommandBytes = options.limits?.maxCommandBytes ?? 16 * 1024 * 1024;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const pendingRestores = new Set<string>();
   const occupiedSessions = (except?: string) => new Set([

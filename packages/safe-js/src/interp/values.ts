@@ -106,11 +106,16 @@ import { readIndexedClosureCaptures } from "./indexed-closure-captures.js";
 
 // SDK-created closure shapes are frozen. Snapshot their own symbol identities
 // once; foreign frozen objects and mutable function property tables stay fresh.
-const frozenClosureSymbols = new WeakMap<object, readonly symbol[]>();
-const readFrozenClosureSymbols = WeakMap.prototype.get.bind(frozenClosureSymbols);
-const writeFrozenClosureSymbols = WeakMap.prototype.set.bind(frozenClosureSymbols);
+type FrozenClosureData = {
+  readonly symbols: readonly symbol[];
+  readonly closure: boolean;
+};
+const frozenClosureData = new WeakMap<object, FrozenClosureData>();
+const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
+const writeFrozenClosureData = WeakMap.prototype.set.bind(frozenClosureData);
 const freezeClosureShape = Object.freeze;
 const captureClosureSymbols = Object.getOwnPropertySymbols;
+const captureClosureDescriptor = Object.getOwnPropertyDescriptor;
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
@@ -370,7 +375,13 @@ export function createSandboxClosure(input: {
   }
 
   freezeClosureShape(closure);
-  writeFrozenClosureSymbols(closure, freezeClosureShape(captureClosureSymbols(closure)));
+  writeFrozenClosureData(
+    closure,
+    freezeClosureShape({
+      symbols: freezeClosureShape(captureClosureSymbols(closure)),
+      closure: captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined
+    })
+  );
   return closure;
 }
 
@@ -960,11 +971,20 @@ function measureSandboxDataWithSeen(
             }
           }
         }
-        const disposableResources = disposableStackStates.get(value)?.resources.map(resource =>
-          [resource.method, resource.receiver, ...resource.args]);
-        const asyncDisposableResources = asyncDisposableStackStates.get(value)?.resources.map(resource =>
-          [resource.method, resource.receiver, ...resource.args]);
-        const arrayLength = Array.isArray(value) ? value.length : undefined;
+        // Factory-created frozen closures cannot be arrays or host-object carriers.
+        // Their closure branch never consumes stack snapshots; registered weak,
+        // source, proxy and private roots are still reconciled normally.
+        const closureData = readFrozenClosureData(value);
+        const knownClosure = closureData?.closure === true;
+        const disposableResources = !knownClosure
+          ? disposableStackStates.get(value)?.resources.map(resource =>
+              [resource.method, resource.receiver, ...resource.args])
+          : undefined;
+        const asyncDisposableResources = !knownClosure
+          ? asyncDisposableStackStates.get(value)?.resources.map(resource =>
+              [resource.method, resource.receiver, ...resource.args])
+          : undefined;
+        const arrayLength = !knownClosure && Array.isArray(value) ? value.length : undefined;
         const managedArray = arrayLength !== undefined && hasManagedDescriptors(value);
         let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
         let arrayElements: unknown[] | undefined;
@@ -1011,8 +1031,8 @@ function measureSandboxDataWithSeen(
             } else visit(element.value, depth + 1);
           }
         }
-        if (!isGuestHostObject(value)) {
-          const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value) ?? trackedPropertySymbols(value);
+        if (knownClosure || !isGuestHostObject(value)) {
+          const ownedSymbols: readonly symbol[] | undefined = closureData?.symbols ?? trackedPropertySymbols(value);
           let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
           // Capture before visiting: retained callbacks can mutate later properties.
           if (ownedSymbols !== undefined) {
@@ -1029,21 +1049,22 @@ function measureSandboxDataWithSeen(
             else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
           }
         }
-        if (isSandboxClosure(value)) {
-          const prototype = getSandboxPrototype(value);
+        if (knownClosure || isSandboxClosure(value)) {
+          const closure = value as SandboxClosure;
+          const prototype = getSandboxPrototype(closure);
           if (prototype !== null) visit(prototype, depth + 1);
           if (options.ignoreClosures) break entry;
-          if (value.properties !== undefined) {
-            if (isIntrinsicFunction(value)) {
-              for (const [key, descriptor] of intrinsicFunctionDataDescriptors(value.properties)) {
+          if (closure.properties !== undefined) {
+            if (isIntrinsicFunction(closure)) {
+              for (const [key, descriptor] of intrinsicFunctionDataDescriptors(closure.properties)) {
                 usage += key.length + 1;
                 if ("value" in descriptor) visit(descriptor.value, depth + 1);
                 else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
               }
-            } else visit(value.properties, depth + 1);
+            } else visit(closure.properties, depth + 1);
           }
           if (!options.ignoreClosureCaptures) {
-            const collect = readIndexedClosureCaptures(value);
+            const collect = readIndexedClosureCaptures(closure);
             if (collect !== undefined) {
               let roots: readonly SandboxValue[] | undefined;
               try {
@@ -1055,7 +1076,7 @@ function measureSandboxDataWithSeen(
               }
               if (roots !== undefined)
                 for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
-            } else for (const root of value[sandboxRetainedValues]?.() ?? []) visit(root, depth + 1);
+            } else for (const root of closure[sandboxRetainedValues]?.() ?? []) visit(root, depth + 1);
           }
           break entry;
         }

@@ -108,9 +108,11 @@ test("grep frontend controls preserve CRLF bytes and label standard input", asyn
     assert.deepEqual(result.stdout, Buffer.concat([Buffer.from("AUDIT:"), bytes]));
     assert.equal(result.stderr.length, 0);
   }
-  const unsupported = await run(definition, ["--binary-files=text", "x"], Buffer.from([120, 0, 10]));
-  assert.equal(unsupported.code, 2);
-  assert.ok(unsupported.stderr.toString().includes("unsupported"));
+  const binary = Buffer.from([120, 0, 10]);
+  const matching = await run(definition, ["--binary-files=text", "x"], binary);
+  assert.equal(matching.code, 0, matching.stderr.toString());
+  assert.deepEqual(matching.stdout, binary);
+  assert.equal(matching.stderr.length, 0);
   const input = "x\nskip\nx\n";
   for (const [args, expected] of [
     [["-n", "--initial-tab", "x"], "1:\tx\n3:\tx\n"],

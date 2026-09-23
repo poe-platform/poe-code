@@ -117,12 +117,35 @@ test("bounded grep -o respects the caller's output byte limit", async () => {
   } finally { await shell.dispose(); }
 });
 
-test("bounded grep -o retains the explicit invalid UTF-8 subject refusal", async () => {
+test("bounded grep -o extracts literal matches from invalid UTF-8 subjects", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(portableSearchCommands({ provider: createBoundedRegexProvider() }));
   try {
     const result = await shell.exec("grep -Fo a", { stdin: Uint8Array.of(255, 97, 10) });
-    assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, /valid non-NUL UTF-8/);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(97, 10));
+  } finally { await shell.dispose(); }
+});
+
+for (const byte of [0, 255]) for (const source of [
+  "grep -a", "grep -aF", "grep -aE", "egrep -a", "fgrep -a",
+]) test(`default ${source} preserves matching records containing byte ${byte}`, async () => {
+  const fs = createMemoryFileSystem();
+  const record = Uint8Array.of(120, byte, 121, 10);
+  await fs.writeFile("/input", record);
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec(`${source} x /input`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, record);
+    const absent = await shell.exec(`${source} absent /input`);
+    assert.equal(absent.exitCode, 1, absent.stderr);
+    assert.equal(absent.stderr, "");
+    assert.equal(absent.stdoutBytes.length, 0);
+    const extracted = await shell.exec(`${source} -o y /input`);
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.deepEqual(extracted.stdoutBytes, Uint8Array.of(121, 10));
   } finally { await shell.dispose(); }
 });
 

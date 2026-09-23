@@ -43,12 +43,12 @@ test("UTF-8 global candidate invalidation retains original byte offsets", async 
   assert.deepEqual(reply.results.map(ranges => [...ranges]), [[2, 4, 9, 13]]);
 });
 
-test("UTF-8 validation precedes empty or absent-pattern selection", async () => {
+test("literal empty or absent-pattern selection preserves arbitrary grep subject bytes", async () => {
   for (const bytes of [Uint8Array.of(0xc0, 0x80), Uint8Array.of(0xed, 0xa0, 0x80), Uint8Array.of(0xf4, 0x90, 0x80, 0x80), Uint8Array.of(0xe2, 0x82), Uint8Array.of(0), Uint8Array.of(0x80)]) {
     for (const patterns of [[""], ["absent"], []]) {
       const reply = await search(patterns, bytes, false);
-      assert.ok("error" in reply);
-      assert.match(reply.error, /UTF-8|NUL|ASCII/);
+      assert.ok("results" in reply, "error" in reply ? reply.error : "missing results");
+      assert.deepEqual(reply.results.map(ranges => [...ranges]), [patterns[0] === "" ? [0, 0] : []]);
     }
   }
 });

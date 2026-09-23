@@ -197,6 +197,11 @@ explicit virtual ignore files are supported. `--threads` accepts a count while
 execution stays serial; `--multiline` admits line-compatible searches, with
 cross-line patterns still rejected by the bounded matcher.
 
+Default `grep`, `egrep` and `fgrep` preserve arbitrary subject bytes for fixed
+matching and ASCII patterns without regex syntax, including NUL and invalid UTF-8
+records with `-a`. Patterns retain UTF-8 validation; regex operators retain the
+bounded engine's UTF-8 subject restrictions.
+
 `/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine
 `createFmtEngine`, and equivalent `fmtCommand({ limits?, profile? })` /
 `fmt(context, { width?, goal?, crown?, tagged?, split?, uniform?, prefix?, files?, limits?, profile? })`

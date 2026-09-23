@@ -184,7 +184,7 @@ test("UTF-8 literals preserve byte offsets without normalization or regex interp
   }
 });
 
-test("literal UTF-8 validation rejects malformed bytes, NUL and ambiguous protocol strings", async () => {
+test("literal UTF-8 validation restricts patterns and rg subjects while grep preserves raw subjects", async () => {
   const invalid = [
     [0], [0xff], [0x80], [0xc0, 0x80], [0xc2], [0xc2, 0x20],
     [0xe0, 0x80, 0x80], [0xed, 0xa0, 0x80], [0xe2, 0x82],
@@ -198,8 +198,10 @@ test("literal UTF-8 validation rejects malformed bytes, NUL and ambiguous protoc
     for (const kind of ["grep", "rg"] as const) {
       const input = { ...request(literal(kind, [])), rows: [{ bytes: Uint8Array.from(bytes), all: false, terminated: true }] };
       const reply = await run(input);
-      assert.ok("error" in reply);
-      assert.match(reply.error, /UTF-8|NUL/);
+      if (kind === "rg") {
+        assert.ok("error" in reply);
+        assert.match(reply.error, /UTF-8|NUL/);
+      } else assert.deepEqual(spans(reply), [[]]);
       assert.deepEqual([...input.rows[0]!.bytes], bytes);
     }
   }

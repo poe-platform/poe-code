@@ -43,13 +43,13 @@ for (const [source, input, output, status] of [
 });
 
 for (const bytes of [Uint8Array.of(255, 97, 10), Uint8Array.of(0, 97, 10)]) {
-  test(`ordinary UTF-8 grep refuses invalid subject ${bytes[0]}`, async () => {
+  test(`ordinary literal grep extracts from subject containing byte ${bytes[0]}`, async () => {
     const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ regexExecutor: createBoundedRegexProvider() }));
     try {
       const result = await shell.exec("grep -ao a", { stdin: bytes });
-      assert.equal(result.exitCode, 2);
-      assert.equal(result.stdout, "");
-      assert.ok(result.stderr.includes("unsupported"));
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, Uint8Array.of(97, 10));
+      assert.equal(result.stderr, "");
     } finally { await shell.dispose(); }
   });
 }

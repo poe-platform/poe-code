@@ -445,7 +445,14 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
-    await validateUtf8(row.bytes, ledger, signal);
+    if (selected.kind === "rg") await validateUtf8(row.bytes, ledger, signal);
+    else {
+      // Retain subject admission work and cooperative cancellation for raw bytes.
+      for (let index = 0; index < row.bytes.length; index++) {
+        ledger.charge("work", 1, signal);
+        await ledger.checkpoint(signal);
+      }
+    }
     if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
     if (row.all) {
       ledger.charge("allocationUnits", programs.length * 2, signal);
@@ -493,12 +500,13 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
   const { descriptor: selected, rows, ledger } = input;
   const fold = await insensitive(selected, ledger, signal);
   let literal = selected.fixed;
-  if (!literal && selected.kind === "rg") {
+  if (!literal) {
     literal = true;
     patterns: for (const pattern of selected.patterns) {
       ledger.charge("work", pattern.length, signal);
       await ledger.checkpoint(signal);
-      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)) { literal = false; break patterns; }
+      for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)
+        || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
     }
   }
   if (literal) return executeLiteral(input, signal, fold);

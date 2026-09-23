@@ -83,7 +83,7 @@ jobs:
               pathlib.Path(env[key]).mkdir(parents=True, exist_ok=True)
           binary = pathlib.Path('/opt/ssconvert-reference/bin/ssconvert')
           activation_source = root / 'function-activation.c'
-          activation_source.write_text("#include <gnumeric.h>\n#include <libgnumeric.h>\n#include <gnumeric-conf.h>\n#include <command-context-stderr.h>\n#include <gnm-plugin.h>\n#include <func.h>\n#include <goffice/goffice.h>\nint main(int argc, char const **argv) {\n  argv = gnm_pre_parse_init(argc, argv);\n  gnm_conf_set_persistence(FALSE);\n  gnm_init();\n  GOCmdContext *cc = gnm_cmd_context_stderr_new();\n  gnm_plugins_init(cc);\n  GOErrorInfo *errors = NULL;\n  go_plugin_db_activate_plugin_list(go_plugins_get_available_plugins(), &errors);\n  if (errors) {\n    go_error_info_print(errors);\n    go_error_info_free(errors);\n    return 1;\n  }\n  GPtrArray *functions = gnm_func_enumerate();\n  g_print(\"name\\tflags\\tfixed\\tnodes\\thelpEntries\\tminimum\\tmaximum\\timplementationStatus\\n\");\n  for (guint i = 0; i < functions->len; i++) {\n    GnmFunc *fn = g_ptr_array_index(functions, i);\n    gnm_func_load_if_stub(fn);\n    int count = 0, minimum = 0, maximum = 0;\n    gnm_func_get_help(fn, &count);\n    gnm_func_count_args(fn, &minimum, &maximum);\n    g_print(\"%s\\t%u\\t%d\\t%d\\t%d\\t%d\\t%d\\t%d\\n\",\n      gnm_func_get_name(fn, FALSE), (unsigned)gnm_func_get_flags(fn),\n      gnm_func_is_fixargs(fn), gnm_func_is_varargs(fn), count, minimum, maximum,\n      gnm_func_get_impl_status(fn));\n  }\n  g_ptr_array_free(functions, TRUE);\n  g_object_unref(cc);\n  gnm_shutdown();\n  gnm_pre_parse_shutdown();\n  return 0;\n}\n")
+          activation_source.write_text("#include <gnumeric.h>\n#include <libgnumeric.h>\n#include <gnumeric-conf.h>\n#include <command-context-stderr.h>\n#include <gnm-plugin.h>\n#include <func.h>\n#include <goffice/goffice.h>\nint main(int argc, char const **argv) {\n  argv = gnm_pre_parse_init(argc, argv);\n  gnm_conf_set_persistence(FALSE);\n  gnm_init();\n  GOCmdContext *cc = gnm_cmd_context_stderr_new();\n  gnm_plugins_init(cc);\n  GOErrorInfo *errors = NULL;\n  go_plugin_db_activate_plugin_list(go_plugins_get_available_plugins(), &errors);\n  if (errors) {\n    go_error_info_print(errors);\n    go_error_info_free(errors);\n    return 1;\n  }\n  const gboolean plugins_only = argc > 1 && g_str_equal(argv[1], \"plugins\");\n  GPtrArray *functions = gnm_func_enumerate();\n  if (!plugins_only) g_print(\"name\\tflags\\tfixed\\tnodes\\thelpEntries\\tminimum\\tmaximum\\timplementationStatus\\n\");\n  for (guint i = 0; i < functions->len; i++) {\n    GnmFunc *fn = g_ptr_array_index(functions, i);\n    gnm_func_load_if_stub(fn);\n    int count = 0, minimum = 0, maximum = 0;\n    gnm_func_get_help(fn, &count);\n    gnm_func_count_args(fn, &minimum, &maximum);\n    if (!plugins_only) g_print(\"%s\\t%u\\t%d\\t%d\\t%d\\t%d\\t%d\\t%d\\n\",\n      gnm_func_get_name(fn, FALSE), (unsigned)gnm_func_get_flags(fn),\n      gnm_func_is_fixargs(fn), gnm_func_is_varargs(fn), count, minimum, maximum,\n      gnm_func_get_impl_status(fn));\n  }\n  if (plugins_only) {\n    g_print(\"id\\tactive\\tloaded\\n\");\n    for (GSList *item = go_plugins_get_available_plugins(); item; item = item->next) {\n      GOPlugin *plugin = item->data;\n      g_print(\"%s\\t%d\\t%d\\n\", go_plugin_get_id(plugin),\n        go_plugin_is_active(plugin), go_plugin_is_loaded(plugin));\n    }\n  }\n  g_ptr_array_free(functions, TRUE);\n  g_object_unref(cc);\n  gnm_shutdown();\n  gnm_pre_parse_shutdown();\n  return 0;\n}\n")
           activation_binary = root / 'function-activation'
           flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'libspreadsheet-1.12'], env=env, text=True))
           with (root / 'function-activation-compile.log').open('wb') as log:
@@ -104,6 +104,7 @@ jobs:
               ('versions', ['pkg-config', '--modversion', 'libgoffice-0.10', 'glib-2.0', 'gtk+-3.0', 'libgsf-1', 'pango', 'cairo']),
               ('native-version', [str(binary), '--version']),
               ('functions', [str(activation_binary.resolve())]),
+              ('plugins', [str(activation_binary.resolve()), 'plugins']),
               ('importers', [str(binary), '--list-importers']),
               ('exporters', [str(binary), '--list-exporters'])
           ]:
@@ -114,6 +115,17 @@ jobs:
                   path = pathlib.Path(word).resolve()
                   if path.is_file():
                       libraries.append(dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+          modules = []
+          for index, module in enumerate(sorted(pathlib.Path('/opt/ssconvert-reference').rglob('*.so'))):
+              label = 'module-libraries-' + str(index)
+              capture(label, ['ldd', str(module)])
+              dependencies = []
+              for word in (root / (label + '.stdout')).read_text().split():
+                  if word.startswith('/'):
+                      path = pathlib.Path(word).resolve()
+                      if path.is_file():
+                          dependencies.append(dict(path=str(path), sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+              modules.append(dict(path=str(module), resolvedPath=str(module.resolve()), sha256=hashlib.sha256(module.read_bytes()).hexdigest(), linkedLibraries=dependencies))
           font_paths = subprocess.check_output(['fc-list', '--format', '%{file}\n'], env=env, text=True)
           fonts = []
           (root / 'fonts').mkdir()
@@ -138,7 +150,7 @@ jobs:
               activationCollectorSourceSha256=hashlib.sha256(activation_source.read_bytes()).hexdigest(),
               activationCollectorBinarySha256=hashlib.sha256(activation_binary.read_bytes()).hexdigest(),
               inputSha256=hashlib.sha256(input_path.read_bytes()).hexdigest(),
-              linkedLibraries=libraries, fonts=fonts, captures=metadata)
+              linkedLibraries=libraries, installedModules=modules, fonts=fonts, captures=metadata)
           (root / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')
           PY
       - name: Package installed reference with executable modes and symlinks

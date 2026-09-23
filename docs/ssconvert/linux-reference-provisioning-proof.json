@@ -236,5 +236,259 @@
       "profile": "gnumeric-1.12.61-optional-python-samples",
       "status": "in-progress-last-observed"
     }
-  ]
+  ],
+  "pluginAndModuleCollector": {
+    "policy": "After loading function stubs, capture actual available plugin IDs with active/loaded flags. Record every installed prefix .so and its resolved identity plus ldd dependency SHA256 closure. Module installation,activation and numerical/format execution are distinct qualifications.",
+    "sourceSha256": "1936f475cca0396705d5dd99135250bc59c59b68c8ca526b6edde47506da0dc2",
+    "localSetup": {
+      "platform": "Darwin arm64, not Linux qualification",
+      "compileExitCode": 0,
+      "runtimeExitCode": 0,
+      "stderrHex": "",
+      "stdoutSha256": "6ae0a33436cd191375c39e45413a048892b1665db993a3441af88b6b1c287289",
+      "plugins": [
+        {
+          "id": "GOffice_plot_distrib",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_smoothing",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_plot_radar",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_plot_barcol",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_plot_xy",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_plot_pie",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_reg_logfit",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_reg_linear",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_plot_surface",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "GOffice_gnumeric",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_derivatives",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnlookup",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_r",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_sc",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_sylk",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_numtheory",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fndatabase",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fninfo",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_mps",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnhebdate",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnstat",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnerlang",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fneng",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_lpsolve",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_Excel",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_lotus",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_html",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_applix",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fncomplex",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnflt",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_glpk",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_QPro",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_xbase",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnlogical",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnfinancial",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_fnstring",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_dif",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnrandom",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_UIHello",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_oleo",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnmath",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_nlsolve",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fndate",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_plan_perfect",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnTimeSeriesAnalysis",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_OpenCalc",
+          "active": "1",
+          "loaded": "0"
+        },
+        {
+          "id": "Gnumeric_fnchristiandate",
+          "active": "1",
+          "loaded": "1"
+        },
+        {
+          "id": "Gnumeric_sample_datasource",
+          "active": "1",
+          "loaded": "1"
+        }
+      ]
+    },
+    "requiredLinux": "exact-run identity and source hash; compare IDs/activation with declared profile and retain every difference; ldd module closure is not a claim that GUI/image services have executed"
+  }
 }

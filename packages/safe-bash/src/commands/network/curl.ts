@@ -203,7 +203,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       normalizePath(pathOf(context, output)) === normalizePath(pathOf(context, args.dumpHeader))) {
       throw new CurlError(23, "Body and header output files must differ");
     }
-    const initialMethod = args.method ?? (args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET");
+    const initialRequestMethod = args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET";
+    const initialMethod = args.method ?? initialRequestMethod;
     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
     attempts: for (let attempt = 0; attempt <= args.retries; attempt++) {
       values.num_retries = String(attempt);
@@ -211,6 +212,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       failure = undefined;
       let current = new URL(initial);
       let method = initialMethod;
+      let requestMethod = initialRequestMethod;
       let currentBody = body;
       let credentialsInScope = true;
       let previous: string | undefined;
@@ -279,8 +281,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             if (redirects++ >= args.maxRedirects) throw new CurlError(47, "Maximum redirects exceeded");
             if (current.protocol === "https:" && target.protocol === "http:") throw new CurlError(1, "HTTPS-to-HTTP redirects are disabled");
             if (target.origin !== current.origin) credentialsInScope = false;
-            if ((response.status === 303 && method !== "HEAD") || ([301, 302].includes(response.status) && method === "POST")) {
+            if ((response.status === 303 && method !== "HEAD") || ([301, 302].includes(response.status) && requestMethod === "POST")) {
               currentBody = undefined;
+              requestMethod = "GET";
               if (args.method === undefined) method = "GET";
             }
             previous = current.href;

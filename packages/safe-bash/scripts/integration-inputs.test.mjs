@@ -472,6 +472,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/aggregate-deadline.test.ts",
     "tests/commands/network/response-body-mode.test.ts",
     "tests/commands/network/file-output-budget.test.ts",
+    "tests/commands/network/http.test.ts",
     "tests/contracts/value.test.ts",
     "tests/commands/diff-patch/diff-admitted-options.test.ts",
     "tests/commands/stream-inspection/contracts.test.ts",

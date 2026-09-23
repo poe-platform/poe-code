@@ -11,6 +11,43 @@ let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
 
+for (const status of [301, 302, 303, 307, 308]) {
+  for (const method of [undefined, "POST", "PUT", "PATCH"]) {
+    test(`Shell curl ${status} redirect handles POST data with ${method ?? "implicit POST"}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({
+        authorize: request => new URL(request.url).origin === host.origin,
+      }));
+      try {
+        const result = await shell.exec(`curl -sS -L ${method ? `-X ${method}` : ""} --data x ${host.origin}/redirect/${status}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const [initial, final] = host.requests.slice(-2);
+        assert.equal(initial!.method, method ?? "POST");
+        assert.equal(initial!.body.toString(), "x");
+        assert.equal(initial!.headers["content-type"], "application/x-www-form-urlencoded");
+        const discarded = status === 301 || status === 302 || status === 303;
+        assert.equal(final!.method, method ?? (discarded ? "GET" : "POST"));
+        assert.equal(final!.body.toString(), discarded ? "" : "x");
+        assert.equal(final!.headers["content-type"], discarded ? undefined : "application/x-www-form-urlencoded");
+      } finally { await shell.dispose(); }
+    });
+  }
+  test(`Shell curl ${status} redirect handles genuine PUT upload`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("x"));
+    const shell = new Shell({ fs }).use(networkCommands({
+      authorize: request => new URL(request.url).origin === host.origin,
+    }));
+    try {
+      const result = await shell.exec(`curl -sS -L -T /input ${host.origin}/redirect/${status}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const final = host.requests.at(-1)!;
+      assert.equal(final.method, status === 303 ? "GET" : "PUT");
+      assert.equal(final.body.toString(), status === 303 ? "" : "x");
+      assert.equal(final.headers["content-type"], undefined);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("Shell curl matches curl 8.5/8.10 empty-file URL encoding for POST and GET", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/empty", new Uint8Array());

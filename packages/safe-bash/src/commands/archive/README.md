@@ -63,7 +63,8 @@ Filesystem extraction requires a backend `confineExtraction` operation that
 retains the destination roots and enforces their boundary atomically with every
 mutation, including link creation and metadata restoration. MemoryFileSystem
 supports it. Real, S3, WebDAV, mount and overlay backends currently refuse
-filesystem extraction; `tar -xO`, listing and creation remain available.
+filesystem extraction; `tar -xO` and listing remain available. Creation requires
+retained source reads with complete backing identity, as described below.
 A second pathname check cannot substitute for this backend guarantee.
 
 ## CLI profile
@@ -304,7 +305,14 @@ late rejections, not universal first-read cancellation. Existing shared
 shared lifecycle API. Partial consumers (`head -c 16`) and rejecting sinks are
 tested for plain and gzip output.
 
-The adapter's streaming methods are used when present. Without streaming reads,
+Creation, append, and update read each regular source through `openReadFile`.
+The retained handle must have the same complete `identityScope/dev/ino` as the
+checked source before any payload is read. Missing retained reads or identity
+are rejected. Reads stay bound to that object across ancestor symlink swaps;
+handle metadata and supplementary pathname checks detect source changes.
+Handles are closed on completion, error, and cancellation.
+
+For archive input, the adapter's streaming methods are used when present. Without streaming reads,
 `readFile` is allowed only under the bounded-file fallback. Without streaming
 writes, publication uses exclusive empty creation and awaited chunk appends.
 Adapters may themselves buffer or perform noncooperative work; tar cannot

@@ -48,7 +48,11 @@ import { toByteSource, type CommandDefinition } from "../../src/contracts/index.
 async function execute(command: CommandDefinition, args: string[], input = "", fallback = false) {
   const memory = createMemoryFileSystem();
   await memory.writeFile("/input", Buffer.from(input));
-  const fs = fallback ? new Proxy(memory, { get(target, key) { return key === "readStream" ? undefined : Reflect.get(target, key); } }) : memory;
+  const fs = fallback ? new Proxy(memory, { get(target, key) {
+    if (key === "readStream") return undefined;
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } }) : memory;
   const output: Uint8Array[] = [], errors: Uint8Array[] = [];
   const result = await command.execute({ command: command.name, args, cwd: "/", env: {}, fs,
     signal: new AbortController().signal, stdin: toByteSource(input),
@@ -58,7 +62,7 @@ async function execute(command: CommandDefinition, args: string[], input = "", f
   return { ...result, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString(), fs: memory };
 }
 
-test("archive fallback reads exceed the old buffered-file cap with an independent member limit", async () => {
+test("archive retained reads avoid buffering with an independent member limit", async () => {
   const input = "a".repeat(1024 * 1024 + 1);
   for (const limits of [undefined, { maxMembers: 8 }]) {
     const command = createArchiveCommands(limits ? { limits } : {}).find(command => command.name === "tar")!;
@@ -68,8 +72,10 @@ test("archive fallback reads exceed the old buffered-file cap with an independen
   }
   const command = createArchiveCommands({ limits: { maxBufferedFileBytes: 1024 * 1024 } }).find(command => command.name === "tar")!;
   const result = await execute(command, ["-cf", "/result.tar", "input"], input, true);
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr, /buffered file limit exceeded/);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok((await result.fs.stat("/result.tar")).size > input.length);
+  const limited = createArchiveCommands({ limits: { maxEntryBytes: 1024 * 1024 } }).find(command => command.name === "tar")!;
+  assert.equal((await execute(limited, ["-cf", "/result.tar", "input"], input, true)).exitCode, 2);
 });
 
 test("split permits suffixes beyond the old quota and honors an explicit suffix limit", async () => {

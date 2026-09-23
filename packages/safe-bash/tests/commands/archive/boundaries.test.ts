@@ -134,12 +134,17 @@ test("file-list, argument and pattern work budgets fail explicitly", async () =>
   }
 });
 
-test("S3 supports archive creation but refuses extraction without atomic confinement", async () => {
+test("S3 refuses source creation without retained identity and extraction without atomic confinement", async () => {
   const fs = new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }) });
   const { shell } = await fixture({}, fs);
   try {
     await fs.writeFile("/work/file", binary);
-    const result = await shell.exec("tar czf archive file; tar xzf archive -C /out");
+    const created = await shell.exec("tar czf archive file");
+    assert.equal(created.exitCode, 2, created.stderr);
+    assert.match(created.stderr, /retained backing identity/u);
+    await assert.rejects(fs.stat("/work/archive"), { code: "ENOENT" });
+    await fs.writeFile("/work/archive", gzipSync(archive(member("file", binary))));
+    const result = await shell.exec("tar xzf archive -C /out");
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /not supported|race-safe archive extraction/u);
     await assert.rejects(fs.stat("/out/file"), { code: "ENOENT" });

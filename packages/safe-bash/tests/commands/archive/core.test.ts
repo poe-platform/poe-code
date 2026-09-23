@@ -216,7 +216,7 @@ test("creation avoids self-inclusion and rejects explicit output payload aliases
   } finally { await shell.dispose(); }
 });
 
-test("non-streaming adapters use bounded reads and incremental append writes", async () => {
+test("non-streaming adapters use retained source reads and incremental append writes", async () => {
   const { fs, shell } = await fixture();
   await shell.dispose();
   await fs.writeFile("/work/data", binary);
@@ -227,6 +227,6 @@ test("non-streaming adapters use bounded reads and incremental append writes", a
   assert.equal(extracted.exitCode, 0, extracted.stderr);
   assert.deepEqual(await fs.readFile("/out/data"), binary);
   const limited = await direct(["-cf", "-", "data"], adapter, {}, { limits: { maxBufferedFileBytes: 32 } });
-  assert.equal(limited.exitCode, 2);
-  assert.match(limited.stderr, /buffered file limit/u);
+  assert.equal(limited.exitCode, 0, limited.stderr);
+  assert.equal(limited.stdoutBytes.includes(Buffer.from(binary)), true);
 });

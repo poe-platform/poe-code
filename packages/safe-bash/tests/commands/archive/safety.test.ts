@@ -204,12 +204,24 @@ test("source short/long reads and post-read replacement cannot silently succeed"
   await shell.dispose();
   await fs.writeFile("/work/file", binary);
   for (const bytes of [binary.subarray(0, -1), Buffer.concat([binary, Uint8Array.of(1)])]) {
-    const adapter = wrapped(fs, { readStream() { return source(bytes); } });
+    const adapter = wrapped(fs, { async openReadFile(path, options) {
+      const handle = await fs.openReadFile!(path, options);
+      return { stat: handle.stat.bind(handle), close: handle.close.bind(handle),
+        async read(position, size) { return bytes.subarray(position, position + size); } };
+    } });
     const result = await direct(["cf", "-", "file"], adapter);
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /source (grew|shrank)/u);
   }
-  const adapter = wrapped(fs, { async *readStream() { yield binary; await fs.rm("/work/file"); await fs.writeFile("/work/file", binary); } });
+  const adapter = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { stat: handle.stat.bind(handle), close: handle.close.bind(handle),
+      async read(position, size, readOptions) {
+        const bytes = await handle.read(position, size, readOptions);
+        if (!bytes.length) { await fs.rm(path); await fs.writeFile(path, binary); }
+        return bytes;
+      } };
+  } });
   assert.equal((await direct(["cf", "-", "file"], adapter)).exitCode, 2);
 });
 

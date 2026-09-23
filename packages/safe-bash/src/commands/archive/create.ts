@@ -84,6 +84,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
         paths.set(archivePath, { path, stat, entry });
         bindings.set(archivePath, { scope: stat.identityScope!, key });
       }
+      if (entry.type === "0" && (!context.fs.openReadFile || !hasIdentity(stat))) fail(`cannot safely read source without retained backing identity: ${display(name)}`);
       if (!Number.isSafeInteger(entry.size) || entry.size < 0 || entry.size > budget.limits.maxEntryBytes) fail("entry byte limit exceeded");
       if (entry.size > budget.limits.maxTotalBytes - budget.totalBytes) fail("total payload byte limit exceeded");
       budget.totalBytes += entry.size;
@@ -133,10 +134,13 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
   return { entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
 }
 
-async function unchanged(context: CommandContext, source: SourceEntry): Promise<void> {
-  const current = await operation(context, () => context.fs.lstat(source.path, { signal: context.signal }));
+function checkSource(source: SourceEntry, current: FileStat): void {
   if (current.type !== source.stat.type || (source.stat.type !== "directory" && (current.size !== source.stat.size || current.mtimeMs !== source.stat.mtimeMs
     || current.ctimeMs !== source.stat.ctimeMs)) || (hasIdentity(source.stat) && !sameIdentity(source.stat, current))) fail(`source changed while archiving: ${display(source.entry.name)}`);
+}
+
+async function unchanged(context: CommandContext, source: SourceEntry): Promise<void> {
+  checkSource(source, await operation(context, () => context.fs.lstat(source.path, { signal: context.signal })));
   if (source.stat.type === "symlink") {
     const target = await operation(context, () => context.fs.readlink!(source.path, { signal: context.signal }));
     if (target !== source.entry.linkname) fail("source symlink changed while archiving");
@@ -154,10 +158,23 @@ export async function* createArchive(context: CommandContext, entries: readonly 
     if (options.verbose) await budget.output(`${quoteName(source.entry.name, options.quotingStyle)}\n`, options.archive === "-");
     if (source.entry.type === "0") {
       let bytes = 0;
-      for await (const chunk of readBytes(fileSource(context, source.path, budget.limits), context.signal)) {
-        if (chunk.length > source.entry.size - bytes) fail(`source grew while archiving: ${display(source.entry.name)}`);
-        bytes += chunk.length;
-        yield chunk;
+      if (!context.fs.openReadFile || !hasIdentity(source.stat)) fail(`cannot safely read source without retained backing identity: ${display(source.entry.name)}`);
+      // Await acquisition itself so cancellation cannot abandon a newly opened handle.
+      const handle = await context.fs.openReadFile(source.path, { signal: context.signal });
+      try {
+        const opened = await operation(context, () => handle.stat({ signal: context.signal }));
+        if (!sameIdentity(source.stat, opened)) fail(`source changed while archiving: ${display(source.entry.name)}`);
+        checkSource(source, opened);
+        while (true) {
+          const chunk = await operation(context, () => handle.read(bytes, budget.limits.chunkSize, { signal: context.signal }));
+          if (!chunk.length) break;
+          if (chunk.length > source.entry.size - bytes) fail(`source grew while archiving: ${display(source.entry.name)}`);
+          bytes += chunk.length;
+          yield chunk;
+        }
+        checkSource(source, await operation(context, () => handle.stat({ signal: context.signal })));
+      } finally {
+        await handle.close();
       }
       if (bytes !== source.entry.size) fail(`source shrank while archiving: ${display(source.entry.name)}`);
       await unchanged(context, source);

@@ -42,7 +42,7 @@ for (const stage of ["header", "body"]) test(`cancellation while reading ${stage
 test("blocked stdout backpressures before payload acquisition and abort settles", async () => {
   const { fs, shell } = await fixture(); await shell.dispose(); await fs.writeFile("/work/file", binary);
   let reads = 0;
-  const adapter = wrapped(fs, { readStream(path, options) { reads++; return fs.readStream!(path, options); } });
+  const adapter = wrapped(fs, { openReadFile(path, options) { reads++; return fs.openReadFile!(path, options); } });
   const controller = new AbortController(); const entered = gate();
   const reason = new Error("blocked archive output");
   const checked = assert.rejects(direct(["cf", "-", "file"], adapter, { signal: controller.signal, stdout: { async write() { entered.resolve(); await pause(controller.signal); } } }), error => error === reason);
@@ -78,9 +78,12 @@ test("gzip compressor has bounded read-ahead at a blocked output sink", async ()
   const payload = randomBytes(2 * 1024 * 1024); await fs.writeFile("/work/file", payload);
   const controller = new AbortController(); const entered = gate(); const closed = gate();
   let produced = 0;
-  const adapter = wrapped(fs, { async *readStream(_path, options) { try {
-    for (let offset = 0; offset < payload.length; offset += 4096) { options!.signal!.throwIfAborted(); produced++; yield payload.subarray(offset, offset + 4096); }
-  } finally { closed.resolve(); } } });
+  const adapter = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { stat: handle.stat.bind(handle),
+      async read(position, size, readOptions) { produced++; return handle.read(position, Math.min(size, 4096), readOptions); },
+      async close() { try { await handle.close(); } finally { closed.resolve(); } } };
+  } });
   const reason = new Error("cancel gzip output");
   const checked = assert.rejects(direct(["czf", "-", "file"], adapter, { signal: controller.signal, stdout: { async write() { entered.resolve(); await pause(controller.signal); } } }), error => error === reason);
   await settle(entered.promise); await new Promise(resolve => setTimeout(resolve, 30));
@@ -92,7 +95,12 @@ test("gzip compressor has bounded read-ahead at a blocked output sink", async ()
 test("cancellation during compressor source read closes the source task", async () => {
   const { fs, shell } = await fixture(); await shell.dispose(); await fs.writeFile("/work/file", binary);
   const entered = gate(); const closed = gate(); const controller = new AbortController();
-  const adapter = wrapped(fs, { async *readStream(_path, options) { try { entered.resolve(); await pause(options!.signal!); } finally { closed.resolve(); } } });
+  const adapter = wrapped(fs, { async openReadFile(path, options) {
+    const handle = await fs.openReadFile!(path, options);
+    return { stat: handle.stat.bind(handle),
+      async read(_position, _size, readOptions) { entered.resolve(); return pause(readOptions!.signal!); },
+      async close() { try { await handle.close(); } finally { closed.resolve(); } } };
+  } });
   const reason = new Error("cancel gzip producer");
   const checked = assert.rejects(direct(["czf", "-", "file"], adapter, { signal: controller.signal }), error => error === reason);
   await settle(entered.promise); controller.abort(reason); await settle(checked); await settle(closed.promise);
@@ -101,7 +109,12 @@ test("cancellation during compressor source read closes the source task", async 
 for (const gzip of [false, true]) test(`early consumer sink rejection closes ${gzip ? "gzip" : "plain"} producer`, async () => {
   const { fs, shell } = await fixture(); await shell.dispose(); await fs.writeFile("/work/file", binary);
   let closed = false; let opened = false;
-  const adapter = wrapped(fs, { async *readStream(path, options) { opened = true; try { yield* fs.readStream!(path, options); } finally { closed = true; } } });
+  const adapter = wrapped(fs, { async openReadFile(path, options) {
+    opened = true;
+    const handle = await fs.openReadFile!(path, options);
+    return { stat: handle.stat.bind(handle), read: handle.read.bind(handle),
+      async close() { try { await handle.close(); } finally { closed = true; } } };
+  } });
   const result = await settle(direct([gzip ? "czf" : "cf", "-", "file"], adapter, { stdout: { async write() { throw new Error("EPIPE early consumer"); } } }));
   assert.equal(result.exitCode, 2, result.stderr);
   await new Promise<void>(resolve => setImmediate(resolve));

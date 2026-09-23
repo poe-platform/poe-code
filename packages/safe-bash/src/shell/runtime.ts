@@ -6626,13 +6626,27 @@ export class Runtime {
           if (value === undefined) invalid = true;
           else if (flag === "a") array = value;
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
-          else if (exact && (!/^[ \t]*[+-]?\d+[ \t]*$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
-            const diagnosticIO: IO = context;
-            await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
-            return 1;
+          else {
+            // Bash 5.3 permits an optional sign and surrounding ASCII whitespace.
+            let start = 0;
+            let end = value.length;
+            while (start < end && " \t\n\r\v\f".includes(value[start]!)) start++;
+            while (end > start && " \t\n\r\v\f".includes(value[end - 1]!)) end--;
+            if (value[start] === "+" || value[start] === "-") start++;
+            let decimal = start < end;
+            for (let digit = start; digit < end; digit++) {
+              if (value[digit]! < "0" || value[digit]! > "9") { decimal = false; break; }
+            }
+            const parsed = Number(value);
+            if (!decimal || !Number.isSafeInteger(parsed) || parsed < 0) {
+              if (exact) {
+                const diagnosticIO: IO = context;
+                await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
+                return 1;
+              }
+              invalid = true;
+            } else count = parsed;
           }
-          else if (!exact && (!/^\d+$/u.test(value) || !Number.isSafeInteger(Number(value)))) invalid = true;
-          else count = Number(value);
           break;
         }
         if (invalid) break;

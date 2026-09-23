@@ -991,13 +991,13 @@ function measureSandboxDataWithSeen(
         let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
         let arrayElements: unknown[] | undefined;
         if (arrayLength !== undefined) {
-          if (managedArray) arrayDescriptors = [];
-          else arrayElements = [];
+          if (managedArray) arrayDescriptors = nativeDataArraySetPrototype([], null);
+          else arrayElements = nativeDataArraySetPrototype([], null);
           if (!managedArray && nodeTypes.isProxy(value)) {
             // ownKeys traps can omit indices that descriptor lookup still exposes.
             for (let index = 0; index < arrayLength; index += 1) {
               const descriptor = Object.getOwnPropertyDescriptor(value, index);
-              if (descriptor !== undefined && "value" in descriptor) arrayElements!.push(descriptor.value);
+              if (descriptor !== undefined && "value" in descriptor) nativeDataArrayAppend(arrayElements!, descriptor.value);
             }
           } else {
             let keys = managedArray ? Object.getOwnPropertyNames(value) : Object.keys(value);
@@ -1017,8 +1017,8 @@ function measureSandboxDataWithSeen(
               }
               const descriptor = Object.getOwnPropertyDescriptor(value, key);
               if (descriptor !== undefined) {
-                if (arrayDescriptors !== undefined) arrayDescriptors.push([key, descriptor]);
-                else if ("value" in descriptor && typeof descriptor.value !== "number") arrayElements!.push(descriptor.value);
+                if (arrayDescriptors !== undefined) nativeDataArrayAppend(arrayDescriptors, [key, descriptor]);
+                else if ("value" in descriptor && typeof descriptor.value !== "number") nativeDataArrayAppend(arrayElements!, descriptor.value);
               }
             }
           }
@@ -1214,18 +1214,20 @@ function measureSandboxDataWithSeen(
         }
         if (arrayLength !== undefined) {
           usage += arrayLength;
-          const retained = arrayElements ?? [];
+          const retained = arrayElements ?? nativeDataArraySetPrototype([], null);
           if (arrayDescriptors !== undefined) {
-            for (const [key, descriptor] of arrayDescriptors) {
+            for (let index = 0; index < arrayDescriptors.length; index++) {
+              const entry = arrayDescriptors[index]!;
+              const key = entry[0], descriptor = entry[1];
               usage += key.length + 1;
-              if ("value" in descriptor) retained.push(descriptor.value);
-              else for (const closure of retainedAccessorClosures(descriptor)) retained.push(closure);
+              if ("value" in descriptor) nativeDataArrayAppend(retained, descriptor.value);
+              else for (const closure of retainedAccessorClosures(descriptor)) nativeDataArrayAppend(retained, closure);
             }
           }
           // Descriptors/elements are captured before retained callbacks.
           if (retained.length === 0) break entry;
           if (retained.length > 1)
-            appendDataContinuation(pending ??= [], retained, depth + 1);
+            pending = appendDataContinuation(pending, retained, depth + 1);
           value = retained[0];
           depth++;
           continue walk;

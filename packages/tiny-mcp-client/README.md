@@ -73,6 +73,12 @@ before OAuth callbacks run. Invalid headers fail without reflecting their values
 Use `snapshotHttpTransportHeaders(headers)` to apply the same ownership and safe
 validation when preparing a registry before constructing transports.
 `maxResponseBytes` bounds a complete JSON body or each SSE event (default 16 MiB).
+Before deserialization, HTTP JSON-RPC messages also have fixed per-message limits:
+100,000 nodes (including keys), 64 container levels, 4 MiB of decoded UTF-16
+strings, and an 8 MiB allocation estimate (128 bytes per node plus string storage).
+The first limit reached rejects the reply. These conservative admission limits
+protect Worker hosts from compact object amplification; they are not exact heap
+measurements. Increasing the byte limit does not increase the structural limits.
 Receive streams may carry many bounded events and keepalive comments; the limit
 does not cap their lifetime bytes. Use request deadlines and cancellation to
 bound pending operations.

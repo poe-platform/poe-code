@@ -1,3 +1,4 @@
+import { assertHttpJsonBudget } from "./http-json-budget.js";
 import { spawn } from "node:child_process";
 import type { ChildProcessWithoutNullStreams, SpawnOptions } from "node:child_process";
 import { PassThrough } from "node:stream";
@@ -3249,6 +3250,7 @@ export class HttpTransport implements McpTransport {
       )
     ).trim();
     if (request !== undefined && responseBody.length > 0) {
+      assertHttpJsonBudget(responseBody);
       let parsed = parseJsonRpcMessage(responseBody);
       if (parsed.type === "invalid") {
         try {
@@ -3439,6 +3441,7 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
+    assertHttpJsonBudget(payload);
     if (context !== undefined) { this.writeReadableLine(context.validate(payload, false)); return; }
     const parsedPayload = JSON.parse(payload) as unknown;
     this.writeReadableLine(JSON.stringify(parsedPayload));
@@ -3460,6 +3463,7 @@ export class HttpTransport implements McpTransport {
         this.rejectLegacyEndpoint = undefined;
         continue;
       }
+      assertHttpJsonBudget(message.data);
       this.writeReadableLine(context?.validate(message.data, true) ?? message.data);
       if (context?.completed) return;
     }

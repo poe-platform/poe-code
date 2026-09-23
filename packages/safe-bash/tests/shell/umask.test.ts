@@ -5,8 +5,63 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
-import { scopeFileSystem } from "@poe-code/safe-fs/core";
+import { scopeFileSystem, type OpenFileOptions } from "@poe-code/safe-fs/core";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
+
+for (const options of [
+  { access: "read" }, { access: "read", creation: "never" },
+  { access: "write", creation: "never" }, { access: "readwrite" },
+] as const) {
+  test(`noncreating open delegates untouched options: ${JSON.stringify(options)}`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.writeFile("/file", new Uint8Array([1]));
+    let queries = 0;
+    const opens: OpenFileOptions[] = [];
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async () => { queries++; return target.capabilities; };
+      if (key === "open") return async (path: string, forwarded: OpenFileOptions) => { opens.push(forwarded); return target.open(path, forwarded); };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const descriptor = await creationFileSystem(fs, 0o077).open!("/file", options);
+    await descriptor.close();
+    assert.equal(queries, 0);
+    assert.deepEqual(opens, [options]);
+    assert.equal(opens[0], options);
+    assert.equal((await backing.stat("/file")).mode & 0o777, 0o666);
+  });
+}
+
+for (const creation of ["ifMissing", "exclusive"] as const) {
+  test(`creating open retains path capability and masked mode: ${creation}`, async () => {
+    const backing = createMemoryFileSystem();
+    const queries: unknown[] = [];
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async (path: string, options: { create?: boolean }) => { queries.push({ path, create: options.create }); return target.capabilities; };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const descriptor = await creationFileSystem(fs, 0o077).open!("/new", { access: "write", creation });
+    await descriptor.close();
+    assert.deepEqual(queries, [{ path: "/new", create: true }]);
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+  });
+}
+
+test("noncreating open preserves falsey pre-abort without querying or opening", async () => {
+  const backing = createMemoryFileSystem();
+  for (const reason of [null, false, 0, "", Number.NaN]) {
+    const controller = new AbortController();
+    controller.abort(reason);
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor" || key === "open") return async () => { assert.fail("aborted open must not call host"); };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    try { await creationFileSystem(fs, 0o077).open!("/file", { access: "read", signal: controller.signal }); assert.fail("expected cancellation"); }
+    catch (error) { assert.ok(Object.is(error, reason)); }
+  }
+});
 
 for (const mode of [0o755, 0o711]) for (const symlink of [false, true]) {
   test(`umask preserves existing implicit recursive mkdir options: ${mode.toString(8)}/${symlink}`, async () => {

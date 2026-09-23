@@ -1,5 +1,5 @@
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
-import { registerEntryView } from "@poe-code/safe-fs/core";
+import { registerEntryView, type OpenFileOptions } from "@poe-code/safe-fs/core";
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
@@ -11,8 +11,9 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       if (!creation) return method.bind(target);
       return async (...args: unknown[]) => {
         const index = key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-        const options = (args[index] ?? {}) as FsOptions & { mode?: number; recursive?: boolean };
+        const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions> & { recursive?: boolean };
         options.signal?.throwIfAborted();
+        if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
         if (options.mode === undefined) {
           let path = args[0] as string;
           if (key === "mkdir" && options.recursive === true) {

@@ -164,6 +164,8 @@ async function copy(
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
+  if (flags.has("u") && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
+    && sourceStat.mtimeMs <= targetStat.mtimeMs) return;
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }

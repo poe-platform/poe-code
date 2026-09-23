@@ -124,6 +124,8 @@ Tar creation also accepts `--sort=name` (bytewise directory-child order; operand
 Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+`cp -u` / `--update` copies missing files and replaces files only when the source
+has a newer modification time. Recursive copies compare each file separately.
 `stat -t FILE` / `--terse` prints file metadata in GNU field order, using `?` for
 fields the backend does not expose. `-c` / `--format` and `--printf` override
 terse output. Filesystem terse output (`-ft`) remains unsupported.

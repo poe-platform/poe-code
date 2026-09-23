@@ -7,6 +7,8 @@ export interface Options {
   merge: boolean;
   across: boolean;
   length: number;
+  firstPage: number;
+  lastPage: number;
   width: number;
   header: string | undefined;
   extremities: boolean;
@@ -48,17 +50,23 @@ function integer(value: string, minimum: number, label: string): number {
   return result;
 }
 
+function pages(value: string, options: Options): void {
+  const colon = value.indexOf(":");
+  options.firstPage = integer(colon < 0 ? value : value.slice(0, colon), 1, "invalid page range");
+  options.lastPage = colon < 0 ? 2147483647 : integer(value.slice(colon + 1), options.firstPage, "invalid page range");
+}
+
 export function parseOptions(args: string[], budget: Budget): Options {
   const options: Options = {
     files: [], columns: 1, explicitColumns: false, merge: false, across: false,
-    length: 66, width: 72, header: undefined, extremities: true, keepFF: false,
+    length: 66, firstPage: 1, lastPage: 2147483647, width: 72, header: undefined, extremities: true, keepFF: false,
     formFeed: false, numbered: false, digits: 5, numberSeparator: "\t", startNumber: 1,
     separator: "", useSeparator: false, truncate: false, join: false, doubleSpace: false,
     margin: 0, expand: false, tabify: false, inputTab: "\t", inputTabWidth: 8,
     outputTab: "\t", outputTabWidth: 8, control: false, octal: false, quiet: false, information: undefined,
   };
   const long: Record<string, string> = {
-    columns: "#", across: "a", "show-control-chars": "c", "double-space": "d", "expand-tabs": "e",
+    columns: "#", pages: "p", across: "a", "show-control-chars": "c", "double-space": "d", "expand-tabs": "e",
     "form-feed": "f", header: "h", "output-tabs": "i", "join-lines": "J", length: "l", merge: "m",
     "number-lines": "n", "first-line-number": "N", indent: "o", "no-file-warnings": "r", separator: "s",
     "sep-string": "S", "omit-header": "t", "omit-pagination": "T", "show-nonprinting": "v", width: "w", "page-width": "W",
@@ -74,6 +82,11 @@ export function parseOptions(args: string[], budget: Budget): Options {
     if (argument === "--help" || argument === "--version") {
       options.information = argument === "--help" ? "help" : "version";
       return options;
+    }
+    if (argument.startsWith("+") && digit(argument[1] ?? "")) {
+      accumulating = false;
+      pages(argument.slice(1), options);
+      continue;
     }
     if (!argument.startsWith("-") || argument === "-") { accumulating = false; options.files.push(argument); continue; }
     const isLong = argument.startsWith("--");
@@ -95,7 +108,7 @@ export function parseOptions(args: string[], budget: Budget): Options {
         continue;
       }
       accumulating = false;
-      const required = "#hlwWNo".includes(option);
+      const required = "#phlwWNo".includes(option);
       const optional = "nseiS".includes(option);
       let value = attached;
       if (required || optional) {
@@ -107,6 +120,7 @@ export function parseOptions(args: string[], budget: Budget): Options {
         offset = switches.length;
       } else if (attached !== undefined) throw new PrError(`option ${quote(argument.slice(0, argument.indexOf("=")))} doesn't allow an argument`, true);
       switch (option) {
+        case "p": if (!isLong) throw new PrError("invalid option -- 'p'", true); pages(value!, options); break;
         case "#": options.columns = integer(value!, 1, "invalid number of columns"); options.explicitColumns = true; columnDigits = undefined; break;
         case "h": options.header = value; break;
         case "l": options.length = integer(value!, 1, "'-l PAGE_LENGTH' invalid number of lines"); break;

@@ -67,6 +67,7 @@ export class Formatter {
 
   private append(value: string): void {
     this.budget.charge(value.length);
+    if (this.pageNumber < this.options.firstPage) return;
     this.budget.retain(value.length * 2);
     this.rendered += value;
   }
@@ -318,7 +319,7 @@ export class Formatter {
     catch (error) { if (error instanceof PrReadError) await this.flush(); throw error; }
   }
   private async pages(date: string, name: string): Promise<void> {
-    for (;;) {
+    while (this.pageNumber <= this.options.lastPage) {
       if (this.store) await this.storePage(date, name);
       else for (const column of this.columns) column.remaining = column.status === "open" ? this.body : 0;
       if (!this.ready()) return;

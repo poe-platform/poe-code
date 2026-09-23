@@ -225,8 +225,8 @@
     },
     {
       "path": "generated/zstd.mjs",
-      "bytes": 1184017,
-      "sha256": "82ddcfef222a639a942838ba3330bf24ce6ea314602eacda2d0a3921242d259f"
+      "bytes": 1191224,
+      "sha256": "c72c184794221257cea052b53aa8668ae5f80f969274f3a412630b18980cc2b1"
     }
   ],
   "profile": {

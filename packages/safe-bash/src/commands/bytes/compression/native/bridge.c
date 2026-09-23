@@ -72,7 +72,7 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
 #else
  ZSTD_customMem mem={allocate,release,NULL};
  if(decode){dec=ZSTD_createDCtx_advanced(mem);ok=dec&&!ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_windowLogMax,window_log));}
- else{enc=ZSTD_createCCtx_advanced(mem);ok=enc&&!ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_compressionLevel,level));}
+ else{enc=ZSTD_createCCtx_advanced(mem);ok=enc&&!ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_compressionLevel,level))&&!ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_checksumFlag,1));}
 #endif
  if(!ok){bridge_destroy();return -2;}return 0;
 }

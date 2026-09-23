@@ -12,6 +12,33 @@ import { compressed } from "../../../../src/commands/archive/stream.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../../src/commands/archive/internal.js";
 import { binary, chunks, emptyMember, helloMember, run } from "./helpers.js";
 
+test("zstd writes and verifies native-default content checksums through Shell", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+  try {
+    for (const input of [Buffer.from("x"), Buffer.concat([binary, binary, binary])]) {
+      await fs.writeFile("/input", input);
+      for (const level of ["", "-1"]) {
+        const encoded = await shell.exec(`zstd ${level} -c input > output`);
+        assert.equal(encoded.exitCode, 0, encoded.stderr);
+        const frame = Buffer.from(await fs.readFile("/output"));
+        assert.equal(frame.readUInt32LE(0), 0xfd2fb528);
+        assert.equal(frame[4]! & 4, 4, "frame must contain a content checksum");
+        if (input.length === 1) {
+          // Native zstd 1.5.7's low 32 bits of XXH64 for the byte 'x'.
+          assert.equal(frame.subarray(-4).toString("hex"), "23110483");
+        }
+        const decoded = await shell.exec("zstd -dc output");
+        assert.equal(decoded.exitCode, 0, decoded.stderr);
+        assert.deepEqual(Buffer.from(decoded.stdoutBytes), input);
+        frame[frame.length - 1] = frame[frame.length - 1]! ^ 1;
+        await fs.writeFile("/output", frame);
+        assert.notEqual((await shell.exec("zstd -dc output")).exitCode, 0);
+      }
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("gzip custom suffix replaces input and decodes through Shell", async () => {
   for (const option of ["--suffix=.gz2", "--suffix .gz2", "-S .gz2", "-S.gz2", "-kS.gz2"]) {
     const fs = createMemoryFileSystem();

@@ -134,9 +134,12 @@ test("XZ dictionary and Zstandard advertised window are refused before large all
 test("XZ and Zstandard verify checksums within the first frame", async () => {
   for (const format of ["xz", "zstd"] as const) {
     const encoded = await encode(Buffer.from("checksum bytes"), format);
-    const bad = format === "xz" ? encoded.slice() : Buffer.concat([encoded, Buffer.alloc(4)]);
+    const bad = encoded.slice();
     if (format === "xz") bad[bad.length - 24] = bad[bad.length - 24]! ^ 1;
-    else bad[4] = bad[4]! | 4; // Frame content-checksum flag, deliberately incorrect trailing checksum.
+    else {
+      assert.equal(bad[4]! & 4, 4);
+      bad[bad.length - 1] = bad[bad.length - 1]! ^ 1;
+    }
     const codec = await createCodec({ format, level: 1, decompress: true }, new AbortController().signal);
     try { assert.throws(() => codec.step(bad, new Uint8Array(65536), true), /compressed data/u); }
     finally { codec.close(); }

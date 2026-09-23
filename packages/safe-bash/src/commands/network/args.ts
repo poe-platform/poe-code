@@ -8,6 +8,9 @@ export interface DataArgument {
 
 export interface CurlArguments {
   caFile?: string;
+  etagSave?: string;
+  etagCompare?: string;
+  etag?: string;
   query?: DataArgument[];
   httpVersion?: "1.0" | "1.1";
   ignoreContentLength?: boolean;
@@ -61,7 +64,7 @@ export const flags: Readonly<Record<string, string>> = {
   h: "help", V: "version",
 };
 export const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode", "url-query",
-  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir", "cacert"]);
+  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir", "cacert", "etag-save", "etag-compare"]);
 
 const booleans: Readonly<Record<string, keyof CurlArguments>> = {
   location: "location", head: "head", include: "include", "show-headers": "include", get: "get",
@@ -114,6 +117,8 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       return;
     }
     switch (option) {
+      case "etag-save": result.etagSave = value!; break;
+      case "etag-compare": result.etagCompare = value!; break;
       case "cacert": result.caFile = value!; break;
       case "http1.0": result.httpVersion = "1.0"; break;
       case "http1.1": result.httpVersion = "1.1"; break;

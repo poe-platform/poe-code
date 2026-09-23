@@ -4,7 +4,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
-import type { CurlArguments } from "./args.js";
+import { validateRequestHeader, type CurlArguments } from "./args.js";
 import { curlRequestTarget } from "./url.js";
 import { parseCurlInput } from "./input.js";
 import { createBody, queryData } from "./body.js";
@@ -47,6 +47,7 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
   const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
+  if (scoped && args.etag !== undefined) defaults.push(["If-None-Match", args.etag]);
   if (args.range !== undefined) defaults.push(["Range", `bytes=${args.range}`]);
   if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
   if (scoped && args.bearer !== undefined) {
@@ -179,7 +180,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
   transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number, status: (code: number) => number, headerState: { dumped: boolean }): Promise<number> {
   const start = performance.now();
   const remaining = (): number => Math.min(args.maxTimeMs - (performance.now() - start), limits.maxTotalTimeMs - (performance.now() - started));
-  const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
+  const hasFileOutput = args.etagSave !== undefined && args.etagSave !== "-" || args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
   const operation = createDeadlineOutput(context, hasFileOutput ? { write: chunk => context.stdout.write(chunk) } : context.stdout, remaining());
   const signal = operation.signal;
   const borrowed: ByteSource = context.stdout.ownedOutput ? { [Symbol.asyncIterator]() {
@@ -206,6 +207,20 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     } finally { await writing.close(); }
   };
   try {
+    if (args.etagCompare !== undefined) {
+      let bytes: Uint8Array;
+      try {
+        bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.etagCompare!), { signal, maxBytes: limits.maxBufferBytes }), signal);
+      } catch (error) {
+        signal.throwIfAborted();
+        if (!(error instanceof FsError && error.code === "ENOENT")) throw new CurlError(26, "Failed reading virtual ETag file");
+        bytes = new Uint8Array();
+      }
+      if (bytes.length > limits.maxBufferBytes) throw new CurlError(63, "ETag file exceeds host buffer limit");
+      const text = Buffer.from(bytes).toString("latin1");
+      args.etag = text.split("\r").join("").split("\n").join("") || '""';
+      validateRequestHeader("If-None-Match", args.etag);
+    }
     let ca: Uint8Array | undefined;
     if (args.caFile !== undefined) {
       try {
@@ -344,6 +359,12 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             headerState.dumped = true;
           }
           dumped = true;
+        }
+        if (args.etagSave !== undefined) {
+          const tag = header(response.headers, "etag");
+          const bytes = tag === undefined ? new Uint8Array() : new Uint8Array(Buffer.from(`${tag}\n`, "latin1"));
+          if (args.etagSave === "-") await publish(bytes);
+          else await writeOutput(context, args.etagSave, toByteSource(bytes), signal);
         }
         if (args.head || args.include) included.push(block);
         const location = header(response.headers, "location");

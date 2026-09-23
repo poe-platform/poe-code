@@ -125,7 +125,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicArray, createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { constructGuestProxy } from "./guest-proxy-construct.js";
@@ -806,7 +806,8 @@ async function evaluateArrayExpression(
     ? undefined : context.restoredGeneratorExpressionStates?.get(node.nodeId);
   if (restored !== undefined && (restored.kind !== "array" || !Array.isArray(restored.values)))
     throw new TypeError("Invalid array expression continuation.");
-  const values: SandboxArray = restored?.kind === "array" ? restored.values as SandboxArray : [];
+  const values: SandboxArray = restored?.kind === "array" ? restored.values as SandboxArray
+    : context.scriptScope !== undefined || context.moduleInstantiated !== undefined ? createIntrinsicArray() : [];
   if (restored === undefined) {
     const prototype = getSandboxPrototype(values, context.budget);
     if (prototype !== null) setSandboxPrototype(values, prototype, context.budget);

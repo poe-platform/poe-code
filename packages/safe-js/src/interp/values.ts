@@ -1114,7 +1114,19 @@ function measureSandboxDataWithSeen(
         let arrayElements: CaptureBuffer | undefined;
         if (arrayLength !== undefined) {
           if (managedArray) arrayDescriptors = nativeDataArraySetPrototype([], null);
-          if (!managedArray && nodeTypes.isProxy(value)) {
+          const trackedDescriptors = trackedPropertyDataDescriptors(value);
+          if (trackedDescriptors !== undefined) {
+            for (let index = 0; index < trackedDescriptors.length; index++) {
+              const entry = trackedDescriptors[index]!;
+              const key = entry[0], descriptor = entry[1];
+              if (key === "length") {
+                if (!managedArray) break;
+                continue;
+              }
+              if (arrayDescriptors !== undefined) nativeDataArrayAppend(arrayDescriptors, [key, descriptor]);
+              else if ("value" in descriptor && typeof descriptor.value !== "number") arrayElements = appendCapture(arrayElements, descriptor.value);
+            }
+          } else if (!managedArray && nodeTypes.isProxy(value)) {
             // ownKeys traps can omit indices that descriptor lookup still exposes.
             for (let index = 0; index < arrayLength; index += 1) {
               const descriptor = Object.getOwnPropertyDescriptor(value, index);

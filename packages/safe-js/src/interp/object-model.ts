@@ -39,6 +39,7 @@ import {
   getRegexProperties,
   getCollectionProperties,
   isSandboxSet,
+  type SandboxArray,
   type SandboxClosure,
   type SandboxObject,
   type SandboxValue
@@ -58,6 +59,7 @@ const nativePropertyStateSet = WeakMap.prototype.set.bind(functionPropertyRevisi
 type TrackedStringData = { readonly units: number; readonly references: readonly unknown[] };
 type TrackedPropertyData = {
   readonly backing: SandboxObject;
+  readonly array: boolean;
   allScalarUnits: number;
   enumerableScalarUnits: number;
   nonScalarProperties: number;
@@ -172,7 +174,7 @@ const emptyPropertyReferences: readonly unknown[] = nativePropertyFreeze([]);
 // descendants still enter the fresh walk. Accessors retain the descriptor path.
 export function trackedPropertyStringData(value: object, includeNonEnumerable: boolean): TrackedStringData | undefined {
   const state = nativePropertyDataGet(value);
-  if (state === undefined || state.strings === null) return undefined;
+  if (state === undefined || state.array || state.strings === null) return undefined;
   if (state.strings === undefined && state.nonScalarProperties === 0) {
     state.strings = nativePropertyFreeze({
       all: nativePropertyFreeze({ units: state.allScalarUnits, references: emptyPropertyReferences }),
@@ -260,30 +262,40 @@ export function createIntrinsicObject(initial: SandboxObject = Object.create(nul
   return tracked;
 }
 
+export function createIntrinsicArray(): SandboxArray {
+  const tracked = trackPropertyTable([] as unknown as SandboxObject, true) as unknown as SandboxArray;
+  nativeIntrinsicObjectAdd(tracked);
+  return tracked;
+}
+
 export function isTrackedIntrinsicObject(value: object): boolean {
   return nativeIntrinsicObjectHas(value);
 }
 
-function trackPropertyTable(properties: SandboxObject): SandboxObject {
+function trackPropertyTable(properties: SandboxObject, array = false): SandboxObject {
   // Never expose the raw table: native callers must invalidate captures too.
   const state: TrackedPropertyState = { revision: 0 };
   const data: TrackedPropertyData = {
-    backing: properties, allScalarUnits: 0, enumerableScalarUnits: 0,
+    backing: properties, array, allScalarUnits: 0, enumerableScalarUnits: 0,
     nonScalarProperties: 0, symbols: undefined, descriptors: undefined, strings: undefined
   };
   const keys = nativePropertyNames(properties);
   for (let index = 0; index < keys.length; index++) {
     const key = keys[index]!;
-    adjustScalarProperty(data, key, nativePropertyDescriptor(properties, key), 1);
+    if (!array) adjustScalarProperty(data, key, nativePropertyDescriptor(properties, key), 1);
   }
   const tracked = new NativePropertyProxy(properties, {
     defineProperty(target, key, descriptor) {
-      const previous = typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
+      const previous = !array && typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
       const changed = nativePropertyWrite(target, key, descriptor);
-      if (changed) {
+      // ArraySetLength can delete trailing elements before rejecting a shrink.
+      // Array index writes also change length without a separate proxy trap.
+      if (changed || array) {
         if (typeof key === "string") {
-          adjustScalarProperty(data, key, previous, -1);
-          adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+          if (!array) {
+            adjustScalarProperty(data, key, previous, -1);
+            adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+          }
         } else data.symbols = undefined;
         state.revision++;
         data.descriptors = undefined;
@@ -294,12 +306,14 @@ function trackPropertyTable(properties: SandboxObject): SandboxObject {
       return changed;
     },
     deleteProperty(target, key) {
-      const previous = typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
+      const previous = !array && typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
       const changed = nativePropertyDelete(target, key);
       if (changed) {
         if (typeof key === "string") {
-          adjustScalarProperty(data, key, previous, -1);
-          adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+          if (!array) {
+            adjustScalarProperty(data, key, previous, -1);
+            adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+          }
         } else data.symbols = undefined;
         state.revision++;
         data.descriptors = undefined;

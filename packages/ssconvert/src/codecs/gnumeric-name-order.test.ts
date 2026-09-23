@@ -69,6 +69,8 @@ it("retains exact placeholder names and their first parse position under folded 
   const source = cells(["=Data!Rate", "='dAtA'!Rate", "=Data!rate", "=Rate", "=rate"]);
   const book = await readGnumeric(input([["Here", source], ["Data", ""]], names([["Rate", "11"], ["rate", "13"]]), true), context);
   expect(book.names?.filter(name => name.sheet === "s2")).toEqual([
+    { name: "Sheet_Title", expression: '"Data"', sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } },
+    { name: "Print_Area", expression: "#REF!", sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } },
     { name: "Rate", expression: "#NAME?", sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } },
     { name: "rate", expression: "#NAME?", sheet: "s2", position: { sheet: "s2", row: 2, column: 0 } }
   ]);
@@ -99,12 +101,12 @@ it("retains an unresolved local placeholder in XML when no later global definiti
 
 it("retains global placeholders created by unqualified and explicitly global names", async () => {
   const book = await readGnumeric(input([["Here", cells(["=Unknown", "=[]Explicit", "=Unknown"])], ["Data", ""]], ""), context);
-  expect(book.names).toEqual([
+  expect(book.names?.filter(name => name.sheet === undefined)).toEqual([
     { name: "Unknown", expression: "#NAME?", position: { sheet: "s1", row: 0, column: 0 } },
     { name: "Explicit", expression: "#NAME?", position: { sheet: "s1", row: 1, column: 0 } }
   ]);
   const replay = await readGnumeric(await writeGnumeric(book, [], context), context);
-  expect(replay.names).toEqual(book.names);
+  expect(replay.names?.filter(name => name.sheet === undefined)).toEqual(book.names?.filter(name => name.sheet === undefined));
 });
 
 it("retains an earlier global placeholder beside a later same-spelled local declaration", async () => {

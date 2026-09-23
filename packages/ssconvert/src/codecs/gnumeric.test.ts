@@ -74,7 +74,7 @@ it("uses the leaf sheet-name SAX state separately from named-expression names", 
   const book = await readGnumeric(new TextEncoder().encode(source), { ...context, async diagnostic(d) { messages.push(d.message); } });
   expect(messages).toEqual(["Unexpected element 'g:value' in state : \n\tWorkbook -> Sheets -> Sheet -> Name\n"]);
   expect(book.sheets[0]!.name).toBe("Sbad");
-  expect(book.names?.map(n => [n.name, n.expression])).toEqual([["Global", "1"], ["Local", "2"]]);
+  expect(book.names?.map(n => [n.name, n.expression])).toEqual([["Global", "1"], ["Local", "2"], ["Sheet_Title", '"Sbad"'], ["Print_Area", "#REF!"]]);
 });
 it("retains delegated graph style properties without treating scalar properties as styles", async () => {
   const messages: string[] = [];
@@ -153,7 +153,13 @@ it("uses SheetNameIndex order even when sheet data is serialized in another orde
   const book = await readGnumeric(new TextEncoder().encode(source), context);
   expect(book.sheets.map(s => s.name)).toEqual(["First", "Second"]);
   expect(book.sheets[0]!.size).toEqual({ rows: 128, columns: 128 });
-  expect(book.names).toEqual([{ name: "Rate", expression: "0.25", sheet: "s1", position: { sheet: "s1", row: 2, column: 2 } }]);
+  expect(book.names).toEqual([
+    { name: "Rate", expression: "0.25", sheet: "s1", position: { sheet: "s1", row: 2, column: 2 } },
+    { name: "Sheet_Title", expression: '"First"', sheet: "s1", position: { sheet: "s1", row: 0, column: 0 } },
+    { name: "Print_Area", expression: "#REF!", sheet: "s1", position: { sheet: "s1", row: 0, column: 0 } },
+    { name: "Sheet_Title", expression: '"Second"', sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } },
+    { name: "Print_Area", expression: "#REF!", sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } }
+  ]);
   expect(book.activeSheet).toBe("s2");
 });
 it("retains a one-cell array corner rather than flattening its formula group", async () => {

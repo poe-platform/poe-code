@@ -512,7 +512,19 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
   const allNames = [...children(root, "Names").flatMap(group => names(group, sheets[0]?.id ?? "s1")),
-    ...sheetNodes.flatMap((n, i) => children(n, "Names").flatMap(group => names(group, sheets[i]!.id, true)))];
+    ...sheetNodes.flatMap((node, i) => {
+      const sheet = sheets[i]!;
+      const localNames = children(node, "Names").flatMap(group => names(group, sheet.id, true));
+      const present = new Set(localNames.map(entry => { tick(); return entry.name; }));
+      // Native data sheets own these names before any XML declarations are read.
+      // Retain them as model definitions so lookup, edits and exports share them.
+      for (const [name, expression] of [["Sheet_Title", quoteFormulaString(sheet.name, '"', gnumericGrammar)], ["Print_Area", "#REF!"]] as const) {
+        tick();
+        if (!present.has(name)) localNames.push({ name, expression, sheet: sheet.id,
+          position: { sheet: sheet.id, row: 0, column: 0 } });
+      }
+      return localNames;
+    })];
   const sheetIds = new Map(sheets.map(sheet => [foldSheetName(sheet.name), sheet.id]));
   for (const placeholder of boundNames.placeholders) {
     tick();

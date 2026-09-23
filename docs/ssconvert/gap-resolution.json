@@ -390,6 +390,12 @@
           "path": "docs/ssconvert/gnumeric-name-placeholder-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/gnumeric-name-placeholder-native-capture.json",
           "outcome": "Seven failing controls repaired;42focused/22790package tests,lint/types/build and56compiledSDK/Shell conversions pass. Actual native direct/replay values and name records authenticated."
+        },
+        {
+          "kind": "Gnumeric-XML-permanent-sheet-name-materialization",
+          "path": "docs/ssconvert/gnumeric-permanent-names-gap-proof.json",
+          "nativeEvidence": "docs/ssconvert/gnumeric-permanent-names-native-capture.json",
+          "outcome": "Three original failures;83focused/22796package tests,lint/types/build and44compiledSDK/Shell conversions pass. Native default names and global shadowing match; undefined explicit-global recovery and qualified local implicit-sheet binding remain different."
         }
       ],
       "delivery": {

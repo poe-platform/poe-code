@@ -36,5 +36,9 @@ it("exports BIFF names using native Gnumeric expression syntax for replay", asyn
   const output = await writeGnumeric(book, [], biffContext);
   // Native replay loses the expression when the XML value starts with '='.
   expect(new TextDecoder().decode(output)).toContain("<gnm:value>42</gnm:value>");
-  expect((await readGnumeric(output, biffContext)).names).toMatchObject([{ name: "Sheet_Title_A", expression: "42" }]);
+  expect((await readGnumeric(output, biffContext)).names).toMatchObject([
+    { name: "Sheet_Title_A", expression: "42" },
+    { name: "Sheet_Title", expression: '"Worksheet"', sheet: "s1" },
+    { name: "Print_Area", expression: "#REF!", sheet: "s1" }
+  ]);
 });

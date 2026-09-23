@@ -72,7 +72,7 @@ it("exports plain and prefixed names without altering embedded equals or XML-sen
     names: expressions.map((expression, index) => ({ name: `N${index}`, expression })) };
   const xml = await writeGnumeric(book, [], context);
   expect((await readGnumeric(xml, context)).names?.map(name => name.expression))
-    .toEqual(["42", "42", "#NAME?", "#REF!", 'IF(A1="=",1,0)', '"a&<b=""c"']);
+    .toEqual(["42", "42", "#NAME?", "#REF!", 'IF(A1="=",1,0)', '"a&<b=""c"', '"Sheet"', "#REF!"]);
 });
 
 it("keeps global and local duplicate names in their original scopes and preserves positions", async () => {
@@ -84,6 +84,8 @@ it("keeps global and local duplicate names in their original scopes and preserve
   const sheet = replay.sheets[0]!.id;
   expect(replay.names).toEqual([
     { name: "Shared", expression: "1", position: { sheet, row: 0, column: 0 } },
-    { name: "Shared", expression: "2", sheet, position: { sheet, row: 3, column: 2 } }
+    { name: "Shared", expression: "2", sheet, position: { sheet, row: 3, column: 2 } },
+    { name: "Sheet_Title", expression: '"Sheet"', sheet, position: { sheet, row: 0, column: 0 } },
+    { name: "Print_Area", expression: "#REF!", sheet, position: { sheet, row: 0, column: 0 } }
   ]);
 });

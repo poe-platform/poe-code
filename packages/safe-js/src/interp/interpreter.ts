@@ -125,7 +125,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
-import { getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, isDefaultArrayMethod, isDefaultBoxedMethod, isGuestClosure, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { guestProxyStates } from "./guest-proxy.js";
 import { callGuestProxy } from "./guest-proxy-call.js";
 import { constructGuestProxy } from "./guest-proxy-construct.js";
@@ -860,7 +860,16 @@ async function evaluateObjectExpression(
   if (restored !== undefined && (restored.kind !== "object" || restored.value === null ||
       typeof restored.value !== "object" || Array.isArray(restored.value)))
     throw new TypeError("Invalid object expression continuation.");
-  const object = restored?.kind === "object" ? restored.value as SandboxObject : Object.create(null) as SandboxObject;
+  // Bulk static string tables amortize native Proxy overhead. Keep small literals
+  // and public runner results native; choose ownership before any root can escape.
+  let trackStrings = context.scriptScope !== undefined && node.properties.length >= 256;
+  if (trackStrings) for (let index = 0; index < node.properties.length; index++) {
+    const property = node.properties[index]!;
+    if (property.type !== "Property" || property.computed || property.kind !== undefined ||
+        property.value.type !== "StringLiteral") { trackStrings = false; break; }
+  }
+  const object = restored?.kind === "object" ? restored.value as SandboxObject
+    : trackStrings ? createIntrinsicObject() : Object.create(null) as SandboxObject;
   if (restored === undefined) {
     const prototype = getSandboxPrototype(object, context.budget);
     if (prototype !== null) setSandboxPrototype(object, prototype, context.budget);

@@ -6,12 +6,92 @@ import {
   materializeFunctionProperties,
   markDescriptorObject,
   trackedPropertyStringData,
+  trackedPropertySymbols,
   setSandboxPrototype,
   trackedPropertyDataDescriptors
 } from "./object-model.js";
 import { createSandboxClosure, measureSandboxData, reconcileCompiledValues } from "./values.js";
 
 afterEach(() => vi.restoreAllMocks());
+
+it("updates scalar totals without materializing descriptor snapshots during construction", () => {
+  const table = createIntrinsicObject();
+  let expected = 0;
+  for (let index = 0; index < 64; index++) {
+    const key = `entry${index}`;
+    Object.defineProperty(table, key, {
+      value: "translation",
+      writable: true,
+      enumerable: true,
+      configurable: true
+    });
+    expected += 1 + key.length + 11;
+    expect(trackedPropertyStringData(table, false)?.units).toBe(expected);
+  }
+  Object.defineProperty(table, "entry0", { enumerable: false });
+  expect(trackedPropertyStringData(table, false)?.units).toBe(expected - 18);
+  expect(trackedPropertyStringData(table, true)?.units).toBe(expected);
+  Object.defineProperty(table, "entry1", { writable: false, configurable: false });
+  expect(Reflect.defineProperty(table, "entry1", { value: "changed" })).toBe(false);
+  expect(trackedPropertyStringData(table, true)?.units).toBe(expected);
+  expect(Reflect.deleteProperty(table, "entry2")).toBe(true);
+  expect(trackedPropertyStringData(table, true)?.units).toBe(expected - 18);
+});
+
+it("keeps owned symbol lists immutable and fresh after native mutations", () => {
+  const table = createIntrinsicObject({ payload: "abc" });
+  const first = trackedPropertySymbols(table)!;
+  expect(first).toEqual([]);
+  expect(Object.isFrozen(first)).toBe(true);
+  table.payload = "changed";
+  expect(trackedPropertySymbols(table)).toBe(first);
+  const key = Symbol("callback");
+  Object.defineProperty(table, key, { value: 1, configurable: true });
+  expect(trackedPropertySymbols(table)).toEqual([key]);
+  expect(trackedPropertySymbols(new Proxy(table, {}))).toBeUndefined();
+  Reflect.deleteProperty(table, key);
+  expect(trackedPropertySymbols(table)).toEqual([]);
+});
+
+it("rejects native scalar growth after warming while reconciliation is held", () => {
+  const table = createIntrinsicObject({ payload: "small" });
+  const before = measureSandboxData([table]);
+  const budget = new Budget({ dataSize: before + 100 });
+  const resume = budget.deferReconciliation();
+  try {
+    table.payload = "x".repeat(205);
+    expect(measureSandboxData([table]) - before).toBe(200);
+    expect(() => reconcileCompiledValues(budget, [table])).toThrow(SandboxError);
+  } finally {
+    resume();
+  }
+});
+
+it("matches fresh record accounting across scalar, reference and accessor transitions", () => {
+  const table = createIntrinsicObject({ payload: "small" });
+  const plain = { payload: "small" };
+  markDescriptorObject(table);
+  markDescriptorObject(plain);
+  let retained = "small";
+  const closure = createSandboxClosure({ call: () => undefined, retainedValues: () => [retained] });
+  const descriptors: PropertyDescriptor[] = [
+    { value: null, writable: true, configurable: true, enumerable: true },
+    { value: 255n },
+    { value: Symbol("fresh") },
+    { value: { text: "child" } },
+    { get: accessorAdapter(closure, "get"), enumerable: false },
+    { value: "grown", writable: false, configurable: false }
+  ];
+  for (const descriptor of descriptors) {
+    Object.defineProperty(table, "payload", descriptor);
+    Object.defineProperty(plain, "payload", descriptor);
+    expect(measureSandboxData([table])).toBe(measureSandboxData([plain]));
+    retained += "more";
+    expect(measureSandboxData([table])).toBe(measureSandboxData([plain]));
+  }
+  expect(Reflect.deleteProperty(table, "payload")).toBe(false);
+  expect(measureSandboxData([table])).toBe(measureSandboxData([plain]));
+});
 
 it("does not recapture tracked string descriptors across measurements", () => {
   const table = createIntrinsicObject({ payload: "abc", child: { text: "xyz" } });

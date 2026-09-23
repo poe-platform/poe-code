@@ -58,6 +58,10 @@ const nativePropertyStateSet = WeakMap.prototype.set.bind(functionPropertyRevisi
 type TrackedStringData = { readonly units: number; readonly references: readonly unknown[] };
 type TrackedPropertyData = {
   readonly backing: SandboxObject;
+  allScalarUnits: number;
+  enumerableScalarUnits: number;
+  nonScalarProperties: number;
+  symbols?: readonly symbol[];
   descriptors?: readonly (readonly [string, Readonly<PropertyDescriptor>])[];
   strings?: { readonly all: TrackedStringData; readonly enumerable: TrackedStringData } | null;
 };
@@ -70,6 +74,7 @@ const nativePropertyCreate = Object.create;
 const nativePropertyDefine = Object.defineProperties;
 const nativePropertyDefineOne = Object.defineProperty;
 const nativePropertyNames = Object.getOwnPropertyNames;
+const nativePropertySymbols = Object.getOwnPropertySymbols;
 const nativePropertyHasOwn = Object.hasOwn;
 const nativePropertyDescriptor = Object.getOwnPropertyDescriptor;
 const nativePropertyDescriptors = Object.getOwnPropertyDescriptors;
@@ -140,11 +145,38 @@ export function trackedPropertyDataDescriptors(value: object): readonly (readonl
   return state.descriptors = nativePropertyFreeze(entries);
 }
 
+// Only privately owned tables can reuse key lists; foreign proxies stay fresh.
+export function trackedPropertySymbols(value: object): readonly symbol[] | undefined {
+  const state = nativePropertyDataGet(value);
+  if (state === undefined) return undefined;
+  return state.symbols ??= nativePropertyFreeze(nativePropertySymbols(state.backing));
+}
+
+function adjustScalarProperty(state: TrackedPropertyData, key: string, descriptor: PropertyDescriptor | undefined, direction: number): void {
+  if (descriptor === undefined) return;
+  const hasValue = nativePropertyHasOwn(descriptor, "value");
+  const item = hasValue ? descriptor.value : undefined;
+  const scalar = hasValue &&
+    typeof item !== "bigint" && typeof item !== "symbol" && (typeof item !== "object" || item === null);
+  if (!scalar) state.nonScalarProperties += direction;
+  const units = 1 + key.length + (typeof item === "string" ? item.length : 0);
+  state.allScalarUnits += direction * units;
+  if (descriptor.enumerable) state.enumerableScalarUnits += direction * units;
+}
+
+const emptyPropertyReferences: readonly unknown[] = nativePropertyFreeze([]);
+
 // String/inert leaves have no volatile observations. Bigints, symbols and object
 // descendants still enter the fresh walk. Accessors retain the descriptor path.
 export function trackedPropertyStringData(value: object, includeNonEnumerable: boolean): TrackedStringData | undefined {
   const state = nativePropertyDataGet(value);
   if (state === undefined || state.strings === null) return undefined;
+  if (state.strings === undefined && state.nonScalarProperties === 0) {
+    state.strings = nativePropertyFreeze({
+      all: nativePropertyFreeze({ units: state.allScalarUnits, references: emptyPropertyReferences }),
+      enumerable: nativePropertyFreeze({ units: state.enumerableScalarUnits, references: emptyPropertyReferences })
+    });
+  }
   if (state.strings === undefined) {
     const descriptors = trackedPropertyDataDescriptors(value)!;
     let allUnits = 0, enumerableUnits = 0;
@@ -233,11 +265,24 @@ export function isTrackedIntrinsicObject(value: object): boolean {
 function trackPropertyTable(properties: SandboxObject): SandboxObject {
   // Never expose the raw table: native callers must invalidate captures too.
   const state: TrackedPropertyState = { revision: 0 };
-  const data: TrackedPropertyData = { backing: properties, descriptors: undefined, strings: undefined };
+  const data: TrackedPropertyData = {
+    backing: properties, allScalarUnits: 0, enumerableScalarUnits: 0,
+    nonScalarProperties: 0, symbols: undefined, descriptors: undefined, strings: undefined
+  };
+  const keys = nativePropertyNames(properties);
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index]!;
+    adjustScalarProperty(data, key, nativePropertyDescriptor(properties, key), 1);
+  }
   const tracked = new NativePropertyProxy(properties, {
     defineProperty(target, key, descriptor) {
+      const previous = typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
       const changed = nativePropertyWrite(target, key, descriptor);
       if (changed) {
+        if (typeof key === "string") {
+          adjustScalarProperty(data, key, previous, -1);
+          adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+        } else data.symbols = undefined;
         state.revision++;
         data.descriptors = undefined;
         data.strings = undefined;
@@ -247,8 +292,13 @@ function trackPropertyTable(properties: SandboxObject): SandboxObject {
       return changed;
     },
     deleteProperty(target, key) {
+      const previous = typeof key === "string" ? nativePropertyDescriptor(target, key) : undefined;
       const changed = nativePropertyDelete(target, key);
       if (changed) {
+        if (typeof key === "string") {
+          adjustScalarProperty(data, key, previous, -1);
+          adjustScalarProperty(data, key, nativePropertyDescriptor(target, key), 1);
+        } else data.symbols = undefined;
         state.revision++;
         data.descriptors = undefined;
         data.strings = undefined;

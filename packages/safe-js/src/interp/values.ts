@@ -88,7 +88,7 @@ import {
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 import { sandboxErrorTypes } from "../error/shape.js";
-import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData } from "./object-model.js";
+import { getGuestFunctionProperties, materializeFunctionProperties, getSandboxPropertyDescriptor, getSandboxPrototype, hasExplicitSandboxPrototype, hasGuestObjectState, hasManagedDescriptors, hasNullObjectPrototype, intrinsicFunctionDataDescriptors, isIntrinsicFunction, isTrackedIntrinsicObject, registerGuestClosure, setSandboxPrototype, trackedPropertyDataDescriptors, trackedPropertyStringData, trackedPropertySymbols } from "./object-model.js";
 import type { FunctionSource } from "../parse/function-source.js";
 import { dynamicSourceRecords, dynamicValueSources, type DynamicSource } from "../parse/function-source.js";
 import {
@@ -1010,7 +1010,7 @@ function measureSandboxDataWithSeen(
           }
         }
         if (!isGuestHostObject(value)) {
-          const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value);
+          const ownedSymbols: readonly symbol[] | undefined = readFrozenClosureSymbols(value) ?? trackedPropertySymbols(value);
           let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
           // Capture before visiting: retained callbacks can mutate later properties.
           if (ownedSymbols !== undefined) {
@@ -1376,13 +1376,12 @@ function measureSandboxDataWithSeen(
         // Capture values before any retained callback can mutate later properties.
         // Plain transport records do not charge hidden fields. Preserve proxy trap
         // ordering, including managed-state changes during descriptor capture.
-        const trackedDescriptors = trackedPropertyDataDescriptors(value);
-        const proxyKeys = trackedDescriptors === undefined && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
+        const tracked = trackedPropertySymbols(value) !== undefined;
+        const proxyKeys = !tracked && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
         const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
         const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
-        const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
         const metadata = hostFunctionMetadata.get(value);
-        if (trackedDescriptors !== undefined && metadata === undefined) {
+        if (tracked && metadata === undefined) {
           const projection = trackedPropertyStringData(value, includeNonEnumerable);
           if (projection !== undefined) {
             usage += projection.units;
@@ -1395,6 +1394,8 @@ function measureSandboxDataWithSeen(
             continue walk;
           }
         }
+        const trackedDescriptors = tracked ? trackedPropertyDataDescriptors(value) : undefined;
+        const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
         let retained: unknown[] | undefined;
         for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
           const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];

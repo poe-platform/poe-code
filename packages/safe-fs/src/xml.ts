@@ -204,22 +204,36 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     textLength += text.length;
   };
   const chunks: string[] = [];
-  let chunk = "";
-  for (let index = input.charCodeAt(0) === 0xfeff ? 1 : 0; index < input.length; index++) {
+  const start = input.charCodeAt(0) === 0xfeff ? 1 : 0;
+  let chunkStart = start;
+  let chunkLength = 0;
+  let normalizedChunk = "";
+  // Keep validated spans intact; only changed line endings need new strings.
+  for (let index = start; index < input.length; index++) {
     const point = input.codePointAt(index)!;
     if (!validCharacter(point)) invalid("invalid character");
     if (point === 13) {
-      chunk += "\n";
+      normalizedChunk += input.slice(chunkStart, index) + "\n";
       if (input.charCodeAt(index + 1) === 10) index++;
+      chunkStart = index + 1;
+      chunkLength++;
     } else {
-      chunk += String.fromCodePoint(point);
+      chunkLength += point > 0xffff ? 2 : 1;
       if (point > 0xffff) index++;
     }
-    if (chunk.length >= 512) { chunks.push(chunk); chunk = ""; yield 512; }
+    if (chunkLength >= 512) {
+      if (normalizedChunk) {
+        chunks.push(normalizedChunk + input.slice(chunkStart, index + 1));
+        normalizedChunk = "";
+        chunkStart = index + 1;
+      }
+      chunkLength = 0;
+      yield 512;
+    }
   }
-  chunks.push(chunk);
-  if (chunk.length) yield chunk.length;
-  const source = chunks.join("");
+  if (chunkLength) yield chunkLength;
+  if (chunks.length || normalizedChunk) chunks.push(normalizedChunk + input.slice(chunkStart));
+  const source = chunks.length ? chunks.join("") : input.slice(start);
   const stack: { element: XmlElement; content: XmlContent[] | undefined; name: string; namespaces: Map<string, string> }[] = [];
   let root: XmlElement | undefined;
   const prolog: XmlContent[] = [];

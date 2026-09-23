@@ -76,14 +76,14 @@ it("S3 resource quotas are unlimited and explicit settings can exceed the former
   await expect(fs.readFile("/f", { maxBytes: 1 })).rejects.toMatchObject({ code: "EFBIG" });
 });
 
-it("WebDAV quotas and deadlines are opt-in and independent", async () => {
+it("WebDAV response defaults are bounded while deadlines remain opt-in", async () => {
   const { WebDavFileSystem } = await import("../src/fs/webdav/webdav.js");
   const { MockDav } = await import("./migration/fs/webdav/mock.js");
   const mock = new MockDav();
   mock.files.set("/f", Uint8Array.of(1, 2));
   const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch: mock.fetch, maxEntries: 1 });
-  expect(Reflect.get(fs, "maxResponseBytes")).toBe(Infinity);
-  expect(Reflect.get(fs, "maxXmlBytes")).toBe(Infinity);
+  expect(Reflect.get(fs, "maxResponseBytes")).toBe(16 * 1024 * 1024);
+  expect(Reflect.get(fs, "maxXmlBytes")).toBe(1024 * 1024);
   expect(Reflect.get(fs, "timeoutMs")).toBeUndefined();
   expect(await fs.readFile("/f")).toEqual(Uint8Array.of(1, 2));
   await expect(fs.readFile("/f", { maxBytes: 1 })).rejects.toMatchObject({ code: "EFBIG" });

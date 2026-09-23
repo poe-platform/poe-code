@@ -329,13 +329,15 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 | --- | --- |
 | `headers` | Empty; explicit authentication/custom headers. Protocol-reserved headers are rejected; authorization and cookies require HTTPS. |
 | `requestStreamSupport` | `native` for global Fetch, otherwise false; accepts `native` or a boolean declaration for the injected transport |
-| `maxResponseBytes` | Unlimited unless configured |
-| `maxXmlBytes` | Unlimited unless configured |
+| `maxResponseBytes` | 16 MiB; applies to decoded response bytes |
+| `maxXmlBytes` | 1 MiB before metadata decoding/parsing |
 | `maxEntries` | Unlimited unless configured |
 | `timeoutMs` | Unlimited unless configured |
 | `overwritePolicy` | `lock`; alternative `etag` uses conditional overwrites |
 | `atomicEmptyDirectory` | Optional trusted binding with the canonical `namespaceUrl` and `removeEmptyDirectory` callback; required for strict empty-only `rmdir` |
 | `compareEntry` | Optional trusted backing-identity callback on Node; unavailable under browser policy |
+
+Known identity Content-Length responses use one result buffer; other responses grow storage up to the configured ceiling and return a view without a final copy. Growth can temporarily retain the old and new buffers (up to three times the response size), plus transport chunks. These per-response defaults leave headroom in Workers; hosts must still budget for metadata parsing, text decoding, transport buffers, and concurrent reads, especially when raising the limits. Use streaming reads for large files.
 
 See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic directory removal. A recursive WebDAV DELETE does not satisfy that contract.
 

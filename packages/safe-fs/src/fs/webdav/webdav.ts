@@ -42,7 +42,9 @@ export interface WebDavFileSystemOptions {
   readonly fetch: WebDavFetch;
   readonly requestStreamSupport?: "native" | boolean;
   readonly headers?: Readonly<Record<string, string>>;
+  /** Response ceiling; defaults to 16 MiB. Hosts must budget for concurrent reads. */
   readonly maxResponseBytes?: number;
+  /** Metadata response ceiling; defaults to 1 MiB before decoding/parsing. */
   readonly maxXmlBytes?: number;
   readonly maxEntries?: number;
   /** Per-request and aggregate stat/write-preflight walk timeout; unlimited unless configured. */
@@ -258,8 +260,8 @@ export class WebDavFileSystem implements FileSystem {
       removeDirectory: this.atomicEmptyDirectory !== undefined,
       streamingAppend: this.requestStreamSupport !== false,
     });
-    this.maxResponseBytes = options.maxResponseBytes === undefined ? Infinity : positive(options.maxResponseBytes, "maxResponseBytes");
-    this.maxXmlBytes = options.maxXmlBytes === undefined ? Infinity : positive(options.maxXmlBytes, "maxXmlBytes");
+    this.maxResponseBytes = options.maxResponseBytes === undefined ? 16 * 1024 * 1024 : positive(options.maxResponseBytes, "maxResponseBytes");
+    this.maxXmlBytes = options.maxXmlBytes === undefined ? 1024 * 1024 : positive(options.maxXmlBytes, "maxXmlBytes");
     this.maxEntries = options.maxEntries === undefined ? Infinity : positive(options.maxEntries, "maxEntries");
     this.timeoutMs = options.timeoutMs === undefined ? undefined : positive(options.timeoutMs, "timeoutMs");
     this.overwritePolicy = options.overwritePolicy ?? "lock";
@@ -442,26 +444,38 @@ export class WebDavFileSystem implements FileSystem {
   }
 
   private async bytes(response: Response, limit: number, signal: AbortSignal): Promise<Uint8Array> {
-    const chunks: Uint8Array[] = [];
+    const expected = this.responseLength(response, limit);
+    let data = new Uint8Array(expected ?? 0);
     let size = 0;
-    for await (const chunk of this.bodyChunks(response, limit, signal)) {
-      chunks.push(chunk);
-      size += chunk.byteLength;
+    // Consume borrowed chunks immediately; only streaming callers need owned copies.
+    for await (const chunk of this.bodyChunks(response, limit, signal, false)) {
+      const nextSize = size + chunk.byteLength;
+      if (nextSize > data.byteLength) {
+        const grown = new Uint8Array(Math.min(limit, Math.max(nextSize, data.byteLength * 2)));
+        grown.set(data);
+        data = grown;
+      }
+      data.set(chunk, size);
+      size = nextSize;
     }
-    const data = new Uint8Array(size);
-    let offset = 0;
-    for (const chunk of chunks) { data.set(chunk, offset); offset += chunk.byteLength; }
-    return data;
+    // A view avoids a second full allocation when the length was unknown.
+    return data.subarray(0, size);
   }
 
-  private async *bodyChunks(response: Response, limit: number, signal: AbortSignal): AsyncGenerator<Uint8Array> {
+  private responseLength(response: Response, limit: number): number | undefined {
     const length = response.headers.get("content-length");
-    if (length !== null && (!/^\d+$/.test(length) || !Number.isSafeInteger(Number(length)))) {
+    if (length !== null && (!length.length || [...length].some(char => char < "0" || char > "9")
+      || !Number.isSafeInteger(Number(length)))) {
       fail("EIO", "webdav", "", "invalid response Content-Length");
     }
     const encoding = response.headers.get("content-encoding");
     const expected = length !== null && (!encoding || encoding.toLowerCase() === "identity") ? Number(length) : undefined;
     if (expected !== undefined && expected > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
+    return expected;
+  }
+
+  private async *bodyChunks(response: Response, limit: number, signal: AbortSignal, copy = true): AsyncGenerator<Uint8Array> {
+    const expected = this.responseLength(response, limit);
     if (!response.body) {
       if (expected !== undefined && expected !== 0) fail("EIO", "webdav", "", "response body length differs from Content-Length");
       return;
@@ -479,7 +493,7 @@ export class WebDavFileSystem implements FileSystem {
         size += result.value.byteLength;
         if (size > limit) fail("EFBIG", "webdav", "", "response exceeds byte limit");
         if (expected !== undefined && size > expected) fail("EIO", "webdav", "", "response body length differs from Content-Length");
-        yield new Uint8Array(result.value);
+        yield copy ? new Uint8Array(result.value) : result.value;
       }
       if (expected !== undefined && size !== expected) fail("EIO", "webdav", "", "response body length differs from Content-Length");
     } finally {

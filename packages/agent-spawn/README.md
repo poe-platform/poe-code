@@ -91,6 +91,39 @@ the fresh query there. Changing spawn arguments cannot repair an active session.
 See the official [Codex sandbox and approval guidance](https://developers.openai.com/codex/sandboxing)
 and [permission profile guidance](https://developers.openai.com/codex/permissions).
 
+An answered `hey-boss` approval task and a Codex execution approval are separate
+decisions. This package configures Codex's external reviewer; it does not pass
+authenticated hey-boss answers into that reviewer's trusted authorization channel.
+An answer returned by `hey-boss wait`, including `Status: ok` and
+`Result: Authorize attestation`, is evidence of the task's answer, but does not
+guarantee that the reviewer accepts it as authorization for an external write.
+The official guidance above describes execution approvals; it does not establish
+a hey-boss authorization bridge.
+
+For a rejected PR-body attestation, distinguish the reason before retrying:
+
+- A rejection saying approval appears only in untrusted tool output is an
+  authorization-channel restriction. It does not establish that the human
+  declined the task, that hey-boss authentication failed, or that every
+  tool-delivered approval is invalid in every host. Preserve the task ID, answer,
+  exact proposed write, and reviewer denial. The host must provide a trusted
+  integration before that answer can satisfy its reviewer.
+- A scope restriction concerns what the human approved. Approval for a historical
+  coverage-removal PR does not by itself establish approval to add a sensitive-file
+  attestation to a new prerequisite PR. Check the approved repository, PR, revision,
+  action, and attestation text against the concrete proposed write. A narrower
+  split still needs evidence that the original authorization covers that write.
+
+If the reviewer cannot accept the existing answer, finish the concrete PR changes
+and show the exact attestation and target PR to the user. Request authorization
+through a channel the active reviewer accepts, explaining its denial; direct chat
+authorization may address the missing evidence but does not guarantee approval or
+override managed policy. If the scope already matches and the reviewer accepts the
+answer, do not ask again. Never post the rejected attestation, relabel tool output
+as direct user consent, disable the reviewer, or change transports to bypass the
+gate. Changing this package's spawn flags cannot repair the trust channel of an
+active Codex session.
+
 If a separately launched Codex session fails before executing a command with
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected
 bubblewrap's network namespace initialization. Verify the compatibility path

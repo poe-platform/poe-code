@@ -23,13 +23,14 @@ not require a new registry or plugin lifecycle contract.
 | --- | --- | --- |
 | `replace` | `false` | Replace an existing command registration. |
 | `defaultInput` | `"auto"` | Choose `"auto"`, `"stdin"`, or `"cwd"` when no paths are supplied. |
-| `maxOutputBytes` | 16 MiB | Maximum stdout bytes; a write that would exceed this limit is not performed. Diagnostics use stderr separately. |
-| `maxLineBytes` | 1 MiB | Maximum record content bytes. |
-| `maxFileBytes` | 64 MiB | Maximum bytes read from each data source, also the retained before-context byte limit. |
-| `maxFiles` | 100,000 | Maximum visited roots and directory entries, including entries later filtered out. |
-| `regex` | See `../regex-execution/README.md` | Content-matcher policy: active request 1000ms, startup 3000ms, two workers, bounded FIFO queue, automatic retirement. |
+| `maxOutputBytes` | unlimited | Maximum stdout bytes; a write that would exceed this limit is not performed. Diagnostics use stderr separately. |
+| `maxLineBytes` | unlimited | Maximum record content bytes. |
+| `maxFileBytes` | unlimited | Maximum bytes read from each data source, also the retained before-context byte limit. |
+| `maxFiles` | unlimited | Maximum visited roots and directory entries, including entries later filtered out. |
+| `regex` | See `../regex-execution/README.md` | Optional matcher timeouts, worker and queue budgets; automatic idle retirement. |
 
-Numeric limits must be positive safe integers. They limit individual buffers and
+Omitted resource budgets are unlimited; each supplied budget is independent.
+Finite numeric limits must be positive safe integers. They limit individual buffers and
 operations, not total process memory or adapter allocations. The separate
 `regex` policy bounds active content-matcher requests, not whole invocations.
 
@@ -73,7 +74,7 @@ option parsing. Unknown flags and malformed numeric values are errors.
 | File lists | `--files`, `-l`/`--files-with-matches`, `--files-without-match`. **`-L` means follow symlinks, not files without matches.** |
 | Counts/status | `-c`/`--count`, `--count-matches`, `--include-zero`/`--no-include-zero`, `-q`/`--quiet`, `-m`/`--max-count`. Counts suppress zero unless requested. `-c -o` counts occurrences; inverted counts count selected nonmatching lines. |
 | Context | `-A`/`--after-context`, `-B`/`--before-context`, `-C`/`--context`, `--context-separator`, `--no-context-separator`. Adjacent context groups merge, with no duplicate records. Context defaults to zero. |
-| Path filtering | Repeated `-g`/`--glob`, `--iglob`, `--hidden`/`-.`, `--no-hidden`, `--max-depth`/`--maxdepth` (0–128), `--max-filesize` (bytes or K/M/G binary suffix). Explicit files and stdin bypass size filtering. |
+| Path filtering | Repeated `-g`/`--glob`, `--iglob`, `--hidden`/`-.`, `--no-hidden`, `--max-depth`/`--maxdepth` (nonnegative depth), `--max-filesize` (bytes or K/M/G binary suffix). Explicit files and stdin bypass size filtering. |
 | Ignore controls | `--no-ignore`/`--ignore`, `--no-ignore-vcs`, `--no-ignore-dot`, `--no-ignore-parent`, `--no-require-git`, repeated `--ignore-file` (virtual files), `--no-ignore-files`/`--ignore-files`, and repeated `-u`/`--unrestricted`. One `-u` disables automatic ignores, two also include hidden entries, three also enable binary searching. Explicit ignore files remain independent and have lower precedence than automatic files. |
 | Links/binary | `-L`/`--follow`, `--no-follow`, `-a`/`--text`, `--binary`, `--no-binary`, `--no-text`. |
 | Records/format | `--json`, `-0`/`--null`, `--no-null`, `--null-data`, `--crlf`. `--null` separates filenames with NUL; `--null-data` changes the input/output record separator to NUL. |
@@ -234,11 +235,9 @@ Closed stdout (`EPIPE`) terminates successfully without scanning later files or
 emitting diagnostics. A private cancellation signal releases input cleanup waits
 on that path; an already-aborted caller signal still takes precedence.
 
-Additional bounds: 1,024 search patterns/globs, 8,192 bytes per search pattern,
-8,192 UTF-16 units per glob, 1 MiB per pattern/ignore file, 10,000 active ignore
-rules, 100,000 before/after context records, 100,000 collected matches per line,
-eight brace nesting levels, and directory depth at most 128. A configured
-limit failure is an explicit status-2 error, not a silently successful truncation.
+Resource budgets are unlimited unless supplied explicitly. Pattern, input, output,
+matching and traversal budgets remain independent. A configured limit failure
+is an explicit status-2 error, not a silently successful truncation.
 Limits cannot prevent a filesystem adapter from allocating a large `readdir`
 array before the command visits it.
 

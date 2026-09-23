@@ -7,7 +7,7 @@ import { agentCommands as defaultCommands } from "../../../src/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { makeFileSystem, runVirtual } from "./helpers.js";
 
-for (const value of [0, -1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, "2", null]) {
+for (const value of [0, -1, 0.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, "2", null]) {
   test(`sed rejects invalid program instruction limit ${String(value)} before reading scripts`, async () => {
     const result = await runVirtual("sed", { args: ["-f", "missing"] }, { maxProgramInstructions: value as number });
     assert.equal(result.exitCode, 2);
@@ -31,8 +31,8 @@ for (const count of [1, 2, 3, 20, 100]) {
 }
 
 for (const count of [1024, 1025]) {
-  test(`sed default program instruction limit admits exactly 1024, count ${count}`, async () => {
-    const result = await runVirtual("sed", { args: ["p;".repeat(count)] });
+  test(`sed explicit program instruction limit admits exactly 1024, count ${count}`, async () => {
+    const result = await runVirtual("sed", { args: ["p;".repeat(count)] }, { maxProgramInstructions: 1024 });
     assert.equal(result.exitCode, count === 1024 ? 0 : 2);
     assert.equal(result.stderr.toString(), count === 1024 ? "" : "sed: program instruction limit exceeded\n");
   });

@@ -25,7 +25,7 @@ test("document admission precedes library lexing", async context => {
 });
 
 test("huge requested indentation fails before string allocation", async () => {
-  const result = await run(["-I2147483647", "."], "a: [1]");
+  const result = await run(["-I2147483647", "."], "a: [1]", {}, { limits: { maxOutputBytes: 1024 } });
   assert.equal(result.status, 1); assert.match(result.stderr, /maxOutputBytes/u);
 });
 

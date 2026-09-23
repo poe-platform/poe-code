@@ -87,7 +87,7 @@ export class AwkRuntime {
     if (this.get(name) instanceof AwkArray) throw new ProgramError(`cannot assign a scalar to array '${name}'`);
     if (name === "NF" && this.store(name) === this.variables) {
       const length = Math.trunc(number(value));
-      if (!Number.isSafeInteger(length) || length < 0 || length > 100000) throw new ProgramError("invalid or excessive NF");
+      if (!Number.isSafeInteger(length) || length < 0 || length > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive NF");
       const fields = this.fields.slice(0, length);
       while (fields.length < length) fields.push(unset);
       this.rebuild(fields); return;
@@ -104,7 +104,7 @@ export class AwkRuntime {
     this.budget.check(key);
     if (value.kind === "string" || value.kind === "numeric") this.budget.check(value.text);
     const existing = array.entries.has(key);
-    if (!existing && this.entries >= 100000) throw new ProgramError("array entry limit exceeded");
+    if (!existing && this.entries >= (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
     const previous = textSize(array.entries.get(key)), next = textSize(value) + (existing ? 0 : key.length);
     const owned = this.retention.replace(previous, next, () => ({
       key: existing ? key : Buffer.from(key, "latin1").toString("latin1"), value: ownScalar(value),
@@ -128,7 +128,7 @@ export class AwkRuntime {
     this.budget.step(value.length);
     const parts: Scalar[] = [];
     const append = (start: number, end: number): void => {
-      if (parts.length >= 100000) throw new ProgramError("field count limit exceeded");
+      if (parts.length >= (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("field count limit exceeded");
       parts.push(inputValue(value.slice(start, end)));
     };
     if (separator === " ") {
@@ -141,7 +141,7 @@ export class AwkRuntime {
       }
       if (start >= 0) append(start, value.length);
     } else if (separator === "") {
-      if (value.length > 100000) throw new ProgramError("field count limit exceeded");
+      if (value.length > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("field count limit exceeded");
       for (let index = 0; index < value.length; index++) {
         if (index % 256 === 0) await this.budget.checkpoint();
         append(index, index + 1);
@@ -197,18 +197,18 @@ export class AwkRuntime {
   }
   private join(parts: readonly string[], separator: string, suffix = ""): string {
     this.budget.step(parts.length + 1);
-    let remaining = this.budget.maxBufferBytes;
+    let used = 0;
     for (let index = 0; index < parts.length; index++) {
       if (index > 0) {
-        if (separator.length > remaining) throw new ProgramError("text buffer limit exceeded");
-        remaining -= separator.length;
+        if (separator.length > this.budget.maxBufferBytes - used) throw new ProgramError("text buffer limit exceeded");
+        used += separator.length;
       }
-      if (parts[index]!.length > remaining) throw new ProgramError("text buffer limit exceeded");
-      remaining -= parts[index]!.length;
+      if (parts[index]!.length > this.budget.maxBufferBytes - used) throw new ProgramError("text buffer limit exceeded");
+      used += parts[index]!.length;
     }
-    if (suffix.length > remaining) throw new ProgramError("text buffer limit exceeded");
-    remaining -= suffix.length;
-    this.budget.step(this.budget.maxBufferBytes - remaining);
+    if (suffix.length > this.budget.maxBufferBytes - used) throw new ProgramError("text buffer limit exceeded");
+    used += suffix.length;
+    this.budget.step(used);
     return parts.join(separator) + suffix;
   }
   private rebuild(fields: Scalar[]): void {
@@ -224,7 +224,7 @@ export class AwkRuntime {
     if (expression.kind === "variable") return { get: () => this.get(expression.name), set: value => this.set(expression.name, value) };
     if (expression.kind === "field") {
       const index = Math.trunc(number(await this.scalarExpression(expression.index)));
-      if (!Number.isSafeInteger(index) || index < 0 || index > 100000) throw new ProgramError("invalid or excessive field index");
+      if (!Number.isSafeInteger(index) || index < 0 || index > (this.budget.options.maxFields ?? Infinity)) throw new ProgramError("invalid or excessive field index");
       return {
         get: () => index === 0 ? inputValue(this.record) : this.fields[index - 1] ?? unset,
         set: value => {
@@ -325,7 +325,7 @@ export class AwkRuntime {
     }
     let reader = this.inputs.get(path);
     if (!reader) {
-      if (this.inputs.size >= 256) throw new ProgramError("getline open-file limit exceeded");
+      if (this.inputs.size >= (this.budget.options.maxGetlineFiles ?? Infinity)) throw new ProgramError("getline open-file limit exceeded");
       const { context, budget } = this;
       const name = this.retainName(path);
       const useStdin = file === "-";
@@ -337,7 +337,7 @@ export class AwkRuntime {
           const capabilities = await context.fs.capabilitiesFor?.(name, { signal: context.signal }) ?? context.fs.capabilities;
           context.signal.throwIfAborted();
           if (context.fs.readStream && capabilities.streamingRead !== false) yield* context.fs.readStream(name, { signal: context.signal });
-          else yield await context.fs.readFile(name, { signal: context.signal, maxBytes: budget.maxBufferBytes });
+          else yield await context.fs.readFile(name, { signal: context.signal, ...(Number.isFinite(budget.maxBufferBytes) ? { maxBytes: budget.maxBufferBytes } : {}) });
         }
       })();
       try {
@@ -365,7 +365,7 @@ export class AwkRuntime {
   private async call(name: string, args: readonly Expression[]): Promise<Value> {
     const definition = this.program.functions.get(name);
     if (definition) {
-      if (this.frames.length >= 64) throw new ProgramError("function recursion limit exceeded");
+      if (this.frames.length >= (this.budget.options.maxRecursionDepth ?? Infinity)) throw new ProgramError("function recursion limit exceeded");
       const frame = new Map<string, Value>();
       try {
         for (let index = 0; index < definition.parameters.length; index++) {
@@ -403,7 +403,7 @@ export class AwkRuntime {
       const target = this.array((args[1] as Extract<Expression, { kind: "variable" }>).name);
       const separator = args[2]?.kind === "regex" ? args[2].pattern : args[2] ? this.asText(await this.scalarExpression(args[2])) : this.varText("FS");
       const parts = await this.split(value, separator);
-      if (this.entries - target.entries.size + parts.length > 100000) throw new ProgramError("array entry limit exceeded");
+      if (this.entries - target.entries.size + parts.length > (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
       let size = 0;
       for (let index = 0; index < parts.length; index++) {
         const part = parts[index]!;
@@ -588,7 +588,7 @@ export class AwkRuntime {
         let file: string | undefined;
         while (argument < number(this.getScalar("ARGC"))) {
           this.budget.step();
-          if (argument > 100000) throw new ProgramError("argument count limit exceeded");
+          if (argument > (this.budget.options.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
           const next = this.asText(this.array("ARGV").entries.get(String(argument++)) ?? unset);
           if (!next) continue;
           if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }

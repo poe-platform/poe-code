@@ -441,7 +441,7 @@ async function sourceFrames(
   }
   let bytes: Uint8Array;
   try {
-    bytes = await context.fs.readFile(path, { signal: context.signal, maxBytes: inputFormat === "toml" ? yqCaps.maxDocumentBytes : yqCaps.maxInputBytes });
+    bytes = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(inputFormat === "toml" ? yqCaps.maxDocumentBytes : yqCaps.maxInputBytes) ? { maxBytes: inputFormat === "toml" ? yqCaps.maxDocumentBytes : yqCaps.maxInputBytes } : {}) });
   } catch (failure) {
     if (context.signal.aborted) throw context.signal.reason;
     if (inputFormat === "toml" && failure instanceof FsError && failure.code === "EFBIG") throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);

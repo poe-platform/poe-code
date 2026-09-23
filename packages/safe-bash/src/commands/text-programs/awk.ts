@@ -108,6 +108,6 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
       return 0;
     }
     const observer = Object.keys(inspection).length ? new AwkInspection(context, budget, inspection) : undefined;
-    return new AwkRuntime(program, context, budget, new AwkRetention(32 * 1024 * 1024, context.signal), context.args.slice(index), assignments, separator, operandAssignments, ordchr, observer).run();
+    return new AwkRuntime(program, context, budget, new AwkRetention(options.maxRetainedBytes ?? Infinity, context.signal), context.args.slice(index), assignments, separator, operandAssignments, ordchr, observer).run();
   });
 }

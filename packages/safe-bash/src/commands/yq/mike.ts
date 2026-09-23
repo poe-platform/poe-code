@@ -56,7 +56,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       const path = pathOf(context, filename);
       const bytes = context.fs.readStream
         ? await work.collect(() => context.fs.readStream!(path, { signal: work.signal }))
-        : await work.track(context.fs.readFile(path, { signal: work.signal, maxBytes: limits.maxInputBytes }));
+        : await work.track(context.fs.readFile(path, { signal: work.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) }));
       if (!context.fs.readStream) work.input(bytes.length);
       work.assertOpen();
       try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
@@ -80,9 +80,10 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const inferred = operands[0]?.toLowerCase().endsWith(".json") ? "json" : "yaml";
     const format = inputOption === "auto" ? inferred : inputOption;
     const output = outputOption === "auto" ? inputOption === "auto" ? inferred : "yaml" : outputOption;
-    const program = compileExpression(expression, options);
+    const expressionOptions = { ...options, maxExpressionBytes: limits.maxExpressionBytes, maxExpressionDepth: limits.maxExpressionDepth };
+    const program = compileExpression(expression, expressionOptions);
     if (options.verbose) await writeVerbose(`Compiled expression ${expression}; input=${format}; output=${output}`, work);
-    const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression, options) : undefined;
+    const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression, expressionOptions) : undefined;
     const yaml = await work.track(loadYaml());
     work.assertOpen();
     const evaluator = new Evaluator(yaml, work, options.mergeSpec);
@@ -142,7 +143,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           const path = pathOf(context, filename);
           try {
             if (context.fs.readStream) bytes = await work.collect(() => context.fs.readStream!(path, { signal: work.signal }));
-            else { bytes = await work.track(context.fs.readFile(path, { signal: work.signal, maxBytes: limits.maxInputBytes })); work.input(bytes.length); }
+            else { bytes = await work.track(context.fs.readFile(path, { signal: work.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) })); work.input(bytes.length); }
           } catch (error) {
             work.assertOpen();
             if (error instanceof FsError) {
@@ -190,7 +191,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       const selected = commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : undefined;
       const usage = selected ? selected.slice(selected.indexOf("Usage:")) + "\n" : mikeUsage;
       const message = `Error: ${error.message}\n${error.usage ? usage : ""}`;
-      await work.write(Buffer.from(Buffer.byteLength(message) <= 65536 ? message : "Error: yq diagnostic exceeds safety limit\n"), true);
+      await work.write(Buffer.from(message), true);
       return { exitCode: 1 };
     }
     if (error instanceof FsError) {

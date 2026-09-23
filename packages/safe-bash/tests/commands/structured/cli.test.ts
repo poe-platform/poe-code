@@ -121,7 +121,7 @@ test("bounded readFile fallback supplies signal and explicit maxBytes", async ()
   const fs = new Proxy(memory, { get(target, property) {
     if (property === "readStream") return undefined;
     if (property === "readFile") return async (path: string, options: { signal?: AbortSignal; maxBytes?: number }) => {
-      assert.equal(options.signal, signal); assert.equal(typeof options.maxBytes, "number"); observed.push(options.maxBytes!);
+      assert.equal(options.signal, signal); assert.equal(options.maxBytes, undefined); observed.push(options.maxBytes!);
       return memory.readFile(path, options);
     };
     const value: unknown = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
@@ -129,7 +129,7 @@ test("bounded readFile fallback supplies signal and explicit maxBytes", async ()
   const result = await run(["-cf", "/filter"], "", {}, { fs, signal });
   assert.equal(result.exitCode, 2);
   assert.equal((await run(["-c", "-f", "/filter", "/data"], "", {}, { fs, signal })).stdout, "1\n");
-  assert.deepEqual(observed, [defaultJqLimits.maxSourceBytes, defaultJqLimits.maxInputBytes]);
+  assert.deepEqual(observed, [undefined, undefined]);
 });
 
 test("plugin definitions, duplicate registration, replacement, and immutable defaults", async () => {
@@ -139,9 +139,9 @@ test("plugin definitions, duplicate registration, replacement, and immutable def
   assert.throws(() => structuredCommands().setup(host), /already registered/);
   await structuredCommands({ replace: true }).setup(host);
   assert.ok(Object.isFrozen(defaultJqLimits));
-  for (const value of [0, -1, NaN, Infinity, 1.5]) assert.throws(() => structuredCommands({ limits: { maxSteps: value } }), RangeError);
-  assert.throws(() => structuredCommands({ limits: { maxDepth: 257 } }), RangeError);
-  assert.throws(() => structuredCommands({ limits: { maxAstDepth: 129 } }), RangeError);
+  for (const value of [0, -1, NaN, 1.5]) assert.throws(() => structuredCommands({ limits: { maxSteps: value } }), RangeError);
+  assert.doesNotThrow(() => structuredCommands({ limits: { maxDepth: 257 } }));
+  assert.doesNotThrow(() => structuredCommands({ limits: { maxAstDepth: 129 } }));
 });
 
 for (const [args, input, stdout] of [

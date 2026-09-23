@@ -16,18 +16,23 @@ function selectInput(context: CommandContext, args: Arguments, options: SearchOp
   return { paths: stdin ? ["-"] : ["."], implicit: !stdin };
 }
 
-async function patterns(context: CommandContext, args: Arguments): Promise<string[]> {
+async function patterns(context: CommandContext, args: Arguments, limits: Limits): Promise<string[]> {
   const patterns = [...args.patterns];
   for (const file of args.patternFiles) {
     if (file !== "-") await assertPathRequirements(context, searchRequirements, ["pattern-file"], [file]);
-    const bytes = file === "-" ? await collectBytes(context.stdin, { maxBytes: 1024 * 1024, signal: context.signal })
-      : await context.fs.readFile(pathFor(context, file), { signal: context.signal, maxBytes: 1024 * 1024 });
+    const bytes = file === "-" ? await collectBytes(context.stdin, { maxBytes: limits.maxPatternBytes, signal: context.signal })
+      : await context.fs.readFile(pathFor(context, file), { signal: context.signal, ...(Number.isFinite(limits.maxPatternBytes) ? { maxBytes: limits.maxPatternBytes } : {}) });
     let text: string;
     try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
     catch { throw new SearchError(`pattern file '${file}' is not UTF-8`); }
     const lines = text.split("\n");
     if (lines.at(-1) === "") lines.pop();
-    patterns.push(...lines.map(line => line.endsWith("\r") ? line.slice(0, -1) : line));
+    for (const line of lines) patterns.push(line.endsWith("\r") ? line.slice(0, -1) : line);
+  }
+  let bytes = 0;
+  for (const pattern of patterns) {
+    bytes += Buffer.byteLength(pattern);
+    if (bytes > limits.maxPatternBytes) throw new SearchError("pattern byte limit exceeded");
   }
   return patterns;
 }
@@ -181,7 +186,7 @@ Default input depends on shell configuration.
   -B, --before-context=NUM Print NUM lines before matches
   -C, --context=NUM        Print NUM lines before and after matches
   -m, --max-count=NUM      Limit matching lines per file
-      --max-depth=NUM     Limit directory traversal depth (maximum 128)
+      --max-depth=NUM     Limit directory traversal depth
       --column            Print columns
   -b, --byte-offset        Print byte offsets
   -0, --null               NUL-terminate filenames
@@ -217,7 +222,7 @@ Unicode selection and extended regex syntax require a configured executor.
           };
           const walker = new Walker(context, args, limits, report, session);
           await walker.validate();
-          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args), args, session);
+          const matcher = new Matcher(args.mode === "files" ? [] : await patterns({ ...context, signal: session.requestSignal }, args, limits), args, session);
           if (args.mode !== "files") await matcher.batch([]);
           if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
           const printer = new Printer(args, limits);

@@ -2,10 +2,10 @@ import { createOutputOperation, type ByteSource, type CommandContext, type Invoc
 import { yieldTurn } from "../../contracts/yield.js";
 
 export const mikeLimits = Object.freeze({
-  maxInputBytes: 8 * 1024 * 1024, maxDocumentBytes: 1024 * 1024,
-  maxScalarBytes: 256 * 1024, maxNodes: 100_000, maxParserNodes: 4096,
-  maxDepth: 64, maxAliases: 1024, maxDocuments: 1024,
-  maxOutputBytes: 16 * 1024 * 1024, maxSteps: 8_000_000,
+  maxInputBytes: Infinity, maxDocumentBytes: Infinity,
+  maxScalarBytes: Infinity, maxNodes: Infinity, maxParserNodes: Infinity,
+  maxDepth: Infinity, maxExpressionDepth: Infinity, maxExpressionBytes: Infinity, maxAliases: Infinity, maxDocuments: Infinity,
+  maxOutputBytes: Infinity, maxSteps: Infinity,
 });
 export type MikeLimits = { readonly [Key in keyof typeof mikeLimits]: number };
 
@@ -17,7 +17,7 @@ export function limitsFor(options: Partial<MikeLimits> = {}): MikeLimits {
   if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("invalid yq limits");
   const limits: { -readonly [Key in keyof MikeLimits]: number } = { ...mikeLimits };
   for (const [name, value] of Object.entries(options)) {
-    if (!Object.hasOwn(limits, name) || !Number.isSafeInteger(value) || value < 1 || value > mikeLimits[name as keyof MikeLimits]) {
+    if (!Object.hasOwn(limits, name) || !Number.isSafeInteger(value) || value < 1) {
       throw new TypeError(`invalid yq limit: ${name}`);
     }
     limits[name as keyof MikeLimits] = value;

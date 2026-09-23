@@ -16,8 +16,8 @@ interface Token { text: string; offset: number; kind: "symbol" | "string" | "num
 const priorities: Readonly<Record<string, number>> = { "|": 1, ",": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
 const functions = new Set(["path", "select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
 
-export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean } = {}): Expression {
-  if (Buffer.byteLength(source) > 8192) throw new MikeError("yq limit exceeded: expression bytes");
+export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean; readonly maxExpressionBytes?: number; readonly maxExpressionDepth?: number } = {}): Expression {
+  if (Buffer.byteLength(source) > (security.maxExpressionBytes ?? Infinity)) throw new MikeError("yq limit exceeded: expression bytes");
   const tokens: Token[] = [];
   let offset = 0;
   while (offset < source.length) {
@@ -53,7 +53,7 @@ export function compileExpression(source: string, security: { readonly disableEn
   const expect = (text: string) => { if (take().text !== text) throw new MikeError("bad expression, please check expression syntax"); };
   const literal = (value: string | boolean | bigint | number | null): Expression => ({ kind: "literal", value });
   const parse = (minimum = 0): Expression => {
-    if (++nesting > 64) throw new MikeError("yq limit exceeded: expression depth");
+    if (++nesting > (security.maxExpressionDepth ?? Infinity)) throw new MikeError("yq limit exceeded: expression depth");
     const token = take();
     let result: Expression;
     if (token.text === ".") {

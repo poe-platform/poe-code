@@ -17,6 +17,7 @@ export class Limits {
   readonly maxLineBytes: number;
   readonly maxFileBytes: number;
   readonly maxFiles: number;
+  readonly maxPatternBytes: number;
   outputBytes = 0;
   files = 0;
   private ticks = 0;
@@ -24,12 +25,13 @@ export class Limits {
   readonly signal: AbortSignal;
   constructor(readonly context: CommandContext, options: SearchOptions) {
     this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
-    this.maxOutputBytes = options.maxOutputBytes ?? 16 * 1024 * 1024;
-    this.maxLineBytes = options.maxLineBytes ?? 1024 * 1024;
-    this.maxFileBytes = options.maxFileBytes ?? 64 * 1024 * 1024;
-    this.maxFiles = options.maxFiles ?? 100000;
-    for (const limit of [this.maxOutputBytes, this.maxLineBytes, this.maxFileBytes, this.maxFiles]) {
-      if (!Number.isSafeInteger(limit) || limit < 1) throw new SearchError("search limits must be positive safe integers");
+    this.maxOutputBytes = options.maxOutputBytes ?? Infinity;
+    this.maxLineBytes = options.maxLineBytes ?? Infinity;
+    this.maxFileBytes = options.maxFileBytes ?? Infinity;
+    this.maxFiles = options.maxFiles ?? Infinity;
+    this.maxPatternBytes = options.maxPatternBytes ?? Infinity;
+    for (const limit of [this.maxOutputBytes, this.maxLineBytes, this.maxFileBytes, this.maxFiles, this.maxPatternBytes]) {
+      if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1) throw new SearchError("search limits must be positive safe integers");
     }
   }
   async tick(): Promise<void> {
@@ -57,7 +59,7 @@ export class Limits {
 export async function* fileInput(context: CommandContext, path: string, limits: Limits): ByteSource {
   await assertPathRequirements(context, searchRequirements, ["file"], [path]);
   if (context.fs.readStream) yield* readBytes(context.fs.readStream(path, { signal: context.signal }), limits.signal);
-  else yield await context.fs.readFile(path, { signal: context.signal, maxBytes: limits.maxFileBytes });
+  else yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(limits.maxFileBytes) ? { maxBytes: limits.maxFileBytes } : {}) });
 }
 
 export async function diagnostic(context: CommandContext, error: unknown): Promise<void> {

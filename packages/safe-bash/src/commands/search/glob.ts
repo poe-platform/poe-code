@@ -55,9 +55,7 @@ export async function ignoreRules(contents: string, base: string, priority: numb
     const include = source.startsWith("!");
     if (include) source = source.slice(1);
     if (source) rules.push({ base, priority, include, glob: new Glob(source, false, true) });
-    if (rules.length > 10000) break;
   }
   await matchGlobs(rules.map(rule => rule.glob), [], session);
-  if (rules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
   return rules;
 }

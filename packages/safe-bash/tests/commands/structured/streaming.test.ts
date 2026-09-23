@@ -99,7 +99,7 @@ test("abort interrupts fallback readFile and pending stdout with late rejection"
     const fs = new Proxy(memory, { get(target, property) {
       if (property === "readStream") return undefined;
       if (property === "readFile") return (_: string, options: { signal?: AbortSignal; maxBytes?: number }) => {
-        assert.equal(options.signal, controller.signal); assert.equal(typeof options.maxBytes, "number"); return operation();
+        assert.equal(options.signal, controller.signal); assert.equal(options.maxBytes, undefined); return operation();
       };
       const value: unknown = Reflect.get(target, property); return typeof value === "function" ? value.bind(target) : value;
     } });

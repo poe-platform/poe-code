@@ -161,15 +161,15 @@ forcibly terminated; late rejection is observed, not called successful retiremen
 
 | Limit | Default |
 | --- | ---: |
-| `maxArguments` | 4096 |
-| `maxArgumentBytes` | 65536 |
-| `maxEntries` | 100000 |
-| `maxDirectoryEntries` | 10000 |
-| `maxDepth` | 256 |
-| `maxPathBytes` | 16384 |
-| `maxMetadataBytes` | 8388608 |
-| `maxOutputBytes` | 16777216 |
-| `maxSteps` | 4194304 |
+| `maxArguments` | unlimited |
+| `maxArgumentBytes` | unlimited |
+| `maxEntries` | unlimited |
+| `maxDirectoryEntries` | unlimited |
+| `maxDepth` | unlimited |
+| `maxPathBytes` | unlimited |
+| `maxMetadataBytes` | unlimited |
+| `maxOutputBytes` | unlimited |
+| `maxSteps` | unlimited |
 
 Overrides must be positive safe integers. Arguments and selected environment
 formatting share the argument-byte allowance. Metadata counts cumulative UTF-8

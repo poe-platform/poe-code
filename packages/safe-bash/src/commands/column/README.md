@@ -152,18 +152,18 @@ factory creation. No setting can disable bounds.
 
 | Limit | Default | Scope |
 | --- | ---: | --- |
-| `maxInputBytes` | 8,388,608 | Cumulative bytes pulled across all files/stdin, including delimiters. |
-| `maxOutputBytes` | 16,777,216 | Cumulative stdout bytes, including padding/separators/newlines. |
-| `maxDiagnosticBytes` | 65,536 | Cumulative stderr diagnostic bytes; independent of stdout. |
-| `maxRecordBytes` | 65,536 | Per LF-delimited record, excluding LF. |
-| `maxChunkBytes` | 1,048,576 | Each producer chunk, also fallback `readFile` cap. |
-| `maxRows` | 50,000 | All input records, including ignored blank records. |
-| `maxCells` | 250,000 | Cumulative retained cells, including explicit empty fields. |
-| `maxFields` | 1,024 | Fields per table row, checked before field allocation. |
-| `maxFiles` | 64 | Operand count, including repeated `-` and failed opens. |
-| `maxSteps` | 4,000,000 | Shared reader/layout/scan work budget, not a separate budget per file. |
-| `maxArgumentBytes` | 65,536 | Sum of argv UTF-8 bytes; argv count also capped at this value. |
-| `maxWidth` | 65,536 | Each cell's expanded display width and requested fill width. |
+| `maxInputBytes` | unlimited | Cumulative bytes pulled across all files/stdin, including delimiters. |
+| `maxOutputBytes` | unlimited | Cumulative stdout bytes, including padding/separators/newlines. |
+| `maxDiagnosticBytes` | unlimited | Cumulative stderr diagnostic bytes; independent of stdout. |
+| `maxRecordBytes` | unlimited | Per LF-delimited record, excluding LF. |
+| `maxChunkBytes` | unlimited | Each producer chunk, also fallback `readFile` cap. |
+| `maxRows` | unlimited | All input records, including ignored blank records. |
+| `maxCells` | unlimited | Cumulative retained cells, including explicit empty fields. |
+| `maxFields` | unlimited | Fields per table row, checked before field allocation. |
+| `maxFiles` | unlimited | Operand count, including repeated `-` and failed opens. |
+| `maxSteps` | unlimited | Shared reader/layout/scan work budget, not a separate budget per file. |
+| `maxArgumentBytes` | unlimited | Sum of argv UTF-8 bytes; argv count also capped at this value. |
+| `maxWidth` | unlimited | Each cell's expanded display width and requested fill width. |
 
 The work meter charges reader transitions, decoded record byte lengths,
 split/display scans, blank scans, output dispatches, fill traversal and padding

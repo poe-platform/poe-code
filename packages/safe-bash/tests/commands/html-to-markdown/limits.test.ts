@@ -14,7 +14,7 @@ for (const [limit, maximum, input] of cases) test(`enforced ${limit}`, async () 
   const result = await convert(input, { limits: { [limit]: maximum } });
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /limit exceeded/u);
 });
-for (const maximum of [0, -1, NaN, Infinity, 1.1, Number.MAX_SAFE_INTEGER]) test(`invalid configured limit ${maximum}`, () => {
+for (const maximum of [0, -1, NaN, 1.1]) test(`invalid configured limit ${maximum}`, () => {
   assert.throws(() => createHtmlToMarkdownCommand({ limits: { maxInputBytes: maximum } }), RangeError);
 });
 test("exact input/output boundary", async () => {

@@ -18,10 +18,10 @@ export interface StructuredCommandsOptions {
   readonly limits?: Partial<JqLimits>;
 }
 export const defaultJqLimits: Readonly<JqLimits> = Object.freeze({
-  maxInputBytes: 64 * 1024 * 1024, maxValueBytes: 8 * 1024 * 1024,
-  maxOutputBytes: 16 * 1024 * 1024, maxSourceBytes: 64 * 1024,
-  maxDepth: 128, maxAstDepth: 64, maxSteps: 1_000_000,
-  maxResults: 100_000, maxCollectionSize: 100_000,
+  maxInputBytes: Infinity, maxValueBytes: Infinity,
+  maxOutputBytes: Infinity, maxSourceBytes: Infinity,
+  maxDepth: Infinity, maxAstDepth: Infinity, maxSteps: Infinity,
+  maxResults: Infinity, maxCollectionSize: Infinity,
 });
 export class JqError extends Error {
   constructor(message: string, readonly exitCode = 5) { super(message); }
@@ -37,9 +37,8 @@ export interface InputLocation {
 export function resolveJqLimits(options: Partial<JqLimits> = {}): JqLimits {
   const limits = { ...defaultJqLimits, ...options };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`${name} must be a positive safe integer`);
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`${name} must be a positive safe integer`);
   }
-  if (limits.maxDepth > 256 || limits.maxAstDepth > 128) throw new RangeError("maxDepth must be <=256 and maxAstDepth <=128");
   return Object.freeze(limits);
 }
 export class Budget {

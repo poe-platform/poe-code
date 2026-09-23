@@ -58,7 +58,7 @@ export class Inputs {
         if (context.fs.readStream && capabilities.streamingRead !== false) {
           yield* readBytes(context.fs.readStream(path, { signal: context.signal, chunkSize: 16_384 }), context.signal);
         } else {
-          const value = await context.fs.readFile(path, { signal: context.signal, maxBytes: budget.limits.maxInputBytes - budget.input });
+          const value = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(budget.limits.maxInputBytes - budget.input) ? { maxBytes: budget.limits.maxInputBytes - budget.input } : {}) });
           context.signal.throwIfAborted();
           yield value;
         }

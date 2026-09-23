@@ -23,16 +23,16 @@ export interface ColumnCommandsOptions {
 
 export function settings(options: ColumnCommandsOptions): ColumnLimits {
   const limits: ColumnLimits = {
-    maxInputBytes: 8 * 1024 * 1024, maxOutputBytes: 16 * 1024 * 1024,
-    maxDiagnosticBytes: 65_536,
-    maxRecordBytes: 64 * 1024, maxChunkBytes: 1024 * 1024,
-    maxRows: 50_000, maxCells: 250_000, maxFields: 1024, maxFiles: 64,
-    maxSteps: 4_000_000, maxArgumentBytes: 65_536, maxWidth: 65_536,
+    maxInputBytes: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity,
+    maxRecordBytes: Infinity, maxChunkBytes: Infinity,
+    maxRows: Infinity, maxCells: Infinity, maxFields: Infinity, maxFiles: Infinity,
+    maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: Infinity,
     ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1 || value > 64 * 1024 * 1024) {
-      throw new RangeError(`Invalid column limit: ${name} (expected integer 1..67108864)`);
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) {
+      throw new RangeError(`Invalid column limit: ${name}`);
     }
   }
   return Object.freeze(limits);
@@ -131,10 +131,10 @@ export function parse(args: readonly string[], limits: ColumnLimits): ParsedOpti
       definitions.push({ name, named, flags });
     }
     else {
-      if (!value || value.length > 8) usage("output width must be a positive bounded decimal integer");
+      if (!value) usage("output width must be a positive bounded decimal integer");
       for (const character of value) if (character < "0" || character > "9") usage("invalid output width");
       width = Number(value);
-      if (width < 1 || width > limits.maxWidth) usage("output width exceeds configured width limit or is zero");
+      if (!Number.isSafeInteger(width) || width < 1 || width > limits.maxWidth) usage("output width exceeds configured width limit or is zero");
     }
   };
   for (let index = 0; index < args.length; index++) {

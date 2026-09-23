@@ -142,19 +142,19 @@ remain unsupported; this is not Pandoc-equivalent Markdown formatting.
 
 | Limit | Default |
 | --- | ---: |
-| `maxInputBytes` |8388608|
-| `maxOutputBytes` |16777216|
-| `maxTokenBytes` |65536|
-| `maxTokens` |200000|
-| `maxNodes` |100000|
-| `maxDepth` |128|
-| `maxAttributes` per tag |64|
-| `maxTableCells` including generated padding/header cells |10000|
-| `maxTableCellBytes` |65536|
-| `maxFiles` |64|
-| `maxArgumentBytes` |65536|
-| `maxDiagnosticBytes` |8192|
-| `maxWorkUnits` |67108864|
+| `maxInputBytes` | unlimited |
+| `maxOutputBytes` | unlimited |
+| `maxTokenBytes` | unlimited |
+| `maxTokens` | unlimited |
+| `maxNodes` | unlimited |
+| `maxDepth` | unlimited |
+| `maxAttributes` per tag | unlimited |
+| `maxTableCells` including generated padding/header cells | unlimited |
+| `maxTableCellBytes` | unlimited |
+| `maxFiles` | unlimited |
+| `maxArgumentBytes` | unlimited |
+| `maxDiagnosticBytes` | unlimited |
+| `maxWorkUnits` | unlimited |
 
 Limits are positive safe integers up to64Mi, with additional ceilings256 depth,
 1MiB token and1024 attributes. Configuration is copied/frozen at construction.

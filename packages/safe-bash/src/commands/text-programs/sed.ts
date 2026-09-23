@@ -28,7 +28,6 @@ interface OutputState {
 }
 
 function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number): Instruction[] {
-  if (source.length > 1024 * 1024) throw new ProgramError("sed program exceeds 1 MiB");
   const result: Instruction[] = [];
   const groups: number[] = [];
   const labels = new Map<string, number>();
@@ -418,8 +417,8 @@ async function execute(program: readonly Instruction[], context: CommandContext,
 
 export function sedCommand(options: TextProgramOptions = {}): CommandDefinition {
   const definition = command("sed", async context => {
-    const maxProgramInstructions = options.maxProgramInstructions === undefined ? 1024 : options.maxProgramInstructions;
-    if (!Number.isSafeInteger(maxProgramInstructions) || maxProgramInstructions < 1) throw new ProgramError("maxProgramInstructions must be a positive safe integer");
+    const maxProgramInstructions = options.maxProgramInstructions === undefined ? Infinity : options.maxProgramInstructions;
+    if ((maxProgramInstructions !== Infinity && !Number.isSafeInteger(maxProgramInstructions)) || maxProgramInstructions < 1) throw new ProgramError("maxProgramInstructions must be a positive safe integer");
     const budget = new Budget(context, options);
     const sources: string[] = [];
     const files: string[] = [];

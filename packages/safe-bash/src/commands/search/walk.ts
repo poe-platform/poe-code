@@ -16,7 +16,6 @@ export class Walker {
   private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
   private readonly explicitRules: IgnoreRule[] = [];
   constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
-    if (args.globs.length > 1024) throw new SearchError("glob count limit exceeded");
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
     this.hasPositive = this.globs.some(rule => rule.include);
     this.hasPositiveType = args.types.some(rule => rule.include);
@@ -40,9 +39,8 @@ export class Walker {
     if (this.args.ignoreFiles) for (const operand of this.args.ignorePaths) {
       const path = pathFor(this.context, operand);
       await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [path]);
-      const bytes = await this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: 1024 * 1024 });
+      const bytes = await this.context.fs.readFile(path, { signal: this.context.signal });
       this.explicitRules.push(...await ignoreRules(Buffer.from(bytes).toString("utf8"), this.context.cwd, 0, this.session));
-      if (this.explicitRules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
     }
   }
   private async exists(path: string): Promise<boolean> {
@@ -68,7 +66,7 @@ export class Walker {
       for (const [name, priority] of names) {
         await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [`${directory}/${name}`]);
         try {
-          const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal, maxBytes: 1024 * 1024 });
+          const data = await this.context.fs.readFile(`${directory}/${name}`, { signal: this.context.signal });
           local.push(...await ignoreRules(Buffer.from(data).toString("utf8"), base, priority, this.session));
         } catch (error) {
           this.context.signal.throwIfAborted();
@@ -78,7 +76,6 @@ export class Walker {
       }
     }
     this.cache.set(key, { repository, rules: local, root });
-    if (inherited.length + local.length > 10000) throw new SearchError("ignore rule count limit exceeded");
     return { repository, rules: [...inherited, ...local] };
   }
   private async accepted(path: string, name: string, directory: boolean, rules: readonly IgnoreRule[]): Promise<boolean> {

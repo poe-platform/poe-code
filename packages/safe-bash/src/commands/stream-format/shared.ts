@@ -22,13 +22,13 @@ export interface StreamFormatCommandsOptions {
 
 export function settings(options: StreamFormatCommandsOptions): StreamFormatLimits {
   const limits = {
-    maxInputBytes: 32 * 1024 * 1024, maxOutputBytes: 64 * 1024 * 1024,
-    maxRecordBytes: 8 * 1024 * 1024, maxChunkBytes: 1024 * 1024,
-    maxFiles: 64, maxSteps: 256 * 1024 * 1024, maxArgumentBytes: 65536,
-    maxNumericDigits: 4096, ...options.limits,
+    maxInputBytes: Infinity, maxOutputBytes: Infinity,
+    maxRecordBytes: Infinity, maxChunkBytes: Infinity,
+    maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
+    maxNumericDigits: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid stream-format limit: ${name}`);
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`Invalid stream-format limit: ${name}`);
   }
   return limits;
 }
@@ -111,7 +111,7 @@ export class Session {
           const capabilities = await session.context.fs.capabilitiesFor?.(path, { signal }) ?? session.context.fs.capabilities;
           signal.throwIfAborted();
           if (session.context.fs.readStream && capabilities.streamingRead !== false) yield* session.context.fs.readStream(path, { signal });
-          else yield await session.context.fs.readFile(path, { signal, maxBytes: Math.min(session.limits.maxChunkBytes, session.limits.maxInputBytes - session.inputBytes) });
+          else yield await session.context.fs.readFile(path, { signal, ...(Number.isFinite(Math.min(session.limits.maxChunkBytes, session.limits.maxInputBytes - session.inputBytes)) ? { maxBytes: Math.min(session.limits.maxChunkBytes, session.limits.maxInputBytes - session.inputBytes) } : {}) });
         }
       })();
       reader = readBytes(source, signal);

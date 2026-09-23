@@ -41,6 +41,52 @@ function general(value: number, precision: number, alternate: boolean): string {
   return result;
 }
 
+// A binary64 value has a finite exact decimal expansion. Use it when the
+// requested precision exceeds Number's formatting API, then pad only after admission.
+function preciseFloat(value: number, precision: number, conversion: string, alternate: boolean, admit: (length: number) => void): string {
+  const buffer = new ArrayBuffer(8);
+  const view = new DataView(buffer);
+  view.setFloat64(0, Math.abs(value));
+  const bits = view.getBigUint64(0);
+  const exponentBits = Number(bits >> 52n & 2047n);
+  let mantissa = bits & ((1n << 52n) - 1n);
+  if (exponentBits) mantissa += 1n << 52n;
+  const power = (exponentBits || 1) - 1023 - 52;
+  const digits = (power >= 0 ? mantissa << BigInt(power) : mantissa * 5n ** BigInt(-power)).toString();
+  const point = digits.length + Math.min(0, power);
+  const negative = value < 0 ? "-" : "";
+  if (conversion.toLowerCase() === "f") {
+    admit(Math.max(1, value === 0 ? 1 : point) + precision + 1 + negative.length);
+    const count = point + precision;
+    let scaled = count >= digits.length ? digits.padEnd(count, "0") : count <= 0 ? "0" : digits.slice(0, count);
+    if (count >= 0 && count < digits.length && Number(digits[count]) >= 5) scaled = (BigInt(scaled) + 1n).toString();
+    scaled = scaled.padStart(precision + 1, "0");
+    return negative + scaled.slice(0, -precision) + "." + scaled.slice(-precision);
+  }
+  const significant = conversion.toLowerCase() === "g" ? precision : precision + 1;
+  const exact = digits.replace(/^0+/u, "") || "0";
+  const exponent = value === 0 ? 0 : point - 1;
+  // Above 100 significant digits there can be no carry that changes binary64's
+  // decimal exponent, but the remaining exact digits still require rounding.
+  let rounded = exact.slice(0, significant);
+  if (exact.length > significant && Number(exact[significant]) >= 5) rounded = (BigInt(rounded) + 1n).toString();
+  const exponential = conversion.toLowerCase() === "e" || exponent < -4 || exponent >= significant;
+  const padded = conversion.toLowerCase() !== "g" || alternate;
+  if (padded) {
+    admit(negative.length + (exponential ? significant + 3 + Math.max(2, String(Math.abs(exponent)).length) : significant + 1 + Math.max(0, -exponent)));
+    rounded = rounded.padEnd(significant, "0");
+  } else rounded = rounded.replace(/0+$/u, "") || "0";
+  let result: string;
+  if (exponential) {
+    result = rounded[0] + "." + rounded.slice(1) + "e" + (exponent < 0 ? "-" : "+") + Math.abs(exponent);
+  } else {
+    const decimalPoint = exponent + 1;
+    result = decimalPoint <= 0 ? "0." + "0".repeat(-decimalPoint) + rounded : rounded.slice(0, decimalPoint).padEnd(decimalPoint, "0") + "." + rounded.slice(decimalPoint);
+  }
+  if (conversion.toLowerCase() === "g" && !alternate) result = result.replace(/(\.[0-9]*?)0+(?=e|$)/u, "$1").replace(/\.(?=e|$)/u, "");
+  return negative + result;
+}
+
 const formatPattern = /^%([-+ #0]*)(\*|[0-9]+)?(?:\.(\*|[0-9]*))?([csdiuoxXfFeEgG])/u;
 
 export function validateFormat(format: string): void {
@@ -50,7 +96,7 @@ export function validateFormat(format: string): void {
     const match = formatPattern.exec(format.slice(offset));
     if (!match) throw new ProgramError(`unsupported format near '${format.slice(offset)}'`);
     offset += match[0].length;
-    if (match[2] !== "*" && Number(match[2] ?? 0) > 1_000_000 || match[3] !== "*" && Number(match[3] ?? 0) > (/[fFeEgG]/u.test(match[4]!) ? 100 : 1_000_000)) throw new ProgramError("excessive format width or precision");
+    if (match[2] !== "*" && !Number.isSafeInteger(Number(match[2] ?? 0)) || match[3] !== "*" && (!Number.isSafeInteger(Number(match[3] ?? 0)))) throw new ProgramError("excessive format width or precision");
   }
 }
 
@@ -58,10 +104,10 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
   budget?.step(format.length);
   let result = "";
   let argument = 0;
-  const limit = Math.min(budget?.maxBufferBytes ?? 32 * 1024 * 1024, 32 * 1024 * 1024);
+  const limit = budget?.maxBufferBytes ?? Infinity;
   const admit = (length: number): void => {
     budget?.step(0);
-    if (length > limit - result.length) throw new ProgramError(budget && budget.maxBufferBytes < 32 * 1024 * 1024 ? "text buffer limit exceeded" : "formatted output exceeds buffer limit");
+    if (length > limit - result.length) throw new ProgramError("text buffer limit exceeded");
     budget?.step(length);
   };
   const amountOf = (value: Scalar): number => {
@@ -82,7 +128,7 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
     if (width < 0) { flags += "-"; width = -width; }
     if (precision !== undefined && precision < 0) precision = undefined;
     const conversion = match[4]!;
-    if (!Number.isSafeInteger(width) || width > 1_000_000 || precision !== undefined && (!Number.isSafeInteger(precision) || precision > (/[fFeEgG]/u.test(conversion) ? 100 : 1_000_000))) throw new ProgramError("excessive format width or precision");
+    if (!Number.isSafeInteger(width) || precision !== undefined && (!Number.isSafeInteger(precision))) throw new ProgramError("excessive format width or precision");
     const value = take();
     let part: string;
     if (conversion === "s") {
@@ -95,10 +141,11 @@ export function formatted(format: string, values: readonly Scalar[], text: (valu
     } else {
       const amount = amountOf(value);
       if (!Number.isFinite(amount)) throw new ProgramError("cannot format a non-finite number");
-      // Native number rendering is independently bounded; large integer precision
-      // padding below is admitted separately before its allocation.
+      // Charge requested rendering work before numeric formatting or padding.
       budget?.step(1 + (/[fFeEgG]/u.test(conversion) ? precision ?? 6 : 0));
-      if (conversion === "f" || conversion === "F") part = amount.toFixed(precision ?? 6);
+      if (/[fFeEgG]/u.test(conversion) && (precision ?? 6) > 100) {
+        part = preciseFloat(amount, precision!, conversion, flags.includes("#"), admit);
+      } else if (conversion === "f" || conversion === "F") part = amount.toFixed(precision ?? 6);
       else if (conversion === "e" || conversion === "E") part = amount.toExponential(precision ?? 6);
       else if (conversion === "g" || conversion === "G") part = general(amount, precision ?? 6, flags.includes("#"));
       else {

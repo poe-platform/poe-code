@@ -20,12 +20,12 @@ export interface FileCommandsOptions {
 
 export function settings(options: FileCommandsOptions): FileLimits {
   const limits: FileLimits = {
-    maxSniffBytes: 256 * 1024, maxReadFileBytes: 1024 * 1024, maxInputBytes: 8 * 1024 * 1024,
-    maxOutputBytes: 1024 * 1024, maxChunkBytes: 1024 * 1024, maxEntries: 1024,
-    maxSteps: 1024 * 1024, maxArgumentBytes: 65536, maxDurationMs: 10000, ...options.limits,
+    maxSniffBytes: Infinity, maxReadFileBytes: Infinity, maxInputBytes: Infinity,
+    maxOutputBytes: Infinity, maxChunkBytes: Infinity, maxEntries: Infinity,
+    maxSteps: Infinity, maxArgumentBytes: Infinity, maxDurationMs: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1 || (name === "maxDurationMs" && value > 2147483647)) {
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) {
       throw new RangeError(`Invalid file limit: ${name}`);
     }
   }
@@ -42,14 +42,21 @@ export class SharedBudget {
   private failureUnits = 64;
   private untilYield = 128;
   private readonly controller = new AbortController();
-  private readonly timer: ReturnType<typeof setTimeout>;
+  private timer: ReturnType<typeof setTimeout> | undefined;
   private readonly deadline: number;
   readonly signal: AbortSignal;
 
   constructor(readonly context: CommandContext, readonly limits: FileLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
     this.deadline = performance.now() + limits.maxDurationMs;
-    this.timer = setTimeout(() => this.controller.abort(new FileLimitError("time limit exceeded")), limits.maxDurationMs);
+    if (Number.isFinite(limits.maxDurationMs)) {
+      const expire = (): void => {
+        const remaining = this.deadline - performance.now();
+        if (remaining <= 0) this.controller.abort(new FileLimitError("time limit exceeded"));
+        else this.timer = setTimeout(expire, Math.min(remaining, 2147483647));
+      };
+      expire();
+    }
   }
 
   dispose(): void { clearTimeout(this.timer); }

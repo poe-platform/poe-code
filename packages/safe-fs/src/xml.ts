@@ -194,10 +194,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
   const maxAttributesPerElement = limits.maxAttributesPerElement ?? Infinity;
   const maxNamespaces = limits.maxNamespaces ?? Infinity;
   for (const limit of [limits.maxDepth, limits.maxNodes, limits.maxAttributes, limits.maxContentNodes, limits.maxAttributesPerElement, limits.maxNamespaces]) {
-    if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError("XML limits must be positive integers");
+    if (limit !== undefined && ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1)) throw new RangeError("XML limits must be positive integers");
   }
   const maxTextLength = limits.maxTextLength ?? Infinity;
-  if (limits.maxTextLength !== undefined && (!Number.isSafeInteger(maxTextLength) || maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
+  if (limits.maxTextLength !== undefined && ((maxTextLength !== Infinity && !Number.isSafeInteger(maxTextLength)) || maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
   let textLength = 0;
   const admitText = (text: string): void => {
     if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");

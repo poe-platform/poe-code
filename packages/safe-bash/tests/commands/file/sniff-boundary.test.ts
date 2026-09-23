@@ -37,14 +37,14 @@ test("whole-read and stdin JSON share the larger bounded extent", async () => {
   }
 });
 
-test("the default cap and invalid suffix retain plain-text classification", async () => {
+test("an explicit cap and invalid suffix retain plain-text classification", async () => {
   const fs = createMemoryFileSystem();
   for (const text of [
     `{"value":"${"x".repeat(262144 - 12)}"}`,
     `${" ".repeat(65534)}{} trailing bytes`,
   ]) {
     await fs.writeFile("/input", Buffer.from(text));
-    const result = await run(["-bi", "/input"], {}, { fs });
+    const result = await run(["-bi", "/input"], { limits: { maxSniffBytes: 256 * 1024 } }, { fs });
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, "text/plain; charset=us-ascii\n");
   }

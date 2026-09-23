@@ -19,7 +19,7 @@ test("getline rejects an empty filename instead of reporting successful EOF", as
 
 test("getline bounds retained file cursors and close permits reuse", async () => {
   const files = Object.fromEntries(Array.from({ length: 257 }, (_, index) => [`input-${index}`, "value\n"]));
-  const exhausted = await runVirtual("awk", { args: ['BEGIN{for(fileIndex=0;fileIndex<257;fileIndex++)getline value < ("input-" fileIndex)}'], files });
+  const exhausted = await runVirtual("awk", { args: ['BEGIN{for(fileIndex=0;fileIndex<257;fileIndex++)getline value < ("input-" fileIndex)}'], files }, { maxGetlineFiles: 256 });
   assert.equal(exhausted.exitCode, 2);
   assert.match(exhausted.stderr.toString(), /open-file limit/u);
   const reused = await runVirtual("awk", { args: ['BEGIN{for(fileIndex=0;fileIndex<257;fileIndex++){file="input-" fileIndex;getline value < file;close(file)}print value}'], files });

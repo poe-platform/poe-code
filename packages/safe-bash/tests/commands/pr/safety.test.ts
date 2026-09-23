@@ -29,7 +29,7 @@ test("public factories register one command and preserve replacement policy", as
 
 for (const limit of ["maxArguments", "maxArgumentBytes", "maxFiles", "maxColumns", "maxPageLines", "maxPageWidth", "maxPages", "maxInputBytes", "maxBufferedBytes", "maxLineBytes", "maxLines", "maxOutputBytes", "maxDiagnosticBytes", "maxWork", "maxEmptyChunks"] as const satisfies readonly (keyof PrLimits)[]) {
   test(`invalid ${limit} configuration is rejected at factory construction`, () => {
-    for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createPrCommand({ limits: { [limit]: value } }), RangeError);
+    for (const value of [0, -1, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createPrCommand({ limits: { [limit]: value } }), RangeError);
   });
 }
 

@@ -54,12 +54,8 @@ const values: Readonly<Record<string, "input" | "output" | "indent" | "expressio
 };
 
 export function mikeCommandMode(args: readonly string[]): "root" | "eval" | "eval-all" {
-  if (args.length > 4096) return "root";
-  let bytes = 0;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
-    bytes += Buffer.byteLength(argument);
-    if (bytes > 65536) return "root";
     if (argument === "--") return index + 1 < args.length ? "eval" : "root";
     if (!argument.startsWith("-") || argument === "-") return argument === "ea" || argument === "eval-all" ? "eval-all" : "eval";
     const long = argument.startsWith("--");
@@ -110,9 +106,7 @@ function parseIndent(value: string): number {
 }
 
 export function parseMikeArguments(context: CommandContext): MikeArguments {
-  if (context.args.length > 4096) throw new MikeError("yq limit exceeded: argument count");
   let bytes = 0;
-  for (const argument of context.args) { bytes += Buffer.byteLength(argument); if (bytes > 65536) throw new MikeError("yq limit exceeded: argument bytes"); }
   const carrier = getCommandArguments(context);
   for (let index = 0; index < carrier.args.length; index++) {
     try { new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(carrier.bytes(index)); }

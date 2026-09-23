@@ -1,7 +1,9 @@
 import { assertCommandRequirements, type CommandContext } from "../../contracts/index.js";
-import { bufferLimit, diagnostic, lines, pathOf, UsageError, value, type ParsedOptions } from "../internal.js";
+import { diagnostic, lines, pathOf, UsageError, value, type ParsedOptions } from "../internal.js";
 import { matchesPattern } from "../../shell/pattern.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
+
+const bufferLimit = Infinity;
 
 interface GrepFile { name: string; nested: boolean }
 
@@ -10,12 +12,11 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
   const devices = value(parsed, "D") ?? "read";
   if (!["read", "skip", "recurse"].includes(directories)) throw new UsageError(`invalid argument '${directories}' for 'directories'`);
   if (!["read", "skip"].includes(devices)) throw new UsageError(`invalid argument '${devices}' for 'devices'`);
-  const work = { signal: context.signal, remaining: 10_000_000, exhausted() { throw new UsageError("file filter work limit exceeded"); } };
+  const work = { signal: context.signal, remaining: Infinity, exhausted() { throw new UsageError("file filter work limit exceeded"); } };
   const rules: { pattern: string; include: boolean }[] = [];
   let bytes = 0;
   const add = (pattern: string, include: boolean) => {
     bytes += Buffer.byteLength(pattern);
-    if (rules.length >= 1024 || bytes > bufferLimit) throw new UsageError("file filter limit exceeded");
     rules.push({ pattern, include });
   };
   for (const { key, pattern } of filters) {
@@ -25,7 +26,6 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
     }
   }
   const excludedDirectories = parsed.values.get("T") ?? [];
-  if (excludedDirectories.length > 1024) throw new UsageError("directory filter limit exceeded");
   const initialInclude = !rules.length || !rules.at(-1)!.include;
   async function* visit(name: string, ancestors: Set<string>, depth: number, explicit: boolean): AsyncGenerator<GrepFile> {
     context.signal.throwIfAborted();
@@ -42,7 +42,6 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
           if (directories === "skip") return;
           if (directories === "read") { yield { name, nested: depth > 0 }; return; }
           for (const pattern of excludedDirectories) if (await matchesPattern(pattern, base, work)) return;
-          if (depth >= 128) throw new UsageError("directory depth limit exceeded (128)");
           assertCommandRequirements(context, grepRequirements, ["directory"]);
           const canonical = await context.fs.realpath(path, { signal: context.signal });
           if (ancestors.has(canonical)) throw new UsageError(`${name}: recursive directory loop`);

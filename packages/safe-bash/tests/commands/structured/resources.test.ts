@@ -55,7 +55,7 @@ test("depth limits cover inputs, constructed outputs, and source AST", async () 
   const source = "[".repeat(9) + "0" + "]".repeat(9);
   assert.match((await run(["-nc", source], "", { limits: { maxDepth: 8 } })).stderr, /maxDepth/);
   for (const filter of ["(".repeat(1000) + "0" + ")".repeat(1000), Array(1000).fill(".").join("|"), ".a".repeat(1000)]) {
-    const result = await run(["-nc", filter]);
+    const result = await run(["-nc", filter], "", { limits: { maxAstDepth: 64 } });
     assert.equal(result.exitCode, 5);
     assert.equal(result.stdout, "");
     assert.match(result.stderr, /maxAstDepth/);

@@ -4,7 +4,7 @@ import { ProgramError } from "./shared.js";
 export class AwkRetention {
   private retained = 0;
   constructor(readonly capacity: number, private readonly signal?: AbortSignal) {
-    if (!Number.isSafeInteger(capacity) || capacity < 0) throw new ProgramError("retained text capacity must be a nonnegative safe integer");
+    if ((capacity !== Infinity && !Number.isSafeInteger(capacity)) || capacity < 0) throw new ProgramError("retained text capacity must be a nonnegative safe integer");
   }
   get retainedBytes(): number { return this.retained; }
 

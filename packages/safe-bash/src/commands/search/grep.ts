@@ -1,13 +1,24 @@
 import { toByteSource, type ByteSource, type CommandDefinition } from "../../contracts/index.js";
-import { bufferLimit, diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
+import { diagnostic, input, integer, lines, options as parseOptions, output, UsageError, value, type Line } from "../internal.js";
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import type { GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
 import { grepFiles } from "./grep-files.js";
 
-const maxPatternCount = 1024;
+export interface GrepLimits {
+  readonly maxPatterns?: number;
+  readonly maxPatternBytes?: number;
+  readonly maxLineBytes?: number;
+  readonly maxFileBytes?: number;
+}
 
-export function createGrepCommands(executor: RegexExecutor): CommandDefinition[] {
+
+export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits = {}): CommandDefinition[] {
+  for (const value of Object.values(limits)) {
+    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError("grep limits must be positive safe integers");
+  }
+  const maxPatternCount = limits.maxPatterns ?? Infinity;
+  const bufferLimit = limits.maxPatternBytes ?? Infinity;
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
       const contextLengths = new Map<string, number>();
@@ -165,8 +176,8 @@ inspect the resulting state before repeating the action.
           lastCovered = position;
         };
         try {
-          const available = new AvailableRecords(parsed.flags.has("z") ? 0 : 10, bufferLimit);
-          const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, bufferLimit);
+          const available = new AvailableRecords(parsed.flags.has("z") ? 0 : 10, limits.maxLineBytes ?? Infinity);
+          const source = name === "-" ? input(context) : requiredFileInput(context, grepRequirements, "file", name, limits.maxFileBytes ?? Infinity);
           records: if (maxCount > 0) for await (const batch of available.batches(lines(available.source(source), parsed.flags.has("z") ? 0 : 10), line => line.bytes.length, () => batchSize)) {
             const results = await session.run(descriptor, batch.map(line => ({ bytes: line.bytes, all: extractMatches, terminated: line.terminated })));
             for (let index = 0; index < batch.length; index++) {
@@ -189,7 +200,7 @@ inspect the resulting state before repeating the action.
                     pending.delete(oldest);
                   }
                   const size = line.bytes.length + 1;
-                  if (size > bufferLimit - pendingBytes) throw new UsageError(`context byte limit exceeded (${bufferLimit} bytes)`);
+                  if (size > (limits.maxLineBytes ?? Infinity) - pendingBytes) throw new UsageError(`context byte limit exceeded (${bufferLimit} bytes)`);
                   pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated, offset: byteOffset });
                   pendingBytes += size;
                 }

@@ -29,14 +29,14 @@ export interface PrCommandsOptions {
 
 export function settings(options: PrCommandsOptions): PrLimits {
   const limits: PrLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxFiles: 128, maxColumns: 128,
-    maxPageLines: 65_536, maxPageWidth: 65_536, maxPages: 65_536,
-    maxInputBytes: 33_554_432, maxBufferedBytes: 16_777_216,
-    maxLineBytes: 1_048_576, maxLines: 1_048_576, maxOutputBytes: 67_108_864,
-    maxDiagnosticBytes: 65_536, maxWork: 134_217_728, maxEmptyChunks: 4096, ...options.limits,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: Infinity,
+    maxPageLines: Infinity, maxPageWidth: Infinity, maxPages: Infinity,
+    maxInputBytes: Infinity, maxBufferedBytes: Infinity,
+    maxLineBytes: Infinity, maxLines: Infinity, maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid pr limit: ${name}`);
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`Invalid pr limit: ${name}`);
   }
   if (options.clock !== undefined && typeof options.clock !== "function") throw new TypeError("pr clock must be a function");
   return Object.freeze(limits);

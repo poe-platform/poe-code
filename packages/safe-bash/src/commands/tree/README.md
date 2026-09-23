@@ -155,15 +155,15 @@ Every limit is a positive safe integer, copied and validated at factory creation
 
 | Limit | Default | Charges |
 | --- | ---: | --- |
-| `maxArguments` | 4096 | All argument fields |
-| `maxArgumentBytes` | 65536 | All UTF-8 argument bytes |
-| `maxEntries` | 100000 | Root operands plus every returned directory entry, even excluded/hidden |
-| `maxDirectoryEntries` | 10000 | Raw returned array length |
-| `maxDepth` | 256 | Descent safety bound; default exceeding it fails rather than silently truncating |
-| `maxPathBytes` | 16384 | Each cwd, raw operand, observed/display path, name, link target and raw/rendered error message |
-| `maxMetadataBytes` | 8388608 | Cumulative bytes of those strings; repeated strings are charged again |
-| `maxOutputBytes` | 16777216 | Combined stdout/stderr bytes, admitted before each write operation |
-| `maxSteps` | 4194304 | FS/comparison calls, entries, sort byte spans and grouping comparisons, pattern compilation, alternatives and DP row/transition work |
+| `maxArguments` | unlimited | All argument fields |
+| `maxArgumentBytes` | unlimited | All UTF-8 argument bytes |
+| `maxEntries` | unlimited | Root operands plus every returned directory entry, even excluded/hidden |
+| `maxDirectoryEntries` | unlimited | Raw returned array length |
+| `maxDepth` | unlimited | Descent safety bound; default exceeding it fails rather than silently truncating |
+| `maxPathBytes` | unlimited | Each cwd, raw operand, observed/display path, name, link target and raw/rendered error message |
+| `maxMetadataBytes` | unlimited | Cumulative bytes of those strings; repeated strings are charged again |
+| `maxOutputBytes` | unlimited | Combined stdout/stderr bytes, admitted before each write operation |
+| `maxSteps` | unlimited | FS/comparison calls, entries, sort byte spans and grouping comparisons, pattern compilation, alternatives and DP row/transition work |
 
 Name sorting reserves `1 + left UTF-8 byte length + right UTF-8 byte length`
 before each `Buffer.compare`. This conservatively covers both full byte spans

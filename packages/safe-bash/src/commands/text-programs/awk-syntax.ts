@@ -49,9 +49,7 @@ class Lexer {
   private offset = 0;
   readonly messages = new Set<string>();
   regexSource = "";
-  constructor(private readonly source: string) {
-    if (source.length > 1024 * 1024) throw new ProgramError("awk source exceeds 1 MiB");
-  }
+  constructor(private readonly source: string) {}
   next(): Token {
     while (this.offset < this.source.length) {
       const character = this.source[this.offset]!;
@@ -132,7 +130,6 @@ export function isLvalue(expression: Expression): boolean { return ["variable", 
 export class AwkParser {
   private readonly lexer: Lexer;
   private token: Token;
-  private depth = 0;
   private loopDepth = 0;
   private currentFunction: string | undefined;
   private phase = "record";
@@ -215,7 +212,6 @@ export class AwkParser {
 
   private block(): Statement {
     this.expect("{");
-    if (++this.depth > 128) throw new ProgramError("awk nesting limit exceeded");
     const body: Statement[] = [];
     this.separators();
     while (!this.at("}")) {
@@ -224,7 +220,7 @@ export class AwkParser {
       if (["expression", "print", "flow", "delete"].includes(statement.kind) && !this.at(";") && !this.at("\n") && !this.at("}")) throw new ProgramError(`expected statement separator at byte ${this.token.offset}`);
       this.separators();
     }
-    this.expect("}"); this.depth--;
+    this.expect("}");
     return { kind: "block", body };
   }
 
@@ -297,7 +293,6 @@ export class AwkParser {
   }
 
   private expression(minimum = 0, print = false): Expression {
-    if (++this.depth > 128) throw new ProgramError("awk expression nesting limit exceeded");
     let left = this.prefix();
     while (true) {
       const token = this.token.kind === "operator" || this.token.kind === "name" ? this.token.text : "";
@@ -328,7 +323,6 @@ export class AwkParser {
       }
       break;
     }
-    this.depth--;
     return left;
   }
 

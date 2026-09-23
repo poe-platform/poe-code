@@ -149,7 +149,7 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
       if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
     }
   } else {
-    const chunk = await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: limits.maxSourceBytes }), context.signal);
+    const chunk = await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, ...(Number.isFinite(limits.maxSourceBytes) ? { maxBytes: limits.maxSourceBytes } : {}) }), context.signal);
     if (chunk.byteLength > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
     chunks.push(chunk);
   }
@@ -219,7 +219,7 @@ async function* inputSources(context: CommandContext, options: Pick<Options, "fi
         : context.fs.capabilities;
       context.signal.throwIfAborted();
       if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(absolute, { signal: context.signal });
-      else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, maxBytes: remaining }), context.signal));
+      else source = toByteSource(await interruptible(() => context.fs.readFile(absolute, { signal: context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) }), context.signal));
     }
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
     yield convert ? await convert(source) : source;

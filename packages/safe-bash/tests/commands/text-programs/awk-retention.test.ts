@@ -54,11 +54,10 @@ test("awk retires entries belonging only to completed function frames", async ()
   assert.deepEqual(observed, [1, 1]);
 });
 
-test("public Shell enforces the fixed aggregate independently of per-value admission", async context => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createTextProgramCommands()) });
+test("public Shell enforces an explicit aggregate independently of per-value admission", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createTextProgramCommands({ maxRetainedBytes: 1024 })) });
   context.after(() => shell.dispose());
-  // At most 34 logical one-million-byte slots; no RSS or heap-size assertion.
-  const result = await shell.exec('awk \'BEGIN { x=sprintf("%1000000s", ""); for(i=0;i<34;i++) a[i]=x; print "unbounded" }\'');
+  const result = await shell.exec('awk \'BEGIN { x=sprintf("%100s", ""); for(i=0;i<34;i++) a[i]=x; print "unbounded" }\'');
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr, /retained.*limit/u);
   assert.equal(result.stdout, "");
@@ -132,7 +131,7 @@ test("retained text admission is exact, transactional, cancellation-first and re
   retention.release(3);
   assert.equal(retention.retainedBytes, 0);
   assert.throws(() => retention.release(1), /retained text release/u);
-  for (const capacity of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => new AwkRetention(capacity), /capacity/u);
+  for (const capacity of [-1, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => new AwkRetention(capacity), /capacity/u);
   const zero = new AwkRetention(0);
   zero.replace(0, 0, () => undefined);
   assert.throws(() => zero.replace(0, 1, () => undefined), /retained.*limit/u);

@@ -150,7 +150,7 @@ class Walker {
     for (const file of this.args.excludeFiles) {
       const path = pathOf(context, file);
       this.budget.text(path);
-      const bytes = await this.budget.fs(() => context.fs.readFile(path, { signal: context.signal, maxBytes: this.budget.limits.maxArgumentBytes }));
+      const bytes = await this.budget.fs(() => context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(this.budget.limits.maxArgumentBytes) ? { maxBytes: this.budget.limits.maxArgumentBytes } : {}) }));
       this.budget.check(bytes.length, this.budget.limits.maxArgumentBytes, "exclusion file bytes");
       const text = new TextDecoder().decode(bytes);
       this.budget.step(text.length + 1);

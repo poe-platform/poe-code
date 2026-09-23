@@ -180,7 +180,7 @@ test("stable factories, collision preflight and replacement are explicit", async
   assert.equal((await commands.get("file")!.execute({} as never)).exitCode, 42);
   await fileCommands({ replace: true }).setup(host);
   assert.match(commands.get("file")!.description!, /virtual-bash-file-v1/);
-  for (const value of [0, -1, 1.5, NaN, Infinity, undefined]) {
+  for (const value of [0, -1, 1.5, NaN, undefined]) {
     assert.throws(() => createFileCommand({ limits: { maxSniffBytes: value } } as never), /Invalid file limit/);
   }
 });

@@ -10,6 +10,7 @@ export interface SearchOptions {
   readonly maxLineBytes?: number;
   readonly maxFileBytes?: number;
   readonly maxFiles?: number;
+  readonly maxPatternBytes?: number;
   readonly regex?: RegexExecutionOptions;
   readonly regexExecutor?: BoundedRegexProvider;
 }
@@ -83,7 +84,7 @@ export function parse(args: readonly string[]): Arguments {
     onlyMatching: false, quiet: false, hidden: false, follow: false, ignore: true, ignoreVcs: true,
     ignoreDot: true, ignoreParent: true, ignoreFiles: true, ignorePaths: [], requireGit: true, binary: "auto", nullPath: false, nullData: false,
     crlf: false, includeZero: false, messages: true, heading: false, before: 0, after: 0, separator: "--",
-    maxCount: Infinity, maxDepth: 128, maxFileSize: Infinity, trim: false, globs: [], types: [],
+    maxCount: Infinity, maxDepth: Infinity, maxFileSize: Infinity, trim: false, globs: [], types: [],
   };
   const operands: string[] = [];
   let unrestricted = 0;
@@ -118,7 +119,6 @@ export function parse(args: readonly string[]): Arguments {
         case "iglob": result.globs.push({ source: value(), insensitive: true }); break;
         case "t": case "type": case "T": case "type-not": {
           const name = value();
-          if (result.types.length >= 1024) throw new SearchError("file type selection limit exceeded");
           if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
           result.types.push({ name, include: flag === "t" || flag === "type" });
           break;
@@ -154,7 +154,7 @@ export function parse(args: readonly string[]): Arguments {
         case "no-ignore-vcs": result.ignoreVcs = false; break;
         case "no-ignore-dot": result.ignoreDot = false; break;
         case "no-ignore-parent": result.ignoreParent = false; break;
-        case "ignore-file": result.ignorePaths.push(value()); if (result.ignorePaths.length > 1024) throw new SearchError("ignore file count limit exceeded"); break;
+        case "ignore-file": result.ignorePaths.push(value()); break;
         case "no-ignore-files": result.ignoreFiles = false; break;
         case "ignore-files": result.ignoreFiles = true; break;
         case "no-require-git": result.requireGit = false; break;
@@ -186,7 +186,7 @@ export function parse(args: readonly string[]): Arguments {
         case "context-separator": result.separator = value(); break;
         case "no-context-separator": result.separator = undefined; break;
         case "m": case "max-count": result.maxCount = count(value(), flag); break;
-        case "maxdepth": case "max-depth": result.maxDepth = count(value(), flag); if (result.maxDepth > 128) throw new SearchError("maximum supported directory depth is 128"); break;
+        case "maxdepth": case "max-depth": result.maxDepth = count(value(), flag); break;
         case "max-filesize": result.maxFileSize = fileSize(value()); break;
         case "r": case "replace": result.replacement = value(); break;
         case "trim": result.trim = true; break;
@@ -200,7 +200,6 @@ export function parse(args: readonly string[]): Arguments {
       if (long && equals >= 0 && !tookValue) throw new SearchError(`--${flag} does not take a value`);
     }
   }
-  if (result.before > 100000 || result.after > 100000) throw new SearchError("context limit exceeded");
   if (result.replacement?.includes("$")) throw new SearchError("replacement capture expansion is unsupported; use a literal replacement without '$'");
   if (!result.help && !result.version && result.mode !== "files" && !result.explicitPatterns) {
     const pattern = operands.shift();

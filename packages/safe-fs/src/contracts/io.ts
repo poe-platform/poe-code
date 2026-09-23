@@ -24,7 +24,7 @@ export function toByteSource(input: string | Uint8Array): ByteSource {
 let activeCollectionBytes = 0;
 
 export async function collectBytes(source: ByteSource, options: CollectOptions): Promise<Uint8Array> {
-  if (options.maxBytes !== undefined && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) {
+  if (options.maxBytes !== undefined && options.maxBytes !== Infinity && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) {
     throw new RangeError("maxBytes must be a nonnegative safe integer");
   }
   if (options.maxMemoryBytes !== undefined && (!Number.isSafeInteger(options.maxMemoryBytes) || options.maxMemoryBytes < 0)) {

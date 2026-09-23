@@ -10,6 +10,12 @@ export interface TextProgramOptions {
   readonly maxProgramInstructions?: number;
   readonly maxSteps?: number;
   readonly maxBufferBytes?: number;
+  readonly maxArrayEntries?: number;
+  readonly maxFields?: number;
+  readonly maxGetlineFiles?: number;
+  readonly maxRecursionDepth?: number;
+  readonly maxArguments?: number;
+  readonly maxRetainedBytes?: number;
 }
 
 export class ProgramError extends PublicDiagnostic {}
@@ -19,11 +25,11 @@ export class Budget {
   private remaining: number;
   private checkpoints = 0;
   private lastYield = monotonicNow();
-  constructor(readonly context: CommandContext, options: TextProgramOptions) {
-    this.remaining = options.maxSteps ?? 5_000_000;
-    this.maxBufferBytes = options.maxBufferBytes ?? 32 * 1024 * 1024;
-    for (const value of [this.remaining, this.maxBufferBytes]) {
-      if (!Number.isSafeInteger(value) || value < 1) throw new ProgramError("limits must be positive safe integers");
+  constructor(readonly context: CommandContext, readonly options: TextProgramOptions) {
+    this.remaining = options.maxSteps ?? Infinity;
+    this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
+    for (const value of Object.entries(options).filter(([key]) => key.startsWith("max")).map(([, value]) => value)) {
+      if (value !== undefined && (typeof value !== "number" || value !== Infinity && !Number.isSafeInteger(value) || value < 1)) throw new ProgramError("limits must be positive safe integers");
     }
   }
   step(count = 1): void {
@@ -63,12 +69,12 @@ export async function* input(context: CommandContext, file = "-"): ByteSource {
   context.signal.throwIfAborted();
   if (file === "-") yield* readBytes(context.stdin, context.signal);
   else {
-    yield* requiredFileInput(context, inputRequirements, "file", file, 32 * 1024 * 1024);
+    yield* requiredFileInput(context, inputRequirements, "file", file, Infinity);
   }
 }
 
 export async function readProgram(context: CommandContext, file: string): Promise<string> {
-  const contents = await context.fs.readFile(virtualPath(context, file), { signal: context.signal, maxBytes: 1024 * 1024 });
+  const contents = await context.fs.readFile(virtualPath(context, file), { signal: context.signal });
   return Buffer.from(contents).toString("latin1");
 }
 

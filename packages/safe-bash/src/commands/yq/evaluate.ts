@@ -740,7 +740,10 @@ export class Evaluator {
               // escapes have different meanings in POSIX and Go; conservatively
               // refuse patterns combining brackets and escapes.
               if (pattern.includes("[") && pattern.includes("\\")) throw new MikeError("unsupported yq regex: brackets combined with escapes");
-              const ledger = this.#regex ??= new EreLedger({ maxExpansionBytes: this.work.limits.maxScalarBytes, maxExpansionFields: this.work.limits.maxNodes });
+              const ledger = this.#regex ??= new EreLedger({ maxExpansionBytes: this.work.limits.maxScalarBytes, maxExpansionFields: this.work.limits.maxNodes }, {
+                patternBytes: Infinity, subjectBytes: Infinity, work: this.work.limits.maxSteps,
+                states: Infinity, allocationUnits: Infinity,
+              });
               const before = ledger.usage.work;
               try {
                 const program = await compileEre(pattern, ledger, this.work.signal);

@@ -79,13 +79,13 @@ test("formatter shares one output buffer across literal, percent and conversion 
   assert.throws(() => formatted("abcde", [], text, budget(100, 4)), { message: "text buffer limit exceeded" });
 });
 
-test("formatter retains its independent ceiling before slicing a large logical source", () => {
+test("formatter honors the explicit buffer limit before slicing a large logical source", () => {
   // Instrument the conversion callback's length/slice boundary without creating
   // a large string. The admitted control proves the slice observer is reached.
   let slices = 0;
   const source = { length: 32 * 1024 * 1024 + 1, slice() { slices++; return "x"; } };
   const convert = () => source as unknown as string;
-  assert.throws(() => formatted("%s", [string("x")], convert, budget(128 * 1024 * 1024, 64 * 1024 * 1024)), { message: "formatted output exceeds buffer limit" });
+  assert.throws(() => formatted("%s", [string("x")], convert, budget(128 * 1024 * 1024, 32 * 1024 * 1024)), { message: "text buffer limit exceeded" });
   assert.equal(slices, 0);
   source.length--;
   assert.equal(formatted("%s", [string("x")], convert, budget(128 * 1024 * 1024, 64 * 1024 * 1024)), "x");

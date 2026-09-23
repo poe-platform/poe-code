@@ -27,14 +27,14 @@ export const encode = (value: string): Uint8Array => new TextEncoder().encode(va
 
 export function settings(options: TableTextCommandsOptions): TableTextLimits {
   const limits: TableTextLimits = {
-    maxInputBytes: 256 * 1024 * 1024, maxOutputBytes: 256 * 1024 * 1024,
-    maxRecordBytes: 1024 * 1024, maxChunkBytes: 1024 * 1024,
-    maxGroupBytes: 8 * 1024 * 1024, maxGroupRecords: 100_000,
-    maxFields: 65_536, maxFiles: 64, maxSteps: 2_000_000, maxArgumentBytes: 65_536,
+    maxInputBytes: Infinity, maxOutputBytes: Infinity,
+    maxRecordBytes: Infinity, maxChunkBytes: Infinity,
+    maxGroupBytes: Infinity, maxGroupRecords: Infinity,
+    maxFields: Infinity, maxFiles: Infinity, maxSteps: Infinity, maxArgumentBytes: Infinity,
     ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid table-text limit: ${name}`);
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new RangeError(`Invalid table-text limit: ${name}`);
   }
   return limits;
 }
@@ -164,7 +164,7 @@ export class Inputs {
       else {
         const { context, signal, budget } = this;
         source = (async function* () {
-          yield await context.fs.readFile(path, { signal, maxBytes: budget.limits.maxChunkBytes });
+          yield await context.fs.readFile(path, { signal, ...(Number.isFinite(budget.limits.maxChunkBytes) ? { maxBytes: budget.limits.maxChunkBytes } : {}) });
         })();
       }
     }

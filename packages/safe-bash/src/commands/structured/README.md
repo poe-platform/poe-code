@@ -302,15 +302,15 @@ All fields of `JqLimits` are readonly numbers:
 
 | Limit | Default | Scope |
 | --- | ---: | --- |
-| `maxInputBytes` | 67,108,864 | Cumulative stdin/data-file chunks; also a separate aggregate argv-byte cap. |
-| `maxValueBytes` | 8,388,608 | Each encoded input value, compact serialized value, materialized result collection, accumulated sort keys, and aggregate variable payload. |
-| `maxOutputBytes` | 16,777,216 | Total stdout bytes, including indentation, raw output, and line endings. |
-| `maxSourceBytes` | 65,536 | Filter source, inline or from a program file. |
-| `maxDepth` | 128 | JSON container nesting, including constructed values. Hard configuration ceiling: 256. |
-| `maxAstDepth` | 64 | Parser recursion and final AST depth. Hard configuration ceiling: 128. |
-| `maxSteps` | 1,000,000 | Evaluation, validation, traversal/comparison, decoder/scanner, and generator work; includes hidden expansion without stdout. |
-| `maxResults` | 100,000 | Number of values emitted to stdout. |
-| `maxCollectionSize` | 100,000 | Array/object/collector/path-list lengths and argv count. |
+| `maxInputBytes` | unlimited | Cumulative stdin/data-file chunks; also a separate aggregate argv-byte cap. |
+| `maxValueBytes` | unlimited | Each encoded input value, compact serialized value, materialized result collection, accumulated sort keys, and aggregate variable payload. |
+| `maxOutputBytes` | unlimited | Total stdout bytes, including indentation, raw output, and line endings. |
+| `maxSourceBytes` | unlimited | Filter source, inline or from a program file. |
+| `maxDepth` | unlimited | JSON container nesting, including constructed values. |
+| `maxAstDepth` | unlimited | Parser recursion and final AST depth. |
+| `maxSteps` | unlimited | Evaluation, validation, traversal/comparison, decoder/scanner, and generator work; includes hidden expansion without stdout. |
+| `maxResults` | unlimited | Number of values emitted to stdout. |
+| `maxCollectionSize` | unlimited | Array/object/collector/path-list lengths and argv count. |
 
 Limits must be positive safe integers. Limit errors cannot be swallowed with
 `?`. Exact compact accounting includes delimiters: `[0]` costs 3 bytes and

@@ -14,15 +14,15 @@ import { parse, type Ast } from "./parser.js";
 const checkpointWidth = 1023;
 
 const yqQueryLimits: Readonly<JqLimits> = Object.freeze({
-  maxInputBytes: 16_000_000,
-  maxValueBytes: 8_388_608,
-  maxOutputBytes: 16_777_216,
-  maxSourceBytes: 8_192,
-  maxDepth: 128,
-  maxAstDepth: 64,
-  maxSteps: 1_000_000,
-  maxResults: 100_000,
-  maxCollectionSize: 100_000,
+  maxInputBytes: Infinity,
+  maxValueBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxSourceBytes: Infinity,
+  maxDepth: Infinity,
+  maxAstDepth: Infinity,
+  maxSteps: Infinity,
+  maxResults: Infinity,
+  maxCollectionSize: Infinity,
 });
 
 export type YqValueFailureCode =
@@ -248,7 +248,7 @@ class OwnedWork implements YqOwnedWork {
   }
 
   async #stringifyJson(value: Json, options: { readonly pretty: boolean; readonly maxBytes: number; readonly limitName: "maxValueBytes" | "maxOutputBytes" }): Promise<string> {
-    assertNonnegativeSafe(options.maxBytes, "maxBytes");
+    if (options.maxBytes !== Infinity) assertNonnegativeSafe(options.maxBytes, "maxBytes");
     const fragments: string[] = [];
     let bytes = 0;
     const append = async (fragment: string): Promise<void> => {

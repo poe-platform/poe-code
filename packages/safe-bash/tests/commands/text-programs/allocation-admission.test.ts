@@ -269,10 +269,10 @@ test("sed transliteration preserves raw bytes without a per-byte string array", 
 for (const separator of ["", " ", ",", ",+"]) {
   test(`awk exact field-count boundary: ${JSON.stringify(separator)}`, async () => {
     const input = separator === "" ? "a".repeat(100000) : Array(100000).fill("a").join(separator === " " ? " " : ",");
-    const accepted = await runVirtual("awk", { args: ["-F", separator, "{ print NF }"], stdin: input });
+    const accepted = await runVirtual("awk", { args: ["-F", separator, "{ print NF }"], stdin: input }, { maxFields: 100000 });
     assert.equal(accepted.exitCode, 0, accepted.stderr.toString());
     assert.equal(accepted.stdout.toString(), "100000\n");
-    const rejected = await runVirtual("awk", { args: ["-F", separator, "{ print NF }"], stdin: input + (separator === "" ? "a" : separator === " " ? " a" : ",a") });
+    const rejected = await runVirtual("awk", { args: ["-F", separator, "{ print NF }"], stdin: input + (separator === "" ? "a" : separator === " " ? " a" : ",a") }, { maxFields: 100000 });
     assert.equal(rejected.exitCode, 2);
     assert.match(rejected.stderr.toString(), /field count limit/u);
     assert.equal(rejected.stdout.length, 0);
@@ -411,7 +411,7 @@ test("awk rejects the next field before slicing its payload", async context => {
     return slice.call(this, start, end);
   };
   context.after(() => { String.prototype.slice = slice; });
-  const result = await runVirtual("awk", { args: ["-F", ",+", "{}"], stdin: input });
+  const result = await runVirtual("awk", { args: ["-F", ",+", "{}"], stdin: input }, { maxFields: 100000 });
   assert.equal(result.exitCode, 2);
   assert.match(result.stderr.toString(), /field count limit/u);
   assert.equal(copied, 0);

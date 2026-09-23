@@ -71,5 +71,5 @@ export async function* requiredFileInput(
     }
   }
   if (capabilities.read === false || context.fs.capabilities.read === false) throw new FsError("ENOTSUP", { syscall: "readFile", path });
-  yield await context.fs.readFile(path, { signal: context.signal, maxBytes });
+  yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
 }

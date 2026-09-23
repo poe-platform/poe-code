@@ -13,9 +13,11 @@ install `sed` and `awk`. Use `shell.use(textProgramCommands())` alongside the
 standard command plugin, or add the definitions to a `CommandRegistry`.
 The parent command plugin is not edited by this family.
 
-`TextProgramOptions` has `replace?: boolean`, `maxSteps?: number` (default
-5,000,000), and `maxBufferBytes?: number` (default 32 MiB). Limits must be positive
-safe integers. Plugin setup checks all collisions before registering commands.
+`TextProgramOptions` has `replace?: boolean` and optional budgets: `maxSteps`,
+`maxBufferBytes`, `maxProgramInstructions` (sed), `maxArrayEntries`, `maxFields`,
+`maxGetlineFiles`, `maxRecursionDepth`, `maxArguments`, and `maxRetainedBytes` (awk).
+Omitted budgets are unlimited; setting one does not enable another. Finite limits
+must be positive safe integers. Plugin setup checks all collisions before registering commands.
 The filesystem, streams, and cancellation signal come from `CommandContext`.
 Input/output waits use the contracts' cancellation-aware byte helpers. Interpreter
 loops yield to the event loop every 256 statement checkpoints; regex execution
@@ -40,9 +42,9 @@ subexpressions in capture order, including ambiguous repeated nested captures.
 Collating/equivalence classes, lookaround, and other non-POSIX special groups
 are rejected. Exhaustive POSIX subexpression parity is not claimed. Non-ASCII locale folding and
 multibyte-character semantics are outside this C-byte-oriented increment.
-Regex compilation has no implicit source, nesting, repetition or instruction
-quotas. Every matching instruction spends the invocation's step budget.
-A costly pattern fails deterministically rather
+Regex compilation has no implicit source, nesting, repetition, or instruction
+ceiling. Every matching instruction spends the optional invocation step budget.
+With an explicit step budget, a costly pattern fails deterministically rather
 than entering an uninterruptible native-regex backtracking operation.
 
 ## Sed grammar and behavior
@@ -156,8 +158,8 @@ field lengths, substrings, comparisons, and ASCII case conversion.
 Formatting supports `%c`, `%s`, `%d`/`%i`, `%u`, `%o`, `%x`/`%X`, `%f`/`%F`,
 `%e`/`%E`, `%g`/`%G`, `%%`, flags `-+ #0`, numeric or `*` width/precision.
 Unsigned/octal/hex conversions use 32-bit unsigned values; arbitrary native
-integer-overflow behavior is not promised. Width/integer precision are limited
-to 1,000,000, floating precision to 100. Unsupported constant formats are rejected
+integer-overflow behavior is not promised. Width and precision have no resource ceiling unless an explicit buffer or
+execution budget is supplied. Unsupported constant formats are rejected
 at parse time; dynamically computed formats are checked when executed.
 
 The parser validates the whole source, literal regexes, function existence and
@@ -197,10 +199,11 @@ for `FPAT`, `FIELDWIDTHS`, `IGNORECASE`, or `PROCINFO`. Unknown special-variable
 names are ordinary user variables; they do not activate unsupported behavior.
 Unknown functions/operators are errors, never passed to a host interpreter.
 
-Source is limited to 1 MiB, syntax nesting to 128 levels, function recursion to
-64 frames, fields and counted array entries to 100,000 each, and the dynamic
-regex cache to 256 entries. The entry count is conservative across discarded
-function-local arrays. Records stream from `ByteSource`; a record, input chunk
+Source and syntax nesting have no implicit budget. Function recursion, fields,
+array entries, open getline files, and retained text are unlimited unless their
+individual options are supplied. The dynamic regex cache retains 256 entries
+and evicts older compiled patterns without rejecting input. The entry count is
+conservative across discarded function-local arrays. Records stream from `ByteSource`; a record, input chunk
 buffer, expression result, or formatted output must fit the configured buffer
 limit. File output writes are awaited, but there are no native file descriptors
 or subprocess handles.

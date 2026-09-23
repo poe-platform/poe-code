@@ -79,7 +79,7 @@ async function input(context: CommandContext, file: string | undefined, budget: 
     context.signal.throwIfAborted();
     if (context.fs.readStream && capabilities.streamingRead !== false) source = context.fs.readStream(path, { signal: context.signal });
     else {
-      try { source = toByteSource(await interruptible(() => context.fs.readFile(path, { signal: context.signal, maxBytes: budget.limits.maxInputBytes }), context.signal)); }
+      try { source = toByteSource(await interruptible(() => context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(budget.limits.maxInputBytes) ? { maxBytes: budget.limits.maxInputBytes } : {}) }), context.signal)); }
       catch (error) {
         context.signal.throwIfAborted();
         if (error instanceof FsError && error.code === "EFBIG") throw new XmlQueryLimitError("maxInputBytes");
@@ -121,7 +121,7 @@ async function execute(context: CommandContext, limits: XmlQueryLimits): Promise
       }
       const jqLimits = resolveJqLimits({
         maxOutputBytes: limits.maxOutputBytes,
-        maxSourceBytes: limits.maxSourceBytes, maxDepth: Math.min(256, limits.maxDepth * 2 + 2),
+        maxSourceBytes: limits.maxSourceBytes, maxDepth: limits.maxDepth * 2 + 2,
         maxSteps: limits.maxSteps, maxResults: limits.maxResults,
       });
       const conversionBudget = new Budget(jqLimits, context.signal);

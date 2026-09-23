@@ -83,7 +83,7 @@ for (const [label, limits, specimen] of [
 }
 
 test("invalid limits fail at plugin construction", () => {
-  for (const value of [0, -1, Infinity, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createTableTextCommands({ limits: { maxSteps: value } }), RangeError);
+  for (const value of [0, -1, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => createTableTextCommands({ limits: { maxSteps: value } }), RangeError);
 });
 
 test("paste shares one stdin cursor and owns returned chunk bytes", async () => {

@@ -20,12 +20,12 @@ test("standalone API, replacement preflight, snapshot options and positive integ
   options.replace = false;
   plugin.setup(host);
   assert.notEqual(host.commands.get("tree")!.execute, original.execute);
-  for (const value of [0, -1, NaN, Infinity, 1.5]) assert.throws(() => createTreeCommand({ limits: { maxDepth: value } }), RangeError);
+  for (const value of [0, -1, NaN, 1.5]) assert.throws(() => createTreeCommand({ limits: { maxDepth: value } }), RangeError);
 });
 
 test("unsupported/invalid options preflight before any VFS or stdin access", async () => {
   const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error("unexpected lstat"); } });
-  for (const args of [["--du"], ["-s"], ["--prune"], ["-C"], ["--filelimit=-1"], ["--filelimit=wat"], ["--filelimit"], ["-L0"], ["-L257"], ["-L"],
+  for (const args of [["--du"], ["-s"], ["--prune"], ["-C"], ["--filelimit=-1"], ["--filelimit=wat"], ["--filelimit"], ["-L0"], ["-L"],
     ["--sort=size"], ["--charset=ANSI"], ["-P", "**"], ["-P", "dir/*"], ["-I", "[x"], ["-P", "[z-a]"],
     ["--help", "--du"], [""], ["\0"], ["\ud800"]]) {
     const result = await run(args, {}, { fs, stdin: (async function* () { throw new Error("unexpected stdin"); })() });

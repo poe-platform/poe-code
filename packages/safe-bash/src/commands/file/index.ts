@@ -96,7 +96,7 @@ async function readNames(context: CommandContext, name: string, budget: SharedBu
       const bound = Math.min(maximum, budget.limits.maxReadFileBytes, budget.limits.maxChunkBytes, budget.remainingInputBytes);
       if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("ENOTSUP", { path, message: "bounded filename list requires readStream or a known size" });
       budget.check(stat.size, bound, "readFile");
-      const bytes = await budget.host(() => fs.readFile(path, { signal: budget.signal, maxBytes: bound }));
+      const bytes = await budget.host(() => fs.readFile(path, { signal: budget.signal, ...(Number.isFinite(bound) ? { maxBytes: bound } : {}) }));
       budget.check(bytes.length, bound, "readFile");
       source = toByteSource(bytes);
     }
@@ -194,14 +194,15 @@ async function inspect(context: CommandContext, name: string, follow: boolean, d
     const controller = new AbortController();
     const signal = AbortSignal.any([budget.signal, controller.signal]);
     try {
-      sample = await prefix(fs.readStream(path, { signal, start: 0, endExclusive: budget.limits.maxSniffBytes,
+      sample = await prefix(fs.readStream(path, { signal, start: 0,
+        ...(Number.isFinite(budget.limits.maxSniffBytes) ? { endExclusive: budget.limits.maxSniffBytes } : {}),
         chunkSize: Math.min(16384, budget.limits.maxChunkBytes, budget.limits.maxSniffBytes) }), budget, budget.signal, controller);
     } finally { controller.abort(new FsError("EPIPE", { message: "file prefix inspection ended" })); }
   } else {
     if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("ENOTSUP", { path, message: "bounded file inspection requires readStream or a known size" });
     const maximum = Math.min(budget.limits.maxReadFileBytes, budget.limits.maxChunkBytes, budget.remainingInputBytes);
     budget.check(stat.size, maximum, "readFile");
-    const bytes = await budget.host(() => fs.readFile(path, { signal: budget.signal, maxBytes: maximum }));
+    const bytes = await budget.host(() => fs.readFile(path, { signal: budget.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {}) }));
     if (!(bytes instanceof Uint8Array)) throw new TypeError("readFile must return Uint8Array");
     budget.check(bytes.length, maximum, "readFile");
     budget.input(bytes.length);

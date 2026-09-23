@@ -101,7 +101,7 @@ test("awk conversions observe format assignments in later evaluated arguments", 
 for (const [program, error] of [
   ['BEGIN { value=sprintf("%s") }', /not enough arguments/u],
   ['BEGIN { value=sprintf("%q", 1) }', /unsupported format/u],
-  ['BEGIN { value=sprintf("%1000001s", "x") }', /excessive format width or precision/u],
+  ['BEGIN { value=sprintf("%1000001s", "x") }', /text buffer limit exceeded/u],
 ] as const) {
   test(`awk preserves format diagnostics under an ample budget: ${program}`, async () => {
     const result = await run(program);

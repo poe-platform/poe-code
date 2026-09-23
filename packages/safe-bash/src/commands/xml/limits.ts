@@ -17,10 +17,10 @@ export interface XmlCommandsOptions {
   readonly limits?: Partial<XmlQueryLimits>;
 }
 export const defaultXmlQueryLimits: Readonly<XmlQueryLimits> = Object.freeze({
-  maxInputBytes: 8 * 1024 * 1024, maxOutputBytes: 8 * 1024 * 1024,
-  maxSourceBytes: 64 * 1024, maxDepth: 64, maxNodes: 100_000,
-  maxAttributes: 10_000, maxAttributesPerElement: 128,
-  maxNamespaces: 256, maxSteps: 1_000_000, maxResults: 100_000,
+  maxInputBytes: Infinity, maxOutputBytes: Infinity,
+  maxSourceBytes: Infinity, maxDepth: Infinity, maxNodes: Infinity,
+  maxAttributes: Infinity, maxAttributesPerElement: Infinity,
+  maxNamespaces: Infinity, maxSteps: Infinity, maxResults: Infinity,
 });
 export class XmlQueryError extends Error {
   constructor(message: string, readonly status: number) { super(message); }
@@ -31,11 +31,10 @@ export class XmlQueryLimitError extends XmlQueryError {
 export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): XmlQueryLimits {
   const limits = { ...defaultXmlQueryLimits, ...options };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Object.hasOwn(defaultXmlQueryLimits, name) || !Number.isSafeInteger(value) || value < 1) {
+    if (!Object.hasOwn(defaultXmlQueryLimits, name) || (value !== Infinity && !Number.isSafeInteger(value)) || value < 1) {
       throw new RangeError(`${name} must be a positive safe integer XML limit`);
     }
   }
-  if (limits.maxDepth > 256) throw new RangeError("maxDepth must be <=256");
   return Object.freeze(limits);
 }
 export class XmlBudget {

@@ -32,7 +32,7 @@ async function run(args: readonly string[], overrides: Partial<CommandContext> =
     stderr: { async write(bytes) { errors.push(bytes.slice()); } }, ...overrides,
   };
   try {
-    const result = await createGrepCommands(executor)[0]!.execute(context);
+    const result = await createGrepCommands(executor, { maxPatterns: 1024, maxPatternBytes: bufferLimit })[0]!.execute(context);
     return { code: result.exitCode, stderr: Buffer.concat(errors).toString(), messages, created: workers.length };
   } finally {
     await executor.dispose();

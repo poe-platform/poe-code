@@ -235,6 +235,20 @@ export function createBundledCompositionManifest(
   };
 }
 
+export function localizeBundledDependencySpecifiers(manifest, dependencyNames) {
+  const localized = structuredClone(manifest);
+  for (const field of ["dependencies", "optionalDependencies"]) {
+    const dependencies = localized[field];
+    if (!isObject(dependencies)) continue;
+    for (const name of dependencyNames) {
+      if (Object.hasOwn(dependencies, name)) {
+        dependencies[name] = `file:./node_modules/${name}`;
+      }
+    }
+  }
+  return localized;
+}
+
 export function sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames) {
   const sanitized = structuredClone(manifest);
   const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
@@ -342,7 +356,7 @@ export function restoreGeneratedFiles(
   }
 }
 
-function prepare(packageDir, dependencyNames) {
+function prepare(packageDir, dependencyNames, localSpecifiers = false) {
   const tempDir = path.join(os.tmpdir(), `poe-code-bundled-workspace-deps-${process.pid}`);
   ensureRemoved(tempDir);
   mkdirSync(tempDir, { recursive: true });
@@ -388,10 +402,15 @@ function prepare(packageDir, dependencyNames) {
     path.join(packageDir, compositionFileName),
     path.join(packageDir, "dist", compositionFileName)
   ];
+  const manifestPath = path.join(packageDir, "package.json");
+  const manifestContent = readFileSync(manifestPath, "utf8");
   const generatedFiles = compositionPaths.map((generatedPath) => ({
     path: generatedPath,
     originalContent: existsSync(generatedPath) ? readFileSync(generatedPath, "utf8") : null
   }));
+  if (localSpecifiers) {
+    generatedFiles.push({ path: manifestPath, originalContent: manifestContent });
+  }
   assertSafeBundledPath(packageDir, stampPath);
   const compositionContent = `${JSON.stringify(
     createBundledCompositionManifest(packageDir),
@@ -410,6 +429,13 @@ function prepare(packageDir, dependencyNames) {
     JSON.stringify({ bundledDirs, generatedFiles }, null, 2) + "\n",
     "utf8"
   );
+  if (localSpecifiers) {
+    // Bundled private names must resolve to these shipped files, never a registry namesake.
+    writeFileSync(manifestPath, `${JSON.stringify(
+      localizeBundledDependencySpecifiers(JSON.parse(manifestContent), dependencyNames),
+      null, 2
+    )}\n`, "utf8");
+  }
   ensureRemoved(tempDir);
 }
 
@@ -456,8 +482,8 @@ function cleanup(packageDir) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [mode, packageDirArg, ...dependencyNames] = process.argv.slice(2);
 
-  if (mode !== "prepare" && mode !== "cleanup") {
-    throw new Error('Expected mode to be "prepare" or "cleanup".');
+  if (mode !== "prepare" && mode !== "prepare-local" && mode !== "cleanup") {
+    throw new Error('Expected mode to be "prepare", "prepare-local", or "cleanup".');
   }
 
   if (typeof packageDirArg !== "string") {
@@ -466,8 +492,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 
   const packageDir = path.resolve(process.cwd(), packageDirArg);
 
-  if (mode === "prepare") {
-    prepare(packageDir, dependencyNames);
+  if (mode === "prepare" || mode === "prepare-local") {
+    prepare(packageDir, dependencyNames, mode === "prepare-local");
   } else {
     cleanup(packageDir);
   }

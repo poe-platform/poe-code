@@ -6,6 +6,7 @@ import {
   assertSafeBundledPath,
   collectInstalledDependencyTree,
   createBundledCompositionManifest,
+  localizeBundledDependencySpecifiers,
   restoreGeneratedFiles,
   sanitizeBundledWorkspaceManifest
 } from "./manage-bundled-workspace-deps.mjs";
@@ -249,4 +250,26 @@ describe("sanitizeBundledWorkspaceManifest", () => {
       name: "tiny-mcp-client"
     });
   });
+});
+
+
+it("pins bundled runtime dependencies to shipped directories without public registry fallback", () => {
+  const manifest = {
+    dependencies: { jose: "^6.1.2", "tiny-stdio-mcp-server": "^0.1.27" },
+    optionalDependencies: { "mcp-oauth": "*", "auth-store": "*" },
+    bundleDependencies: ["mcp-oauth", "auth-store", "jose"]
+  };
+  expect(localizeBundledDependencySpecifiers(manifest, ["mcp-oauth", "auth-store", "jose"])).toEqual({
+    dependencies: {
+      jose: "file:./node_modules/jose",
+      "tiny-stdio-mcp-server": "^0.1.27"
+    },
+    optionalDependencies: {
+      "mcp-oauth": "file:./node_modules/mcp-oauth",
+      "auth-store": "file:./node_modules/auth-store"
+    },
+    bundleDependencies: ["mcp-oauth", "auth-store", "jose"]
+  });
+  expect(manifest.optionalDependencies["mcp-oauth"]).toBe("*");
+  expect(localizeBundledDependencySpecifiers({}, ["private-package"])).toEqual({});
 });

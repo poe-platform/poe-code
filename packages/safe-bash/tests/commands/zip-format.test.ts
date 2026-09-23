@@ -67,8 +67,8 @@ test("ZIP consumes a live source incrementally after emitting its header", async
   assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), text.encode("firstlast"));
 });
 
-for (const method of [0, 8, 12]) for (const length of [0, 1, 511, 512, 513, 65535, 65536, 65537]) {
-  test(`ZIP live method ${method} owns reused producer bytes at ${length}`, async () => {
+for (const classic of [false, true]) for (const method of [0, 8, 12]) for (const length of [0, 1, 511, 512, 513, 65535, 65536, 65537]) {
+  test(`ZIP live method ${method} owns reused producer bytes at ${length}, classic=${classic}`, async () => {
     const body = Uint8Array.from({ length }, (_, index) => (index * 37 + (index >>> 8)) % 251);
     const slab = Buffer.alloc(777);
     let closed = false;
@@ -82,7 +82,8 @@ for (const method of [0, 8, 12]) for (const length of [0, 1, 511, 512, 513, 6553
         }
       } finally { closed = true; slab.fill(255); }
     })();
-    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source, method, level: 6 };
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source, method, level: 6,
+      ...(classic ? { zip64: false } : {}) };
     let peakPayload = 0;
     let peakMetadata = 0;
     const bytes = await collectBytes(streamZipArchive({ entries: [entry], comment: new Uint8Array(), onRetention(counters) {
@@ -91,8 +92,13 @@ for (const method of [0, 8, 12]) for (const length of [0, 1, 511, 512, 513, 6553
     } }, { ...limits, chunkSize: 512 }, signal), { maxBytes: limits.maxArchiveBytes });
     assert.equal(closed, true);
     assert.ok(peakPayload <= 1024);
-    assert.equal(peakMetadata, 102);
+    // Automatic unknown-length streams retain two additional 20-byte ZIP64 size extras.
+    assert.equal(peakMetadata, classic ? 102 : 142);
     const archive = await readZipArchive(bytes, limits, signal);
+    for (const fields of [archive.entries[0]!.localExtra!, archive.entries[0]!.centralExtra!]) {
+      assert.equal(fields.length - stripZip64(fields).length, classic ? 0 : 20);
+    }
+    assert.equal(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(18, true), classic ? 0 : 0xffffffff);
     assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), body);
     assert.equal(archive.entries[0]!.flags! & 8, 8);
   });
@@ -160,7 +166,7 @@ test("ZIP live STORE admits archive bytes before retaining an input slab", async
   for (const wide of [false, true]) {
     let closed = false;
     let peakPayload = 0;
-    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), zip64: wide,
       source: (async function* () { try { yield new Uint8Array(512); } finally { closed = true; } })() };
     const overhead = 140 + (wide ? 132 : 0);
     await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array(), onRetention(counters) {
@@ -195,8 +201,27 @@ test("ZIP live profiles reject invalid expected sizes and work budgets before pu
       source: (async function* () { pulls++; yield new Uint8Array(512); })(), expectedSize: value };
     await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal), /invalid value/);
     assert.equal(pulls, 0);
-    await assert.rejects(writeZipArchive({ entries: [], comment: new Uint8Array() }, { ...limits, maxPatternSteps: value }, signal), /invalid value/);
   }
+  for (const value of [NaN, -1, Number.MAX_SAFE_INTEGER + 1]) {
+    let pulls = 0;
+    const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+      source: (async function* () { pulls++; yield new Uint8Array(512); })() };
+    await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPatternSteps: value }, signal), /invalid value/);
+    assert.equal(pulls, 0);
+  }
+});
+
+test("ZIP live profiles accept an unlimited work budget and finish their producer", async () => {
+  let pulls = 0;
+  let closed = false;
+  const body = new Uint8Array(512).fill(37);
+  const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0),
+    source: (async function* () { try { pulls++; yield body; } finally { closed = true; } })(), expectedSize: body.length };
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, { ...limits, maxPatternSteps: Infinity }, signal);
+  assert.equal(pulls, 1);
+  assert.equal(closed, true);
+  const archive = await readZipArchive(bytes, limits, signal);
+  assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), body);
 });
 
 for (const phase of ["header", "payload", "descriptor", "central", "end"] as const) {

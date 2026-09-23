@@ -1,0 +1,191 @@
+{
+  "scope": "Archive limit and ZIP live-format test contracts under opt-in unlimited defaults; no runtime edits.",
+  "baseline": "caeef77b6fff2ab0f533d43bbf4d82bedcb828d0",
+  "checks": {
+    "current-b02-zip-growth.log": [
+      "# tests 137",
+      "# pass 132",
+      "# fail 5",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0"
+    ],
+    "refreshed-archive-zip-original.log": [
+      "# tests 349",
+      "# pass 323",
+      "# fail 26",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0"
+    ],
+    "archive-zip-corrected.log": [
+      "# tests 374",
+      "# pass 350",
+      "# fail 24",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0"
+    ],
+    "archive-zip-final.log": [
+      "# tests 374",
+      "# pass 374",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0"
+    ],
+    "safe-fs-refresh-build.log": [],
+    "test-corrections-final-independent.log": [
+      "# tests 242",
+      "# pass 242",
+      "# fail 0",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0"
+    ]
+  },
+  "logHashes": {
+    "current-b02-zip-growth.log": "d44e71f30668b617b7dc996aafb31361e87308809b81de836f456cea0374e467",
+    "refreshed-archive-zip-original.log": "3b1f7ea022ce0316e7bb94ab429460024736a9c50511fb55c666efbaf24c7d04",
+    "archive-zip-corrected.log": "c6f290174961e4fc2d8f05c2fced038a857c1abfce0ea1670f9e117ebe92de2c",
+    "archive-zip-final.log": "85234a68097f9bcadf698b0f493631782b47f9075e98c91462095c7eb8bf82ac",
+    "safe-fs-refresh-build.log": "d331fbc1aee25b70471418996bfca0b044a7a25685ea66f1482a5aefcf4c9ade",
+    "test-corrections-final-independent.log": "5b8c49db5e43dd3f7abbe72c39e59ff4c574150f1da7ec3d654df15fab498e99",
+    "guarded-lint-final-zip.log": "13bc659d031f7210b9b41861f8a4a76fd8493b81427a5433440548427e792fab"
+  },
+  "independent": {
+    "node": "v22.23.2",
+    "args": [
+      "--import",
+      "tsx",
+      "--conditions=poe-code-source",
+      "--test",
+      "--test-concurrency=1",
+      "packages/safe-bash/tests/commands/zip-format.test.ts",
+      "packages/safe-bash/tests/commands/archive-stress/limits-effects.test.ts"
+    ],
+    "elapsedMs": 2539,
+    "status": 0,
+    "signal": null,
+    "sourceBindings": [
+      {
+        "path": "packages/safe-bash/tests/commands/zip-format.test.ts",
+        "bytes": 87939,
+        "sha256": "dac22e12d780a3ee4f3188879e8ad9e9d30cee63978199caa1269c562045cc46"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/archive-stress/limits-effects.test.ts",
+        "bytes": 16926,
+        "sha256": "087f14e2beeab001734e22da5059185e63d63b62ddef48cc94c13ca0dc427e05"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/fixtures/zip64-infozip.json",
+        "bytes": 3684,
+        "sha256": "54172677c4ba8afd10fc6df16069c943e9024526ece6d8d08527cd8a622eb744"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/archive-stress/fixtures.ts",
+        "bytes": 2626,
+        "sha256": "c7b06c358d9fa9420c07fd10afde592781c324a7242f218340805f941bf32b85"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/archive-stress/helpers.ts",
+        "bytes": 2856,
+        "sha256": "de089f30095b93d748cb0eb56dbc3c36f69daccc5c7448ca670286aac567a1ff"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/archive/zip-format.ts",
+        "bytes": 59975,
+        "sha256": "eeb1223e060aeb448489baa1959472724cccdf83d5def6a2e53e12e7246f0379"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/archive/zip/zip64.ts",
+        "bytes": 10349,
+        "sha256": "e46a420debd9cc9b7c24c027bcb3fb82967456c1c96f8e6f2e6e24f723ffe7e8"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/archive/internal.ts",
+        "bytes": 10364,
+        "sha256": "fe7a0d445c4206f82d856c471ac1dbd5805bee962c8bf2475d605823de81abb8"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/archive/extract.ts",
+        "bytes": 22035,
+        "sha256": "6096e7110d8117ea99528e25a744f9107c3ab91678419a1138174071b09681a3"
+      },
+      {
+        "path": "packages/safe-fs/src/fs/memory/index.ts",
+        "bytes": 60822,
+        "sha256": "60252b4ef6b5cf70ca77e3cb94904af603cf2998747dc89729d942336541b142"
+      },
+      {
+        "path": "packages/safe-fs/dist/fs/memory/index.js",
+        "bytes": 62544,
+        "sha256": "8296ae341905afc976254de9960e0fe465b1c694d12816ec3833ac56f41ef0db"
+      }
+    ],
+    "stable": true,
+    "originalZipTestSha256": "9c7c205a784096c2913a947c7f82c09d9147be77bd13a897c83de463ad533f89",
+    "currentZipTestSha256": "dac22e12d780a3ee4f3188879e8ad9e9d30cee63978199caa1269c562045cc46",
+    "currentB02Sha256": "087f14e2beeab001734e22da5059185e63d63b62ddef48cc94c13ca0dc427e05",
+    "currentB02MatchesCommit": "4aeabda72e",
+    "producerRows": {
+      "automaticOriginal": 24,
+      "explicitClassicAdded": 24
+    },
+    "originalOwnershipAssertionsPreserved": [
+      "const body = Uint8Array.from({ length }, (_, index) => (index * 37 + (index >>> 8)) % 251);",
+      "const slab = Buffer.alloc(777);",
+      "slab.set(body.subarray(offset, offset + size));",
+      "yield slab.subarray(0, size);",
+      "slab.fill(255);",
+      "} finally { closed = true; slab.fill(255); }",
+      "assert.equal(closed, true);",
+      "assert.ok(peakPayload <= 1024);",
+      "assert.deepEqual(await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions), body);",
+      "assert.equal(archive.entries[0]!.flags! & 8, 8);",
+      "assert.equal(peakPayload, 0, \"over-budget STORE bytes must fail before owned slab admission\");"
+    ],
+    "abortAndSubsequentTestsByteUnchanged": true,
+    "scope": "Focused live test execution with selected dependency/source hashes. Not a full transitive closure or package/release gate. No product edits or Git mutations."
+  },
+  "findings": [
+    "Five original post-rebase archive failures were caused by stale built safe-fs memory adapter lacking confineExtraction; maintained selected safe-fs build clears all five without source changes.",
+    "All132 ZIP growth controls pass after upstream d17e714746a7a279000627225cd5e360d6e0f27d; no ZIP runtime change needed for the reported descriptor-growth failure.",
+    "24 automatic unknown-source ZIP profiles retain142 metadata bytes, including two20-byte ZIP64 extras. Original producer inputs and ownership assertions retained;24 explicit classic counterparts require102 bytes.",
+    "STORE admission now selects both intended profiles explicitly while retaining exact and one-over archive budgets and no retained slab on rejection.",
+    "Infinity is invalid for expectedSize, but valid as unlimited maxPatternSteps. Invalid finite budgets refuse before pulling and a positive unlimited-work producer completes and roundtrips.",
+    "Initial supplemental entry.zip64 assertion failed24 cases because normal readZipArchive only populates the flag in grow mode; corrected to inspect real parsed extras and local header sentinel. This is test-harness evidence, not a product defect."
+  ],
+  "limitations": [
+    "B02 exercises header admission, not full64MiB extraction.",
+    "Public zip.test.ts earlier lacked the generated poe-code safe-js bundle shim; no maintained root build/public-test pass claimed.",
+    "Selected source-bound and dependency-build checks do not establish full package or publication qualification.",
+    "All19 original ssconvert families remain open."
+  ],
+  "guardedLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 8,
+    "scope": {
+      "configured": 17559,
+      "linted": 17559,
+      "ignored": 2241,
+      "unconfigured": 37991,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    }
+  },
+  "lintAttempt": "Initial current-ZIP lint intentionally stopped143 before correcting the supplemental parser assertion; final run completed0 against frozen final bytes.",
+  "publication": {
+    "status": "pending",
+    "cgJRepair": "06e2e656020ecc51b5899c32d09966e6186c1d3d",
+    "activeContainingRun": 35910092673,
+    "activeHead": "caeef77b6fff2ab0f533d43bbf4d82bedcb828d0",
+    "observed": "build and audit passed; checks, fresh/cached units and four Bash shards running",
+    "queuedSuccessor": 35911257148,
+    "lastRootLatest": "17.0.34"
+  },
+  "delivery": "B02 supplementary and CGJ-delivery documentation are local pending commits4aeabda72e and0ea60233ef before final rebase. ZIP test correction is not yet committed at this evidence capture. Remote delivery is recorded separately after push."
+}

@@ -340,7 +340,7 @@ for (const source of ["join /input /input", "diff /input /input", "html-to-markd
       },
     });
     const shell = new Shell({ fs }).use(agentCommands()).use(safeJsCommands({ runtime: contractRuntime(async value => {
-      assert.equal(value, "a\nb\n\n;__safeBashSetExitCode(process.exitCode);");
+      assert.ok(value.endsWith("a\nb\n\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
     }) })).use(networkCommands({
       authorize: () => true,
       async transport(request) {

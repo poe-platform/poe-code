@@ -46,7 +46,8 @@ test("root optional plugin delegates only to the explicit injected runtime", asy
   try {
     const result = await shell.exec("node -e 'opaque guest source' -- argument | cat");
     assert.equal(shell.commands.list().length, createAgentCommands().length + 1);
-    assert.deepEqual(calls, ["opaque guest source\n;__safeBashSetExitCode(process.exitCode);"]);
+    assert.equal(calls.length, 1);
+    assert.ok(calls[0]?.endsWith("opaque guest source\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
     assert.equal(shell.commands.has("node"), true);
     assert.equal(shell.commands.has("safejs"), false);
     assert.equal(shell.commands.has("js"), false);

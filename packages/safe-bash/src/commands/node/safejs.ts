@@ -113,13 +113,15 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       };
       const nodeFs = {
         ...fs,
-        readFile: nodeReadFile(options, fs, lifecycle.signal, lifecycle.fail, pending),
         promises: fs,
-        readFileSync: options.runtime.declareHostOperation(
-          // Give the synchronous facade its own declaration so readFile stays asynchronous.
-          (fs.readFile as SafeJsHostFunction).bind(undefined),
-          "read-side-effect", { awaitResult: true },
-        ),
+        ...(typeof fs.readFile === "function" ? {
+          readFile: nodeReadFile(options, fs, lifecycle.signal, lifecycle.fail, pending),
+          readFileSync: options.runtime.declareHostOperation(
+            // Give the synchronous facade its own declaration so readFile stays asynchronous.
+            (fs.readFile as SafeJsHostFunction).bind(undefined),
+            "read-side-effect", { awaitResult: true },
+          ),
+        } : {}),
       };
       modules.fs = { ...nodeFs, default: nodeFs };
       const path = createNodePathModule(options.runtime, command.cwd as string);

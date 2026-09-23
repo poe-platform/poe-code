@@ -139,7 +139,8 @@ function findSafePillCenter(
   rawText: string,
   theme: MermaidThemeTokens,
   obstacles: readonly Rect[],
-  placedPills: Rect[]
+  placedPills: Rect[],
+  otherEdgeSegments: readonly Rect[] = []
 ): SceneLabelPill {
   const testPill = buildLabelPill(rawText, { x: 0, y: 0 }, theme);
 
@@ -152,11 +153,13 @@ function findSafePillCenter(
     const isHoriz = Math.abs(p1.y - p0.y) < 1;
     const neededLen = (isHoriz ? testPill.width : testPill.height) + 24;
     const fitsWithoutElbowOverlap = length >= neededLen;
+    // Prefer destination/branch segments over shared source stub (i === 0) when multi-segment
+    const branchBonus = waypoints.length > 2 && i > 0 ? 600 : 0;
     candidates.push({
       p0,
       p1,
       length,
-      priority: (fitsWithoutElbowOverlap ? 2000 : 0) + length
+      priority: (fitsWithoutElbowOverlap ? 2000 : 0) + branchBonus + length
     });
   }
   candidates.sort((a, b) => b.priority - a.priority);
@@ -178,7 +181,8 @@ function findSafePillCenter(
         const pill = buildLabelPill(rawText, { x: cx, y: cy }, theme);
         const collidesObstacle = obstacles.some((obs) => rectsIntersect(pill, obs, 4));
         const collidesPill = placedPills.some((prev) => rectsIntersect(pill, prev, 4));
-        if (!collidesObstacle && !collidesPill) {
+        const collidesOtherEdge = otherEdgeSegments.some((segR) => rectsIntersect(pill, segR, 4));
+        if (!collidesObstacle && !collidesPill && !collidesOtherEdge) {
           placedPills.push({ x: pill.x, y: pill.y, width: pill.width, height: pill.height });
           return pill;
         }

@@ -7,6 +7,7 @@ import {
 } from "./contracts.js";
 import { parseFlowchart } from "./parsers/flowchart.js";
 import { parseSequenceDiagram } from "./parsers/sequence.js";
+import { parseStateDiagram } from "./parsers/state.js";
 import { readWord } from "./parser-utils.js";
 import { scanStatements } from "./scanner.js";
 
@@ -25,6 +26,9 @@ export function parseMermaid(
   }
   if (headWord === "sequenceDiagram") {
     return parseSequenceDiagram(statements, budget);
+  }
+  if (headWord === "stateDiagram-v2" || headWord === "stateDiagram") {
+    return parseStateDiagram(statements, budget);
   }
 
   throw new MermaidError(

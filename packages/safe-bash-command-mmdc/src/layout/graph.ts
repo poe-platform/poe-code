@@ -816,17 +816,36 @@ export function layoutGraphDocument(
     if (note.position === "left" && targetNode) {
       nx = targetNode.x - nw - 32;
     }
-    while (
-      rawSceneNodes.some((n) => rectsIntersect({ x: nx, y: ny, width: nw, height: nh }, n, 24)) ||
-      orderedGroups.some((g) =>
-        rectsIntersect(
-          { x: nx, y: ny, width: nw, height: nh },
-          { x: g.x, y: g.y, width: g.width, height: g.headerHeight },
-          8
+    const stepDir = note.position === "left" ? -36 : 36;
+    const noteCollides = (cx: number, cy: number): boolean => {
+      const box = { x: cx, y: cy, width: nw, height: nh };
+      if (rawSceneNodes.some((n) => rectsIntersect(box, n, 24))) return true;
+      if (rawNotes.some((other) => rectsIntersect(box, other, 16))) return true;
+      if (
+        orderedGroups.some((g) =>
+          rectsIntersect(box, { x: g.x, y: g.y, width: g.width, height: g.headerHeight }, 10)
         )
-      )
-    ) {
-      nx += 36;
+      ) {
+        return true;
+      }
+      for (const e of rawEdges) {
+        if (e.labelPill && rectsIntersect(box, e.labelPill, 12)) return true;
+        for (let k = 0; k + 1 < e.points.length; k++) {
+          const p1 = e.points[k]!;
+          const p2 = e.points[k + 1]!;
+          const segBox = {
+            x: Math.min(p1.x, p2.x),
+            y: Math.min(p1.y, p2.y),
+            width: Math.max(1, Math.abs(p2.x - p1.x)),
+            height: Math.max(1, Math.abs(p2.y - p1.y))
+          };
+          if (rectsIntersect(box, segBox, 12)) return true;
+        }
+      }
+      return false;
+    };
+    while (noteCollides(nx, ny)) {
+      nx += stepDir;
     }
     rawNotes.push({
       id: note.id,

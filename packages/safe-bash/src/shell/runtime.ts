@@ -73,6 +73,36 @@ import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
 
+async function loopCount(argument: string, budget: Budget, signal: AbortSignal): Promise<number | undefined> {
+  const checkpoint = async (): Promise<void> => {
+    budget.cpuCheckpoint();
+    signal.throwIfAborted();
+    await yieldTurn(signal);
+  };
+  let start = 0, end = argument.length;
+  while (start < end && " \t\n\r\v\f".includes(argument[start]!)) {
+    if (start % 1024 === 0) await checkpoint();
+    start++;
+  }
+  while (end > start && " \t\n\r\v\f".includes(argument[end - 1]!)) {
+    if (end % 1024 === 0) await checkpoint();
+    end--;
+  }
+  const negative = argument[start] === "-";
+  if (negative || argument[start] === "+") start++;
+  if (start === end) return undefined;
+  let value = 0n;
+  for (let index = start; index < end; index++) {
+    if (index % 1024 === 0) await checkpoint();
+    const digit = argument.charCodeAt(index) - 48;
+    if (digit < 0 || digit > 9) return undefined;
+    value = value * 10n + BigInt(digit);
+    // Keep arithmetic bounded even for arbitrarily long decimal arguments.
+    if (value > (negative ? 9223372036854775808n : 9223372036854775807n)) return undefined;
+  }
+  return Number(negative ? -value : value);
+}
+
 export const defaultLimits: Required<ShellLimits> = {
   maxParseUnits: defaultMaxParseUnits,
   maxInputBytes: 32 * 1024 * 1024,
@@ -6655,8 +6685,8 @@ export class Runtime {
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
-      const levels = args[0] === undefined ? 1 : Number(args[0]);
-      if (args.length > 1 || !Number.isSafeInteger(levels)) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      const levels = args[0] === undefined ? 1 : await loopCount(args[0], this.budget, this.signal);
+      if (args.length > 1 || levels === undefined) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
         if (state.loopDepth) throw completedExit(1, "break", state.loopDepth);

@@ -1279,5 +1279,35 @@
     "gdaDependencyRun": 35843092542,
     "publication": "unverified",
     "wholeGoalComplete": false
+  },
+  "linuxOptionalServiceExecution": {
+    "evidence": "docs/ssconvert/linux-optional-service-native-capture.json",
+    "nativeRuns": [
+      35843698948,
+      35843700040,
+      35843702059
+    ],
+    "excelFormats": [
+      "BIFF7",
+      "BIFF8",
+      "DSF",
+      "XLSX",
+      "XLSX strict"
+    ],
+    "excelSimpleCorpusQualified": true,
+    "exactSurfaces": [
+      "root-sdk-read-and-write",
+      "root-shell-read-and-write",
+      "xml-formula-replay",
+      "browser",
+      "dedicated-worker"
+    ],
+    "nativeGlossary": "fails1-gsf-module-absent-no-output",
+    "datasource": "unfed-only-explicit-trusted-scalar-adapter-native-producer-watchers-open",
+    "browserConsoleMessages": 0,
+    "screenshotInspected": true,
+    "productCodeChangeRequired": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

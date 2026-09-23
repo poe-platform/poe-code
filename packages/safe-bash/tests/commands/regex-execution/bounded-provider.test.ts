@@ -68,6 +68,63 @@ test("production provider supports bounded ASCII ERE selection", async () => {
   assert.deepEqual(spans(await run(request(grep(["[[:digit:]]+"]), ["x123y"]))), [[1, 4]]);
 });
 
+test("literal alternatives scan long snapshot rows within the default allocation budget", async () => {
+  const pattern = "blocked|security|network error|access denied|whoa there|request has been blocked|challenge|captcha|forbidden";
+  for (const length of [4096, 16384]) {
+    const input = "- generic: " + "x".repeat(length);
+    assert.deepEqual(spans(await run(request(grep([pattern], { insensitive: true }), [input]))), [[]]);
+    assert.deepEqual(spans(await run(request(grep([pattern], { insensitive: true }), [input + " ACCESS DENIED"]))), [[input.length + 1, input.length + 14]]);
+  }
+});
+
+test("literal alternatives preserve longest matches, pattern priority and word boundaries", async () => {
+  for (const [patterns, input, overrides, expected] of [
+    [["a|ab"], "zab", {}, [1, 3]],
+    [["b|bb", "a"], "abb", {}, [1, 3]],
+    [["none|absent", "a|ab"], "ab", {}, [0, 2]],
+    [["a|ab"], "AB", { whole: true, insensitive: true }, [0, 2]],
+    [["a|ab"], "abc", { whole: true }, []],
+    [["a|ab"], "xab ab!", { word: true }, [4, 6]],
+    [["a|ab"], "éAB", { insensitive: true }, [2, 4]],
+    [["a|ab"], "a|ab", { fixed: true }, [0, 4]],
+    [["a|ab"], "a|ab", { extended: false }, [0, 4]],
+    [["a||ab"], "zab", {}, [0, 0]],
+    [["a|a.b"], "aXb", {}, [0, 3]],
+    [[String.raw`a\|ab`], "a|ab", {}, [0, 4]],
+  ] as const) assert.deepEqual(spans(await run(request(grep([...patterns], overrides), [input]))), [expected]);
+  assert.deepEqual(spans(await run({ id: 1, descriptor: grep(["a|ab", "b|bc"]), rows: [row("zababc", true)] })), [[1, 3, 3, 5]]);
+  const invalid = await run({ id: 1, descriptor: grep(["a|b"]), rows: [{ ...row(""), bytes: Uint8Array.of(0xff) }] });
+  assert.ok("error" in invalid);
+  assert.match(invalid.error, /UTF-8/);
+});
+
+test("literal alternatives retain explicit work, allocation, state and match limits", async () => {
+  for (const options of [{ maxWork: 128 }, { maxAllocationUnits: 128 }, { maxStates: 2 }]) {
+    const reply = await run(request(grep(["needle|other"], { insensitive: true }), ["x".repeat(256)]), options);
+    assert.ok("error" in reply);
+    assert.match(reply.error, /work|allocation|states/);
+  }
+  const reply = await run({ id: 1, descriptor: grep(["a|bb"]), rows: [row("abb", true)] }, { maxMatchesPerLine: 1 });
+  assert.ok("error" in reply);
+  assert.match(reply.error, /matches per line/);
+});
+
+test("literal alternative scans preserve cancellation identity and worker reuse", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({ maxWorkers: 1 }));
+  const controller = new AbortController();
+  const session = executor.open(controller.signal);
+  const descriptor = grep(["a".repeat(2048) + "z|" + "a".repeat(2048) + "y"], { insensitive: true });
+  const pending = session.run(descriptor, [row("a".repeat(16384))]);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  controller.abort(false);
+  await rejected;
+  await session.close();
+  const recovered = executor.open(new AbortController().signal);
+  try { assert.deepEqual(await recovered.run(grep(["a|ab"]), [row("ab")]), [[{ start: 0, end: 2 }]]); }
+  finally { await recovered.close(); await executor.dispose(); }
+});
+
 test("fixed literals, BRE subset, pattern lists, whole and empty patterns retain exact spans", async () => {
   assert.deepEqual(spans(await run(request(grep(["a+b"], { fixed: true }), ["a+b"]))), [[0, 3]]);
   assert.deepEqual(spans(await run(request(grep(["ab*"], { extended: false }), ["zabb"]))), [[1, 4]]);

@@ -9,7 +9,9 @@ import { retainValues } from "./resources.js";
 import { getSandboxPrototype, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { defineDataProperty } from "./globals/object-array.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
-import type { Scope } from "./scope.js";
+import { captureScopeDataRoots, visitScopeDataRoots, type Scope } from "./scope.js";
+import { appendScopeDataRoot } from "./scope-data-roots.js";
+import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { addPrivateElement, type PrivateName, type PrivateElement } from "./private-state.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { propertyFunctionName } from "./property-key.js";
@@ -131,21 +133,31 @@ export function createClassConstructor(
   const classContext = { ...context, inferredName: undefined, strict: true };
   const constructorElement = node.body.body.find((element): element is Extract<ClassElement, { type: "MethodDefinition" }> => element.type === "MethodDefinition" && element.kind === "constructor");
   const derived = node.superClass !== undefined;
+  const appendCapturedValues = (append: (value: SandboxValue) => void): void => {
+    // Snapshot every field/method before descendants run. Native array hooks
+    // must never receive the private vector or strip its retained captures.
+    const length = fields.length;
+    for (let index = 0; index < length; index++) {
+      if (!(index in fields)) continue;
+      const field = fields[index]!;
+      if (field.privateName === undefined) append(field.key);
+      else { append(field.key); append(field.privateName); }
+    }
+    for (const [name, element] of classOrigins.get(constructor)?.privateMethods ?? []) {
+      append(name);
+      if (element.kind === "accessor") { append(element.get); append(element.set); }
+      else append(element.value);
+    }
+  };
   const constructor = createSandboxClosure({
     guest: true,
     sandbox: true,
     name: node.id?.name ?? context.inferredName ?? "",
     length: constructorElement === undefined ? 0 : getFunctionLength(constructorElement.value.params),
     sourceRange: functionSources.get(node),
-    retainedValues: () => {
-      const values: SandboxValue[] = [...scope.retainedDataRoots(), ...fields.flatMap(field => field.privateName === undefined ? [field.key] : [field.key, field.privateName])];
-      for (const [name, element] of classOrigins.get(constructor)?.privateMethods ?? []) {
-        values.push(name);
-        if (element.kind === "accessor") values.push(element.get, element.set);
-        else values.push(element.value);
-      }
-      return values;
-    },
+    retainedValues: () => captureScopeDataRoots(scope, values => {
+      appendCapturedValues(value => appendScopeDataRoot(values, value));
+    }),
     call: () => { throw new TypeError("Class constructor cannot be invoked without 'new'."); },
     construct: async (args, invocation) => {
       const prototype = materializeFunctionProperties(constructor).prototype as SandboxObject;
@@ -182,6 +194,10 @@ export function createClassConstructor(
     }
   });
 
+  registerIndexedClosureCaptures(constructor, append => {
+    visitScopeDataRoots(scope, append);
+    appendCapturedValues(append);
+  });
   classOrigins.set(constructor, { node, scope, fields, initialized: false, privateMethods: new Map() });
   registerFunctionRealm(constructor, context.budget);
   const dynamicSource = dynamicNodeSources.get(node);

@@ -1,0 +1,129 @@
+{
+  "recordedAt": "2026-09-23T18:42:10.524235+00:00",
+  "logs": {
+    "guarded-lint.log": {
+      "sha256": "69a51af768bc8f7b4aeda25883cd8a7247ad11f7b90cd67234235dfe896d2386"
+    },
+    "guarded-lint-rebased.log": {
+      "sha256": "2fabec68c2982a45d7399e0d8f9443518d7142c33ea32b5d64fee4a4d18985b5"
+    },
+    "safe-bash-rebased-build.log": {
+      "sha256": "ff6a6b917e8ab5fbbd18a7fbc97859ee5285646cddf3e8e58b90de36808e5bb0"
+    },
+    "rebased-focused.log": {
+      "sha256": "04862c0bd94ed246499c29ddc9ce79b1cf693cea62e8129e60ac27199a757adc"
+    },
+    "rebased-integration.log": {
+      "sha256": "8f1317026403577f572f2e90fcb6be80e2685d96d3f5029bb529eab8366ecf69"
+    },
+    "final-source-tests.log": {
+      "sha256": "c5f6af11682679afc45822323be5dc3fd0654b98083d7972054ea3a39741c376"
+    },
+    "range-rebased.json": {
+      "sha256": "dcb557b0110466134fdca025024c8fd72e05766d1488e94da459736b3926be79"
+    }
+  },
+  "lint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16645,
+      "linted": 16645,
+      "ignored": 2241,
+      "unconfigured": 39655,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "timings": {
+      "traversalMs": 365208,
+      "parsingMs": 3560,
+      "initializationMs": 17476
+    },
+    "cacheHits": 16574
+  },
+  "tinyRegistry": {
+    "version": "0.1.28",
+    "gitHead": "4858bce704065280c94182262d6f81a239ffba29",
+    "dist-tags": {
+      "latest": "0.1.28"
+    }
+  },
+  "head": "f465323a68578f9cdd58b1c6c045f8af404cc93d",
+  "scope": "Six atomic release-feedback repairs. No ssconvert family closure.",
+  "delivery": {
+    "localCommits": [
+      {
+        "sha": "4858bce704065280c94182262d6f81a239ffba29",
+        "change": "Align tiny-stdio workspace baseline with published protocol API"
+      },
+      {
+        "sha": "9f566d23a1445c9c376f8ed7ba0ced5fc3a7497c",
+        "change": "Current opt-in quota expectations"
+      },
+      {
+        "sha": "d2f36ba483944af1d93fd3301cfb2baeef56eb21",
+        "change": "Current typed CSV quoting"
+      },
+      {
+        "sha": "edcb0c2dec503aafc81a56e0fe27c508df621030",
+        "change": "Current env argv0 host"
+      },
+      {
+        "sha": "8af2b751bca8a7440249c0f12a7d7801f06c9e9c",
+        "change": "Portable native curl stdin"
+      },
+      {
+        "sha": "f465323a68578f9cdd58b1c6c045f8af404cc93d",
+        "change": "GNU9.11 fold Unicode profile"
+      }
+    ],
+    "remoteMain": {
+      "sha": "f465323a68578f9cdd58b1c6c045f8af404cc93d",
+      "method": "Exact SSH ls-remote refs/heads/main; all six commits are ancestors",
+      "verified": true
+    },
+    "publication": {
+      "tinyStdio": {
+        "version": "0.1.28",
+        "workflow": 35902888726,
+        "status": "Workflow successful; npm latest/version/gitHead verified",
+        "gitHead": "4858bce704065280c94182262d6f81a239ffba29"
+      },
+      "poeCode": {
+        "status": "Pending; previous fresh-unit release job still running, containing repair release queued",
+        "containingWorkflow": 35904170924,
+        "containingHead": "f465323a68578f9cdd58b1c6c045f8af404cc93d",
+        "lastSuccessfulVersion": "17.0.34"
+      }
+    }
+  },
+  "validation": {
+    "maintainedBuild": "Selected safe-bash27-build closure passed after first rebase",
+    "rebasedTests": {
+      "passed": 301,
+      "failed": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "integrationRegistration": {
+      "passed": 121,
+      "failed": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "finalRebase": {
+      "base": "98e6ad99b7",
+      "ownedInputsUnchanged": 12,
+      "sourceTests": {
+        "passed": 272,
+        "failed": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "env": "Env commands, Shell and helper inputs unchanged from qualified29-test public-host run; no new public rebuild claimed after final upstream-only rebase."
+    },
+    "limits": "Full lint/build counts refer to the recorded candidate before final upstream-only rebase. Broader incoming office/interpreter/XZ changes retain their own validation and CI obligations."
+  }
+}

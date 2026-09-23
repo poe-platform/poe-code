@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
-import {admitCharacterMaps, admitMetricTables} from "./font-admission.js";
+import {admitTrueTypeFont} from "./font-admission.js";
 import {decodePng} from "./png.js";
 import {imageBox} from "./image-box.js";
 import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun } from "./model.js";
@@ -45,25 +45,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   for (const font of document.fonts) {
     if (!font.id || ids.has(font.id)) unsupported("Duplicate/empty font identity");
     ids.add(font.id); charge("fonts", 1); charge("fontBytes", font.bytes.length); charge("objects", 8);
-    if (font.bytes.length < 12) unsupported("Supply an sfnt TrueType glyf font");
-    const signature = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength).getUint32(0);
-    if (signature !== 0x00010000) unsupported("Only sfnt TrueType glyf fonts are supported; CFF and compressed containers are forbidden");
-    const view = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength);
-    const count = view.getUint16(4);
-    if (!count || count > 128 || 12 + count * 16 > font.bytes.length) unsupported("Invalid sfnt table directory");
-    const tags = new Set<number>(); const regions: {start: number; end: number}[] = [];
-    const tables = new Map<number, {start: number; length: number}>();
-    for (let i = 0; i < count; i++) {
-      charge("layoutWork", 1);
-      const record = 12 + i * 16; const tag = view.getUint32(record); const start = view.getUint32(record + 8); const length = view.getUint32(record + 12);
-      if (tags.has(tag) || start < 12 + count * 16 || start + length > font.bytes.length || regions.some(r => start < r.end && start + length > r.start)) unsupported("Invalid sfnt table range");
-      tags.add(tag); regions.push({start, end: start + length});
-      tables.set(tag, {start, length});
-      if (tag === 0x636d6170) admitCharacterMaps(view, start, length, unsupported, amount => charge("layoutWork", amount));
-    }
-    if (!tags.has(0x636d6170)) unsupported("Missing font character map");
-    if (!tags.has(0x676c7966) || !tags.has(0x6c6f6361)) unsupported("Only TrueType glyf outline programs are supported");
-    admitMetricTables(view, tables, unsupported, amount => charge("layoutWork", amount));
+    admitTrueTypeFont(font.bytes, unsupported, amount => charge("layoutWork", amount));
   }
   const pdf = await PDFDocument.create({updateMetadata: false}); pdf.registerFontkit(fontkit);
   const textString = (text: string) => pdfTextString(text, limits.outputBytes, amount => charge("layoutWork", amount));
@@ -316,3 +298,5 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
 }
 
 export { suppliedDefaultFont } from "./default-font.js";
+
+export {admitTrueTypeFont} from "./font-admission.js";

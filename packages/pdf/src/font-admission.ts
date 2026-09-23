@@ -58,3 +58,27 @@ export function admitMetricTables(view: DataView, tables: ReadonlyMap<number, {s
     }
   }
 }
+
+/** Admit a bounded sfnt TrueType outline program before a downstream parser allocates.
+ * The caller admits/copies bytes and supplies its own failure and work policy. */
+export function admitTrueTypeFont(bytes: Uint8Array, fail: (message: string) => never, work: (amount: number) => void): void {
+  if (bytes.length < 12) fail("Supply an sfnt TrueType glyf font");
+  const signature = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0);
+  if (signature !== 0x00010000) fail("Only sfnt TrueType glyf fonts are supported; CFF and compressed containers are forbidden");
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const count = view.getUint16(4);
+  if (!count || count > 128 || 12 + count * 16 > bytes.length) fail("Invalid sfnt table directory");
+  const tags = new Set<number>(); const regions: {start: number; end: number}[] = [];
+  const tables = new Map<number, {start: number; length: number}>();
+  for (let i = 0; i < count; i++) {
+    work(1);
+    const record = 12 + i * 16; const tag = view.getUint32(record); const start = view.getUint32(record + 8); const length = view.getUint32(record + 12);
+    if (tags.has(tag) || start < 12 + count * 16 || start + length > bytes.length || regions.some(r => start < r.end && start + length > r.start)) fail("Invalid sfnt table range");
+    tags.add(tag); regions.push({start, end: start + length});
+    tables.set(tag, {start, length});
+    if (tag === 0x636d6170) admitCharacterMaps(view, start, length, fail, work);
+  }
+  if (!tags.has(0x636d6170)) fail("Missing font character map");
+  if (!tags.has(0x676c7966) || !tags.has(0x6c6f6361)) fail("Only TrueType glyf outline programs are supported");
+  admitMetricTables(view, tables, fail, work);
+}

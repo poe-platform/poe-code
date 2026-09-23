@@ -1,0 +1,48 @@
+{
+  "scope": "Shared bounded TrueType font admission for PDF painters",
+  "status": "five-original-memory-controls-and-existing-renderer-qualified",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "files": [
+    {
+      "path": "packages/pdf/src/font-admission.ts",
+      "sha256": "fc76fd67f124261dcdd47e483aa1c74b03b8cd0c92456eaa1df006c50c0feafd"
+    },
+    {
+      "path": "packages/pdf/src/index.ts",
+      "sha256": "f241259b1192f5319c6960761002352c1f9a8eee621e9fd1a794e0ad575792a2"
+    },
+    {
+      "path": "packages/pdf/src/font-admission.test.ts",
+      "sha256": "5e00f3b33655e1ebac9dc7ee83220412cd2518279f5365acbfd3fe867fa1ceda"
+    }
+  ],
+  "red": {
+    "failed": 5,
+    "logSha256": "34e2c76f9b6fb51218abf9f59510cebf77b8fcea9ae5738a28d9766f327c111f"
+  },
+  "checks": {
+    "tests": {
+      "command": "npm test --workspace=@poe-code/pdf",
+      "passed": 54,
+      "files": 7,
+      "logSha256": "eb814662b14d0b24f61a3f348833fac0e3cb969ff5d20eaf11edf3bf764577bc"
+    },
+    "lint": {
+      "command": "npm run lint --workspace=@poe-code/pdf",
+      "status": "passed",
+      "logSha256": "946146d829f93f9bb23fde613ed12ecfff2b25103b0fe4afc7f785e8812c8c4a"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/pdf",
+      "status": "passed",
+      "logSha256": "72d56d102b3ddf9ca81abe66abe2d7c7107f47b05fb63078e3937766a3c95aa5"
+    }
+  },
+  "contract": "Caller admits/owns bytes and supplies fail/work policy. Shared admission checks sfnt directory,nonoverlapping ranges,bounded cmap expansion,glyf/loca and metric tables before downstream parser allocation. Existing renderPdf uses the same admission body;no rendering support expansion.",
+  "remaining": [
+    "Explicit ssconvert font authority and supported native materialized cell style painter with failing memory controls",
+    "Native/public PDF visual qualification",
+    "All original families and successful containing publication"
+  ]
+}

@@ -5,6 +5,9 @@ Private PDF-rendering workspace used by the document-conversion engine.
 and supplied TrueType fonts. `suppliedDefaultFont()` returns the packaged
 JetBrains Mono font. `pdfCapabilities()` describes the supported profile;
 `PdfError` reports capability, budget, and cancellation failures.
+`admitTrueTypeFont(bytes, fail, work)` validates sfnt tables, character maps,
+outline ranges and metrics before a custom PDF painter parses supplied fonts.
+The caller bounds and owns the bytes; `work` can refuse coverage expansion.
 
 ## Configuration
 

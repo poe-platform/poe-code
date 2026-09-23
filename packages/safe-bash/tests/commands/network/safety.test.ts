@@ -1,13 +1,76 @@
 import assert from "node:assert/strict";
 import { setTimeout as sleep } from "node:timers/promises";
 import { test } from "node:test";
-import { FsError, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { collectBytes, FsError, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
 import { createCurlCommand, type HttpRequest, type HttpResponse } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
+import { networkCommands } from "../../../src/commands/network/index.js";
+import { Shell } from "../../../src/shell/shell.js";
 
 function response(body: ByteSource = toByteSource("ok")): HttpResponse {
   return { status: 200, statusText: "OK", headers: [], body, async dispose() {} };
 }
+
+test("multipart Content-Type preserves MIME parameters and following form attributes", async () => {
+  for (const option of ["-F", "--form"]) {
+    for (const type of ['text/plain;charset=UTF-8', 'application/json; charset="UTF-8"', 'text/plain;note="a;b";charset=UTF-8']) {
+      for (const value of ["inline", "@input", "<input"]) {
+        const fs = await fixture();
+        const payload = Buffer.from([249, 0, 248, 10]);
+        await fs.writeFile("/work/input", payload);
+        let body = Buffer.alloc(0);
+        const result = await run([option, `field=${value};type=${type};filename=chosen`, "http://127.0.0.1/"], { fs, options: {
+          transport: async request => {
+            body = Buffer.from(await collectBytes(request.body!, { signal: request.signal, maxBytes: 100000 }));
+            return response();
+          },
+        } });
+        assert.equal(result.exitCode, 0, result.stderr.toString());
+        assert.ok(body.includes(Buffer.from(`Content-Type: ${type}\r\n`)), body.toString());
+        assert.ok(body.includes(Buffer.from('name="field"; filename="chosen"\r\n')));
+        const start = body.indexOf("\r\n\r\n") + 4;
+        assert.deepEqual(body.subarray(start, body.lastIndexOf("\r\n--")), value === "inline" ? Buffer.from("inline") : payload);
+      }
+    }
+  }
+});
+
+test("multipart MIME parameters reject malformed metadata before transport", async () => {
+  for (const type of ['text/plain;charset=UTF-8\r\nInjected: yes', 'text/plain;charset=\0', 'text/plain;charset="unfinished', 'text/plain;charset=', 'text/plain;=UTF-8']) {
+    let calls = 0;
+    const result = await run(["-F", `field=value;type=${type}`, "http://127.0.0.1/"], { options: {
+      transport: async () => { calls++; return response(); },
+    } });
+    assert.equal(result.exitCode, 2);
+    assert.equal(calls, 0);
+  }
+});
+
+test("Shell multipart charset grammar agrees with native curl and form-string stays literal", async () => {
+  const host = await server();
+  try {
+    const fs = await fixture();
+    const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+    for (const option of ["-F", "--form"]) {
+      for (const type of ['text/plain;charset=UTF-8', 'application/json; charset="UTF-8"', 'text/plain;note="a;b";charset=UTF-8']) {
+        const field = `field=inline;type=${type};filename=chosen`;
+        const actual = await shell.exec(`curl -s ${option === "-F" ? "-F" : "--form "}'${field}' '${host.origin}'`);
+        assert.equal(actual.exitCode, 0, actual.stderr);
+        const virtual = host.requests.at(-1)!.body;
+        await promisify(execFile)("/usr/bin/curl", ["-q", "-sS", "--noproxy", "*", option, field, host.origin]);
+        const native = host.requests.at(-1)!.body;
+        const part = (body: Buffer) => body.subarray(body.indexOf("\r\n") + 2, body.lastIndexOf("\r\n--"));
+        assert.deepEqual(part(virtual), part(native));
+      }
+    }
+    const literal = 'field=inline;type=text/plain;charset=UTF-8';
+    const actual = await shell.exec(`curl -s --form-string '${literal}' '${host.origin}'`);
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.ok(host.requests.at(-1)!.body.includes(Buffer.from('\r\n\r\ninline;type=text/plain;charset=UTF-8\r\n')));
+  } finally { await host.close(); }
+});
 
 test("registration requires an explicit authorizer", () => {
   assert.throws(() => createCurlCommand({} as never), /authorizer/);

@@ -6,6 +6,7 @@ import { pathOf } from "../internal.js";
 import type { CurlArguments, DataArgument } from "./args.js";
 import { encode } from "./shared.js";
 import { CurlError, type NetworkLimits } from "./types.js";
+import { formContentType } from "./form-content-type.js";
 
 interface Part {
   readonly encoder?: string;
@@ -107,7 +108,7 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
     while (end < input.length && input[end] !== ",") {
       const attributeStart = end + 1;
       if (input.startsWith("type=", attributeStart)) {
-        const attribute = formWord(input, attributeStart + 5, upload);
+        const attribute = formContentType(input, attributeStart + 5, upload);
         entry.type = attribute.value;
         end = attribute.end;
       } else if (input.startsWith("filename=", attributeStart)) {
@@ -122,7 +123,6 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
           throw new CurlError(2, "Unsupported multipart transfer encoder");
       } else throw new CurlError(2, "Unsupported multipart form attribute");
     }
-    if (entry.type !== undefined && !/^[\w!#$&^_.+-]+\/[\w!#$&^_.+-]+$/.test(entry.type)) throw new CurlError(2, "Invalid multipart content type");
     entries.push(entry);
     if (end === input.length) break;
     if (!upload) throw new CurlError(2, "Unsupported multipart file list");

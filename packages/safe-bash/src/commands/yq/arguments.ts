@@ -1,3 +1,4 @@
+import type { MikeFormat } from "./formats.js";
 import { getCommandArguments, type CommandContext } from "../../contracts/index.js";
 import { MikeError } from "./native-work.js";
 
@@ -159,10 +160,12 @@ export function parseMikeArguments(context: CommandContext): MikeArguments {
   return result;
 }
 
-export function mikeFormat(value: string): "auto" | "yaml" | "json" {
+export function mikeFormat(value: string): "auto" | MikeFormat {
   if (value === "auto" || value === "a" || value === "") return "auto";
   if (value === "yaml" || value === "y") return "yaml";
   if (value === "json" || value === "j") return "json";
-  if (["xml", "x", "csv", "c", "tsv", "t", "props", "p", "toml", "ini", "i", "hcl", "h", "lua", "l", "kyaml", "ky", "base64", "uri", "shell", "s"].includes(value)) throw new MikeError(`format '${value}' is not supported by this bounded yq profile`);
+  const formats: Readonly<Record<string, MikeFormat>> = { xml: "xml", x: "xml", csv: "csv", c: "csv", tsv: "tsv", t: "tsv", props: "props", p: "props", toml: "toml", ini: "ini", i: "ini", lua: "lua", l: "lua", base64: "base64", uri: "uri", shell: "shell", s: "shell" };
+  if (Object.hasOwn(formats, value)) return formats[value]!;
+  if (["hcl", "h", "kyaml", "ky"].includes(value)) throw new MikeError(`format '${value}' is not supported by this bounded yq profile`);
   throw new MikeError(`unknown format '${value}' please use [yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i]`);
 }

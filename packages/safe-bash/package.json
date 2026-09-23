@@ -575,6 +575,7 @@
         "src/commands/yq/comments.ts",
         "src/commands/yq/evaluate.ts",
         "src/commands/yq/expression.ts",
+        "src/commands/yq/formats.ts",
         "src/commands/yq/inplace.ts",
         "src/commands/yq/mike.ts",
         "src/commands/yq/native-encoder.ts",

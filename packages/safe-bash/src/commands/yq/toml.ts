@@ -16,7 +16,7 @@ class TomlParser {
   readonly #tables = new WeakMap<Table, TableState>();
   readonly #arraysOfTables = new WeakSet<Json[]>();
 
-  constructor(readonly source: string, readonly work: YqOwnedWork, readonly ledger: YqLedger) {}
+  constructor(readonly source: string, readonly work: Pick<YqOwnedWork, "charge" | "assertOpen">, readonly ledger: YqLedger) {}
 
   #syntax(): never { throw new YqError("input", "INPUT_TOML_SYNTAX", 5, undefined, this.#line, this.#column); }
   #conflict(): never { throw new YqError("schema", "SCHEMA_DUPLICATE_KEY", 5, undefined, this.#line, this.#column); }
@@ -492,7 +492,7 @@ class TomlParser {
   }
 }
 
-export async function parseTomlDocument(text: string, work: YqOwnedWork, ledger: YqLedger, rawBytes: number): Promise<Json> {
+export async function parseTomlDocument(text: string, work: Pick<YqOwnedWork, "charge" | "assertOpen">, ledger: YqLedger, rawBytes: number): Promise<Json> {
   work.assertOpen();
   ledger.beginDocument(rawBytes);
   return new TomlParser(text, work, ledger).parse();

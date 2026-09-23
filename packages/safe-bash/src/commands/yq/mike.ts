@@ -1,8 +1,9 @@
+import { decodeFormat, encodeFormat } from "./formats.js";
 import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
-import { decodeDocuments, loadYaml, root, scalar, truth, type Candidate } from "./nodes.js";
+import { loadYaml, root, scalar, truth, type Candidate } from "./nodes.js";
 import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
@@ -73,7 +74,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
         const separator = !splitProgram && previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
-        let encoded = await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
+        let encoded = output !== "yaml" && output !== "json" ? await encodeFormat(candidate, output, yaml, work) : await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
         if (options.nulOutput) {
           if (encoded.endsWith("\r\n")) encoded = encoded.slice(0, -2);
           else if (encoded.endsWith("\n") || encoded.endsWith("\r")) encoded = encoded.slice(0, -1);
@@ -87,7 +88,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         if (splitProgram) {
           const names = await evaluator.run(splitProgram, [candidate]);
           if (names.length !== 1 || !yaml.isScalar(names[0]!.node) || typeof names[0]!.node.value !== "string") throw new MikeError("split expression must return a string");
-          const path = pathOf(context, `${names[0]!.node.value}.${output === "yaml" ? "yml" : "json"}`);
+          const path = pathOf(context, `${names[0]!.node.value}.${output === "yaml" ? "yml" : output}`);
           const parent = path.slice(0, path.lastIndexOf("/")) || "/";
           await work.track(context.fs.mkdir(parent, { recursive: true, signal: work.signal }));
           work.assertOpen();
@@ -146,7 +147,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
             end = newline < 0 ? text.length : newline + 1;
           }
         }
-        await decodeDocuments(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, async document => {
+        await decodeFormat(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, async document => {
           if (options.all) { if (all.length >= limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments"); all.push(root(document)); }
           else await print(await evaluator.run(program, [root(document)]));
         });

@@ -223,6 +223,12 @@ for spacing, prefix, cancellation and resource limits.
 
 These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`.
 
+`mikeYqCommands()` from `/commands/yq` enables bounded Mike-style format
+conversion: `yq -p csv -o json . records.csv` reads a table, and
+`yq -o csv . records.yaml` writes one. Input and output support CSV, TSV,
+properties, XML, INI, TOML, base64 and URI; shell and Lua are output only.
+See the [format profile](src/commands/yq/FORMATS.md) for supported shapes and limits.
+
 Import `csvcutCommands` from `@poe-platform/safe-bash/commands/csvcut` and pass it
 to `shell.use(csvcutCommands())` to enable CSV projection. For example,
 `printf 'a,b\nx,y\n' | csvcut -c2,1,2` emits `b,a,b\ny,x,y\n`.

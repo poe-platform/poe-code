@@ -8,6 +8,8 @@ import { lmbcsGroups } from "./lotus-charset.js";
 import { readLotusWorks } from "./lotus-works.js";
 import { worksFunctions } from "./lotus-works-functions.js";
 import { lotusFunctions, lotusFunctionsByName } from "./lotus-functions.js";
+import { gnumericGrammar } from "../formulas/conventions.js";
+import { quoteFormulaString } from "../formulas/serialization.js";
 import { biffDbcsTables } from "../encoding/biff-dbcs-tables.js";
 
 export function probeLotus(bytes: Uint8Array, context: CapabilityContext): boolean {
@@ -191,6 +193,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   };
   let database: LotusRldb | undefined, databaseType = 0;
   const styles = new Map<number, Record<string, ImportedValue>>();
+  const names = new Map<string, { first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } }>();
   const sheets: { id: string; name: string; cells: Map<string, Cell>; columns: Map<number, AxisMetadata>; rows: Map<number, AxisMetadata>; defaultColumnWidth?: number; view: Record<string, ImportedValue>; metadata: UnsupportedRecord[]; formats: Map<string, string> }[] = [];
   const sheet = (index: number) => {
     if (index >= context.limits.sheets) throw new SsconvertError("resource-limit", "ssconvert Lotus sheets limit exceeded");
@@ -210,6 +213,27 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       continue;
     }
     if (id === 1) { if (modern) break; active = -1; continue; }
+    if (id === (modern ? 9 : 11)) {
+      consumeOperation();
+      if (length < (modern ? 26 : 24)) { await warn(`Record with type 0x${id.toString(16)} has wrong length ${length}.`); continue; }
+      const type = modern ? data.u16(0) : 0;
+      if (type > 1) {
+        sheet(0).metadata.push({ source: "lotus", kind: "NamedRange", disposition: "retained", data: {
+          type, payload: Array.from(data.bytes, byte => byte.toString(16).padStart(2, "0")).join("")
+        } });
+        await warn(`Ignoring unqualified Lotus named range type ${type}.`); continue;
+      }
+      const name = await lmbcs(data.bytes.subarray(modern ? 2 : 0, modern ? 18 : 16), group, context);
+      if (!name) { await warn("Ignoring empty Lotus name."); continue; }
+      const first = modern ? { row: data.u16(18), sheet: data.u8(20), column: data.u8(21) } : { row: data.u16(18), column: data.u16(16), sheet: active };
+      const last = modern ? { row: data.u16(22), sheet: data.u8(24), column: data.u8(25) } : { row: data.u16(22), column: data.u16(20), sheet: active };
+      if (first.column >= 256 || last.column >= 256 || first.sheet < 0 || last.sheet < 0) {
+        await warn(`Ignoring invalid Lotus named range '${name}'.`); continue;
+      }
+      if (names.has(name)) { await warn(`Ignoring duplicate Lotus name '${name}'.`); continue; }
+      sheet(first.sheet); sheet(last.sheet);
+      names.set(name, { first, last }); continue;
+    }
     if (modern && id >= 0x800 && id <= 0x804) {
       const runSize = version >= 0x1005 ? 4 : 2;
       const readRun = (offset: number) => runSize === 4 ? data.u32(offset) : data.u16(offset);
@@ -484,9 +508,41 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   if (database) await warn(database.root.remaining ? "Unfinished rldb." : "Unused rldb.");
   context.signal.throwIfAborted();
   if (!sheets.length) throw new SsconvertError("io", "Error while reading lotus workbook.");
+  let nameTextBytes = 0;
+  const chargeNameText = (text: string, escapeQuotes = false) => {
+    for (const character of text) {
+      context.signal.throwIfAborted();
+      const point = character.codePointAt(0)!;
+      nameTextBytes += (point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4) + (escapeQuotes && (character === "'" || character === "\\") ? 1 : 0);
+      if (nameTextBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
+        throw new SsconvertError("resource-limit", "ssconvert Lotus named-expression text limit exceeded");
+    }
+  };
+  const importedNames = [...names].map(([name, { first, last }]) => {
+    consumeOperation(); chargeNameText(name); chargeNameText("=");
+    const qualifier = (index: number) => {
+      chargeNameText("''!"); chargeNameText(sheets[index]!.name, true);
+      return quoteFormulaString(sheets[index]!.name, "'", gnumericGrammar) + "!";
+    };
+    const address = (row: number, column: number) => {
+      const a1 = formatA1(row, column); let digits = 0;
+      while (a1[digits]! >= "A" && a1[digits]! <= "Z") digits++;
+      const result = "$" + a1.slice(0, digits) + "$" + a1.slice(digits);
+      chargeNameText(result); return result;
+    };
+    const single = first.sheet === last.sheet && first.row === last.row && first.column === last.column;
+    const firstQualifier = qualifier(first.sheet), firstAddress = address(first.row, first.column);
+    let end = "";
+    if (!single) {
+      chargeNameText(":");
+      const lastQualifier = first.sheet === last.sheet ? "" : qualifier(last.sheet), lastAddress = address(last.row, last.column);
+      end = ":" + lastQualifier + lastAddress;
+    }
+    return { name, expression: "=" + firstQualifier + firstAddress + end };
+  });
   return { sheets: sheets.map(s => ({ id: s.id, name: s.name, size: { rows: 65536, columns: 256 }, cells: [...s.cells.values()].map(cell => s.formats.has(`${cell.row}:${cell.column}`) ? { ...cell, format: s.formats.get(`${cell.row}:${cell.column}`)! } : cell).sort((a, b) => a.row - b.row || a.column - b.column),
     ...(s.rows.size ? { rows: [...s.rows.values()].sort((a, b) => a.index - b.index) } : {}),
     ...(s.columns.size ? { columns: [...s.columns.values()].sort((a, b) => a.index - b.index) } : {}),
     ...(Object.keys(s.view).length || s.defaultColumnWidth !== undefined ? { view: { ...s.view, ...(s.defaultColumnWidth !== undefined ? { defaultColumnWidth: s.defaultColumnWidth } : {}) } } : {}),
-    ...(s.metadata.length ? { unsupportedRecords: s.metadata } : {}) })), activeSheet: sheets[0]!.id };
+    ...(s.metadata.length ? { unsupportedRecords: s.metadata } : {}) })), activeSheet: sheets[0]!.id, ...(importedNames.length ? { names: importedNames } : {}) };
 }

@@ -1,0 +1,146 @@
+{
+  "scope": "Installed local packed artifact qualification for owned runtime results and native datasource boundary cases",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "artifact": {
+    "name": "poe-code",
+    "version": "0.0.0-dev",
+    "filename": "poe-code-0.0.0-dev.tgz",
+    "size": 42096728,
+    "unpackedSize": 211473800,
+    "shasum": "0afa4f7041950ee7fd824010d2e20a5917ce8065",
+    "integrity": "sha512-iNgqcdvM/7W6JfLNmTTItrcEbIWUwtbjxutzJPZhjuAZ55WwUFsrVGPqjO9dlLWp10NbaTOCWnZziifGShJgLw=="
+  },
+  "artifactSha256": "64b762f78c62b3f82f59cdfdeaac3c20dedbe147ad507db641d7fc27781ff910",
+  "sourceHead": "beeef245e189e8c15265116b7c32bacd27c5da9e",
+  "structuredResultProductCommit": "40d66769f6e27d7eb05fe20f592669952a80f915",
+  "datasourceProductCommit": "67e3dd32818e21dba780ee952b3f5e085286cf4c",
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-functions.ts",
+      "sha256": "4c962f614ccb933e7da5077ec21e876cabf540649992ed2955ed6fc308f7cd97"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-result.ts",
+      "sha256": "e45732c3f87d27179b13701f133d4fa176032fb1b8a899b3bcb3a882f464c88d"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-results.test.ts",
+      "sha256": "c72981566f40b1c5eb23253a0ca58ab18e3a2a4c3347fc8022b326c19fce2db9"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/evaluator.ts",
+      "sha256": "3037693c585b5a99d6322c59f715b5f190a611982e706381240a1162bb150521"
+    },
+    {
+      "path": "packages/ssconvert/src/index.ts",
+      "sha256": "dbf6306927cd77b136f2df95b0a54bc8271683c231916c3ade57e57aae2c0d0d"
+    },
+    {
+      "path": "packages/ssconvert/tests/public-consumer.mts",
+      "sha256": "123d3aa6205e1d869f69da44a867d53e7e3ab32bd8f7f538e6e1caed6cc5292c"
+    }
+  ],
+  "maintainedRootBuild": "passed before packing",
+  "installedPublicConsumerTypecheck": "passed",
+  "publicImports": {
+    "poe-code/ssconvert": {
+      "relativePath": "packages/ssconvert/dist/index.js",
+      "insideInstalledPackage": true
+    },
+    "poe-code/safe-bash": {
+      "relativePath": "dist/safe-bash.js",
+      "insideInstalledPackage": true
+    }
+  },
+  "results": {
+    "version": "0.0.0-dev",
+    "structuredResults": [
+      {
+        "id": "aggregate-reference-ownership",
+        "sdkExact": true,
+        "installedShellExact": true,
+        "xmlReplayExact": true,
+        "inputUnchanged": true,
+        "bytes": 19
+      },
+      {
+        "id": "mixed-array-group",
+        "sdkExact": true,
+        "installedShellExact": true,
+        "xmlReplayExact": true,
+        "inputUnchanged": true,
+        "bytes": 17
+      }
+    ],
+    "datasource": [
+      {
+        "id": "datasource-holdout-numeric",
+        "exact": true,
+        "bytes": 756,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        }
+      },
+      {
+        "id": "datasource-holdout-malformed-raw",
+        "exact": true,
+        "bytes": 170,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        }
+      },
+      {
+        "id": "datasource-holdout-nul",
+        "exact": true,
+        "bytes": 59,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        }
+      },
+      {
+        "id": "datasource-holdout-dynamic-tag",
+        "exact": true,
+        "bytes": 12,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        }
+      },
+      {
+        "id": "datasource-holdout-invalid-model",
+        "exact": true,
+        "bytes": 22,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 0,
+          "closed": 1
+        }
+      },
+      {
+        "id": "datasource-holdout-range-boundary",
+        "exact": true,
+        "bytes": 398,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        }
+      }
+    ]
+  },
+  "structuredFixtureProof": "docs/ssconvert/runtime-array-reference-result-gap-proof.json",
+  "nativeDatasourceFixtureProof": "docs/ssconvert/linux-datasource-boundary-native-capture.json",
+  "qualificationLimits": [
+    "This is a locally built and installed tarball, not an npm-published artifact.",
+    "Installed SDK/Shell/XML replay cover two structured models; installed SDK covers six native datasource captures. Browser and worker qualification is recorded separately.",
+    "Full original family requirements and containing publication remain open."
+  ]
+}

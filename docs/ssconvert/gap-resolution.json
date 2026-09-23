@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T11:53:25.201Z",
+  "recordedAt": "2026-09-23T11:58:56.716473+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1614,6 +1614,8 @@
     "focusedTests": 82,
     "packageTests": 22508,
     "publication": "unverified",
-    "wholeGoalComplete": false
+    "wholeGoalComplete": false,
+    "installedLocalArtifactProof": "docs/ssconvert/runtime-result-installed-artifact-proof.json",
+    "installedPublicConsumerTypes": "passed"
   }
 }

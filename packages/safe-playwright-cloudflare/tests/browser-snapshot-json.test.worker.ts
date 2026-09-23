@@ -47,7 +47,7 @@ export default {
 			}
 		}
 		const scenario = new URL(request.url).pathname;
-		if (scenario.startsWith("/recover-")) {
+		if (scenario.startsWith("/recover-") || scenario === "/unlimited-nodes") {
 			const adapter = createCloudflarePlaywrightAdapter(env.BROWSER);
 			let lease: PlaywrightLease | undefined;
 			let acquisitions = 0;
@@ -58,18 +58,26 @@ export default {
 					return lease;
 				} },
 				...(scenario === "/recover-bytes" ? { limits: { maxSnapshotBytes: 512 } } : {}),
+				...(scenario === "/recover-refs" ? { limits: { maxSnapshotRefs: 20000 } } : {}),
 			});
-			const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+			let output = "";
+			const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
 			try {
 				await run(["open"]);
 				assert.ok(lease);
 				const page = lease.context.pages()[0]!;
-				await page.setContent(scenario === "/recover-nodes"
+				await page.setContent(["/recover-refs", "/unlimited-nodes"].includes(scenario)
 					? "<button>Probe</button>".repeat(20001)
 					: scenario === "/recover-frames"
 						? '<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128)
 						: `<p>${"x".repeat(2048)}</p>`);
-				await assert.rejects(run(["snapshot", "--json"]), /snapshot.*limit exceeded/);
+				if (scenario === "/unlimited-nodes") {
+					output = "";
+					await run(["snapshot", "--json"]);
+					assert.equal((output.match(/"role"\s*:\s*"button"/g) ?? []).length, 20001);
+				} else {
+					await assert.rejects(run(["snapshot", "--json"]), scenario === "/recover-refs" ? /Snapshot ref limit exceeded/ : /snapshot.*limit exceeded/i);
+				}
 				await run(["tab-list"]);
 				assert.equal(lease.context.pages()[0], page);
 				await page.setContent("<button>Recovered</button>");

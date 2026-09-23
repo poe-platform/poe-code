@@ -23,7 +23,7 @@ afterAll(async () => {
 	if (worker) await disposeNativeFixture(worker);
 });
 
-for (const scenario of ["fidelity", "bounds", "frames", "abort", "public-frames", "handle-burst", "public-unlimited", "recover-bytes", "recover-nodes", "recover-frames"]) {
+for (const scenario of ["fidelity", "bounds", "frames", "abort", "public-frames", "handle-burst", "public-unlimited", "unlimited-nodes", "recover-bytes", "recover-refs", "recover-frames"]) {
 	test(`native structured snapshot ${scenario}`, async () => {
 		const response = await worker.dispatchFetch(`http://localhost/${scenario}`);
 		expect(await response.json()).toEqual({ ok: true });

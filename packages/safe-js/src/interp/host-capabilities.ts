@@ -664,6 +664,10 @@ export function getHostObjectSymbolKeys(value: SandboxObject): symbol[] {
   return state.expandos ? Object.getOwnPropertySymbols(state.expandos.values) : [];
 }
 
+export function hostObjectGuestRoot(value: HostObject | SandboxObject): SandboxObject | undefined {
+  return (readHostObject(value) ?? readGuestObject(value)!).expandos?.values;
+}
+
 export function hostObjectGuestRoots(value: HostObject | SandboxObject): SandboxValue[] {
   const state = readHostObject(value) ?? readGuestObject(value)!;
   return state.expandos ? [state.expandos.values] : [];

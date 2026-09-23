@@ -58,7 +58,7 @@ import { isSandboxPluralRules, pluralRulesState } from "./intl-pluralrules.js";
 import { isSandboxDurationFormat, durationFormatState } from "./intl-durationformat.js";
 import { createRawJson, isRawJson } from "./raw-json.js";
 import { boxedDataProperties, boxedValue, createSandboxBox, isSandboxBox, nativeBoxedValue } from "./boxed.js";
-import { hostObjectGuestRoots, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
+import { hostObjectGuestRoot, getHostObjectSymbolKeys, getHostObjectKeys, getHostObjectMember, hasHostObjectMember, measureHostObjectData, isGuestHostObject, isLiveCapability } from "./host-capabilities.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { types as nodeTypes } from "node:util";
 import { nativePromiseDataProperties } from "./native-promise-properties.js";
@@ -1176,7 +1176,12 @@ function measureSandboxDataWithSeen(
         }
         if (isGuestHostObject(value)) {
           usage += measureHostObjectData(value);
-          for (const root of hostObjectGuestRoots(value)) visit(root, depth + 1);
+          const root = hostObjectGuestRoot(value);
+          if (root !== undefined) {
+            value = root;
+            depth++;
+            continue walk;
+          }
           break entry;
         }
         const prototype = getSandboxPrototype(value);

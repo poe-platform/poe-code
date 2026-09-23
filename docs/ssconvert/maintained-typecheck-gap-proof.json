@@ -1,0 +1,653 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Complete maintained SafeBash source and standalone-artifact consumer typecheck without weakening strict options or historical seals",
+  "recordedAt": "2026-09-23T04:16:57.735597+00:00",
+  "candidate": {
+    "commits": [
+      "6e8ce3c69",
+      "8a8732d8a",
+      "975b2c7d4"
+    ],
+    "hashes": {
+      "packages/safe-bash/scripts/historical-type-models.mjs": "6622103c1233c5b74ff016073fd38e921ac7d7ec3836755a013067bb6e11cf4a",
+      "packages/safe-bash/scripts/historical-type-models.test.mjs": "68ae2d64f11b5cec1237e2a0295e27b6b5251bf61cdcf607d28b057bd6ce87c0",
+      "packages/safe-bash/scripts/typecheck-inputs.mjs": "a7dd887de8468d4ffefbff171adb336586fddc6a2fea974d44aaf0b86de2d11f",
+      "packages/safe-bash/scripts/integration-inputs.test.mjs": "6b65d51ca9001cfc40d8feddbd3624d4242c3ea4ed2fbd60bf27fb59488a27e7",
+      "packages/safe-bash/scripts/typecheck-consumers.mjs": "58eceef71f208d48e2db01d7d4e2b5d6d65b23b8a1188310ba09904f119f28c8",
+      "packages/safe-bash/scripts/typecheck.mjs": "a72477b7fa78e81d302bf62c7e584cbbd740c6fa9c8b6a8cfa377f4074093afd",
+      "packages/safe-bash/tests/integration/typecheck-consumer-resolution.test.ts": "67b324339452e13d5e8c4fde26664f3b8b35cde6e1ff85df971fb8f07283c016"
+    }
+  },
+  "originalFailure": {
+    "classification": [
+      "root-generated sibling dist imports split private filesystem brands between source and declarations",
+      "foreign exactOptional engine source checking",
+      "raw private-workspace isolated fixture lacks standalone packaging closure"
+    ],
+    "rootGeneratedDiagnostics": 6528,
+    "preserved": true
+  },
+  "repair": {
+    "source": "Checker-only canonical four filesystem owner mappings and existing engine aliases; runtime tsconfig unchanged. Exact historical consumer reuses host with original config/roots/strict flags.",
+    "consumers": "Call existing packageSafeLibraries; authenticate actual standalone candidate and canonical FS. Derive exact and wildcard selectors only from admitted declarations. All original consumer assertions and exact negatives retained.",
+    "inventory": "Admit two used helper declaration files through maintained authenticated classifications.",
+    "productPackagingOrRootExports": "unchanged"
+  },
+  "verification": {
+    "status": "typecheck-passed-not-runtime-acceptance",
+    "normalRootBuild": "passed126declaredbuilds plus root suffix; no-declared py-poe-spawn build is not a pass",
+    "historicalMemfsControls": 51,
+    "inventoryControls": 120,
+    "consumerOwnershipMemfsControls": 27,
+    "sourceRoots": 2930,
+    "sourceGroups": [
+      {
+        "name": "s3-namespace-public-types",
+        "files": [
+          "tests/plugins/qualified-current-release/current-s3-namespace.ts"
+        ],
+        "qualification": "public conditional namespace/Python composition declarations; actual S3 service enforcement requires independent runtime qualification",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "python-docker-public-types",
+        "files": [
+          "tests/plugins/qualified-current-release/current-python-docker.ts"
+        ],
+        "qualification": "public Docker host and runner declarations; real-container execution remains an explicit integration gate",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "playwright-billing-public-types",
+        "files": [
+          "tests/plugins/qualified-current-release/current-playwright-billing.ts"
+        ],
+        "qualification": "injected host acquisition composition; declarations only, no metering or browser execution",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "atomic-webdav-profile-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+          "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"
+        ],
+        "qualification": "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "atomic-webdav-independent-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"
+        ],
+        "qualification": "current public imports use built declarations; source fixture helpers remain explicit",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-source",
+        "files": [
+          "tests/shell-stress/env-split-consumer/packed-public-types.ts"
+        ],
+        "qualification": "current public declaration consumer; typing is not env-S runtime acceptance",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "currentGroups": [
+      {
+        "name": "shell-parse-limits-public",
+        "files": [
+          "tests/plugins/qualified-current-release/current-shell-parse-limits.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "timeout-options-public-types",
+        "files": [
+          "tests/plugins/qualified-current-release/current-timeout-options.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-directory-access-public-types",
+        "files": [
+          "tests/fs/webdav/directory-access-author-20260828/public-types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "du-leaf",
+        "files": [
+          "tests/plugins/qualified-current-release/du-leaf.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "grep-aliases-public",
+        "files": [
+          "tests/commands/grep-aliases/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "column-public",
+        "files": [
+          "tests/plugins/qualified-current-release/current-column.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "network-zero-caps-public",
+        "files": [
+          "tests/commands/network-zero-caps-review/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "regex",
+        "files": [
+          "tests/commands/regex-execution/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "regex-continuation",
+        "files": [
+          "tests/commands/regex-execution/continuation/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "regex-followup",
+        "files": [
+          "tests/commands/regex-execution/followup/product-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "regex-production",
+        "files": [
+          "tests/stress/regex-execution/production-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "regex-production-continuation",
+        "files": [
+          "tests/stress/regex-execution/production-continuation-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "s3-constructor",
+        "files": [
+          "tests/fs/s3/constructor-comparison/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "s3-http-author",
+        "files": [
+          "tests/fs/s3/http/author/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "s3-http-independent",
+        "files": [
+          "tests/fs/s3/http-independent/public-workflow.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "s3-rmdir",
+        "files": [
+          "tests/fs/s3/rmdir-independent/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-loopback",
+        "files": [
+          "tests/fs/webdav/consumer/consumer.test.mts",
+          "tests/fs/webdav/consumer/example.mts",
+          "tests/fs/webdav/consumer/provider.mts",
+          "tests/fs/webdav/consumer/types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-services",
+        "files": [
+          "tests/fs/webdav/real-service/consumer.mts",
+          "tests/fs/webdav/real-service/example.mts",
+          "tests/fs/webdav/real-service/https.mts",
+          "tests/fs/webdav/real-service/phase2-consumer.mts",
+          "tests/fs/webdav/real-service-independent/independent.mts",
+          "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+          "tests/fs/webdav/rmdir-real-service/feasibility.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "stream-inspection",
+        "files": [
+          "tests/integration/stream-inspection-public-author/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "stream-five",
+        "files": [
+          "tests/plugins/stream-five-fixture-migration/public-options.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "time-env-public",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "time-env-leaf",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "env-split-public-types",
+        "files": [
+          "tests/shell-stress/env-split-validity/public-types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-atomic",
+        "files": [
+          "tests/fs/webdav/atomic-extension/consumer.mts",
+          "tests/fs/webdav/atomic-extension/example.mts",
+          "tests/fs/webdav/atomic-extension/https.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-atomic-independent",
+        "files": [
+          "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      },
+      {
+        "name": "webdav-timestamp-independent",
+        "files": [
+          "tests/fs/webdav/release-timestamp-independent/independent.test.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route",
+        "fixtureImports": "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained"
+      }
+    ],
+    "negativeTypes": [
+      {
+        "name": "env-split-invalid-binding",
+        "status": "pass",
+        "diagnostics": 1
+      },
+      {
+        "name": "time-env-public-negative",
+        "status": "pass",
+        "diagnostics": 2
+      },
+      {
+        "name": "time-env-leaf-negative",
+        "status": "pass",
+        "diagnostics": 5
+      }
+    ],
+    "phaseStatuses": [
+      {
+        "label": "source-and-tests",
+        "status": 0,
+        "stdoutSha256": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "historical-build-first-consumer",
+        "status": 0,
+        "stdoutSha256": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-s3-namespace-public-types",
+        "status": 0,
+        "stdoutSha256": "6347c7b7de6485fc3b06c0928bde08cdbeea0afe539b94c05f964180ddf98912",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-python-docker-public-types",
+        "status": 0,
+        "stdoutSha256": "994e0044d4cd7b0a8d65f3a9537404de4a5e75581280f6ae67dca564093dbb13",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-playwright-billing-public-types",
+        "status": 0,
+        "stdoutSha256": "a29d98f6aa0c41ed0435f97ac289113e152af5533b55f894aff8ed00f797bccb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-atomic-webdav-profile-source",
+        "status": 0,
+        "stdoutSha256": "be1dc054069b4eec1b9ca5d387294eb17001051fa6e5d4bdab9a82ea1096752b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-atomic-webdav-independent-source",
+        "status": 0,
+        "stdoutSha256": "84f6634dcd5944c7ba87fbec5a22d255a644731bcb83ddff2fe96250ed3fb1ac",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "source-consumer-env-split-public-source",
+        "status": 0,
+        "stdoutSha256": "16b94018cb1f15fc0735d74972179649bdbe327eecb94c75ea0309c4ee1ef3ad",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-shell-parse-limits-public",
+        "status": 0,
+        "stdoutSha256": "1711e3add4aa299840342ccd459d738143b84b4e30b4e400f91d9449ac3d485f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-timeout-options-public-types",
+        "status": 0,
+        "stdoutSha256": "b4924fd6362578d3f9feb6c566e92f7b13126043da9e7f5ec0dbbb904e863bd0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-directory-access-public-types",
+        "status": 0,
+        "stdoutSha256": "18d257f39d8e398888291e48f2816b42be26c90372324a9f98f6878d97421cd4",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-du-leaf",
+        "status": 0,
+        "stdoutSha256": "a747556df9035146e7068868a69bd352c796ab00576dc8a0605faf9d26aa3647",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-grep-aliases-public",
+        "status": 0,
+        "stdoutSha256": "02c0fa9ad5c7d947d54530372ef069f8e8a4b1baab261bee50399a56cd75829f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-column-public",
+        "status": 0,
+        "stdoutSha256": "b63faa4ed72bff47cd8493114fca71ae031cb65baa26bc4bb6c40721573e1afb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-network-zero-caps-public",
+        "status": 0,
+        "stdoutSha256": "4a968f4f76235effb7809b12e7279b586d195cfea47b94873f5d60df4903f8cb",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-regex",
+        "status": 0,
+        "stdoutSha256": "2e53d6d0e8be401081be0d94ac7947110be3f72a9f9345b68f5eb93639a56e83",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-regex-continuation",
+        "status": 0,
+        "stdoutSha256": "4b9153d653550d5559ce57716226e8a7f9b3641cab8fa31a817947971ecda774",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-regex-followup",
+        "status": 0,
+        "stdoutSha256": "4ca8a4bf8b0e7b1730f9ee32471e2f1239b5266789190983170691bb254fbc87",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-regex-production",
+        "status": 0,
+        "stdoutSha256": "2d4030a90da2d13f14d8d10f3dbf4f8c9cd945ee4ca9730c4f2a965d98c7f860",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-regex-production-continuation",
+        "status": 0,
+        "stdoutSha256": "4f83854daec76f97277f1c2c146a00857e7ee07fb6e86dbe9dab93df60f35593",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-s3-constructor",
+        "status": 0,
+        "stdoutSha256": "470c47dab54bc2f2f1fb3bcf357fa3de00b6ae308559d7fe64c4c6b0137d8d0b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-s3-http-author",
+        "status": 0,
+        "stdoutSha256": "42a4dd4109ec62734713b2c65ab5218385345196a4ffa22ddf9a9b1906e6e510",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-s3-http-independent",
+        "status": 0,
+        "stdoutSha256": "c0742681f2ee336fa7dd9323041bb745a08f84597cac6beeb5bf73ecafa49136",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-s3-rmdir",
+        "status": 0,
+        "stdoutSha256": "0a0e3756ddd0cfe3bacf02fd65ff7f551a8b1007bd767de18f48ef886c06941b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-loopback",
+        "status": 0,
+        "stdoutSha256": "171d5133f7c010edef11c86761f6ab692b28b5a6c19ed1d7c50f771825bd584a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-services",
+        "status": 0,
+        "stdoutSha256": "a731f18bdb9d9152dc695f674a0b35c5734a98ce4ec3abe83f578ea879b8fef6",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-stream-inspection",
+        "status": 0,
+        "stdoutSha256": "ffd34f703a1e5b570ad7c22c7ac97f3c1c300253511b276ef1263f94c1e070d2",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-stream-five",
+        "status": 0,
+        "stdoutSha256": "4b4f69bcc4824810c200b08437b9ce74f0123188be70f251714a9dc2d6aa6171",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-time-env-public",
+        "status": 0,
+        "stdoutSha256": "30d958d404c2d2e9fa7573a66e5bc13278362c759448c9e6f2e65512483779d6",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-time-env-leaf",
+        "status": 0,
+        "stdoutSha256": "e66e413790e6d5719f224ed54236d6800a087027c8dc87e5198b0903104582c9",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-env-split-public-types",
+        "status": 0,
+        "stdoutSha256": "a463d18447bb8779a14fa8d9d0e529a8f06b664f6f7f3292da2004c492c1f10d",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-atomic",
+        "status": 0,
+        "stdoutSha256": "22677212192635c5e2b2248ca1e97ba6707309aedcfc1f5dc5f6732f08dc6fa3",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-atomic-independent",
+        "status": 0,
+        "stdoutSha256": "2fd62d74b6098b1851fe410b0e39bdc97fd51dde5a621c6cd9eaf69aa7df76e0",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "consumer-webdav-timestamp-independent",
+        "status": 0,
+        "stdoutSha256": "d744c9862da4187afd8f2bb2054924e995ad934b47bce1fed315e07f29f69cc7",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "negative-env-split-invalid-binding",
+        "status": 2,
+        "stdoutSha256": "5e26037cd756803d04f6a65c828ee222d79ba19cb437e70913b367a810004e38",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "negative-time-env-public-negative",
+        "status": 2,
+        "stdoutSha256": "c666f1a07355a584ab2bdbd4f83801b18ab25f745397cee71cc7a5adaf330e5e",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "label": "negative-time-env-leaf-negative",
+        "status": 2,
+        "stdoutSha256": "2edda0c76aaefdd1663bad2d5b5b06b17323651f9151d3265663b9319785573f",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "runtimeExecutions": 0,
+    "buildsWithinTypecheck": 0,
+    "temporaryCleaned": true,
+    "guardedLint": {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0,
+      "scope": {
+        "configured": 16395,
+        "linted": 16395,
+        "ignored": 2241,
+        "unconfigured": 39481,
+        "ignoredDirectories": 271,
+        "heldExcluded": 5
+      },
+      "receiptCount": 25,
+      "directoryCount": 6926,
+      "timings": {
+        "traversalMs": 255472,
+        "parsingMs": 2888,
+        "initializationMs": 29053
+      },
+      "cacheHits": 16339
+    }
+  },
+  "bindings": {
+    "rawInputMetadataSha256": "b09874cef8a2e13a03d7b370e22e098ce80f4ff07de272cc2c9d9372c076b906",
+    "rawInputDeclarations": 636,
+    "rawInputDeclarationMapSha256": "ce90431d20dda7bbf7c14e60802c13f88e5a301918a1a256dfe25dd270bfb09a",
+    "standaloneMetadataSha256": "709e6c653fcc3bdc2086e79c8083911a2e0650bcf8aabb1923056a53622732b2",
+    "standaloneDeclarations": 824,
+    "standaloneDeclarationMapSha256": "2ad8c6b0f49dfcd00a5391bbf4e2010548251502aa1e879e47c1ede3f861f9ee",
+    "filesystemMetadataSha256": "3d95693eb4981af2cc929d5c6f1d951ec5e6a557bbd1c192bbe8b88e0c5087f4",
+    "filesystemDeclarations": 84,
+    "filesystemDeclarationMapSha256": "1bf75a2fd86ac176116e7978280444a99b2ca01a336078fccd780f6b24d2c9f8",
+    "rawInputBeforeAfterUnchanged": "asserted by maintained stage helper"
+  },
+  "preservedFixtureDefects": [
+    "macOS /var temporary root alias rejected by packager guard; canonical tmpdir now used",
+    "stagev3 erroneously forbade actual contracts wildcard; generic admitted expansion has red/green memfs control",
+    "intermediate assertion compared only Map ordering; corrected without changing accepted owners"
+  ],
+  "delivery": {
+    "localCommits": [
+      "6e8ce3c69",
+      "8a8732d8a",
+      "975b2c7d4"
+    ],
+    "remoteMain": "975b2c7d4d9e5319f034ed2b349581ad39ca9be3",
+    "ancestorVerified": true,
+    "publication": "unverified"
+  },
+  "remaining": "Compile-only qualification; runtime/provider/registry acceptance and all original ssconvert families remain required.",
+  "rebaseFollowup": {
+    "incomingCommits": 8,
+    "ownedFileHashesUnchanged": true,
+    "peerAdmissionOverlap": {
+      "originalFail": 1,
+      "originalPass": 119,
+      "greenPass": 120,
+      "incomingAdmissionPreserved": true,
+      "resolution": "Consolidated exact peer SHA/classification records into existing declaration admission so each input appears once."
+    }
+  }
+}

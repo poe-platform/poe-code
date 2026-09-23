@@ -935,5 +935,21 @@
     "installedRefusals": 4,
     "guardedLintSubjects": 16395,
     "publication": "unverified"
+  },
+  "maintainedTypecheckClosureFollowup": {
+    "proof": "docs/ssconvert/maintained-typecheck-gap-proof.json",
+    "commits": [
+      "6e8ce3c69",
+      "8a8732d8a",
+      "975b2c7d4"
+    ],
+    "remoteMainVerified": true,
+    "sourceGroups": 6,
+    "artifactPositiveGroups": 26,
+    "exactNegativeGroups": 3,
+    "authenticatedCandidateDeclarations": 824,
+    "authenticatedFilesystemDeclarations": 84,
+    "runtimeExecutions": 0,
+    "publication": "unverified"
   }
 }

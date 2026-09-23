@@ -1,9 +1,52 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isFsError, type FileSystem } from "../../../src/contracts/index.js";
+import { Shell } from "../../../src/shell/index.js";
+import { diffPatchCommands } from "../../../src/commands/diff-patch/index.js";
 import { contents, filesystem, replacement, run } from "./helpers.js";
 
 const twoHunks = replacement + "@@ -3 +3 @@ function\n-tail\n+TAIL\n";
+
+for (const atomic of [false, true]) for (const mode of [0o666, 0o640, 0o600]) for (const existing of [false, true]) {
+  test(`mismatch backup preserves source permissions: ${atomic}/${mode.toString(8)}/${existing}`, async () => {
+    const fs = await filesystem({ target: "prefix\nold\ntail\n", ...(existing ? { "target.orig": "stale\n" } : {}) });
+    await fs.chmod("/work/target", mode);
+    if (existing) await fs.chmod("/work/target.orig", 0o644);
+    const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands());
+    const result = await shell.exec(`umask 077; patch${atomic ? " --atomic" : ""}`, { stdin: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(fs, "target.orig"), "prefix\nold\ntail\n");
+    assert.equal((await fs.stat("/work/target.orig")).mode & 0o7777, mode);
+    assert.equal((await fs.stat("/work/target")).mode & 0o7777, mode);
+  });
+}
+
+for (const pathSpecific of [false, true]) {
+  test(`backup mode respects permissionless capability: ${pathSpecific}`, async () => {
+    const backing = await filesystem({ target: "prefix\nold\ntail\n" });
+    let backups = 0;
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        if (property === "capabilities") return { ...target.capabilities, permissions: pathSpecific };
+        if (property === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions: false });
+        if (property === "writeFile") return async (...args: Parameters<FileSystem["writeFile"]>) => {
+          if (args[0].endsWith(".orig")) {
+            backups++;
+            assert.equal(args[2]?.mode, undefined);
+          }
+          return target.writeFile(...args);
+        };
+        if (property === "chmod") return async () => { throw new Error("permissionless backup must not chmod"); };
+        const value: unknown = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const result = await new Shell({ fs, cwd: "/work" }).use(diffPatchCommands()).exec("patch", { stdin: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(backups, 1);
+    assert.equal(await contents(backing, "target.orig"), "prefix\nold\ntail\n");
+  });
+}
 
 async function namespace(fs: FileSystem) {
   const files: Record<string, string> = {};

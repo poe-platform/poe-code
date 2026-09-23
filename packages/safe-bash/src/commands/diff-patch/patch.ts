@@ -81,6 +81,7 @@ interface Prepared {
   readonly remove: boolean;
   readonly backup?: string;
   readonly backupPath?: string;
+  readonly backupMode?: number;
   readonly rejectPath?: string;
   readonly reject?: string;
   readonly parents: readonly string[];
@@ -141,15 +142,19 @@ async function unchanged(item: Prepared, budget: Budget): Promise<void> {
 async function publish(item: Prepared, budget: Budget, rejects: Set<string>): Promise<void> {
   const context = budget.context;
   await unchanged(item, budget);
-  const write = async (path: string, text: string, append = false, createParents = true) => {
+  const write = async (path: string, text: string, append = false, createParents = true, mode?: number) => {
     if (createParents) await ensureParents(path, budget);
     else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
     const stat = await inspect(budget, path);
     regular(stat, path);
+    const capabilities = mode === undefined ? undefined : await host(context, async () =>
+      await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
+    const preserveMode = mode !== undefined && capabilities?.permissions !== false;
     if (append) await host(context, () => context.fs.appendFile(path, Buffer.from(text), { signal: context.signal }));
-    else await host(context, () => context.fs.writeFile(path, Buffer.from(text), { signal: context.signal, flag: stat ? "w" : "wx" }));
+    else await host(context, () => context.fs.writeFile(path, Buffer.from(text), { signal: context.signal, flag: stat ? "w" : "wx", ...(preserveMode ? { mode } : {}) }));
+    if (preserveMode && context.fs.chmod) await host(context, () => context.fs.chmod!(path, mode, { signal: context.signal }));
   };
-  if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup);
+  if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup, false, true, item.backupMode);
   if (item.remove) {
     if (item.original !== undefined) {
       regular(await inspect(budget, item.path), item.path);
@@ -262,6 +267,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const item: Prepared = { path, original, result, remove,
       ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
       ...(backupPath === undefined ? {} : { backupPath }),
+      ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
       ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd) : [] };
     let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${name}\n`;
     if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";

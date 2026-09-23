@@ -357,17 +357,25 @@ test("VFS permission diagnostic preserves path and continuation", async () => {
   } finally { await instance.dispose(); }
 });
 
-test("raw object marker and unsupported encoding/data options stay honest", async () => {
+test("raw object marker honors supported data and encoding modes and rejects invalid options", async () => {
   const instance = shell(await workspace());
   const objectLike = Buffer.concat([Buffer.from([127,69,76,70,0,0]), Buffer.from("OUTSIDE_DATA\0")]);
   try {
-    const result = await instance.exec("strings -a", { stdin: objectLike });
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, "OUTSIDE_DATA\n");
-    for (const args of ["-d", "-e l", "-U locale"]) {
+    for (const [args, expected] of [["-a", "OUTSIDE_DATA\n"], ["-d", "OUTSIDE_DATA\n"], ["-e l", ""], ["-U locale", "OUTSIDE_DATA\n"]] as const) {
+      const result = await instance.exec(`strings ${args}`, { stdin: objectLike });
+      assert.equal(result.exitCode, 0, args);
+      assert.equal(result.stdout, expected, args);
+      assert.equal(result.stderr, "", args);
+    }
+    for (const [args, diagnostic] of [
+      ["-e z", "strings: invalid encoding 'z'\n"],
+      ["-U unsupported", "strings: invalid Unicode option 'unsupported'\n"],
+      ["-T unsupported", "strings: unsupported target 'unsupported'\n"],
+    ] as const) {
       const rejected = await instance.exec(`strings ${args}`, { stdin: objectLike });
-      assert.notEqual(rejected.exitCode, 0);
-      assert.notEqual(rejected.stderr, "");
+      assert.equal(rejected.exitCode, 1, args);
+      assert.equal(rejected.stdout, "", args);
+      assert.equal(rejected.stderr, diagnostic, args);
     }
   } finally { await instance.dispose(); }
 });

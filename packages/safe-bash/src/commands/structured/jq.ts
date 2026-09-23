@@ -8,6 +8,9 @@ import { parse } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
 
 interface Options {
+  stream: boolean;
+  streamErrors: boolean;
+  sequence: boolean;
   raw: boolean;
   rawInput: boolean;
   joinOutput: boolean;
@@ -28,7 +31,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     argumentBytes += Buffer.byteLength(argument);
     if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
   }
-  const options: Options = { raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
+  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
   const named = object();
   let ended = false;
   let variableBytes = 0;
@@ -51,6 +54,11 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     if (!ended && (argument === "-f" || argument === "--from-file")) {
       if (options.programFile !== undefined || options.source !== undefined) throw new JqError("provide exactly one filter program", 2);
       options.programFile = operand(); continue;
+    }
+    if (!ended && (argument === "--stream" || argument === "--stream-errors" || argument === "--seq")) {
+      if (argument === "--seq") options.sequence = true;
+      else { options.stream = true; options.streamErrors ||= argument === "--stream-errors"; }
+      continue;
     }
     const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
     if (!ended && argument.startsWith("-") && argument !== "-") {
@@ -131,7 +139,15 @@ async function* inputs(context: CommandContext, options: Options, budget: Budget
     async function* joined(): ByteSource {
       for await (const source of inputSources(context, options, budget, convert)) yield* readBytes(source, context.signal);
     }
-    yield* jsonValues(joined(), budget);
+    yield* jsonValues(joined(), budget, {
+      stream: options.stream, streamErrors: options.streamErrors, sequence: options.sequence,
+      warning: async message => {
+        const bytes = Buffer.byteLength(message) + 5;
+        budget.outputBytes += bytes;
+        if (budget.outputBytes > budget.limits.maxOutputBytes) throw new JqLimitError("maxOutputBytes");
+        await writeDiagnostic(context.stderr, `jq: ${message}\n`, context.signal);
+      },
+    });
   }
 }
 export async function executeJq(context: CommandContext, limits: JqLimits, convert?: FilterInput): Promise<{ exitCode: number }> {
@@ -188,9 +204,10 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
           if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
           const remaining = limits.maxOutputBytes - budget.outputBytes;
           const suffix = options.joinOutput ? "" : "\n";
+          const prefix = options.sequence && !(options.raw && typeof result === "string") ? "\x1e" : "";
           const output = options.sortKeys ? await sortObjectKeys(result, budget) : result;
-          const text = options.raw && typeof output === "string" ? output : await stringify(output, budget, !options.compact, Math.max(0, remaining - suffix.length), "maxOutputBytes");
-          const bytes = Buffer.from(`${text}${suffix}`);
+          const text = options.raw && typeof output === "string" ? output : await stringify(output, budget, !options.compact, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
+          const bytes = Buffer.from(`${prefix}${text}${suffix}`);
           if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
           budget.outputBytes += bytes.byteLength;
           try { await writeBytes(context.stdout, bytes, context.signal); }

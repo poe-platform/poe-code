@@ -107,3 +107,54 @@ test("try preserves jq exit-status selection", async () => {
   assert.deepEqual(await run("try .a", "1", ["-e"]), { status: 4, stdout: "", stderr: "" });
   assert.deepEqual(await run("try .a catch false", "1", ["-e"]), { status: 1, stdout: "false\n", stderr: "" });
 });
+
+for (const mode of ["--stream", "--stream-errors"]) test(`jq ${mode} emits leaf and container-end events`, async () => {
+  assert.deepEqual(await run(".", '{"a":[1],"b":{},"c":[[]]}', [mode]), {
+    status: 0, stdout: '[["a",0],1]\n[["a",0]]\n[["b"],{}]\n[["c",0],[]]\n[["c",0]]\n[["c"]]\n', stderr: "",
+  });
+});
+
+test("jq stream-errors emits parse errors with their paths", async () => {
+  assert.deepEqual(await run(".", "[1,x,2]", ["--stream-errors"]), {
+    status: 0, stdout: '[[0],1]\n["Invalid numeric literal at line 1, column 5",[1]]\n', stderr: "",
+  });
+});
+
+test("jq seq reads and frames records", async () => {
+  assert.deepEqual(await run(". + 1", "\x1e1\n\x1e2\n", ["--seq"]), {
+    status: 0, stdout: "\x1e2\n\x1e3\n", stderr: "",
+  });
+});
+
+test("jq seq skips input before the first record separator", async () => {
+  assert.deepEqual(await run(".", "ignored\x1e1\n", ["--seq"]), {
+    status: 0, stdout: "\x1e1\n", stderr: "",
+  });
+});
+
+test("jq stream-errors resumes at the next input line", async () => {
+  assert.deepEqual(await run(".", "[1,x,2]\n3\n", ["--stream-errors"]), {
+    status: 0, stdout: '[[0],1]\n["Invalid numeric literal at line 1, column 5",[1]]\n[[],3]\n', stderr: "",
+  });
+});
+
+test("jq seq resynchronizes after malformed records and preserves locations", async () => {
+  assert.deepEqual(await run(".", "bad\x1e1\n\x1ebad\n\x1e2\n", ["--seq"]), {
+    status: 0, stdout: "\x1e1\n\x1e2\n",
+    stderr: "jq: ignoring parse error: Invalid numeric literal at line 3, column 0 (need RS to resync)\n",
+  });
+});
+
+test("jq seq reports incomplete final records without a resync instruction", async () => {
+  assert.deepEqual(await run(".", "\x1etrue\n\x1e{\n", ["--seq"]), {
+    status: 0, stdout: "\x1etrue\n",
+    stderr: "jq: ignoring parse error: Unfinished JSON term at EOF at line 3, column 0\n",
+  });
+});
+
+test("jq seq refuses potentially truncated numbers without terminating whitespace", async () => {
+  assert.deepEqual(await run(".", "\x1e1\x1e2", ["--seq"]), {
+    status: 0, stdout: "",
+    stderr: "jq: ignoring parse error: Potentially truncated top-level numeric value at line 1, column 3\njq: ignoring parse error: Potentially truncated top-level numeric value at EOF at line 1, column 4\n",
+  });
+});

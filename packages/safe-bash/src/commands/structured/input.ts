@@ -42,7 +42,29 @@ class JsonParser {
   private offset = 0;
   private line = 1;
   private column = 0;
-  constructor(private readonly budget: Budget) {}
+  readonly events: Json[] = [];
+  private readonly counts = new WeakMap<object, number>();
+  private readonly closed = new WeakSet<object>();
+  private readonly lastKey = new WeakMap<object, string>();
+  constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0) {
+    this.line = line; this.column = column;
+  }
+  path(): Json[] {
+    const path: Json[] = [];
+    for (const frame of this.stack) {
+      if (Array.isArray(frame)) path.push(this.counts.get(frame) ?? frame.length);
+      else if (typeof frame === "string") path.push(frame);
+    }
+    return path;
+  }
+  private event(value: Json): void {
+    this.budget.value(value);
+    this.events.push(value);
+  }
+  private leaf(value: Json): void {
+    if (value !== null && typeof value === "object" && this.closed.has(value)) return;
+    this.event([this.path(), value]);
+  }
   private fail(detail: string, located = true): never {
     throw new JqParseError(detail, this.offset, this.line, this.column, located);
   }
@@ -106,11 +128,23 @@ class JsonParser {
     const value = this.next;
     this.next = undefined;
     this.budget.value(value);
+    if (this.stream) this.leaf(value);
     this.bytes = 0;
     return value;
   }
   private append(): void {
     const parent = this.stack.at(-1);
+    if (this.stream) {
+      this.leaf(this.next!);
+      const container = typeof parent === "string" ? this.stack.at(-2) as object : parent as object;
+      const count = (this.counts.get(container) ?? 0) + 1;
+      this.budget.collection(count);
+      this.counts.set(container, count);
+      if (typeof parent === "string") this.stack.pop();
+      else if (!Array.isArray(parent)) this.fail("Objects must consist of key:value pairs");
+      this.next = undefined;
+      return;
+    }
     if (Array.isArray(parent)) {
       this.budget.collection(parent.length + 1);
       parent.push(this.next!);
@@ -124,6 +158,9 @@ class JsonParser {
   }
   private structure(character: string): void {
     const parent = this.stack.at(-1);
+    const closingPath = this.stream && (character === "]" || character === "}") ? this.path() : undefined;
+    const closingContainer = typeof parent === "string" ? this.stack.at(-2) : parent;
+    const closingCount = closingContainer && typeof closingContainer === "object" ? this.counts.get(closingContainer) ?? 0 : 0;
     if (character === "[" || character === "{") {
       if (this.next !== undefined) this.fail("Expected separator between values");
       if (++this.depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
@@ -132,6 +169,7 @@ class JsonParser {
       if (this.next === undefined) this.fail("Expected string key before ':'");
       if (!parent || Array.isArray(parent) || typeof parent === "string") this.fail("':' not as part of an object");
       if (typeof this.next !== "string") this.fail("Object keys must be strings");
+      if (this.stream) this.lastKey.set(parent as object, this.next);
       this.stack.push(this.next);
       this.next = undefined;
     } else if (character === ",") {
@@ -141,7 +179,7 @@ class JsonParser {
     } else if (character === "]") {
       if (!Array.isArray(parent)) this.fail("Unmatched ']'");
       if (this.next !== undefined) this.append();
-      else if (parent.length) this.fail("Expected another array element");
+      else if (parent.length || closingCount) this.fail("Expected another array element");
       this.next = this.stack.pop() as Json;
       this.depth--;
     } else if (character === "}") {
@@ -151,10 +189,22 @@ class JsonParser {
         this.append();
       } else {
         if (typeof parent === "string" || Array.isArray(parent)) this.fail("Unmatched '}'");
-        if (objectSize(parent!)) this.fail("Expected another key-value pair");
+        if (objectSize(parent!) || closingCount) this.fail("Expected another key-value pair");
       }
       this.next = this.stack.pop() as Json;
       this.depth--;
+    }
+    if (closingPath && this.next !== null && typeof this.next === "object") {
+      if (closingCount || (closingContainer && typeof closingContainer === "object" && (this.counts.get(closingContainer) ?? 0))) {
+        // A close event identifies the last child, including nested containers.
+        if (Array.isArray(closingContainer)) closingPath[closingPath.length - 1] = (this.counts.get(closingContainer) ?? 1) - 1;
+        else if (typeof parent !== "string") closingPath.push(this.lastKey.get(closingContainer as object)!);
+        this.event([closingPath]);
+      } else {
+        if (Array.isArray(closingContainer)) closingPath.pop();
+        this.event([closingPath, this.next]);
+      }
+      this.closed.add(this.next);
     }
   }
   feed(character: string): Json | undefined {
@@ -190,7 +240,14 @@ class JsonParser {
     if (output !== undefined && (this.quoted || this.stack.length)) this.bytes = 1;
     return this.done() ?? output;
   }
-  finish(): Json | undefined {
+  finish(boundary?: { line: number; column: number; eof: boolean }): Json | undefined {
+    if (boundary && !this.quoted && !this.stack.length && this.token && numericToken(this.token, this.budget) !== undefined) {
+      throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.offset, boundary.line, boundary.column);
+    }
+    if (boundary && !boundary.eof && this.stack.length && !this.quoted && !this.token) return undefined;
+    if (boundary && !boundary.eof && (this.quoted || this.token && this.stack.length)) {
+      throw new JqParseError("Truncated value", this.offset, boundary.line, boundary.column);
+    }
     if (this.quoted) this.fail("Unfinished string at EOF");
     this.literal(true);
     if (this.stack.length) this.fail("Unfinished JSON term at EOF");
@@ -234,9 +291,30 @@ export async function* readChunks(source: ByteSource, budget: Budget): AsyncGene
   }
   budget.inputLocation.complete = true;
 }
-export async function* jsonValues(source: ByteSource, budget: Budget): AsyncGenerator<Json> {
-  const parser = new JsonParser(budget);
+export interface JsonInputOptions {
+  readonly stream?: boolean;
+  readonly streamErrors?: boolean;
+  readonly sequence?: boolean;
+  readonly warning?: (message: string) => Promise<void>;
+}
+export async function* jsonValues(source: ByteSource, budget: Budget, options: JsonInputOptions = {}): AsyncGenerator<Json> {
+  let parser = new JsonParser(budget, options.stream);
+  let active = !options.sequence;
+  let failed = false;
+  const values = function* (value: Json | undefined): Generator<Json> {
+    if (options.stream) yield* parser.events.splice(0);
+    else if (value !== undefined) yield value;
+  };
+  const failure = async function* (error: unknown, eof = false): AsyncGenerator<Json> {
+    if (!(error instanceof JqParseError)) throw error;
+    if (options.streamErrors) yield [error.diagnostic(), parser.path()];
+    else if (options.sequence) await options.warning?.(`ignoring parse error: ${error.diagnostic()}${eof ? "" : " (need RS to resync)"}`);
+    else throw error;
+    failed = true;
+  };
   let scanned = 0;
+  let line = 1;
+  let column = 0;
   let nulTail: string | undefined;
   async function* scan(text: string, completeLine = false): AsyncGenerator<Json> {
     for (const character of text) {
@@ -248,14 +326,30 @@ export async function* jsonValues(source: ByteSource, budget: Budget): AsyncGene
         if (character === "\n") { const tail = nulTail; nulTail = undefined; yield* scan(tail, true); }
         continue;
       }
-      const value = parser.feed(character);
-      if (value !== undefined) yield value;
+      if (character === "\n") { line++; column = 0; } else column++;
+      if (options.sequence && character === "\x1e") {
+        if (active && !failed) {
+          try { yield* values(parser.finish({ line, column, eof: false })); } catch (error) { yield* failure(error, true); }
+        }
+        parser = new JsonParser(budget, options.stream, line, column);
+        active = true; failed = false;
+        continue;
+      }
+      if (!active) continue;
+      if (!failed) {
+        try { yield* values(parser.feed(character)); } catch (error) { yield* failure(error); }
+      }
+      if (failed && options.streamErrors && !options.sequence && character === "\n") {
+        parser = new JsonParser(budget, true, line, column);
+        failed = false;
+      }
     }
   }
   try {
     for await (const chunk of readChunks(source, budget)) yield* scan(Buffer.from(chunk).toString("latin1"));
-    const value = parser.finish();
-    if (value !== undefined) yield value;
+    if (active && !failed) {
+      try { yield* values(parser.finish(options.sequence ? { line, column, eof: true } : undefined)); } catch (error) { yield* failure(error, true); }
+    }
   } catch (error) {
     if (!(error instanceof JqParseError)) throw error;
     throw new JqError(`parse error: ${error.diagnostic()}`);

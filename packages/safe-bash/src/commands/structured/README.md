@@ -56,6 +56,9 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `-R`, `--raw-input` | Read LF-delimited strings instead of JSON; preserve CR, BOM, and final partial records. |
 | `-c`, `--compact-output` | Compact JSON instead of two-space pretty JSON. |
 | `-S`, `--sort-keys` | Sort object keys recursively by Unicode code point, without changing filter traversal order. |
+| `--stream` | Read JSON as `[path, leaf]` and `[path]` container-end events; empty arrays and objects are leaves. |
+| `--stream-errors` | Imply streaming and emit `[message, path]` parse-error events; resume on the next input line. |
+| `--seq` | Read RS-separated JSON records and prefix JSON output with RS; skip malformed records until the next RS with a diagnostic. |
 | `-s`, `--slurp` | Collect JSON values into one array; with `-R`, collect verbatim text into one string, including LF. |
 | `-n`, `--null-input` | Run once with null; do not acquire stdin or open data files, even with `-s`. |
 | `-e`, `--exit-status` | Base successful execution status on the last output value. |
@@ -63,6 +66,12 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `--argjson NAME JSON` | Bind exactly one parsed JSON value. |
 | `-f`, `--from-file` | Read the following operand as a virtual program file. |
 | `--` | End option parsing, including for a negative numeric filter. |
+
+Streaming and sequence modes use the same byte, depth, collection, work, and
+result budgets as ordinary JSON input. Streaming does not retain complete
+containers, but each input document remains subject to `maxValueBytes`. `-s`
+collects stream events; `-R` takes precedence over JSON input modes. With `--seq`,
+raw string output retains the usual raw format without an RS prefix.
 
 The short output/input/status flags may be combined, such as `-crne`. `-f` must
 be separate, not combined into `-cf` or attached to its operand. Long options

@@ -143,3 +143,20 @@ test("plugin definitions, duplicate registration, replacement, and immutable def
   assert.throws(() => structuredCommands({ limits: { maxDepth: 257 } }), RangeError);
   assert.throws(() => structuredCommands({ limits: { maxAstDepth: 129 } }), RangeError);
 });
+
+for (const [args, input, stdout] of [
+  [["--stream", "-sc", "."], '1\n[]\n{}\n"x"\n', '[[[],1],[[],[]],[[],{}],[[],"x"]]\n'],
+  [["--stream", "-c", "select(length == 2) | .[1]"], '{"a":[1,2]}', '1\n2\n'],
+  [["--seq", "--stream", "-c", "."], '\x1e{"é":["😀"]}\n', '\x1e[["é",0],"😀"]\n\x1e[["é",0]]\n\x1e[["é"]]\n'],
+  [["--seq", "-rc", "."], '\x1e1\n\x1e"x"\n', '\x1e1\nx\n'],
+  [["--stream-errors", "-c", "."], '{"a":x,"b":2}\n3\n', '["Invalid numeric literal at line 1, column 7",["a"]]\n[[],3]\n'],
+] as [string[], string, string][]) test(`jq input modes preserve bytes across every split: ${args.join(" ")}`, async () => {
+  const bytes = Buffer.from(input);
+  for (let split = 0; split <= bytes.length; split++) {
+    const source = (async function* () { yield bytes.subarray(0, split); yield bytes.subarray(split); })();
+    const result = await run(args, source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, "");
+  }
+});

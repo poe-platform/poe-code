@@ -118,3 +118,17 @@ test("hazardous expansion cases have a one-second killable outer deadline", asyn
     assert.equal(result.status, 0, `${scenario}: ${result.stderr}`); assert.equal(result.stdout.trim(), "ok");
   }
 });
+
+test("jq input modes retain byte, depth, work and result budgets", async () => {
+  for (const mode of ["--stream", "--stream-errors", "--seq"]) {
+    const input = mode === "--seq" ? '\x1e[[1]]\n' : '[[1]]\n';
+    for (const limits of [{ maxInputBytes: 2 }, { maxDepth: 1 }, { maxSteps: 2 }, { maxOutputBytes: 1 }]) {
+      const result = await run([mode, "-c", "."], input, { limits });
+      assert.equal(result.exitCode, 5);
+      assert.ok(result.stderr.includes(`${Object.keys(limits)[0]} limit exceeded`), result.stderr);
+    }
+  }
+  assert.equal((await run(["--seq", "-c", "."], '\x1e0\n', { limits: { maxOutputBytes: 3 } })).stdout, '\x1e0\n');
+  assert.ok((await run(["--stream-errors", "-c", "."], '[1,2]', { limits: { maxResults: 1 } })).stderr.includes("maxResults limit exceeded"));
+  assert.ok((await run(["--stream-errors", "-c", "."], '["long"]', { limits: { maxValueBytes: 4 } })).stderr.includes("maxValueBytes limit exceeded"));
+});

@@ -130,3 +130,34 @@ test("actual Shell downstream head closes a large jq generator", { timeout: 3000
   const result = await shell.exec("jq -nc 'range(1000000000)' | head -n 1");
   assert.equal(result.stdout, "0\n"); assert.equal(result.exitCode, 0, result.stderr);
 });
+
+test("stream mode emits leaves before the document completes and honors backpressure", { timeout: 2000 }, async () => {
+  const controller = new AbortController(); const reason = new Error("done");
+  const input = pendingSource('[1,');
+  let emitted!: () => void; const ready = new Promise<void>(resolve => { emitted = resolve; });
+  const running = run(["--stream", "-c", "."], input.source, {}, {
+    signal: controller.signal,
+    stdout: { async write(chunk) {
+      assert.equal(Buffer.from(chunk).toString(), '[[0],1]\n');
+      emitted(); await new Promise<void>(() => {});
+    } },
+  });
+  const rejection = assert.rejects(running, error => error === reason);
+  await ready; assert.equal(input.reads(), 1); controller.abort(reason); await rejection;
+  assert.equal(input.closed(), true);
+});
+
+test("actual Shell jq stream and sequence modes read virtual files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/nested", Buffer.from('{"a":[1]}'));
+  await fs.writeFile("/sequence", Buffer.from('\x1e1\n\x1e2\n'));
+  const shell = new Shell({ fs }).use(structuredCommands());
+  for (const mode of ["--stream", "--stream-errors"]) {
+    const result = await shell.exec(`jq ${mode} -c . /nested`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '[["a",0],1]\n[["a",0]]\n[["a"]]\n');
+  }
+  const result = await shell.exec("jq --seq -c . /sequence");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, '\x1e1\n\x1e2\n');
+});

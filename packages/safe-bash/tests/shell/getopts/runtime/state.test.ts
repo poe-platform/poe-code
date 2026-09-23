@@ -72,7 +72,7 @@ for (const [value, expected] of [["0", "a"], ["-1", "a"], ["0x2", "b"], ["429496
   });
 }
 
-test("invalid octal assignment remains fatal with limited declaration support", async () => {
+test("invalid octal assignment remains fatal while integer declarations succeed", async () => {
   const { shell } = runtimeSetup();
   const result = await shell.exec('OPTIND=08; say unreachable');
   assert.equal(result.exitCode, 1);
@@ -81,7 +81,10 @@ test("invalid octal assignment remains fatal with limited declaration support", 
   const declaration = await shell.exec("type -t declare");
   assert.equal(declaration.exitCode, 0);
   assert.equal(declaration.stdout, "builtin\n");
-  assert.equal((await shell.exec("declare -i value=1")).exitCode, 2);
+  const integer = await shell.exec('declare -i value=1; say "$value"');
+  assert.equal(integer.exitCode, 0);
+  assert.equal(integer.stdout, "1\n");
+  assert.equal(integer.stderr, "");
 });
 
 test("fresh defaults preserve inherited export bits while clones do not initialize", async () => {

@@ -4,6 +4,7 @@ import { decoder, define, escapeBytes, options, output, requireOperands, UsageEr
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
 import { printfHex } from "./printf-hex.js";
+import { parsePrintfFloat } from "./printf-float.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -117,6 +118,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       const suppliedIndex = argument++;
       const supplied = args[suppliedIndex] ?? "";
       let text: string;
+      let specialFloat: string | undefined;
       if (specifier === "b" || specifier === "s") {
         const suppliedValue = arguments_.values[suppliedIndex] ?? "";
         const raw = specifier === "b" && typeof suppliedValue === "string" ? suppliedValue : arguments_.bytes(suppliedIndex) ?? new Uint8Array();
@@ -141,11 +143,17 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           if (/[89]/u.test(supplied)) number = NaN;
           else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
         }
-        if (!Number.isFinite(number) || supplied === "" && suppliedIndex < args.length) {
+        if ("fFeEgGaA".includes(specifier) && supplied && !supplied.startsWith("'") && !supplied.startsWith('"')) {
+          const parsed = parsePrintfFloat(supplied);
+          number = parsed?.value ?? NaN;
+          specialFloat = parsed?.special;
+        }
+        if (!Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length) {
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }
-        if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"));
+        if (specialFloat !== undefined) text = specialFloat;
+        else if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"));
         else if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
         else if (/[eE]/u.test(specifier)) text = number.toExponential(precision ?? 6).replace(/e([+-])(\d)$/u, "e$10$2");
         else if (/[gG]/u.test(specifier)) text = Number(number.toPrecision(Math.max(1, precision ?? 6))).toString();
@@ -177,10 +185,10 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         const negativeZero = Object.is(number, -0) && "fFeEgGaA".includes(specifier);
         if (negativeZero) text = "-" + text;
         if (/[XFEGA]/u.test(specifier)) text = text.toUpperCase();
-        if (number >= 0 && !negativeZero && /[difFeEgGaA]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
+        if ((number >= 0 || specialFloat === "nan") && !negativeZero && /[difFeEgGaA]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
       }
       if (flags.includes("-")) text = text.padEnd(width, " ");
-      else if (flags.includes("0") && /[diouxXfFeEgGaA]/u.test(specifier)
+      else if (specialFloat === undefined && flags.includes("0") && /[diouxXfFeEgGaA]/u.test(specifier)
         && (precision === undefined || /[fFeEgGaA]/u.test(specifier))) {
         const prefix = /^[+ -]?(?:0[xX])|^[+ -]/u.exec(text)?.[0] ?? "";
         text = prefix + text.slice(prefix.length).padStart(Math.max(0, width - prefix.length), "0");

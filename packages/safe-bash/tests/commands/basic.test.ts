@@ -457,3 +457,39 @@ for (const args of [["%*s", "1000001", "x"], ["%*s", "-1000001", "x"], ["%.*s", 
     assert.notEqual((await run("printf", args)).exitCode, 0);
   });
 }
+
+test("printf accepts C hexadecimal floating operands and existing numeric controls", async () => {
+  const result = await run("printf", ["%f\n", "0x1.4p+2", "+0x1.4p+2", "0X1.4P+2", "-0x1.4p2", "0x.8p1", "0x1.p0", "0x1.8", "5.0", "0x5", "'A"]);
+  assert.equal(result.stdout, "5.000000\n5.000000\n5.000000\n-5.000000\n1.000000\n1.000000\n1.500000\n5.000000\n5.000000\n65.000000\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("printf formats signed nonfinite C operands across floating directives", async () => {
+  for (const specifier of ["f", "e", "g", "a", "F", "E", "G", "A"]) {
+    const result = await run("printf", [`%${specifier}\n`, "NAN", "nan(payload_123)", "-nan", "+NaN", "inf", "INFINITY", "-inf", "+infinity"]);
+    const expected = "nan\nnan\n-nan\nnan\ninf\ninf\n-inf\ninf\n";
+    assert.equal(result.stdout, specifier === specifier.toUpperCase() ? expected.toUpperCase() : expected);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  }
+  const padded = await run("printf", ["[%+08f][% 8f][%-8F]", "nan", "inf", "-inf"]);
+  assert.equal(padded.stdout, "[    +nan][     inf][-INF    ]");
+});
+
+test("printf rejects malformed floating tokens and nonfinite integer operands", async () => {
+  for (const operand of ["0x.p2", "0x1p", "0x1p+", "0x1p2junk", "nan(bad!)", "infinite", ""]) {
+    const result = await run("printf", ["%f", operand]);
+    assert.equal(result.exitCode, 1, operand);
+    assert.equal(result.stdout, "0.000000", operand);
+    assert.ok(result.stderr.includes("invalid number"), operand);
+  }
+  for (const operand of ["nan", "inf", "0x1p2"]) assert.equal((await run("printf", ["%d", operand])).exitCode, 1);
+});
+
+test("printf preserves hex signed zero, subnormals and exponent cancellation", async () => {
+  const result = await run("printf", ["%g\n", "-0x0p0", "0x1p-1074", "0x1" + "0".repeat(300) + "p-1200"]);
+  assert.equal(result.stdout, "-0\n5e-324\n1\n");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+});

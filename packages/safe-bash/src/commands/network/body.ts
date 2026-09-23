@@ -9,6 +9,7 @@ import { CurlError, type NetworkLimits } from "./types.js";
 
 interface Part {
   readonly bytes?: Uint8Array;
+  readonly separator?: boolean;
   readonly file?: string;
   readonly strip?: boolean;
   readonly urlencode?: boolean;
@@ -90,7 +91,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
     const json = args.data[0]?.kind === "json";
     contentType = json ? "application/json" : "application/x-www-form-urlencoded";
     args.data.forEach((argument, index) => {
-      if (index && !json) parts.push({ bytes: encode("&") });
+      if (index && !json) parts.push({ bytes: encode("&"), separator: true });
       parts.push(...dataPart(argument));
     });
   }
@@ -132,6 +133,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
         let count = 0;
         let chunks = 0;
         for (const part of parts) {
+          if (part.separator && count === 0) continue;
           let prefix = part.prefix;
           for await (const raw of source(part, signal)) {
             if (++chunks % 256 === 0) await yieldTurn(signal);

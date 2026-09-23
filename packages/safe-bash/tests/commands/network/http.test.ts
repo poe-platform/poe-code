@@ -34,6 +34,32 @@ test("Shell curl matches curl 8.5/8.10 empty-file URL encoding for POST and GET"
   } finally { await shell.dispose(); }
 });
 
+test("Shell curl joins data using curl 8.10.1 accumulated-byte semantics", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/empty", new Uint8Array());
+  await fs.writeFile("/stripped", Buffer.from([0, 10, 13]));
+  const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  try {
+    for (const [data, expected] of [
+      ["--data '' --data SYNTHETIC", "SYNTHETIC"],
+      ["--data @/empty --data SYNTHETIC", "SYNTHETIC"],
+      ["--data @- --data SYNTHETIC", "SYNTHETIC"],
+      ["--data @/stripped --data SYNTHETIC", "SYNTHETIC"],
+      ["--data '' --data @/empty --data '' --data SYNTHETIC", "SYNTHETIC"],
+      ["--data SYNTHETIC --data ''", "SYNTHETIC&"],
+      ["--data SYNTHETIC --data '' --data NEXT", "SYNTHETIC&&NEXT"],
+      ["--data FIRST --data NEXT", "FIRST&NEXT"],
+      ["--data '' --data @/empty", ""],
+      ["--data-binary @/stripped --data NEXT", "\0\n\r&NEXT"],
+      ["--json '' --json SYNTHETIC --json NEXT", "SYNTHETICNEXT"],
+    ]) {
+      const result = await shell.exec(`curl ${data} ${host.origin}/echo`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(JSON.parse(result.stdout).body, Buffer.from(expected!).toString("hex"), data);
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("Shell curl sends byte ranges and streams partial responses", async () => {
   const bodies = new Map([
     ["bytes=0-2", { body: "hel", contentRange: "bytes 0-2/6" }],

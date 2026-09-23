@@ -508,6 +508,8 @@ honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
 `curl` does not read proxy variables, host credentials, `.curlrc`, or `.netrc`.
 Following curl 8.5/8.10, `--data-urlencode name@file` sends no field when the
 file is empty; use `--data-urlencode name=` to send an explicit empty value.
+Repeated curl data options use curl 8.10.1 joining semantics: `&` is added only
+when earlier fragments have produced bytes, so empty leading fragments add no separator.
 
 ## Limitations
 

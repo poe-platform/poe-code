@@ -1,3 +1,4 @@
+import { setImmediate as nextTurn } from "node:timers/promises";
 import { EventEmitter } from "node:events";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { vol } from "memfs";
@@ -68,7 +69,7 @@ describe("runner signal dump handling", () => {
       await paused.promise;
       await new Promise<void>((resolve) => setImmediate(resolve));
       signalProcess.emit("SIGUSR1");
-      await flushMicrotasks();
+      await flushAsyncWork();
 
       expect(onError).not.toHaveBeenCalled();
       expect(captured).toHaveBeenCalledTimes(1);
@@ -103,9 +104,9 @@ describe("runner signal dump handling", () => {
       process
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(vol.existsSync("/dumps/run.json")).toBe(true);
 
@@ -135,10 +136,10 @@ describe("runner signal dump handling", () => {
       writeFile
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(writeFile).toHaveBeenCalledTimes(2);
     expect(writeFile).toHaveBeenNthCalledWith(
@@ -185,9 +186,9 @@ describe("runner signal dump handling", () => {
       })
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(tempPath).toBeDefined();
     expect(vol.readFileSync("/outside/dump.tmp", "utf8")).toBe("outside-state\n");
@@ -225,9 +226,9 @@ describe("runner signal dump handling", () => {
       })
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     await vi.waitFor(() => {
       expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining("dump disk full"));
@@ -263,10 +264,10 @@ describe("runner signal dump handling", () => {
       })
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     await withObjectPrototypeCode("EEXIST", async () => {
       process.emit("SIGUSR1");
-      await flushMicrotasks();
+      await flushAsyncWork();
 
       await vi.waitFor(() => {
         expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining("dump disk full"));
@@ -295,9 +296,9 @@ describe("runner signal dump handling", () => {
       process
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     const snapshot = JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string) as {
       bindings?: Record<string, unknown>;
@@ -344,9 +345,9 @@ describe("runner signal dump handling", () => {
       })
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(stderr.write).toHaveBeenCalledWith(
       expect.stringContaining("Failed to write SIGUSR1 dump to /dumps/run.json: EACCES")
@@ -378,9 +379,9 @@ describe("runner signal dump handling", () => {
       })
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(vol.readFileSync("/dumps/run.json", "utf8")).toBe('{"previous":"recoverable"}\n');
     await vi.waitFor(() => {
@@ -405,9 +406,9 @@ describe("runner signal dump handling", () => {
       process
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(() => JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string)).not.toThrow();
 
@@ -430,9 +431,9 @@ describe("runner signal dump handling", () => {
       process
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     const snapshot = JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string) as {
       sourceHash?: string;
@@ -457,7 +458,7 @@ describe("runner signal dump handling", () => {
       ok: true,
       returnValue: "done"
     });
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(process.listenerCount("SIGUSR1")).toBe(0);
     expect(process.emit("SIGUSR1")).toBe(false);
@@ -488,9 +489,9 @@ describe("runner signal dump handling", () => {
       process
     });
 
-    await flushMicrotasks();
+    await flushAsyncWork();
     process.emit("SIGUSR1");
-    await flushMicrotasks();
+    await flushAsyncWork();
 
     expect(JSON.parse(vol.readFileSync("/dumps/first.json", "utf8") as string)).toMatchObject({
       bindings: {
@@ -539,8 +540,8 @@ function createDeferred<T>() {
   };
 }
 
-async function flushMicrotasks(iterations = 20) {
+async function flushAsyncWork(iterations = 20) {
   for (let index = 0; index < iterations; index += 1) {
-    await Promise.resolve();
+    await nextTurn();
   }
 }

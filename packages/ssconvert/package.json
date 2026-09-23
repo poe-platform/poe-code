@@ -39,13 +39,15 @@
     "src/formulas/functions/captured-pow-profile.ts",
     "src/codecs/odf-blowfish-NOTICE.md",
     "src/codecs/odf-blowfish.ts",
-    "src/codecs/odf-blowfish-profile.ts"
+    "src/codecs/odf-blowfish-profile.ts",
+    "src/rendering/print/harfbuzz",
+    "scripts/harfbuzz"
   ],
   "scripts": {
-    "build": "node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
-    "test:unit": "node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
-    "test": "node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
-    "lint": "node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json"
+    "build": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
+    "test:unit": "node --test scripts/harfbuzz/verify.test.mjs && node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
+    "test": "node --test scripts/harfbuzz/verify.test.mjs && node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && cd ../.. && vitest run packages/ssconvert/src",
+    "lint": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && eslint src && tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.consumer.json"
   },
   "engines": {
     "node": ">=22"

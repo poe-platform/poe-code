@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import fontkit from "@pdf-lib/fontkit";
+import * as fontShaping from "../rendering/print/font-shaping.js";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../contracts.js";
 import {createFormattingCapability} from "../formatting.js";
@@ -42,14 +42,16 @@ it("refuses text whose rounded display width exceeds the printable cell", async 
 });
 
 it("uses shaped advance positions instead of nominal glyph widths", async () => {
-  const parsed = fontkit.create(suppliedDefaultFont().bytes), original = parsed.layout.bind(parsed);
-  const layout = vi.spyOn(parsed, "layout").mockImplementation((value, features) => {
-    const run = original(value, features);
+  const original = fontShaping.createFontShaper;
+  const create = vi.spyOn(fontShaping, "createFontShaper").mockImplementation((context, tick) => {
+    const shaper = original(context, tick);
+    return {...shaper, shape(metrics, value) {
+    const run = shaper.shape(metrics, value);
     return {...run, positions: run.positions.map(position => ({...position, xAdvance: position.xAdvance - 100}))};
+    }};
   });
-  const create = vi.spyOn(fontkit, "create").mockReturnValue(parsed);
   try {
     const {runs} = await pdfText(await writePdf(await fixture("GNM_HALIGN_RIGHT"), [], context));
     expect(runs.find(run => run.text === "alpha")?.glyphs[0]?.x).toBe(125);
-  } finally {layout.mockRestore();create.mockRestore();}
+  } finally {create.mockRestore();}
 });

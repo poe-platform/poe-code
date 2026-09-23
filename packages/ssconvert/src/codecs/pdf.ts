@@ -14,6 +14,7 @@ import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 import { normalizeFontText } from "../rendering/print/font-normalization.js";
+import { createFontShaper } from "../rendering/print/font-shaping.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
 const printDisplayScale = 72 / 96;
@@ -81,6 +82,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     if (!Number.isSafeInteger(work) || work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) throw new SsconvertError("resource-limit", "ssconvert PDF work limit exceeded");
   };
   tick();
+  const shaper = createFontShaper(context, tick);
+  try {
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
   const fonts = new Map<boolean, {font: PDFFont; metrics: Font; ascentRatio: number; descentRatio: number}>();
@@ -108,6 +111,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       try {
         const parsed = fontkit.create(bytes);
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
+        await shaper.addFont(bytes, parsed);
         pdf.registerFontkit({ create: () => parsed });
         selected = {font: await pdf.embedFont(bytes, { subset: true }), metrics: parsed,
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
@@ -131,7 +135,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const glyphs: {x: number; y: number}[] = [];
       // Pango's unhinted print profile rounds advances and offsets in display pixels.
-      for (const position of metrics.layout(shapedValue).positions) {
+      const run = shaper.shape(metrics, shapedValue);
+      for (const position of run.positions) {
         tick();
         const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
         if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
@@ -145,7 +150,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
       x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
-      const encoded = font.encodeText(shapedValue).asString();
+      // pdf-lib encodes through the public layout method synchronously. Give
+      // its subset encoder the exact run whose positions we just painted.
+      const layout = metrics.layout;
+      let encoded: string;
+      try {
+        metrics.layout = () => run;
+        encoded = font.encodeText(shapedValue).asString();
+      } finally { metrics.layout = layout; }
       if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.
@@ -362,4 +374,5 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   tick();
   if (bytes.length > context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert output bytes limit exceeded");
   return bytes;
+  } finally { shaper.dispose(); }
 }

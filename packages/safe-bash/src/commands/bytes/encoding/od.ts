@@ -53,6 +53,7 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       if (ended || argument === "-" || !argument.startsWith("-")) { rewritten.push(argument); continue; }
       if (argument === "--") { ended = true; rewritten.push(argument); continue; }
       if (argument.startsWith("--")) {
+        if (argument === "--strings") { rewritten.push("-S3"); continue; }
         rewritten.push(argument);
         if (!argument.includes("=") && ["--address-radix", "--skip-bytes", "--read-bytes", "--format", "--type", "--width", "--endian"].includes(argument)) {
           const parameter = context.args[++index];
@@ -63,6 +64,10 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
       }
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
+        if (flag === "S") {
+          rewritten.push(`-S${argument.slice(offset + 1) || "3"}`);
+          break;
+        }
         if (flag === "e") throw new UsageError("use --endian=little or --endian=big; -e is unsupported");
         if (aliases[flag]) rewritten.push(`-t${aliases[flag]}`);
         else if ("AjNtw".includes(flag)) {
@@ -73,7 +78,7 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
         } else rewritten.push(`-${flag}`);
       }
     }
-    const parsed = options(rewritten, "vA:j:N:t:w:e:", { "address-radix": "A", "skip-bytes": "j", "read-bytes": "N", format: "t", type: "t", width: "w", endian: "e", "output-duplicates": "v" });
+    const parsed = options(rewritten, "vA:j:N:t:w:e:S:", { "address-radix": "A", "skip-bytes": "j", "read-bytes": "N", format: "t", type: "t", width: "w", endian: "e", "output-duplicates": "v", strings: "S" });
     const radix = validatedOption(parsed, "A", text => {
       if (!["d", "o", "x", "n"].includes(text)) throw new UsageError("address radix must be d, o, x, or n");
       return text;
@@ -91,10 +96,36 @@ export function createOdCommand(maxInputBytes: number): CommandDefinition {
     }, 16);
     const skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
     const count = validatedOption(parsed, "N", text => numeric(text, true), Infinity);
+    const minimumStringLength = validatedOption(parsed, "S", text => {
+      const number = numeric(text);
+      if (number < 1) throw new UsageError("minimum string length must be positive");
+      return number;
+    }, 3);
     let offset = skip;
     let previous: Uint8Array | undefined;
     let suppressed = false;
     const address = (): string => radix === "n" ? "" : offset.toString(radix === "o" ? 8 : radix === "x" ? 16 : 10).padStart(radix === "x" ? 6 : 7, "0");
+    if (parsed.values.has("S")) {
+      let text = "";
+      let length = 0;
+      let start = "";
+      const escapes: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
+      for await (const chunk of range(sources(context, parsed.operands, maxInputBytes), skip, count)) {
+        for (const byte of chunk) {
+          if (byte >= 32 && byte <= 126 || escapes[byte] !== undefined) {
+            if (!length) start = address();
+            text += escapes[byte] ?? String.fromCharCode(byte);
+            length++;
+          } else {
+            if (byte === 0 && length >= minimumStringLength) await output(context, `${start} ${text}\n`);
+            text = "";
+            length = 0;
+          }
+          offset = addOffset(offset, 1);
+        }
+      }
+      return { exitCode: 0 };
+    }
     for await (const row of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
       const same = previous?.length === row.length && row.every((byte, index) => previous![index] === byte);
       if (!parsed.flags.has("v") && same) {

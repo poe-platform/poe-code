@@ -1,7 +1,41 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { Shell } from "../../../../src/shell/index.js";
+import { agentCommands } from "../../../../src/plugins/index.js";
 import { allBytes, run, sliced } from "./helpers.js";
+
+test("od: issue 228 NUL-terminated strings from a file", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("abc\0def\0"));
+  const result = await run("od", ["--strings=3", "input"], "", { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "0000000 abc\n0000004 def\n");
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const actual = await shell.exec("od --strings=3 input");
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(actual.stdout, result.stdout);
+    assert.equal(actual.stderr, "");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+test("od: strings span chunks, require NUL and respect byte ranges", async () => {
+  for (const args of [["--strings"], ["-S"], ["-S3"]]) {
+    const result = await run("od", args, sliced(Buffer.from("ab\0abc\0\xffdef\0tail")));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "0000003 abc\n0000011 def\n");
+  }
+  const ranged = await run("od", ["--strings=2", "-Ax", "-j2", "-N7"], sliced(Buffer.from("xxab\0cde\0tail"), 2));
+  assert.equal(ranged.exitCode, 0, ranged.stderr);
+  assert.equal(ranged.stdout, "000002 ab\n000005 cde\n");
+  assert.equal((await run("od", ["-S3", "-An"], "abc\0abc\0")).stdout, " abc\n abc\n");
+  assert.equal((await run("od", ["-S3", "-N3"], "abc\0")).stdout, "");
+  for (const value of ["0", "bad", "-1"]) assert.equal((await run("od", [`--strings=${value}`], "abc\0")).exitCode, 2);
+});
 
 test("xxd: exact normal/plain formats and uppercase", async () => {
   assert.equal((await run("xxd", [], "hello\n")).stdout, "00000000: 6865 6c6c 6f0a                           hello.\n");
@@ -159,7 +193,7 @@ test("od: concatenate files, skip/count and suppress duplicates", async () => {
 test("od: multiple types preserve order and reject unknown encodings", async () => {
   assert.equal((await run("od", ["-An", "-tx1u1"], Uint8Array.of(15))).stdout, " 0f\n  15\n");
   assert.equal((await run("od", ["-An", "-b", "-tx1"], Uint8Array.of(15))).stdout, " 017\n 0f\n");
-  for (const args of [["-tf8"], ["-ta"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["-S"], ["--type="], ["-j9007199254740992"]]) {
+  for (const args of [["-tf8"], ["-ta"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["--type="], ["-j9007199254740992"]]) {
     assert.equal((await run("od", args)).exitCode, 2, args.join(" "));
   }
 });

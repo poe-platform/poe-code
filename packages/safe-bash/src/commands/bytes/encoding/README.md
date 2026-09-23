@@ -103,11 +103,12 @@ past EOF fails, and skip plus displacement/address increments must remain safe
 integers. Normal output uses addresses padded to at least eight digits and
 ASCII bytes 32..126; other bytes display as `.`. Plain output has no addresses.
 
-### Strict reversal
+### Reversal
 
-- `-rp` accepts only paired hex digits and ASCII whitespace (space or bytes
-  9..13), with pairs allowed across whitespace/chunk boundaries. A nonhex byte
-  or unmatched final digit fails. There is no line-length limit in plain mode.
+- `-rp` decodes hex pairs across chunk boundaries. Whitespace may separate the
+  digits of a pair; other nonhex bytes discard an incomplete pair and are
+  ignored. An unmatched final digit is ignored. There is no line-length limit
+  in plain mode.
 - Normal `-r` accepts lines with a 1..14-digit hexadecimal address, a colon,
   optional single space/tab, then a nonempty hex data field. The field consists
   of even-length hex groups separated by single spaces. Two or more spaces or
@@ -118,10 +119,10 @@ ASCII bytes 32..126; other bytes display as `.`. Plain output has no addresses.
   input line is limited to 4096 bytes, excluding LF but including any CR/trailer.
 - `-s`, `-l`, `-o`, and `-d` are rejected in reverse mode even with zero values.
   `-u` has no effect on reversal; either hex case is accepted.
-- No garbage recovery, autoskip markers, sparse output, overlapping addresses,
-  out-of-order patching, or named-output mutation is supported. This intentionally
-  differs from Vim's permissive reverse parser. Normal reverse validates a line
-  before writing it; plain reverse can emit valid pairs before a later error.
+- Normal reverse has no garbage recovery, autoskip markers, sparse output,
+  overlapping addresses, out-of-order patching, or named-output mutation. This
+  intentionally differs from Vim's permissive addressed reverse parser. Normal
+  reverse validates a line before writing it.
 
 Other unsupported features include bits, little-endian dump mode, C includes,
 EBCDIC, color, autoskip, signed/relative seeks, and output-file patching.

@@ -6,7 +6,7 @@ import { Shell } from '../../src/shell/index.js';
 import { agentCommands } from '../../src/plugins/index.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import type { PlaywrightAdapter, PlaywrightPage } from '../../src/playwright/index.js';
-import type { SnapshotNode } from '../../src/playwright/adapter.js';
+import type { PlaywrightDownload, PlaywrightFileChooser, PlaywrightFrame, SnapshotNode } from '../../src/playwright/adapter.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
 function fixture() {
@@ -140,6 +140,12 @@ test('registration collision fails without replacement; unsupported flags are di
 });
 
 
+type PageListenerArguments =
+  | [event: 'framenavigated', listener: (frame?: PlaywrightFrame) => void]
+  | [event: 'close', listener: () => void]
+  | [event: 'filechooser', listener: (chooser: PlaywrightFileChooser) => void]
+  | [event: 'download', listener: (download: PlaywrightDownload) => void];
+
 function interactiveFixture(limits = {}) {
   const volume = Volume.fromJSON({ '/work/.keep': '' });
   const fs = new MemoryFileSystem();
@@ -156,7 +162,7 @@ function interactiveFixture(limits = {}) {
     const elements = [0, 1].map(index => {
       const element = { tagName: 'BUTTON', get textContent() { return node.name; }, get isConnected() { return node.connected; }, getAttribute: () => null };
       const native = {
-        async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(element); },
+        async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(element, argument!); },
         async click() { events.push(`click:${pages.indexOf(page)}:${index}`); },
         async fill(value: string) { events.push(`fill:${pages.indexOf(page)}:${index}:${value}`); },
         async dispose() { events.push('handle:dispose'); },
@@ -173,8 +179,14 @@ function interactiveFixture(limits = {}) {
       keyboard: { async press(key) { events.push(`press:${key}`); } },
       async screenshot(options) { screenshots++; screenshotOptions = options; return bytes.subarray(0); },
       async close() { pages.splice(pages.indexOf(page), 1); for (const callback of listeners.get(page)?.get('close') ?? []) callback(); },
-      on(event, listener) { const map = listeners.get(page)!; const set = map.get(event) ?? new Set(); set.add(listener); map.set(event, set); },
-      off(event, listener) { listeners.get(page)?.get(event)?.delete(listener); },
+      on(...[event, listener]: PageListenerArguments) {
+        if (event !== 'framenavigated' && event !== 'close') return;
+        const map = listeners.get(page)!, set = map.get(event) ?? new Set<() => void>();
+        set.add(listener); map.set(event, set);
+      },
+      off(...[event, listener]: PageListenerArguments) {
+        if (event === 'framenavigated' || event === 'close') listeners.get(page)?.get(event)?.delete(listener);
+      },
     };
     listeners.set(page, new Map()); pages.push(page); return page;
   }

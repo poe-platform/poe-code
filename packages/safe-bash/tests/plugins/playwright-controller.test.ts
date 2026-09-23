@@ -151,7 +151,7 @@ for (const command of ['click', 'fill', 'custom'] as const) {
     };
     const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
     const handle = {
-      async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
+      async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
       click: action, fill: action,
       async dispose() { disposals++; disposed.resolve(); },
     };

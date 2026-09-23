@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightAdapter, type PlaywrightAcquireOptions, type PlaywrightContext } from '../../src/playwright/index.js';
+import type { PlaywrightConsoleMessage, PlaywrightDialog, PlaywrightNetworkRequest, PlaywrightNetworkResponse, PlaywrightPage } from '../../src/playwright/adapter.js';
+
+type ContextListenerArguments =
+  | [event: 'close', listener: () => void]
+  | [event: 'page', listener: (page: PlaywrightPage) => void]
+  | [event: 'dialog', listener: (dialog: PlaywrightDialog) => void]
+  | [event: 'request', listener: (request: PlaywrightNetworkRequest) => void]
+  | [event: 'response', listener: (response: PlaywrightNetworkResponse) => void]
+  | [event: 'console', listener: (message: PlaywrightConsoleMessage) => void];
 
 test('malformed acquisition options are rejected before invoking trusted sources', async () => {
   let calls = 0;
@@ -28,8 +37,8 @@ test('failed context retirement still detaches a released borrowed lease and pre
   const context: PlaywrightContext = {
     newPage: async () => { throw new Error('unused'); }, pages: () => [],
     close: async () => { throw closeError; },
-    on: (_event, listener) => { contextListeners.add(listener); },
-    off: (_event, listener) => { contextListeners.delete(listener); },
+    on(...[event, listener]: ContextListenerArguments) { if (event === 'close') contextListeners.add(listener); },
+    off(...[event, listener]: ContextListenerArguments) { if (event === 'close') contextListeners.delete(listener); },
   };
   const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
     return {

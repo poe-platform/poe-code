@@ -82,10 +82,11 @@ test('console publication retains its cursor when diagnostic history rolls durin
   observePlaywrightCapabilities(context, close => cleanups.push(close), { maxCommandBytes: 100, maxArtifactBytes: 4096 });
   const emit = (text: string) => context.emit('console', { page: () => page, type: () => 'log', text: () => text, location: () => ({ url: '', lineNumber: 0, columnNumber: 0 }) });
   emit('first');
-  const publication = Promise.withResolvers<void>();
-  const pending = flushPlaywrightConsole(context, page, { writeArtifact: async () => publication.promise });
+  let releasePublication!: () => void;
+  const publication = new Promise<void>(resolve => { releasePublication = resolve; });
+  const pending = flushPlaywrightConsole(context, page, { writeArtifact: async () => publication });
   for (let i = 0; i < 100; i++) emit(`recent-${i}`);
-  publication.resolve();
+  releasePublication();
   await pending;
   let content = '';
   await flushPlaywrightConsole(context, page, { writeArtifact: async bytes => { content = new TextDecoder().decode(bytes); } });

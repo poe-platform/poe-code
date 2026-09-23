@@ -18,7 +18,7 @@ function fixture(execute: NonNullable<RegisteredPlaywrightAbility['execute']>) {
   const ability: RegisteredPlaywrightAbility = { execute, scope: 'client', arity: [0, 0], options: {} };
   const parsed: ParsedInvocation = {
     command: 'snapshot', session: 'test', args: [], options: {}, browser: 'chromium',
-    headless: true, fullPage: false, imageType: 'png',
+    headless: true, fullPage: false, imageType: 'png', json: false, raw: false, scale: 'css',
   };
   const invocation: PlaywrightInvocation = {
     args: [], env: {}, signal: abort.signal, async write() {},

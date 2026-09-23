@@ -13,13 +13,18 @@ const profile: BrowserProfile = { state, tabs: ['https://first.example/', 'https
 
 function host(existingCount = 0) {
   const pages: PlaywrightPage[] = [];
+  const navigations: ReturnType<typeof mock.fn<(url: string) => Promise<void>>>[] = [];
   const newPage = mock.fn(async () => {
-    const page = { url: () => 'about:blank', goto: mock.fn(async (_url: string) => {}), close: mock.fn(async () => {}) } as unknown as PlaywrightPage;
+    const goto = mock.fn(async (_url: string) => {});
+    navigations.push(goto);
+    const page = { url: () => 'about:blank', goto, close: mock.fn(async () => {}) } as unknown as PlaywrightPage;
     pages.push(page);
     return page;
   });
   for (let index = 0; index < existingCount; index++) {
-    pages.push({ url: () => `https://existing.example/${index}`, goto: mock.fn(async (_url: string) => {}), close: mock.fn(async () => {}) } as unknown as PlaywrightPage);
+    const goto = mock.fn(async (_url: string) => {});
+    navigations.push(goto);
+    pages.push({ url: () => `https://existing.example/${index}`, goto, close: mock.fn(async () => {}) } as unknown as PlaywrightPage);
   }
   const read = mock.fn(async (_options?: { indexedDB?: boolean }) => state);
   const context = { pages: () => [...pages], newPage, storageState: read } as unknown as BrowserProfileContext;
@@ -29,7 +34,7 @@ function host(existingCount = 0) {
   const adapter = { acquire } as unknown as PlaywrightAdapter;
   const controller = new AbortController();
   const session: PlaywrightSessionCheckpoint = { name: 'audit', context };
-  return { pages, newPage, read, context, release, acquire, controller, session, options: { adapter, profile, limits, name: 'audit', signal: controller.signal } };
+  return { pages, navigations, newPage, read, context, release, acquire, controller, session, options: { adapter, profile, limits, name: 'audit', signal: controller.signal } };
 }
 
 test('checkpoint rejects a foreign selected page before reading storage', async () => {
@@ -119,10 +124,11 @@ test('storage-only recovery preserves context options through checkpoint and a s
     assert.equal(recovered.configuration, undefined);
     assert.equal(item.pages.length, 1);
     assert.equal(item.pages[0]!.url(), 'about:blank');
-    assert.equal((item.pages[0]!.goto as ReturnType<typeof mock.fn>).mock.callCount(), 0);
+    assert.equal(item.navigations[0]!.mock.callCount(), 0);
     assert.equal(restore.mock.callCount(), 0);
     saved = parseBrowserProfile(await checkpointBrowserProfile({
-      ...item.session, selectedPage: recovered.selectedPage,
+      ...item.session,
+      ...(recovered.selectedPage === undefined ? {} : { selectedPage: recovered.selectedPage }),
       ...(recovered.contextOptions === undefined ? {} : { contextOptions: recovered.contextOptions }),
     }, limits, item.controller.signal), limits);
     assert.deepEqual(saved.contextOptions, contextOptions);

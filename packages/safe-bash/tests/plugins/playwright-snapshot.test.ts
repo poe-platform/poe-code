@@ -9,7 +9,7 @@ function contentFixture(nodes: Record<string, unknown>[], content = 'Ready\nHere
   const elements = nodes.map((properties, index) => {
     const node = { tagName: 'BUTTON', textContent: '', isConnected: true, getAttribute: () => null, ...properties };
     const native = {
-      async evaluate<T>(callback: (element: SnapshotNode) => T) { return callback(node); },
+      async evaluate<T, Argument = undefined>(callback: (element: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
       async click() {}, async fill() {},
       async dispose() { disposed.push(index); },
     };
@@ -82,7 +82,7 @@ function fixture() {
     const node = { connected: true, get isConnected() { return this.connected; }, tagName: 'BUTTON', textContent: 'Same', getAttribute: () => null };
     return {
       node,
-      async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
+      async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
       async click() { actions.push(`click:${index}`); }, async fill(value: string) { actions.push(`fill:${index}:${value}`); }, async dispose() { actions.push(`dispose:${index}`); },
     };
   });

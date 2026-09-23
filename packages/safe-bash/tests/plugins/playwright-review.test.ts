@@ -38,7 +38,7 @@ test('cancelled reference actions preserve deferred handle disposal failures', a
   let disposals = 0;
   const node = { isConnected: true, tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
   const handle = {
-    async evaluate<T>(callback: (node: SnapshotNode) => T) { return callback(node); },
+    async evaluate<T, Argument = undefined>(callback: (node: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
     async click() { startAction(); await actionReleased; },
     async fill() {},
     async dispose() { disposals++; throw cleanupError; },

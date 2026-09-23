@@ -37,7 +37,7 @@ test("verbose timeout reports cooperative expiry only when the deadline expires"
   } finally { await shell.dispose(); }
 });
 
-test("timeout parses bounded GNU floating-point durations with exact millisecond rounding", () => {
+test("timeout parses finite GNU floating-point durations with millisecond rounding", () => {
   for (const [token, milliseconds] of [
     ["+0.0", 0], ["-0.0", 0], [" 0.0", 0], ["0E-3", 0], ["0x0p+2", 0],
     ["+3.0", 3000], [" 3.0", 3000], ["3E-0", 3000], ["0x1.8p1", 3000],
@@ -45,15 +45,41 @@ test("timeout parses bounded GNU floating-point durations with exact millisecond
     ["\t\n+3e0", 3000], ["0X1.8P+1m", 180000], ["0x.8p1h", 3600000],
     ["1e-4", 1], ["0x1p-20", 1], ["1.001e0", 1001],
     ["9007199254740.991", Number.MAX_SAFE_INTEGER],
+    ["9007199254740.992", 9007199254740992], ["9.007199254740992e12", 9007199254740992],
+    ["9007199254742", 9007199254742000], ["150119987580m", 9007199254800000],
+    ["2501999793h", 9007199254800000], ["104249993d", 9007199395200000],
+    ["1e308", Number.MAX_VALUE], ["1e308d", Number.MAX_VALUE],
     ["9.007199254740991e12", Number.MAX_SAFE_INTEGER], ["1e-999999", 1],
     ["-0x0p99", 0], ["0e999999", 0], ["0x1d", 29000], ["0x1p0d", 86400000],
   ] as const) assert.deepEqual(parseDuration(token), { kind: "value", milliseconds }, token);
   for (const token of ["", " ", ".", "+", "3 ", "3s ", "-2", "-1e-999999", "NaN", "1e", "1e+", "0x", "0xp1", "0x1p", "0x1.2.3", "1ss", "0b11", "1_0"]) {
     assert.deepEqual(parseDuration(token), { kind: "invalid" }, token);
   }
-  for (const token of ["9007199254740.992", "9.007199254740992e12", "1e999999", "0x1p999999"]) {
+  for (const token of ["1e999999", "0x1p999999"]) {
     assert.deepEqual(parseDuration(token), { kind: "overflow" }, token);
   }
+});
+
+test("timeout large finite durations preserve child bytes and status with the default scheduler", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = Uint8Array.of(67, 252, 0, 13, 10);
+  await fs.writeFile("/Range.bin", bytes);
+  const shell = new Shell({ fs });
+  await shell.use(agentCommands());
+  try {
+    for (const token of ["9007199254740.992", "9007199254741", "9007199254742", "10000000000000", "150119987580m", "2501999793h", "104249992d", "104249993d", "1e308d"]) {
+      const chunks: Uint8Array[] = [];
+      const result = await shell.exec(`timeout -- '${token}' cat /Range.bin`, {
+        stdout: { async write(chunk) { chunks.push(Uint8Array.from(chunk)); } },
+      });
+      assert.equal(result.exitCode, 0, token);
+      assert.equal(result.stderr, "", token);
+      assert.deepEqual(Buffer.concat(chunks), Buffer.from(bytes), token);
+      const status = await shell.exec(`timeout --kill-after='${token}' -- '${token}' sh -c 'exit 11'`);
+      assert.equal(status.exitCode, 11, token);
+      assert.equal(status.stderr, "", token);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("timeout GNU duration spellings preserve file and raw stdin bytes through Shell", async () => {
@@ -124,8 +150,9 @@ test("timeout scheduler browser graph has no Node clock or timer dependency", as
   await retirement;
   assert.deepEqual(cleared, [0, 1, 2]);
   assert.equal(active.size, 0);
-  const early = scheduler.createDeadline(scheduler.defaultSchedulerBinding, 100, 10);
+  const early = scheduler.createDeadline(scheduler.defaultSchedulerBinding, Number.MAX_VALUE, 10);
   early.start();
+  assert.equal(delays.at(-1), 10);
   const lateWake = active.get(3)!;
   await early.retire();
   const beforeWake = clockCalls;

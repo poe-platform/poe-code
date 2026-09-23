@@ -1,4 +1,4 @@
-const maximumMilliseconds = BigInt(Number.MAX_SAFE_INTEGER);
+const maximumFiniteDuration = BigInt(Number.MAX_VALUE);
 
 export type DurationResult =
   | { readonly kind: "value"; readonly milliseconds: number }
@@ -43,7 +43,7 @@ export function parseDuration(token: string): DurationResult {
   let exponent = 0;
   const exponentMarker = hexadecimal ? "p" : "e";
   // Saturation bounds arithmetic to the operand size, including fractional scale.
-  const exponentLimit = token.length * 4 + 100;
+  const exponentLimit = token.length * 4 + 1100;
   if (token[index]?.toLowerCase() === exponentMarker) {
     index++;
     const exponentNegative = token[index] === "-";
@@ -63,11 +63,14 @@ export function parseDuration(token: string): DurationResult {
   if (negative) return { kind: "invalid" };
   const scale = exponent - fractionalDigits * (hexadecimal ? 4 : 1);
   const base = hexadecimal ? 2n : 10n;
-  let numerator = significand * BigInt(suffixMultiplier ?? 1000);
+  let numerator = significand;
   let denominator = 1n;
   if (scale >= 0) numerator *= base ** BigInt(scale);
   else denominator = base ** BigInt(-scale);
+  if (numerator > maximumFiniteDuration * denominator) return { kind: "overflow" };
+  numerator *= BigInt(suffixMultiplier ?? 1000);
   const milliseconds = (numerator + denominator - 1n) / denominator;
-  if (milliseconds > maximumMilliseconds) return { kind: "overflow" };
-  return { kind: "value", milliseconds: Number(milliseconds) };
+  // Unit conversion can exceed the floating-point range even for a finite
+  // operand. Saturate it; the scheduler still arms only bounded timer chunks.
+  return { kind: "value", milliseconds: Number(milliseconds > maximumFiniteDuration ? maximumFiniteDuration : milliseconds) };
 }

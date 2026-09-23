@@ -17,7 +17,9 @@ Durations accept leading ASCII whitespace, an optional sign, decimal or C
 hexadecimal floating-point notation, and optional `s`, `m`, `h`, or `d` units.
 Negative values are rejected except mathematical zero. The parser performs exact
 scaling, rounds positive fractional milliseconds up, and accepts values through
-`Number.MAX_SAFE_INTEGER` milliseconds. Mathematical zero creates no deadline
+the finite floating-point operand range. Milliseconds above
+`Number.MAX_SAFE_INTEGER` have floating-point precision; unit conversions beyond
+`Number.MAX_VALUE` milliseconds saturate at that value. Mathematical zero creates no deadline
 resources. Positive durations use one opaque timer handle at a time, clear a
 completed chunk before rearming, and retain the final handle through cooperative
 child cleanup.

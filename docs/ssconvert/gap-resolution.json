@@ -1100,5 +1100,52 @@
     "integratedGuardedLintSubjects": 16428,
     "publication": "unverified",
     "remaining": "Native Linux profiles, complete Pandoc/ssconvert plan families and actual containing publication"
+  },
+  "byteStringReplacebFollowup": {
+    "proof": "docs/ssconvert/byte-string-replaceb-gap-proof.json",
+    "scope": "native byte boundary replacement",
+    "status": "verified-remote-main-publication-pending",
+    "wholeGoalComplete": false,
+    "commit": "0646cbde4f",
+    "verifiedRemoteHead": "680bbd688f"
+  },
+  "mountCancellationReasonFollowup": {
+    "proof": "docs/ssconvert/mount-cancellation-reason-gap-proof.json",
+    "scope": "identity-preserving NaN cancellation",
+    "status": "verified-remote-main-publication-pending",
+    "wholeGoalComplete": false,
+    "commit": "89bc9202d0",
+    "verifiedRemoteHead": "680bbd688f"
+  },
+  "exclusiveCapabilityQueryFollowup": {
+    "proof": "docs/ssconvert/exclusive-capability-query-gap-proof.json",
+    "scope": "native noclobber final-symlink exclusive intent",
+    "status": "verified-remote-main-publication-pending",
+    "wholeGoalComplete": false,
+    "commit": "4e4cc42ecb",
+    "verifiedRemoteHead": "680bbd688f"
+  },
+  "filesystemTypeSnapshotFollowup": {
+    "proof": "docs/ssconvert/filesystem-type-snapshot-gap-proof.json",
+    "scope": "single-read owned metadata snapshots",
+    "status": "verified-remote-main-publication-pending",
+    "wholeGoalComplete": false,
+    "commit": "f354dad5ef",
+    "verifiedRemoteHead": "680bbd688f"
+  },
+  "umaskNumericRangeFollowup": {
+    "proof": "docs/ssconvert/umask-numeric-range-gap-proof.json",
+    "scope": "bounded numeric range and prior state preservation",
+    "status": "verified-remote-main-publication-pending",
+    "wholeGoalComplete": false,
+    "commit": "81ed3c1d9d",
+    "verifiedRemoteHead": "680bbd688f"
+  },
+  "fmtNoclobberExpectationFollowup": {
+    "proof": "docs/ssconvert/fmt-noclobber-expectation-gap-proof.json",
+    "status": "verified-remote-main-publication-pending",
+    "commit": "680bbd688f",
+    "tests": 10,
+    "wholeGoalComplete": false
   }
 }

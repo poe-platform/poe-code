@@ -1,0 +1,239 @@
+{
+  "scope": "REPLACEB native byte cursor and raw concatenation compatibility",
+  "status": "verified-remote-main-delivery-publication-and-full-goal-pending",
+  "reference": "Gnumeric1.12.61 authenticated source and Darwin installed GLib2.90.0; full matching Linux profiles remain open",
+  "originalRed": {
+    "tests": 514,
+    "failed": 430,
+    "passed": 84
+  },
+  "numericRed": {
+    "tests": 516,
+    "failed": 2,
+    "passed": 514
+  },
+  "finalFocused": {
+    "tests": 1544,
+    "failed": 0
+  },
+  "maintainedPackage": {
+    "files": 358,
+    "tests": 15172,
+    "failed": 0
+  },
+  "native": {
+    "rows": 52,
+    "fields": 572,
+    "outputBytes": 10532,
+    "warningBytes": 494,
+    "exactNativeSurfaces": [
+      "built root SDK",
+      "built public Shell",
+      "formula checkpoint replay",
+      "browser",
+      "dedicated worker"
+    ],
+    "qualification": "51 raw-source rows and one invalid CHAR(0) constructor propagation row. Trusted explicit CASE_SOURCE transports captured native byte sources; not an implicit product function. Native input and portable fixture are intentionally distinct."
+  },
+  "controls": [
+    "truncated/clamped fractional byte positions/counts",
+    "invalid versus partial UTF8 boundary distinction",
+    "strict complete removed-range validation",
+    "overlong/surrogate/out-of-range/complete5-or6byte rejection",
+    "raw prefix/replacement/suffix output",
+    "preallocation bounds and owned byte inputs/results",
+    "NUL clipping follows separate authenticated C-string contract",
+    "visible malformed host UTF16 refusal",
+    "falsey cancellation identity",
+    "NaN numeric arguments #VALUE",
+    "256 GLib lead-byte executable controls, separate GLib oracle profile"
+  ],
+  "remaining": [
+    "full native profile qualification",
+    "other byte text/search contexts",
+    "all original plan families",
+    "remote delivery",
+    "GitHub publication"
+  ],
+  "durableNative": {
+    "path": "docs/ssconvert/byte-replaceb-native-cases.json",
+    "bytes": 179975,
+    "sha256": "e98ea3fa8ecfe2200d2cb5f606e0383eca49db245bb84c5eac22afab0025f874"
+  },
+  "durablePortable": {
+    "path": "docs/ssconvert/byte-replaceb-public-cases.json",
+    "bytes": 108016,
+    "sha256": "add36d9b363fe8f33b8e10087a55284ae4ca2572a8d52641de7affa5997328e2"
+  },
+  "sources": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-replaceb.ts",
+      "bytes": 2203,
+      "sha256": "f76a31cc5e8caa731998b93224987820da67cf123731751c98615de161d39e1e"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-replaceb.test.ts",
+      "bytes": 34670,
+      "sha256": "0376eeba6a38b926b0402016eb6ed58ca31a80bfbbf4b275ba6f632fa38b83b3"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "bytes": 27531,
+      "sha256": "8a10d6165c52d8c1004ae48862518a9432d8c6d010e6678d8f203dd67625d5ce"
+    },
+    {
+      "path": "packages/ssconvert/README.md",
+      "bytes": 3670,
+      "sha256": "e25a36053125b689678df36a9ccd030f44b796c5dbb52df64b0cec2682bd78ba"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9470,
+      "sha256": "5c2a912d3ac06e2c944a0ff491f03037a6c6db157fcd849676ddf05b1f33dd47"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-red.log",
+      "bytes": 500747,
+      "sha256": "6a04063a3c13b7f52b4dc0e6541594e284b77a7a001b328a415b0711294c5b1b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-invalid-numeric-red.log",
+      "bytes": 33601,
+      "sha256": "7ec406b4fccd7ef25e85f9093b3986b709ac6f606a43ca5eb3eacb26ba5a7067"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-final-focused-green.log",
+      "bytes": 565,
+      "sha256": "f7300c674c2e13fcae29c20227df41e39926d8c600d434a1739db49db3ae7d5a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-final-maintained-green.log",
+      "bytes": 28406,
+      "sha256": "1f6eadf33cf888dfa6b50147a98e1d84eb416d96b5e6237003a7e98c27f36a5d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-public-red.log",
+      "bytes": 1439,
+      "sha256": "ef574ac4a7a5143b3d22581557ba2eeb3305810011756e456ed1f7dd8cef81c7"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-public-green.log",
+      "bytes": 85,
+      "sha256": "b1aafd21c7c7b44ec1a8bef14061b9d5879efe80c2af916da9b349b21b3ffc1c"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-public-results.json",
+      "bytes": 275,
+      "sha256": "6961075aff981f50a726bdfb44165a0fe5a15efe8dfceb44d6202f61a59d96e4"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/replaceb-rebased-build.log",
+      "bytes": 24760,
+      "sha256": "266087f2c2421478eed5a2cb71bc4ac9a0ab6182de1f8ab4ad7a303006c3cc6d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-browser-build.log",
+      "bytes": 100,
+      "sha256": "49c08f95b477e65014823a596b172baf868d30fe1dd2feeff237c2a9930c6394"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-browser-results.log",
+      "bytes": 432,
+      "sha256": "ad3496dd499cbccfb8d18e51308a090a719396834482aa9c4a02954eb41f55c9"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-browser.png",
+      "bytes": 62864,
+      "sha256": "f34ae4624c47a4130296b4dd94b551c8ae6f78d14c736e0907b7cf9d8a485fb4"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-browser-console.log",
+      "bytes": 180,
+      "sha256": "4da46dcec6e2e6e9f6faa688cfb25636d8e900acac16cdfeb254fe5e24d27734"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-glib-boundaries.log",
+      "bytes": 6144,
+      "sha256": "749cec0a1637872f2d065a5ade83b7f813e71614760885bce25f459d8a99668f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-native-replacement-setup.json",
+      "bytes": 376,
+      "sha256": "8f5a2aae7014902a1bee0ff0957f5fc9b660cd4b0b5d4d4296b1c89eeb9de363"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-replaceb-native-unfenced-results.json",
+      "bytes": 180747,
+      "sha256": "ab352900ebc9f7136aa6c2601b80af20975672c92df9f7b62cccd07b9693eece"
+    }
+  ],
+  "browserConsole": "Only favicon.ico404; runtime diagnostics/stderr empty on browser and worker. Screenshot inspected.",
+  "rootFinalQualification": {
+    "frozenHead": "7f4618adcb",
+    "lint": {
+      "subjects": 16453,
+      "errors": 0,
+      "warnings": 0,
+      "types": 0,
+      "workflows": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/exclusive-final-stable-root-lint.log",
+        "bytes": 1748,
+        "sha256": "95830aeee79b038b91b1d41cdcbddc540a142115f463a0f2e868a1ad5dfac9c4"
+      }
+    },
+    "maintainedBashTypes": {
+      "sourceTests": 0,
+      "currentConsumerGroups": 26,
+      "status": "typecheck-passed-not-runtime-acceptance",
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/exclusive-final-maintained-types.log",
+        "bytes": 2203,
+        "sha256": "93fa493acf2891b3bbc55bc7879e393771e3c21da692650836326d62aeccbf6b"
+      }
+    },
+    "builds": [
+      {
+        "path": "out/ssconvert-gap-resolution/exclusive-numeric-final-root-build.log",
+        "bytes": 22413,
+        "sha256": "b682761354315d809567871b4ec9cfbd95385e5cdae29972d7938f6c41cb82b3"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/exclusive-gnu-selected-build.log",
+        "bytes": 2934,
+        "sha256": "b352957414555844325fd48063a1448a931df2f3de7834bcccb3fb2c50fde694"
+      }
+    ],
+    "builtPublic": [
+      {
+        "path": "out/ssconvert-gap-resolution/exclusive-final-built-public-green.log",
+        "bytes": 39,
+        "sha256": "09068d7fe5238a8a2c6a90d7bc6fcf8c6c4af9152e09d82d131ddb1453e7b72e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/exclusive-built-public-results.json",
+        "bytes": 2069,
+        "sha256": "0d8b5bbea490327fa31f46a33d94835fa61d713c837f6d761e97ed6dde4fe5fe"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/umask-numeric-built-public-green.log",
+        "bytes": 57,
+        "sha256": "93245037772447ab316dda6a4f1cebd8b723785f66648883e99239c0cb616bb3"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-replaceb-final-public-green.log",
+        "bytes": 85,
+        "sha256": "b1aafd21c7c7b44ec1a8bef14061b9d5879efe80c2af916da9b349b21b3ffc1c"
+      }
+    ],
+    "qualification": "Frozen local source and Git metadata before subsequent incoming rebases. Later incoming source must be qualified by containing CI; this gate is not a claim of passing later commits."
+  },
+  "delivery": {
+    "commit": "0646cbde4f",
+    "verifiedRemoteHead": "680bbd688f",
+    "remoteMain": "verified ancestor",
+    "publication": "pending"
+  }
+}

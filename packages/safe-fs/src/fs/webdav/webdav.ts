@@ -56,6 +56,64 @@ export interface WebDavFileSystemOptions {
 }
 
 const timestampNamespace = "urn:virtual-bash:metadata";
+const maxTimestampPropertyBytes = 4096;
+
+/** Admit only five scalar members before native JSON parsing can allocate a graph. */
+function preflightTimestamps(property: XmlElement): string {
+  // Check the untrimmed text first; counting UTF-8 bytes does not allocate an encoded copy.
+  let bytes = 0;
+  for (const point of property.text) {
+    const code = point.codePointAt(0)!;
+    bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4;
+    if (bytes > maxTimestampPropertyBytes) throw new Error("timestamp property exceeds 4KiB limit");
+  }
+  const text = scalar(property);
+  let offset = 0;
+  const invalid = (): never => { throw new Error("invalid timestamp property structure"); };
+  const whitespace = () => {
+    while (" \t\r\n".includes(text[offset] ?? "\0")) offset++;
+  };
+  const stringEnd = () => {
+    if (text[offset++] !== '"') invalid();
+    while (offset < text.length) {
+      const char = text[offset++];
+      if (char === '"') return;
+      if (char === "\\") offset++;
+    }
+    invalid();
+  };
+  if (text[offset++] !== "{") invalid();
+  const fields = new Set<string>();
+  while (true) {
+    whitespace();
+    const start = offset;
+    stringEnd();
+    const field: unknown = JSON.parse(text.slice(start, offset));
+    if (typeof field !== "string" || !["version", "etag", "type", "atimeMs", "mtimeMs"].includes(field)
+      || fields.has(field) || fields.size >= 5) return invalid();
+    fields.add(field);
+    whitespace();
+    if (text[offset++] !== ":") invalid();
+    whitespace();
+    if (text[offset] === '"') stringEnd();
+    else {
+      const start = offset;
+      while (offset < text.length && text[offset] !== "," && text[offset] !== "}") {
+        if ('{[:"\\]'.includes(text[offset]!)) invalid();
+        offset++;
+      }
+      if (offset === start) invalid();
+    }
+    whitespace();
+    const delimiter = text[offset++];
+    if (delimiter === "}") break;
+    if (delimiter !== ",") invalid();
+  }
+  whitespace();
+  if (offset !== text.length || fields.size !== 5) invalid();
+  return text;
+}
+
 const propfindBody = '<?xml version="1.0" encoding="utf-8"?>'
   + '<d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:getcontentlength/>'
   + `<d:getlastmodified/><d:creationdate/><d:getetag/><v:timestamps xmlns:v="${timestampNamespace}"/></d:prop></d:propfind>`;
@@ -609,7 +667,7 @@ export class WebDavFileSystem implements FileSystem {
     let mtimeMs = date("getlastmodified") ?? 0;
     let atimeMs = 0;
     if (timestampProperty) {
-      const timestamps: unknown = JSON.parse(scalar(timestampProperty));
+      const timestamps: unknown = JSON.parse(preflightTimestamps(timestampProperty));
       if (typeof timestamps !== "object" || timestamps === null
         || !("version" in timestamps) || timestamps.version !== 1
         || !("etag" in timestamps) || typeof timestamps.etag !== "string" || !/^"[\x21\x23-\x7e\x80-\xff]*"$/.test(timestamps.etag)

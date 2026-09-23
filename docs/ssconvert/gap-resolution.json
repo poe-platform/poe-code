@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T01:37:04.429261+00:00",
+  "recordedAt": "2026-09-23T01:43:11.373954+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open. DeclaredUnicode16 C-locale LOWER/UPPER now repaired with38actual red failures,55focused tests,2224126scalar fields and14463field controls per public surface; locale/native-profile/diagnostic/otherbyte contexts remainrequired. UNICODE byte admission repaired with48red/green controls and38actualnative rows/152fields exact acrosspublic paths; warning parity remainsrequired. EXACT byte-prefix/NFD comparison repaired with228actualnative failures,247focused regressions and5126newfields perpublicsurface; historical sourceforms qualified,full normalization/profile/warning obligations stayopen.",
+      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open. DeclaredUnicode16 C-locale LOWER/UPPER now repaired with38actual red failures,55focused tests,2224126scalar fields and14463field controls per public surface; locale/native-profile/diagnostic/otherbyte contexts remainrequired. UNICODE byte admission repaired with48red/green controls and38actualnative rows/152fields exact acrosspublic paths; warning parity remainsrequired. EXACT byte-prefix/NFD comparison repaired with228actualnative failures,247focused regressions and5126newfields perpublicsurface; historical sourceforms qualified,full normalization/profile/warning obligations stayopen. TRIM repaired with94original failures,102focused controls,98private rawvalues and114actualnative fields exact perpublicsurface; CLEAN/otherconsumers/warnings/fullprofiles remainrequired.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -574,6 +574,11 @@
           "kind": "native-byte-EXACT",
           "path": "docs/ssconvert/byte-string-exact-gap-proof.json",
           "result": "focused and public verification passed;actual publication pending"
+        },
+        {
+          "kind": "native-byte-TRIM",
+          "path": "docs/ssconvert/byte-string-trim-gap-proof.json",
+          "result": "focused/public checks passed; actual publication pending"
         }
       ],
       "delivery": {

@@ -37,10 +37,9 @@ it.each(["pending", "completed"] as const)("replays a %s checkpoint containing a
   void resumed.then(() => reachedInner(), () => reachedInner());
   let pending: string;
   let didReach = false;
+  void innerReady.then(() => { didReach = true; });
   try {
-    const reached = await Promise.race([innerReady.then(() => true), new Promise(resolve => setImmediate(() => resolve(false)))]);
-    didReach = reached === true;
-    expect(reached, "Guest must reach the inner checkpoint before its nested proof Promise settles").toBe(true);
+    await vi.waitFor(() => expect(didReach, "Guest must reach the inner checkpoint before its nested proof Promise settles").toBe(true), { interval: 1, timeout: 1000 });
     pending = await dump(resumed, { mode: "replay" });
   }
   finally {

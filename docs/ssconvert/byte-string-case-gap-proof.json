@@ -1,0 +1,535 @@
+{
+  "scope": "Owned bounded Unicode16 C-locale LOWER/UPPER implementation; wider locale/native profiles and whole goal remain required",
+  "recordedAt": "2026-09-23T01:24:23.423481+00:00",
+  "implementationCommit": "9ac9528a3b265d8f3fb7ca6fad72bc6c65a6d2bf",
+  "authority": {
+    "reference": "Private authenticated unmodified GLib2.84.4 guniprop.c and Unicode16 tables, linked with installed2.90 allocation/UTF8 support. Not a complete activated2.84 Gnumeric/GLib profile.",
+    "nativeQualification": "docs/ssconvert/byte-string-case-native-qualification.json",
+    "archiveSha256": "8a9ea10943c36fc117e253f80c91e477b673525ae45762942858aef57631bb90",
+    "hostCaseDependency": false
+  },
+  "redEvidence": {
+    "actualFailingRegressions": 38,
+    "fieldMismatchesOrRefusals": 35,
+    "cooperationFailures": 2,
+    "publicSdkOpaqueUpperRefusal": 1,
+    "excludedHarnessFailure": "First SDK fixture lacked required limits; corrected red run retains actual product refusal."
+  },
+  "checks": {
+    "focusedTests": 55,
+    "maintainedPackage": {
+      "files": 346,
+      "tests": 12845,
+      "passed": true
+    },
+    "lintProductionTestConsumerTypes": "passed",
+    "maintainedSelectedBuild": "passed, four build tasks",
+    "scalarComparison": {
+      "inputs": 1112063,
+      "directions": 2224126,
+      "lowerDifferences": 0,
+      "upperDifferences": 0,
+      "scope": "Actual built product scalar implementation against pinned private Unicode16 oracle; not public/native full-profile closure"
+    }
+  },
+  "publicSdkShellFormulaCheckpoint": {
+    "reference": "Private authenticated unmodifiedGLib2.84.4 Unicode16 C source field oracle;not complete matchingGnumeric/GLib profile",
+    "results": [
+      {
+        "label": "context-0",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-500",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-1000",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-1500",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-2000",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-2500",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-3000",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-3500",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-4000",
+        "rows": 500,
+        "fields": 1500,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      },
+      {
+        "label": "context-4500",
+        "rows": 321,
+        "fields": 963,
+        "sdkExact": true,
+        "shellExact": true,
+        "checkpointExact": true,
+        "inputUnchanged": true
+      }
+    ]
+  },
+  "publicBrowserWorker": {
+    "browser": [
+      {
+        "label": "raw38",
+        "caseCount": 38,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "array",
+        "caseCount": 228,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "plain",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "never",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "always",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "no-whitespace",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "pipe-quote",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "text-info",
+        "caseCount": 456,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "scalar380",
+        "caseCount": 380,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-0",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-1000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-1500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-2000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-2500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-3000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-3500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-4000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-4500",
+        "caseCount": 963,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    ],
+    "worker": [
+      {
+        "label": "raw38",
+        "caseCount": 38,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "array",
+        "caseCount": 228,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "plain",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "never",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "always",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "no-whitespace",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "pipe-quote",
+        "caseCount": 48,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "text-info",
+        "caseCount": 456,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "scalar380",
+        "caseCount": 380,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-0",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-1000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-1500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-2000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-2500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-3000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-3500",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-4000",
+        "caseCount": 1500,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      },
+      {
+        "label": "case-context-4500",
+        "caseCount": 963,
+        "exitCode": 0,
+        "exact": true,
+        "stderrBytes": 0
+      }
+    ],
+    "caseSourceRows": 4821,
+    "caseFieldsPerSurface": 14463,
+    "earlierDatasets": 9,
+    "newDatasets": 10,
+    "screenshotInspected": true
+  },
+  "fixtureAuthority": {
+    "runtimeFunction": "CASE_SOURCE(hex), explicit trusted supported RuntimeFunctions extension returns canonical text/byte-string value; does not override LOWER/UPPER and is not a native Gnumeric function claim.",
+    "input": "Every source is an ASCII XML formula; input bytes unchanged. Normal formula checkpoint omits caches and re-evaluates with same binding.",
+    "expected": "4800 captured independent wide-context rows plus21targeted Unicode16 source rows; CSV fields independently decoded to exact hex before browser expected bytes admitted.",
+    "limits": {
+      "inputBytes": 1000000,
+      "outputBytes": 1000000,
+      "cells": 2000,
+      "sheets": 4,
+      "operations": 10000,
+      "workbookWork": 4000000
+    },
+    "failedQualificationAttempts": [
+      "Default work allowance exhausted by 1500 formula cells; explicit qualification work allowance raised without product change.",
+      "XML1.0 source literal UFFFF was forbidden; fixture defect, production sniffing unchanged.",
+      "PERL_SED replacement escapes are literal; fixture defect, production Perl semantics unchanged.",
+      "Browser initial /index.html route unavailable and wait callback ran outside page; corrected root route and page evaluation."
+    ]
+  },
+  "safety": [
+    "Complete result counted before owned allocation",
+    "Admission/traversal/copy ticks and cancellation tested",
+    "Inactive byte spans preserved; actual NUL clips tail",
+    "Malformed visible host UTF16 refused",
+    "Output expansion bounds tested",
+    "LGPL notice/license and corresponding TypeScript source shipped"
+  ],
+  "candidateFiles": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "bytes": 25392,
+      "sha256": "c5ec1a6d055e532a9bd779412b4f3a5ee33900e16547805d80c0896cd68771e0"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-case.ts",
+      "bytes": 3228,
+      "sha256": "5a933b761ddaffcf220cd49031454ea388d672f6be587aa16f87d2646be4311c"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-case-properties.ts",
+      "bytes": 42415,
+      "sha256": "89b1ff10944168634404ba5f9c097b8bd45d074993ed1d321e1e9f1892a047ed"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-case.test.ts",
+      "bytes": 4134,
+      "sha256": "25b0400d5b6b931deb7030d99520a3b618cf9ab2254e716208d9f4a25d8f293f"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-case-fixtures.ts",
+      "bytes": 2538,
+      "sha256": "b71b736f72ccdde81ec241832ff20d6d854ac0e0f99cdaec63ff3e17186f05fa"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-case-NOTICE.md",
+      "bytes": 987,
+      "sha256": "67f2c1a0904810756e4689720ac5240c077cc6d09d6426283d7eec1374d7cd04"
+    },
+    {
+      "path": "packages/ssconvert/package.json",
+      "bytes": 2093,
+      "sha256": "3cb99c69beae066880a45beae2ee36bc75b479550790ee1cc76b3617db06bb9e"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-red-corrected.log",
+      "bytes": 54520,
+      "sha256": "e9753ad6a9eaf6d59bb27b2fda8632e3e5840bb9b31c856e348612189a8b5af3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-owned-green.log",
+      "bytes": 300,
+      "sha256": "9aaccab4635f9deebd5a5e9bcf4b6ef245a570b87e556e2ea620161fbe3cb0d4"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-unit.log",
+      "bytes": 27410,
+      "sha256": "6bb2a72532357cdd2947a9c91e436eb67c9997d02bef4024c694ed03e1117708"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-lint.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-build.log",
+      "bytes": 737,
+      "sha256": "59eb469ad795529b980b4ee6ebc57405af4877d565cec02a36a14b77c361f2b1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-product-unicode16-scalars.log",
+      "bytes": 81,
+      "sha256": "714767bcd52fa0597d035346d58a9ed75dcdb1ff58ff68318f741e59f98f8a0e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-public-runtime-source.log",
+      "bytes": 74,
+      "sha256": "d183e9c956e292f6e33def9ff5c349665f8cfad70dc43ae37fce16173abefbd7"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-public-context-cases.json",
+      "bytes": 1648321,
+      "sha256": "af53940106f8d82f819c92f31c3a2227e13edab80375720e79bd1e2e0075595b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-public-qa.mjs",
+      "bytes": 3770,
+      "sha256": "e239aa1b0e296a5b4bd5216ab50a9fbb0941c498f446d18f44438c6cd1c8f4a1"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-browser-worker-results.json",
+      "bytes": 6692,
+      "sha256": "48bf62c50d134f958daa4208a2f763f318b01fbab438a5435520db3872e5138d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-string-case-browser-summary.png",
+      "bytes": 59576,
+      "sha256": "d30dd703820c399771152e5e60bf2b6145f6b00d99ebf5a83cd945a62202936d"
+    }
+  ],
+  "remaining": [
+    "Turkic/Lithuanian case and portable formatting locale activation",
+    "Complete matched native Unicode16 Gnumeric profile and additional profiles",
+    "Warnings/errors/other byte consumers and wider Perl grammar",
+    "All other active gap-resolution plan families",
+    "Remote-main ancestry and actual containing publication"
+  ]
+}

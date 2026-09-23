@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-22T20:14:51.393862+00:00",
+  "recordedAt": "2026-09-23T01:24:23.423481+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -488,7 +488,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open.",
+      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open. DeclaredUnicode16 C-locale LOWER/UPPER now repaired with38actual red failures,55focused tests,2224126scalar fields and14463field controls per public surface; locale/native-profile/diagnostic/otherbyte contexts remainrequired.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -559,6 +559,11 @@
           "kind": "native-byte-text-introspection-and-signature-coercion",
           "path": "docs/ssconvert/byte-string-info-gap-proof.json",
           "outcome": "228original native scalar output differences reproduced;456native CSV fields now exact on current SDK/Shell/formula-checkpoint/browser/worker. TYPE/N/T/CELLtype/prefix and numeric signature behavior repaired.12790maintained tests,lint/types/build pass. Native warnings,wider byte contexts and publication still open."
+        },
+        {
+          "kind": "declared-Unicode16-byte-case",
+          "path": "docs/ssconvert/byte-string-case-gap-proof.json",
+          "result": "focused/public checks passed; remote delivery/publication pending"
         }
       ],
       "delivery": {

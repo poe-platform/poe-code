@@ -1,4 +1,4 @@
-import {convert, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type ConversionContext} from "@poe-code/pandoc";
+import {convert, createJsonFilterCapability, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type ConversionContext} from "@poe-code/pandoc";
 import {createOutputOperation, getCommandArguments, readBytes, dirname, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "../../contracts/index.js";
 import {writeFileOutput} from "../../contracts/filesystem-output.js";
 import {compareObservedEntries, compareCopyIdentity} from "../copy-identity.js";
@@ -7,6 +7,8 @@ import {pathOf} from "../internal.js";
 export interface PandocCommandsOptions {
   readonly limits?: ConversionContext["limits"];
   readonly filters?: ConversionContext["filters"];
+  /** Explicit registered interpreter for local JSON filters, e.g. python3 or node. */
+  readonly jsonFilterCommand?: string;
   readonly replace?: boolean;
 }
 const statuses: Readonly<Record<string, number>> = {
@@ -32,13 +34,26 @@ async function verifyOutputIdentity(context: CommandContext, owner: OutputOperat
 /** Explicit opt-in: SDK owns all parsing, validation and document conversion. */
 export function createPandocCommand(options: PandocCommandsOptions = {}): CommandDefinition {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("pandoc replace must be boolean");
+  const interpreter = options.jsonFilterCommand;
+  if (interpreter !== undefined && (typeof interpreter !== "string" || !interpreter || [...interpreter].some(character => character.trim() === "" || character === "/" || character === "\0")))
+    throw new TypeError("pandoc jsonFilterCommand must be a registered command name");
+  if (interpreter !== undefined && options.filters !== undefined) throw new TypeError("Supply either filters or jsonFilterCommand");
   const limits = {...options.limits};
-  const filters = options.filters;
+  const configuredFilters = options.filters;
   return {name: "pandoc", description: "Convert documents with the original bounded TypeScript SDK", async execute(context) {
     context.signal.throwIfAborted();
     // Enroll the root scope before any invocation-owned I/O. stdout gets its own
     // child scope, so consumer closure cannot cancel a file destination.
     const invocation = createOutputOperation(context, {write: async () => {}});
+    const filters = interpreter === undefined ? configuredFilters : createJsonFilterCapability({async run(filter) {
+      if (!context.invoke) throw new PandocError("E_CAPABILITY", "convert", "The command host cannot invoke a filter interpreter");
+      // Dispatch arguments directly; filter paths never become shell source or interpreter options.
+      const result = await context.invoke(interpreter, ["--", pathOf(context, filter.path), ...filter.args], {
+        stdin: (async function* () {yield filter.stdin;})(), stdinIsDefault: false, stdout: filter.stdout,
+        stderr: context.stderr, signal: filter.signal ?? invocation.signal
+      });
+      return result.exitCode;
+    }});
     let stdout: ReturnType<typeof createOutputOperation> | undefined;
     try {
       const carrier = getCommandArguments(context);

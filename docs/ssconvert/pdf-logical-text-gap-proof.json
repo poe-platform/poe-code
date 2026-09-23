@@ -1,0 +1,3585 @@
+{
+  "public": {
+    "inputSha256": "b07a3aab99b1eafc4f8067919d63a97ee130cef206741120b97e0081b67867f0",
+    "pdfBytes": 26087,
+    "pdfSha256": "b7bf1d91c00ba368331dbb1477a149d14845adc011b6b7a72ef89a90b39e668a",
+    "requests": [
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 4000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 3240280
+      },
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 4000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 3240280
+      },
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 4000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 3240280
+      }
+    ],
+    "sdkShellReplayBytesExact": true,
+    "inputImmutable": true,
+    "fontsImmutable": true,
+    "diagnostics": [],
+    "runtimeEntrySha256": "d554d79a20cf3016f5f32c4bcb2b436c61c5d8ccb243caf29d490dc5fe01dc4c",
+    "codecSourceSha256": "43c3d14f0c441c3896c6331643dd1a0b0f81128ab68d74fcde477daddff8d5cb",
+    "status": "public candidate control, not native parity"
+  },
+  "pages": [
+    {
+      "page": 1,
+      "logicalStrings": 26,
+      "allOtherOperatorsExact": true,
+      "rasterBytesExact": true,
+      "pngSha256": "d45ae91d0b6ffd737d39fa99208f95cfc6b8b0cc99ed160a620ade73bb0115fd"
+    },
+    {
+      "page": 2,
+      "logicalStrings": 26,
+      "allOtherOperatorsExact": true,
+      "rasterBytesExact": true,
+      "pngSha256": "207b7ef07dc4e1b89157b75774dfa775e369191b71ab28f550ea3c26ea704854"
+    },
+    {
+      "page": 3,
+      "logicalStrings": 26,
+      "allOtherOperatorsExact": true,
+      "rasterBytesExact": true,
+      "pngSha256": "ad4f9d5bf2137f2d441700a977045c8ad19fc14d0cb08e704adf0a1fb981e73a"
+    },
+    {
+      "page": 4,
+      "logicalStrings": 26,
+      "allOtherOperatorsExact": true,
+      "rasterBytesExact": true,
+      "pngSha256": "91efda3dfbdfe72c86a06c5c323db83b6a6340b6564b98ee5d584774dd684aa5"
+    },
+    {
+      "page": 5,
+      "logicalStrings": 4,
+      "allOtherOperatorsExact": true,
+      "rasterBytesExact": true,
+      "pngSha256": "01fbc05d67fd00becf5e552852966ac119c8eba12d086694734728f3d2cc829b"
+    }
+  ],
+  "logicalStringsExact": 108,
+  "popplerExtractedOriginalStringsExact": 108,
+  "originalNativeExtractionOrderMismatchesFixed": [
+    22,
+    58,
+    94
+  ],
+  "nativeInvisibleExtractionDifference": "Native Poppler extraction omits CGJ/VS16 in12 rows; current output preserves those original scalars. No all-native extraction or rendering parity claim.",
+  "scope": "Logical original text for bounded positioned/styled PDF cells; no glyph normalization or full native rendering claim.",
+  "nativeSource": "docs/ssconvert/linux-font-composition-holdouts-native-capture.json",
+  "nativeRun": 35885822751,
+  "before": {
+    "scope": "Poppler bbox extraction row grouping by observed24pt grid; file-order scalars retained, no Unicode normalization or tolerance acceptance",
+    "rows": [
+      {
+        "row": 0,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "188.000000",
+            "yMin": "88.766961",
+            "xMax": "192.104492",
+            "yMax": "95.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "188.000000",
+            "yMin": "87.672852",
+            "xMax": "192.104492",
+            "yMax": "95.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 1,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "188.000000",
+            "yMin": "112.766961",
+            "xMax": "192.104492",
+            "yMax": "119.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "188.000000",
+            "yMin": "112.765625",
+            "xMax": "192.104492",
+            "yMax": "119.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 2,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "188.000000",
+            "yMin": "136.766961",
+            "xMax": "192.104492",
+            "yMax": "143.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "188.000000",
+            "yMin": "135.672852",
+            "xMax": "192.104492",
+            "yMax": "143.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 3,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "188.000000",
+            "yMin": "160.766961",
+            "xMax": "192.104492",
+            "yMax": "167.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "188.000000",
+            "yMin": "160.765625",
+            "xMax": "192.104492",
+            "yMax": "167.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 4,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "188.000000",
+            "yMin": "184.766961",
+            "xMax": "192.104492",
+            "yMax": "191.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "188.000000",
+            "yMin": "183.672852",
+            "xMax": "192.104492",
+            "yMax": "191.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 5,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "188.000000",
+            "yMin": "208.766961",
+            "xMax": "192.104492",
+            "yMax": "215.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "188.000000",
+            "yMin": "208.765625",
+            "xMax": "192.104492",
+            "yMax": "215.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 6,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "232.766961",
+            "xMax": "191.676758",
+            "yMax": "239.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "232.765625",
+            "xMax": "191.290039",
+            "yMax": "239.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 7,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "256.766961",
+            "xMax": "191.676758",
+            "yMax": "263.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "256.765625",
+            "xMax": "191.676758",
+            "yMax": "263.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 8,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "280.766961",
+            "xMax": "191.676758",
+            "yMax": "287.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "280.762695",
+            "xMax": "191.290039",
+            "yMax": "287.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 9,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "187.250000",
+            "yMin": "304.766961",
+            "xMax": "191.972656",
+            "yMax": "311.744961"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "304.016961",
+            "xMax": "191.000000",
+            "yMax": "310.994961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "187.250000",
+            "yMin": "303.672852",
+            "xMax": "191.972656",
+            "yMax": "311.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 10,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "188.000000",
+            "yMin": "328.766961",
+            "xMax": "191.748758",
+            "yMax": "335.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "188.000000",
+            "yMin": "328.765625",
+            "xMax": "191.290039",
+            "yMax": "335.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 11,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "188.000000",
+            "yMin": "352.766961",
+            "xMax": "190.998758",
+            "yMax": "359.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "188.000000",
+            "yMin": "352.765625",
+            "xMax": "191.676758",
+            "yMax": "359.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "352.765625",
+            "xMax": "191.750000",
+            "yMax": "359.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 12,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "188.000000",
+            "yMin": "376.766961",
+            "xMax": "192.104492",
+            "yMax": "383.744961"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "376.016961",
+            "xMax": "191.000000",
+            "yMax": "382.994961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "188.000000",
+            "yMin": "375.672852",
+            "xMax": "192.104492",
+            "yMax": "383.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 13,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "400.766961",
+            "xMax": "191.530273",
+            "yMax": "407.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "400.765625",
+            "xMax": "192.016602",
+            "yMax": "407.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 14,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "424.766961",
+            "xMax": "191.530273",
+            "yMax": "431.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "424.765625",
+            "xMax": "191.530273",
+            "yMax": "431.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 15,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "188.000000",
+            "yMin": "448.766961",
+            "xMax": "191.899414",
+            "yMax": "455.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "188.000000",
+            "yMin": "448.765625",
+            "xMax": "191.231445",
+            "yMax": "455.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 16,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "188.000000",
+            "yMin": "472.766961",
+            "xMax": "191.899414",
+            "yMax": "479.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "188.000000",
+            "yMin": "472.765625",
+            "xMax": "191.899414",
+            "yMax": "479.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 17,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 8,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "175.250000",
+            "yMin": "496.766961",
+            "xMax": "191.693914",
+            "yMax": "503.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "175.250000",
+            "yMin": "496.765625",
+            "xMax": "191.691406",
+            "yMax": "503.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 18,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "187.250000",
+            "yMin": "520.766961",
+            "xMax": "191.893555",
+            "yMax": "527.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "187.250000",
+            "yMin": "519.672852",
+            "xMax": "191.893555",
+            "yMax": "527.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 19,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "187.250000",
+            "yMin": "544.766961",
+            "xMax": "191.893555",
+            "yMax": "551.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "187.250000",
+            "yMin": "544.765625",
+            "xMax": "191.893555",
+            "yMax": "551.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 20,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "187.250000",
+            "yMin": "568.766961",
+            "xMax": "191.893555",
+            "yMax": "575.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "187.250000",
+            "yMin": "567.672852",
+            "xMax": "191.893555",
+            "yMax": "575.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 21,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "187.250000",
+            "yMin": "592.766961",
+            "xMax": "191.893555",
+            "yMax": "599.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "187.250000",
+            "yMin": "592.765625",
+            "xMax": "191.893555",
+            "yMax": "599.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 22,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "187.250000",
+            "yMin": "616.766961",
+            "xMax": "191.893555",
+            "yMax": "623.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "A",
+            "xMin": "187.250000",
+            "yMin": "616.765625",
+            "xMax": "191.893555",
+            "yMax": "623.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "190.920898",
+            "yMin": "615.672852",
+            "xMax": "190.920898",
+            "yMax": "622.657227"
+          },
+          {
+            "text": "̊",
+            "xMin": "190.926758",
+            "yMin": "615.672852",
+            "xMax": "190.926758",
+            "yMax": "622.657227"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Á̊",
+        "exactExtractedScalars": false
+      },
+      {
+        "row": 23,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "187.250000",
+            "yMin": "640.766961",
+            "xMax": "191.893555",
+            "yMax": "647.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "187.250000",
+            "yMin": "640.765625",
+            "xMax": "191.893555",
+            "yMax": "647.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 24,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "664.766961",
+            "xMax": "192.048828",
+            "yMax": "671.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "664.765625",
+            "xMax": "191.251953",
+            "yMax": "671.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 25,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "688.766961",
+            "xMax": "192.048828",
+            "yMax": "695.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "688.765625",
+            "xMax": "192.048828",
+            "yMax": "695.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 26,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "88.766961",
+            "xMax": "192.048828",
+            "yMax": "95.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "188.000000",
+            "yMin": "88.765625",
+            "xMax": "191.251953",
+            "yMax": "95.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 27,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "186.500000",
+            "yMin": "112.766961",
+            "xMax": "191.600586",
+            "yMax": "119.744961"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "112.016961",
+            "xMax": "191.000000",
+            "yMax": "118.994961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "186.500000",
+            "yMin": "111.672852",
+            "xMax": "191.600586",
+            "yMax": "119.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 28,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "188.000000",
+            "yMin": "136.766961",
+            "xMax": "191.748828",
+            "yMax": "143.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "188.000000",
+            "yMin": "136.765625",
+            "xMax": "191.246094",
+            "yMax": "143.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 29,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "188.000000",
+            "yMin": "160.766961",
+            "xMax": "190.998828",
+            "yMax": "167.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "188.000000",
+            "yMin": "160.765625",
+            "xMax": "192.048828",
+            "yMax": "167.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "160.765625",
+            "xMax": "191.750000",
+            "yMax": "167.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 30,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "187.250000",
+            "yMin": "184.766961",
+            "xMax": "191.893555",
+            "yMax": "191.744961"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "184.016961",
+            "xMax": "191.000000",
+            "yMax": "190.994961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "187.250000",
+            "yMin": "183.672852",
+            "xMax": "191.893555",
+            "yMax": "191.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 31,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "208.766961",
+            "xMax": "191.837891",
+            "yMax": "215.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "208.765625",
+            "xMax": "191.902344",
+            "yMax": "215.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 32,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "232.766961",
+            "xMax": "191.837891",
+            "yMax": "239.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "232.765625",
+            "xMax": "191.837891",
+            "yMax": "239.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 33,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "256.766961",
+            "xMax": "191.454102",
+            "yMax": "263.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "256.765625",
+            "xMax": "191.146484",
+            "yMax": "263.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 34,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "280.766961",
+            "xMax": "191.454102",
+            "yMax": "287.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "280.765625",
+            "xMax": "191.454102",
+            "yMax": "287.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 35,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 8,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "173.750000",
+            "yMin": "304.766961",
+            "xMax": "192.069453",
+            "yMax": "311.744961"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "173.750000",
+            "yMin": "304.765625",
+            "xMax": "192.069336",
+            "yMax": "311.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 36,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "186.500000",
+            "yMin": "327.021201",
+            "xMax": "191.630615",
+            "yMax": "335.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "186.500000",
+            "yMin": "325.653564",
+            "xMax": "191.630615",
+            "yMax": "335.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 37,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "186.500000",
+            "yMin": "351.021201",
+            "xMax": "191.630615",
+            "yMax": "359.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "186.500000",
+            "yMin": "351.019531",
+            "xMax": "191.630615",
+            "yMax": "359.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 38,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "186.500000",
+            "yMin": "375.021201",
+            "xMax": "191.630615",
+            "yMax": "383.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "186.500000",
+            "yMin": "373.653564",
+            "xMax": "191.630615",
+            "yMax": "383.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 39,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "186.500000",
+            "yMin": "399.021201",
+            "xMax": "191.630615",
+            "yMax": "407.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "186.500000",
+            "yMin": "399.019531",
+            "xMax": "191.630615",
+            "yMax": "407.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 40,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "186.500000",
+            "yMin": "423.021201",
+            "xMax": "191.630615",
+            "yMax": "431.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "186.500000",
+            "yMin": "421.653564",
+            "xMax": "191.630615",
+            "yMax": "431.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 41,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "186.500000",
+            "yMin": "447.021201",
+            "xMax": "191.630615",
+            "yMax": "455.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "186.500000",
+            "yMin": "447.019531",
+            "xMax": "191.630615",
+            "yMax": "455.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 42,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "471.021201",
+            "xMax": "191.845947",
+            "yMax": "479.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "471.019531",
+            "xMax": "191.175049",
+            "yMax": "479.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 43,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "495.021201",
+            "xMax": "191.845947",
+            "yMax": "503.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "495.019531",
+            "xMax": "191.845947",
+            "yMax": "503.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 44,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "519.021201",
+            "xMax": "191.845947",
+            "yMax": "527.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "187.250000",
+            "yMin": "519.015869",
+            "xMax": "191.175049",
+            "yMax": "527.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 45,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "185.750000",
+            "yMin": "543.021201",
+            "xMax": "191.653320",
+            "yMax": "551.743701"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "541.521201",
+            "xMax": "191.000000",
+            "yMax": "550.243701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "185.750000",
+            "yMin": "541.653564",
+            "xMax": "191.653320",
+            "yMax": "551.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 46,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "187.250000",
+            "yMin": "567.021201",
+            "xMax": "191.748447",
+            "yMax": "575.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "187.250000",
+            "yMin": "567.019531",
+            "xMax": "191.175049",
+            "yMax": "575.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 47,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "187.250000",
+            "yMin": "591.021201",
+            "xMax": "190.998447",
+            "yMax": "599.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "187.250000",
+            "yMin": "591.019531",
+            "xMax": "191.845947",
+            "yMax": "599.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "591.019531",
+            "xMax": "191.750000",
+            "yMax": "599.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 48,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "186.500000",
+            "yMin": "615.021201",
+            "xMax": "191.630615",
+            "yMax": "623.743701"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "613.521201",
+            "xMax": "191.000000",
+            "yMax": "622.243701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "186.500000",
+            "yMin": "613.653564",
+            "xMax": "191.630615",
+            "yMax": "623.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 49,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "639.021201",
+            "xMax": "192.037842",
+            "yMax": "647.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "639.019531",
+            "xMax": "192.083252",
+            "yMax": "647.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 50,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "663.021201",
+            "xMax": "192.037842",
+            "yMax": "671.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "189.500000",
+            "yMin": "663.019531",
+            "xMax": "192.037842",
+            "yMax": "671.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 51,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "687.021201",
+            "xMax": "192.124268",
+            "yMax": "695.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "687.019531",
+            "xMax": "191.101807",
+            "yMax": "695.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 52,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "87.021201",
+            "xMax": "192.124268",
+            "yMax": "95.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "187.250000",
+            "yMin": "87.019531",
+            "xMax": "192.124268",
+            "yMax": "95.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 53,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 10,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "171.500000",
+            "yMin": "111.021201",
+            "xMax": "191.867393",
+            "yMax": "119.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "171.500000",
+            "yMin": "111.019531",
+            "xMax": "191.864258",
+            "yMax": "119.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 54,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "185.750000",
+            "yMin": "135.021201",
+            "xMax": "191.554443",
+            "yMax": "143.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "185.750000",
+            "yMin": "133.653564",
+            "xMax": "191.554443",
+            "yMax": "143.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 55,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "185.750000",
+            "yMin": "159.021201",
+            "xMax": "191.554443",
+            "yMax": "167.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "185.750000",
+            "yMin": "159.019531",
+            "xMax": "191.554443",
+            "yMax": "167.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 56,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "185.750000",
+            "yMin": "183.021201",
+            "xMax": "191.554443",
+            "yMax": "191.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "185.750000",
+            "yMin": "181.653564",
+            "xMax": "191.554443",
+            "yMax": "191.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 57,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "185.750000",
+            "yMin": "207.021201",
+            "xMax": "191.554443",
+            "yMax": "215.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "185.750000",
+            "yMin": "207.019531",
+            "xMax": "191.554443",
+            "yMax": "215.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 58,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "185.750000",
+            "yMin": "231.021201",
+            "xMax": "191.554443",
+            "yMax": "239.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "A",
+            "xMin": "185.750000",
+            "yMin": "231.019531",
+            "xMax": "191.554443",
+            "yMax": "239.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "190.713623",
+            "yMin": "229.653564",
+            "xMax": "190.713623",
+            "yMax": "238.384033"
+          },
+          {
+            "text": "̊",
+            "xMin": "190.720947",
+            "yMin": "229.653564",
+            "xMax": "190.720947",
+            "yMax": "238.384033"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Á̊",
+        "exactExtractedScalars": false
+      },
+      {
+        "row": 59,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "185.750000",
+            "yMin": "255.021201",
+            "xMax": "191.554443",
+            "yMax": "263.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "185.750000",
+            "yMin": "255.019531",
+            "xMax": "191.554443",
+            "yMax": "263.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 60,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "279.021201",
+            "xMax": "191.561035",
+            "yMax": "287.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "279.019531",
+            "xMax": "191.127441",
+            "yMax": "287.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 61,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "303.021201",
+            "xMax": "191.561035",
+            "yMax": "311.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "303.019531",
+            "xMax": "191.561035",
+            "yMax": "311.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 62,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "327.021201",
+            "xMax": "191.561035",
+            "yMax": "335.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "186.500000",
+            "yMin": "327.019531",
+            "xMax": "191.127441",
+            "yMax": "335.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 63,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "185.000000",
+            "yMin": "351.021201",
+            "xMax": "191.375732",
+            "yMax": "359.743701"
+          },
+          {
+            "text": "́",
+            "xMin": "190.250000",
+            "yMin": "349.521201",
+            "xMax": "190.250000",
+            "yMax": "358.243701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "185.000000",
+            "yMin": "349.653564",
+            "xMax": "191.375732",
+            "yMax": "359.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 64,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "186.500000",
+            "yMin": "375.021201",
+            "xMax": "191.748535",
+            "yMax": "383.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "186.500000",
+            "yMin": "375.019531",
+            "xMax": "191.120117",
+            "yMax": "383.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 65,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "186.500000",
+            "yMin": "399.021201",
+            "xMax": "190.998535",
+            "yMax": "407.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "186.500000",
+            "yMin": "399.019531",
+            "xMax": "191.561035",
+            "yMax": "407.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "399.019531",
+            "xMax": "191.750000",
+            "yMax": "407.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 66,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "185.750000",
+            "yMin": "423.021201",
+            "xMax": "191.554443",
+            "yMax": "431.743701"
+          },
+          {
+            "text": "́",
+            "xMin": "191.000000",
+            "yMin": "421.521201",
+            "xMax": "191.000000",
+            "yMax": "430.243701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "185.750000",
+            "yMin": "421.653564",
+            "xMax": "191.554443",
+            "yMax": "431.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 67,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.750000",
+            "yMin": "447.021201",
+            "xMax": "191.672363",
+            "yMax": "455.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.750000",
+            "yMin": "447.019531",
+            "xMax": "191.940430",
+            "yMax": "455.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 68,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.750000",
+            "yMin": "471.021201",
+            "xMax": "191.672363",
+            "yMax": "479.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.750000",
+            "yMin": "471.019531",
+            "xMax": "191.672363",
+            "yMax": "479.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 69,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "186.500000",
+            "yMin": "495.021201",
+            "xMax": "191.755127",
+            "yMax": "503.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "186.500000",
+            "yMin": "495.019531",
+            "xMax": "190.995605",
+            "yMax": "503.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 70,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "186.500000",
+            "yMin": "519.021201",
+            "xMax": "191.755127",
+            "yMax": "527.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "186.500000",
+            "yMin": "519.019531",
+            "xMax": "191.755127",
+            "yMax": "527.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 71,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 10,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "168.500000",
+            "yMin": "543.021201",
+            "xMax": "191.586816",
+            "yMax": "551.743701"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "168.500000",
+            "yMin": "543.019531",
+            "xMax": "191.586670",
+            "yMax": "551.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 72,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "184.250000",
+            "yMin": "563.529682",
+            "xMax": "191.432861",
+            "yMax": "575.741182"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "184.250000",
+            "yMin": "561.614990",
+            "xMax": "191.432861",
+            "yMax": "575.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 73,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "184.250000",
+            "yMin": "587.529679",
+            "xMax": "191.432861",
+            "yMax": "599.741179"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "184.250000",
+            "yMin": "587.527344",
+            "xMax": "191.432861",
+            "yMax": "599.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 74,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "184.250000",
+            "yMin": "611.529676",
+            "xMax": "191.432861",
+            "yMax": "623.741176"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "184.250000",
+            "yMin": "609.614990",
+            "xMax": "191.432861",
+            "yMax": "623.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 75,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "184.250000",
+            "yMin": "635.529673",
+            "xMax": "191.432861",
+            "yMax": "647.741173"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "184.250000",
+            "yMin": "635.527344",
+            "xMax": "191.432861",
+            "yMax": "647.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 76,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "184.250000",
+            "yMin": "659.529670",
+            "xMax": "191.432861",
+            "yMax": "671.741170"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "184.250000",
+            "yMin": "657.614990",
+            "xMax": "191.432861",
+            "yMax": "671.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 77,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "184.250000",
+            "yMin": "683.529667",
+            "xMax": "191.432861",
+            "yMax": "695.741167"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "184.250000",
+            "yMin": "683.527344",
+            "xMax": "191.432861",
+            "yMax": "695.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 78,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "83.529682",
+            "xMax": "191.434326",
+            "yMax": "95.741182"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "83.527344",
+            "xMax": "190.945068",
+            "yMax": "95.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 79,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "107.529679",
+            "xMax": "191.434326",
+            "yMax": "119.741179"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "107.527344",
+            "xMax": "191.434326",
+            "yMax": "119.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 80,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "131.529676",
+            "xMax": "191.434326",
+            "yMax": "143.741176"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "131.522217",
+            "xMax": "190.945068",
+            "yMax": "143.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 81,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "183.500001",
+            "yMin": "155.529673",
+            "xMax": "191.764650",
+            "yMax": "167.741173"
+          },
+          {
+            "text": "́",
+            "xMin": "190.250000",
+            "yMin": "153.279670",
+            "xMax": "190.250000",
+            "yMax": "165.491170"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "183.500000",
+            "yMin": "153.614990",
+            "xMax": "191.764648",
+            "yMax": "167.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 82,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "185.000000",
+            "yMin": "179.529670",
+            "xMax": "191.749326",
+            "yMax": "191.741170"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "185.000000",
+            "yMin": "179.527344",
+            "xMax": "190.945068",
+            "yMax": "191.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 83,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "185.000000",
+            "yMin": "203.529667",
+            "xMax": "191.003826",
+            "yMax": "215.741167"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "185.000000",
+            "yMin": "203.527344",
+            "xMax": "191.434326",
+            "yMax": "215.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "203.527344",
+            "xMax": "191.750000",
+            "yMax": "215.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 84,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "184.250000",
+            "yMin": "227.529664",
+            "xMax": "191.432861",
+            "yMax": "239.741164"
+          },
+          {
+            "text": "́",
+            "xMin": "190.999998",
+            "yMin": "225.279661",
+            "xMax": "190.999998",
+            "yMax": "237.491161"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "184.250000",
+            "yMin": "225.614990",
+            "xMax": "191.432861",
+            "yMax": "239.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 85,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000001",
+            "yMin": "251.529661",
+            "xMax": "191.552980",
+            "yMax": "263.741161"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000000",
+            "yMin": "251.527344",
+            "xMax": "192.216553",
+            "yMax": "263.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 86,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000001",
+            "yMin": "275.529658",
+            "xMax": "191.552980",
+            "yMax": "287.741158"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000000",
+            "yMin": "275.527344",
+            "xMax": "191.552979",
+            "yMax": "287.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 87,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "185.000004",
+            "yMin": "299.529655",
+            "xMax": "191.823979",
+            "yMax": "311.741155"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "185.000000",
+            "yMin": "299.527344",
+            "xMax": "190.842529",
+            "yMax": "311.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 88,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "185.000004",
+            "yMin": "323.529652",
+            "xMax": "191.823979",
+            "yMax": "335.741152"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "185.000000",
+            "yMin": "323.527344",
+            "xMax": "191.823975",
+            "yMax": "335.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 89,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 14,
+        "bold": false,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "161.750001",
+            "yMin": "347.529649",
+            "xMax": "191.461351",
+            "yMax": "359.741149"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "161.750000",
+            "yMin": "347.527344",
+            "xMax": "191.459961",
+            "yMax": "359.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 90,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "183.500006",
+            "yMin": "371.529646",
+            "xMax": "191.626226",
+            "yMax": "383.741146"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "183.500000",
+            "yMin": "369.614990",
+            "xMax": "191.626221",
+            "yMax": "383.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 91,
+        "column": 0,
+        "text": "Á",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Á",
+            "xMin": "183.500006",
+            "yMin": "395.529643",
+            "xMax": "191.626226",
+            "yMax": "407.741143"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "183.500000",
+            "yMin": "395.527344",
+            "xMax": "191.626221",
+            "yMax": "407.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 92,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "183.500006",
+            "yMin": "419.529640",
+            "xMax": "191.626226",
+            "yMax": "431.741140"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "183.500000",
+            "yMin": "417.614990",
+            "xMax": "191.626221",
+            "yMax": "431.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 93,
+        "column": 0,
+        "text": "Å",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Å",
+            "xMin": "183.500006",
+            "yMin": "443.529637",
+            "xMax": "191.626226",
+            "yMax": "455.741137"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Å",
+            "xMin": "183.500000",
+            "yMin": "443.527344",
+            "xMax": "191.626221",
+            "yMax": "455.750000"
+          }
+        ],
+        "nativeExtracted": "Å",
+        "candidateExtracted": "Å",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 94,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "183.500006",
+            "yMin": "467.529634",
+            "xMax": "191.626226",
+            "yMax": "479.741134"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "A",
+            "xMin": "183.500000",
+            "yMin": "467.527344",
+            "xMax": "191.626221",
+            "yMax": "479.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "190.299072",
+            "yMin": "465.614990",
+            "xMax": "190.299072",
+            "yMax": "477.837646"
+          },
+          {
+            "text": "̊",
+            "xMin": "190.309326",
+            "yMin": "465.614990",
+            "xMax": "190.309326",
+            "yMax": "477.837646"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Á̊",
+        "exactExtractedScalars": false
+      },
+      {
+        "row": 95,
+        "column": 0,
+        "text": "Ǻ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Ǻ",
+            "xMin": "183.500006",
+            "yMin": "491.529631",
+            "xMax": "191.626226",
+            "yMax": "503.741131"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Ǻ",
+            "xMin": "183.500000",
+            "yMin": "491.527344",
+            "xMax": "191.626221",
+            "yMax": "503.750000"
+          }
+        ],
+        "nativeExtracted": "Ǻ",
+        "candidateExtracted": "Ǻ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 96,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000004",
+            "yMin": "515.529628",
+            "xMax": "192.085453",
+            "yMax": "527.741128"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "515.527344",
+            "xMax": "190.878418",
+            "yMax": "527.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 97,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000004",
+            "yMin": "539.529625",
+            "xMax": "192.085453",
+            "yMax": "551.741125"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "539.527344",
+            "xMax": "192.085449",
+            "yMax": "551.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 98,
+        "column": 0,
+        "text": "ậ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ậ",
+            "xMin": "185.000004",
+            "yMin": "563.529622",
+            "xMax": "192.085453",
+            "yMax": "575.741122"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ậ",
+            "xMin": "185.000000",
+            "yMin": "563.527344",
+            "xMax": "190.878418",
+            "yMax": "575.750000"
+          }
+        ],
+        "nativeExtracted": "ậ",
+        "candidateExtracted": "ậ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 99,
+        "column": 0,
+        "text": "Q́",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "Q",
+            "xMin": "182.750001",
+            "yMin": "587.529619",
+            "xMax": "191.676027",
+            "yMax": "599.741119"
+          },
+          {
+            "text": "́",
+            "xMin": "190.250004",
+            "yMin": "585.279616",
+            "xMax": "190.250004",
+            "yMax": "597.491116"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Q́",
+            "xMin": "182.750000",
+            "yMin": "585.614990",
+            "xMax": "191.676025",
+            "yMax": "599.750000"
+          }
+        ],
+        "nativeExtracted": "Q́",
+        "candidateExtracted": "Q́",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 100,
+        "column": 0,
+        "text": "á̀",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á̀",
+            "xMin": "185.000004",
+            "yMin": "611.529616",
+            "xMax": "191.749453",
+            "yMax": "623.741116"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "á̀",
+            "xMin": "185.000000",
+            "yMin": "611.527344",
+            "xMax": "190.868164",
+            "yMax": "623.750000"
+          }
+        ],
+        "nativeExtracted": "á̀",
+        "candidateExtracted": "á̀",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 101,
+        "column": 0,
+        "text": "a͏́",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "á",
+            "xMin": "185.000004",
+            "yMin": "635.529613",
+            "xMax": "191.003953",
+            "yMax": "647.741113"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "a",
+            "xMin": "185.000000",
+            "yMin": "635.527344",
+            "xMax": "192.085449",
+            "yMax": "647.750000"
+          },
+          {
+            "text": "́",
+            "xMin": "191.750000",
+            "yMin": "635.527344",
+            "xMax": "191.750000",
+            "yMax": "647.750000"
+          }
+        ],
+        "nativeExtracted": "á",
+        "candidateExtracted": "á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 102,
+        "column": 0,
+        "text": "A️́",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "A",
+            "xMin": "183.500006",
+            "yMin": "659.529610",
+            "xMax": "191.626226",
+            "yMax": "671.741110"
+          },
+          {
+            "text": "́",
+            "xMin": "190.250004",
+            "yMin": "657.279607",
+            "xMax": "190.250004",
+            "yMax": "669.491107"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "Á",
+            "xMin": "183.500000",
+            "yMin": "657.614990",
+            "xMax": "191.626221",
+            "yMax": "671.750000"
+          }
+        ],
+        "nativeExtracted": "Á",
+        "candidateExtracted": "Á",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 103,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000001",
+            "yMin": "683.529607",
+            "xMax": "192.091310",
+            "yMax": "695.741107"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000000",
+            "yMin": "683.527344",
+            "xMax": "192.016602",
+            "yMax": "695.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 104,
+        "column": 0,
+        "text": "ΐ",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000000",
+            "yMin": "83.529682",
+            "xMax": "192.091309",
+            "yMax": "95.741182"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "ΐ",
+            "xMin": "188.000000",
+            "yMin": "83.527344",
+            "xMax": "192.091309",
+            "yMax": "95.750000"
+          }
+        ],
+        "nativeExtracted": "ΐ",
+        "candidateExtracted": "ΐ",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 105,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "184.249999",
+            "yMin": "107.529679",
+            "xMax": "191.607176",
+            "yMax": "119.741179"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "184.250000",
+            "yMin": "107.527344",
+            "xMax": "190.693848",
+            "yMax": "119.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 106,
+        "column": 0,
+        "text": "й",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "й",
+            "xMin": "184.249999",
+            "yMin": "131.529676",
+            "xMax": "191.607176",
+            "yMax": "143.741176"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "й",
+            "xMin": "184.250000",
+            "yMin": "131.527344",
+            "xMax": "191.607178",
+            "yMax": "143.750000"
+          }
+        ],
+        "nativeExtracted": "й",
+        "candidateExtracted": "й",
+        "exactExtractedScalars": true
+      },
+      {
+        "row": 107,
+        "column": 0,
+        "text": "office",
+        "fontUnit": 14,
+        "bold": true,
+        "alignment": "GNM_HALIGN_RIGHT",
+        "native": [
+          {
+            "text": "office",
+            "xMin": "159.499997",
+            "yMin": "155.529673",
+            "xMax": "192.126040",
+            "yMax": "167.741173"
+          }
+        ],
+        "candidate": [
+          {
+            "text": "office",
+            "xMin": "159.500000",
+            "yMin": "155.527344",
+            "xMax": "192.121338",
+            "yMax": "167.750000"
+          }
+        ],
+        "nativeExtracted": "office",
+        "candidateExtracted": "office",
+        "exactExtractedScalars": true
+      }
+    ],
+    "mismatches": [
+      22,
+      58,
+      94
+    ],
+    "candidatePublic": {
+      "inputSha256": "b07a3aab99b1eafc4f8067919d63a97ee130cef206741120b97e0081b67867f0",
+      "pdfBytes": 25338,
+      "pdfSha256": "5ecf75bf18b5b8fcf8a6165c35bde27033ef7213679af77dff245dc4e7d65421",
+      "requests": [
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        }
+      ],
+      "sdkShellReplayBytesExact": true,
+      "inputImmutable": true,
+      "fontsImmutable": true,
+      "diagnostics": [],
+      "runtimeEntrySha256": "a3bdbc0666be412774b7fc1b033015144cb1a367684a5a29a20c8d68c77242f7",
+      "codecSourceSha256": "a6de0bc8058fcfa1337e4a66b9813aa9aa0bac95dab681ef9d2904aeb885bbb6",
+      "status": "public candidate control, not native parity"
+    },
+    "visual": {
+      "pages": 5,
+      "dpi": 96,
+      "noVisibleCellClippingOrOverlap": true,
+      "pixelParity": false,
+      "pngSha256": {
+        "candidate-page-4.png": "91efda3dfbdfe72c86a06c5c323db83b6a6340b6564b98ee5d584774dd684aa5",
+        "candidate-page-5.png": "01fbc05d67fd00becf5e552852966ac119c8eba12d086694734728f3d2cc829b",
+        "candidate-page-2.png": "207b7ef07dc4e1b89157b75774dfa775e369191b71ab28f550ea3c26ea704854",
+        "candidate-page-3.png": "ad4f9d5bf2137f2d441700a977045c8ad19fc14d0cb08e704adf0a1fb981e73a",
+        "candidate-page-1.png": "d45ae91d0b6ffd737d39fa99208f95cfc6b8b0cc99ed160a620ade73bb0115fd"
+      }
+    }
+  },
+  "browserAndWorker": {
+    "done": true,
+    "qualification": {
+      "browser": [
+        {
+          "id": "print-font-composition-holdouts",
+          "pdfBytes": 26087,
+          "pdfSha256": "b7bf1d91c00ba368331dbb1477a149d14845adc011b6b7a72ef89a90b39e668a",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        }
+      ],
+      "worker": [
+        {
+          "id": "print-font-composition-holdouts",
+          "pdfBytes": 26087,
+          "pdfSha256": "b7bf1d91c00ba368331dbb1477a149d14845adc011b6b7a72ef89a90b39e668a",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        }
+      ]
+    }
+  },
+  "validation": {
+    "red": {
+      "failed": 3,
+      "passed": 4
+    },
+    "wholePackage": {
+      "tests": 22587,
+      "files": 372,
+      "failed": 0,
+      "precededTypeCorrections": true
+    },
+    "finalFocused": {
+      "tests": 15,
+      "failed": 0,
+      "afterBothTypeCorrections": true
+    },
+    "packageLintSourceTestConsumerTypes": {
+      "exitCode": 0
+    },
+    "selectedWorkspaceBuild": {
+      "workspace": "@poe-code/ssconvert",
+      "builds": 4,
+      "layers": 11,
+      "cacheHits": 2,
+      "exitCode": 0
+    },
+    "typeCorrections": [
+      "PDFOperatorArg does not accept PDFDict directly; serialize the library-produced ASCII dictionary.",
+      "PDFContext.lookup overload does not accept PDFRawStream; narrow the returned object explicitly in the test."
+    ],
+    "browserConsole": {
+      "messages": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "dashboardInspected": true,
+    "dashboardSha256": "1dabfb502c9c6e82e6e1dda66dc51666c8f5997c4d54018fb672088276231116",
+    "guardedRootLint": {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 2,
+      "scope": {
+        "configured": 16599,
+        "linted": 16599,
+        "ignored": 2241,
+        "unconfigured": 39636,
+        "ignoredDirectories": 271,
+        "heldExcluded": 5
+      },
+      "receiptCount": 25
+    }
+  },
+  "sourceHashes": {
+    "packages/ssconvert/src/codecs/pdf.ts": "43c3d14f0c441c3896c6331643dd1a0b0f81128ab68d74fcde477daddff8d5cb",
+    "packages/ssconvert/src/codecs/pdf-glyph-positions.test.ts": "fd4d2d33e17b22df7a2f6af0083c5f78d7ae985e452fe4e333939cdd23836678"
+  },
+  "delivery": "pending at record creation",
+  "wholeGoalComplete": false
+}

@@ -1,4 +1,4 @@
-import { PDFDocument, PDFHexString, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFPage, type PDFFont } from "pdf-lib";
+import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -144,12 +144,15 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const encoded = font.encodeText(value).asString();
       if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
       const resource = page.node.newFontDictionary(font.name, font.ref);
-      page.pushOperators(pushGraphicsState(), beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
+      // Positioned marks can be reordered by text extractors; retain the logical cell string.
+      page.pushOperators(pushGraphicsState(), PDFOperator.of(PDFOperatorNames.BeginMarkedContentSequence,
+        [PDFName.of("Span"), pdf.context.obj({ActualText: PDFHexString.fromText(value)}).toString()]),
+      beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
       for (const [index, glyph] of glyphs.entries()) {
         tick();
         page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
       }
-      page.pushOperators(endText(), popGraphicsState());
+      page.pushOperators(endText(), PDFOperator.of(PDFOperatorNames.EndMarkedContent), popGraphicsState());
       return;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });

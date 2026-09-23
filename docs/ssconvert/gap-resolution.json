@@ -1711,5 +1711,12 @@
     "boundCanonicalPairs": 42,
     "directCandidateSequenceDifferences": 54,
     "status": "validated shaping gap; runtime repair and public qualification pending"
+  },
+  "pdfLogicalText": {
+    "proof": "docs/ssconvert/pdf-logical-text-gap-proof.json",
+    "originalStrings": 108,
+    "exactUnchangedRasterPages": 5,
+    "status": "implemented and locally qualified; delivery and publication pending",
+    "remaining": "Font-aware composition and complete rendering remain open"
   }
 }

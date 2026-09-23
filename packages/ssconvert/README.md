@@ -43,8 +43,10 @@ uses a native spreadsheet converter as a fallback. PDF exports can use an explic
 `fonts.resolve({ family, bold, italic, maxBytes, signal })` host binding returning
 TrueType font bytes, which the engine copies. The default request is Sans, regular; missing supplied
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
-font remains the default. Font bytes and character-map work are bounded before parsing. With explicit fonts,
-PDF export also admits fully materialized Gnumeric Sans styles for blank cells
+font remains the default. Font bytes and character-map work are bounded before parsing.
+PDF export retains styled cells' logical text for copying and extraction,
+including combining marks whose glyph positions differ from their text order.
+With explicit fonts, it also admits fully materialized Gnumeric Sans styles for blank cells
 and single-line values that fit the selected font and cell: General or explicit
 left/right/center alignment, regular or bold, sizes
 8/10/14, black or red text, and solid white or yellow backgrounds. Font selections

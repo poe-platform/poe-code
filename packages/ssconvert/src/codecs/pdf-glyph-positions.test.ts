@@ -1,5 +1,6 @@
 import {expect, it, vi} from "vitest";
 import fontkit from "@pdf-lib/fontkit";
+import {PDFArray, PDFHexString, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
@@ -41,4 +42,20 @@ it("fits the positioned glyphs when discarded nominal advances would overflow", 
   const {runs} = await pdfText(await writePdf(await fixture("AAA", 14, 23.5), [], context));
   expect(runs[0]!.text).toBe("AAA");
   expect(runs[0]!.glyphs.map(glyph => glyph.x)).toEqual([76.75, 82.75, 88.75]);
+});
+
+it.each(["A\u030a\u0301", "a\u0302\u0323", "office"])("preserves logical text %s independently of glyph placement", async value => {
+  const book = await fixture(value, 14), original = structuredClone(book);
+  const {pdf} = await pdfText(await writePdf(book, [], context));
+  const contents = (pdf.getPage(0).node.Contents() as PDFArray).asArray().map(ref => {
+    const stream = pdf.context.lookup(ref);
+    if (!(stream instanceof PDFRawStream)) throw new Error("Missing fixture content stream");
+    return new TextDecoder().decode(decodePDFRawStream(stream).decode());
+  }).join("\n");
+  const actualText = [...contents.matchAll(/\/ActualText\s+<([0-9a-f]+)>/gi)]
+    .map(match => PDFHexString.of(match[1]!).decodeText());
+  expect(actualText).toEqual([value]);
+  expect(contents.match(/\bBDC\b/g)).toHaveLength(1);
+  expect(contents.match(/\bEMC\b/g)).toHaveLength(1);
+  expect(book).toEqual(original);
 });

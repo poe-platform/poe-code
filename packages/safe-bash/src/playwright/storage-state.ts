@@ -1,11 +1,41 @@
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 import type { PlaywrightStorageState } from './adapter.js';
 
+const storageMaxNodes = 100000;
+const storageMaxDepth = 64;
+
+/** Count JSON values without allocating their graph. JSON.parse still checks syntax. */
+export function parsePlaywrightStorageStateJson(source: string, maxBytes: number): PlaywrightStorageState {
+  let nodes = 0, depth = 0;
+  const whitespace = (char: string | undefined): boolean => char === ' ' || char === '\n' || char === '\r' || char === '\t';
+  for (let index = 0; index < source.length;) {
+    const char = source[index]!;
+    if (whitespace(char) || char === ',' || char === ':') { index++; continue; }
+    if (char === ']' || char === '}') { depth--; index++; continue; }
+    const valueDepth = depth;
+    if (char === '[' || char === '{') { depth++; index++; }
+    else if (char === '"') {
+      index++;
+      while (index < source.length) {
+        const next = source[index++];
+        if (next === '\\') index++;
+        else if (next === '"') break;
+      }
+      while (whitespace(source[index])) index++;
+      if (source[index] === ':') continue; // Object keys are not child values.
+    } else {
+      do { index++; } while (index < source.length && !whitespace(source[index]) && !',:[]{}'.includes(source[index]!));
+    }
+    if (++nodes > storageMaxNodes || valueDepth > storageMaxDepth) throw new PlaywrightResourceLimitError('Browser storage state structure limit exceeded');
+  }
+  return parsePlaywrightStorageState(JSON.parse(source), { maxBytes });
+}
+
 /** Validate the portable native storage-state format before handing it to a browser. */
 export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?: number; maxNodes?: number; maxDepth?: number } = {}): PlaywrightStorageState {
   const maxBytes = options.maxBytes ?? 8 * 1024 * 1024;
-  const maxNodes = options.maxNodes ?? 100000;
-  const maxDepth = options.maxDepth ?? 64;
+  const maxNodes = options.maxNodes ?? storageMaxNodes;
+  const maxDepth = options.maxDepth ?? storageMaxDepth;
   if (![maxBytes, maxNodes, maxDepth].every(limit => Number.isSafeInteger(limit) && limit > 0)) throw new TypeError('Invalid storage state limits');
   let nodes = 0, bytes = 0;
   const ancestors = new Set<object>();
@@ -17,19 +47,23 @@ export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?
     else if (typeof input === 'object' && input !== null) {
       if (ancestors.has(input)) throw new Error('Invalid cyclic browser storage state');
       ancestors.add(input);
-      const descriptors = Object.getOwnPropertyDescriptors(input);
-      if (Reflect.ownKeys(descriptors).some(key => typeof key !== 'string')) throw new Error('Invalid browser storage state key');
       const isArray = Array.isArray(input);
+      // Admit length before ownKeys or descriptor tables can amplify the array.
+      if (isArray && input.length > maxNodes - nodes) throw new PlaywrightResourceLimitError('Browser storage state structure limit exceeded');
       output = isArray ? [] : {};
+      const keys = Reflect.ownKeys(input);
       let index = 0;
-      for (const [key, descriptor] of Object.entries(descriptors)) {
+      for (const key of keys) {
+        if (typeof key !== 'string') throw new Error('Invalid browser storage state key');
         if (isArray && key === 'length') continue;
+        const descriptor = Object.getOwnPropertyDescriptor(input, key);
+        if (!descriptor) throw new Error('Invalid browser storage state property');
         if (!('value' in descriptor)) throw new Error('Invalid browser storage state accessor');
         if (!descriptor.enumerable || isArray && key !== String(index++)) throw new Error('Invalid browser storage state property');
         bytes += new TextEncoder().encode(key).length + 4;
         Object.defineProperty(output, key, { value: json(descriptor.value, depth + 1), enumerable: true, writable: true, configurable: true });
       }
-      if (isArray && index !== descriptors.length!.value) throw new Error('Invalid browser storage state array');
+      if (isArray && index !== input.length) throw new Error('Invalid browser storage state array');
       ancestors.delete(input);
     } else throw new Error('Invalid browser storage state value');
     if (bytes > maxBytes) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');

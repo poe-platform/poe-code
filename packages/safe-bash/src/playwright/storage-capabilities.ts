@@ -3,7 +3,7 @@ import { PlaywrightResourceLimitError } from './resource-limit.js';
 import type { PlaywrightCookie } from './adapter.js';
 import type { PlaywrightCommand } from './catalog.js';
 import { capabilityArtifact, capabilityResult, numeric, requirePage, requireSession, unsupported } from './capability-result.js';
-import { parsePlaywrightStorageState } from './storage-state.js';
+import { parsePlaywrightStorageStateJson } from './storage-state.js';
 import { readPlaywrightStorageState, replacePlaywrightStorageState } from './native-storage-replacement.js';
 
 const stateSave: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
@@ -19,7 +19,9 @@ const stateSave: PlaywrightAbility = { scope: 'session', options: 'all', async e
 const stateLoad: PlaywrightAbility = { scope: 'session', async execute(request) {
   const session = requireSession(request);
   const bytes = await request.readFile(request.args[0]!);
-  const state = parsePlaywrightStorageState(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)), { maxBytes: request.limits?.maxCommandBytes ?? 1048576 });
+  const maxBytes = request.limits?.maxCommandBytes ?? 1048576;
+  if (bytes.byteLength > maxBytes) throw new PlaywrightResourceLimitError('Browser storage state byte limit exceeded');
+  const state = parsePlaywrightStorageStateJson(new TextDecoder('utf-8', { fatal: true }).decode(bytes), maxBytes);
   request.signal.throwIfAborted();
   if (session.context.setStorageState) await session.context.setStorageState(state);
   else await replacePlaywrightStorageState(session.context, state, { signal: request.signal, maxBytes: request.limits?.maxCommandBytes ?? 1048576, registerCleanup: cleanup => request.registerCleanup(cleanup) });

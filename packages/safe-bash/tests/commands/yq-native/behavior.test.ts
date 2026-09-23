@@ -106,6 +106,28 @@ test("keys drops the mapping header without changing source comments", async () 
   } finally { await shell.dispose(); }
 });
 
+test("recursive descent emits aliases without traversing their targets", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from("a: &base\n  x: 1\nb: *base\n"));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec("yq .. input.yaml");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "a: &base\n  x: 1\nb: *base\n&base\nx: 1\n1\n*base\n");
+  } finally { await shell.dispose(); }
+});
+
+for (const entry of [
+  { query: "[..] | length", input: "a: &base [1, 2]\nb: *base\n", count: 5 },
+  { query: "[..] | length", input: "&base\nself: *base\n", count: 2 },
+  { query: ".b[]", input: "a: &base [1, 2]\nb: *base\n", count: undefined },
+]) test(`alias traversal control: ${entry.query} ${entry.input}`, async () => {
+  assert.deepEqual(await run([entry.query], entry.input), {
+    status: 0, stdout: entry.count === undefined ? "1\n2\n" : `${entry.count}\n`, stderr: "",
+  });
+});
+
 test("native factories reject malformed options and snapshot plugin replacement", async () => {
   for (const options of [{ unknown: true }, { replace: 1 }, { limits: [] }]) assert.throws(() => createMikeYqCommand(options as MikeYqOptions), TypeError);
   const options = { replace: false };

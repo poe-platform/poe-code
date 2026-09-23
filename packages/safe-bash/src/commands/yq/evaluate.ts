@@ -270,8 +270,11 @@ export class Evaluator {
     if (expression.kind === "iterate" || expression.kind === "recursive") {
       const output: Candidate[] = [];
       for (const input of inputs) {
+        if (expression.kind === "recursive") {
+          output.push(input);
+          if (yaml.isAlias(input.node)) continue;
+        }
         const base = dereference(input, yaml, this.work);
-        if (expression.kind === "recursive") output.push(input);
         const children: Candidate[] = [];
         if (yaml.isMap(base.node)) {
           if (expression.kind === "recursive") base.node.items.forEach((pair, slot) => children.push(this.child(pair.value as Node, base, base.node as YAMLMap, slot)));

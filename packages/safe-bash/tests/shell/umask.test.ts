@@ -5,6 +5,8 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
+import { scopeFileSystem } from "@poe-code/safe-fs/core";
+import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 
 for (const pathOverride of [false, true]) {
   test(`umask omits implicit modes for permissionless adapters: path override=${pathOverride}`, async () => {
@@ -49,6 +51,70 @@ test("umask preserves explicit creation modes on permissionless adapters", async
   });
   await creationFileSystem(fs, 0o077).mkdir("/explicit", { mode: 0o755 });
   assert.equal((await backing.stat("/explicit")).mode & 0o777, 0o755);
+});
+
+test("umask creation views preserve known comparison peers and leave unknown peers opaque", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/source", new Uint8Array([1]));
+  await fs.writeFile("/target", new Uint8Array([2]));
+  const compare = fs.compareEntry.bind(fs);
+  const peers: unknown[] = [];
+  fs.compareEntry = async (path, peer, peerPath, options) => {
+    peers.push(peer);
+    return compare(path, peer, peerPath, options);
+  };
+  const first = creationFileSystem(fs, 0o077);
+  const second = creationFileSystem(fs, 0o022);
+  assert.equal(await first.compareEntry!("/source", second, "/target"), "distinct");
+  assert.equal(await first.compareEntry!("/source", first, "/source"), "same");
+  const opaquePeer = createMemoryFileSystem();
+  await opaquePeer.writeFile("/target", new Uint8Array([3]));
+  assert.equal(await first.compareEntry!("/source", opaquePeer, "/target"), "distinct");
+  assert.equal(peers.length, 3);
+  assert.equal(peers[0], second);
+  assert.equal(peers[1], first);
+  assert.equal(peers[2], opaquePeer);
+});
+
+test("umask views preserve provider authority in both directions through nested scoped views", async () => {
+  const fs = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+  await fs.writeFile("/source", new Uint8Array([1]));
+  await fs.writeFile("/target", new Uint8Array([2]));
+  assert.equal((await fs.stat("/source")).identityScope, undefined);
+  const first = creationFileSystem(fs, 0o022);
+  const nested = creationFileSystem(first, 0o077);
+  const controller = new AbortController();
+  let operations = 0;
+  const scoped = scopeFileSystem(nested, () => { operations++; }, controller.signal);
+  for (const view of [first, nested, scoped]) {
+    assert.equal(await view.compareEntry!("/source", view, "/target"), "distinct");
+    assert.equal(await fs.compareEntry("/source", view, "/target"), "distinct");
+    assert.equal(await view.compareEntry!("/source", fs, "/source"), "same");
+    assert.equal(await fs.compareEntry("/source", view, "/source"), "same");
+  }
+  assert.ok(operations > 0);
+  const opaque = new Proxy(fs, {
+    get(target, key) {
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  assert.equal(await first.compareEntry!("/source", opaque, "/target"), "unknown");
+  assert.equal(await fs.compareEntry("/source", opaque, "/source"), "unknown");
+});
+
+test("umask comparison forwarding preserves cancellation reason identity", async () => {
+  const fs = createMemoryFileSystem();
+  fs.compareEntry = async (_path, _peer, _peerPath, options) => {
+    options?.signal?.throwIfAborted();
+    return "unknown";
+  };
+  const view = creationFileSystem(fs, 0o022);
+  for (const reason of [null, false, 0, "", NaN]) {
+    const controller = new AbortController();
+    controller.abort(reason);
+    await assert.rejects(view.compareEntry!("/source", view, "/target", { signal: controller.signal }), error => Object.is(error, reason));
+  }
 });
 
 test("umask masks new files, directories and redirects without changing existing modes", async () => {

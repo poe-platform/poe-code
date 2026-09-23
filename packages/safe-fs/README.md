@@ -47,6 +47,10 @@ Existing `@poe-platform/safe-js/fs`, `/fs/core`, and `/fs/node` imports remain
 re-exports, so `FsError` identity is shared; do not copy its implementation or the
 `FileSystem` declaration. `FileSystem` is an interface, not a runtime class.
 
+Custom filesystem views can use `registerEntryView(view, async path => ({ filesystem: backing, path }))`
+from `/core` so `compareEntries` recognizes their backing entries in either direction.
+The resolver can also return `readOnly: true`; each view can be registered once.
+
 Legacy `poe-code/safe-fs` imports still use the CLI's bundled runtime. Keep an
 application's factories, shell, and errors in one import family. At a host-owned
 legacy adapter boundary, normalize foreign filesystem failures with `toFsError`

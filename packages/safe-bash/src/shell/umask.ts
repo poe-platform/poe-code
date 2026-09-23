@@ -1,8 +1,9 @@
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
+import { registerEntryView } from "@poe-code/safe-fs/core";
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
-  return new Proxy(fs, {
+  const view = new Proxy(fs, {
     get(target, key) {
       const method: unknown = Reflect.get(target, key, target);
       if (typeof method !== "function") return method;
@@ -33,6 +34,11 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       };
     },
   });
+  registerEntryView(view, async (path, options) => {
+    options.signal?.throwIfAborted();
+    return { filesystem: fs, path };
+  });
+  return view;
 }
 
 export function parseMask(value: string, previous: number): number | undefined {

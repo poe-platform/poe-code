@@ -62,9 +62,10 @@ function parseMask(value: string, previous: number): number | undefined {
     let mode = 0;
     for (const digit of value) {
       if (digit < "0" || digit > "7") return undefined;
-      mode = (mode * 8 + Number(digit)) & 0o777;
+      mode = mode * 8 + Number(digit);
+      if (mode > 0o7777) return undefined;
     }
-    return mode;
+    return mode & 0o777;
   }
   let allowed = ~previous & 0o777;
   for (const clause of value.split(",")) {
@@ -123,7 +124,11 @@ export async function umaskBuiltin(context: CommandContext, state: { umask?: num
   const operand = context.args[index];
   if (operand !== undefined) {
     const mask = parseMask(operand, state.umask ?? 0o022);
-    if (mask === undefined) { await writeDiagnostic(context.stderr, `umask: ${operand}: invalid mode\n`); return 1; }
+    if (mask === undefined) {
+      const reason = operand.length && operand[0]! >= "0" && operand[0]! <= "9" ? "octal number out of range" : "invalid mode";
+      await writeDiagnostic(context.stderr, `umask: ${operand}: ${reason}\n`);
+      return 1;
+    }
     state.umask = mask;
     if (!symbolic) return 0;
     printable = false;

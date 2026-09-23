@@ -644,18 +644,44 @@ test("umask output and symbolic operations agree with Bash", async () => {
       "umask 022; umask; umask -S; umask -p; umask -pS",
       "umask 077; umask -S 027; umask; umask -pS 002",
       "umask 027; umask g=rwx,o=; umask; umask u-x,g+w,o=r; umask",
-      "umask 7777; umask; umask a=rw; umask; umask -- 002; umask",
+      "umask 10000; umask; umask a=rw; umask; umask -- 002; umask",
       "umask 022; umask u=,g=,o=; umask; umask a+r,a-w,a+x; umask",
     ]) {
       const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
       assert.ifError(native.error);
       const result = await shell.exec(source);
       assert.equal(result.stdout, native.stdout, source);
-      assert.equal(result.stderr, native.stderr, source);
+      const nativeDiagnostic = native.stderr.split("\n").map(line => line.startsWith("bash: line 0: ") || line.startsWith("bash: line 1: ") ? line.slice("bash: line 0: ".length) : line).join("\n");
+      assert.equal(result.stderr, nativeDiagnostic, source);
       assert.equal(result.exitCode, native.status, source);
     }
   } finally { await shell.dispose(); }
 });
+
+for (const row of [
+  { operand: "0000", mask: "0000", status: 0 },
+  { operand: "0777", mask: "0777", status: 0 },
+  { operand: "000777", mask: "0777", status: 0 },
+  { operand: "000000000000000000000000000000000000000000000000000000000000777", mask: "0777", status: 0 },
+  { operand: "1000", mask: "0000", status: 0 },
+  { operand: "1777", mask: "0777", status: 0 },
+  { operand: "7777", mask: "0777", status: 0 },
+  { operand: "0001000", mask: "0000", status: 0 },
+  { operand: "10000", mask: "0022", status: 1 },
+  { operand: "17777", mask: "0022", status: 1 },
+  { operand: "888", mask: "0022", status: 1 },
+  { operand: "777777777777777777777777777777777777777777777777777777777777777", mask: "0022", status: 1 },
+]) {
+  test(`numeric umask ${row.operand} preserves the GNU Bash range and prior state`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    try {
+      const result = await shell.exec(`umask 022; umask ${row.operand}; status=$?; umask; exit "$status"`);
+      assert.equal(result.exitCode, row.status);
+      assert.equal(result.stdout, `${row.mask}\n`);
+      assert.equal(result.stderr, row.status === 0 ? "" : `umask: ${row.operand}: octal number out of range\n`);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("nested SDK invocations inherit masks without changing the caller", async () => {
   const fs = new MemoryFileSystem();

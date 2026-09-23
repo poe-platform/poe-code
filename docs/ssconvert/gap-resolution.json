@@ -1018,5 +1018,14 @@
     "nativeAppleRows": 36,
     "guardedLintSubjects": 16407,
     "publication": "unverified"
+  },
+  "umaskExistingDirectoryFollowup": {
+    "proof": "docs/ssconvert/umask-existing-directory-gap-proof.json",
+    "implementationCommit": "1648de7abf4bf79e922caf584e4dfefac84704dc",
+    "remoteMainVerified": true,
+    "focusedControls": 212,
+    "rebuiltBundleControls": 44,
+    "guardedLintSubjects": 16407,
+    "publication": "unverified"
   }
 }

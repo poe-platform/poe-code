@@ -376,7 +376,10 @@ describe("independent AR-001 original workflows", () => {
             throw new Error("Finished before gate");
           })
         ]);
-        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
+        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), {
+          interval: 1,
+          timeout: 1000
+        });
         if (scenario.id.startsWith("retry")) await waitForRetryEffects(execution);
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         expect(() => dump(execution, { mode: "capture" })).toThrow(
@@ -423,22 +426,34 @@ describe("independent AR-001 original workflows", () => {
         const restored = restore(JSON.parse(serialized!), { source: scenario.source });
         expect(restored.executionSemantics).toBe("jobs-v9");
         expect(restored.version).toBe(2);
-        const holdReplay = phase !== "completed" && scenario.id === "retry-reissue";
+        const holdReplay = phase !== "completed" && scenario.id.startsWith("retry");
         const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
+        const receiptGate = deferred<void>();
+        const provideReceipt = receiptsProvider(original.snapshot.hostCalls ?? [], requests);
         const resumedExecution = run(scenario.source, {
           bindings: rebound.bindings,
           snapshot: restored,
           budget: new Budget({ maxSteps: 150_000 }),
           hostCallResumeProvider:
             scenario.policy === "read-side-effect"
-              ? receiptsProvider(original.snapshot.hostCalls ?? [], requests)
+              ? async (request) => {
+                  // Match the original host schedule: c completes after b's guest finally.
+                  if (holdReplay) await receiptGate.promise;
+                  return provideReceipt(request);
+                }
               : undefined
         });
+        const replaySettled = vi.fn();
+        void resumedExecution.then(replaySettled, replaySettled);
         try {
-          if (holdReplay) await waitForRetryEffects(resumedExecution);
+          if (phase !== "completed" && scenario.id.startsWith("retry")) {
+            await waitForRetryEffects(resumedExecution);
+            expect(replaySettled).not.toHaveBeenCalled();
+          }
         } finally {
           rebound.release();
+          receiptGate.resolve();
         }
         const resumed = await resumedExecution;
         expect(resumed.ok).toBe(true);

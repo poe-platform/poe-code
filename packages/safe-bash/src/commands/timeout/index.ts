@@ -177,7 +177,6 @@ function definition(configuration: Settings): CommandDefinition {
       if (parsed.kind === "overflow") return status(context, records.durationOverflow, 125);
       const command = originalArgs[offset + 1];
       if (command === undefined) return status(context, records.missingCommand, 125);
-      const selected = childInvoker(context, configuration.invoke);
       const suppliedValues = "argumentValues" in context ? context.argumentValues : undefined;
       const argumentValues = suppliedValues === undefined ? undefined
         : getCommandArguments({ args: originalArgs, argumentValues: suppliedValues }).slice(offset + 2);
@@ -204,6 +203,7 @@ function definition(configuration: Settings): CommandDefinition {
         context.signal.throwIfAborted();
         return result;
       }
+      const selected = childInvoker(context, configuration.invoke);
       if (parsed.milliseconds === 0) {
         if (selected === undefined) return status(context, records.invokeUnavailable, 125);
         context.signal.throwIfAborted();

@@ -3,6 +3,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { FsError, writeBytes, type ByteSink, type CommandContext } from "../../contracts/index.js";
 import type { TreeLimits } from "./options.js";
+import { environmentCharset, type Charset } from "./charset.js";
 
 export class UsageError extends Error {}
 
@@ -23,13 +24,33 @@ export function escaped(value: string, budget: WalkBudget): string {
   return escapeText(value, "display", size => budget.checkOutput(size));
 }
 
+export function escapedName(value: string, budget: WalkBudget): string {
+  budget.outputText(value);
+  let result = "", bytes = 0;
+  for (const character of value) {
+    const point = character.codePointAt(0)!;
+    const localeSensitive = point === 32 || point >= 127;
+    const utf8 = localeSensitive && budget.filenameCharset() === "UTF-8";
+    const part = point === 32 && !utf8 ? "\\ "
+      : utf8 && !/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Cs}]/u.test(character) ? character
+      : escapeText(character, "display");
+    bytes += Buffer.byteLength(part);
+    budget.checkOutput(bytes);
+    result += part;
+  }
+  return result;
+}
+
 export class WalkBudget {
   private entries = 0;
   private metadata = 0;
   private output = 0;
   private steps = 0;
   private operations = 0;
+  private nameCharset: Charset | undefined;
   constructor(readonly context: CommandContext, readonly limits: TreeLimits) {}
+
+  filenameCharset(): Charset { return this.nameCharset ??= environmentCharset(this, false); }
 
   check(value: number, maximum: number, label: string): void {
     this.context.signal.throwIfAborted();

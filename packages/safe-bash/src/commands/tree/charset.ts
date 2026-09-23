@@ -11,7 +11,7 @@ export function explicitCharset(value: string): Charset {
   throw new UsageError("supported charsets: ASCII, US-ASCII, UTF-8, UTF8");
 }
 
-export function environmentCharset(budget: WalkBudget): Charset {
+export function environmentCharset(budget: WalkBudget, branches = true): Charset {
   const { env } = budget.context;
   const ownValue = (name: string): string | undefined => {
     if (!Object.hasOwn(env, name)) return undefined;
@@ -22,7 +22,7 @@ export function environmentCharset(budget: WalkBudget): Charset {
     budget.text(value);
     return value;
   };
-  const configured = ownValue("TREE_CHARSET");
+  const configured = branches ? ownValue("TREE_CHARSET") : undefined;
   if (configured !== undefined) {
     const normalized = configured.toUpperCase();
     return normalized === "UTF-8" || normalized === "UTF8" ? "UTF-8" : "ASCII";

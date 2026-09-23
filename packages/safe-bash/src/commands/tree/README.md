@@ -55,10 +55,11 @@ not ignored switches. Empty operands, NUL and ill-formed Unicode are rejected.
 The default operand is `.`; `-` is an ordinary pathname, not stdin.
 
 Default sorting is unsigned UTF-8-byte order, independent of host/shell locale
-and directory enumeration order. Text names use C-locale escaping: ASCII is
-literal, backslash and common controls are escaped, other bytes use octal.
-This preserves newline and Unicode filenames without injecting terminal control
-bytes. Branches use the selection rules below; UTF-8 changes branches, not name escaping.
+and directory enumeration order. In C, text names escape spaces with a backslash
+and non-ASCII bytes with octal. In supported UTF-8 virtual locales, spaces and
+printable Unicode remain literal. Backslashes, controls, formatting characters
+and line separators remain escaped in both profiles. Filename and symlink-target
+rendering follows `LC_ALL`, `LC_CTYPE`, then `LANG`, independently of branch charset.
 Pretty JSON is semantically compared, not whitespace-parity claimed.
 
 ### Branch charset and virtual locale
@@ -69,7 +70,8 @@ environment, locale installation, terminal detection or configuration files:
 1. The last explicit `--charset` wins. The four documented charset names are
    case-insensitive. Unknown or empty explicit values remain usage errors;
    unlike native tree's unknown-charset fallback, they are not silently accepted.
-   When explicit, no environment charset/locale fields are read or charged.
+   When explicit, branch selection reads no environment fields. Filename rendering
+   still reads and charges locale fields when a space or non-ASCII character occurs.
 2. A present `TREE_CHARSET` overrides every locale, including when empty. UTF-8
    and UTF8 (case-insensitive) select Unicode branches; all other values select
    ASCII. Values are not trimmed. This includes empty/unknown values, matching
@@ -82,11 +84,13 @@ environment, locale installation, terminal detection or configuration files:
 The virtual locale table is deterministic, not a probe of installed host locales.
 The lowercase `.utf8` aliases are explicit virtual-profile aliases: the captured
 Darwin native binary falls back to ASCII for those two names. Native Darwin
-`en_US.UTF-8` filename collation/escaping is not emulated. For Unicode branches
-with the preserved C-byte name order/escaping, use `TREE_CHARSET=UTF-8` with a C
+`en_US.UTF-8` filename collation is not emulated. For Unicode branches
+with C-byte name order/escaping, use `TREE_CHARSET=UTF-8` with a C
 locale or an explicit `--charset=UTF-8`. This does not enable unsafe raw names.
 
-At most four relevant environment fields are visited. Each visited string is
+Branch selection visits at most four relevant environment fields; filename
+selection separately visits at most three locale fields once and caches its result.
+Each visited string is
 length-admitted before byte sizing/normalization, charged against existing
 path/name and cumulative metadata limits, and reserves its UTF-16 length plus
 one work unit before scanning. Lower-precedence fields are not read after a

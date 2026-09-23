@@ -2,7 +2,7 @@ import { FsError, resolvePath, type CommandDefinition, type FileStat } from "../
 import { pathOf } from "../internal.js";
 import { compareObservedEntries } from "../copy-identity.js";
 import { parse, help, type Arguments } from "./arguments.js";
-import { escaped, message, TreeLimitError, UsageError, WalkBudget } from "./io.js";
+import { escaped, escapedName, message, TreeLimitError, UsageError, WalkBudget } from "./io.js";
 import { settings, type TreeCommandsOptions } from "./options.js";
 import { matches } from "./pattern.js";
 import { compareVersions } from "./sort.js";
@@ -149,7 +149,7 @@ class Walker {
     if (entry.error) {
       this.budget.text(entry.error);
       this.failed = true;
-      await this.budget.emit(this.budget.context.stderr, `tree: ${escaped(entry.display, this.budget)}: ${escaped(entry.error, this.budget)}\n`);
+      await this.budget.emit(this.budget.context.stderr, `tree: ${escapedName(entry.display, this.budget)}: ${escaped(entry.error, this.budget)}\n`);
     }
     const name = depth === 0 || this.args.full ? entry.display : entry.name;
     const annotation = entry.error ?? (entry.cycle ? "recursive, not followed" : undefined);
@@ -172,7 +172,7 @@ class Walker {
       const utf8 = this.args.charset === "UTF-8";
       const branch = this.args.indent && depth > 0 ? prefix + (last ? (utf8 ? "└── " : "`-- ") : (utf8 ? "├── " : "|-- ")) : "";
       const textAnnotation = annotation ?? entry.limited;
-      await this.write(`${branch}${escaped(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target, this.budget)}`}${textAnnotation === undefined ? "" : `  [${escaped(textAnnotation, this.budget)}]`}\n`);
+      await this.write(`${branch}${escapedName(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escapedName(entry.target, this.budget)}`}${textAnnotation === undefined ? "" : `  [${escaped(textAnnotation, this.budget)}]`}\n`);
       const childPrefix = depth === 0 ? "" : prefix + (last ? "    " : utf8 ? "│   " : "|   ");
       for (let index = 0; index < children.length; index++) {
         await this.visit(children[index]!, [...ancestors, entry], childPrefix, index === children.length - 1, depth + 1);

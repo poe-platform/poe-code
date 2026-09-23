@@ -178,16 +178,56 @@ test("UTF-8 connectors charge encoded bytes and preserve a partial prefix on lim
   await assert.rejects(run(["--noreport"], { limits: { maxOutputBytes: unicode.length } }, { fs, env: { TREE_CHARSET: "UTF-8" } }), /output limit/u);
 });
 
-test("UTF-8 branches do not unescape filenames, reorder bytes or change JSON", async () => {
+test("UTF-8 locales render printable filenames while preserving escapes and JSON", async () => {
   const fs = createMemoryFileSystem();
   for (const name of ["雪", "é", "line\nfeed", "escape\u001b[31m"]) await fs.writeFile(`/${name}`, new Uint8Array());
   const plain = await run(["--noreport"], {}, { fs, env: {} });
   const utf8 = await run(["--noreport"], {}, { fs, env: { LC_ALL: "en_US.UTF-8" } });
-  assert.equal(utf8.stdout, plain.stdout.replaceAll("|-- ", "├── ").replaceAll("`-- ", "└── "));
+  assert.equal(utf8.stdout, plain.stdout.replaceAll("|-- ", "├── ").replaceAll("`-- ", "└── ").replaceAll("\\303\\251", "é").replaceAll("\\351\\233\\252", "雪"));
   assert.match(utf8.stdout, /\\033\[31m/u);
-  assert.match(utf8.stdout, /\\351\\233\\252/u);
+  assert.ok(utf8.stdout.includes("雪"));
   for (const args of [["-Ji"], ["-i", "--noreport"]]) {
     assert.equal((await run(args, {}, { fs, env: { TREE_CHARSET: "UTF8" } })).stdout, (await run(args, {}, { fs, env: {} })).stdout);
+  }
+});
+
+test("filename locale is independent of branch charset and preserves terminal safety", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/data");
+  for (const name of ["a b", "é", "é", "中", "👋", "bidi\u202e", "line\u2028", "escape\u001b"]) {
+    await fs.writeFile(`/data/${name}`, new Uint8Array());
+  }
+  const c = "data\na\\ b\nbidi\\342\\200\\256\nescape\\033\ne\\314\\201\nline\\342\\200\\250\n\\303\\251\n\\344\\270\\255\n\\360\\237\\221\\213\n";
+  const utf8 = "data\na b\nbidi\\342\\200\\256\nescape\\033\né\nline\\342\\200\\250\né\n中\n👋\n";
+  for (const [env, expected] of [
+    [{ LC_ALL: "C", TREE_CHARSET: "UTF8" }, c],
+    [{ LC_ALL: "C.UTF-8", TREE_CHARSET: "ASCII" }, utf8],
+    [{ LC_ALL: "C", LC_CTYPE: "C.UTF-8" }, c],
+    [{ LC_ALL: "", LC_CTYPE: "C.UTF-8", LANG: "C" }, utf8],
+  ] as const) {
+    assert.equal((await run(["-i", "--noreport", "--charset=ASCII", "data"], {}, { fs, env })).stdout, expected);
+    const shell = new Shell({ fs, env }).use(agentCommands());
+    try { assert.equal((await shell.exec("tree -i --noreport data")).stdout, expected); }
+    finally { await shell.dispose(); }
+  }
+  assert.equal((await run(["-Ji", "--noreport", "data"], {}, { fs, env: { LC_ALL: "C" } })).stdout,
+    (await run(["-Ji", "--noreport", "data"], {}, { fs, env: { LC_ALL: "C.UTF-8" } })).stdout);
+});
+
+test("locale filename rendering covers full paths, link targets and encoded output limits", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/data");
+  await fs.writeFile("/data/a é", new Uint8Array());
+  await fs.symlink!("a é", "/data/link");
+  for (const [locale, expected] of [
+    ["C", "data\ndata/a\\ \\303\\251\ndata/link -> a\\ \\303\\251\n"],
+    ["C.UTF-8", "data\ndata/a é\ndata/link -> a é\n"],
+  ] as const) {
+    const args = ["-fi", "--noreport", "data"];
+    const env = { LC_ALL: locale };
+    const bytes = Buffer.byteLength(expected);
+    assert.equal((await run(args, { limits: { maxOutputBytes: bytes } }, { fs, env })).stdout, expected);
+    await assert.rejects(run(args, { limits: { maxOutputBytes: bytes - 1 } }, { fs, env }), /output limit/u);
   }
 });
 

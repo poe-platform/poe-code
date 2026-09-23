@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "validatedBase": "b3bbbf6f4de91e972c91221b12c64326f6421cc8",
+  "problem": "Gnumeric XML ='Missing'!Rate incorrectly resolves to workbook-global Rate=11. Native XML parsing rejects the absent sheet and recovers a constant string expression.",
+  "native": {
+    "run": 35925225030,
+    "evidence": "docs/ssconvert/biff-name-identity-native-capture.json",
+    "inputSha256": "b21c76a622bc5b8ba8730f8416453ba2852d1d91cbecf7e7f2c16da9ce17cf1a",
+    "csv": "'Missing'!Rate\n",
+    "formula": "=\"'Missing'!Rate\"",
+    "warning": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n",
+    "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "source": [
+      {
+        "member": "src/parser.y",
+        "sha256": "b0ebd707f3205031b00e4fcb5da8f7ea75f1d0e1b03b1d54c118c7dcb434b9c3",
+        "lines": "548-575,802-827: qualified-name sheet lookup fails for an absent sheet; lookup uses Unicode case folding."
+      },
+      {
+        "member": "src/xml-sax-read.c",
+        "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+        "lines": "2230-2435: ordinary-cell parser emits a warning and constant string expression; array corners take a separate path.2060-2110: mixed positive/nonpositive array dimensions are rejected before cell import."
+      }
+    ]
+  },
+  "implementation": "Track available display sheet names with existing Unicode folding. Parse ordinary formulas with the existing local-name callback; recover only syntactically parsed expressions containing a missing local sheet qualifier. Preserve explicit external scopes, global syntax, typed values, caches and recovered shared expressions. Await warning delivery and propagate cancellation. Positive array corners retain their separate existing behavior.",
+  "validation": {
+    "original": {
+      "tests": 16,
+      "failed": 8,
+      "passed": 8
+    },
+    "focusedBeforeBoundary": {
+      "tests": 75,
+      "passed": 75
+    },
+    "workspaceFinalRuntime": {
+      "tests": 22765,
+      "files": 379,
+      "passed": 22765
+    },
+    "qualifiedFinalFocused": {
+      "tests": 19,
+      "passed": 19
+    },
+    "lint": "Maintained ssconvert lint/source/test/consumer type route passes on final files.",
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
+      "declaredBuilds": 4,
+      "layers": 11,
+      "passed": true
+    },
+    "public": {
+      "bindings": [
+        {
+          "path": "out/ssconvert-biff-name-identity/missing-sheet.gnumeric",
+          "sha256": "b21c76a622bc5b8ba8730f8416453ba2852d1d91cbecf7e7f2c16da9ce17cf1a"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+          "sha256": "a39ba52296acf4349d7c23ebf3103717a29a593b835941445a1ab9452e3bf2d2"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "c5861dbcc5cdc04bc4e7e5e8eb56d574beaa1f3e0fa9ff42e093da611c2f548d"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "rows": [
+        {
+          "filename": "input.gnumeric",
+          "exportType": "Gnumeric_stf:stf_csv",
+          "outputSha256": "07640931775d55dc16e56c01ce019386f1ac018d1b5900c2e9eb3e4902e24fd8",
+          "outputBytes": 15,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+            }
+          ]
+        },
+        {
+          "filename": "input.gnumeric",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "outputSha256": "bbab9aa351fe6c6b2ee78afe37c2bd915fc7d92742d1a83dc652077c65b6b3d9",
+          "outputBytes": 3036,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+            }
+          ]
+        },
+        {
+          "filename": "replay.gnumeric",
+          "exportType": "Gnumeric_stf:stf_csv",
+          "outputSha256": "07640931775d55dc16e56c01ce019386f1ac018d1b5900c2e9eb3e4902e24fd8",
+          "outputBytes": 15,
+          "diagnostics": []
+        },
+        {
+          "filename": "input.gnumeric",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "outputSha256": "160e69f9a1d74d0e8e75dc89299848903ec2e8ac5c2d6ddfc3dc7d7da22903f7",
+          "outputBytes": 5632,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+            }
+          ]
+        },
+        {
+          "filename": "replay7.xls",
+          "exportType": "Gnumeric_stf:stf_csv",
+          "outputSha256": "07640931775d55dc16e56c01ce019386f1ac018d1b5900c2e9eb3e4902e24fd8",
+          "outputBytes": 15,
+          "diagnostics": []
+        },
+        {
+          "filename": "input.gnumeric",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "outputSha256": "b6466c041a0eb814f7f2348ada12f11cd81820a0c5e95df365ac664babd0caa9",
+          "outputBytes": 5632,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+            }
+          ]
+        },
+        {
+          "filename": "replay8.xls",
+          "exportType": "Gnumeric_stf:stf_csv",
+          "outputSha256": "07640931775d55dc16e56c01ce019386f1ac018d1b5900c2e9eb3e4902e24fd8",
+          "outputBytes": 15,
+          "diagnostics": []
+        },
+        {
+          "filename": "input.gnumeric",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "outputSha256": "87e22c4c0df48feb474159cfb4f5a1dd9f900339699cbbcb63112949f1b89ee8",
+          "outputBytes": 9728,
+          "diagnostics": [
+            {
+              "code": "gnumeric-xml",
+              "severity": "warning",
+              "message": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+            }
+          ]
+        },
+        {
+          "filename": "replay-dsf.xls",
+          "exportType": "Gnumeric_stf:stf_csv",
+          "outputSha256": "07640931775d55dc16e56c01ce019386f1ac018d1b5900c2e9eb3e4902e24fd8",
+          "outputBytes": 15,
+          "diagnostics": []
+        }
+      ],
+      "shell": {
+        "exitCode": 0,
+        "stdout": "'Missing'!Rate\n",
+        "stderr": "Unparsable expression for A1: ='Missing'!Rate (Unknown sheet 'Missing')\n"
+      },
+      "resolutions": 0,
+      "inputKeepAndNamespacePreserved": true,
+      "nativeRun": 35925225030,
+      "scope": "Original authenticated missing-sheet input through compiled SDK/Shell and XML/BIFF7/8/dual-stream replay. Native GLib PID/timestamp prefix intentionally not synthesized."
+    },
+    "screenshot": {
+      "sha256": "580e2238c1509b4ad26b88e57d80fba6f0c55361f84bc5c9abb67719705d6dd2",
+      "inspected": true,
+      "finding": "Complete warning and all output rows are readable without clipping."
+    }
+  },
+  "draftCorrections": [
+    "Initial cancellation test used an unsupported SsconvertError code; test typing failed, corrected to an arbitrary Error reason, final maintained lint/types pass.",
+    "Initial array-boundary draft included two mixed positive/nonpositive dimensions; source review showed native rejects those cells before import. Final controls use only both-nonpositive dimensions. Retain initial red3/16pass log; the original both-negative red control supports the repaired boundary. Final runtime workspace gate precedes the two corrected test literals; final19focused and complete maintained lint/types run on final literals."
+  ],
+  "bindings": [
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "sha256": "a39ba52296acf4349d7c23ebf3103717a29a593b835941445a1ab9452e3bf2d2"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric-missing-sheet-name.test.ts",
+      "sha256": "53ef90ec16e6551c002a588e455a8dfa6b83ae8d603baa5767ec50f564f88efe"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/parser.ts",
+      "sha256": "6c7c6915ef587fccc52b98cc9bfb6512b88f97c80eb6478e43b446c228d3f2cd"
+    },
+    {
+      "path": "packages/ssconvert/src/workbook/case-fold.ts",
+      "sha256": "9d54c4bdef0f785adb7dc1db22b3819ec163b063d09c004000c78b3118372097"
+    },
+    {
+      "path": "packages/ssconvert/dist/index.js",
+      "sha256": "c5861dbcc5cdc04bc4e7e5e8eb56d574beaa1f3e0fa9ff42e093da611c2f548d"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+      "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+    }
+  ],
+  "logs": [
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/red.log",
+      "sha256": "8b4e17fe3171e7fa7287e5ed4eede9494395f916bd3b69dd6beaf41ec343643b"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/green.log",
+      "sha256": "4e92df1a4c7d2bff4c454ee9030357fb695af3bba542e16e97c19b7d446c168e"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/public-red.log",
+      "sha256": "2049ba7a35d3b294864a274cd476e5ac01665b5fdf64bd5b259669f3bb71d808"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/lint.log",
+      "sha256": "632fa9e0e40bbbd1b14c9b7652ba86cecbae97b5fef8a1722a05b2f8f954ed04"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/array-boundary-red.log",
+      "sha256": "43255b35b731ed372323c1d8ecd4d96d9cc99cc063c80af65e54d5eb85e1b006"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/package-tests-final.log",
+      "sha256": "ffb8b7e6fcc12107530cb01d141b7818cae269a37b68280a9afa504d1d25433b"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/qualified-focused.log",
+      "sha256": "30edcbc329db67cfc020d6c1fe99254ef641b7f572c4805447352b491bc6dd7c"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/lint-qualified.log",
+      "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/build-final.log",
+      "sha256": "85ac93e55d9b240d4c46f556e298a35166962797f1bedd4863a245df5a7f67f3"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/public-final.log",
+      "sha256": "e2c2d2f411bfc374adbe2f71318a142fc737e2a8ff152c5b29faf7bdfff73d97"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-missing-sheet/screenshot-final.log",
+      "sha256": "8e5b3126342666c59f92f7c6de759e860bdfa09fbb5057e891be2010c9a46bba"
+    }
+  ],
+  "limits": [
+    "GLib PID/timestamp warning decoration is not synthesized; semantic warning bytes are explicit.",
+    "This fixes ordinary Gnumeric XML qualified-name import, not every invalid expression, array-corner refusal or programmatic model binding.",
+    "Native XML load-order scoped-name divergence remains separately open; no blanket BIFF/XML parity claim.",
+    "All19 original families and containing root publication remain open."
+  ]
+}

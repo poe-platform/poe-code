@@ -14,6 +14,7 @@ import { objectKinds } from "../objects/registry.js";
 import { clipboardStyles } from "../conversion/clipboard-styles.js";
 import { clipboardObjectRecords } from "../conversion/clipboard-objects.js";
 import { clipboardMerges } from "../conversion/clipboard-merges.js";
+import { foldSheetName } from "../workbook/case-fold.js";
 
 const namespace = "http://www.gnumeric.org/v10.dtd";
 const namespaces = new Set(["http://www.gnome.org/gnumeric/",
@@ -363,9 +364,12 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
     expandedAxes += count;
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
-  const sheets: Sheet[] = sheetNodes.map((node, i) => {
+  const knownSheets = new Set(index.map(node => foldSheetName(node.text)));
+  const sheets: Sheet[] = [];
+  for (const [i, node] of sheetNodes.entries()) {
     context.signal.throwIfAborted();
     const name = sheetName(node) ?? index[i]?.text ?? `Sheet${i + 1}`;
+    knownSheets.add(foldSheetName(name));
     const indexed = index.find(n => n.text === name);
     const size = { rows: number(indexed, "Rows", DEFAULT_SHEET_SIZE.rows, true), columns: number(indexed, "Cols", DEFAULT_SHEET_SIZE.columns, true) };
     if (!validSheetSize(size)) invalid("invalid sheet dimensions");
@@ -385,6 +389,23 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
         if (!parsed.ok) invalid("invalid shared expression");
         formula = rewriteReferences(parsed.document, { position: { sheet: name, row, column }, translation: "copy", signal: context.signal });
       }
+      // XML's ordinary-cell parser recovers a rejected sheet-qualified name
+      // as a constant expression. Array corners use a separate native path.
+      const rows = number(item, "Rows", 1), cols = number(item, "Cols", 1);
+      const array = attribute(item, "Rows") !== undefined && attribute(item, "Cols") !== undefined && rows > 0 && cols > 0;
+      if (formula && !array) {
+        let missingSheet: string | undefined;
+        const parsed = parseExpression(formula, { position: { sheet: name, row, column }, signal: context.signal,
+          onName(_name, sheet) {
+            if (missingSheet === undefined && sheet !== undefined && !knownSheets.has(foldSheetName(sheet))) missingSheet = sheet;
+          } });
+        if (parsed.ok && missingSheet !== undefined) {
+          const message = `Unparsable expression for ${formatA1(row, column)}: ${formula} (Unknown sheet '${missingSheet}')\n`;
+          await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
+          context.signal.throwIfAborted();
+          formula = "=" + quoteFormulaString(formula.slice(1), '"', gnumericGrammar);
+        }
+      }
       if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);
       const valueFormat = attribute(item, "ValueFormat"); const runs = richText(valueFormat);
@@ -394,8 +415,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
         const bounds = xmlRange(region); if (row < bounds.startRow || row > bounds.endRow || column < bounds.startColumn || column > bounds.endColumn) continue;
         const s = child(region, "Style"); if (s) { style = record(s); format = attribute(s, "Format") ?? format; }
       }
-      const rows = number(item, "Rows", 1), cols = number(item, "Cols", 1);
-      const group = formula && attribute(item, "Rows") !== undefined && attribute(item, "Cols") !== undefined && rows > 0 && cols > 0 ? `array-${row}-${column}` : undefined;
+      const group = formula && array ? `array-${row}-${column}` : undefined;
       if (group) {
         if (!Number.isSafeInteger(rows) || !Number.isSafeInteger(cols) || rows < 1 || cols < 1 || rows > size.rows - row || cols > size.columns - column) invalid("invalid array dimensions");
         groups.push({ id: group, kind: "array", range: { startRow: row, startColumn: column, endRow: row + rows - 1, endColumn: column + cols - 1 }, expression: formula! });
@@ -407,15 +427,15 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (previous === undefined) { addresses.set(address, cells.length); cells.push(cell); } else cells[previous] = cell;
     }
     const visibility = attribute(node, "Visibility")?.toLowerCase();
-    return { id: `s${i + 1}`, name, size, cells,
+    sheets.push({ id: `s${i + 1}`, name, size, cells,
       visibility: visibility?.includes("very_hidden") || visibility === "very-hidden" ? "very-hidden" : visibility?.includes("hidden") ? "hidden" : "visible",
       rows: axes(child(node, "Rows"), "RowInfo", size.rows, admitAxes), columns: axes(child(node, "Cols"), "ColInfo", size.columns, admitAxes),
       merges: children(child(node, "MergedRegions"), "Merge").map(n => range(n.text)), formulaGroups: groups,
       view: { gnumeric: Object.fromEntries(node.attributes.filter(a => !a.namespace && gnumericAttributes.Sheet?.includes(a.localName)).map(a => [a.localName, a.value])), zoom: Number(child(node, "Zoom")?.text ?? 1),
         ...(attribute(child(node, "Cols"), "DefaultSizePts") === undefined ? {} : { defaultColumnWidth: number(child(node, "Cols"), "DefaultSizePts", 48) }),
         ...(attribute(child(node, "Rows"), "DefaultSizePts") === undefined ? {} : { defaultRowHeight: number(child(node, "Rows"), "DefaultSizePts", 12.75) }) },
-      unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) };
-  });
+      unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
+  }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
   const allNames = [...names(root, sheets[0]?.id ?? "s1"), ...sheetNodes.flatMap((n, i) => names(n, sheets[i]!.id))];
   return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: allNames, properties: metadata(root),

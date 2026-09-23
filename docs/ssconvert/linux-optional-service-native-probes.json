@@ -5,6 +5,202 @@
   "transport": "Input checkpoint bytes generated through maintained portable Gnumeric XML writer; each exact native input is SHA-bound",
   "inputs": [
     {
+      "id": "gnumeric-global-name-recovery-undefined",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-global-name-recovery-undefined.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d5b5d4d697373696e673c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d5b5d53686565745f5469746c653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d5b5d5072696e745f417265613c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22332220436f6c3d2230223e3d49462846414c53452c5b5d4d697373696e672c35293c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "a1445f2233997c78ec5c6286aced9c231c8cefe28fc3e0d2f5d62b5fe1abd72b",
+      "scope": "Source-backed undefined explicitly global name rejection, declaration order, pre-error placeholder side effects, diagnostic ordering and shared recovery; preserve actual native results independently",
+      "captures": [
+        {
+          "label": "gnumeric-global-name-recovery-undefined",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-undefined-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-global-name-recovery-undefined-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-undefined-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-global-name-recovery-undefined-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-global-name-recovery-late-global",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-global-name-recovery-late-global.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d5b5d526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e526174653c2f676e6d3a6e616d653e3c676e6d3a76616c75653e31313c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e41313c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "d6b5b4ab6cb06e23d1c17275c49daec933eb2899bed27a28cb4977e56ab50908",
+      "scope": "Source-backed undefined explicitly global name rejection, declaration order, pre-error placeholder side effects, diagnostic ordering and shared recovery; preserve actual native results independently",
+      "captures": [
+        {
+          "label": "gnumeric-global-name-recovery-late-global",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-late-global-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-global-name-recovery-late-global-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-late-global-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-global-name-recovery-late-global-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-global-name-recovery-placeholder-order",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-global-name-recovery-placeholder-order.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d536565642b5b5d536565643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d5b5d536565643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d4265666f72652b5b5d4d697373696e672b41667465723c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22332220436f6c3d2230223e3d5b5d4265666f72653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22342220436f6c3d2230223e3d5b5d41667465723c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "f5266a27824817653383491452c15e615ca6a6a5b1a22bdae73ee719848cd147",
+      "scope": "Source-backed undefined explicitly global name rejection, declaration order, pre-error placeholder side effects, diagnostic ordering and shared recovery; preserve actual native results independently",
+      "captures": [
+        {
+          "label": "gnumeric-global-name-recovery-placeholder-order",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-placeholder-order-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-global-name-recovery-placeholder-order-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-placeholder-order-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-global-name-recovery-placeholder-order-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-global-name-recovery-failure-order",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-global-name-recovery-failure-order.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d5b5d4d697373696e672b4e6f536865657421526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d4e6f536865657421526174652b5b5d4d697373696e673c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d223022204578707249443d2237223e3d5b5d5368617265643c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22332220436f6c3d223022204578707249443d2237222f3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "a0bf4391fc80af7db944a5b5d3a160e3170b5fdba21cac62c6cde714dc188066",
+      "scope": "Source-backed undefined explicitly global name rejection, declaration order, pre-error placeholder side effects, diagnostic ordering and shared recovery; preserve actual native results independently",
+      "captures": [
+        {
+          "label": "gnumeric-global-name-recovery-failure-order",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-failure-order-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-global-name-recovery-failure-order-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-global-name-recovery-failure-order-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-global-name-recovery-failure-order-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "gnumeric-permanent-names-defaults",
       "profileId": "gnumeric-1.12.61-optional-none",
       "filename": "gnumeric-permanent-names-defaults.gnumeric",

@@ -8,6 +8,7 @@ function parse(args: readonly string[]) {
   let dryRun = false;
   let quiet = false;
   let useTmpdir = false;
+  let deprecatedTmpdir = false;
   let tmpdir: string | undefined;
   let suffix: string | undefined;
   let literal = false;
@@ -31,6 +32,7 @@ function parse(args: readonly string[]) {
         if (option === "d") directory = true;
         else if (option === "u") dryRun = true;
         else if (option === "q") quiet = true;
+        else if (option === "t") { useTmpdir = true; deprecatedTmpdir = true; }
         else if (option === "p") {
           tmpdir = argument.slice(offset + 1) || args[++index];
           if (tmpdir === undefined) throw new UsageError("-p requires an argument");
@@ -44,6 +46,7 @@ function parse(args: readonly string[]) {
   const template = operands[0] ?? "tmp.XXXXXXXXXX";
   if (operands.length === 0) useTmpdir = true;
   validatePath(template);
+  if (deprecatedTmpdir && template.includes("/")) throw new UsageError("template contains directory separator");
   validatePath(suffix ?? "");
   if (suffix?.includes("/") || suffix !== undefined && !template.endsWith("X")) throw new UsageError("suffix requires a template ending in X and cannot contain '/'");
   const name = template.slice(template.lastIndexOf("/") + 1);
@@ -52,7 +55,7 @@ function parse(args: readonly string[]) {
   if (useTmpdir && template.startsWith("/")) throw new UsageError("template must be relative with --tmpdir/-p");
   const tail = suffix ?? match[3]!;
   if (Buffer.byteLength(name + (suffix ?? "")) > 255) throw new FsError("ENAMETOOLONG", { path: template });
-  return { directory, dryRun, quiet, useTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length) + match[1]!, count: match[2]!.length, tail };
+  return { directory, dryRun, quiet, useTmpdir, deprecatedTmpdir, tmpdir, template, prefix: template.slice(0, template.length - name.length) + match[1]!, count: match[2]!.length, tail };
 }
 
 export function createMktempCommand(configuration: MetadataCommandsOptions = {}) {
@@ -60,7 +63,7 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
   return metadataCommand("mktemp", async context => {
     const budget = new MetadataBudget(context, configured.limits);
     const parsed = parse(context.args);
-    const parent = parsed.tmpdir || context.env.TMPDIR || "/tmp";
+    const parent = (parsed.deprecatedTmpdir && context.env.TMPDIR) || parsed.tmpdir || context.env.TMPDIR || "/tmp";
     validatePath(parent);
     const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     try {

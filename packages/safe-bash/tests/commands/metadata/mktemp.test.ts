@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, type FileSystem, type WriteFileOptions } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { Shell, metadataCommands, standardCommands } from "../../../src/index.js";
 import { runMetadata } from "./helpers.js";
 
 async function fixture() {
@@ -62,6 +63,53 @@ test("mktemp directory, tmpdir priority, inferred and explicit suffixes", async 
     const stat = await fs.stat(path.startsWith("/") ? path : `/work/${path}`);
     assert.equal(stat.mode & 0o777, args.some(argument => argument === "-d") ? 0o700 : 0o600);
   }
+});
+
+test("mktemp -t uses TMPDIR before -p and defaults to the virtual /tmp", async () => {
+  const fs = await fixture();
+  await fs.mkdir("/work/env");
+  for (const [args, env, parent, type] of [
+    [["-t", "audit.XXXXXX"], { TMPDIR: "/work/env" }, "/work/env", "file"],
+    [["-t", "-p/work", "audit.XXXXXX"], { TMPDIR: "/work/env" }, "/work/env", "file"],
+    [["-p/work", "-t", "audit.XXXXXX"], { TMPDIR: "/work/env" }, "/work/env", "file"],
+    [["-t", "-p/work", "audit.XXXXXX"], {}, "/work", "file"],
+    [["-dt", "audit.XXXXXX"], {}, "/tmp", "directory"],
+    [["-t"], {}, "/tmp", "file"],
+  ] as const) {
+    const result = await runMetadata("mktemp", args, fs, {}, undefined, env);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    const path = result.stdout.trimEnd();
+    assert.ok(path.startsWith(`${parent}/${args.length === 1 ? "tmp." : "audit."}`));
+    const stat = await fs.stat(path);
+    assert.equal(stat.type, type);
+    assert.equal(stat.mode & 0o777, type === "directory" ? 0o700 : 0o600);
+  }
+});
+
+test("mktemp -t creates a file through exported TMPDIR and command substitution", async () => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(metadataCommands());
+  try {
+    const result = await shell.exec('mkdir -m 755 owned; TMPDIR=owned; export TMPDIR; result=$(mktemp -t audit.XXXXXX); status=$?; if test "$status" -eq 0; then test -f "$result" && printf "FILE\\n"; fi; exit "$status"');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "FILE\n");
+    assert.equal(result.stderr, "");
+    const entries = await fs.readdir("/work/owned");
+    assert.equal(entries.length, 1);
+    assert.equal((await fs.stat(`/work/owned/${entries[0]!.name}`)).mode & 0o777, 0o600);
+  } finally { await shell.dispose(); }
+});
+
+test("mktemp -t rejects directory components without creating entries", async () => {
+  const fs = await fixture();
+  for (const template of ["./audit.XXXXXX", "sub/audit.XXXXXX", "/audit.XXXXXX"]) {
+    const result = await runMetadata("mktemp", ["-t", template], fs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("directory separator"), result.stderr);
+  }
+  assert.deepEqual(await fs.readdir("/tmp"), []);
+  assert.deepEqual(await fs.readdir("/work"), []);
 });
 
 test("mktemp dry-run reserves nothing and does not require permissions support", async () => {

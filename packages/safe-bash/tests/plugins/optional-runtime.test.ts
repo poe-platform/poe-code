@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { createMemoryFileSystem, createMountFileSystem, FsError } from "poe-code/safe-fs";
+import { createMemoryFileSystem, createMountFileSystem, FsError } from "@poe-code/safe-fs";
 import { createYesCommand as sourceYesCommand } from "../../src/commands/yes/index.js";
-import { CommandRegistry as SourceRegistry } from "../../src/contracts/command.js";
+import { CommandRegistry as SourceRegistry, commandRuntimeIdentity as sourceRuntimeIdentity } from "../../../safe-bash-contracts/src/command.js";
 import { trapExtension as sourceTrapExtension } from "../../src/shell/extensions/trap/index.js";
 
-type PublishedDefinition = import("poe-code/safe-bash").CommandDefinition;
+type PublishedDefinition = import("@poe-platform/safe-bash").CommandDefinition;
 type OptionalRuntime = {
-  Shell: typeof import("poe-code/safe-bash").Shell;
+  Shell: typeof import("@poe-platform/safe-bash").Shell;
   createYesCommand(): PublishedDefinition;
   createCmpCommand(): PublishedDefinition;
   createShufCommand(): PublishedDefinition;
@@ -17,15 +17,15 @@ type OptionalRuntime = {
   createInstallCommand(): PublishedDefinition;
   createYqCommand(): PublishedDefinition;
   createDdCommand(): PublishedDefinition;
-  yesCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  shufCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  truncateCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  cmpCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  installCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  yqCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  ddCommands(): import("poe-code/safe-bash").VirtualShellPlugin;
-  createDeviceFileSystem(): import("poe-code/safe-fs").FileSystem;
-  trapExtension(): NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
+  yesCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  shufCommands(options?: { replace?: boolean }): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  truncateCommands(options?: { replace?: boolean }): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  cmpCommands(options?: { replace?: boolean }): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  installCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  yqCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  ddCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin;
+  createDeviceFileSystem(): import("@poe-code/safe-fs").FileSystem;
+  trapExtension(): NonNullable<import("@poe-platform/safe-bash").ShellOptions["extensions"]>[number];
 };
 
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
@@ -33,7 +33,7 @@ if (selected !== undefined && selected !== "1") throw new Error("SAFE_BASH_TEST_
 
 describe("explicit coherent optional build", { skip: selected === undefined ? "Requires build:optional and SAFE_BASH_TEST_OPTIONAL_BUILD=1" : false }, () => {
   async function runtimes() {
-    const published = await import("poe-code/safe-bash");
+    const published = await import("@poe-platform/safe-bash");
     const optional = await import(new URL("../../dist/optional.js", import.meta.url).href) as OptionalRuntime;
     return { published, optional };
   }
@@ -58,29 +58,29 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     } finally { await shell.dispose(); }
   });
 
-  test("mixed source factories are refused before replacing a public-host command", async () => {
+  test("commands from another runtime are refused before replacing a public-host command", async () => {
     const { published, optional } = await runtimes();
     const registry = new published.CommandRegistry([optional.createYesCommand()]);
     const previous = registry.get("yes");
-    assert.throws(() => registry.register(sourceYesCommand() as unknown as PublishedDefinition, { replace: true }), /matching shell runtime/);
+    assert.throws(() => registry.register({ ...sourceYesCommand(), runtimeIdentity: sourceRuntimeIdentity } as unknown as PublishedDefinition, { replace: true }), /matching shell runtime/);
     assert.equal(registry.get("yes"), previous);
   });
 
-  test("public host refuses a foreign registry before it can accept source-bound commands", async () => {
+  test("public host refuses a foreign registry before it can accept commands", async () => {
     const { published } = await runtimes();
-    for (const registry of [new SourceRegistry(), new SourceRegistry([sourceYesCommand()])]) {
+    for (const registry of [new SourceRegistry(), new SourceRegistry([{ ...sourceYesCommand(), runtimeIdentity: sourceRuntimeIdentity }])]) {
       assert.throws(() => new published.Shell({
         fs: createMemoryFileSystem(),
-        commands: registry as unknown as import("poe-code/safe-bash").CommandRegistry,
+        commands: registry as unknown as import("@poe-platform/safe-bash").CommandRegistry,
       }), /matching shell runtime/);
     }
   });
 
-  test("public host refuses source-bound shell extensions before ASCII or raw actions execute", async () => {
+  test("public host refuses foreign shell extensions before ASCII or raw actions execute", async () => {
     const { published } = await runtimes();
-    type PublishedExtension = NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];
+    type PublishedExtension = NonNullable<import("@poe-platform/safe-bash").ShellOptions["extensions"]>[number];
     for (const source of ["trap 'printf ascii' EXIT", String.raw`action=$'printf "\377"'; trap "$action" EXIT`]) {
-      const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [sourceTrapExtension() as unknown as PublishedExtension] }).use(published.agentCommands());
+      const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions: [{ ...sourceTrapExtension(), runtimeIdentity: sourceRuntimeIdentity } as unknown as PublishedExtension] }).use(published.agentCommands());
       try { await assert.rejects(shell.exec(source), /matching shell runtime/); }
       finally { await shell.dispose(); }
     }
@@ -120,8 +120,8 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
   test("actual optional declarations typecheck against the published host without duplicate brands", () => {
     const filename = fileURLToPath(new URL("./optional-consumer.ts", import.meta.url));
     const source = [
-      'import { Shell, CommandRegistry } from "poe-code/safe-bash";',
-      'import { createMemoryFileSystem } from "poe-code/safe-fs";',
+      'import { Shell, CommandRegistry } from "@poe-platform/safe-bash";',
+      'import { createMemoryFileSystem } from "@poe-code/safe-fs";',
       'import { createYesCommand, yesCommands, createShufCommand, shufCommands } from "../../dist/optional.js";',
       'import { createTruncateCommand, truncateCommands } from "../../dist/optional.js";',
       'import { createInstallCommand, installCommands, type InstallCommandsOptions, type InstallModeRequest, type InstallContextRequest } from "../../dist/optional.js";',
@@ -143,7 +143,7 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
       'type JobsBridge = { child: PreparedShellChild; preparation: ShellChildPreparation; context: ShellListTerminatorContext; terminator: ShellListTerminatorHook; parameter: ShellSpecialParameterHook };',
       'type ReferenceBridge = { reference: ShellBindingReference; outcome: ShellBindingResult<ShellBindingReference>; prepare: ShellExtensionContext["bindings"]["prepareReference"] };',
       'type CheckpointBridge = { point: ShellExecutionCheckpoint; hook: NonNullable<ReturnType<ShellExtension["create"]>["checkpoint"]> };',
-      'type PublicExtension = NonNullable<import("poe-code/safe-bash").ShellOptions["extensions"]>[number];',
+      'type PublicExtension = NonNullable<import("@poe-platform/safe-bash").ShellOptions["extensions"]>[number];',
       'type PublicCheckpoint = Parameters<NonNullable<ReturnType<PublicExtension["create"]>["checkpoint"]>>[0];',
       'const checkpointPoints: readonly ShellExecutionCheckpoint[] = ["loop-body-complete", "child-job-install", "source-input-read"]; const publicCheckpointPoints: readonly PublicCheckpoint[] = checkpointPoints;',
       'const indexedOperators: NonNullable<ShellExtension["syntax"]> = { indexedElementOperators: true }; const publicIndexedOperators: NonNullable<PublicExtension["syntax"]> = indexedOperators;',
@@ -282,8 +282,8 @@ describe("explicit coherent optional build", { skip: selected === undefined ? "R
     const { published, optional } = await runtimes();
     const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/dev": optional.createDeviceFileSystem() } });
     const shell = new published.Shell({ fs, limits: { maxWallClockMs: 2000 } })
-      .use(published.agentCommands()).use(optional.cmpCommands()).use(optional.shufCommands())
-      .use(optional.truncateCommands()).use(optional.yesCommands());
+      .use(published.agentCommands()).use(optional.cmpCommands({ replace: true })).use(optional.shufCommands({ replace: true }))
+      .use(optional.truncateCommands({ replace: true })).use(optional.yesCommands());
     const script = [
       "set -e",
       "date -u -d @0 +%FT%TZ",

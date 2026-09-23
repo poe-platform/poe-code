@@ -10,7 +10,7 @@ export interface PlaywrightPrivateTargetTransportLimits {
   maxMessageBytes?: number;
   maxGraphNodes?: number;
   maxGraphDepth?: number;
-  /** Maximum commands sent upstream concurrently. Excess commands wait for replies. */
+  /** Maximum commands sent upstream concurrently; omitted means unlimited. Excess commands wait for replies. */
   maxPendingCommands?: number;
   /** Maximum commands waiting for upstream capacity. */
   maxQueuedCommands?: number;
@@ -199,7 +199,6 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     maxMessageBytes: 16 * 1024 * 1024,
     maxGraphNodes: 100_000,
     maxGraphDepth: 64,
-    maxPendingCommands: 1024,
     maxQueuedCommands: 16384,
     maxPendingBytes: 4 * 1024 * 1024,
     maxBufferedMessages: 512,
@@ -209,8 +208,10 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
     creationTimeoutMs: 2000,
     commandTimeoutMs: 10000,
     ...options,
+    maxPendingCommands: options.maxPendingCommands ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
+    if (name === 'maxPendingCommands' && options.maxPendingCommands === undefined) continue;
     if (!Number.isSafeInteger(value) || value <= 0 || (name.endsWith('TimeoutMs') && value > 2147483647)) {
       throw new TypeError(`Invalid private transport limit: ${name}`);
     }

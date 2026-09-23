@@ -563,7 +563,10 @@ test('send failure retires and preserves the synchronous failure', () => {
 });
 
 test('invalid limits and identities fail before unsupported admission', () => {
-  for (const value of [0, -1, NaN, Infinity, 1.5]) assert.throws(() => fixture({ maxBufferedBytes: value }), /limit/i);
+  for (const value of [0, -1, NaN, Infinity, 1.5]) {
+    assert.throws(() => fixture({ maxBufferedBytes: value }), /limit/i);
+    assert.throws(() => fixture({ maxPendingCommands: value }), /limit/i);
+  }
   const state = fixture();
   assert.throws(() => state.beginCreation().commit(''), /identity/i);
   assert.equal(state.closes(), 1);
@@ -777,4 +780,18 @@ test('preflights dense 5 MiB protocol JSON graphs before JSON.parse and reuses a
   } finally {
     JSON.stringify = originalStringify;
   }
+});
+
+for (const options of [undefined, { maxMessageBytes: 1024 }]) test(`pending command count has no implicit limit ${JSON.stringify(options)}`, () => {
+  const state = fixture(options);
+  try {
+    for (let id = 1; id <= 1500; id++) state.transport.send({ id, method: 'Runtime.evaluate', params: { expression: String(id) } });
+    assert.equal(state.sent.length, 1500);
+    assert.equal(state.closes(), 0);
+    for (let index = state.sent.length - 1; index >= 0; index--) state.receive({ id: state.sent[index]!.id, result: { value: index + 1 } });
+    assert.equal(state.received.length, 1500);
+    assert.deepEqual(state.received[0], { id: 1500, result: { value: 1500 } });
+    assert.deepEqual(state.received.at(-1), { id: 1, result: { value: 1 } });
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
 });

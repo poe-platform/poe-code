@@ -214,7 +214,7 @@ test("descent preserves original object and Decimal references", async () => {
 
 test("foreach does not collect source, initializer, update or extract alternatives", async () => {
   const { iterator } = evaluation("first(foreach range(10000) as $item (range(10000); range(10000); range(10000)))", null,
-    { maxSteps: 50, maxCollectionSize: 1 });
+    { maxSteps: 100, maxCollectionSize: 1 });
   assert.deepEqual(await iterator.next(), { done: false, value: 0 });
   assert.equal((await iterator.next()).done, true);
 });

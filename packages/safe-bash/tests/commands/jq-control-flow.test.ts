@@ -18,6 +18,8 @@ async function run(source: string, input = "null\n", args: string[] = []) {
 }
 
 const vectors: readonly [string, string, string][] = [
+  [". as $item | $item", '{"value":42}', '{"value":42}\n'],
+  ["def f: .; f", '[1,2]', '[1,2]\n'],
   ["..", '{"z":[1,{"a":null}],"b":[]}\n', '{"z":[1,{"a":null}],"b":[]}\n[1,{"a":null}]\n1\n{"a":null}\nnull\n[]\n'],
   ["[.. | numbers]", '{"2":2,"1":1,"0":0}', '[2,1,0]\n'],
   ["..", '9007199254740993123456789\n', '9007199254740993123456789\n'],
@@ -88,7 +90,7 @@ for (const source of [
   "reduce (1,2) as $item ($item; .)", "foreach $item as $item (0; .)",
   "(reduce 1 as $item (0; .)), $item", "foreach 1 as $item (0; .; $missing)",
   "try (1 +) catch 0", "try missing catch 0", "try . catch missing",
-  ". as $item | $item", ".. = 1", "try error(1) catch .", "def f: .; f",
+  ".. = 1", "try error(1) catch .",
   "reduce 1,2 as $item (0; .+$item)", "reduce .[] | . as $item (0; .+$item)",
   'try 1/0 catch "caught"', 'try 1 | .a catch "caught"',
 ]) test(`control-flow compilation stays closed: ${source}`, async () => {

@@ -62,7 +62,12 @@ export class Evaluator {
 
   child(node: Node, parent: Candidate, collection?: YAMLMap | YAMLSeq, slot?: number): Candidate {
     this.work.node();
-    return { node, document: parent.document, isDerived: collection === undefined || parent.isDerived === true, ...(collection === undefined ? {} : { parent: collection, slot: slot! }) };
+    return { node, document: parent.document, isDerived: collection === undefined || parent.isDerived === true,
+      ...(collection === undefined ? {} : { parent: collection, slot: slot! }),
+      ...(collection === undefined ? parent.ancestry ? { ancestry: parent.ancestry } : {} : {
+        ancestry: { parent, key: this.yaml.isMap(collection) ? collection.items[slot!]!.key as Node : slot! },
+      }),
+    };
   }
 
   async toEntries(input: Candidate): Promise<YAMLSeq> {
@@ -491,6 +496,20 @@ export class Evaluator {
     const output: Candidate[] = [];
     for (const input of inputs) {
       const name = expression.name;
+      if (name === "path") {
+        this.work.node();
+        const node = new yaml.YAMLSeq();
+        let candidate = input;
+        while (candidate.ancestry) {
+          await this.work.tick();
+          const { parent, key } = candidate.ancestry;
+          node.items.push(typeof key === "number" ? scalar(yaml, this.work, BigInt(key)) : await cloneNode(key, yaml, this.work));
+          candidate = parent;
+        }
+        node.items.reverse();
+        output.push(this.child(node, input));
+        continue;
+      }
       if (name === "head_comment" || name === "anchor" || name === "alias") {
         const node = input.node;
         const text = name === "head_comment" ? this.work.headComments.get(node) ?? ""

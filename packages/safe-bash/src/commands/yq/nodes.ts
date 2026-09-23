@@ -17,6 +17,7 @@ export interface Candidate {
   isDocumentRoot?: true;
   parent?: YAMLMap | YAMLSeq;
   slot?: number;
+  ancestry?: { parent: Candidate; key: Node | number };
 }
 
 export async function loadYaml(): Promise<YamlModule> {
@@ -60,7 +61,7 @@ export function dereference(candidate: Candidate, yaml: YamlModule, work: Native
     if (!resolved) throw new MikeError(`unknown anchor '${node.source}' referenced`);
     node = resolved;
   }
-  return node === candidate.node ? candidate : { node, document: candidate.document, isDerived: candidate.isDerived ?? false };
+  return node === candidate.node ? candidate : { node, document: candidate.document, isDerived: candidate.isDerived ?? false, ...(candidate.ancestry ? { ancestry: candidate.ancestry } : {}) };
 }
 
 export async function inspectNode(node: Node, yaml: YamlModule, work: NativeWork, allocate = false): Promise<void> {

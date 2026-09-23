@@ -44,6 +44,30 @@ test("Mike yq issue 456 reports malformed trailing fields without internal error
   }
 });
 
+test("structural path preserves candidate ancestry and alias location", async () => {
+  const input = "changed:\n- name: Independent\nbase: &base\n  name: Original\ncopy: *base\n7: numeric\n";
+  for (const [query, expected] of [
+    ["path", "[]\n"],
+    [".changed[0].name | path", '["changed",0,"name"]\n'],
+    [".changed[-1].name | path", '["changed",0,"name"]\n'],
+    [".changed[] | .name | path", '["changed",0,"name"]\n'],
+    [".copy.name | path", '["copy","name"]\n'],
+    [".[7] | path", '[7]\n'],
+    [".. | path", '[]\n["changed"]\n["changed",0]\n["changed",0,"name"]\n["base"]\n["base","name"]\n["copy"]\n[7]\n'],
+  ]) {
+    assert.deepEqual(await run(["-o=json", "-I=0", query!], input), { status: 0, stdout: expected, stderr: "" });
+  }
+  assert.deepEqual(await run([".changed[0].name | path"], input), { status: 0, stdout: "- changed\n- 0\n- name\n", stderr: "" });
+});
+
+test("structural path honors allocation and output limits", async () => {
+  for (const limits of [{ maxNodes: 8 }, { maxOutputBytes: 2 }]) {
+    const result = await run([".changed[0].name | path"], "changed:\n- name: Independent\n", {}, { limits });
+    assert.equal(result.status, 1);
+    assert.ok(result.stderr.includes("limit exceeded"), result.stderr);
+  }
+});
+
 for (const flag of ["--security-disable-env-ops", "--security-disable-file-ops"]) {
   test(`Mike yq accepts ${flag} for ordinary input files`, async () => {
     const fs = createMemoryFileSystem();

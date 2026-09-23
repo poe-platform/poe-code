@@ -1,7 +1,7 @@
 import { commands, execute, OwnedArguments, defaultLimits, virtualPath, CsvkitCleanupError, type CsvkitContext, type CsvkitLimits } from "@poe-code/csvkit";
 import { createOutputOperation, getCommandArguments, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { writeFileOutput, openFileOutput } from "../../contracts/filesystem-output.js";
-import { isFsError } from "../../contracts/errors.js";
+import { FsError, isFsError } from "../../contracts/errors.js";
 import { shellValueByteLength } from "../../contracts/value.js";
 
 /** Hosts bind locale, codecs, clock and terminal explicitly; no ambient I/O or drivers. */
@@ -142,16 +142,22 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
           ...(openMatchFile === undefined ? {} : { openMatchFile }),
           ...(sniffing === undefined ? {} : { sniffing }),
           ...(columnWarnings === undefined ? {} : { columnWarnings }),
-          ...(probeInputOpen ? { probeInputOpen } : context.fs.open === undefined ? {} : {
+          ...(probeInputOpen ? { probeInputOpen } : {
             async probeInputOpen(path, settings) {
+              settings.signal.throwIfAborted();
+              const inputPath = virtualPath(settings.cwd, path);
+              const capabilities = await context.fs.capabilitiesFor?.(inputPath, { signal: settings.signal }) ?? context.fs.capabilities;
+              settings.signal.throwIfAborted();
+              const descriptor = context.fs.open !== undefined && capabilities.open !== false;
+              let iterator: AsyncIterator<Uint8Array> | undefined;
               let closing: Promise<void> | undefined;
               const close = () => closing ??= Promise.resolve().then(async () => {
                 let descriptor;
                 try { descriptor = await pending; } catch { return; }
                 await descriptor?.close();
               });
-              // Enroll before acquiring; even an open admitted after cancellation
-              // is closed, without reading or allocating file contents.
+              // Enroll before acquiring; late descriptors and bounded readers
+              // are both drained before public settlement.
               // The probe's finally always observes close failures, and the
               // engine reports them as named-file diagnostics. The registered
               // barrier must drain the same close without reporting it again.
@@ -160,8 +166,27 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
               context.registerCleanup?.(cleanup);
               if (stdout) stdout.registerCleanup(cleanup);
               settings.signal.throwIfAborted();
-              const pending = context.fs.open!(virtualPath(settings.cwd, path), { access: "read", creation: "never", signal: settings.signal });
-              try { await pending; settings.signal.throwIfAborted(); }
+              const pending = Promise.resolve().then(async () => {
+                settings.signal.throwIfAborted();
+                if (descriptor) return context.fs.open!(inputPath, { access: "read", creation: "never", signal: settings.signal });
+                const stat = await context.fs.stat(inputPath, { signal: settings.signal });
+                settings.signal.throwIfAborted();
+                if (stat.type === "directory") throw new FsError("EISDIR", { path: inputPath });
+                if (capabilities.read === false) throw new FsError("ENOTSUP", { path: inputPath });
+                if (context.fs.readStream && capabilities.streamingRead !== false) {
+                  iterator = context.fs.readStream(inputPath, { signal: settings.signal, endExclusive: 1, chunkSize: 1 })[Symbol.asyncIterator]();
+                  return { async close() { await iterator!.return?.(); } };
+                }
+                if (capabilities.access === false) throw new FsError("ENOTSUP", { path: inputPath });
+                await context.fs.access(inputPath, 4, { signal: settings.signal });
+                return undefined;
+              });
+              try {
+                await pending;
+                settings.signal.throwIfAborted();
+                if (iterator && !closing) await iterator.next();
+                settings.signal.throwIfAborted();
+              }
               finally { await close(); }
             }
           }),

@@ -497,6 +497,7 @@ function assertSource7Discovery(files) {
     "tests/shell/select.test.ts",
     "tests/shell/arithmetic-for.test.ts",
     "tests/shell/loop-count.test.ts",
+    "tests/shell/shift-count.test.ts",
     "tests/shell/exit-return-status.test.ts",
     "tests/shell/mapfile.test.ts",
     "tests/shell/mapfile-eval-arguments.test.ts",

@@ -6138,8 +6138,12 @@ export class Runtime {
       return 2;
     }
     if (command === "shift") {
-      const count = args[0] === undefined ? 1 : Number(args[0]);
-      if (args.length > 1 || !Number.isSafeInteger(count) || count < 0 || count > state.positional.length) return 1;
+      const count = args[0] === undefined ? 1 : await loopCount(args[0], this.budget, this.signal);
+      if (count === undefined) {
+        await writeDiagnostic(stderr, `shift: ${args[0]}: numeric argument required\n`);
+        return 2;
+      }
+      if (args.length > 1 || count < 0 || count > state.positional.length) return 1;
       this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
     }

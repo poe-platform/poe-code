@@ -808,21 +808,23 @@ interface DataContinuation {
   index: number;
   readonly depth: number;
 }
-const defineDataContinuation = Reflect.defineProperty;
 const nativeDataArrayFrom = Array.from.bind(Array);
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
 
-function appendDataContinuation(pending: DataContinuation[], values: readonly unknown[], depth: number): void {
+function appendDataContinuation(
+  pending: DataContinuation[] | undefined,
+  values: readonly unknown[],
+  depth: number
+): DataContinuation[] {
   // Do not expose the stack or its mutable frames through later Array hooks.
-  const descriptor = {
-    __proto__: null,
-    value: { values, index: 1, depth },
-    writable: true,
-    enumerable: true,
-    configurable: true
-  };
-  defineDataContinuation(pending, pending.length, descriptor);
+  // A private null-prototype array also bypasses inherited native index setters.
+  if (pending === undefined) {
+    pending = [];
+    nativeDataArraySetPrototype(pending, null);
+  }
+  nativeDataArrayAppend(pending, { values, index: 1, depth });
+  return pending;
 }
 
 export function measureSandboxData(
@@ -907,7 +909,7 @@ function measureSandboxDataWithSeen(
             const references = bindingRoot.values;
             if (references.length === 0) break entry;
             if (references.length > 1)
-              appendDataContinuation(pending ??= [], references, depth);
+              pending = appendDataContinuation(pending, references, depth);
             value = references[0];
           }
           // Accounting projections add neither object units nor graph depth.
@@ -1411,7 +1413,7 @@ function measureSandboxDataWithSeen(
             const references = projection.references;
             if (references.length === 0) break entry;
             if (references.length > 1)
-              appendDataContinuation(pending ??= [], references, depth + 1);
+              pending = appendDataContinuation(pending, references, depth + 1);
             value = references[0];
             depth++;
             continue walk;
@@ -1451,7 +1453,7 @@ function measureSandboxDataWithSeen(
         // native hooks or inherited index setters. Capture all edges before visits.
         if (retained !== undefined && retained.length > 0) {
           if (retained.length > 1)
-            appendDataContinuation(pending ??= [], retained, depth + 1);
+            pending = appendDataContinuation(pending, retained, depth + 1);
           value = retained[0];
           depth++;
           continue walk;

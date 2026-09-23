@@ -93,6 +93,14 @@ export type CompileTicket = {
   readonly owner: CompileOwner;
 };
 
+type PendingDeadline = {
+  readonly deadline: number;
+  onExceeded?: (reason: SandboxError) => void;
+  previous?: PendingDeadline;
+  next?: PendingDeadline;
+  active: boolean;
+};
+
 class BudgetAccounting {
   readonly deadline?: number;
   readonly limits: Readonly<BudgetLimits>;
@@ -105,6 +113,8 @@ class BudgetAccounting {
   allChecksSuspended = 0;
   deadlineChecksSuspended = 0;
   visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+  pendingDeadlines?: PendingDeadline;
+  earliestPendingDeadline?: PendingDeadline;
   retainedDataSize = 0;
   readonly retainedData = new Map<object, number>();
   readonly retainedValueSources = new Map<object, () => Iterable<unknown> | undefined>();
@@ -159,6 +169,37 @@ export class Budget {
   set peakDataSize(value: number) { this.accounting.peakDataSize = value; }
   get currentCallDepth(): number { return this.accounting.currentCallDepth; }
   set currentCallDepth(value: number) { this.accounting.currentCallDepth = value; }
+
+  // Pending host operations keep their elapsed deadline active during sampled
+  // synchronous work. Linked private records need no observable native hooks.
+  acquireDeadline(deadline: number, onExceeded?: (reason: SandboxError) => void): () => void {
+    if (!Number.isFinite(deadline)) throw new TypeError("Deadline must be a finite timestamp.");
+    const accounting = this.accounting;
+    const pending: PendingDeadline = {
+      deadline, onExceeded,
+      next: accounting.pendingDeadlines, active: true
+    };
+    if (pending.next !== undefined) pending.next.previous = pending;
+    accounting.pendingDeadlines = pending;
+    if (accounting.earliestPendingDeadline === undefined ||
+        pending.deadline < accounting.earliestPendingDeadline.deadline)
+      accounting.earliestPendingDeadline = pending;
+    return () => {
+      if (!pending.active) return;
+      pending.active = false;
+      if (pending.previous === undefined) accounting.pendingDeadlines = pending.next;
+      else pending.previous.next = pending.next;
+      if (pending.next !== undefined) pending.next.previous = pending.previous;
+      pending.previous = pending.next = undefined;
+      pending.onExceeded = undefined;
+      if (accounting.earliestPendingDeadline !== pending) return;
+      accounting.earliestPendingDeadline = undefined;
+      for (let next = accounting.pendingDeadlines; next !== undefined; next = next.next)
+        if (accounting.earliestPendingDeadline === undefined ||
+            next.deadline < accounting.earliestPendingDeadline.deadline)
+          accounting.earliestPendingDeadline = next;
+    };
+  }
 
   forkRealm(): Budget {
     // Realm-indexed caches use the view identity; all limits and usage stay shared.
@@ -550,24 +591,33 @@ export class Budget {
   }
 
   private checkDeadline(): void {
+    const pending = this.accounting.earliestPendingDeadline;
+    const deadline = this.accounting.deadline === undefined ? pending?.deadline
+      : Math.min(this.accounting.deadline, pending?.deadline ?? Infinity);
     if (
       this.accounting.allChecksSuspended > 0 ||
       this.accounting.deadlineChecksSuspended > 0 ||
-      this.accounting.deadline === undefined
+      deadline === undefined
     ) {
       return;
     }
 
     const now = Date.now();
-    if (now <= this.accounting.deadline) {
+    if (now <= deadline) {
       return;
     }
 
-    throw new SandboxError({
+    const reason = new SandboxError({
       budget: "deadline",
       current: now,
-      limit: this.accounting.deadline
+      limit: deadline
     });
+    if (pending?.deadline === deadline) {
+      const notify = pending.onExceeded;
+      pending.onExceeded = undefined;
+      notify?.(reason);
+    }
+    throw reason;
   }
 
   private checkDataUsage(usage: number): void {
@@ -588,7 +638,7 @@ export class Budget {
     if (
       this.accounting.allChecksSuspended > 0 ||
       this.accounting.deadlineChecksSuspended > 0 ||
-      this.accounting.deadline === undefined
+      (this.accounting.deadline === undefined && this.accounting.earliestPendingDeadline === undefined)
     ) {
       return;
     }

@@ -124,8 +124,16 @@ export class SourceModuleGraph {
     const signal = this.options.signal;
     if (policy === undefined || signal?.aborted) return () => {};
     const deadline = Date.now() + policy.timeoutMs;
+    let expired = false;
+    const expire = (reason: SandboxError) => {
+      if (expired) return;
+      expired = true;
+      cancel();
+      policy.abort(reason);
+    };
+    const releaseDeadline = this.options.budget?.acquireDeadline(deadline, expire);
     const timer = setTimeout(() => {
-      policy.abort(new SandboxError({
+      expire(new SandboxError({
         budget: "deadline",
         current: Date.now(),
         limit: deadline
@@ -133,6 +141,7 @@ export class SourceModuleGraph {
     }, policy.timeoutMs);
     const cancel = () => {
       clearTimeout(timer);
+      releaseDeadline?.();
       signal?.removeEventListener("abort", cancel);
     };
     signal?.addEventListener("abort", cancel, { once: true });

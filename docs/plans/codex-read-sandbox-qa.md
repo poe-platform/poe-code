@@ -37,6 +37,34 @@ LLM or change persistent Codex settings.
 
    Expect `PermissionError` and a nonzero exit before any connection is made.
 
+## Verify workspace-write recovery (issue 203)
+
+Run these probes on the affected Linux host, retaining the session's managed
+requirements and approval reviewer:
+
+```sh
+codex -c 'sandbox_mode="workspace-write"' sandbox /bin/pwd
+codex --enable use_legacy_landlock -c 'sandbox_mode="workspace-write"' sandbox /bin/pwd
+```
+
+Record the exit status and diagnostic for each probe. The first reproduces the
+reported startup failure if the host rejects bubblewrap loopback setup. The
+second must refuse a permission profile requiring direct runtime enforcement;
+do not treat read-only Landlock success as workspace-write verification.
+
+In the affected live session, request a retry of the exact failed read-only
+command with `sandbox_permissions: "require_escalated"` and a justification
+explaining that sandbox startup failed before the command ran. Verify that the
+existing reviewer approves it before execution, and that the session retains
+its workspace-write policy. If approval is declined or unavailable, stop that
+action. This verifies approved command recovery, not functioning workspace-write
+isolation. Repair the host's sandbox support before declaring isolation restored.
+
+On a compatible Linux host, rerun the default workspace-write probe and confirm
+it prints the checkout path without escalation. Repository spawn configuration
+cannot repair the sandbox of an independently launched or already active Codex
+session.
+
 ## Verify Poe Code launch behavior
 
 Run the maintained agent-spawn test route:
@@ -169,3 +197,22 @@ keep filesystem restrictions and command approvals enabled. Do not apply the
 read-only compatibility flags to the managed workspace-write profile or bypass
 the sandbox as a fallback. The official OpenAI enforcement documentation linked
 above confirms that unsupported policies must be refused.
+
+## Issue 203 verification limits
+
+On 2026-09-22, investigation in the existing macOS checkout with Codex CLI
+0.155.1 found the exact reported error already handled by both the TypeScript
+and Rust Codex adapters. The regression cases cover command completions with
+and without a matching start event, preserve the original error, and explain
+workspace-write recovery through the existing approval reviewer. Both declarative
+Codex definitions already restrict the Landlock compatibility flag to read mode.
+The maintained agent-spawn workspace test route passed all 675 tests with local
+telemetry listeners permitted by an approved execution; focused ESLint checks
+for the Codex configuration, adapter, and adapter regression tests also passed.
+
+Default shell reads and Git inspection succeed in this checkout. The reported
+Linux host failure cannot be reproduced here, and no new Poe Code runtime defect
+was validated. The Linux probes above remain required to verify that host; the
+earlier Linux results in this document are not fresh verification for issue 203.
+Do not add a workspace-write Landlock fallback or automatically retry failed
+commands outside the sandbox based on this report.

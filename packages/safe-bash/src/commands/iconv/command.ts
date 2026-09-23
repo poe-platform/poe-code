@@ -12,6 +12,10 @@ async function transcode(options: Parsed, lifecycle: Lifecycle): Promise<number>
   const state = { swap: false };
   let exitCode = 0, stdinUsed = false;
   for (const file of options.files) {
+    if (options.verbose && file !== "-") {
+      lifecycle.budget.check(file.length * 3 + 2, lifecycle.budget.limits.maxDiagnosticBytes, "diagnostic bytes");
+      await lifecycle.write(new TextEncoder().encode(`${file}:\n`), true);
+    }
     if (file === "-" && stdinUsed) { await lifecycle.diagnostic("error while reading the input: Bad file descriptor"); return 1; }
     if (file === "-") stdinUsed = true;
     const reader = new Reader(file, lifecycle);

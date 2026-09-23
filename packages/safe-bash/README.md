@@ -182,6 +182,8 @@ before repeating the action. A configured regex executor may support more syntax
 `tee` accepts `-i` / `--ignore-interrupts`, `-p`, and `--output-error[=warn|warn-nopipe|exit|exit-nopipe]` alongside `-a` / `--append`. File write failures continue with the remaining destinations in warn modes and stop in exit modes; the last error option wins. Bare `--output-error` and `-p` select `warn-nopipe`. Virtual commands have no native signal handlers or OS pipes: host cancellation and shell downstream-failure handling remain in effect.
 `iconv -f UTF-8 -t UTF-16BE -o result source` writes converted bytes to a virtual file, replacing its existing contents. `--output=result` is equivalent; omit input files to convert stdin, and use `--output=-` to write to stdout. Conversion output limits also apply to file output.
 
+`iconv -s` / `--silent` accepts the native silent control while retaining fatal error diagnostics. `--verbose` prints each named input as `filename:` on stderr before conversion; stdin has no progress label.
+
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 
 `cut -c` preserves and selects individual bytes in C/POSIX locales, using the first nonempty value of `LC_ALL`, `LC_CTYPE`, and `LANG`. Other locales and an unset locale retain UTF-8 character selection.

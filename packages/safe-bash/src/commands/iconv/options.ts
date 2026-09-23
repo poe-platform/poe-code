@@ -8,6 +8,7 @@ export interface Parsed {
   readonly transliterate: boolean;
   readonly files: readonly string[];
   readonly output: string | undefined;
+  readonly verbose: boolean;
 }
 
 function encoding(value: string): Encoding {
@@ -27,12 +28,15 @@ function encoding(value: string): Encoding {
 export function parse(budget: Budget): Parsed {
   const args = budget.arguments();
   let from: string | undefined, to: string | undefined, output: string | undefined, discard = false, ended = false;
+  let verbose = false;
   const files: string[] = [];
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
     budget.charge(argument.length + 1);
     if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
+    if (argument === "--silent") continue;
+    if (argument === "--verbose") { verbose = true; continue; }
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const option = equals < 0 ? argument : argument.slice(0, equals);
@@ -47,6 +51,7 @@ export function parse(budget: Budget): Parsed {
     for (let offset = 1; offset < argument.length; offset++) {
       const flag = argument[offset]!;
       if (flag === "c") { discard = true; continue; }
+      if (flag === "s") continue;
       if (flag !== "f" && flag !== "t" && flag !== "o") throw new IconvError(`invalid option -- '${flag}'`, 64);
       const value = argument.slice(offset + 1) || args[++index];
       if (value === undefined) throw new IconvError(`option requires an argument -- '${flag}'`, 64);
@@ -77,5 +82,5 @@ export function parse(budget: Budget): Parsed {
     else throw new IconvError(`unsupported default encoding locale: ${locale}; specify -f and -t`);
     from ??= fallback; to ??= fallback;
   }
-  return { from: encoding(from), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"], output };
+  return { from: encoding(from), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"], output, verbose };
 }

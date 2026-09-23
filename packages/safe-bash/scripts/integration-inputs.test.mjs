@@ -2619,6 +2619,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/line-endings-independent/lifecycle.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/acquisition-close.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/boundaries.test.ts"));
+  assert.ok(files.includes("tests/commands/iconv/controls.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
   assert.ok(files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));
   assert.ok(files.includes("tests/commands/iconv-independent/acquisition-close.test.ts"));

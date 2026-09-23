@@ -1,0 +1,805 @@
+{
+  "schemaVersion": 1,
+  "scope": "Gnumeric XML ordinary-cell recovery for undefined explicitly global names, using parse-time declaration and placeholder state.",
+  "baseline": "0099de867b7aeafd35cb43d96d99cef7e6f1158e",
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "files": [
+      {
+        "path": "src/parser.y",
+        "sha256": "b0ebd707f3205031b00e4fcb5da8f7ea75f1d0e1b03b1d54c118c7dcb434b9c3"
+      },
+      {
+        "path": "src/xml-sax-read.c",
+        "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3"
+      }
+    ],
+    "rules": [
+      "parser.y:workbookref STRING explicitly queries sheetless name scope and reports UNKNOWN_NAME when absent; it never adds a placeholder.",
+      "parser_simple_name creates placeholders only for unqualified or sheet-qualified names when lookup fails.",
+      "xml_sax_cell reports failed ordinary-cell parsing, then stores the original expression text as a constant string."
+    ]
+  },
+  "problem": "The XML name binder created #NAME? global placeholders for []Name even when no declaration/placeholder existed at that parse point; native workbookref STRING rejects these names and the XML cell parser stores the rejected expression as a constant string.",
+  "implementation": [
+    "Track the first qualified-name rejection in existing XML binding traversal, including missing local sheets, and stop later name-creation side effects.",
+    "Preserve earlier unqualified placeholders; explicitly global names can use them or earlier declarations, but cannot bind to a declaration appearing later.",
+    "Ordinary cells recover original expression text with a gnumeric-xml warning. Shared followers reuse the recovered constant; positive array corners retain their separate path.",
+    "Remove the duplicate later missing-sheet parse pass, preserving native source-order selection between explicit-global and missing-sheet name errors."
+  ],
+  "nativeEvidence": "docs/ssconvert/gnumeric-global-name-recovery-native-capture.json",
+  "validation": {
+    "red": "10 failures / 12 new memory controls; two earlier-declaration/placeholder or existing missing-sheet controls pass before repair.",
+    "focused": "52 tests / four files pass.",
+    "package": "22814 tests / 383 files pass through maintained package command.",
+    "lint": "Maintained package eslint and source/test/consumer types pass.",
+    "build": "Selected maintained ssconvert closure: four builds, eleven layers, two cache hits.",
+    "priorTestCorrection": "An earlier test assumed []Explicit creates a global placeholder. Actual native grammar/captures contradict it; retain unqualified Unknown creation and assert []Explicit string recovery instead.",
+    "postCheckChange": "Only wording of the recovery comment changed after package checks; runtime logic was unchanged.",
+    "public": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+          "sha256": "71b58290afdb5f8c3d2ac6df38faa5406c185958ce51d3e63fdb1b83207c6f1b"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric-global-name-recovery.test.ts",
+          "sha256": "7cbecf67cf61579742d852b876d660f7817cee59e4e8d562dc75ff393c065962"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "e2839391ea76df0926caddacf5d0e1b726b769d7f6f3eed1f3f520caf71efd9f"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "results": [
+        {
+          "id": "undefined-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "a1445f2233997c78ec5c6286aced9c231c8cefe28fc3e0d2f5d62b5fe1abd72b",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [
+            "Unparsable expression for A1: =[]Missing (Name 'Missing' does not exist in workbook)\n",
+            "Unparsable expression for A2: =[]Sheet_Title (Name 'Sheet_Title' does not exist in workbook)\n",
+            "Unparsable expression for A3: =[]Print_Area (Name 'Print_Area' does not exist in workbook)\n",
+            "Unparsable expression for A4: =IF(FALSE,[]Missing,5) (Name 'Missing' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "b7145436a0125237fe28c4fa26bc5e1f660cfbf9c0d1c7c744590066e43da9a1",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "1949cadd7c821589144a49cb83851038e9b56174c9b041a501ef5073c8f6e180",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "99a984dfa73e72ea463b62a2b0a9ccf9db003d553d021d0477ee5f376d1291d8",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "4a625be843a14a10fb96b9b9fd39fd7571f4f4dd7ec441f294318bd0f6caa43e",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "e4f7c51b8c67497d5837f97a219882172c2baa4dbfb3e303736889c776710991",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "undefined-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "996b66b7ce32f327552f44f213b6f6dfee2823d850174168738aabf65743acc9",
+          "expected": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "sdk": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "shell": "[]Missing\n[]Sheet_Title\n[]Print_Area\n\"IF(FALSE,[]Missing,5)\"\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "d6b5b4ab6cb06e23d1c17275c49daec933eb2899bed27a28cb4977e56ab50908",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [
+            "Unparsable expression for A1: =[]Rate (Name 'Rate' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "81f195e76ff3874598e070f4a1c60a499020d559a0a565f51734e84c2ce080fb",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "2c1002ed3288b9cd179e355d64d1e3d18210a4adbe11cf3ac4589593f0366f63",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "ae5298e235fcbb398b00f70c916b0f8d66baf0e3b930422d49a51bf0c03ebf24",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "beab29f1f753c135d254198a59b58d1a693f891b7193f5e540b2fb58e4482e8d",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "5766ed1821ffbb57e4820e6f8995db0aba55ed39a346f21d5beaf1aabbe8a5dd",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "bb6877f3f4812ddc586a577efeaee2467e01426f731112ebbe2b1236e15e299e",
+          "expected": "[]Rate\n11\n",
+          "sdk": "[]Rate\n11\n",
+          "shell": "[]Rate\n11\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "f5266a27824817653383491452c15e615ca6a6a5b1a22bdae73ee719848cd147",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [
+            "Unparsable expression for A3: =Before+[]Missing+After (Name 'Missing' does not exist in workbook)\n",
+            "Unparsable expression for A5: =[]After (Name 'After' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "48a149626b23f88421a3d0ca681f99454e80d07ea3e822dee14750d564b5df89",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "bc01da3075bb4c80b51f6bc91b4eb1c8169294778768ea43ae1a9e3a66b76e28",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "6b457a03ee9698e12701c6a346a727fc9b0be0e1735a0834a483a094a68e3ed8",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "b6473d4991d400d1a4c69d2e986cdad14e743ce7b9ff29bea6837e289b60ba00",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "b0edeb84dc1519fed6928e9532068a5706d464f54b1ebd84ed6cdcde8d4ee24f",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "placeholder-order-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "72944ac795e3bbca34dc91dec39eb4aea028e5ef2c4b3fc20f37654354708e2a",
+          "expected": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "sdk": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "shell": "#NAME?\n#NAME?\nBefore+[]Missing+After\n#NAME?\n[]After\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "a0bf4391fc80af7db944a5b5d3a160e3170b5fdba21cac62c6cde714dc188066",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [
+            "Unparsable expression for A1: =[]Missing+NoSheet!Rate (Name 'Missing' does not exist in workbook)\n",
+            "Unparsable expression for A2: =NoSheet!Rate+[]Missing (Unknown sheet 'NoSheet')\n",
+            "Unparsable expression for A3: =[]Shared (Name 'Shared' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "c422c146b61c25eef750699e8cf67512cb8c5ade2f67e0e4cc07ac2bda5d1d42",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "0bea2e698f41e83fb266b6ea2097a12f41c1bf580c80fe97ebe2944a49e61607",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "dd6f3e7415ff5257e7b22dc6d6f5e18b3dab16d3774efa93371498d6f2974123",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "57ef979259b11fa169b8c89f2d8f734d9a81bf209a6e55a4eaa9e081110719da",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "1a997ba60947c6d9e7edf492e6be876012d1544a81f83371117661f527a8d00a",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "failure-order-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "046a978f89ae589e8895d45ce7cb8612f4735277ade2bf0c8a14d73186ce327e",
+          "expected": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "sdk": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "shell": "[]Missing+NoSheet!Rate\nNoSheet!Rate+[]Missing\n[]Shared\n[]Shared\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "gnumeric-permanent-names-defaults-original",
+          "filename": "previous.gnumeric",
+          "inputSha256": "a8bc7f7c3aa8b1fbc6f36683abc5feec0fffb1774231b494c44579cefabbcbe8",
+          "expected": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "sdk": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "shell": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "warnings": [
+            "Unparsable expression for A5: =[]Sheet_Title (Name 'Sheet_Title' does not exist in workbook)\n",
+            "Unparsable expression for A6: =[]Print_Area (Name 'Print_Area' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "gnumeric-permanent-names-defaults-native-xml",
+          "filename": "previous-native.gnumeric",
+          "inputSha256": "d4d7211c92e89460387130c3a17b75a1db4b935cb0f3b79da39bb8d2000fa123",
+          "expected": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "sdk": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "shell": "Here,9\nData,\n#REF!,\n#REF!,\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "gnumeric-permanent-names-escaped-original",
+          "filename": "previous.gnumeric",
+          "inputSha256": "0aaed012858c53875263d8c717647db5add6158111efb1b6c9a7f122bf432ae7",
+          "expected": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "sdk": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "shell": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "warnings": [
+            "Unparsable expression for A2: ='A\"B\\C'!Sheet_Title (Unknown sheet 'A\"BC')\n",
+            "Unparsable expression for A4: ='A\"B\\C'!Print_Area (Unknown sheet 'A\"BC')\n",
+            "Unparsable expression for A5: =[]Sheet_Title (Name 'Sheet_Title' does not exist in workbook)\n",
+            "Unparsable expression for A6: =[]Print_Area (Name 'Print_Area' does not exist in workbook)\n"
+          ],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "gnumeric-permanent-names-escaped-native-xml",
+          "filename": "previous-native.gnumeric",
+          "inputSha256": "85329d710a55038dcf7e18636fa14e13e65e6936d5ccda56c7dbdd7ec572a3f6",
+          "expected": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "sdk": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "shell": "Here,9\n\"'A\"\"B\\C'!Sheet_Title\",\n#REF!,\n\"'A\"\"B\\C'!Print_Area\",\n[]Sheet_Title,\n[]Print_Area,\n#NAME?,\n#REF!,\n#REF!,\n",
+          "warnings": [],
+          "inputAndNamespacePreserved": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "undefined",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "1949cadd7c821589144a49cb83851038e9b56174c9b041a501ef5073c8f6e180",
+          "bytes": 1692
+        },
+        {
+          "id": "undefined",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "99a984dfa73e72ea463b62a2b0a9ccf9db003d553d021d0477ee5f376d1291d8",
+          "bytes": 5632
+        },
+        {
+          "id": "undefined",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "4a625be843a14a10fb96b9b9fd39fd7571f4f4dd7ec441f294318bd0f6caa43e",
+          "bytes": 5632
+        },
+        {
+          "id": "undefined",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "e4f7c51b8c67497d5837f97a219882172c2baa4dbfb3e303736889c776710991",
+          "bytes": 9728
+        },
+        {
+          "id": "undefined",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "996b66b7ce32f327552f44f213b6f6dfee2823d850174168738aabf65743acc9",
+          "bytes": 4115
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "2c1002ed3288b9cd179e355d64d1e3d18210a4adbe11cf3ac4589593f0366f63",
+          "bytes": 1679
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "ae5298e235fcbb398b00f70c916b0f8d66baf0e3b930422d49a51bf0c03ebf24",
+          "bytes": 5632
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "beab29f1f753c135d254198a59b58d1a693f891b7193f5e540b2fb58e4482e8d",
+          "bytes": 5632
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "5766ed1821ffbb57e4820e6f8995db0aba55ed39a346f21d5beaf1aabbe8a5dd",
+          "bytes": 9728
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "bb6877f3f4812ddc586a577efeaee2467e01426f731112ebbe2b1236e15e299e",
+          "bytes": 4063
+        },
+        {
+          "id": "placeholder-order",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "bc01da3075bb4c80b51f6bc91b4eb1c8169294778768ea43ae1a9e3a66b76e28",
+          "bytes": 2019
+        },
+        {
+          "id": "placeholder-order",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "6b457a03ee9698e12701c6a346a727fc9b0be0e1735a0834a483a094a68e3ed8",
+          "bytes": 5632
+        },
+        {
+          "id": "placeholder-order",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "b6473d4991d400d1a4c69d2e986cdad14e743ce7b9ff29bea6837e289b60ba00",
+          "bytes": 5632
+        },
+        {
+          "id": "placeholder-order",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "b0edeb84dc1519fed6928e9532068a5706d464f54b1ebd84ed6cdcde8d4ee24f",
+          "bytes": 9728
+        },
+        {
+          "id": "placeholder-order",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "72944ac795e3bbca34dc91dec39eb4aea028e5ef2c4b3fc20f37654354708e2a",
+          "bytes": 4136
+        },
+        {
+          "id": "failure-order",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "0bea2e698f41e83fb266b6ea2097a12f41c1bf580c80fe97ebe2944a49e61607",
+          "bytes": 1697
+        },
+        {
+          "id": "failure-order",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "dd6f3e7415ff5257e7b22dc6d6f5e18b3dab16d3774efa93371498d6f2974123",
+          "bytes": 5632
+        },
+        {
+          "id": "failure-order",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "57ef979259b11fa169b8c89f2d8f734d9a81bf209a6e55a4eaa9e081110719da",
+          "bytes": 5632
+        },
+        {
+          "id": "failure-order",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "1a997ba60947c6d9e7edf492e6be876012d1544a81f83371117661f527a8d00a",
+          "bytes": 9728
+        },
+        {
+          "id": "failure-order",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "046a978f89ae589e8895d45ce7cb8612f4735277ade2bf0c8a14d73186ce327e",
+          "bytes": 4412
+        }
+      ],
+      "names": [
+        {
+          "id": "undefined",
+          "source": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "late-global",
+          "source": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Rate",
+              null,
+              "11",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Rate",
+              null,
+              "11",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "placeholder-order",
+          "source": [
+            [
+              "Before",
+              null,
+              "#NAME?",
+              "s1",
+              2,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Seed",
+              null,
+              "#NAME?",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Before",
+              null,
+              "#NAME?",
+              "s1",
+              2,
+              0
+            ],
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Seed",
+              null,
+              "#NAME?",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ]
+        },
+        {
+          "id": "failure-order",
+          "source": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ],
+          "native": [
+            [
+              "Print_Area",
+              "s1",
+              "#REF!",
+              "s1",
+              0,
+              0
+            ],
+            [
+              "Sheet_Title",
+              "s1",
+              "\"Here\"",
+              "s1",
+              0,
+              0
+            ]
+          ]
+        }
+      ],
+      "csvExecutions": 64,
+      "exports": 20,
+      "resolutions": 0,
+      "nativeRun": 35934615386,
+      "priorNativeRun": 35933117045,
+      "nativeQualification": "Four new source inputs and native XML outputs match values, normalized warning messages and name records; two previously captured inputs/replays now match; raw native stderr retained separately"
+    },
+    "screenshot": {
+      "inspected": true,
+      "sha256": "fd26c27d8c81ef3b1426824c34129e356231b1c4e445cad793a337a00c124330"
+    },
+    "logs": [
+      {
+        "name": "red.log",
+        "sha256": "09b7136b0989b896f1f3280881d1008443e4d7042eb63a4738a3990c5423c435"
+      },
+      {
+        "name": "green.log",
+        "sha256": "af71b23a7e53ec74e99682b22f0e9f9b7dd8ac59cfbab6ed9d9740eafce50033"
+      },
+      {
+        "name": "package-tests.log",
+        "sha256": "ee95e8a5bf1ac9ea02e87382ffabb42432ce80a60bf74d857b2d96de7fcaa9d3"
+      },
+      {
+        "name": "lint.log",
+        "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+      },
+      {
+        "name": "build.log",
+        "sha256": "c68b536e3d8ac43268d1807b70eb6a6106d0e014bb954d351180b799616f7dc2"
+      },
+      {
+        "name": "public.log",
+        "sha256": "f1ed32a252edb2d6942f1cfbe3bf8dc82293af7331d32d6529d9b42ffd312d5a"
+      },
+      {
+        "name": "screenshot.log",
+        "sha256": "3b92a9a9bb1ed4f9ede8a086bb8200211077699d55f613d9a3050e18989832f4"
+      }
+    ]
+  },
+  "delivery": {
+    "fixtureCommit": "0099de867b7aeafd35cb43d96d99cef7e6f1158e",
+    "fixtureRemoteMainVerified": true,
+    "runtimeCommit": "Containing commit",
+    "runtimeRemoteMain": "Verify after atomic commit and push.",
+    "publication": "No containing successful root publication verified; native workflow success is separate."
+  },
+  "remaining": [
+    "Qualified local-name expressions with implicit sheet/relative axes must use caller evaluation position while preserving parse-time name binding. Authenticated expr-name.c:934-942 passes caller position to gnm_expr_top_eval.",
+    "Malformed formulas, array/delayed-expression paths, broader shared/copy/name-edit semantics, other importers and native rename/merge execution need further qualification.",
+    "All nineteen original gap families and containing successful publication remain open."
+  ],
+  "wholeGoalComplete": false
+}

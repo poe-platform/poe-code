@@ -301,9 +301,10 @@ function names(node: XmlElement | undefined, sheet: string, local = false): Name
 
 /** Native XML cell expressions bind before delayed name definitions are parsed. */
 function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void): {
-  formulas: ReadonlyMap<XmlElement, string>; placeholders: readonly NamedExpression[];
+  formulas: ReadonlyMap<XmlElement, string>; placeholders: readonly NamedExpression[]; rejections: ReadonlyMap<XmlElement, string>;
 } {
   const bound = new Map<XmlElement, string>();
+  const rejections = new Map<XmlElement, string>();
   const placeholders: NamedExpression[] = [];
   const globals = new Set<string>(), locals = new Map<string, Set<string>>();
   const futureGlobals = new Set(children(root, "Names").flatMap(group => names(group, "").map(entry => entry.name)));
@@ -343,12 +344,19 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
           const parsed = parseExpression(formula, { position: { sheet: name, row, column }, signal: context.signal });
           if (!parsed.ok) continue;
           const changes = new Map<number, { end: number; text: string }>();
+          let rejection: string | undefined;
           visitFormula(parsed.document.root, node => {
             tick();
-            if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return;
-            if (node.workbook === "" && node.sheet === undefined) { addGlobalPlaceholder(node.name, row, column); return; }
+            if (rejection !== undefined || node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return;
+            // Workbook-qualified names require a declaration or an earlier
+            // unqualified-name placeholder. Native parsing stops at rejection.
+            if (node.workbook === "" && node.sheet === undefined) {
+              if (!globals.has(node.name)) rejection = `Name '${node.name}' does not exist in workbook`;
+              return;
+            }
             const scope = foldSheetName(node.sheet ?? name), visible = locals.get(scope);
-            if (!visible || visible.has(node.name)) return;
+            if (!visible) { rejection = `Unknown sheet '${node.sheet}'`; return; }
+            if (visible.has(node.name)) return;
             if (!globals.has(node.name)) {
               // An unknown unqualified name creates a global placeholder;
               // a qualified name creates a placeholder on that sheet.
@@ -362,6 +370,7 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
             }
             if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
           });
+          if (rejection !== undefined) { rejections.set(cell, rejection); continue; }
           let result = formula;
           for (const [start, change] of [...changes].sort(([a], [b]) => b - a)) result = result.slice(0, start) + change.text + result.slice(change.end);
           if (result !== formula) bound.set(cell, result);
@@ -369,7 +378,7 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
       }
     }
   }
-  return { formulas: bound, placeholders };
+  return { formulas: bound, placeholders, rejections };
 }
 function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
   const result: AxisMetadata[] = [];
@@ -438,12 +447,10 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
   const boundNames = bindCellNames(root, context, tick);
-  const knownSheets = new Set(index.map(node => foldSheetName(node.text)));
   const sheets: Sheet[] = [];
   for (const [i, node] of sheetNodes.entries()) {
     context.signal.throwIfAborted();
     const name = sheetName(node) ?? index[i]?.text ?? `Sheet${i + 1}`;
-    knownSheets.add(foldSheetName(name));
     const indexed = index.find(n => n.text === name);
     const size = { rows: number(indexed, "Rows", DEFAULT_SHEET_SIZE.rows, true), columns: number(indexed, "Cols", DEFAULT_SHEET_SIZE.columns, true) };
     if (!validSheetSize(size)) invalid("invalid sheet dimensions");
@@ -463,22 +470,16 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
         if (!parsed.ok) invalid("invalid shared expression");
         formula = rewriteReferences(parsed.document, { position: { sheet: name, row, column }, translation: "copy", signal: context.signal });
       }
-      // XML's ordinary-cell parser recovers a rejected sheet-qualified name
+      // XML's ordinary-cell parser recovers a rejected qualified name
       // as a constant expression. Array corners use a separate native path.
       const rows = number(item, "Rows", 1), cols = number(item, "Cols", 1);
       const array = attribute(item, "Rows") !== undefined && attribute(item, "Cols") !== undefined && rows > 0 && cols > 0;
-      if (formula && !array) {
-        let missingSheet: string | undefined;
-        const parsed = parseExpression(formula, { position: { sheet: name, row, column }, signal: context.signal,
-          onName(_name, sheet) {
-            if (missingSheet === undefined && sheet !== undefined && !knownSheets.has(foldSheetName(sheet))) missingSheet = sheet;
-          } });
-        if (parsed.ok && missingSheet !== undefined) {
-          const message = `Unparsable expression for ${formatA1(row, column)}: ${formula} (Unknown sheet '${missingSheet}')\n`;
-          await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
-          context.signal.throwIfAborted();
-          formula = "=" + quoteFormulaString(formula.slice(1), '"', gnumericGrammar);
-        }
+      const rejection = boundNames.rejections.get(item);
+      if (formula && !array && rejection !== undefined) {
+        const message = `Unparsable expression for ${formatA1(row, column)}: ${text} (${rejection})\n`;
+        await context.diagnostic?.({ code: "gnumeric-xml", severity: "warning", message, bytes: new TextEncoder().encode(message) });
+        context.signal.throwIfAborted();
+        formula = "=" + quoteFormulaString(text.slice(1), '"', gnumericGrammar);
       }
       if (id && formula && !shared.has(id)) shared.set(id, { formula, row, column, sheet: name });
       const stored = formula ? cached === undefined ? { kind: "blank" } as const : value(type, cached) : value(type, text);

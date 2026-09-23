@@ -99,12 +99,12 @@ it("retains an unresolved local placeholder in XML when no later global definiti
   expect(recalculateWorkbook(replay, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
 });
 
-it("retains global placeholders created by unqualified and explicitly global names", async () => {
+it("retains unqualified global placeholders without inventing undefined explicit globals", async () => {
   const book = await readGnumeric(input([["Here", cells(["=Unknown", "=[]Explicit", "=Unknown"])], ["Data", ""]], ""), context);
   expect(book.names?.filter(name => name.sheet === undefined)).toEqual([
-    { name: "Unknown", expression: "#NAME?", position: { sheet: "s1", row: 0, column: 0 } },
-    { name: "Explicit", expression: "#NAME?", position: { sheet: "s1", row: 1, column: 0 } }
+    { name: "Unknown", expression: "#NAME?", position: { sheet: "s1", row: 0, column: 0 } }
   ]);
+  expect(book.sheets[0]!.cells[1]!.formula).toBe('="[]Explicit"');
   const replay = await readGnumeric(await writeGnumeric(book, [], context), context);
   expect(replay.names?.filter(name => name.sheet === undefined)).toEqual(book.names?.filter(name => name.sheet === undefined));
 });

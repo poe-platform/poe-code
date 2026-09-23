@@ -76,8 +76,8 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
   let exitCode = 0;
   let stopped = false;
   const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
-  const unicodeErrors: string[] = [];
-  const unicode = { utf8: locale !== "C" && locale !== "POSIX", missingDigit: (escape: string) => { unicodeErrors.push(escape); } };
+  const escapeErrors: string[] = [];
+  const unicode = { utf8: locale !== "C" && locale !== "POSIX", missingDigit: (escape: string) => { escapeErrors.push(escape); } };
   do {
     const before = argument;
     for (let offset = 0; offset < formatLength && !stopped;) {
@@ -86,7 +86,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         const limit = end < 0 ? formatLength : end;
         const literal = rawFormat ? rawFormat.subarray(offset, limit) : format.slice(offset, limit);
         const escaped = escapeBytes(literal, false, false, unicode);
-        for (const escape of unicodeErrors.splice(0)) await writeDiagnostic(context.stderr, `printf: missing unicode digit for \\${escape}\n`, context.signal);
+        for (const escape of escapeErrors.splice(0)) await writeDiagnostic(context.stderr, `printf: missing ${escape === "x" ? "hex" : "unicode"} digit for \\${escape}\n`, context.signal);
         await output(context, escaped.bytes);
         stopped = escaped.stop;
         offset += literal.length;
@@ -121,7 +121,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         const suppliedValue = arguments_.values[suppliedIndex] ?? "";
         const raw = specifier === "b" && typeof suppliedValue === "string" ? suppliedValue : arguments_.bytes(suppliedIndex) ?? new Uint8Array();
         const escaped = specifier === "b" ? escapeBytes(raw, true, true, unicode) : { bytes: raw as Uint8Array, stop: false };
-        for (const escape of unicodeErrors.splice(0)) await writeDiagnostic(context.stderr, `printf: missing unicode digit for \\${escape}\n`, context.signal);
+        for (const escape of escapeErrors.splice(0)) await writeDiagnostic(context.stderr, `printf: missing ${escape === "x" ? "hex" : "unicode"} digit for \\${escape}\n`, context.signal);
         const bytes = escaped.bytes.subarray(0, precision);
         const padding = " ".repeat(Math.max(0, width - bytes.length));
         if (!flags.includes("-")) await output(context, padding);

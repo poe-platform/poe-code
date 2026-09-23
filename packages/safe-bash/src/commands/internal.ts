@@ -342,6 +342,7 @@ export function escapeBytes(text: string | Uint8Array, zeroOctal = false, bareOc
         offset++;
       }
       if (offset > index + 2) { bytes[size++] = value; index = offset; continue; }
+      unicode?.missingDigit("x");
     }
     bytes[size++] = 92;
     bytes[size++] = next;

@@ -1,6 +1,6 @@
 import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { PublicDiagnostic } from "../diagnostics.js";
-import { createStandardCommandsWithGrep, type ExecutionCommandsOptions } from "../commands/standard.js";
+import { createStandardCommandsWithGrep, type ExecutionCommandsOptions, type StandardCommandsOptions } from "../commands/standard.js";
 import { diagnostic } from "../commands/internal.js";
 import { createTextProgramCommands, type TextProgramOptions } from "../commands/text-programs/index.js";
 import { createStructuredCommands, type StructuredCommandsOptions } from "../commands/structured/index.js";
@@ -42,6 +42,7 @@ import type { RegexExecutionOptions } from "../commands/regex-execution/protocol
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
 export interface AgentCommandsOptions {
+  readonly predicateIdentity?: StandardCommandsOptions["predicateIdentity"];
   readonly execution?: ExecutionCommandsOptions;
   readonly bytes?: Omit<ByteCommandsOptions, "replace">;
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;

@@ -1,4 +1,4 @@
-import { type CommandContext, type CommandDefinition, type FileStat } from "../contracts/index.js";
+import { FsError, type CommandContext, type CommandDefinition, type FileStat } from "../contracts/index.js";
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
@@ -22,13 +22,17 @@ async function metadata(context: CommandContext, path: string, link = false): Pr
   }
 }
 
-export function predicateCommands(): CommandDefinition[] {
+export function predicateCommands(identity: { readonly effectiveUid?: number; readonly effectiveGid?: number } = {}): CommandDefinition[] {
+  for (const id of [identity.effectiveUid, identity.effectiveGid]) {
+    if (id !== undefined && (!Number.isSafeInteger(id) || id < 0)) throw new TypeError("caller identity must be a nonnegative safe integer");
+  }
+  identity = { ...identity };
   return ["test", "["].map(name => define(name, async context => {
     const args = [...context.args];
     if (name === "[") {
       if (args.pop() !== "]") throw new UsageError("missing ']'");
     }
-    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x"]);
+    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
     // Small expressions use argc rules before recursive operator precedence.
@@ -103,6 +107,15 @@ export function predicateCommands(): CommandDefinition[] {
         return async () => {
           if (token === "-n") return operand !== "";
           if (token === "-z") return operand === "";
+          if (["-v", "-R", "-o", "-t"].includes(token)) {
+            const state = context.shellPredicates;
+            if (!state) throw new FsError("ENOTSUP", { message: "caller shell predicate state is unavailable" });
+            if (token === "-v") return state.variable(operand);
+            if (token === "-R") return state.reference(operand);
+            if (token === "-o") return state.option(operand);
+            const descriptor = Number(operand);
+            return /^[ \t]*[+]?[0-9]+[ \t]*$/u.test(operand) && Number.isSafeInteger(descriptor) && descriptor >= 0 && state.terminal(descriptor);
+          }
           if (["-r", "-w", "-x"].includes(token)) {
             assertCommandRequirements(context, predicateRequirements, ["access"]);
             try {
@@ -115,6 +128,18 @@ export function predicateCommands(): CommandDefinition[] {
           }
           const stat = await metadata(context, operand, token === "-L" || token === "-h");
           if (!stat) return false;
+          if (token === "-b") return (stat.mode & 0o170000) === 0o060000;
+          if (token === "-p") return (stat.mode & 0o170000) === 0o010000;
+          if (token === "-S") return (stat.mode & 0o170000) === 0o140000;
+          if (token === "-u") return (stat.mode & 0o4000) !== 0;
+          if (token === "-g") return (stat.mode & 0o2000) !== 0;
+          if (token === "-k") return (stat.mode & 0o1000) !== 0;
+          if (token === "-O" || token === "-G") {
+            const caller = token === "-O" ? identity.effectiveUid : identity.effectiveGid;
+            const owner = token === "-O" ? stat.uid : stat.gid;
+            if (caller === undefined || owner === undefined) throw new FsError("ENOTSUP", { message: "ownership predicate requires caller and filesystem identity" });
+            return caller === owner;
+          }
           if (token === "-f") return stat.type === "file";
           if (token === "-c") return stat.type === "character";
           if (token === "-d") return stat.type === "directory";

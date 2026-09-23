@@ -4270,6 +4270,20 @@ export class Runtime {
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
+      shellPredicates: {
+        variable: name => this.variable(state, name) !== undefined,
+        reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
+        option: name => {
+          const extension = state.extensions?.options.get(name);
+          if (extension) return extension.enabled;
+          if (name === "braceexpand") return state.braceexpand !== false;
+          if (name === "allexport") return !!state.allexport;
+          if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+          return false;
+        },
+        // Shell byte streams and virtual descriptors have no terminal capability.
+        terminal: () => false,
+      },
       fs: scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation()), signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,

@@ -215,6 +215,13 @@ export interface InvocationCapabilities {
 }
 
 export interface CommandContext {
+  /** Live caller state; omitted by hosts that cannot answer shell predicates. */
+  readonly shellPredicates?: {
+    variable(name: string): boolean;
+    reference(name: string): boolean;
+    option(name: string): boolean;
+    terminal(descriptor: number): boolean;
+  };
   readonly capabilities?: InvocationCapabilities | undefined;
   readonly admittedHandles?: AdmittedHandles | undefined;
   readonly processSignals?: ProcessSignals | undefined;

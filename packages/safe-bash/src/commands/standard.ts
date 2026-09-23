@@ -18,6 +18,7 @@ import type { BoundedRegexProvider } from "./regex-execution/provider.js";
 export type { ExecutionCommandsOptions } from "./execution.js";
 
 export interface StandardCommandsOptions {
+  readonly predicateIdentity?: Parameters<typeof predicateCommands>[0];
   readonly execution?: ExecutionCommandsOptions;
   readonly execute?: CommandHandler;
   readonly replace?: boolean;
@@ -36,7 +37,7 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
     await diagnostic(context, new PublicDiagnostic("command not found"));
     return { exitCode: 127 };
   }));
-  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
+  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(options.predicateIdentity), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   commands.push(cmpCommand(), fmtCommand(), shufCommand(), numfmtCommand());
   return commands;
 }

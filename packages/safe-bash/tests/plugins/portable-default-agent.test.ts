@@ -47,12 +47,19 @@ test("default provider retains unsupported modes and bounded pattern admission",
     assert.equal(wholeWord.exitCode, 0, wholeWord.stderr);
     assert.equal(wholeWord.stdout, "a\n");
     assert.equal(wholeWord.stderr, "");
-    for (const command of ["rg -w a"]) {
-      const result = await shell.exec(command, { stdin: "aa\n" });
-      assert.equal(result.exitCode, 2, command);
-      assert.equal(result.stdout, "", command);
-      assert.match(result.stderr, /bounded regex unsupported/u, command);
+    for (const fixture of [
+      { input: "a\naa\nba\na_\n_a\na1\n1a\na-a\n", status: 0, stdout: "a\na-a\n" },
+      { input: "aa\n", status: 1, stdout: "" },
+    ]) {
+      const result = await shell.exec("rg -w a", { stdin: fixture.input });
+      assert.equal(result.exitCode, fixture.status);
+      assert.equal(result.stdout, fixture.stdout);
+      assert.equal(result.stderr, "");
     }
+    const unsupportedWordSubject = await shell.exec("rg -w a", { stdin: "a\né a\n" });
+    assert.equal(unsupportedWordSubject.exitCode, 2);
+    assert.equal(unsupportedWordSubject.stdout, "");
+    assert.match(unsupportedWordSubject.stderr, /bounded regex unsupported:.*ASCII subjects only/u);
     const expression = await shell.exec("expr aa : 'a*'");
     assert.equal(expression.exitCode, 0, expression.stderr);
     assert.equal(expression.stdout, "2\n");

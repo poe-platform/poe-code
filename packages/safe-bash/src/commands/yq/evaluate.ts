@@ -382,9 +382,13 @@ export class Evaluator {
       let equal = false;
       if (nodeTag(left, yaml) === "!!null") equal = nodeTag(right, yaml) === "!!null";
       else if (yaml.isScalar(left) && yaml.isScalar(right)) {
-        const first = scalarText(left, yaml);
-        const second = scalarText(right, yaml);
-        equal = await this.match(first, second);
+        const first = value(left, yaml);
+        const second = value(right, yaml);
+        if (typeof first === "string" && typeof second === "string") equal = await this.match(first, second);
+        else if ((typeof first === "number" || typeof first === "bigint") && (typeof second === "number" || typeof second === "bigint")) {
+          // Relational comparison preserves precision across bigint and float operands.
+          equal = first <= second && first >= second;
+        } else equal = first === second;
       }
       return scalar(yaml, this.work, operator === "==" ? equal : !equal);
     }

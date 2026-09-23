@@ -331,7 +331,7 @@ export class Evaluator {
     }
     const firstNumber = Number(first);
     const secondNumber = Number(second);
-    return scalar(yaml, this.work, operator === "+" ? firstNumber + secondNumber : operator === "-" ? firstNumber - secondNumber : operator === "*" ? firstNumber * secondNumber : operator === "/" ? firstNumber / secondNumber : firstNumber % secondNumber);
+    return scalar(yaml, this.work, operator === "+" ? firstNumber + secondNumber : operator === "-" ? firstNumber - secondNumber : operator === "*" ? firstNumber * secondNumber : operator === "/" ? firstNumber / secondNumber : firstNumber % secondNumber, nodeTag(left, yaml) === "!!float" || nodeTag(right, yaml) === "!!float");
   }
 
   async run(expression: Expression, inputs: Candidate[], create = false, depth = 0, omitMissing = false): Promise<Candidate[]> {
@@ -341,7 +341,7 @@ export class Evaluator {
     const yaml = this.yaml;
     if (expression.kind === "identity") return inputs;
     if (expression.kind === "group") return next(expression.body);
-    if (expression.kind === "literal") return inputs.map(input => this.child(scalar(yaml, this.work, expression.value), input));
+    if (expression.kind === "literal") return inputs.map(input => this.child(scalar(yaml, this.work, expression.value, typeof expression.value === "number"), input));
     if (expression.kind === "field") {
       const output: Candidate[] = [];
       for (const base of await next(expression.base)) for (const key of await next(expression.key, [base], false)) output.push(...await this.field(base, value(key.node, yaml), create, omitMissing));

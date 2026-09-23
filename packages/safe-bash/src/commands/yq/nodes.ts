@@ -25,10 +25,12 @@ export async function loadYaml(): Promise<YamlModule> {
   catch { throw new MikeError("the optional yaml@2.9.0 peer is required for this yq profile"); }
 }
 
-export function scalar(yaml: YamlModule, work: NativeWork, value: unknown): Node {
+export function scalar(yaml: YamlModule, work: NativeWork, value: unknown, float = false): Node {
   work.node();
   if (typeof value === "string" && Buffer.byteLength(value) > work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
-  return new yaml.Scalar(value);
+  const node = new yaml.Scalar(value);
+  if (float) node.minFractionDigits = 0;
+  return node;
 }
 
 export function root(document: NativeDocument): Candidate { return { node: document.doc.contents!, document, isDocumentRoot: true }; }
@@ -41,6 +43,7 @@ export function nodeTag(node: Node, yaml: YamlModule): string {
   const value = node.value;
   if (value === null || value === undefined) return "!!null";
   if (typeof value === "boolean") return "!!bool";
+  if (typeof value === "number" && (node.minFractionDigits !== undefined || node.format === "EXP" || node.source?.includes("."))) return "!!float";
   if (typeof value === "bigint" || typeof value === "number" && Number.isInteger(value)) return "!!int";
   if (typeof value === "number") return "!!float";
   return "!!str";

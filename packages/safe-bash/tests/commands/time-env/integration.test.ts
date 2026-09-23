@@ -9,6 +9,18 @@ import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { timeEnvCommands, createTimeEnvCommands } from "../../../src/commands/time-env/index.js";
 import { run, Timers } from "./helpers.js";
 
+test("Shell date file input works with virtual files and pipelines", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("@0\n@1\n"));
+  const shell = new Shell({ fs }).use(standardCommands()).use(timeEnvCommands());
+  for (const source of ["date --file=/input +%s", "cat /input | date -f - +%s"]) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0);
+    assert.equal(Buffer.from(result.stdout).toString(), "0\n1\n");
+    assert.equal(Buffer.from(result.stderr).toString(), "");
+  }
+});
+
 test("time-env definitions and plugin collision preflight are atomic", () => {
   assert.deepEqual(createTimeEnvCommands().map(command => command.name), ["date", "sleep", "printenv"]);
   const existing = { name: "printenv", execute: () => ({ exitCode: 42 }) };

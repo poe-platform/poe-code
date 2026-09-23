@@ -1,12 +1,14 @@
 import { FsError } from "../../contracts/index.js";
-import { pathOf } from "../internal.js";
+import { input as fileInput, lines, pathOf } from "../internal.js";
+import { writeDiagnostic } from "../../escaping.js";
 import { TimeZone, millisecondsInstant, parseDate } from "./calendar.js";
 import { formatDate } from "./format.js";
-import { command, CommandFailure, emit, ownEnvironment, type Settings } from "./shared.js";
+import { checkSize, command, CommandFailure, emit, ownEnvironment, type Settings } from "./shared.js";
 
 interface DateArguments {
   readonly input?: string;
   readonly reference?: string;
+  readonly file?: string;
   readonly utc: boolean;
   readonly format: string;
   readonly informational?: "help" | "version";
@@ -15,6 +17,7 @@ interface DateArguments {
 function parseArguments(args: readonly string[]): DateArguments {
   let input: string | undefined, reference: string | undefined, format: string | undefined, style: string | undefined;
   let utc = false, ended = false;
+  let file: string | undefined;
   const formatted = (value: string): void => {
     if (style !== undefined) throw new CommandFailure("multiple output formats specified");
     style = value;
@@ -50,6 +53,7 @@ function parseArguments(args: readonly string[]): DateArguments {
         case "--utc": case "--universal": utc = true; break;
         case "--date": input = required(); break;
         case "--reference": reference = required(); break;
+        case "--file": file = required(); break;
         case "--iso-8601": formatted(iso(attached ?? "date")); break;
         case "--rfc-email": case "--rfc-2822": formatted("%a, %d %b %Y %T %z"); break;
         case "--rfc-3339": {
@@ -67,10 +71,10 @@ function parseArguments(args: readonly string[]): DateArguments {
         if (flag === "u") utc = true;
         else if (flag === "R") formatted("%a, %d %b %Y %T %z");
         else if (flag === "I") { formatted(iso(argument.slice(position + 1) || "date")); break; }
-        else if (flag === "d" || flag === "r") {
+        else if (flag === "d" || flag === "r" || flag === "f") {
           const value = argument.slice(position + 1) || args[++index];
           if (value === undefined) throw new CommandFailure(`option requires an argument: -${flag}`);
-          if (flag === "d") input = value; else reference = value;
+          if (flag === "d") input = value; else if (flag === "r") reference = value; else file = value;
           break;
         } else if (flag === "s") throw new CommandFailure("setting clocks is unsupported");
         else throw new CommandFailure(`unsupported option: -${flag}`);
@@ -82,9 +86,11 @@ function parseArguments(args: readonly string[]): DateArguments {
     }
   }
   if (input !== undefined && reference !== undefined) throw new CommandFailure("--date and --reference are mutually exclusive");
+  if (file !== undefined && (input !== undefined || reference !== undefined)) throw new CommandFailure("--file, --date and --reference are mutually exclusive");
   if (format !== undefined && style !== undefined) throw new CommandFailure("multiple output formats specified");
   return { utc, format: format ?? style ?? "%a %b %e %T %Z %Y",
-    ...(input === undefined ? {} : { input }), ...(reference === undefined ? {} : { reference }) };
+    ...(input === undefined ? {} : { input }), ...(reference === undefined ? {} : { reference }),
+    ...(file === undefined ? {} : { file }) };
 }
 
 export function createDateCommand(configuration: Settings) {
@@ -93,12 +99,40 @@ export function createDateCommand(configuration: Settings) {
     const parsed = parseArguments(context.args);
     if (parsed.informational) {
       await emit(context, parsed.informational === "version" ? "date (safe-bash virtual command)\n"
-        : "Usage: date [-u] [-d DATE | -r FILE] [+FORMAT]\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n", configuration.limits);
+        : "Usage: date [-u] [-d DATE | -r FILE | -f FILE] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n", configuration.limits);
       return 0;
     }
     const zone = new TimeZone(parsed.utc ? "UTC" : ownEnvironment(context, "TZ") ?? configuration.defaultTimeZone);
     let current: bigint | undefined;
     const now = (): bigint => current ??= millisecondsInstant(configuration.clock());
+    if (parsed.file !== undefined) {
+      let exitCode = 0, outputBytes = 0;
+      const source = async function* () {
+        try { yield* fileInput(context, parsed.file!); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (error instanceof FsError && error.code !== "EFBIG") throw new CommandFailure(error.message);
+          throw error;
+        }
+      };
+      for await (const line of lines(source(), 10,
+        size => checkSize(size, configuration.limits.maxArgumentBytes, "date input line"))) {
+        let instant: bigint;
+        try { instant = parseDate(new TextDecoder().decode(line.bytes), zone, now); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof CommandFailure)) throw error;
+          await writeDiagnostic(context.stderr, `date: ${error.message}\n`, context.signal);
+          exitCode = 1;
+          continue;
+        }
+        const value = formatDate(parsed.format, instant, zone, configuration.limits);
+        outputBytes += Buffer.byteLength(value);
+        checkSize(outputBytes, configuration.limits.maxOutputBytes, "output");
+        await emit(context, value, configuration.limits);
+      }
+      return exitCode;
+    }
     let instant: bigint;
     if (parsed.reference !== undefined) {
       try {

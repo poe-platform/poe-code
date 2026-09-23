@@ -114,3 +114,49 @@ test("date rejects invalid clocks and bounded format expansion without writing s
   await assert.rejects(run("date", ["-d@0", "+%F"], { limits: { maxOutputBytes: 4 } }), { code: "EFBIG" });
   assert.equal(writes, 0);
 });
+
+test("date file options read each VFS line through cwd and symlinks", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input", Buffer.from("2025-01-02T03:04:05Z\n2000-02-29"));
+  await fs.symlink!("input", "/work/link");
+  for (const args of [["-f", "link"], ["-flink"], ["--file=link"], ["--file", "link"]]) {
+    const result = await run("date", [...args, "+%s"], { clock: () => { throw new Error("clock unused"); } }, { fs, cwd: "/work" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "1735787045\n951782400\n");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "2025-01-02T03:04:05Z\n2000-02-29");
+});
+
+test("date file stdin continues after invalid lines and samples relative clock once", async () => {
+  let calls = 0;
+  const stdin = (async function* () {
+    yield Buffer.from("@0\ninvalid\nno");
+    yield Buffer.from("w\n1 second\n");
+  })();
+  const result = await run("date", ["-f-", "+%s"], { clock: () => { calls++; return 1000; } }, { stdin });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "0\n1\n2\n");
+  assert.equal(result.stderr, "date: unsupported or invalid date: invalid\n");
+  assert.equal(calls, 1);
+});
+
+test("date empty file emits nothing; missing files and conflicting sources fail", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/empty", new Uint8Array());
+  const empty = await run("date", ["-f/empty"], { clock: () => { throw new Error("clock unused"); } }, { fs });
+  assert.equal(empty.exitCode, 0); assert.equal(empty.stdout, ""); assert.equal(empty.stderr, "");
+  for (const args of [["-f"], ["--file"], ["-fmissing"], ["--file="], ["-f/empty", "-d@0"], ["-r/empty", "-f/empty"], ["-f/empty", "--set=@0"]]) {
+    const result = await run("date", args, {}, { fs });
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.notEqual(result.stderr, "");
+  }
+});
+
+test("date file output uses a cumulative quota and bounds input lines", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("@0\n@1\n"));
+  await assert.rejects(run("date", ["-f/input", "+%s"], { limits: { maxOutputBytes: 3 } }, { fs }), { code: "EFBIG" });
+  await fs.writeFile("/input", Buffer.from("@0000000000000000000000"));
+  await assert.rejects(run("date", ["-f/input"], { limits: { maxArgumentBytes: 16 } }, { fs }), { code: "EFBIG" });
+});

@@ -37,8 +37,8 @@ Default invocation limits:4096 arguments,65536 argument bytes,1MiB stdout,
 typed EFBIG; invalid factory limits throw. Arguments and generated stdout are
 bounded before publication. Family limits do not replace shared shell budgets.
 Output uses awaited `writeBytes`, owned <=16384-byte chunks and the caller signal;
-sink errors/budget failures propagate unchanged. None of these commands consumes
-stdin or mutates command.env, cwd or filesystem contents.
+sink errors/budget failures propagate unchanged. Only `date -f -` consumes
+stdin; these commands do not mutate command.env, cwd or filesystem contents.
 
 ## printenv
 
@@ -90,7 +90,13 @@ Supported options: `-u`, `--utc`, `--universal`; `-d DATE`, `--date=DATE`;
 `--iso-8601[=PRECISION]`; `-R`, `--rfc-email`, `--rfc-2822`;
 `--rfc-3339=date|seconds|ns`; one `+FORMAT`; `--`; help/version.
 Short options can combine (`-ud@0`, `-uR`); required values may attach.
-`--date` and `--reference` conflict. Output style flags conflict with `+FORMAT`.
+`-f FILE` / `--file=FILE` reads one date per line through the VFS; `FILE -`
+reads stdin. Short option arguments may attach. Empty files produce no output;
+an unterminated final line is processed. Invalid lines report errors while valid
+lines continue, with exit status1 if any line failed. Each line uses the same
+date grammar and timezone as `-d`, with at most one clock sample per invocation.
+Lines are bounded by `maxArgumentBytes` and total stdout by `maxOutputBytes`.
+`--date`, `--reference` and `--file` conflict. Output style flags conflict with `+FORMAT`.
 Reference paths resolve through cwd and **VFS stat**, following VFS symlinks.
 `-r` means file mtime, not the BSD date epoch operand.
 
@@ -123,7 +129,7 @@ offset ranges are checked; invalid dates and leap seconds are rejected rather
 than rolled over. IANA nonexistent wall times reject. Ambiguous DST folds also
 reject and require an explicit numeric offset; GNU libc's selected occurrence
 is **not** claimed. Month/year-relative expressions, arbitrary GNU grammar,
-file-batch parsing, debugging/resolution flags and OS clock setting are excluded.
+debugging/resolution flags and OS clock setting are excluded.
 `-s`, `--set`, and legacy clock-setting operands always fail without mutation.
 
 Format directives:
@@ -171,7 +177,7 @@ its N output ends in six zeros. Explicit input may supply nine digits. A VFS
 number-valued mtime/clock is interpreted from its shortest decimal millisecond
 representation and floored to nanoseconds; this cannot recover precision absent
 from that metadata. Tests distinguish Node/Apple utimes quantization from date
-formatting. Unsupported usage/date syntax returns1 with no partial stdout;
+formatting. Unsupported usage/date syntax outside file mode returns1 with no partial stdout;
 reference errors remain failures. Cancellation and output errors propagate.
 
 ## Validation boundary

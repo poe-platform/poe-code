@@ -66,6 +66,23 @@ test("PDF persisted print geometry survives XML checkpoint and command/SDK repla
   const shell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(configuration));
   const engine = createEngine(configuration);
   try {
+    const cappedConfiguration = { ...configuration, limits: { ...configuration.limits, inputBytes: binding.limits.inputBytes } };
+    const cappedShell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(cappedConfiguration));
+    const cappedEngine = createEngine(cappedConfiguration);
+    try {
+      const refused = await cappedShell.exec('ssconvert -T Gnumeric_pdf:pdf_assistant /input.gnumeric /keep');
+      assert.equal(refused.exitCode, 1);
+      assert.equal(refused.stdout, "");
+      assert.equal(refused.stderr, "ssconvert PDF font shaping could not complete\n");
+      let writes = 0;
+      await assert.rejects(cappedEngine.convert({ input: { kind: "stream", source: [new TextEncoder().encode(input)] },
+        exportType: "Gnumeric_pdf:pdf_assistant", destination: { kind: "stream", sink: { async write() { writes++; } } } },
+      { signal: new AbortController().signal }), { code: "resource-limit", message: "ssconvert PDF font shaping could not complete" });
+      assert.equal(writes, 0);
+      assert.equal(volume.readFileSync("/keep", "utf8"), "untouched");
+      assert.equal(volume.readFileSync("/input.gnumeric", "utf8"), input);
+      assert.deepEqual(Object.keys(volume.toJSON()).sort(), ["/input.gnumeric", "/keep"]);
+    } finally { await cappedEngine.dispose(); await cappedShell.dispose(); }
     const original = await shell.exec('ssconvert -T Gnumeric_pdf:pdf_assistant /input.gnumeric fd://1');
     assert.equal(original.exitCode, 0, original.stderr);
     assert.equal(original.stderr, "");

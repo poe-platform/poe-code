@@ -119,8 +119,8 @@ test("P06 optional bytes retain extended-header, member and effective-size limit
   const bytes = extended(record);
   await rejected(bytes, /extended header byte limit/, { limits: { maxPaxBytes: record.length - 1 } });
   await rejected(bytes, /member.*limit/, { limits: { maxMembers: 1 } });
-  await rejected(extended(Buffer.concat([record, pax(["size", "67108865"])])), /entry.*limit/);
-  await rejected(extended(rawRecord("SCHILY.xattr.user.large", Buffer.alloc(1024 * 1024))), /extended header byte limit/);
+  await rejected(extended(Buffer.concat([record, pax(["size", "67108865"])])), /entry.*limit/, { limits: { maxEntryBytes: 67108864 } });
+  await rejected(extended(rawRecord("SCHILY.xattr.user.large", Buffer.alloc(1024 * 1024))), /extended header byte limit/, { limits: { maxPaxBytes: 1024 * 1024 } });
   const fs = await fixture();
   success(await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: source(bytes) }, { limits: { maxPaxBytes: record.length, maxEntryBytes: payload.length, maxMembers: 2 } }));
   assert.deepEqual(Buffer.from(await fs.readFile("/output/file")), payload);

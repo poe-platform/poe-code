@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { Volume, createFsFromVolume } from "memfs";
+import { createAgentRuntime } from "@poe-code/poe-agent";
 import ownCompaction from "../dist/plugin-compaction.js";
 import referenceCompaction from "../../poe-agent/dist/plugins/poe-agent-plugin-compaction.js";
 import ownMemory from "../dist/plugin-memory.js";
@@ -119,18 +120,19 @@ test("recursive memory imports handle Unicode, CRLF, repeated branches and cache
         return read(...args);
       };
       const plugin = create({ cwd: "/project", homeDir: "/home", fs }),
+        runtime = createAgentRuntime({}, new AbortController().signal),
         context = { userPrompt: "request", system: "base", opaque: { owned: true } };
       if (fail) {
         let first;
-        await assert.rejects(plugin.prompt(context), (error) => {
+        await assert.rejects(plugin.prompt(context, runtime), (error) => {
           first = error;
           return error.message.includes("Circular");
         });
-        await assert.rejects(plugin.prompt(context), (error) => error === first);
+        await assert.rejects(plugin.prompt(context, runtime), (error) => error === first);
         results.push({ reads, message: first.message });
       } else {
-        const first = await plugin.prompt(context),
-          second = await plugin.prompt(context);
+        const first = await plugin.prompt(context, runtime),
+          second = await plugin.prompt(context, runtime);
         assert.deepEqual(first, second);
         assert.equal(first.opaque, context.opaque);
         results.push({ reads, first });

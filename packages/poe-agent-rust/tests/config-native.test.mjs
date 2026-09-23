@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import * as own from "../dist/config.js";
 process.env.TSX_DISABLE_CACHE = "1";
 const { tsImport } = await import("tsx/esm/api");
@@ -15,7 +16,9 @@ test("configuration clones and freezes plugin schemas, hooks, dependency aliases
   const execute = async () => "ok",
     setup = async () => {},
     hook = () => {};
+  const fs = createMemoryFileSystem();
   const input = {
+    fs,
     model: " model ",
     plugins: [
       {
@@ -32,6 +35,13 @@ test("configuration clones and freezes plugin schemas, hooks, dependency aliases
   };
   assert.deepEqual(own.createResolvedAgentConfig(input), original.createResolvedAgentConfig(input));
   const result = own.createResolvedAgentConfig(input);
+  assert.equal(result.fs, fs);
+  assert.equal(result.customFs, true);
+  for (const api of [own, original]) {
+    const defaults = api.createResolvedAgentConfig();
+    assert.equal(defaults.customFs, false);
+    assert.equal(typeof defaults.fs.readFile, "function");
+  }
   assert.equal(Object.isFrozen(result), true);
   assert.equal(Object.isFrozen(result.plugins), true);
   assert.equal(Object.isFrozen(result.plugins[0]), true);
@@ -57,8 +67,8 @@ test("configuration clones and freezes plugin schemas, hooks, dependency aliases
     { plugins: [{ name: "\ud800" }] }
   ])
     assert.deepEqual(
-      outcome(own.createResolvedAgentConfig, value),
-      outcome(original.createResolvedAgentConfig, value)
+      outcome(own.createResolvedAgentConfig, { ...value, fs }),
+      outcome(original.createResolvedAgentConfig, { ...value, fs })
     );
 });
 test("dependency traversal compares stable order and complete malformed graph diagnostics", () => {

@@ -11,7 +11,7 @@ import * as referenceArgs from "../../poe-agent/dist/plugins/plugin-args.js";
 import * as ownParse from "../dist/parse-options.js";
 import * as referenceParse from "../../poe-agent/dist/plugins/parse-options.js";
 
-test("skill guidance matches seeded names, normalization, opaque metadata and late active-tool values", () => {
+test("skill guidance matches seeded names, normalization, opaque metadata and late active-tool values", async () => {
   let seed = 0x5eed2026;
   const random = () => {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -40,11 +40,11 @@ test("skill guidance matches seeded names, normalization, opaque metadata and la
     options.skills = () => active;
     const metadata = { opaque: { sample } },
       context = { userPrompt: "request", system: "base", metadata };
-    assert.deepEqual(ownSkills(options).prompt(context), referenceSkills(options).prompt(context));
+    assert.deepEqual(await ownSkills(options).prompt(context), await referenceSkills(options).prompt(context));
   }
 });
 
-test("skill callbacks and getters preserve read order, and absent definitions avoid unused stringification", () => {
+test("skill callbacks and getters preserve read order, and absent definitions avoid unused stringification", async () => {
   for (const active of [[], ["repo"]]) {
     const results = [];
     for (const create of [referenceSkills, ownSkills]) {
@@ -80,7 +80,7 @@ test("skill callbacks and getters preserve read order, and absent definitions av
           };
         }
       };
-      const value = create(options).prompt({
+      const value = await create(options).prompt({
         userPrompt: "request",
         system: "base",
         metadata: { opaque: true }
@@ -108,8 +108,8 @@ test("skill callbacks and getters preserve read order, and absent definitions av
           }
         }
       });
-      assert.throws(
-        () => plugin.prompt({ userPrompt: "request" }),
+      await assert.rejects(
+        plugin.prompt({ userPrompt: "request" }),
         (error) => error === cause
       );
     }

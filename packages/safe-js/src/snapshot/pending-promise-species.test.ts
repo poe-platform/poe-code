@@ -14,13 +14,9 @@ it.each([
   ["const result = Promise.race([c.promise])", 7]
 ] as const)("restores unresolved aggregate capability callbacks: %s", async (expression, expected) => {
   const source = `const c=Promise.withResolvers();class P extends Promise{};${expression};Object.setPrototypeOf(result,Promise.prototype);return [result,c.resolve]`;
-  const control = await run(source);
-  assert(control.ok && Array.isArray(control.returnValue));
-  const [promise, resolve] = control.returnValue;
-  assert(isSandboxPromise(promise) && isSandboxClosure(resolve));
-  const budget = new Budget();
-  await invokeBuiltinClosure(resolve, [7], budget, undefined, undefined);
-  expect(await awaitSandboxValue(promise, undefined, budget)).toEqual(expected);
+  const control = await run(`const [promise, settle] = (() => { ${source} })(); settle(7); return await promise;`);
+  assert(control.ok);
+  expect(control.returnValue).toEqual(expected);
 
   const fresh = await run(source);
   assert(fresh.ok && Array.isArray(fresh.returnValue));

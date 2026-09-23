@@ -21,11 +21,9 @@ it.each([
   ["const c=Promise.withResolvers();const chained=c.promise.then();return async()=>{c.resolve(7);return await chained}", 7],
   ["const c=Promise.withResolvers();const chained=c.promise.then(()=>{throw 'failure'});return async()=>{c.resolve(7);try{await chained}catch(error){return error}}", "failure"]
 ] as const)("restores a pending promise continuation: %s", async (source, expected) => {
-  const control = await run(source);
-  assert(control.ok && isSandboxClosure(control.returnValue));
-  const controlBudget = new Budget();
-  const controlValue = await invokeBuiltinClosure(control.returnValue, [], controlBudget, undefined, undefined);
-  expect(await awaitSandboxValue(controlValue, undefined, controlBudget)).toEqual(expected);
+  const control = await run(`const continuation = (() => { ${source} })(); return await continuation();`);
+  assert(control.ok);
+  expect(control.returnValue).toEqual(expected);
 
   const result = await run(source);
   assert(result.ok);

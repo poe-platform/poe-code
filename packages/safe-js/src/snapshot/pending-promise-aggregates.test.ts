@@ -19,11 +19,9 @@ it.each([
   ["race", "Promise.resolve(3)", "c.resolve(7)", "await result", 3]
 ] as const)("restores partially completed Promise.%s without repeating resolve effects", async (method, first, settle, read, expected) => {
   const source = `let resolves=0;class P extends Promise{static resolve(value){resolves++;return super.resolve(value)}}const c=Promise.withResolvers();const result=P.${method}([${first},c.promise]);await 0;await 0;return async()=>{${settle};return [${read},resolves,result instanceof P]}`;
-  const control = await run(source);
-  assert(control.ok && isSandboxClosure(control.returnValue));
-  const controlBudget = new Budget();
-  const controlValue = await invokeBuiltinClosure(control.returnValue, [], controlBudget, undefined, undefined);
-  expect(await awaitSandboxValue(controlValue, undefined, controlBudget)).toEqual([expected, 2, true]);
+  const control = await run(`const continuation = await (async () => { ${source} })(); return await continuation();`);
+  assert(control.ok);
+  expect(control.returnValue).toEqual([expected, 2, true]);
 
   const fresh = await run(source);
   assert(fresh.ok);

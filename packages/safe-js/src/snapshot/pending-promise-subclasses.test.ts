@@ -13,11 +13,9 @@ it.each([
   ["let constructors=0;class P extends Promise{constructor(executor){constructors++;super(executor)}}const c=Promise.withResolvers();c.promise.constructor={[Symbol.species]:P};const chained=c.promise.then(value=>value+1);return async()=>{const before=constructors;c.resolve(7);return [before,await chained]}", [1,8]],
   ["let settleResult;let calls=0;class P extends Promise{constructor(executor){super((resolve,reject)=>{settleResult=resolve;executor(resolve,reject)})}}const c=Promise.withResolvers();c.promise.constructor={[Symbol.species]:P};const chained=c.promise.then(()=>{calls++;return 7});settleResult(99);await chained;return async()=>{c.resolve(7);await c.promise;await 0;return [await chained,calls]}", [99,1]]
 ] as const)("restores pending subclass reactions: %s", async (source, expected) => {
-  const control = await run(source);
-  assert(control.ok && isSandboxClosure(control.returnValue));
-  const controlBudget = new Budget();
-  const controlValue = await invokeBuiltinClosure(control.returnValue, [], controlBudget, undefined, undefined);
-  expect(await awaitSandboxValue(controlValue, undefined, controlBudget)).toEqual(expected);
+  const control = await run(`const continuation = await (async () => { ${source} })(); return await continuation();`);
+  assert(control.ok);
+  expect(control.returnValue).toEqual(expected);
 
   const fresh = await run(source);
   assert(fresh.ok);

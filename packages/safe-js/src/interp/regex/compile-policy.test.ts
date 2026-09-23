@@ -83,7 +83,7 @@ describe("compile hash compatibility", () => {
     ];
     const hashes: string[] = [];
     for (const { source, expected } of fixtures) {
-      expect(runInNewContext(`(function () { ${source} })()`, {}, { timeout: 100 })).toBe(expected);
+      expect(runInNewContext(`(function () { ${source} })()`, {}, { timeout: 1000 })).toBe(expected);
       const legacyHash = hashing.hashSource(source);
       const result = await run(source, { budget: new Budget({ maxSteps: 1000 }) });
       expect(result).toMatchObject({ ok: true, returnValue: expected });

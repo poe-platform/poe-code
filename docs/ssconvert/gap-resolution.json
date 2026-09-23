@@ -1218,5 +1218,37 @@
     "languageProbeCommit": "59c37e061c",
     "languageProbeCases": 1586,
     "knownPortableExpectedControls": 1424
+  },
+  "linuxLanguageExecutionFollowup": {
+    "evidence": "docs/ssconvert/linux-language-native-capture.json",
+    "pythonBridgeFix": "docs/ssconvert/python-bitand-bridge-gap-proof.json",
+    "fixCommit": "1cfe475886b9c1ebdb8e20cf6e765ffe535c8455",
+    "fixVerifiedRemoteMain": true,
+    "capturedCases": 1586,
+    "profiles": [
+      "optional-none",
+      "optional-perl-samples",
+      "optional-python-samples"
+    ],
+    "frozenDateNativeRun": 35841079134,
+    "frozenDateTimezoneControls": 2,
+    "exactSurfaces": [
+      "root-sdk",
+      "root-shell",
+      "xml-formula-replay",
+      "browser",
+      "dedicated-worker"
+    ],
+    "allCapturedOutputBytesExact": true,
+    "maintainedTests": 22437,
+    "maintainedFiles": 361,
+    "allMaintainedPassed": true,
+    "normalRootBuild": true,
+    "packageLintTypes": true,
+    "browserConsoleMessages": 0,
+    "screenshotInspected": true,
+    "remainingActivationProfiles": 5,
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

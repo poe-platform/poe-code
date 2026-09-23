@@ -1,6 +1,6 @@
 {
   "scope": "Native Python delegated BITAND error-to-None bridge and explicit empty function results",
-  "status": "validated-local-delivery-pending",
+  "status": "verified-remote-main-publication-pending",
   "wholeGoalComplete": false,
   "native": {
     "run": 35840380188,
@@ -110,5 +110,8 @@
     "browserConsoleMessages": 0,
     "screenshotInspected": true,
     "diagnosticPolicy": "Native Python bridge warning appears twice across native import/recalc; portable single calculation emits one identical warning. No execution-count or PID/timestamp byte-parity claim."
-  }
+  },
+  "fixCommit": "1cfe475886b9c1ebdb8e20cf6e765ffe535c8455",
+  "remoteMainVerified": true,
+  "publication": "unverified"
 }

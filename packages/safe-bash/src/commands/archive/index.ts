@@ -46,6 +46,10 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --exclude-caches    Keep cache directories and tags, omit other contents
       --sort=ORDER        Order directory children by name or none (default)
   -h, --dereference       Archive symbolic-link targets during creation
+  -X, --exclude-from=FILE Read newline-delimited exclusion patterns
+      --wildcards         Select archive members with anchored glob patterns
+      --no-wildcards      Select literal member names (default)
+      --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)
       --strip-components=NUM Remove leading components when reading archives
       --transform=EXPR    Substitute member names when listing (s/old/new/[gix])
       --show-transformed-names Display transformed names in archive listings

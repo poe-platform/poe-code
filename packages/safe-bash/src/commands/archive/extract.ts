@@ -128,6 +128,8 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
   let warnedAbsolute = false;
   let keptExisting = false;
   const matched = new Set<number>();
+  const occurrences = new Map<number, number>();
+  const selectors = options.wildcards ? options.operands.map(operand => new Exclusions([operand.name], budget.limits.maxPatternSteps, true)) : [];
   const published = new Map<string, FileStat>();
   const directories = new Map<string, { root: string; entry: ReadEntry }>();
   let archivePath: string | undefined;
@@ -190,7 +192,12 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       for (let index = 0; index < options.operands.length; index++) {
         const operand = options.operands[index]!;
         const wanted = operand.name.replace(/^\/+/u, "").replace(/\/+$/u, "");
-        if (name.replace(/\/+$/u, "") === wanted || name.startsWith(`${wanted}/`)) {
+        if (options.wildcards ? selectors[index]!.matches(name.replace(/\/+$/u, "")) : name.replace(/\/+$/u, "") === wanted || name.startsWith(`${wanted}/`)) {
+          if (options.occurrence !== undefined) {
+            const count = (occurrences.get(index) ?? 0) + 1;
+            occurrences.set(index, count);
+            if (count !== options.occurrence) continue;
+          }
           if (!selected) {
             if (options.mode === "x") await checkRoot(context, operand.cwd);
             root = resolvePath(operand.cwd);

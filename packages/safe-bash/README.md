@@ -84,6 +84,8 @@ filesystem and byte streams, not host executables.
 
 Tar creation also accepts `--sort=name` (bytewise directory-child order; operand order stays unchanged), `--sort=none` (default), `--dereference` / `-h` (archive symbolic-link targets), and `--exclude-caches` (retain directories with a valid `CACHEDIR.TAG` and their tag files, omitting other contents). Dereferencing retains backend containment and output-archive checks and rejects directory cycles.
 
+Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.
+
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 `factor --exponents 72` prints `72: 2^3 3^2`; without operands, it reads numbers from stdin.
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined

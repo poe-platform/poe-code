@@ -65,6 +65,62 @@ test("cache exclusion retains tagged directories and tag files but omits their o
   } finally { await shell.dispose(); }
 });
 
+test("tar reads exclusion files and selects wildcard archive members", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/archive.tar", archive(member("dir/a.txt", binary), member("dir/b.bin", binary), member("other/dir/c.txt", binary)));
+    await fs.writeFile("/work/exclude", Buffer.from("*.bin\nother\n"));
+    for (const flags of ["--exclude-from=exclude", "--exclude-from exclude", "-X exclude", "-Xexclude"]) {
+      const result = await shell.exec(`tar ${flags} -tf archive.tar`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "dir/a.txt\n");
+    }
+    const listed = await shell.exec("tar --wildcards -tf archive.tar 'dir/*.txt'");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.equal(listed.stdout, "dir/a.txt\n");
+    const extracted = await shell.exec("tar --wildcards -xf archive.tar -C /out 'dir/?.txt'");
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.deepEqual(await fs.readFile("/out/dir/a.txt"), binary);
+    await assert.rejects(fs.stat("/out/dir/b.bin"));
+    assert.equal((await shell.exec("tar --wildcards --no-wildcards -tf archive.tar 'dir/*.txt'")).exitCode, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("tar occurrence selects the requested repeated member for listing and extraction", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/archive.tar", archive(member("a", Buffer.from("first")), member("b", binary), member("a", Buffer.from("second"))));
+    for (const flag of ["--occurrence", "--occurrence=1", "--occurrence=2"]) {
+      const result = await shell.exec(`tar ${flag} -tf archive.tar a`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "a\n");
+    }
+    const extracted = await shell.exec("tar --occurrence=1 -xf archive.tar -C /out a");
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/out/a")).toString(), "first");
+    assert.equal((await shell.exec("tar --occurrence=2 -xf archive.tar -C /out a")).exitCode, 0);
+    assert.equal(Buffer.from(await fs.readFile("/out/a")).toString(), "second");
+    for (const flags of ["--occurrence=0 a", "--occurrence=-1 a", "--occurrence=1.5 a", "--occurrence=3 a", "--occurrence=1"]) {
+      assert.equal((await shell.exec(`tar -tf archive.tar ${flags}`)).exitCode, 2, flags);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("tar exclusion files enforce input bounds and stdin ownership before archive effects", async () => {
+  const { fs, shell } = await fixture({ limits: { maxFilesFromBytes: 8 } });
+  try {
+    await fs.writeFile("/work/file", binary);
+    await fs.writeFile("/work/exclude", Buffer.from("file\n"));
+    assert.equal((await shell.exec("tar -cf archive -X exclude file")).exitCode, 0);
+    assert.equal((await shell.exec("tar -tf archive")).stdout, "");
+    assert.equal((await shell.exec("tar -cf archive -X - file", { stdin: "file\n" })).exitCode, 0);
+    for (const command of ["tar -cf new -X missing file", "tar -cf new -X exclude -X exclude file", "tar -tf - -X -", "tar -cf new --occurrence file"]) {
+      assert.equal((await shell.exec(command, { stdin: "file\n" })).exitCode, 2, command);
+      await assert.rejects(fs.stat("/work/new"));
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("tar lists transformed names only when requested, selecting original names", async () => {
   const { shell } = await fixture();
   try {
@@ -311,7 +367,7 @@ test("PAX global/local precedence, deletion and embedded newline", async () => {
   } finally { await shell.dispose(); }
 });
 
-for (const flags of ["-cf", "-cxf archive", "-cf archive -z --xz file", "-cf archive -Jj file", "-cf archive --format=zip file", "-cf archive --strip-components=1 file", "-tf - --strip-components=-1", "--create=yes", "cf archive", "-tf - --wildcards", "cf archive file --exclude=foo"]) test(`unsupported/invalid flags are not ignored: ${flags}`, async () => {
+for (const flags of ["-cf", "-cxf archive", "-cf archive -z --xz file", "-cf archive -Jj file", "-cf archive --format=zip file", "-cf archive --strip-components=1 file", "-tf - --strip-components=-1", "--create=yes", "cf archive", "-tf - --wildcards=yes", "cf archive file --exclude=foo"]) test(`unsupported/invalid flags are not ignored: ${flags}`, async () => {
   const { shell } = await fixture();
   try { assert.equal((await shell.exec(`tar ${flags}`, { stdin: archive() })).exitCode, 2); }
   finally { await shell.dispose(); }

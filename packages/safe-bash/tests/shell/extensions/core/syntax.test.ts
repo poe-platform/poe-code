@@ -105,6 +105,7 @@ test("opt-in special parameters use variable lookup metadata with quote, length 
   const indirect = simple(parser.parseShell(source, 0, declarations)).words[1]!.parts.find(part => part.kind === "variable")!;
   assert.deepEqual(indirect, { kind: "variable", name: "name", quoted: true, line: 1, indirect: true });
   assert.deepEqual(indirect, simple(parser.parseShell(source)).words[1]!.parts.find(part => part.kind === "variable")!);
+  assert.deepEqual(parser.parseShell("printf ${!name}", 0, declarations), parser.parseShell("printf ${!name}"));
 });
 
 test("literal ampersands and exclamation marks do not acquire execution or lookup metadata", () => {

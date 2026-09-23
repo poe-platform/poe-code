@@ -53,6 +53,7 @@ for (const source of [
   "printf x &>out", "printf x >&2", "first |& second", "first && second || third",
   "case word in a) first ;& b) second ;;& c) third;; esac",
   "printf \"${#01}\" \"${a[3]}\" \"${a[@]}\"", "printf \"${value:-$(first)}\"",
+  "printf ${!name}",
 ]) test(`opt-in leaves existing syntax structurally unchanged: ${source}`, () => {
   assert.deepEqual(parser.parseShell(source, 0, declarations), parser.parseShell(source));
 });

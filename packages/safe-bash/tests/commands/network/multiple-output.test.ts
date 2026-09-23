@@ -4,6 +4,39 @@ import { Shell, createMemoryFileSystem } from "../../../src/index.js";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 
+for (const [flags, destination] of [
+  ["--remote-name --output 'Second slot.bin'", "/changed-report.bin"],
+  ["--output 'First slot.bin' --remote-name", "/First slot.bin"],
+  ["--output 'First slot.bin' -o 'Second slot.bin'", "/First slot.bin"],
+  ["-o - -o 'Second slot.bin'", undefined],
+] as const) for (const url of [
+  "https://example.invalid/changed-report.bin",
+  "https://example.invalid/inner/changed-report.bin?fixture=owned",
+]) for (const urlFirst of [false, true]) {
+  test(`curl uses the first output slot for one URL: ${flags}, ${url}, URL first=${urlFirst}`, async () => {
+    const fs = createMemoryFileSystem();
+    const payload = new Uint8Array([67, 104, 97, 110, 103, 101, 100, 250, 0, 13, 10]);
+    const previous = new TextEncoder().encode("previous contents\r\n");
+    const paths = ["/First slot.bin", "/Second slot.bin", "/changed-report.bin"];
+    for (const path of paths) await fs.writeFile(path, previous);
+    let disposed = 0;
+    const shell = new Shell({ fs }).use(networkCommands({
+      authorize: () => true,
+      transport: async () => ({ status: 200, statusText: "OK", headers: [],
+        body: toByteSource(payload), async dispose() { disposed++; } }),
+    }));
+    try {
+      const argumentsText = urlFirst ? `'${url}' ${flags}` : `${flags} '${url}'`;
+      const result = await shell.exec(`curl -sS ${argumentsText}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, destination === undefined ? payload : new Uint8Array());
+      for (const path of paths) assert.deepEqual(await fs.readFile(path), path === destination ? payload : previous);
+      assert.equal(disposed, 1);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [flags, stdout, files] of [
   ["-o /first", "/right", { "/first": "/left" }],
   ["-o /first -o /second", "", { "/first": "/left", "/second": "/right" }],

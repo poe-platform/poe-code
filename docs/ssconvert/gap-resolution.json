@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:40:10.901486+00:00",
+  "recordedAt": "2026-09-23T10:53:35.701234+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -825,9 +825,10 @@
     {
       "id": "solver-analysis-accuracy",
       "status": "open",
-      "currentFinding": "Six actual Linux default linear solver commands match stdout/stderr on five public surfaces:unique continuous-minimum,integer-minimum,binary-maximum optima and three native failure/admission controls. Default selection only; explicit per-algorithm/tool-dependency closure,mathematical quality for failed models,reports,sensitivity,nonlinear/analysis/wider domains and publication remain open.",
+      "currentFinding": "Actual Linux default solver controls now include six linear models plus program/sensitivity reports and a known quadratic nonlinear optimum(3,2)/objective0. CSV effects match five public surfaces and independent native XML replay. Report native critical diagnostics differ; 11glpsol/7lp_solve linked-library hashes captured. Explicit independent factory,full report/style/font,wider sensitivity/nonlinear/analysis accuracy and publication remain open.",
       "proof": [
-        "docs/ssconvert/linux-linear-solver-native-capture.json"
+        "docs/ssconvert/linux-linear-solver-native-capture.json",
+        "docs/ssconvert/linux-solver-report-nonlinear-native-capture.json"
       ],
       "delivery": {
         "localCommit": null,
@@ -1524,6 +1525,31 @@
     ],
     "diagnosticParity": false,
     "productFixCommit": "055483e6bb",
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxSolverFollowupQualification": {
+    "evidence": "docs/ssconvert/linux-solver-report-nonlinear-native-capture.json",
+    "nativeRun": 35850616856,
+    "models": 3,
+    "commands": 6,
+    "logicalFields": 207,
+    "csvStdoutBytes": 688,
+    "csvStderrBytes": 558,
+    "exactSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "worker"
+    ],
+    "independentNativeXmlReplayExact": true,
+    "diagnosticParity": false,
+    "externalProgramLinkedClosureCounts": {
+      "glpsol": 11,
+      "lp_solve": 7
+    },
+    "productCodeChangeRequired": false,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

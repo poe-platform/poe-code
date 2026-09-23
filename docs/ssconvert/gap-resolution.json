@@ -1072,5 +1072,19 @@
     "remainingSeparateGlobFailures": 1,
     "guardedLintSubjects": 16410,
     "publication": "unverified"
+  },
+  "umaskCreatingOpenFollowup": {
+    "proof": "docs/ssconvert/umask-creating-open-gap-proof.json",
+    "implementationCommit": "285ff9919105aeca2ab06ff509a3e700da87dfa6",
+    "remoteMainVerified": true,
+    "maintainedAndGlobTests": 87,
+    "focusedControls": 446,
+    "residualControls": 116,
+    "cohortsOverlap": true,
+    "remainingGlobFailures": 0,
+    "integratedGuardedLintSubjects": 16428,
+    "gateScope": "Frozen owned candidate before eight later incoming commits; rebased98focused controls pass",
+    "remaining": "Separate native-validated noclobber self-symlink issue, all original ssconvert families and actual publication",
+    "publication": "unverified"
   }
 }

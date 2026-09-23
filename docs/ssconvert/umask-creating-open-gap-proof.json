@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "scope": "Creating-open umask mode hints use generic path capability queries; caller openCommandFile creating preflight and backend actual acquisition preserved.",
+  "baseline": "Delivered legacyfix eba3ebe0b, evidence5d75e6a67; preserved incoming noglob/noclobber behavior.",
+  "sourceBindings": [
+    {
+      "path": "packages/safe-bash/src/shell/umask.ts",
+      "bytes": 4514,
+      "sha256": "605db1113cd079c916e190e568659d4b6b3da71c2b8c68e541c5b63c929b7bee"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/umask.test.ts",
+      "bytes": 30507,
+      "sha256": "49d993ac4e0aafb9d20f0e0823a8a98f0ecc46ba8d4eb84d7c2d554208ab1fa5"
+    }
+  ],
+  "authorityBindings": [
+    {
+      "path": "packages/safe-fs/src/contracts/filesystem.md",
+      "bytes": 83910,
+      "sha256": "60dbe66fb70372ad3531d3be44d63125e51921f1182fe50adffaf6155f057de4"
+    },
+    {
+      "path": "packages/safe-bash/src/contracts/filesystem-descriptor.ts",
+      "bytes": 8570,
+      "sha256": "897de4f190c10c7473a5938e99bce0ea4939d3c0e9ee7e392f307314a58c7f7d"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/devices/path.ts",
+      "bytes": 7731,
+      "sha256": "a438f9c968eddb15c810d8a0b19d9b87627bef1c58363fa10ce70a9b7f19e774"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/devices/index.ts",
+      "bytes": 32130,
+      "sha256": "4bf15c073b66d56bb77b4e73f942c94ccbd6ebb460e147d85fe758723ce6f938"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/mount/index.ts",
+      "bytes": 46217,
+      "sha256": "8dbf83874076eef59e4bf37dd60be11bee7ab5bc33a575dfbe8668a01fedbe69"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/memory/index.ts",
+      "bytes": 57202,
+      "sha256": "49d4b2d7a0933741603cdbe7f1708af6a08c431c1ca9eb2d7e4ec1f279fdbdc8"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/readonly/index.ts",
+      "bytes": 10082,
+      "sha256": "4a41412baacde048e0ffde9c0e0aefbcb9c83d02bc07cf6ecf2aff8877c873e8"
+    }
+  ],
+  "originalGlobRed": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-current-glob-red.log",
+    "bytes": 13858,
+    "sha256": "037d09a5744d4aae72c32e90670e5c60a559791bc18cd8808f96a4b43cc1397e",
+    "counts": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "initialControlRedWithSetupFailures": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-maintained-red.log",
+    "bytes": 22625,
+    "sha256": "3d5b254fa58b295494a7d4a81a15d3f9bc71d649e0f3b943597360ec0279a9b6",
+    "counts": {
+      "tests": 76,
+      "pass": 70,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "secondControlRedWithUnregisteredPrintf": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-maintained-corrected-red.log",
+    "bytes": 22153,
+    "sha256": "17a3c71e67f2d79c1a05989cca7681fa63e3656bcc77a14ba6eab5e4ef0042dc",
+    "counts": {
+      "tests": 76,
+      "pass": 70,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "qualifiedMaintainedRed": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-maintained-qualified-red.log",
+    "bytes": 22274,
+    "sha256": "5acd98efe2c9e55f06b0ebf18b84c1ecde09ffb53339477d50d91abda8f641e8",
+    "counts": {
+      "tests": 76,
+      "pass": 70,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "maintainedAndGlobGreen": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-maintained-glob-green.log",
+    "bytes": 19254,
+    "sha256": "4db0b326df4200d89065ce9bc15e4e4ddb1b7cc5176c2b981c330ef5806346fd",
+    "counts": {
+      "tests": 87,
+      "pass": 87,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "focusedPeerBudgetAuthorityGreen": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-peer-budget-authority-green.log",
+    "bytes": 98044,
+    "sha256": "c6b6528b1f49389d4a25b30c0a9488288d026fda882bd32da99decb5b7d9cfa6",
+    "counts": {
+      "tests": 446,
+      "pass": 446,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "residualGreen": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-residual-green.log",
+    "bytes": 26006,
+    "sha256": "2adff194d63acb6c3e32ff3d9613e4d9567cbc96e368f9f2c901afec9af034bf",
+    "counts": {
+      "tests": 116,
+      "pass": 116,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  },
+  "safeFsAuthority": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-safe-fs-authority-green.log",
+    "bytes": 496,
+    "sha256": "37dcd0e4737d904472f32e7b4a780a9662780fd4069a4aba84c11c54e7f31579",
+    "tests": 56,
+    "pass": 56,
+    "fail": 0
+  },
+  "publicShellBefore": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-current-shell-device-order.json",
+    "bytes": 858,
+    "sha256": "d64d6d26f3ac9269b0f9ba0fdcd08cc269f543f989043e87e2031506567a29d4"
+  },
+  "implementation": "Only mkdir retains create:true in creationFileSystem capabilityFor mode hint. Creating-open uses original options generic query and preserves permissionless no-mode/reference path, unknownlegacy0600, calleroption immutability and signal/error identity. No capability cache, DeviceFS change, callerpreflight change, backendacquisition change or fixture rewrite.",
+  "controls": [
+    "Two refined creating-open ifMissing/exclusive controls require generic query (no own create), original query optionreference, new forwarded mode0600 without mutating caller.",
+    "Four permissions:false/unknown controls verify omittedmode/originalreference versus implicitmode600/copy.",
+    "Two explicitmode640 controls preserve original options and skip query.",
+    "Two query-error/cancellation controls each cover EACCES and null/false/0/empty/NaN midquery aborts plus all five falsey preaborts with no acquisition.",
+    "Eighteen actual backend controls cover missingfinal/mountedfinal, missingparent/mountedparent, readonlyview/readonlymount, null device/devicechild/device directory, under ifMissing/exclusive.",
+    "Two actual Shell mode controls preserve caller create:true preflight count1 and rootstatcount1 for ifMissing; exclusive skips callercreatingpreflight and has rootstatcount0; exact xbytes and mode600.",
+    "Six actual Shell device diagnostic controls retain exact source/stdout/stderr/exitcode for normal and noclobber /dev, /dev/null and devicechild."
+  ],
+  "intentionalPrivateDiagnosticChange": "Direct private creationFileSystem /dev creating open formerly failed EISDIR in modehint creatingquery; generic hint now lets authoritative DeviceFS.open report ENOTSUP. Actual Shell six maintained device diagnostics unchanged (including Permissiondenied normal/dev and exclusiveunsupported/dev).",
+  "setupFailuresPreserved": [
+    "First maintainedred used context.mock on absent MemoryFS.capabilitiesFor; two controls setupfailed. Corrected faithful Proxy adds optional pathquery.",
+    "Second red had unregistered printf. Corrected Shell plugin uses existing agentCommands. Qualified red has six validated assertions, no setupfailures."
+  ],
+  "unresolvedExclusiveFinalLink": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-exclusive-final-link-observation.json",
+    "bytes": 691,
+    "sha256": "36d1cdf5fc47aa9dbb83a6586af5c033a27b4f850c7f2ef2d052bd97d9c63100",
+    "finding": "Both generic and creating capabilityqueries return ELOOP for finalselfsymlink; actualexclusivebackendopen returns EEXIST. Modeview and actual incoming Shellnoclobber still ELOOP. Predates this profile change and includes earlier Runtime.redirect genericquery; not coveredby successful parity claims.",
+    "nativeQualification": {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-exclusive-final-link-native.json",
+      "bytes": 590,
+      "sha256": "594c9a2ba7dbfabc1740f0348e7081765fe5b2464dffd609869cfceb0efbd943",
+      "profile": "Apple Bash3.2.57 arm64 Darwin25",
+      "nativeStatus": 1,
+      "nativeDiagnostic": "loop: cannot overwrite existing file",
+      "nativeSymlinkUnchanged": true,
+      "limitation": "Does not establish GNU/Linux profile; validates host Apple Bash discrepancy only."
+    }
+  },
+  "limits": [
+    "Cohorts overlap; do not sum.",
+    "No full current runtime gate, nativecurl/service interoperability or full Bash parity claimed.",
+    "Narrow source/test and complete maintained typechecks passed; no rootbuild/lint, remote-main or publication clearance claimed."
+  ],
+  "narrowSourceAndTestsTypes": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-source-types.log",
+    "bytes": 136,
+    "sha256": "7e6d6ee5cc199525fdb2d3a638bf39ae4b0d70b5aa6b8ade4e07593b1f6911ed",
+    "command": "node scripts/historical-type-models.mjs --noEmit",
+    "cwd": "packages/safe-bash",
+    "exitCode": 0
+  },
+  "finalCompleteTypes": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/creating-open-complete-types.log",
+    "bytes": 2203,
+    "sha256": "93fa493acf2891b3bbc55bc7879e393771e3c21da692650836326d62aeccbf6b",
+    "command": "npm run typecheck",
+    "cwd": "packages/safe-bash",
+    "exitCode": 0,
+    "sourceAndTests": 0,
+    "historicalConsumer": 0,
+    "sourceConsumerGroups": 6,
+    "artifactConsumerGroups": 26,
+    "expectedNegativeCases": 3,
+    "builds": 0,
+    "runtimeExecutions": 0
+  },
+  "resolvedSourceBindings": [
+    {
+      "path": "packages/safe-bash/src/shell/umask.ts",
+      "bytes": 4514,
+      "sha256": "605db1113cd079c916e190e568659d4b6b3da71c2b8c68e541c5b63c929b7bee"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/umask.test.ts",
+      "bytes": 30507,
+      "sha256": "49d993ac4e0aafb9d20f0e0823a8a98f0ecc46ba8d4eb84d7c2d554208ab1fa5"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/glob-budget.cases.ts",
+      "bytes": 4270,
+      "sha256": "49146c0943d54481fa5d3cf382aeb97ecee1a5184e024569802f861f46573ee4"
+    }
+  ],
+  "integratedGate": {
+    "baseline": "5ebc7d104f024902828e6a453adbbb07bfabc164",
+    "normalRootBuild": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-root-build.log",
+        "bytes": 24759,
+        "sha256": "3c03944ad4d8876ac4b3d9a322f32c078cbb6efbe4d58a5bc88a42b143608ea7"
+      }
+    },
+    "guardedRootLint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "subjects": 16428,
+      "errors": 0,
+      "warnings": 0,
+      "types": 0,
+      "workflows": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-stable-root-lint.log",
+        "bytes": 1748,
+        "sha256": "43092a3032f4b993a33268c5c550b8b4b03cfe7e2e34d6e5b3fa2fcf0ef41774"
+      }
+    },
+    "limits": "Frozen owned candidate passed before rebase over eight later incoming commits. Full gate does not qualify later unrelated source. Rebased focused98controls/package lint pass; incoming code and containing publication require CI."
+  },
+  "publicShellQualification": {
+    "SDKAndRootShell": "Exact native ordered Alpha/Middle/Beta paragraphs; root Shell registers createPandocCommand from public @poe-code/pandoc API",
+    "stdout": "Alpha\n\nMiddle\n\nBeta\n",
+    "exitCode": 0,
+    "stderr": "",
+    "glob": "Three backing entry stats plus one parent; device view owns /dev; created mode0600under077",
+    "deviceDiagnostics": [
+      {
+        "source": ": >/dev",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev: Permission denied\n"
+      },
+      {
+        "source": "set -C; : >/dev",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: ENOTSUP: exclusive creation is not supported, write '/dev'\n"
+      },
+      {
+        "source": ": >/dev/null",
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "source": "set -C; : >/dev/null",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null: cannot overwrite existing file\n"
+      },
+      {
+        "source": ": >/dev/null/child",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null/child: Not a directory\n"
+      },
+      {
+        "source": "set -C; : >/dev/null/child",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null/child: Not a directory\n"
+      }
+    ],
+    "screenshot": "Inspected readable terminal screenshot; final process success",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public.mjs",
+        "bytes": 2065,
+        "sha256": "a5f256424f3ae12e1dbbeb10107bc9c48300fd6aaea1c45c82be6c33ae4d6cfd"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public.log",
+        "bytes": 907,
+        "sha256": "7719d69c3620620c7683797697ff336501b29998c3c6bb7d57aa2cd0e272b7df"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-screenshot.log",
+        "bytes": 62,
+        "sha256": "1e65666c6535820f925c3436faf10932fcb8f77df39359d29f776ba9c6dc8100"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-visible.png",
+        "bytes": 359545,
+        "sha256": "73703d0ebf68a792ef96001f447fc5b79451c0e0d2de6bacf079e3b8af1d456c"
+      }
+    ]
+  },
+  "incomingGlobReconciliation": {
+    "incomingCommit": "522a434d210a86a2dccd07249a27c0a023bae652",
+    "red": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-incoming-glob-red.log",
+        "bytes": 13864,
+        "sha256": "66d288a76226de0f7c3e7ec76f34630960a4824b5929b619d15ca98a74bf8564"
+      }
+    },
+    "contract": "Incoming expectation counted two parent stats for pre-fix create-query behavior. Fixed generic mode query leaves only acquisition parent stat. Exact entry/order/oneparent contract retained, with additional0644createdmode assertion; no source/incomingchanges reverted."
+  },
+  "rebasedGreen": {
+    "tests": 98,
+    "pass": 98,
+    "fail": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/creating-open-pandoc-rebased-green.log",
+      "bytes": 21467,
+      "sha256": "2ee57f071ff3e86531a70d333bb64d7a67ebdbeebd44a05ecb403dce0837b33a"
+    }
+  },
+  "exclusiveFinalLinkNativeObservation": {
+    "scope": "Separate unresolved noclobber final-symlink oracle; no maintained source/test change.",
+    "hostProfile": "Apple system Bash on Darwin",
+    "binary": {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "version": "GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)\nCopyright (C) 2007 Free Software Foundation, Inc.\n"
+    },
+    "source": "set -C; : >loop",
+    "status": 1,
+    "stdoutHex": "",
+    "stderr": "/bin/bash: loop: cannot overwrite existing file\n",
+    "finalSymlinkTarget": "loop"
+  },
+  "delivery": {
+    "implementationCommit": "285ff9919105aeca2ab06ff509a3e700da87dfa6",
+    "remoteMainVerified": true,
+    "publication": "unverified"
+  }
+}

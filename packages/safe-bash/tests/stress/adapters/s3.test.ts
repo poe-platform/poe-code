@@ -8,7 +8,8 @@ const bucket = "independent-stress";
 
 test("s3: 1203 files paginate without omissions across a subtree rename and recursive delete", async () => {
   const mock = new MockS3Client({ buckets: [bucket], pageSize: 19 });
-  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", pageSize: 23, allowNonAtomicRename: true });
+  const fs = new S3FileSystem({ transport: mock, bucket, prefix: "scope", pageSize: 23, allowNonAtomicRename: true,
+    removalLimits: { maxRequests: 1500, maxListEntries: 1500, maxDeleteObjects: 1500 } });
   await fs.mkdir("/tree");
   const names = Array.from({ length: 1203 }, (_, index) => `file-${String(index).padStart(4, "0")}`);
   for (const name of names) await mock.putObject({ Bucket: bucket, Key: `scope/tree/${name}`, Body: binary.slice(0, 3) });
@@ -213,11 +214,12 @@ test("s3: read-only capability rejects every mutating required operation", async
   assert.deepEqual(await fs.readFile("/file"), binary);
 });
 
-test("s3: false body lengths reject exact-byte corruption", async () => {
+for (const streamingRead of [true, false]) test(`s3: false body lengths reject exact-byte corruption streaming=${streamingRead}`, async () => {
   const mock = new MockS3Client({ buckets: [bucket] });
   await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
-  const transport = createS3Transport(mock, mock.capabilities);
+  const transport = createS3Transport(mock, { ...mock.capabilities, streamingRead });
   transport.getObject = async (input, options) => ({ ...await mock.getObject(input, options), ContentLength: binary.length + 1 });
+  transport.getObjectStream = async (input, options) => ({ ...await mock.getObjectStream(input, options), ContentLength: binary.length + 1 });
   const fs = new S3FileSystem({ transport, bucket });
   await assert.rejects(fs.readFile("/file"), errno("EIO"));
 });

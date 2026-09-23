@@ -7,7 +7,7 @@ import { codec, CodecReader } from "./codec.js";
 import { boundedCodec, type BoundedCodecOptions } from "./bounded-codec.js";
 
 export const chunkBytes = 64 * 1024;
-export const stagingLimit = 256 * 1024 * 1024;
+export const stagingLimit = Infinity;
 
 async function* passthroughStream(reader: InstanceType<typeof CodecReader>, options: BoundedCodecOptions, signal: AbortSignal): ByteSource {
   const header = new Uint8Array(options.format === "xz" ? 13 : 4);
@@ -64,7 +64,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
 }
 
 export interface CompressionCommandOptions {
-  /** Cumulative decoded bytes per invocation, including discarded and passthrough bytes; defaults to 256 MiB. */
+  /** Optional cumulative decoded bytes per invocation, including discarded and passthrough bytes. */
   readonly maxDecodedBytes?: number;
 }
 
@@ -72,7 +72,7 @@ export class DecodedBudget {
   #size = 0;
   exceeded = false;
 
-  constructor(readonly limit: number) {}
+  constructor(readonly limit = Infinity) {}
 
   admit(bytes: number): void {
     if (bytes > this.limit - this.#size) {

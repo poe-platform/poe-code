@@ -3,12 +3,12 @@ import { readBytes, writeBytes, type CommandDefinition } from "../../../contract
 import { define, diagnostic, output } from "../../internal.js";
 import { planOperands, unchangedSource, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
-import { chunkBytes, DecodedBudget, stagingLimit, transform, type CompressionCommandOptions } from "./stream.js";
+import { chunkBytes, DecodedBudget, transform, type CompressionCommandOptions } from "./stream.js";
 import { CompressedDataError } from "./errors.js";
 
 export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
-  const maxDecodedBytes = config.maxDecodedBytes ?? stagingLimit;
-  if (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0) {
+  const maxDecodedBytes = config.maxDecodedBytes;
+  if (maxDecodedBytes !== undefined && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer");
   }
   return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {

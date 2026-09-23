@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { collectBytes } from "../../../src/contracts/index.js";
 import { after, before, test } from "node:test";
 import { gzipSync, deflateSync } from "node:zlib";
 import { execFile } from "node:child_process";
@@ -11,6 +12,61 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { run, server, type TestServer } from "./helpers.js";
 
 let host: TestServer;
+test("curl multipart transfer encoders preserve native headers and wire bytes", async () => {
+  const payload = Buffer.concat([Buffer.alloc(80, 65), Buffer.from([32, 9, 13, 10, 0, 255, 61, 10]), Buffer.from("end ")]);
+  for (const encoder of ["binary", "8bit", "7bit", "base64", "quoted-printable"]) {
+    const input = encoder === "7bit" ? Buffer.from("ASCII\0\r\n") : payload;
+    const expected = encoder === "base64"
+      ? Buffer.from(input.toString("base64").slice(0, 76) + "\r\n" + input.toString("base64").slice(76))
+      : encoder === "quoted-printable"
+        ? Buffer.from("A".repeat(75) + "=\r\nAAAAA =09\r\n=00=FF=3D=0Aend=20") : input;
+    for (const option of ["--form", "-F"]) {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work");
+      await fs.writeFile("/work/input", input);
+      let body = Buffer.alloc(0);
+      const actual = await run([option, `field=@input;encoder=${encoder}`, "http://127.0.0.1/"], { fs,
+        options: { transport: async request => {
+          body = Buffer.from(await collectBytes(request.body!, { signal: request.signal, maxBytes: 100000 }));
+          return { status: 200, statusText: "OK", headers: [], body: (async function* () {})(), async dispose() {} };
+        } } });
+      assert.equal(actual.exitCode, 0, actual.stderr.toString());
+      const split = body.indexOf("\r\n\r\n");
+      assert.ok(body.subarray(0, split).toString().includes(`Content-Transfer-Encoding: ${encoder}`));
+      assert.deepEqual(body.subarray(split + 4, body.lastIndexOf("\r\n--")), expected);
+      assert.deepEqual(Buffer.from(await fs.readFile("/work/input")), input);
+    }
+  }
+});
+
+test("curl rejects unknown encoders and non-ASCII 7bit data without claiming success", async () => {
+  const invalid = await run(["-F", "field=value;encoder=unknown", "http://127.0.0.1/"]);
+  assert.equal(invalid.exitCode, 2);
+  const actual = await run(["-F", "field=@-;encoder=7bit", "http://127.0.0.1/"], { stdin: Buffer.from([255]),
+    options: { transport: async request => {
+      await collectBytes(request.body!, { signal: request.signal, maxBytes: 100000 });
+      throw new Error("invalid 7bit must fail before completing body");
+    } } });
+  assert.equal(actual.exitCode, 26, actual.stderr.toString());
+});
+
+test("curl multipart encoding spans stdin chunks and keeps form-string attributes literal", async () => {
+  for (const encoder of ["base64", "quoted-printable"]) {
+    const input = Buffer.from("first \r\nsecond=\xff", "latin1");
+    const expected = encoder === "base64" ? input.toString("base64") : "first=20\r\nsecond=3D=FF";
+    let body = "";
+    const actual = await run(["-F", `field=@-;encoder=${encoder}`, "--form-string", "literal=value;encoder=base64", "http://127.0.0.1/"], {
+      stdin: (async function* () { for (const byte of input) yield Uint8Array.of(byte); })(),
+      options: { transport: async request => {
+        body = Buffer.from(await collectBytes(request.body!, { signal: request.signal, maxBytes: 100000 })).toString();
+        return { status: 200, statusText: "OK", headers: [], body: (async function* () {})(), async dispose() {} };
+      } },
+    });
+    assert.equal(actual.exitCode, 0, actual.stderr.toString());
+    assert.ok(body.includes("\r\n\r\n" + expected + "\r\n--"), body);
+    assert.ok(body.includes('name="literal"\r\n\r\nvalue;encoder=base64\r\n--'), body);
+  }
+});
 let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });

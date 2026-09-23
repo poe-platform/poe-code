@@ -8,6 +8,7 @@ import { encode } from "./shared.js";
 import { CurlError, type NetworkLimits } from "./types.js";
 
 interface Part {
+  readonly encoder?: string;
   readonly bytes?: Uint8Array;
   readonly separator?: boolean;
   readonly file?: string;
@@ -92,6 +93,7 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   let value = argument.value.slice(equals + 1);
   let type: string | undefined;
   let filename: string | undefined;
+  let encoder: string | undefined;
   let file: string | undefined;
   if (argument.kind === "form") {
     const input = value;
@@ -113,6 +115,12 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
         const attribute = formWord(input, start + 9, false);
         filename = attribute.value;
         end = attribute.end;
+      } else if (input.startsWith("encoder=", start)) {
+        const attribute = formWord(input, start + 8, false);
+        encoder = attribute.value.toLowerCase();
+        end = attribute.end;
+        if (!["binary", "8bit", "7bit", "base64", "quoted-printable"].includes(encoder))
+          throw new CurlError(2, "Unsupported multipart transfer encoder");
       } else throw new CurlError(2, "Unsupported multipart form attribute");
     }
   }
@@ -125,8 +133,60 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
       (file === undefined ? undefined : filenameContentType(file));
     preamble += `Content-Type: ${type ?? inferred ?? "application/octet-stream"}\r\n`;
   }
+  if (encoder) preamble += `Content-Transfer-Encoding: ${encoder}\r\n`;
   preamble += "\r\n";
-  return [{ bytes: encode(preamble) }, file !== undefined ? { file } : { bytes: encode(value) }, { bytes: encode("\r\n") }];
+  return [{ bytes: encode(preamble) }, file !== undefined ? { file, encoder } : { bytes: encode(value), encoder }, { bytes: encode("\r\n") }];
+}
+
+async function* transfer(source: ByteSource, encoder: string | undefined, signal: AbortSignal): ByteSource {
+  if (!encoder || encoder === "binary" || encoder === "8bit") { yield* source; return; }
+  let pending: number[] = [];
+  let column = 0;
+  let output = "";
+  const quotedByte = (byte: number, next: number | undefined, after: number | undefined) => {
+    if (byte === 13 && next === 10) { output += "\r\n"; column = 0; return 2; }
+    const trailing = next === undefined || (next === 13 && after === 10);
+    const literal = (byte >= 33 && byte <= 126 && byte !== 61) || ((byte === 32 || byte === 9) && !trailing);
+    const token = literal ? String.fromCharCode(byte) : `=${byte.toString(16).toUpperCase().padStart(2, "0")}`;
+    if (column + token.length > 75) { output += "=\r\n"; column = 0; }
+    output += token; column += token.length;
+    return 1;
+  };
+  for await (const raw of source) {
+    for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
+      signal.throwIfAborted();
+      const chunk = raw.subarray(offset, offset + 16 * 1024);
+      if (encoder === "7bit") {
+        if (chunk.some(byte => byte > 127)) throw new CurlError(26, "Non-ASCII byte in 7bit multipart data");
+        yield chunk;
+        continue;
+      }
+      pending.push(...chunk);
+      let consumed = 0;
+      if (encoder === "base64") {
+        while (pending.length - consumed >= 57) {
+          if (column) output += "\r\n";
+          output += Buffer.from(pending.slice(consumed, consumed + 57)).toString("base64");
+          consumed += 57; column = 76;
+        }
+      } else {
+        while (pending.length - consumed >= 3)
+          consumed += quotedByte(pending[consumed]!, pending[consumed + 1], pending[consumed + 2]);
+      }
+      pending = pending.slice(consumed);
+      if (output) { yield encode(output); output = ""; }
+      await yieldTurn(signal);
+    }
+  }
+  signal.throwIfAborted();
+  if (encoder === "base64" && pending.length) {
+    if (column) output += "\r\n";
+    output += Buffer.from(pending).toString("base64");
+  } else if (encoder === "quoted-printable") {
+    for (let i = 0; i < pending.length;)
+      i += quotedByte(pending[i]!, pending[i + 1], pending[i + 2]);
+  }
+  if (output) yield encode(output);
 }
 
 export function createBody(context: CommandContext, args: CurlArguments, limits: NetworkLimits): RequestBody | undefined {
@@ -188,7 +248,7 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
         for (const part of parts) {
           if (part.separator && count === 0) continue;
           let prefix = part.prefix;
-          for await (const raw of source(part, signal)) {
+          for await (const raw of transfer(source(part, signal), part.encoder, signal)) {
             if (++chunks % 256 === 0) await yieldTurn(signal);
             for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
               signal.throwIfAborted();

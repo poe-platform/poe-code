@@ -26,6 +26,7 @@
     "src/rendering/print/NOTICE.md",
     "src/formulas/functions/byte-case-NOTICE.md",
     "src/formulas/functions/byte-case.ts",
+    "src/formulas/functions/byte-trim.ts",
     "src/formulas/functions/byte-case-properties.ts",
     "src/formulas/functions/captured-acos-NOTICE.md",
     "src/formulas/functions/captured-acos.ts",

@@ -5,6 +5,7 @@ import { SsconvertError } from "../../contracts.js";
 import { byteTextLength, readByteTextCharacter, sliceByteText } from "../../encoding/byte-text.js";
 import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
+import { trimByteText } from "./byte-trim.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
 import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
@@ -291,11 +292,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     }
     return boundedText(result, host);
   },
-  TRIM: (args, host) => {
-    let result = "", space = false;
-    for (const c of textArg(args, 0, host)) { host.tick(); if (c === " ") { space = !!result; } else { if (space) result += " "; result += c; space = false; } }
-    return str(result);
-  },
+  TRIM: (args, host) => byteStringValue(trimByteText(byteTextArg(args, 0, host), host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   REPT: (args, host) => {
     const source = textArg(args, 0, host), count = numberArg(args, 1, host), length = byteLength(source);
     if (count < 0 || length && count >= 2147483647 / length) return error("#VALUE!");

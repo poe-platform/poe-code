@@ -5,14 +5,20 @@ import { parse, helpText, type Arguments } from "./arguments.js";
 import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
 import { settings, type DuCommandsOptions } from "./options.js";
+import { excluded } from "./exclude.js";
 
-interface Amount { readonly bytes: number; readonly complete: boolean }
+interface Amount { readonly bytes: number; readonly complete: boolean; readonly directory?: boolean }
 
 class Walker {
   private readonly seen = new Map<object | symbol, Map<number, Set<number>>>();
+  private readonly ancestors: FileStat[] = [];
+  private readonly exclusions: string[];
+  private root: FileStat | undefined;
   failed = false;
 
-  constructor(private readonly budget: Budget, private readonly args: Arguments) {}
+  constructor(private readonly budget: Budget, private readonly args: Arguments) {
+    this.exclusions = [...args.exclusions];
+  }
 
   private duplicate(stat: FileStat): boolean {
     if (this.args.countLinks || stat.type === "directory") return false;
@@ -46,8 +52,9 @@ class Walker {
 
   private async report(amount: Amount, display: string): Promise<void> {
     if (!amount.complete) return;
+    if (this.args.threshold >= 0 ? amount.bytes < this.args.threshold : amount.bytes > -this.args.threshold) return;
     this.budget.step(display.length + 1);
-    await this.budget.emit(this.budget.context.stdout, `${formatSize(amount.bytes, this.args.format)}\t${display}${this.args.nullOutput ? "\0" : "\n"}`);
+    await this.budget.emit(this.budget.context.stdout, `${this.args.inodes ? amount.bytes : formatSize(amount.bytes, this.args.format)}\t${display}${this.args.nullOutput ? "\0" : "\n"}`);
   }
 
   private async children(path: string, display: string): Promise<DirectoryEntry[] | undefined> {
@@ -83,19 +90,40 @@ class Walker {
       await this.failure(new PublicDiagnostic("invalid zero-length file name"));
       return { bytes: 0, complete: false };
     }
+    const name = display.slice(display.lastIndexOf("/") + 1);
+    for (const pattern of this.exclusions) {
+      if (excluded(pattern, display, this.budget) || excluded(pattern, name, this.budget)) return { bytes: 0, complete: true };
+    }
     let stat: FileStat;
     try {
       stat = await this.budget.fs(() => context.fs.lstat(path, { signal: context.signal }));
+      const following = stat.type === "symlink" && (this.args.dereference === "all" || this.args.dereference === "args" && depth === 0);
+      if (following) {
+        stat = await this.budget.fs(() => context.fs.stat(path, { signal: context.signal }));
+      }
       if (!stat || !["file", "directory", "symlink", "character"].includes(stat.type)) throw new PublicDiagnostic("invalid entry type");
+      if (depth === 0) this.root = stat;
+      if (this.args.oneFileSystem && stat.type === "directory") {
+        const root = this.root!;
+        const validScope = (scope: FileStat["identityScope"]) => typeof scope === "symbol" || typeof scope === "object" && scope !== null;
+        if (stat.dev === undefined || root.dev === undefined || !Number.isSafeInteger(stat.dev) || stat.dev < 0 || !Number.isSafeInteger(root.dev) || root.dev < 0 || !validScope(stat.identityScope) || !validScope(root.identityScope)) throw new PublicDiagnostic("device identity unknown; cannot restrict traversal to one filesystem");
+        if (depth > 0 && (stat.identityScope !== root.identityScope || stat.dev !== root.dev)) return { bytes: 0, complete: true };
+      }
+      if (following && stat.type === "directory" && this.ancestors.some(parent => {
+        this.budget.step();
+        return (typeof stat.identityScope === "symbol" || typeof stat.identityScope === "object" && stat.identityScope !== null) && stat.identityScope === parent.identityScope && stat.dev !== undefined && Number.isSafeInteger(stat.dev) && stat.dev >= 0 && stat.dev === parent.dev && stat.ino !== undefined && Number.isSafeInteger(stat.ino) && stat.ino >= 0 && stat.ino === parent.ino;
+      })) throw new PublicDiagnostic("directory cycle detected");
     } catch (error) { await this.failure(error, display); return { bytes: 0, complete: false }; }
-    const bytes = this.args.apparent ? stat.type === "directory" ? 0 : stat.size : stat.allocatedBytes;
+    const bytes = this.args.inodes ? 1 : this.args.apparent ? stat.type === "directory" ? 0 : stat.size : stat.allocatedBytes;
     let amount: Amount;
     if (bytes === undefined || !Number.isSafeInteger(bytes) || bytes < 0) {
       await this.failure(new PublicDiagnostic(`${this.args.apparent ? "apparent size" : "allocated bytes"} ${bytes === undefined ? "unknown" : "invalid"}; total suppressed`), display);
       amount = { bytes: 0, complete: false };
     } else amount = { bytes, complete: true };
     if (this.duplicate(stat)) return { bytes: 0, complete: amount.complete };
+    let own = amount;
     if (stat.type === "directory") {
+      this.ancestors.push(stat);
       const entries = await this.children(path, display);
       if (entries === undefined) amount = { ...amount, complete: false };
       else for (const entry of entries) {
@@ -104,16 +132,31 @@ class Walker {
         this.budget.check(path.length + entry.name.length + 1, limits.maxPathBytes, "path/name");
         this.budget.check(display.length + suffix.length + entry.name.length, limits.maxPathBytes, "path/name");
         const childPath = `${path.endsWith("/") ? path : path + "/"}${entry.name}`;
-        amount = await this.add(amount, await this.walk(childPath, display + suffix + entry.name, depth + 1), display);
+        const child = await this.walk(childPath, display + suffix + entry.name, depth + 1);
+        amount = await this.add(amount, child, display);
+        if (this.args.separate && !child.directory) own = await this.add(own, child, display);
       }
+      this.ancestors.pop();
+      if (!amount.complete) own = { ...own, complete: false };
     }
-    if (depth === 0 || (depth <= this.args.depth && (stat.type === "directory" || this.args.all))) await this.report(amount, display);
-    return amount;
+    if (depth === 0 || (depth <= this.args.depth && (stat.type === "directory" || this.args.all))) await this.report(this.args.separate ? own : amount, display);
+    return { ...amount, directory: stat.type === "directory" };
   }
 
   async run(): Promise<void> {
     let total: Amount = { bytes: 0, complete: true };
     const { context } = this.budget;
+    for (const file of this.args.excludeFiles) {
+      const path = pathOf(context, file);
+      this.budget.text(path);
+      const bytes = await this.budget.fs(() => context.fs.readFile(path, { signal: context.signal, maxBytes: this.budget.limits.maxArgumentBytes }));
+      this.budget.check(bytes.length, this.budget.limits.maxArgumentBytes, "exclusion file bytes");
+      const text = new TextDecoder().decode(bytes);
+      this.budget.step(text.length + 1);
+      const patterns = text.split("\n");
+      if (patterns.at(-1) === "") patterns.pop();
+      for (const pattern of patterns) { this.budget.text(pattern); this.exclusions.push(pattern); }
+    }
     this.budget.text(context.cwd);
     const paths = this.args.operands.map(operand => {
       const path = pathOf(context, operand === "" ? "." : operand);

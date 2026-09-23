@@ -25,6 +25,9 @@ quota, billing, heap usage, shared-extent deduplication, or a storage snapshot.
 own contribution is **zero by logical-accounting policy**, not a storage claim.
 `-b` additionally selects byte reporting. Memory, S3, and WebDAV therefore support
 explicit apparent-size reporting while default allocation remains unknown.
+`--inodes` counts one per entry, including directories, using the same hardlink
+deduplication policy. It needs neither allocation nor logical-size metadata and
+prints counts independently of byte-formatting options.
 Real allocation depends on its existing Darwin/Linux metadata contract; the
 author's actual native execution is Darwin only, not a Linux qualification.
 
@@ -44,19 +47,20 @@ totals are not added together solely to enforce an unused grand-total range.
 
 ## Traversal, identity and output
 
-Only command-issued `lstat` and `readdir` operations are used. There are no content
-reads, stdin reads, `readlink`, comparison queries, subprocesses, copy-up requests,
-or mutation calls. Final symlinks are not explicitly followed; intermediate links
+Default traversal uses `lstat` and `readdir`; explicit dereferencing adds `stat`,
+and exclusion files add bounded `readFile` calls. There are no implicit stdin reads,
+subprocesses, copy-up requests, or mutation calls. Final symlinks are followed only
+when explicitly requested; intermediate links
 and trailing slash resolution remain the adapter's path-resolution semantics.
 For example, rooted Real and Memory resolve a final `link/` as a directory. No
-follow options or `-x` are implemented. Hidden entries are included.
+additional containment guarantee is made. Hidden entries are included.
 
 Non-directory identity is deduplicated invocation-wide only for a non-null object
 or symbol `identityScope` plus nonnegative safe-integer `dev` and `ino`. Tokens
 compare by `===`, never descriptions/serialization. Missing/invalid identity is
 counted independently; no `nlink` or capabilities inference. `--count-links`
 disables deduplication. This is not a claim of complete remote hardlink detection.
-Directory namespaces are **never pruned by backing identity**, because mounts or
+Directory namespaces are not globally pruned by backing identity, because mounts or
 overlays can supply different children. Repeated directory operands can therefore
 produce additional zero rows after non-directory deduplication, unlike native GNU.
 Depth/entry/work bounds stop malformed cyclic views even when identity is unknown.
@@ -80,6 +84,9 @@ provider messages over 4096 UTF-16 code units are explicitly marked truncated.
 Supported short/long pairs: `-a/--all`, `-s/--summarize`, `-c/--total`,
 `-h/--human-readable`, `-B/--block-size`, `-b/--bytes`, `-d/--max-depth`,
 `-l/--count-links`, `-0/--null`; also `-k`, `-m`, `--apparent-size`, `--help`.
+Also supported: `--inodes`, `--exclude=PATTERN`, `-X/--exclude-from`,
+`-D/-H/--dereference-args`, `-L/--dereference`, `-P/--no-dereference`,
+`-S/--separate-dirs`, `-t/--threshold`, and `-x/--one-file-system`.
 Short clusters, attached/separate required arguments and long `=value` work.
 Unknown options, abbreviations, unexpected values and NUL arguments fail before
 any filesystem operation. Options may appear after operands until `--`, including
@@ -92,6 +99,18 @@ nonnegative **decimal safe integer** and controls reporting, not accounting or
 traversal. `-s` is reporting depth zero; reject `-as` and `-s` with positive depth.
 Combining `-s` and `-d0` succeeds without GNU's redundant-option warning.
 `-c` reports a complete grand total after all operands.
+
+Exclusions match display paths or basenames using `*`, `?`, bracket sets/ranges,
+and backslash escapes, and prune matching entries before metadata lookup.
+Exclusion files contain newline-separated patterns, read through the VFS with
+bounded bytes and cancellation. Symlinks are counted themselves by default;
+`-D`/`-H` follow operand links, `-L` follows all, and `-P` restores the default.
+Known ancestor directory identities detect cycles; traversal bounds still apply
+when identities are unknown. `-x` skips foreign-device directories and fails if
+scoped device identity is unavailable. `-S` excludes descendant directory usage
+from directory rows while the grand total still includes it. Thresholds filter
+rows without pruning accounting: positive sizes select at least that amount,
+negative sizes select at most their absolute amount; suffixes use SIZE units.
 
 Selected formatting is last-option-wins: `-h` uses human base 1024, `-k` uses 1024
 byte blocks, `-m` uses 1048576, `-b` uses one byte, and `-B` selects SIZE.

@@ -5,6 +5,85 @@ import { CommandRegistry, FsError, type FileStat } from "../../../src/contracts/
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { metadata, run, seed, shellRun, trace, wrapped } from "./helpers.js";
 
+test("inode counts include directories and deduplicate hardlinks without allocation metadata", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs); await fs.link!("/tree/a", "/tree/alias");
+  const result = await shellRun(fs, ["--inodes", "-ac", "tree"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "1\ttree/a\n1\ttree/sub/b\n2\ttree/sub\n4\ttree\n4\ttotal\n");
+  assert.equal((await shellRun(fs, ["--inodes", "-sl", "tree"])).stdout, "5\ttree\n");
+});
+
+test("exclusions prune files, directories and explicit operands before metadata lookup", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  await fs.writeFile("/tree/b.skip", new Uint8Array(10));
+  for (const args of [["-b", "--exclude=*.skip", "tree"], ["-b", "--exclude", "*.skip", "tree"]]) {
+    const result = await shellRun(fs, args);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n");
+  }
+  const checked = trace(fs);
+  assert.equal((await shellRun(checked.fs, ["-bc", "--exclude=sub", "--exclude=a", "--exclude=*.skip", "tree"])).stdout, "0\ttree\n0\ttotal\n");
+  assert.ok(checked.calls.every(call => call.path === "/tree"));
+  assert.equal((await shellRun(fs, ["-b", "--exclude=missing", "missing"])).exitCode, 0);
+});
+
+test("exclusion files, separate directories and signed thresholds", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  await fs.writeFile("/exclude", new TextEncoder().encode("a\n"));
+  assert.equal((await shellRun(fs, ["-b", "-X", "exclude", "tree"])).stdout, "5\ttree/sub\n5\ttree\n");
+  assert.equal((await shellRun(fs, ["-bSc", "tree"])).stdout, "5\ttree/sub\n3\ttree\n8\ttotal\n");
+  assert.equal((await shellRun(fs, ["-ba", "-t5", "tree"])).stdout, "5\ttree/sub/b\n5\ttree/sub\n8\ttree\n");
+  assert.equal((await shellRun(fs, ["-ba", "--threshold=-5", "tree"])).stdout, "3\ttree/a\n5\ttree/sub/b\n5\ttree/sub\n");
+});
+
+test("exclusion wildcards preserve escapes and bracket ranges within the work budget", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  for (const name of ["a.skip", "b.skip", "c.keep", "*.literal", "x.literal"]) await fs.writeFile(`/dir/${name}`, new Uint8Array(1));
+  const result = await shellRun(fs, ["-bs", "--exclude=[ab].skip", "--exclude=\\*.literal", "dir"]);
+  assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "2\tdir\n");
+  assert.equal((await shellRun(fs, ["-bs", "--exclude=dir/?.skip", "dir"])).stdout, "3\tdir\n");
+  assert.equal((await shellRun(fs, ["-bs", "--exclude=[!c]*", "dir"])).stdout, "");
+  const bounded = await shellRun(fs, ["-b", "--exclude=*z*z*z", "dir"], {}, { limits: { maxSteps: 80 } });
+  assert.equal(bounded.exitCode, 1); assert.match(bounded.stderr, /work.*limit/u);
+});
+
+test("dereference aliases follow operand or descendant links according to the selected mode", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  await fs.symlink!("tree", "/link"); await fs.symlink!("a", "/tree/sym");
+  for (const flag of ["-D", "-H", "--dereference-args"]) {
+    assert.equal((await shellRun(fs, ["-bs", flag, "link"])).stdout, "9\tlink\n");
+  }
+  assert.equal((await shellRun(fs, ["-bsL", "link"])).stdout, "8\tlink\n");
+  assert.equal((await shellRun(fs, ["-bsLP", "link"])).stdout, "4\tlink\n");
+  await fs.symlink!("..", "/tree/sub/cycle");
+  const cycle = await shellRun(fs, ["-bL", "tree"]);
+  assert.equal(cycle.exitCode, 1); assert.match(cycle.stderr, /cycle/u);
+});
+
+test("one filesystem skips foreign directories and refuses unknown device metadata", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  const foreign = metadata(fs, (stat, path) => ({ ...stat, dev: path.startsWith("/tree/sub") ? 2 : 1 }));
+  assert.equal((await shellRun(foreign, ["-bx", "tree"])).stdout, "3\ttree\n");
+  const unknown = metadata(fs, stat => {
+    const copy = { ...stat }; delete copy.dev; return copy;
+  });
+  const result = await shellRun(unknown, ["-bx", "tree"]);
+  assert.equal(result.exitCode, 1); assert.match(result.stderr, /device.*unknown/u);
+  for (const identityScope of [null, "untrusted"]) {
+    const invalid = metadata(fs, stat => ({ ...stat, identityScope }) as unknown as FileStat);
+    assert.equal((await shellRun(invalid, ["-bx", "tree"])).exitCode, 1);
+  }
+});
+
+test("bracket exclusions preserve escaped closing brackets and hyphens", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/dir");
+  for (const name of ["]", "-", "b"]) await fs.writeFile(`/dir/${name}`, new Uint8Array(1));
+  for (const pattern of ["[\\]]", "[a\\-c]"]) {
+    assert.equal((await shellRun(fs, ["-bs", `--exclude=${pattern}`, "dir"])).stdout, "2\tdir\n");
+  }
+});
+
 test("command definition and plugin collision preflight preserve replacement policy", () => {
   assert.equal(createDuCommand().name, "du");
   assert.deepEqual(createDuCommands().map(command => command.name), ["du"]);
@@ -113,7 +192,7 @@ test("literal names, --, stable sort, missing and empty operands preserve useful
 
 test("invalid arguments fail before filesystem calls; selected invalid environment falls back", async () => {
   const checked = trace(createMemoryFileSystem());
-  for (const args of [["tree", "--bad"], ["-B"], ["--block-size="], ["-B1.1K"], ["-B0"], ["-B9007199254740992"], ["-d-1"], ["-d1.5"], ["-s", "-d2"], ["-as"], ["--all=yes"], ["--dereference"], ["-x"], ["a\0b"]]) {
+  for (const args of [["tree", "--bad"], ["-B"], ["--block-size="], ["-B1.1K"], ["-B0"], ["-B9007199254740992"], ["-d-1"], ["-d1.5"], ["-s", "-d2"], ["-as"], ["--all=yes"], ["--exclude"], ["-X"], ["-t"], ["-tbad"], ["a\0b"]]) {
     const result = await run(args, {}, { fs: checked.fs });
     assert.equal(result.exitCode, 1, args.join(" "));
     assert.equal(result.stdout, "");

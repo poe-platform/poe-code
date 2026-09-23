@@ -6747,6 +6747,21 @@ export class Runtime {
   }
 
   private async valuePart(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false, split = false, hereDocument = false): Promise<ShellValue> {
+    if (part.kind === "variable" && part.indirect) {
+      const reference = await this.valuePart({ kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) }, state, io);
+      if (shellValueByteLength(reference) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+      const name = shellValueText(reference);
+      let valid = name.length > 0;
+      const positional = name.length > 0 && name.charCodeAt(0) >= 48 && name.charCodeAt(0) <= 57;
+      for (let index = 0; index < name.length; index++) {
+        this.signal.throwIfAborted();
+        const code = name.charCodeAt(index);
+        if (!(code >= 48 && code <= 57 && (positional || index > 0)
+          || !positional && (code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122))) { valid = false; break; }
+      }
+      if (!valid) throw new ExpansionFailure(`${name || part.name}: invalid variable name`, io.diagnosticLine ?? part.line);
+      return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
+    }
     part = await this.resolveArrayElement(part, state, io);
     if (part.kind === "variable" && part.transform) {
       const selector = getArraySelector(part);

@@ -36,7 +36,7 @@ for (const [script, expected] of cases) test(`GNU Bash 5.2.37 prefix-name expans
   } finally { await shell.dispose(); }
 });
 
-for (const source of ["${!value}", "${!*}", "${!@}", "${!ZZ@:-x}", "${!ZZ[0]}"]) test(`prefix listing does not enable separate indirect syntax: ${source}`, async () => {
+for (const source of ["${!*}", "${!@}", "${!ZZ@:-x}", "${!ZZ[0]}"]) test(`unsupported indirect syntax remains refused: ${source}`, async () => {
   const { shell } = setup();
   try { assert.equal((await shell.exec(`args "${source}"`)).exitCode, 2); }
   finally { await shell.dispose(); }

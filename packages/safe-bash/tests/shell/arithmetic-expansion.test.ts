@@ -151,12 +151,12 @@ test("arithmetic expansion retains nounset diagnostics", async () => {
   } finally { await shell.dispose(); }
 });
 
-test("arithmetic expansion retains the unsupported scalar indirection restriction", async () => {
+test("arithmetic expansion resolves scalar indirection", async () => {
   const { shell } = setup();
   try {
-    const result = await shell.exec('rows=3; name=rows; value=$((${!name}-1))');
-    assert.equal(result.exitCode, 2);
-    assert.equal(result.stdout, "");
-    assert.ok(result.stderr.includes("Unsupported indirect parameter expansion"), result.stderr);
+    const result = await shell.exec('rows=3; name=rows; value=$((${!name}-1)); say "$value"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "2\n");
+    assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });

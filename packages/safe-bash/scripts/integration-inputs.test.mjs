@@ -490,6 +490,7 @@ function assertSource7Discovery(files) {
     "tests/shell/shopt-matching.test.ts",
     "tests/shell/prefix-names.test.ts",
     "tests/shell/parameter-transforms.test.ts",
+    "tests/shell/indirect-parameter.test.ts",
     "tests/shell/select.test.ts",
     "tests/shell/arithmetic-for.test.ts",
     "tests/shell/mapfile.test.ts",

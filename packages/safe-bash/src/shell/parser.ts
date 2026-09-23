@@ -84,7 +84,7 @@ const defaultSyntax = captureShellSyntax({});
 export type WordPart =
   | { kind: "text"; value: string; quoted: boolean; byteValue?: ByteShellValue }
   | { kind: "arithmetic"; expression: ArithmeticProgram; source: string; line: number; quoted: boolean }
-  | { kind: "variable"; name: string; quoted: boolean; line?: number; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
+  | { kind: "variable"; name: string; quoted: boolean; line?: number; indirect?: boolean; specialParameter?: CapturedShellSyntax["specialParameters"][number]; prefixNames?: "*" | "@"; keys?: boolean; transform?: "Q" | "E"; length?: boolean; operator?: string; alternate?: Word; replacement?: Word; substring?: { offset: Word; length?: Word; source: string } }
   | { kind: "failed-substitution"; diagnostic: string; quoted: boolean }
   | { kind: "failed-parameter"; source: string; line: number; quoted: boolean }
   | { kind: "compound-substitution-eof"; line: number; quoted: boolean }
@@ -862,11 +862,13 @@ class Lexer {
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       let prefixNames: "*" | "@" | undefined;
+      let indirect = false;
       if (listing && this.source[this.position] !== "[") {
         const separator = this.source[this.position];
-        if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || (separator !== "*" && separator !== "@") || this.source[this.position + 1] !== "}") this.error("Unsupported indirect parameter expansion");
-        prefixNames = separator;
-        this.position++;
+        if ((separator === "*" || separator === "@") && this.source[this.position + 1] === "}") {
+          prefixNames = separator;
+          this.position++;
+        } else indirect = true;
       }
       let selector: ArraySelector | undefined;
       if (this.source[this.position] === "[") {
@@ -935,7 +937,7 @@ class Lexer {
         parts.push({ kind: "failed-parameter", source: this.source.slice(parameterStart, this.position), line, quoted });
       } else {
         this.position++;
-        const part: WordPart = { kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}), ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
+        const part: WordPart = { kind: "variable", name, quoted, line, ...(indirect ? { indirect: true } : {}), ...(specialParameter ? { specialParameter } : {}), ...(prefixNames ? { prefixNames } : {}), ...(transform ? { transform } : {}), ...(length ? { length } : {}), ...(operator ? { operator, alternate: alternate! } : {}), ...(replacement ? { replacement } : {}), ...(substring ? { substring } : {}) };
         if (listing && selector) part.keys = true;
         if (selector) setArraySelector(part, selector);
         parts.push(part);

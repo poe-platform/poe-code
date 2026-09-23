@@ -6,6 +6,7 @@ import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import { validateRequestHeader, type CurlArguments } from "./args.js";
 import { curlRequestTarget } from "./url.js";
+import { expandUrls, globFilename, type ExpandedUrl } from "./glob.js";
 import { parseCurlInput } from "./input.js";
 import { createBody, queryData } from "./body.js";
 import { decodeContent } from "./decode.js";
@@ -22,13 +23,12 @@ const writeOutDefaults: Readonly<Record<string, string>> = Object.freeze({
   exitcode: "0", errormsg: "", filename_effective: "", method: "GET", http_version: "",
 });
 
-function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL; user?: string } {
+function parseUrl(text: string, redirect = false): { url: URL; user?: string } {
   if (/[\s\x00-\x1f\x7f]/.test(text)) throw new CurlError(3, "Malformed URL");
   let url: URL;
   try { url = new URL(text); } catch { throw new CurlError(3, "Malformed URL; explicit HTTP(S) scheme required"); }
   if (!["http:", "https:"].includes(url.protocol)) throw new CurlError(1, "Only HTTP and HTTPS are supported");
   if (!url.hostname) throw new CurlError(3, "Malformed URL");
-  if (!globoff && /[{}\[\]]/.test(url.pathname + url.search)) throw new CurlError(2, "URL glob expansion is unsupported; use --globoff for a literal URL");
   let user: string | undefined;
   if (url.username || url.password) {
     if (redirect) throw new CurlError(3, "Redirect URLs may not supply credentials");
@@ -125,6 +125,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
     async execute(context) {
       context.signal.throwIfAborted();
       let args: CurlArguments;
+      let expanded: (ExpandedUrl & { destination?: { output?: string; remoteName: boolean } })[];
       try {
         if (context.args.reduce((size, value) => size + Buffer.byteLength(value), 0) > limits.maxBufferBytes) throw new CurlError(2, "Arguments exceed host buffer limit");
         args = await profile.parse(context, limits);
@@ -144,7 +145,12 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
         if (args.ignoreContentLength && transport.supportsIgnoreContentLength !== true) {
           throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
         }
-        for (const url of args.urls) parseUrl(url, args.globoff);
+        expanded = expandUrls(args.urls, args.globoff, limits);
+        for (const item of expanded) parseUrl(item.url);
+        if (!args.download) {
+          expanded = args.urls.flatMap((url, index) => expandUrls([url], args.globoff, limits)
+            .map(item => ({ ...item, destination: args.outputs?.[index] ?? { remoteName: false } })));
+        }
       } catch (error) {
         context.signal.throwIfAborted();
         const failure = error instanceof CurlError ? error : new CurlError(2, `Invalid ${profile.name} arguments`);
@@ -156,7 +162,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
       if (started === undefined) { started = performance.now(); executions.set(scope, started); }
       let exitCode = 0;
       const headerState = { dumped: false };
-      for (const [index, url] of args.urls.entries()) {
+      for (const item of expanded) {
         context.signal.throwIfAborted();
         if (performance.now() - started >= limits.maxTotalTimeMs) {
           const failure = new CurlError(28, "Operation timed out");
@@ -167,13 +173,13 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           return { exitCode: profile.status(failure.exitCode) };
         }
         const transferArgs = { ...args };
-        if (!args.download) {
-          const destination = args.outputs?.[index];
+        if (item.destination) {
           delete transferArgs.output;
-          transferArgs.remoteName = destination?.remoteName ?? false;
-          if (destination?.output !== undefined) transferArgs.output = destination.output;
+          transferArgs.remoteName = item.destination.remoteName;
+          if (item.destination.output !== undefined) transferArgs.output = item.destination.output;
         }
-        const code = await transfer(context, transferArgs, url, limits, transport, authorize, started, profile.status, headerState);
+        if (transferArgs.output !== undefined) transferArgs.output = globFilename(transferArgs.output, item.captures);
+        const code = await transfer(context, transferArgs, item.url, limits, transport, authorize, started, profile.status, headerState);
         exitCode = args.download ? code || exitCode : code;
       }
       return { exitCode };
@@ -247,7 +253,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
     }
     if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
-    const parsed = parseUrl(input, args.globoff);
+    const parsed = parseUrl(input);
     const initial = parsed.url;
     const rawTarget = curlRequestTarget(input);
     let initialTarget = rawTarget;
@@ -391,7 +397,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
               : location.startsWith("?") ? base + location
               : location.startsWith("#") || location === "" ? currentUrl + location
               : base.slice(0, base.lastIndexOf("/") + 1) + location;
-            target = parseUrl(resolved, true, true).url;
+            target = parseUrl(resolved, true).url;
             targetUrl = target.origin + curlRequestTarget(resolved);
           }
           catch (error) { if (error instanceof CurlError) throw error; throw new CurlError(3, "Malformed redirect URL"); }

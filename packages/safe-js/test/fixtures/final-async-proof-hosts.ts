@@ -1,3 +1,4 @@
+import { setImmediate as nextTurn } from "node:timers/promises";
 import {
   declareHostOperation,
   deepCopyFromSandbox,
@@ -181,7 +182,7 @@ export class LifecycleRig {
   async wait(label: string): Promise<void> {
     for (let turn = 0; turn < 8192; turn++) {
       if (this.gates.has(label)) return;
-      await Promise.resolve();
+      await nextTurn();
     }
     throw new Error("Finite notification budget exhausted: " + label);
   }

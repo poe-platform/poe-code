@@ -1,3 +1,4 @@
+import { setImmediate as nextTurn } from "node:timers/promises";
 import {
   Budget,
   declareHostOperation,
@@ -55,7 +56,7 @@ export async function bounded<Value>(promise: PromiseLike<Value>, phase: string)
       settled = true;
     }
   );
-  for (let turn = 0; turn < 8192 && !settled; turn++) await Promise.resolve();
+  for (let turn = 0; turn < 8192 && !settled; turn++) await nextTurn();
   if (!settled) throw new Error("Finite notification budget exhausted: " + phase);
   if (rejected) throw failure;
   return value!;

@@ -8,6 +8,30 @@ const fixtures = [
   { format: "context", flag: "-c", input: "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n" },
 ] as const;
 
+for (const fixture of fixtures) {
+  const input = `${fixture.input}\\ No newline at end of file\n`;
+  for (const force of [[], ["-f"]]) for (const suffix of ["", "later\n", "later"]) {
+    test(`${fixture.format} incomplete replacement preserves boundary before ${JSON.stringify(suffix)} ${force.join(" ")}`, async () => {
+      const result = await run("patch", ["--batch", "-F0", ...force, fixture.flag, "target"], {
+        files: { target: `old\n${suffix}` }, input,
+      });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "patching file target\n");
+      assert.equal(result.stderr, "");
+      assert.equal(await contents(result.fs, "target"), suffix ? `new\n${suffix}` : "new");
+      await assert.rejects(result.fs.stat("/work/target.orig"), { code: "ENOENT" });
+      await assert.rejects(result.fs.stat("/work/target.rej"), { code: "ENOENT" });
+    });
+  }
+  test(`${fixture.format} incomplete replacement boundary counts toward output limit`, async () => {
+    const result = await run("patch", ["--batch", "-F0", fixture.flag, "target"], {
+      files: { target: "old\nx\n" }, input, options: { maxOutputBytes: 5 },
+    });
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "old\nx\n");
+  });
+}
+
 for (const fixture of fixtures) for (const target of ["target", "/work/target"]) {
   for (const selector of [[], [fixture.flag], [`--${fixture.format}`]]) {
     test(`${fixture.format} ${selector.join(" ") || "autodetect"} with ${target} dry-run/forward/reverse`, async () => {

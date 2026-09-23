@@ -236,7 +236,11 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
   while (cursor < source.length) append(source[cursor++]!);
   for (let index = 0; index < result.length - 1; index++) {
     budget.step();
-    if (!result[index]!.endsWith("\n")) throw new ToolError("incomplete line would occur before end of file", 1);
+    if (!result[index]!.endsWith("\n")) {
+      // An incomplete patch record only stays unterminated at the target EOF.
+      if (++resultBytes > budget.limits.maxOutputBytes) throw new ToolError("output byte limit exceeded");
+      result[index] += "\n";
+    }
     await budget.checkpoint();
   }
   const text = result.join("");

@@ -1,3 +1,4 @@
+import { inspectAssets } from "./inspection-assets.js";
 import { createFormatRegistry } from "./formats.js";
 import { PandocError } from "./errors.js";
 import type { ConversionContext } from "./types.js";
@@ -20,6 +21,8 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
       "PDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n" +
       "--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n" +
       "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version/-v\n" +
+      "--list-highlight-languages --list-highlight-styles --print-highlight-style STYLE\n" +
+      "--print-default-template/-D html|html5 --print-default-data-file abbreviations --completion bash --bash-completion\n" +
       "Use -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\n" +
       "Capabilities (available directions):\n" + inspectFormats(["--list-input-formats", "--list-output-formats"], context);
   }
@@ -27,6 +30,8 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
     if (args.length !== 1) throw new PandocError("E_OPTION", "convert", "Use --version alone");
     return "pandoc TypeScript converter 0.0.1 (original bounded implementation)\n";
   }
+  const asset = inspectAssets(args, context, () => inspectCommand(["--help"], context)!);
+  if (asset !== undefined) return asset;
   if (args[0]?.startsWith("--list-")) return inspectFormats(args, context);
   return undefined;
 }

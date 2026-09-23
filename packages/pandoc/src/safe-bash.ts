@@ -1,4 +1,4 @@
-import { inspectFormats } from "./inspection.js";
+import { inspectFormats, inspectCommand } from "./inspection.js";
 import { PandocError } from "./errors.js";
 import { convert } from "./engine.js";
 import type { ConversionContext, ResourceFileSystem } from "./types.js";
@@ -40,7 +40,8 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
       const encoder = new TextEncoder();
       let bytes: Uint8Array;
       try {
-        if(context.args.some(arg => arg.startsWith("--list-"))) bytes = encoder.encode(inspectFormats(context.args, configured));
+        const information = inspectCommand(context.args, configured);
+        if (information !== undefined) bytes = encoder.encode(information);
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,

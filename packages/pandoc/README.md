@@ -15,8 +15,8 @@ const result = await convert(
 ```
 
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
-`formatCapabilities`, and `PandocError`. Inspect format capabilities before
-conversion: support is format-specific and does not imply full native Pandoc
+`inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
+capabilities before conversion: support is format-specific and does not imply full native Pandoc
 compatibility. Office engines load when their formats are selected.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
@@ -25,6 +25,15 @@ Shell arguments accept `--read`/`-r` and `--write`/`-w` as format aliases,
 attached short values such as `-fcommonmark -thtml -ooutput.html`, and bare
 `-M draft` or `--metadata=draft` as boolean true. `-v` reports the same
 TypeScript converter identity as `--version`.
+`inspectCommand(args)` and the shell command also inspect bundled Pandoc 3.11
+assets: `--list-highlight-languages`, `--list-highlight-styles`,
+`--print-highlight-style STYLE` (all eight listed styles),
+`-D html` / `--print-default-template=html5`, and
+`--print-default-data-file=abbreviations` (also `templates/default.html5`).
+These static assets do not enable template conversion or syntax highlighting.
+Other templates/data files are unavailable; inspection never reads user files.
+`--completion=bash` and `--bash-completion` emit Bash completion for the
+TypeScript converter's supported options and configured format registry.
 
 ## Configuration
 

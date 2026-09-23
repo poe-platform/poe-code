@@ -37,7 +37,7 @@ await shell.dispose();
 Engine and source-only calls require explicit `limits` and `signal`; command
 calls use the context signal and bounded host ceilings. SDK calls accept
 `selector`, `filename`, `output`, `base`, `detectBase`, `text`, `ignoreWhitespace`,
-`pretty`, `attributes` and `removeNodes`, or `argv`; combining both forms fails.
+`pretty`, `attributes`, `removeNodes`, `help` and `version`, or `argv`; combining both forms fails.
 Omitted SDK operands use context argv; specifying typed options uses the same
 CLI defaults. For example, `htmlq(context, { selector: "p", text: true })`
 reads context stdin and writes text to context stdout. Sources must yield
@@ -74,6 +74,8 @@ CLI examples (paths refer only to the configured VFS):
 htmlq p -t -f /input.html               # descendant text, one final LF per result
 htmlq a --attributes href -f /input.html # present href values, one LF each
 htmlq div -r span -f /input.html -o /selected.html
+htmlq --help                           # usage and supported options
+htmlq --version                        # safe-bash implementation and compatibility profile
 ```
 
 | Supported flag | Value / behavior |
@@ -95,8 +97,15 @@ Short flags can be grouped (`-tip`); short value options accept attached values
 The optional selector defaults to `html`; input/output default to `-`.
 Unknown flags (including `--attribute`), abbreviations
 and extra positional operands fail. `--` ends option parsing.
-Only attributes and removal selectors are repeatable; repeating any other option
-fails with argument status 2, including mixed short/long spellings and grouped flags.
+Help and version return status 0 without reading stdin or accessing VFS paths,
+including when `-f` or `-o` is present. The first help/version flag ends option
+parsing; invalid options before it still fail. The SDK accepts `{ help: true }`
+or `{ version: true }`, and `htmlqBytes` supports the same literal flags without
+consuming its source. Output limits and cancellation still apply. Version output
+identifies the compatibility profile, not a native htmlq runtime.
+Only attributes and removal selectors are repeatable during HTML processing;
+repeating other processing options fails with argument status 2, including mixed
+short/long spellings and grouped flags.
 Separate option values cannot begin with a dash except the stdin/output sentinel `-`;
 use attached values for literal leading-dash paths. Typed SDK values remain literal.
 Attributes override text, which overrides pretty HTML. Present attributes emit their decoded value and LF;

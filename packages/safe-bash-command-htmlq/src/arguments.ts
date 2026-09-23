@@ -1,7 +1,5 @@
 import { HtmlBudget, HtmlError, type HtmlOptions } from "./contracts.js";
 export interface HtmlqArguments {
-  readonly help?: boolean;
-  readonly version?: boolean;
   readonly selector: string;
   readonly filename: string;
   readonly output: string;
@@ -10,14 +8,14 @@ export interface HtmlqArguments {
   readonly text: boolean;
   readonly ignoreWhitespace: boolean;
   readonly pretty: boolean;
+  readonly help?: boolean;
+  readonly version?: boolean;
   readonly attributes: readonly string[];
   readonly removeNodes: readonly string[];
 }
 export function parseHtmlqArguments(argv: readonly string[], options: HtmlOptions): HtmlqArguments {
   const budget = new HtmlBudget(options);
   const result = {
-    help: false,
-    version: false,
     selector: "html",
     filename: "-",
     output: "-",
@@ -26,13 +24,15 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
     text: false,
     ignoreWhitespace: false,
     pretty: false,
+    help: false,
+    version: false,
     attributes: [] as string[],
     removeNodes: [] as string[]
   };
   let positional = false,
     literal = false;
   const seen = new Set<string>();
-  for (let i = 0; i < argv.length; i++) {
+  for (let i = 0; i < argv.length && !result.help && !result.version; i++) {
     let arg = argv[i]!;
     budget.charge("work", arg.length + 1);
     budget.charge("retainedBytes", arg.length * 2 + 32);
@@ -52,14 +52,6 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
       const option = arg;
       for (let offset = short ? 1 : 0; offset < option.length; offset++) {
         arg = short ? `-${option[offset]}` : option;
-        if (attached === undefined && ["-h", "--help", "-V", "--version"].includes(arg)) {
-          result[arg === "-h" || arg === "--help" ? "help" : "version"] = true;
-          return Object.freeze({
-            ...result,
-            attributes: Object.freeze(result.attributes),
-            removeNodes: Object.freeze(result.removeNodes)
-          });
-        }
         const key = (
           {
             "-f": "filename",
@@ -104,8 +96,12 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
               "-i": "ignoreWhitespace",
               "--ignore-whitespace": "ignoreWhitespace",
               "-p": "pretty",
-              "--pretty": "pretty"
-            } as Record<string, "detectBase" | "text" | "ignoreWhitespace" | "pretty">
+              "--pretty": "pretty",
+              "-h": "help",
+              "--help": "help",
+              "-V": "version",
+              "--version": "version"
+            } as Record<string, "detectBase" | "text" | "ignoreWhitespace" | "pretty" | "help" | "version">
           )[arg];
           if (!flag || attached !== undefined)
             throw new HtmlError("E_ARGUMENT", `Unknown option ${arg}`);
@@ -113,7 +109,7 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
           seen.add(flag);
           result[flag] = true;
         }
-        if (!short) break;
+        if (!short || result.help || result.version) break;
       }
     } else {
       if (positional) throw new HtmlError("E_ARGUMENT", "Only one selector operand is accepted");

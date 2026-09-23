@@ -7,7 +7,7 @@ import {
 } from "safe-bash-contracts/command";
 import { shellValueFromBytes } from "safe-bash-contracts/value";
 import { FsError } from "safe-bash-contracts/errors";
-import { createHtmlqCommand, htmlq, htmlqCommands } from "./index.js";
+import { createHtmlqCommand, htmlq, htmlqCommands, HtmlError } from "./index.js";
 function fixture(argv: readonly string[], input = "<p>X</p>") {
   const carrier = createCommandArguments(argv),
     output: Uint8Array[] = [],
@@ -71,6 +71,63 @@ function fixture(argv: readonly string[], input = "<p>X</p>") {
     text: () => output.map((b) => new TextDecoder().decode(b)).join("")
   };
 }
+test("help and version flags succeed through CLI and SDK without input or VFS access", async () => {
+  const unavailable = {
+    [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {
+      throw new Error("informational flags must not read stdin");
+    }
+  };
+  const fs = new Proxy({} as CommandContext["fs"], {
+    get() { throw new Error("informational flags must not access the VFS"); }
+  });
+  for (const [flag, option] of [["--help", "help"], ["-h", "help"], ["--version", "version"], ["-V", "version"]] as const) {
+    const argv = ["-f", "missing", "-o", "untouched", flag];
+    const cli = fixture(argv), sdk = fixture([]), typed = fixture([]);
+    assert.equal((await createHtmlqCommand().execute({ ...cli.context, stdin: unavailable, fs })).exitCode, 0, flag);
+    for (const result of [
+      await htmlq({ ...sdk.context, stdin: unavailable, fs }, { argv }),
+      await htmlq({ ...typed.context, stdin: unavailable, fs }, { [option]: true, filename: "missing", output: "untouched" })
+    ]) {
+      assert.equal(result.exitCode, 0, flag);
+      assert.equal(result.accounting.inputBytes, 0);
+    }
+    if (option === "help") {
+      assert.ok(cli.text().includes("Usage: htmlq [OPTIONS] [SELECTOR]"));
+      assert.ok(cli.text().includes("-h, --help"));
+      assert.ok(cli.text().includes("-V, --version"));
+    } else {
+      assert.equal(cli.text(), "htmlq 0.5.0 (safe-bash virtual implementation)\n");
+    }
+    assert.deepEqual(sdk.output, cli.output);
+    assert.deepEqual(typed.output, cli.output);
+    for (const f of [cli, sdk, typed]) assert.deepEqual(f.errors, []);
+  }
+});
+test("informational output observes limits and propagates sink failures and cancellation", async () => {
+  for (const flag of ["--help", "--version"]) {
+    const limited = fixture([flag]);
+    const result = await htmlq(limited.context, { limits: { outputBytes: 1 } });
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.error instanceof HtmlError);
+    assert.equal(result.error.code, "E_LIMIT");
+    assert.equal(result.error.resource, "outputBytes");
+    assert.equal(limited.text(), "");
+
+    const failed = fixture([flag]), failure = new Error("informational sink failed");
+    await assert.rejects(htmlq({ ...failed.context, stdout: {
+      async write() { throw failure; }
+    } }), error => error === failure);
+    assert.deepEqual(failed.errors, []);
+
+    const cancelled = fixture(["-o", "unused", flag]), consumer = new AbortController();
+    consumer.abort(new Error("informational stdout closed"));
+    await assert.rejects(htmlq({ ...cancelled.context, stdout: {
+      async write() { assert.fail("closed consumer must not receive output"); },
+      ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("closed consumer must not receive output"); } }
+    } }), { code: "E_CANCELLED" });
+    assert.deepEqual(cancelled.errors, []);
+  }
+});
 test("pretty CLI and SDK preserve htmlq 0.5.0 spacing after block void elements", async () => {
   for (const [input, expected] of [
     ['<head><base href="/"><title>T</title></head>', '\n<html>\n  <head>\n    <base href="/">\n    \n    <title>\n      T\n    </title>\n  </head>\n  <body>\n  </body>\n</html>\n'],

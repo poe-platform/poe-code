@@ -19,6 +19,7 @@ import {
 } from "./contracts.js";
 import { parseHtmlqArguments, type HtmlqArguments } from "./arguments.js";
 import { projectHtmlq } from "./behavior.js";
+import { htmlqInformation } from "./information.js";
 export interface HtmlqCommandOptions {
   readonly limits?: Partial<HtmlLimits>;
   readonly replace?: boolean;
@@ -89,8 +90,6 @@ export async function htmlq(
     snapshotFailure: { error: unknown } | undefined;
   try {
     const argumentKeys = [
-      "help",
-      "version",
       "selector",
       "filename",
       "output",
@@ -99,6 +98,8 @@ export async function htmlq(
       "text",
       "ignoreWhitespace",
       "pretty",
+      "help",
+      "version",
       "attributes",
       "removeNodes"
     ] as const;
@@ -126,12 +127,12 @@ export async function htmlq(
         }
       }
       for (const [key, flag] of [
-        ["help", "--help"],
-        ["version", "--version"],
         ["detectBase", "--detect-base"],
         ["text", "--text"],
         ["ignoreWhitespace", "--ignore-whitespace"],
-        ["pretty", "--pretty"]
+        ["pretty", "--pretty"],
+        ["help", "--help"],
+        ["version", "--version"]
       ] as const) {
         const value = configuration[key];
         if (value !== undefined && typeof value !== "boolean")
@@ -182,14 +183,14 @@ export async function htmlq(
     try {
       if (snapshotFailure) throw snapshotFailure.error;
       const args = parseHtmlqArguments(argv, options);
-      if (args.output === "-" || args.help || args.version) {
+      const information = htmlqInformation(args, options);
+      if (information !== undefined || args.output === "-") {
         stdout!.signal.addEventListener("abort", consumerAbort, { once: true });
         if (stdout!.signal.aborted) consumerAbort();
         budget.check();
       }
-      if (args.help || args.version) {
-        for await (const bytes of projectHtmlq(context.stdin, args, options))
-          await writeBytes(stdout!.output, bytes, options.signal);
+      if (information !== undefined) {
+        await writeBytes(stdout!.output, information, options.signal);
         return { exitCode: 0, accounting: budget.snapshot() };
       }
       let source: ByteSource = context.stdin;

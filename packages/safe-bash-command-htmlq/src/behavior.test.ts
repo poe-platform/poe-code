@@ -24,6 +24,47 @@ async function run(s: string, argv: readonly string[]) {
     result += new TextDecoder().decode(chunk);
   return result;
 }
+test("source-only help and version use native flag order without consuming input", async () => {
+  const source = {
+    [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {
+      throw new Error("informational flags must not acquire input");
+    }
+  };
+  for (const [argv, help] of [
+    [["--help"], true], [["-h"], true], [["--version"], false], [["-V"], false],
+    [["-th"], true], [["-tV"], false], [["-hV"], true], [["-Vh"], false],
+    [["--help", "--unknown"], true], [["--version", "--help"], false],
+    [["-f", "missing", "-o", "untouched", "--help"], true]
+  ] as const) {
+    let output = "";
+    for await (const chunk of htmlqBytes(source, argv, options)) output += new TextDecoder().decode(chunk);
+    if (help) assert.ok(output.includes("Usage: htmlq [OPTIONS] [SELECTOR]"));
+    else assert.equal(output, "htmlq 0.5.0 (safe-bash virtual implementation)\n");
+  }
+});
+test("help and version retain argument validation and literal value boundaries", async () => {
+  for (const argv of [
+    ["--help=true"], ["--version=true"], ["--unknown", "--help"],
+    ["-f", "--help"], ["-tt", "--help"]
+  ]) await assert.rejects(run("", argv), { code: "E_ARGUMENT" });
+  assert.equal(parseHtmlqArguments(["--", "-h"], options).selector, "-h");
+  assert.equal(parseHtmlqArguments(["-a--help"], options).attributes[0], "--help");
+  assert.equal(await run('<p --help="literal">X</p>', ["p", "-a--help"]), "literal\n");
+  assert.equal(await run("<p>X</p>", ["--", "-h"]), "");
+});
+test("source-only informational output respects byte limits and cancellation", async () => {
+  for (const argv of [["--help"], ["--version"]]) {
+    const limited = { ...options, limits: { ...options.limits, outputBytes: 1 } };
+    await assert.rejects(async () => {
+      for await (const ignored of htmlqBytes(input(""), argv, limited)) assert.fail("output exceeds budget");
+    }, { code: "E_LIMIT", resource: "outputBytes" });
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(async () => {
+      for await (const ignored of htmlqBytes(input(""), argv, { ...options, signal: controller.signal })) assert.fail("output after cancellation");
+    }, { code: "E_CANCELLED" });
+  }
+});
 test("selector lists, all combinators, attributes and structural arithmetic", async () => {
   const doc = await parseHtml(
     input('<div><p id="a" class="x y" title="Ab-c">A</p> <p>B</p><span>C</span><p>D</p></div>'),

@@ -763,7 +763,10 @@ impl Adapter {
                 .find(|v| nonempty(v))
                 .cloned()
                 .unwrap_or(s("Turn failed"));
-                return vec![e("error", vec![("message", message)])];
+                return vec![e(
+                    "error",
+                    vec![("message", explain_codex_escalation_rejection(&message))],
+                )];
             }
             _ => {}
         }
@@ -898,7 +901,13 @@ impl Adapter {
             return result;
         }
         if item_type == "error" && nonempty(f(item, "message")) {
-            result.push(e("error", vec![("message", f(item, "message").clone())]));
+            result.push(e(
+                "error",
+                vec![(
+                    "message",
+                    explain_codex_escalation_rejection(f(item, "message")),
+                )],
+            ));
             return result;
         }
         if item_type == "agent_message" {
@@ -959,6 +968,18 @@ impl Adapter {
         result
     }
 }
+fn explain_codex_escalation_rejection(message: &Value) -> Value {
+    if !text(message)
+        .to_lowercase()
+        .contains("active permission policy prohibits granting escalation")
+    {
+        return message.clone();
+    }
+    let mut result = units(message).to_vec();
+    result.extend("\nEscalation is unavailable under the active policy. For an authorized command,\nuse normal sandbox execution with sandbox_permissions: \"use_default\"\nonly if the active sandbox permits that command. This does not guarantee network access.\nIf the sandboxed command also fails, report that permission or transport failure separately;\nearlier approvals and cached results do not establish current access or readiness.\nDo not bypass the policy or retry automatically outside the sandbox.".encode_utf16());
+    Value::String(result)
+}
+
 fn pi_title(name: &Value, args: &Value) -> Value {
     let title = [f(args, "command"), f(args, "path"), f(args, "file_path")]
         .into_iter()

@@ -1474,40 +1474,41 @@ function measureSandboxDataWithSeen(
         }
         const trackedDescriptors = tracked ? trackedPropertyDataDescriptors(value) : undefined;
         const keys = trackedDescriptors === undefined ? proxyKeys ?? (includeNonEnumerable ? Object.getOwnPropertyNames(value) : Object.keys(value)) : undefined;
-        let retained: unknown[] | undefined;
-        for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
-          const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
-          const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
-            ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
-          if (descriptor === undefined) continue;
-          if (!descriptor.enumerable && !includeNonEnumerable) continue;
-          const initial = metadata?.get(key);
-          if (initial !== undefined && "value" in descriptor && Object.is(initial.value, descriptor.value) &&
-              initial.enumerable === descriptor.enumerable && initial.configurable === descriptor.configurable &&
-              initial.writable === descriptor.writable) continue;
-          usage += 1 + key.length;
-          if ("value" in descriptor) {
-            const data = descriptor.value;
-            // String leaves can be charged during capture. Inert primitives retain
-            // no graph edges; only references and observable primitives need a visit.
-            if (typeof data === "string") usage += data.length;
-            else if (typeof data === "bigint" || typeof data === "symbol" ||
-                (typeof data === "object" && data !== null)) {
-              retained ??= nativeDataArraySetPrototype([], null);
-              nativeDataArrayAppend(retained, data);
+        let roots: CaptureBuffer | undefined;
+        try {
+          for (let index = 0; index < (trackedDescriptors?.length ?? keys!.length); index++) {
+            const key = trackedDescriptors === undefined ? keys![index]! : trackedDescriptors[index]![0];
+            const descriptor = trackedDescriptors === undefined ? (proxyDescriptors === undefined
+              ? Object.getOwnPropertyDescriptor(value,key) : proxyDescriptors[index]) : trackedDescriptors[index]![1];
+            if (descriptor === undefined) continue;
+            if (!descriptor.enumerable && !includeNonEnumerable) continue;
+            const initial = metadata?.get(key);
+            if (initial !== undefined && "value" in descriptor && Object.is(initial.value, descriptor.value) &&
+                initial.enumerable === descriptor.enumerable && initial.configurable === descriptor.configurable &&
+                initial.writable === descriptor.writable) continue;
+            usage += 1 + key.length;
+            if ("value" in descriptor) {
+              const data = descriptor.value;
+              // String leaves can be charged during capture. Inert primitives retain
+              // no graph edges; only references and observable primitives need a visit.
+              if (typeof data === "string") usage += data.length;
+              else if (typeof data === "bigint" || typeof data === "symbol" ||
+                  (typeof data === "object" && data !== null)) appendNativeCapture(data);
             }
+            else for (const closure of retainedAccessorClosures(descriptor)) appendNativeCapture(closure);
           }
-          else for (const closure of retainedAccessorClosures(descriptor)) {
-            retained ??= nativeDataArraySetPrototype([], null);
-            nativeDataArrayAppend(retained, closure);
-          }
+          roots = captures;
+        } finally {
+          if (roots === undefined && captures !== undefined) releaseCaptures(captures);
+          captures = undefined;
         }
-        // A pinned append on a private null-prototype array cannot invoke later
-        // native hooks or inherited index setters. Capture all edges before visits.
-        if (retained !== undefined && retained.length > 0) {
-          if (retained.length > 1)
-            appendContinuation(retained, depth + 1);
-          value = retained[0];
+        // Capture all descriptors before callbacks; pending frames own their
+        // private snapshots until every remaining record reference is visited.
+        if (roots !== undefined && roots.length > 0) {
+          value = roots.values[0];
+          if (roots.length > 1)
+            appendContinuation(roots.values, depth + 1, roots);
+          else releaseCaptures(roots);
           depth++;
           continue walk;
         }

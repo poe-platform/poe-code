@@ -1,3 +1,4 @@
+import { setImmediate as hostTurn } from "node:timers/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { restore, type SafeJSSnapshot } from "./restore.js";
@@ -63,24 +64,16 @@ async function captureRun(
 }
 
 async function finishReplay(execution: Promise<RunResult>): Promise<RunResult> {
-  let turn: ReturnType<typeof setImmediate> | undefined;
-  try {
-    return await Promise.race([
-      execution,
-      new Promise<never>((_, reject) => {
-        // Bound runnable host turns rather than worker scheduling latency. The owning
-        // test deadline still bounds wall time if a host turn itself cannot run.
-        let remaining = 1000;
-        const check = () => {
-          if (--remaining === 0) reject(new Error("Callback replay stalled"));
-          else turn = setImmediate(check);
-        };
-        turn = setImmediate(check);
-      })
-    ]);
-  } finally {
-    clearImmediate(turn);
-  }
+  let settled = false;
+  const onSettled = () => {
+    settled = true;
+  };
+  void execution.then(onSettled, onSettled);
+  // Count opportunities to make progress instead of CPU time shared with CI workers.
+  // A stuck replay still fails after a finite budget, within the owning test deadline.
+  for (let turn = 0; turn < 256 && !settled; turn++) await hostTurn();
+  if (!settled) throw new Error("Callback replay stalled after 256 host turns");
+  return execution;
 }
 
 describe("checkpoint interaction stress", () => {
@@ -98,8 +91,27 @@ describe("checkpoint interaction stress", () => {
     await expect(finishReplay(execution)).resolves.toMatchObject({ ok: true });
   });
 
-  it("rejects replay that never makes progress", async () => {
-    await expect(finishReplay(new Promise(() => undefined))).rejects.toThrow(
+  it("allows replay completion after a wall-clock deadline", async () => {
+    const result = await run("return 42;");
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      let complete!: (value: RunResult) => void;
+      const execution = new Promise<RunResult>((resolve) => {
+        complete = resolve;
+      });
+      const replay = finishReplay(execution);
+      const assertion = expect(replay).resolves.toBe(result);
+      // A busy host may pass the old 100 ms limit before replay gets its next turn.
+      vi.advanceTimersByTime(101);
+      complete(result);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects a callback replay that never settles", async () => {
+    await expect(finishReplay(new Promise<RunResult>(() => undefined))).rejects.toThrow(
       "Callback replay stalled"
     );
   });

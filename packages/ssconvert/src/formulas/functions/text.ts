@@ -2,7 +2,7 @@ import { isUnicodeAlpha } from "../../workbook/unicode-sheet-name.js";
 import { foldSheetName } from "../../workbook/case-fold.js";
 import { isUnicodePrintable, simpleUnicodeCase } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
-import { byteTextLength, sliceByteText } from "../../encoding/byte-text.js";
+import { byteTextLength, readByteTextCharacter, sliceByteText } from "../../encoding/byte-text.js";
 import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
 import type { CellValue } from "../../workbook.js";
@@ -229,7 +229,10 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     const mapped = cp1252.indexOf(point);
     return point < 128 || point >= 160 && point < 256 ? numericResult(point) : mapped >= 0 ? numericResult(mapped + 128) : error("#VALUE!");
   },
-  UNICODE: (args, host) => { const point = textArg(args, 0, host).codePointAt(0); return point === undefined ? error("#VALUE!") : numericResult(point); },
+  UNICODE: (args, host) => {
+    const bytes = byteTextArg(args, 0, host);
+    return bytes.length === 0 ? error("#VALUE!") : numericResult(readByteTextCharacter(bytes, 0, host.tick).point | 0);
+  },
   LEN: (args, host) => numericResult(byteTextLength(byteTextArg(args, 0, host), host.tick)),
   LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
   LOWER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), false, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),

@@ -5,8 +5,99 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
-import { scopeFileSystem, type OpenFileOptions } from "@poe-code/safe-fs/core";
+import { createDeviceFileSystem, createMountFileSystem, scopeFileSystem, type FileSystem, type FileSystemCapabilities, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
+
+const legacyWrites = [
+  { name: "writeFile", write: (fs: FileSystem, path: string, options?: WriteFileOptions) => fs.writeFile(path, new Uint8Array([1]), options) },
+  { name: "appendFile", write: (fs: FileSystem, path: string, options?: WriteFileOptions) => fs.appendFile(path, new Uint8Array([1]), options) },
+  { name: "writeStream", write: (fs: FileSystem, path: string, options?: WriteFileOptions) => fs.writeStream!(path, { async *[Symbol.asyncIterator]() { yield new Uint8Array([1]); } }, options) },
+];
+
+for (const operation of legacyWrites) {
+  test(`legacy ${operation.name} uses generic mode capability queries`, async () => {
+    const backing = createMemoryFileSystem();
+    const queries: unknown[] = [];
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async (path: string, options: object) => {
+        queries.push(path);
+        assert.equal(Object.hasOwn(options, "create"), false);
+        return target.capabilities;
+      };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await operation.write(creationFileSystem(fs, 0o077), "/new");
+    assert.deepEqual(queries, ["/new"]);
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+    assert.deepEqual(await backing.readFile("/new"), new Uint8Array([1]));
+  });
+
+  test(`legacy ${operation.name} preserves missing-target mount and device modes`, async () => {
+    const backing = createMemoryFileSystem();
+    const mounted = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": backing } });
+    const fs = createDeviceFileSystem(mounted);
+    await operation.write(creationFileSystem(fs, 0o077), "/data/new");
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+    assert.deepEqual(await fs.readFile("/data/new"), new Uint8Array([1]));
+    await assert.rejects(operation.write(creationFileSystem(fs, 0o077), "/dev/null/child"), { code: "ENOTDIR" });
+    await assert.rejects(backing.stat("/child"), { code: "ENOENT" });
+  });
+
+  for (const permissions of [false, undefined]) {
+    test(`legacy ${operation.name} retains mode capability refusal/unknown: ${permissions}`, async () => {
+      const backing = createMemoryFileSystem();
+      const modes: unknown[] = [];
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor") return async () => {
+          const capabilities: FileSystemCapabilities = Object.fromEntries(Object.entries(target.capabilities).filter(([name]) => name !== "permissions"));
+          return permissions === undefined ? capabilities : { ...capabilities, permissions };
+        };
+        const member: unknown = Reflect.get(target, key, target);
+        if (key === operation.name) return (...args: unknown[]) => {
+          modes.push((args[2] as WriteFileOptions | undefined)?.mode);
+          return Reflect.apply(member as (...args: unknown[]) => unknown, target, args);
+        };
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      await operation.write(creationFileSystem(fs, 0o077), "/new");
+      assert.deepEqual(modes, [permissions === false ? undefined : 0o600]);
+    });
+  }
+
+  test(`legacy ${operation.name} preserves explicit mode without querying`, async () => {
+    const backing = createMemoryFileSystem();
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async () => { assert.fail("explicit mode must not query"); };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    await operation.write(creationFileSystem(fs, 0o077), "/new", { mode: 0o640 });
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o640);
+  });
+
+  test(`legacy ${operation.name} propagates query errors and falsey cancellation`, async () => {
+    const backing = createMemoryFileSystem();
+    for (const reason of [new FsError("EACCES"), null, false, 0, "", Number.NaN]) {
+      const controller = new AbortController();
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor") return async () => {
+          if (reason instanceof FsError) throw reason;
+          controller.abort(reason);
+          return target.capabilities;
+        };
+        if (key === operation.name) return async () => { assert.fail("failed/aborted query must not write"); };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      try {
+        await operation.write(creationFileSystem(fs, 0o077), "/new", { signal: controller.signal });
+        assert.fail("expected query failure");
+      } catch (error) { assert.ok(Object.is(error, reason)); }
+      await assert.rejects(backing.stat("/new"), { code: "ENOENT" });
+    }
+  });
+}
 
 for (const options of [
   { access: "read" }, { access: "read", creation: "never" },

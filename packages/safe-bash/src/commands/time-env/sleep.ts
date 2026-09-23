@@ -115,8 +115,12 @@ function delay(milliseconds: number, signal: AbortSignal, configuration: Setting
 export function createSleepCommand(configuration: Settings) {
   return command("sleep", configuration, async context => {
     let informational: string | undefined;
-    for (const argument of context.args) {
-      if (argument === "--") break;
+    let operands = context.args;
+    for (const [index, argument] of context.args.entries()) {
+      if (argument === "--") {
+        operands = [...context.args.slice(0, index), ...context.args.slice(index + 1)];
+        break;
+      }
       if (argument === "--help" || argument === "--version") { informational = argument; break; }
       if (argument.startsWith("-") && argument !== "-") throw new CommandFailure(`invalid option: ${argument}`);
     }
@@ -126,9 +130,6 @@ export function createSleepCommand(configuration: Settings) {
         : "sleep (safe-bash virtual command)\n", configuration.limits);
       return 0;
     }
-    const terminator = context.args.indexOf("--");
-    const operands = terminator < 0 ? context.args
-      : [...context.args.slice(0, terminator), ...context.args.slice(terminator + 1)];
     await delay(duration(operands), context.signal, configuration);
     return 0;
   });

@@ -13,6 +13,7 @@ for (const [args, duration] of [
   [["0x0p999999999999999999999", "0x1p-999999999999999999999"], 0],
   [["--", "0"], 0], [["--", "0.00s"], 0], [["--", "0E-3m", ".00h"], 0],
   [["--", ".001s", ".002"], 3], [[".001s", "--", ".002"], 3],
+  [["--", ".001s", ".002s"], 3], [[".001s", "--", ".002s"], 3],
 ] as const) {
   test(`sleep summed fractional intervals ${args.join(" ")}`, async () => {
     const scheduler = new Timers();
@@ -72,7 +73,7 @@ test("sleep rejects nonmonotonic scheduler time and cleans the subscription", as
   assert.equal(getEventListeners(controller.signal, "abort").length, 0);
 });
 
-for (const args of [[], ["-1"], ["1ms"], ["NaN"], ["Infinity"], ["1e999"], ["1", "bad"], ["1,2"], ["1D"], ["--invalid"], ["-0.00"],
+for (const args of [[], ["-1"], ["1ms"], ["NaN"], ["Infinity"], ["1e999"], ["1", "bad"], ["1,2"], ["1D"], ["--invalid"], ["--", "0", "--"], ["-0.00"],
   ["0x"], ["0x.p0"], ["0x1p"], ["0x1p+"], ["0x1p-1 "], ["0x1ps"], ["0x1g"], ["0x1P2S"], ["0 "], ["0\n"], ["0x0p0\n"], [""], [" "], ["\u00a00"], ["0x1p999999999999999999999"], ["0", "0x1p"]]) {
   test(`sleep validates all operands before waiting: ${JSON.stringify(args)}`, async () => {
     const scheduler = new Timers();

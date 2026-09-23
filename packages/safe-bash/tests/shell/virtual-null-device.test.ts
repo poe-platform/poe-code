@@ -7,7 +7,7 @@ import { metadataCommands } from "../../src/commands/metadata/index.js";
 import { fileCommands } from "../../src/commands/file/index.js";
 import { createDuCommand } from "../../src/commands/du/index.js";
 import type { FileStat, FileSystem, FsOptions } from "../../src/contracts/index.js";
-import { MountFileSystem, ReadOnlyFileSystem } from "poe-code/safe-fs/core";
+import { MountFileSystem, ReadOnlyFileSystem } from "@poe-code/safe-fs/core";
 import { predicateCommands } from "../../src/commands/predicates.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { collectBytes, FsError, toByteSource } from "../../src/contracts/index.js";

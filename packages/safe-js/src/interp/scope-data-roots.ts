@@ -1,8 +1,14 @@
 import type { InterpreterValue } from "./interpreter.js";
+import type { SandboxClosure, SandboxValue } from "./values.js";
 
 // Accounting-only snapshots: never guest objects or serialized frame cells.
 type ScopeDataRoot =
-  { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] };
+  { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] } |
+  { readonly deferred: {
+    readonly chargeIdentity: object;
+    readonly read: () => SandboxClosure | undefined;
+    readonly collect: (append: (value: SandboxValue) => void) => void;
+  } };
 const freeze = Object.freeze;
 const setPrototypeOf = Object.setPrototypeOf;
 const defineProperty = Reflect.defineProperty;
@@ -41,6 +47,8 @@ export const scopeDataRoots = Object.freeze({
     // caller supplies a private dense vector, never a guest descendant object.
     const snapshot = hasOwn(data, "value")
       ? freeze({ __proto__: null, value: (data as { value: InterpreterValue }).value })
+      : hasOwn(data, "deferred")
+        ? freeze({ __proto__: null, deferred: freeze((data as Extract<ScopeDataRoot, {deferred: unknown}>).deferred) })
       : freeze({ __proto__: null, values: freeze((data as { values: readonly InterpreterValue[] }).values) });
     nativeSet(root, snapshot);
   }

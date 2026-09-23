@@ -110,6 +110,7 @@ type FrozenClosureData = {
   readonly symbols: readonly symbol[];
   readonly closure: boolean;
   readonly propertiesGetter: PropertyDescriptor["get"];
+  readonly chargeIdentity?: object;
 };
 const frozenClosureData = new WeakMap<object, FrozenClosureData>();
 const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
@@ -403,6 +404,13 @@ export function createSandboxClosure(input: {
     })
   );
   return closure;
+}
+
+export function registerDeferredClosureChargeIdentity(closure: SandboxClosure, identity: object): void {
+  const data = readFrozenClosureData(closure);
+  if (data?.closure !== true || data.chargeIdentity !== undefined)
+    throw new TypeError("Deferred initialization requires a fresh SDK-created function.");
+  writeFrozenClosureData(closure, freezeClosureShape({ ...data, chargeIdentity: identity }));
 }
 
 export function ownEnumerableSandboxEntries(
@@ -977,6 +985,42 @@ function measureSandboxDataWithSeen(
         const bindingRoot = scopeDataRoots.get(value);
         if (bindingRoot !== undefined) {
           seen.add(value);
+          if ("deferred" in bindingRoot) {
+            const deferred = bindingRoot.deferred;
+            const current = deferred.read();
+            if (current !== undefined) {
+              value = current;
+              continue walk;
+            }
+            assertSandboxDataDepth(depth);
+            if (!seen.has(deferred.chargeIdentity)) {
+              seen.add(deferred.chargeIdentity);
+              usage++;
+            }
+            if (options.ignoreClosures || options.ignoreClosureCaptures) break entry;
+            let roots: CaptureBuffer | undefined;
+            try {
+              deferred.collect(appendNativeCapture);
+              roots = captures;
+            } finally {
+              if (roots === undefined && captures !== undefined) releaseCaptures(captures);
+              captures = undefined;
+            }
+            // An earlier native scope provider can force this binding. Measure
+            // the new carrier, including construction-hook state, immediately.
+            const materialized = deferred.read();
+            if (materialized !== undefined) {
+              visit(materialized, depth);
+            }
+            if (roots !== undefined && roots.length > 0) {
+              value = roots.values[0];
+              if (roots.length > 1) appendContinuation(roots.values, depth + 1, roots);
+              else releaseCaptures(roots);
+              depth++;
+              continue walk;
+            }
+            break entry;
+          }
           if ("value" in bindingRoot) value = bindingRoot.value;
           else {
             const references = bindingRoot.values;
@@ -988,6 +1032,7 @@ function measureSandboxDataWithSeen(
           // Accounting projections add neither object units nor graph depth.
           continue walk;
         }
+        const closureData = readFrozenClosureData(value);
         assertSandboxDataDepth(depth);
         seen.add(value);
 
@@ -998,7 +1043,12 @@ function measureSandboxDataWithSeen(
           waiting!.delete(value);
         }
 
-        usage += 1;
+        const chargeIdentity = closureData?.chargeIdentity;
+        if (chargeIdentity === undefined) usage++;
+        else if (!seen.has(chargeIdentity)) {
+          seen.add(chargeIdentity);
+          usage++;
+        }
         const moduleRoots = moduleNamespaceRetainedValues.get(value);
         if (moduleRoots !== undefined) {
           for (const key of Reflect.ownKeys(value)) { usage += 1; visit(key,depth + 1); }
@@ -1049,7 +1099,6 @@ function measureSandboxDataWithSeen(
         // Factory-created frozen closures cannot be arrays or host-object carriers.
         // Their closure branch never consumes stack snapshots; registered weak,
         // source, proxy and private roots are still reconciled normally.
-        const closureData = readFrozenClosureData(value);
         const knownClosure = closureData?.closure === true;
         const disposableResources = !knownClosure
           ? disposableStackStates.get(value)?.resources.map(resource =>

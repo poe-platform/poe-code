@@ -205,7 +205,7 @@ import {
   type SandboxSet,
   type SandboxValue
 } from "./values.js";
-import { Scope, type BindingReference } from "./scope.js";
+import { Scope, visitScopeDataRoots, type BindingReference } from "./scope.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 
 export type InterpreterValue = SandboxValue;
@@ -537,7 +537,7 @@ export async function interpret(
       intrinsicRealmContexts.set(realm, { ...context, scope: scope.globalScope() });
     if (options.modulePhase === "link") {
       if (node.type !== "BlockStatement") throw new TypeError("Module linking requires a statement list.");
-      predeclareBlockBindings(node, context);
+      predeclareBlockBindings(node, context, true);
       return {ok: true, snapshot: {bindings: {}}, stats};
     }
     const execute = () => node.type === "VariableDeclaration" && node.disposal !== undefined
@@ -1895,18 +1895,20 @@ function createBlockContext(node: BlockStatement, context: EvaluationContext): E
   return blockContext;
 }
 
-function predeclareBlockBindings(node: BlockStatement, context: EvaluationContext): void {
+function predeclareBlockBindings(node: BlockStatement, context: EvaluationContext, deferFunctions = false): void {
   predeclareStatementListBindings(
     node.body,
     context,
-    node === context.functionBody || node === context.rootNode
+    node === context.functionBody || node === context.rootNode,
+    deferFunctions
   );
 }
 
 function predeclareStatementListBindings(
   statements: readonly import("../parse.js").Statement[],
   context: EvaluationContext,
-  functionBody = false
+  functionBody = false,
+  deferFunctions = false
 ): void {
   const { scope } = context;
   const names = new Set<string>();
@@ -1925,6 +1927,19 @@ function predeclareStatementListBindings(
     if (statement.type === "FunctionDeclaration") {
       if (statement.id === undefined && !exportedFunction) throw new Error("An anonymous declaration requires a default export.");
       const name = statement.id?.name ?? "default";
+      // Only ordinary source-module declarations have an empty initial function
+      // environment and no generator prototype to initialize during linking.
+      if (deferFunctions && context.sourceReference === undefined &&
+          !statement.generator && !scope.hasOwnBinding(name)) {
+        if (names.has(name)) throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+        names.add(name);
+        scope.declareDeferredFunction(name, exportedFunction
+          ? (statement.id === undefined ? "const" : "let") : "var",
+          () => createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode),
+          append => visitScopeDataRoots(context.scope, append));
+        if (exportedFunction && statement.id !== undefined) scope.declareAlias("default", name);
+        continue;
+      }
       const closure = createInterpretedClosure(statement, exportedFunction ? { ...context, inferredName: name } : context, evaluateNode);
       if (functionBody && context.evalCompletion && !exportedFunction) {
         scope.declareVar(name, {functionValue: closure, ...(context.scriptScope === scope ? {} : {deletable: true as const})});

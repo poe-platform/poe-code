@@ -4,7 +4,8 @@ import type { InterpreterSnapshot, InterpreterValue } from "./interpreter.js";
 import type { ResourceScopeState } from "./resource-management.js";
 import { builtinGlobalObjects, getIntrinsicIdentity, mutableBuiltinBindings } from "./intrinsics.js";
 import { getSandboxPropertyDescriptor } from "./object-model.js";
-import type { SandboxObject } from "./values.js";
+import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
+import { DeferredFunction } from "./deferred-function.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
 import { hasImmutableEmptyModuleEnvironment } from "../modules/empty-environment.js";
 import { appendScopeDataRoot, ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
@@ -18,6 +19,7 @@ type ScopeBinding = {
   silentImmutable?: true;
   importTarget?: {scope: Scope; name: string};
   value: InterpreterValue | typeof uninitialized;
+  deferred?: DeferredFunction;
   accounting?: { value: InterpreterValue; root: SandboxObject };
 };
 
@@ -260,7 +262,7 @@ export class Scope {
     const binding = this.#bindings.get("this");
     if (binding !== undefined) {
       if (binding.value === uninitialized) throw new ReferenceError("Cannot access 'this' before initialization.");
-      return binding.value;
+      return this.readBindingValue(binding);
     }
     return this.parent?.lookupThis();
   }
@@ -282,11 +284,11 @@ export class Scope {
       if (this.importMeta !== undefined) values.push(this.importMeta);
       if (this.privateNames !== undefined) values.push(...this.privateNames.values());
       for (const binding of this.#bindings.values()) {
-        if (binding.value !== uninitialized) values.push(binding.value);
+        if (binding.value !== uninitialized) values.push(this.readBindingValue(binding));
       }
     } else {
       for (const binding of this.#replacedBindings) {
-        if (binding.value !== uninitialized) values.push(binding.value);
+        if (binding.value !== uninitialized) values.push(this.readBindingValue(binding));
       }
     }
     return values;
@@ -353,6 +355,10 @@ export class Scope {
       const roots = new ScopeDataRootList();
       const bindings = this.options.chargeData === false ? this.#replacedBindings : this.#bindings.values();
       for (const binding of bindings) {
+        if (binding.deferred !== undefined) {
+          roots.append(binding.deferred.root);
+          continue;
+        }
         const value = binding.value;
         if (!isChargedBindingValue(value)) continue;
         // Objects and symbols already have measurement identities. Only strings
@@ -401,6 +407,14 @@ export class Scope {
   declareImport(name: string, target: Scope, targetName: string): void {
     if (this.#bindings.has(name)) throw new SyntaxError(`Cannot redeclare imported binding '${name}'.`);
     this.#bindings.set(name, {__proto__: null, kind: "const", value: undefined, importTarget: {scope: target, name: targetName}});
+  }
+
+  declareDeferredFunction(name: string, kind: VariableDeclarationKind,
+    create: () => SandboxClosure, collect: (append: (value: SandboxValue) => void) => void
+  ): void {
+    this.declare(name, kind, undefined);
+    this.#bindings.get(name)!.deferred = new DeferredFunction(create, collect);
+    this.#bindingDataRoot = undefined;
   }
 
   declareAlias(name: string, target: string): void {
@@ -604,7 +618,7 @@ export class Scope {
         found: true,
         kind: binding.kind,
         ...(binding.silentImmutable ? {silentImmutable: true} : {}),
-        value: binding.value
+        value: this.readBindingValue(binding)
       };
     }
 
@@ -647,7 +661,7 @@ export class Scope {
           continue;
         }
 
-        defineSnapshotBinding(bindings, name, binding.value);
+        defineSnapshotBinding(bindings, name, scopes[index].readBindingValue(binding));
       }
     }
 
@@ -669,7 +683,7 @@ export class Scope {
         ids.set(binding, id);
         cells.push(binding.value === uninitialized
           ? { kind: binding.kind, initialized: false }
-          : { kind: binding.kind, initialized: true, value: binding.value,
+          : { kind: binding.kind, initialized: true, value: this.readBindingValue(binding),
               ...(binding.deletable ? {deletable: true} : {}),
               ...(binding.silentImmutable ? {silentImmutable: true} : {}) });
       }
@@ -777,12 +791,29 @@ export class Scope {
   }
 
   private writeBindingValue(binding: ScopeBinding, value: InterpreterValue): void {
+    if (binding.deferred !== undefined) {
+      binding.deferred = undefined;
+      this.#bindingDataRoot = undefined;
+    }
     if (!Object.is(binding.value, value)) {
       if (isChargedBindingValue(binding.value) || isChargedBindingValue(value)) this.#bindingDataRoot = undefined;
       // Release obsolete snapshots even without another accounting pass.
       binding.accounting = undefined;
     }
     binding.value = value;
+  }
+
+  private readBindingValue(binding: ScopeBinding): InterpreterValue {
+    const deferred = binding.deferred;
+    if (deferred === undefined) return binding.value as InterpreterValue;
+    const value = deferred.resolve();
+    // A native construction hook may have assigned the binding during creation.
+    if (binding.deferred === deferred) {
+      binding.value = value;
+      binding.deferred = undefined;
+      this.#bindingDataRoot = undefined;
+    }
+    return value;
   }
 
   private resolveScope(name: string): Scope | undefined {
@@ -822,7 +853,7 @@ export class Scope {
 
     return {
       kind: binding.kind,
-      value: binding.value
+      value: this.readBindingValue(binding)
     };
   }
 }

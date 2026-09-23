@@ -5,26 +5,33 @@ import { expect, it, vi } from "vitest";
 const allocations = vi.hoisted(() => {
   const push = Array.prototype.push;
   const apply = Reflect.apply;
+  const prototype = Object.getPrototypeOf;
+  const hasOwn = Object.hasOwn;
   let pairs = 0;
+  let symbolEntries = 0;
   Array.prototype.push = function (...values) {
-    if (Object.getPrototypeOf(this) === null)
+    if (prototype(this) === null) {
+      if (typeof values[0] === "symbol" && values[1] !== undefined) symbolEntries++;
       for (let index = 0; index < values.length; index++) {
         const value = values[index];
         if (
           typeof value === "object" &&
           value !== null &&
-          Object.hasOwn(value, "key") &&
-          Object.hasOwn(value, "descriptor")
+          hasOwn(value, "key") &&
+          hasOwn(value, "descriptor")
         )
           pairs++;
       }
+    }
     return apply(push, this, values);
   };
   return {
     reset: () => {
       pairs = 0;
+      symbolEntries = 0;
     },
     read: () => pairs,
+    symbolEntries: () => symbolEntries,
     restore: () => {
       Array.prototype.push = push;
     }
@@ -32,9 +39,36 @@ const allocations = vi.hoisted(() => {
 });
 
 import { Budget } from "./budget.js";
-import { createSandboxClosure, measureSandboxData, reconcileCompiledValues } from "./values.js";
+import {
+  createSandboxArguments,
+  createSandboxClosure,
+  measureSandboxData,
+  reconcileCompiledValues
+} from "./values.js";
 
 allocations.restore();
+
+it.each(["record", "closure", "arguments"] as const)(
+  "keeps a single %s symbol snapshot out of array storage",
+  (kind) => {
+    const key = Symbol("payload");
+    const owner =
+      kind === "record"
+        ? { [key]: "abc" }
+        : kind === "arguments"
+          ? createSandboxArguments(["abc"])
+          : createSandboxClosure({
+              call: () => undefined,
+              properties: (closure) => {
+                Object.defineProperty(closure, key, { value: "abc" });
+                return {};
+              }
+            });
+    allocations.reset();
+    expect(measureSandboxData([owner])).toBe(kind === "record" ? 13 : kind === "closure" ? 14 : 30);
+    expect(allocations.symbolEntries()).toBe(0);
+  }
+);
 
 it("captures symbol descriptors without allocating per-entry wrapper objects", () => {
   const value = { [Symbol("first")]: "a", [Symbol("later")]: "bb" };

@@ -143,3 +143,20 @@ it("preserves foreign symbol enumeration iterators and their failures", () => {
   }
   expect(actual).toBe(1016);
 });
+
+it("preserves foreign enumeration keys that coerce to string properties", () => {
+  const key = Symbol("payload");
+  const owner = Object.create(null);
+  Object.defineProperty(owner, "undefined", { value: "hidden" });
+  Object.defineProperty(owner, key, { value: "xyz" });
+  const original = Object.getOwnPropertySymbols;
+  let actual = -1;
+  try {
+    Object.getOwnPropertySymbols = (value) =>
+      value === owner ? ([undefined, key] as unknown as symbol[]) : original(value);
+    actual = measureSandboxData([owner]);
+  } finally {
+    Object.getOwnPropertySymbols = original;
+  }
+  expect(actual).toBe(20);
+});

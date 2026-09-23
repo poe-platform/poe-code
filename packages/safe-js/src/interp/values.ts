@@ -1155,24 +1155,60 @@ function measureSandboxDataWithSeen(
           }
         }
         if (knownClosure || !isGuestHostObject(value)) {
-          const ownedSymbols: readonly symbol[] | undefined = closureData?.symbols ?? trackedPropertySymbols(value);
+          const ownedSymbols: readonly symbol[] | undefined =
+            closureData?.symbols ?? trackedPropertySymbols(value);
+          let firstSymbol: symbol | undefined;
+          let firstDescriptor: PropertyDescriptor | undefined;
           let descriptors: RetainedSymbolSnapshot | undefined;
           // Capture before visiting: retained callbacks can mutate later properties.
+          // The common single-symbol case needs no snapshot vector. Keep its
+          // descriptor in this visit's locals, including across recursive walks.
           if (ownedSymbols !== undefined) {
-            for (let index = 0; index < ownedSymbols.length; index++)
-              descriptors = captureRetainedSymbolProperty(value, ownedSymbols[index]!, descriptors);
+            for (let index = 0; index < ownedSymbols.length; index++) {
+              const key = ownedSymbols[index]!;
+              if (internalSymbols.has(key)) continue;
+              const descriptor = Object.getOwnPropertyDescriptor(value, key);
+              if (descriptor === undefined) continue;
+              if (firstDescriptor === undefined) {
+                firstSymbol = key;
+                firstDescriptor = descriptor;
+              } else {
+                descriptors ??= nativeDataArraySetPrototype([], null);
+                nativeDataArrayAppend(descriptors, key, descriptor);
+              }
+            }
           } else {
-            const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
-            for (const key of symbols) descriptors = captureRetainedSymbolProperty(value, key, descriptors);
+            const symbols = isNumericTypedArray(value)
+              ? typedArraySymbolKeys(value)
+              : Object.getOwnPropertySymbols(value);
+            for (const key of symbols) {
+              if (internalSymbols.has(key)) continue;
+              const descriptor = Object.getOwnPropertyDescriptor(value, key);
+              if (descriptor === undefined) continue;
+              if (firstDescriptor === undefined) {
+                firstSymbol = key;
+                firstDescriptor = descriptor;
+              } else {
+                descriptors ??= nativeDataArraySetPrototype([], null);
+                nativeDataArrayAppend(descriptors, key, descriptor);
+              }
+            }
           }
-          if (descriptors !== undefined) for (let index = 0; index < descriptors.length; index += 2) {
-            const key = descriptors[index] as symbol;
-            const descriptor = descriptors[index + 1] as PropertyDescriptor;
+          if (firstDescriptor !== undefined) {
             usage += 1;
-            visit(key, depth + 1);
-            if ("value" in descriptor) visit(descriptor.value, depth + 1);
-            else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+            visit(firstSymbol, depth + 1);
+            if ("value" in firstDescriptor) visit(firstDescriptor.value, depth + 1);
+            else for (const closure of retainedAccessorClosures(firstDescriptor)) visit(closure, depth + 1);
           }
+          if (descriptors !== undefined)
+            for (let index = 0; index < descriptors.length; index += 2) {
+              const key = descriptors[index] as symbol;
+              const descriptor = descriptors[index + 1] as PropertyDescriptor;
+              usage += 1;
+              visit(key, depth + 1);
+              if ("value" in descriptor) visit(descriptor.value, depth + 1);
+              else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
+            }
         }
         if (knownClosure || isSandboxClosure(value)) {
           const closure = value as SandboxClosure;
@@ -1695,21 +1731,6 @@ export function reconcileCompiledValues(
 // Alternating keys/descriptors preserve the private pre-callback snapshot
 // without allocating an additional wrapper object for every symbol property.
 type RetainedSymbolSnapshot = Array<symbol | PropertyDescriptor>;
-
-function captureRetainedSymbolProperty(
-  value: object, key: symbol,
-  descriptors: RetainedSymbolSnapshot | undefined
-): RetainedSymbolSnapshot | undefined {
-  if (internalSymbols.has(key)) return descriptors;
-  const descriptor = Object.getOwnPropertyDescriptor(value, key);
-  // Neither native push/index hooks nor iterators may observe the private
-  // snapshot vector or its entries. Descriptor/provider reads stay active.
-  if (descriptor !== undefined) {
-    descriptors ??= nativeDataArraySetPrototype([], null);
-    nativeDataArrayAppend(descriptors, key, descriptor);
-  }
-  return descriptors;
-}
 
 function captureRegexData(value: object): { source: string; flags: string; lastIndex: SandboxValue } {
   const source = Object.getOwnPropertyDescriptor(value, "source");

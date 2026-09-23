@@ -94,7 +94,7 @@ export async function executeDocumentBatch(input: Uint8Array, value: unknown, op
     return (data.changes ?? []).map(change => ({ kind: (change.kind === "insert" ? "add" : change.kind === "format" ? "set" : change.kind === "delete" ? "remove" : change.kind) as "add" | "set" | "remove" | "replace", before: change.before ?? null, after: change.after ?? null }));
   });
   const publication: DocumentBatchData["publication"] = mutates ? { changed, changes, dryRun: options.dryRun ?? false, output: null } : null;
-  const prospective = { results, publication: publication ? { ...publication, output: options.dryRun ? null : { path: options.inPlace ? identity?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } } : null };
+  const prospective = { results, publication: publication ? { ...publication, output: options.dryRun ? null : { path: options.inPlace ? identity?.path ?? null : options.output === "-" ? null : options.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } } : null };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "batch", ok: true, data: prospective, warnings: [], errors: [], affected: results.reduce((sum, result) => sum + result.affected, 0), locations: [] }) + "\n").length);
   if (mutates) {
     const archive: DocumentArchive = await session.snapshot();

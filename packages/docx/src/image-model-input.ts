@@ -1,6 +1,5 @@
 import type { ByteSource } from "@poe-code/office-package";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext } from "./archive.js";
-import { documentLimitDefaults } from "./budget.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import { DocumentIo, type DocumentByteSource } from "./io.js";
 import type { DocxBinaryInput, DocxVfsPath } from "./operation-types.js";
@@ -15,7 +14,7 @@ export interface ImageModelAcquisition { readonly bytes: Uint8Array; readonly fi
 
 /** Acquires owned bytes; the image factory subsequently charges admitted media. */
 export async function acquireImageModelInput(input: ImageModelInput | DocxBinaryInput, context?: ImageModelContext): Promise<ImageModelAcquisition> {
-  const settings = modelContext(context, { maxEntryBytes: documentLimitDefaults.embeddedMediaBytes, maxExtraBytes: 0, maxCommentBytes: 0 }), { budget, limits, signal } = settings;
+  const settings = modelContext(context), { budget, limits, signal } = settings;
   const maxBytes = Math.min(limits.maxEntryBytes, budget.limits.embeddedMediaBytes - budget.usage.embeddedMediaBytes); let bytes: Uint8Array, filename: string | null = null;
   if (input instanceof Uint8Array) {
     if (input.length > maxBytes) throw new ResourceLimitError("Image input exceeds the media byte limit.");

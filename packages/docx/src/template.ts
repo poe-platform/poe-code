@@ -156,7 +156,7 @@ export async function applyDocumentTemplate(input: Uint8Array, options: DocxOper
     const value = { ...change.after.value, generation: session.generation };
     return { ...change, after: { ...change.after, value, token: encodeLocation(value) } };
   }), dryRun: opts.dryRun ?? false, output: null };
-  const prospective = { ...data, output: opts.dryRun ? null : { path: opts.inPlace ? identity?.path ?? null : opts.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
+  const prospective = { ...data, output: opts.dryRun ? null : { path: opts.inPlace ? identity?.path ?? null : opts.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "template.apply", ok: true, data: prospective, affected: data.changes.length, locations: data.changes.map(change => change.after), warnings: [], errors: [] })).length);
   const intent = {
     ...(opts.output === undefined ? {} : { output: opts.output }),

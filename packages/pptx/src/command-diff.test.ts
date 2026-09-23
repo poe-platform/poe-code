@@ -2,7 +2,7 @@ import { Volume } from "memfs";
 import { beforeAll, afterAll, vi, it, expect } from "vitest";
 import { compileJsonSchema } from "toolcraft-schema";
 import { createPresentation, createPptxCommandEngine } from "./index.js";
-import type { PptxCommandEngineOptions } from "./command-engine.js";
+import type { AdmittedCommandEngineOptions as PptxCommandEngineOptions } from "./command-engine.js";
 import { readPackage } from "./package-reader.js";
 import { writePackageArchive } from "./package-writer.js";
 
@@ -236,17 +236,17 @@ it.each([
     }
   }))
 ])(
-  "rejects comparison limits exceeding trusted XML or validation ceilings: $limit",
+  "accepts comparison limits above prior XML or validation settings: $limit",
   async ({ limit, engineContext }) => {
     const f = await fixture(engineContext);
     const result = await f.run(["diff", "/left.pptx", "/right.pptx", "--limit", limit, "--json"]);
-    expect(result.exitCode).toBe(2);
+    expect(result.exitCode).toBe(1);
     expect(JSON.parse(result.text)).toMatchObject({
       operation: "diff",
-      ok: false,
-      data: null,
-      errors: [{ code: "invalid-value", context: { phase: "usage" } }]
+      ok: true,
+      data: { equal: false },
+      errors: []
     });
-    expect(f.readInput).not.toHaveBeenCalled();
+    expect(f.readInput).toHaveBeenCalled();
   }
 );

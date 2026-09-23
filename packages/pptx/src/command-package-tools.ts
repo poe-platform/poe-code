@@ -1,7 +1,7 @@
 import { commandJson } from "./command-engine-values.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import type {
-  PptxCommandEngineOptions,
+  AdmittedCommandEngineOptions as PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxPublicationRequest
 } from "./command-engine.js";

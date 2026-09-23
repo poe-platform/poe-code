@@ -26,7 +26,7 @@ export interface ByteLimits {
 }
 
 export interface ByteContext {
-  readonly limits: ByteLimits;
+  readonly limits?: Partial<ByteLimits>;
   readonly signal?: AbortSignal;
 }
 

@@ -108,7 +108,7 @@ describe("XML budgets", () => {
   it("checks work beyond byte decoding and validates numeric configuration", () => {
     const bytes = utf8('<r a="value">&#65;</r>');
     expect(() => parseDocumentXml(bytes, { maxWork: bytes.length })).toThrow(ResourceLimitError);
-    for (const value of [0, -1, 1.5, Infinity, NaN]) {
+    for (const value of [0, -1, 1.5, NaN]) {
       expect(() => parseDocumentXml(bytes, { maxWork: value })).toThrow(InvalidValueError);
     }
     expect(() => parseDocumentXml(bytes, { unknown: 1 } as never)).toThrow(InvalidValueError);

@@ -1,6 +1,7 @@
 import { SaxesParser } from "saxes";
 import type { PackageReader } from "./package-reader.js";
 import { OfficeError } from "./errors.js";
+import { resourceContext } from "./resource-limits.js";
 import {
   asciiKey,
   packageUri,
@@ -39,7 +40,7 @@ function invalid(): never {
   throw new OfficeError("invalid-opc", "Invalid package relationships.", "index");
 }
 function bounded(count: number, limit: number): void {
-  if (!Number.isSafeInteger(limit) || limit < 1)
+  if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1)
     throw new OfficeError("invalid-value", "Explicit relationship limits are required.", "usage");
   if (count > limit)
     throw new OfficeError("resource-limit", "Relationship limit exceeded.", "index");
@@ -60,8 +61,9 @@ function validate(relationship: Relationship): void {
 
 export function parseRelationships(
   bytes: Uint8Array | null,
-  limits: RelationshipLimits
+  settings: Partial<RelationshipLimits> = {}
 ): readonly Relationship[] {
+  const limits = resourceContext({ relationshipLimits: settings }).relationshipLimits;
   bounded(bytes?.length ?? 0, limits.maxBytes);
   bounded(0, limits.maxRelationships);
   if (bytes === null) return Object.freeze([]);
@@ -134,8 +136,9 @@ export function parseRelationships(
 export function relationshipGraph(
   parts: readonly string[],
   sets: readonly RelationshipSet[],
-  limits: RelationshipLimits
+  settings: Partial<RelationshipLimits> = {}
 ): RelationshipGraph {
+  const limits = resourceContext({ relationshipLimits: settings }).relationshipLimits;
   bounded(parts.length, limits.maxParts);
   bounded(0, limits.maxRelationships);
   const names = new Map<string, string>();
@@ -300,8 +303,9 @@ function relationshipOwner(name: string): string | null {
 
 export function readRelationshipGraph(
   reader: PackageReader,
-  limits: RelationshipLimits
+  settings: Partial<RelationshipLimits> = {}
 ): RelationshipGraph {
+  const limits = resourceContext({ relationshipLimits: settings }).relationshipLimits;
   const parts: string[] = [];
   const sets: RelationshipSet[] = [];
   let bytesRead = 0;

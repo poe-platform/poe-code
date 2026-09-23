@@ -270,15 +270,15 @@ describe("XML command contracts", () => {
     const engine = createPptxCommandEngine(options);
     expect((await engine.execute(invocation([...args, "--limit", "maxNodes=1"]))).exitCode).toBe(4);
     for (const limits of [
-      ["maxNodes=1001"],
       ["unknown=1"],
-      ["maxNodes=2", "maxNodes=3"],
-      ["maxOutputBytes=511"]
+      ["maxNodes=2", "maxNodes=3"]
     ]) {
       const request = invocation([...args, ...limits.flatMap((value) => ["--limit", value])]);
       expect((await engine.execute(request)).exitCode).toBe(2);
       expect(request.readInput).not.toHaveBeenCalled();
     }
+    expect((await engine.execute(invocation([...args, "--limit", "maxNodes=1001"]))).exitCode).toBe(0);
+    expect((await engine.execute(invocation([...args, "--limit", "maxOutputBytes=1"]))).exitCode).toBe(4);
     expect(
       (
         await engine.execute(

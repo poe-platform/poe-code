@@ -9,30 +9,30 @@ export const documentXmlCache = Symbol("document-xml-cache");
 interface InvocationXmlCache { entries?: Map<string, DocumentXml[]>; admitted?: WeakSet<Uint8Array> }
 
 export const documentLimitDefaults = Object.freeze({
-  compressedInput: 64 * 1024 * 1024,
-  expandedPackage: 256 * 1024 * 1024,
-  zipEntries: 10_000,
-  xmlPartBytes: 32 * 1024 * 1024,
-  xmlNodes: 2_000_000,
-  xmlDepth: 256,
-  embeddedMediaBytes: 64 * 1024 * 1024,
-  retainedBytes: 512 * 1024 * 1024,
-  serializedOutput: 256 * 1024 * 1024,
-  batchOperations: 1_000,
-  matches: 100_000,
-  insertedNodes: 1_000_000,
-  tableCells: 100_000,
-  tableRows: 10_000,
-  tableColumns: 1_024,
-  diagnosticBytes: 64 * 1024,
-  work: 512 * 1024 * 1024
+  compressedInput: Infinity,
+  expandedPackage: Infinity,
+  zipEntries: Infinity,
+  xmlPartBytes: Infinity,
+  xmlNodes: Infinity,
+  xmlDepth: Infinity,
+  embeddedMediaBytes: Infinity,
+  retainedBytes: Infinity,
+  serializedOutput: Infinity,
+  batchOperations: Infinity,
+  matches: Infinity,
+  insertedNodes: Infinity,
+  tableCells: Infinity,
+  tableRows: Infinity,
+  tableColumns: Infinity,
+  diagnosticBytes: Infinity,
+  work: Infinity
 });
 export type DocumentLimitName = keyof typeof documentLimitDefaults;
 export type DocumentLimits = Readonly<Record<DocumentLimitName, number>>;
 const perDocument = new Set<DocumentLimitName>(["compressedInput", "expandedPackage", "zipEntries"]);
 const zeroCapacity = new Set<DocumentLimitName>(["embeddedMediaBytes", "batchOperations", "matches", "insertedNodes"]);
 
-function settings(values: Partial<DocumentLimits>, ceilings: DocumentLimits, lower: boolean): DocumentLimits {
+function settings(values: Partial<DocumentLimits>, ceilings: DocumentLimits): DocumentLimits {
   if (!values || typeof values !== "object" || Array.isArray(values))
     throw new InvalidValueError("Expected document limits.");
   const result = { ...ceilings };
@@ -42,9 +42,9 @@ function settings(values: Partial<DocumentLimits>, ceilings: DocumentLimits, low
     const name = key as DocumentLimitName;
     const descriptor = Object.getOwnPropertyDescriptor(values, key)!;
     const value: unknown = descriptor.value;
-    if (!("value" in descriptor) || typeof value !== "number" || !Number.isSafeInteger(value) ||
-      value < (zeroCapacity.has(name) ? 0 : 1) || (lower && value > ceilings[name]))
-      throw new InvalidValueError("Document limits must be safe integers within host ceilings.");
+    if (!("value" in descriptor) || typeof value !== "number" || (value !== Infinity && !Number.isSafeInteger(value)) ||
+      value < (zeroCapacity.has(name) ? 0 : 1))
+      throw new InvalidValueError("Document limits must be nonnegative safe integers or unlimited.");
     result[name] = value;
   }
   return Object.freeze(result);
@@ -64,7 +64,7 @@ export class DocumentBudget {
     yieldTurn: (signal: AbortSignal) => Promise<void> = async () => {
       await new Promise<void>(resolve => setTimeout(resolve, 0));
     }) {
-    this.limits = settings(host, documentLimitDefaults, false);
+    this.limits = settings(host, documentLimitDefaults);
     if (!(signal instanceof AbortSignal) || typeof yieldTurn !== "function")
       throw new InvalidValueError("Expected a cancellation signal and cooperative scheduler.");
     this.signal = signal;
@@ -83,7 +83,7 @@ export class DocumentBudget {
   }
 
   lower(options: Partial<DocumentLimits>, signal = this.signal): DocumentBudget {
-    const next = new DocumentBudget(settings(options, this.limits, true),
+    const next = new DocumentBudget(settings(options, this.limits),
       signal === this.signal ? signal : AbortSignal.any([this.signal, signal]), this.#turn);
     next.#ledger = this.#ledger;
     next.#document = this.#document;

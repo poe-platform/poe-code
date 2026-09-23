@@ -7,6 +7,7 @@ import { asciiKey } from "./package-uri.js";
 import { readRelationshipGraph, type RelationshipGraph } from "./relationships.js";
 import type { SelectionContext } from "./selectors.js";
 import { parseXmlPart, type XmlPart, type XmlMerge } from "./xml.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export class SlideTransferBudget {
   private bytes = 0;
@@ -19,14 +20,8 @@ export class SlideTransferBudget {
   private written = 0;
 
   readonly context: SelectionContext;
-  constructor(context: SelectionContext) {
-    this.context = {
-      ...context,
-      limits: { ...context.limits },
-      archiveLimits: { ...context.archiveLimits },
-      xmlLimits: { ...context.xmlLimits },
-      relationshipLimits: { ...context.relationshipLimits }
-    };
+  constructor(context: ResourceContext = {}) {
+    this.context = resourceContext(context);
   }
 
   private charge(

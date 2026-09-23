@@ -63,7 +63,7 @@ class DocumentLocations {
   #mutating = false;
   readonly #sourceSha256: string;
   readonly #admission: Pick<AdmittedDocumentArchive, "mainPart" | "dialect">;
-  readonly #context: ArchiveContext;
+  readonly #context: ReturnType<typeof archiveSettings>;
   readonly #budget: DocumentBudget;
   readonly #inventory: boolean;
 

@@ -41,7 +41,7 @@ it("keeps from_blob byte-only even with a trusted VFS resolver", async () => {
   ] }, context)).rejects.toThrow();
   expect(opens).toBe(0);
 });
-it("reads every immutable Image property and rejects higher per-item ceilings", async () => {
+it("reads every immutable Image property and accepts higher per-item limits", async () => {
   const input = await textFixture(paragraph("Harbor"));
   const blob = { kind: "bytes", base64: Buffer.from(rasterPng()).toString("base64") };
   const names = ["content_type", "ext", "filename", "px_width", "px_height", "horz_dpi", "vert_dpi", "width", "height", "sha1"];
@@ -55,5 +55,5 @@ it("reads every immutable Image property and rejects higher per-item ceilings", 
   expect(applied.results[10]?.value).toEqual(expect.stringMatching(/^[0-9a-f]{40}$/));
   await expect(applyStyleModelBatch(input, { version: 1, operations: [
     { operation: `${prefix}.from_blob.call`, arguments: { blob, context: { limits: { embeddedMediaBytes: Number.MAX_SAFE_INTEGER } } } }
-  ] }, textContext)).rejects.toThrow("ceilings");
+  ] }, textContext)).resolves.toMatchObject({ affected: 0 });
 });

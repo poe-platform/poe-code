@@ -529,7 +529,7 @@ export async function replaceDocumentImage(
             : options.output === "-"
               ? null
               : (options.output ?? null),
-          bytes: settings.limits.maxArchiveBytes,
+          bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER),
           sha256: "0".repeat(64)
         }
   };

@@ -140,11 +140,19 @@ it("bounds admission, text and cumulative search work", () => {
   expect(() =>
     bestFitText(metrics, "A A A", { ...font, width: 100, height: 100, maxSize: 18 }, { maxWork: 8 })
   ).toThrowError(expect.objectContaining({ code: "resource-limit" }));
-  expect(() => measureText(metrics, "A", options, { maxWork: Infinity })).toThrow();
+  expect(() => measureText(metrics, "A", options, { maxWork: Infinity })).not.toThrow();
   expect(() => measureText(metrics, "A", { ...options, width: NaN })).toThrow();
   expect(() =>
     bestFitText(metrics, "A", { ...font, width: 10, height: 10, maxSize: 1.5 })
   ).toThrow();
+});
+
+it("leaves omitted font text/work budgets unlimited and permits larger explicit settings", () => {
+  const metrics = admitFontMetrics(data(), { maxGlyphs: 7 });
+  const text = "A".repeat(65_537);
+  const wide = { ...options, width: 1_000_000 };
+  expect(measureText(metrics, text, wide).lines[0]!.text.length).toBe(text.length);
+  expect(measureText(metrics, text, wide, { maxTextLength: text.length }).lines[0]!.text.length).toBe(text.length);
 });
 
 it.each([

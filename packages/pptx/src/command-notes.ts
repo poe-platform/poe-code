@@ -1,5 +1,5 @@
 import type {
-  PptxCommandEngineOptions,
+  AdmittedCommandEngineOptions as PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxPublicationRequest
 } from "./command-engine.js";

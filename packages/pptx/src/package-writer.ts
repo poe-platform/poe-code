@@ -3,6 +3,7 @@ import { readBinary } from "./bytes.js";
 import type { BinaryInput } from "./contracts.js";
 import type { PackageContext } from "./package-reader.js";
 import { OfficeError } from "./errors.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface ArchiveMember {
   readonly name: string;
@@ -22,9 +23,10 @@ const zip = createZipCodec(undefined, {
 
 export async function writePackageArchive(
   members: readonly ArchiveMember[],
-  context: PackageContext,
+  settings: ResourceContext,
   options: ArchiveWriteOptions
 ): Promise<Uint8Array> {
+  const context: PackageContext = resourceContext(settings);
   if (!context?.limits || !context.archiveLimits || !Array.isArray(members)) {
     throw new OfficeError(
       "invalid-type",
@@ -55,11 +57,11 @@ export async function writePackageArchive(
     "chunkSize"
   ] as const;
   if (
-    keys.some((key) => !Number.isSafeInteger(limits[key]) || limits[key] < 1) ||
+    keys.some((key) => (limits[key] !== Infinity && !Number.isSafeInteger(limits[key])) || limits[key] < 1) ||
     Object.keys(limits).some((key) => !keys.some((known) => known === key)) ||
     ["maxBytes", "maxReads", "chunkBytes"].some((key) => {
       const value = byteLimits[key as keyof typeof byteLimits];
-      return !Number.isSafeInteger(value) || value < 1;
+      return (value !== Infinity && !Number.isSafeInteger(value)) || value < 1;
     }) ||
     limits.chunkSize < 512 ||
     limits.chunkSize > 1048576

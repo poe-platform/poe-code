@@ -76,7 +76,7 @@ function details(id: string, declaration: DocxOperationSchema): string {
   const lines = [usage(id, declaration), "", description(declaration), "",
     `Support for this operation: ${operationSupport(id, declaration)}.`,
     "Support: edit changes only the admitted subset; read returns snapshots; preserve retains unedited bytes; reject provides no execution support.",
-    "Limits: --limit NAME=VALUE lowers trusted ceilings only; duplicate names or increased ceilings reject. Capabilities lists effective limits.",
+    "Limits: resources are unlimited unless explicitly set with --limit NAME=VALUE; duplicate names reject. Capabilities lists effective limits.",
     "Output: reads use stdout; --json emits one version 1 result. Diagnostics use stderr; package --output - is pure binary and conflicts with --json except dry-run.",
     "Mutations require --output or --in-place unless --dry-run. Existing outputs require --force; aliases of input require --in-place. Dry-run publishes nothing.",
     "Exit: 0 success; 1 document/edit/selection failure; 2 usage; 3 I/O/publication; 4 limit; 130 cancellation. Diff uses 0 equal, 1 different, 2 failed, 130 cancellation."];
@@ -292,7 +292,7 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
     data: { name: "docx", version: metadata.version, schemaVersion: 1 }, human: `docx ${escapeTerminalText(metadata.version)}\n`
   });
   if (invocation.operation === "capabilities") {
-    const limits = Object.entries(budget.limits).map(([name, ceiling]) => ({ name, ceiling }));
+    const limits = Object.entries(budget.limits).filter(([, ceiling]) => ceiling !== Infinity).map(([name, ceiling]) => ({ name, ceiling }));
     const data: DocxCapabilitiesData = { input: null, features: [
         { id: "F01", level: "edit", subsets: [{ name: "bounded-opc", level: "edit", reason: "Bounded ZIP/OPC read and validated publication; encrypted and multi-disk packages reject. Full schema validation is not provided." }], detected: null },
         { id: "F02", level: "edit", subsets: [{ name: "original-dialect", level: "edit", reason: "Admit Strict and Transitional dialects and edit only supported structures in the original dialect. No implicit conversion or full schema certification." }], detected: null },

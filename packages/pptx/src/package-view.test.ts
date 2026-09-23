@@ -79,7 +79,7 @@ it("rejects malformed, graph-breaking, structural and unsupported blob writes at
 
 it("enforces canonical lookup, byte limits, cancellation and stale publication", async () => {
   const controller = new AbortController();
-  const deck = await Presentation(undefined, { signal: controller.signal });
+  const deck = await Presentation(undefined, { signal: controller.signal, xmlLimits: { maxBytes: 8_388_608 } });
   for (const name of ["../private", "/../private", "file:///private", 1, null])
     expect(() => deck.part.package.get_part(name as never)).toThrow();
   expect(() => {

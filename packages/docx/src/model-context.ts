@@ -5,7 +5,6 @@ import {
   type ArchiveContext,
   type ArchiveLimits
 } from "./archive.js";
-import { documentLimitDefaults } from "./budget.js";
 
 /** Explicit admitted metrics; no host font lookup is performed. */
 export interface DocumentFontMetrics {
@@ -48,20 +47,6 @@ export function modelContext(
   }
   if (context.signal !== undefined && !(context.signal instanceof AbortSignal))
     throw new InputTypeError("Expected a cancellation signal.");
-  const defaults = documentLimitDefaults;
-  const limits: ArchiveLimits = context.limits ?? {
-    maxArchiveBytes: defaults.compressedInput,
-    maxEntryBytes: defaults.xmlPartBytes,
-    maxTotalBytes: defaults.expandedPackage,
-    maxMembers: defaults.zipEntries,
-    maxPathBytes: 4096,
-    maxDepth: defaults.xmlDepth,
-    maxExtraBytes: 65535,
-    maxCommentBytes: 65535,
-    maxRetainedBytes: defaults.retainedBytes,
-    chunkSize: 65536,
-    ...defaultLimits
-  };
   for (const value of [context.limits, context.binaryResolver, context.metrics]) {
     if (value === undefined) continue;
     if (
@@ -74,6 +59,7 @@ export function modelContext(
     )
       throw new InputTypeError("Expected finite model capability data.");
   }
+  const limits = { ...defaultLimits, ...context.limits };
   const timestamp =
     context.timestamp === undefined ? new Date("1980-01-01T00:00:00Z") : context.timestamp;
   if (!(timestamp instanceof Date) || !Number.isFinite(Date.prototype.getTime.call(timestamp)))

@@ -23,7 +23,7 @@ export interface StagedArchiveSession {
 
 export interface ArchiveContext {
   readonly [documentSession]?: StagedArchiveSession;
-  readonly limits: ArchiveLimits;
+  readonly limits?: Partial<ArchiveLimits>;
   readonly signal: AbortSignal;
   readonly budget?: DocumentBudget;
 }
@@ -65,9 +65,14 @@ export function archiveSettings(context: ArchiveContext): {
   budget: DocumentBudget;
   [documentSession]?: StagedArchiveSession;
 } {
-  if (!context || !context.limits || !(context.signal instanceof AbortSignal))
-    throw new InputTypeError("Expected bytes, explicit limits and a cancellation signal.");
-  const limits = { ...context.limits };
+  if (!context || !(context.signal instanceof AbortSignal))
+    throw new InputTypeError("Expected bytes and a cancellation signal.");
+  const limits = {
+    maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity,
+    maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity,
+    maxExtraBytes: Infinity, maxCommentBytes: Infinity, maxRetainedBytes: Infinity,
+    chunkSize: 65536, ...context.limits
+  };
   const signal = context.budget ? AbortSignal.any([context.signal, context.budget.signal]) : context.signal;
   const keys = [
     "maxArchiveBytes",
@@ -85,7 +90,7 @@ export function archiveSettings(context: ArchiveContext): {
     throw new InvalidValueError("Unknown archive limit.");
   for (const key of keys) {
     const minimum = key === "maxExtraBytes" || key === "maxCommentBytes" ? 0 : 1;
-    if (!Number.isSafeInteger(limits[key]) || limits[key] < minimum)
+    if ((limits[key] !== Infinity && !Number.isSafeInteger(limits[key])) || limits[key] < minimum)
       throw new InvalidValueError("Archive limits must be safe integers with sufficient capacity.");
   }
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024)

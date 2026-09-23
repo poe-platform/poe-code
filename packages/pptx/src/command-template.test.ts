@@ -170,13 +170,13 @@ describe("typed template commands", () => {
     expect(decode(capabilities.stdout)).toContain("isolated-instance");
     expect(f.readInput).not.toHaveBeenCalled();
   });
-  it("discovers explicit repeat policies and record limits", async () => {
+  it("discovers explicit repeat policies without hidden record limits", async () => {
     const f = await fixture();
     const result = await f.run(["schema", "template", "apply", "--json"]);
     expect(result.exitCode).toBe(0);
     const schema = JSON.parse(decode(result.stdout));
     expect(JSON.stringify(schema)).toContain('"shared-media"');
     expect(JSON.stringify(schema)).toContain('"records"');
-    expect(JSON.stringify(schema)).toContain('"maxItems":1000');
+    expect(JSON.stringify(schema)).not.toContain('"maxItems":1000');
   });
 });

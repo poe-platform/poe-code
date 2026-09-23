@@ -55,11 +55,10 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   if (!options || typeof options !== "object" || Array.isArray(options) ||
     Object.keys(options).some(k => !["profile", "maxParts", "maxBytes", "maxNodes", "maxDiagnostics"].includes(k)) ||
     (options.profile !== undefined && options.profile !== "core-v1")) throw new InvalidValueError("Unknown validation profile or option.");
-  const limits = { maxParts: Math.min(4096, budget.limits.zipEntries), maxBytes: Math.min(32 * 1024 * 1024, budget.limits.expandedPackage), maxNodes: Math.min(200000, budget.limits.xmlNodes), maxDiagnostics: 1000 };
+  const limits = { maxParts: budget.limits.zipEntries, maxBytes: budget.limits.expandedPackage, maxNodes: budget.limits.xmlNodes, maxDiagnostics: Infinity };
   for (const key of Object.keys(limits) as (keyof typeof limits)[]) {
     const value = options[key] ?? limits[key];
-    const ceiling = key === "maxParts" ? budget.limits.zipEntries : key === "maxBytes" ? budget.limits.expandedPackage : key === "maxNodes" ? budget.limits.xmlNodes : 1000;
-    if (!Number.isSafeInteger(value) || value < 1 || value > ceiling) throw new InvalidValueError("Validation limits must be positive safe integers within host ceilings.");
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) throw new InvalidValueError("Validation limits must be positive safe integers or unlimited.");
     limits[key] = value;
   }
   if (!archive || !Array.isArray(archive.members)) throw new InputTypeError("Expected decoded archive members.");
@@ -119,8 +118,8 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   let graph: DocumentPackage;
   try {
     graph = new DocumentPackage(archive, { maxMembers: limits.maxParts, maxArchiveBytes: limits.maxBytes,
-      maxEntryBytes: limits.maxBytes, maxTotalBytes: limits.maxBytes, maxPathBytes: 4096, maxDepth: 256,
-      maxExtraBytes: 0, maxCommentBytes: 0, maxRetainedBytes: budget.limits.retainedBytes, chunkSize: 4096 }, budget);
+      maxEntryBytes: limits.maxBytes, maxTotalBytes: limits.maxBytes, maxPathBytes: Infinity, maxDepth: Infinity,
+      maxExtraBytes: Infinity, maxCommentBytes: Infinity, maxRetainedBytes: budget.limits.retainedBytes, chunkSize: 4096 }, budget);
   } catch (e) {
     if (!(e instanceof InvalidPackageError || e instanceof InvalidXmlError)) throw e;
     add(e instanceof InvalidPackageError ? e.diagnosticCode : "invalid-xml", e instanceof InvalidPackageError ? e.part ?? "/" : "/", e instanceof InvalidPackageError ? e.location : "/", e.message, "relationships");

@@ -293,7 +293,7 @@ async function mutateDocumentText(input: Uint8Array, options: TextReplaceOptions
     ...(opts.inPlace === undefined ? {} : { inPlace: opts.inPlace }), ...(opts.force === undefined ? {} : { force: opts.force }),
     ...(opts.dryRun === undefined ? {} : { dryRun: opts.dryRun }), ...(opts.json === undefined ? {} : { json: opts.json }) };
   const prospective: TextMutationData = { changed, changes, dryRun: opts.dryRun ?? false, output: opts.dryRun ? null : {
-    path: opts.inPlace ? identity?.path ?? null : opts.output === "-" ? null : opts.output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
+    path: opts.inPlace ? identity?.path ?? null : opts.output === "-" ? null : opts.output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation, ok: true,
     data: prospective, affected: changes.length, locations: changes.map(c => c.after), warnings: [], errors: [] }) + "\n").length);
   const result = await publishDocumentArchive(editor.snapshot(), publication, { ...context, budget }, archive);

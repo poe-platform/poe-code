@@ -61,7 +61,7 @@ function array(value: unknown): asserts value is unknown[] {
     if (!("value" in (Object.getOwnPropertyDescriptor(value, String(i)) ?? {}))) invalid();
 }
 function text(value: unknown): asserts value is string {
-  if (typeof value !== "string" || value.length > 1048576) invalid();
+  if (typeof value !== "string") invalid();
   for (const character of value) {
     const point = character.codePointAt(0)!;
     if (
@@ -85,7 +85,6 @@ export function validateTemplateBindings(
   bindings: unknown
 ): asserts bindings is readonly TemplateBinding[] {
   array(bindings);
-  if (bindings.length > 1000) invalid();
   const seen = new Set<string>();
   for (const binding of bindings) {
     object(
@@ -120,11 +119,11 @@ export function validateTemplateBindings(
     if (binding.kind === "text") text(binding.text);
     else if (binding.kind === "table") {
       array(binding.table);
-      if (!binding.table.length || binding.table.length > 250000) invalid();
+      if (!binding.table.length) invalid();
       let columns = 0;
       for (const row of binding.table) {
         array(row);
-        if (!row.length || row.length > 250000 || (columns && columns !== row.length)) invalid();
+        if (!row.length || (columns && columns !== row.length)) invalid();
         columns = row.length;
         for (const cell of row) text(cell);
       }
@@ -172,7 +171,6 @@ export async function applyTemplateBindings(
   validateTemplateBindings(bindings);
   array(selectedSlides);
   if (
-    selectedSlides.length > 1000 ||
     new Set(selectedSlides).size !== selectedSlides.length ||
     selectedSlides.some((slide) => !Number.isSafeInteger(slide) || slide < 1)
   )

@@ -12,7 +12,7 @@ export const diffUsage =
   "Modes: structural (default), text, media, relationships, raw.\n" +
   "effective-formatting is rejected until inherited formatting can be resolved.\n" +
   "Formatting is explicitly raw; media uses SHA-256 without decoding or rendering.\n" +
-  "Limits: maxBytes, maxNodes, maxDepth, maxOutputBytes; only lower trusted ceilings.\n" +
+  "Optional limits: maxBytes, maxNodes, maxDepth, maxOutputBytes; overrides can raise or lower settings.\n" +
   "Use - for one stdin input; -- ends options. No files are modified.\n" +
   "Status: 0 equal, 1 different, 2 trouble, 130 cancelled. Differences have ok: true.\n";
 export const diffSchema = {

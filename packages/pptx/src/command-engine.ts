@@ -197,8 +197,14 @@ import {
 import { getXmlPart, replaceXmlPart } from "./xml-parts.js";
 import { validatePresentation, type ValidationLimits } from "./validation.js";
 import { readPackage } from "./package-reader.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface PptxCommandEngineOptions {
+  readonly context?: ResourceContext & { readonly validationLimits?: Partial<ValidationLimits> };
+  readonly maxArgumentBytes?: number;
+  readonly maxOutputBytes?: number;
+}
+export interface AdmittedCommandEngineOptions {
   readonly context: Omit<SelectionContext, "signal"> & {
     readonly validationLimits?: ValidationLimits;
   };
@@ -416,8 +422,8 @@ const help =
   "XML operations also accept --select TOKEN instead of --part/--scope.\n" +
   "XML get reads package metadata with --part URI --scope shared.\n" +
   "Input '-' reads stdin; '--' ends options. Output - writes package bytes.\n" +
-  "--limit NAME=VALUE lowers maxBytes, maxNodes, maxDepth or maxOutputBytes.\n" +
-  "Repeat --limit for distinct names; output requires at least 512 bytes.\n" +
+  "--limit NAME=VALUE sets maxBytes, maxNodes, maxDepth or maxOutputBytes.\n" +
+  "Resources are unlimited unless set with --limit; repeat for distinct names.\n" +
   "XML get emits original bytes; --pretty labels formatted output.\n" +
   "XML set validates before publication; supported existing drawing/run children\n" +
   "may be reordered or removed. Opaque content and resource bindings are retained.\n" +
@@ -1579,7 +1585,6 @@ function parse(
       if (operation !== "template.apply") usage("Binding sources require template apply.");
       if (argument === "--data-file") result.dataFile = value;
       else {
-        if (value.length > 1048576) usage("Binding JSON exceeds the text limit.");
         const bindings = commandJson(value);
         validateTemplateData(bindings);
         result.bindings = bindings;
@@ -4017,7 +4022,7 @@ const declaredOperations = {
 
 async function execute(
   request: PptxCommandRequest,
-  options: PptxCommandEngineOptions
+  options: AdmittedCommandEngineOptions
 ): Promise<PptxCommandOutput> {
   if (request.args?.[0] instanceof Uint8Array && request.args[0].length === 4 &&
     request.args[0].every((byte, index) => byte === [100, 105, 102, 102][index]))
@@ -4048,22 +4053,6 @@ async function execute(
     const args = parse(request.args, options.maxArgumentBytes, output);
     if (args.limits) {
       const validation = options.context.validationLimits;
-      const ceilings: Record<string, number> = {
-        maxBytes: Math.min(
-          options.context.limits.maxBytes,
-          options.context.archiveLimits.maxArchiveBytes,
-          options.context.xmlLimits.maxBytes,
-          validation?.maxBytes ?? Infinity
-        ),
-        maxNodes: Math.min(options.context.xmlLimits.maxNodes, validation?.maxNodes ?? Infinity),
-        maxDepth: Math.min(options.context.xmlLimits.maxDepth, validation?.maxDepth ?? Infinity),
-        maxOutputBytes: options.maxOutputBytes,
-        maxOutputs: options.context.archiveLimits.maxMembers
-      };
-      for (const [name, value] of Object.entries(args.limits)) {
-        if (value > ceilings[name]! || (name === "maxOutputBytes" && value < 512))
-          usage("Limits must lower trusted ceilings; output requires at least 512 bytes.");
-      }
       const loweredXml = Object.fromEntries(
         Object.entries(args.limits).filter(
           ([key]) => key !== "maxOutputBytes" && key !== "maxOutputs"
@@ -6866,16 +6855,24 @@ async function execute(
   };
 }
 
-export function createPptxCommandEngine(options: PptxCommandEngineOptions): PptxCommandEngine {
+export function createPptxCommandEngine(settings: PptxCommandEngineOptions = {}): PptxCommandEngine {
+  const context = resourceContext(settings.context);
+  const options = {
+    maxArgumentBytes: settings.maxArgumentBytes ?? Infinity,
+    maxOutputBytes: settings.maxOutputBytes ?? Infinity,
+    context: { ...context, validationLimits: {
+      ...context.xmlLimits, ...context.relationshipLimits,
+      maxEntries: context.archiveLimits.maxMembers, ...settings.context?.validationLimits
+    } }
+  };
   if (
     !options?.context ||
     ![options.maxArgumentBytes, options.maxOutputBytes, options.context.limits?.maxBytes].every(
-      (value) => Number.isSafeInteger(value) && value > 0
-    ) ||
-    options.maxOutputBytes < 512
+      (value) => (value === Infinity || Number.isSafeInteger(value)) && value > 0
+    )
   )
     throw new TypeError(
-      "Explicit positive pptx limits and at least 512 output bytes are required."
+      "Pptx limits must be positive safe integers or unlimited."
     );
   const owned = {
     ...options,

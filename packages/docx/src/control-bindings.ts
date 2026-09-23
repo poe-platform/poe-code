@@ -105,7 +105,7 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
     stages.push(prepareControlValue(xml, node, item, values, bounded));
   }
   const changes = recipients.map(item => { const before: Location = item.location, value = { ...before.value, generation: 1 }; return { kind: "replace" as const, before, after: { ...before, value, token: encodeLocation(value) } }; });
-  const prospective = { changed: true, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
+  const prospective = { changed: true, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "controls.bind", ok: true, data: prospective, affected: changes.length, locations: changes.map(change => change.after), warnings: [], errors: [] }) + "\n").length);
   // Rewrite scalar tokens without touching namespace declarations or opaque siblings.
   target.xml.replaceScalarText(target.leaf, lexical);

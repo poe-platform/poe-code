@@ -139,7 +139,7 @@ it("uses an inert bin extension for an unknown imported media type", async () =>
     (await extractMedia(fixture(false, "application/x-custom"), limits, context))[0]!.name
   ).toBe("part-000001.bin");
 });
-it.each([0, -1, 1.5, Infinity, NaN])("rejects invalid extraction limits %s", async (maxOutputs) => {
+it.each([0, -1, 1.5, NaN])("rejects invalid extraction limits %s", async (maxOutputs) => {
   await expect(extractMedia(fixture(), { ...limits, maxOutputs }, context)).rejects.toMatchObject({
     code: "invalid-value"
   });

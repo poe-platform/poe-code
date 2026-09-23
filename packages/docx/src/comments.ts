@@ -196,7 +196,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     const after = update.kind === "remove" ? null : { ...record!.location!, value: value!, token: encodeLocation(value!) };
     return { kind: update.kind, before: update.before, after };
   });
-  const prospective = { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: options.dryRun ? null : { path: options.output ?? request.input?.path ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
+  const prospective = { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: options.dryRun ? null : { path: options.output ?? request.input?.path ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: request.operation, ok: true, data: prospective, affected: changes.length, locations: changes.flatMap(c => c.after ? [c.after] : []), warnings: [], errors: [] }) + "\n").length);
   const result = await publishDocumentArchive(finalArchive, publication, { ...context, budget });
   return { changed: changes.length > 0, changes, dryRun: options.dryRun ?? false, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };

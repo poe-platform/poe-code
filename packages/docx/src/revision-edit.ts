@@ -48,7 +48,7 @@ export async function editDocumentRevisions(input: Uint8Array, options: Revision
   }
   stageTrackedText(editor, edits, { author, timestamp }, budget, settings.limits);
   const changes = edits.map(edit => { const value = { ...edit.paragraph.value, generation: 1 }; return { kind: kind === "insert" ? "insert" as const : "remove" as const, before: edit.paragraph, after: { ...edit.paragraph, value, token: encodeLocation(value) } }; });
-  const prospective = { changed: edits.length > 0, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
+  const prospective = { changed: edits.length > 0, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "revisions.add", ok: true, data: prospective, affected: changes.length, locations: changes.map(change => change.after), warnings: [], errors: [] }) + "\n").length);
   const published = await publishDocumentArchive(editor.snapshot(), { ...(identity ? { input: identity } : {}), ...(output === undefined ? {} : { output }), ...(inPlace === undefined ? {} : { inPlace }), ...(force === undefined ? {} : { force }), ...(dryRun === undefined ? {} : { dryRun }), ...(json === undefined ? {} : { json }) }, { ...context, budget });
   return { ...prospective, output: published.published.length ? { path: published.published[0]!.path, bytes: published.published[0]!.bytes, sha256: published.archiveSha256! } : null };

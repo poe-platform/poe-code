@@ -49,7 +49,6 @@ interface MetricTable {
   advances: Map<string, number>;
 }
 const tables = new WeakMap<FontMetricsHandle, MetricTable>();
-const ceilings: MetricLimits = { maxGlyphs: 65536, maxTextLength: 65536, maxWork: 4000000 };
 
 function invalid(): never {
   throw new OfficeError("invalid-value", "Invalid font metric or measurement input.", "usage");
@@ -105,9 +104,9 @@ function identity(value: FontIdentity): void {
 }
 function limits(options: Partial<MetricLimits>): MetricLimits {
   fields(options, ["maxGlyphs", "maxTextLength", "maxWork"]);
-  const resolved = { ...ceilings, ...options };
-  for (const key of Object.keys(ceilings) as (keyof MetricLimits)[])
-    bounded(resolved[key], 1, ceilings[key], true);
+  const resolved = { maxGlyphs: Infinity, maxTextLength: Infinity, maxWork: Infinity, ...options };
+  for (const value of Object.values(resolved))
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) invalid();
   return resolved;
 }
 function scalar(value: string): boolean {

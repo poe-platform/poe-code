@@ -362,8 +362,8 @@ export const capabilitiesUsage =
     .map((name) => `--${name}${name === "limit" ? " NAME=VALUE" : ""}`)
     .join("] [")}]\n` +
   `${capabilitiesSchema.description}\n` +
-  "Scopes: whole package; selectors are unavailable. Limits may only lower host ceilings.\n" +
-  "Limit names: maxBytes, maxNodes, maxDepth, maxOutputBytes (minimum 512).\n" +
+  "Scopes: whole package; selectors are unavailable. Limits are optional and override earlier settings.\n" +
+  "Limit names: maxBytes, maxNodes, maxDepth, maxOutputBytes.\n" +
   "Output: read-only support report; no output files or publication. Input is read through explicit capabilities only.\n" +
   "Levels: edit = documented mutation subset; read = inspection; preserve = opaque retention; reject = unavailable behavior.\n" +
   "Input assessment inventories XML namespaces and opaque parts; it does not certify document validity or editing readiness.\n" +

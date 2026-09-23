@@ -152,7 +152,7 @@ describe("package byte reader", () => {
     });
   });
 
-  it.each([0, -1, 1.5, NaN, Infinity])(
+  it.each([0, -1, 1.5, NaN])(
     "rejects invalid ceilings before I/O: %s",
     async (maxMembers) => {
       const read = vi.fn();
@@ -263,11 +263,11 @@ describe("package byte reader", () => {
     expect(read).not.toHaveBeenCalled();
   });
 
-  it("reports invalid context without native errors or source reads", async () => {
+  it("allows omitted byte settings when archive settings are supplied", async () => {
     const read = vi.fn();
     await expect(
       readPackage({ read }, { archiveLimits: context.archiveLimits } as never)
-    ).rejects.toMatchObject({ code: "invalid-type", phase: "usage" });
-    expect(read).not.toHaveBeenCalled();
+    ).rejects.toMatchObject({ code: "invalid-type", phase: "admit" });
+    expect(read).toHaveBeenCalled();
   });
 });

@@ -15,13 +15,13 @@ const limits: ArchiveLimits = {
   maxCommentBytes: 1024, maxRetainedBytes: 4 * 1024 * 1024, chunkSize: 512
 };
 
-it("validates every host and operation ceiling before acquisition", () => {
+it("validates every host and operation limit before acquisition", () => {
   for (const key of Object.keys(documentLimitDefaults)) {
-    for (const value of [NaN, Infinity, -1, 0.5, Number.MAX_SAFE_INTEGER + 1, "2", undefined]) {
+    for (const value of [NaN, -1, 0.5, Number.MAX_SAFE_INTEGER + 1, "2", undefined]) {
       expect(() => new DocumentBudget({ [key]: value } as never)).toThrow(InvalidValueError);
     }
     const host = new DocumentBudget({ [key]: 2 });
-    expect(() => host.lower({ [key]: 3 })).toThrow(InvalidValueError);
+    expect(host.lower({ [key]: 3 }).limits[key as keyof typeof documentLimitDefaults]).toBe(3);
     expect(host.lower({ [key]: 1 }).limits[key as keyof typeof documentLimitDefaults]).toBe(1);
   }
   expect(() => new DocumentBudget({ typo: 1 } as never)).toThrow(InvalidValueError);
@@ -79,9 +79,9 @@ it("charges archive editor and snapshot copies before allocation", () => {
   expect(volume.readFileSync("/part.xml", "utf8")).toBe("<r/>");
 });
 
-it("enforces shared XML byte, node and work limits and lower-only parser options", () => {
+it("enforces shared XML byte, node and work limits and explicit parser options", () => {
   const input = bytes("<r><a/></r>");
-  expect(() => parseDocumentXml(input, { maxBytes: 12 }, new DocumentBudget({ xmlPartBytes: 11 }))).toThrow(InvalidValueError);
+  expect(parseDocumentXml(input, { maxBytes: 12 }, new DocumentBudget({ xmlPartBytes: 11 })).root.name).toBe("r");
   expect(() => parseDocumentXml(input, {}, new DocumentBudget({ xmlNodes: 1 }))).toThrow(ResourceLimitError);
   expect(() => parseDocumentXml(input, {}, new DocumentBudget({ work: 1 }))).toThrow(ResourceLimitError);
   expect(parseDocumentXml(input, {}, new DocumentBudget({ xmlPartBytes: input.length })).root.name).toBe("r");
@@ -172,7 +172,7 @@ it("charges original creation against the inserted-node ceiling", async () => {
 
 it("keeps returned package allocation and traversal on the invocation ledger", async () => {
   const fixture = await createDocumentFixture("garden");
-  const budget = new DocumentBudget();
+  const budget = new DocumentBudget({ work: 512 * 1024 * 1024 });
   const document = await readDocumentArchive(fixture.bytes, { limits, signal: new AbortController().signal, budget });
   budget.charge("work", budget.limits.work - budget.usage.work);
   expect(() => document.package.allocateRelationshipId("/")).toThrow(ResourceLimitError);
@@ -194,7 +194,7 @@ for (const kind of ["archive", "xml"] as const) {
   it(`charges unchanged ${kind} editor copies to work before allocation`, () => {
     const volume = Volume.fromJSON({ "/part.xml": "<r/>" });
     const input = new Uint8Array(volume.readFileSync("/part.xml") as Buffer);
-    const budget = new DocumentBudget();
+    const budget = new DocumentBudget({ work: 512 * 1024 * 1024 });
     const editor = kind === "archive"
       ? new DocumentArchiveEditor({ members: [{ name: "part.xml", bytes: input,
         directory: false, modified: new Date(0) }], comment: new Uint8Array() }, {}, undefined, budget)

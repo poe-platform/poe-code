@@ -27,7 +27,7 @@ import { executeStoriesCommand } from "./stories-command.js";
 import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
-import { type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
+import { archiveSettings, type ArchiveLimits, ResourceLimitError, CancellationError } from "./archive.js";
 import { DocumentBudget, documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { createDocxCommandEngine, commandDiagnostic, docxInvocationBudgets, type DocxCommandRequest } from "./command.js";
 import { DocumentIo } from "./io.js";
@@ -72,8 +72,8 @@ export interface DocxInspectionCommandResult {
 }
 
 /** Executes inspection, text and explicit XML operations with supplied filesystem authority. */
-export function createDocxInspectionCommandEngine(options: { readonly limits: ArchiveLimits; readonly documentLimits?: Partial<DocumentLimits> }) {
-  const limits = Object.freeze({ ...options.limits });
+export function createDocxInspectionCommandEngine(options: { readonly limits?: Partial<ArchiveLimits> | undefined; readonly documentLimits?: Partial<DocumentLimits> } = {}) {
+  const limits = Object.freeze(archiveSettings({ limits: options.limits ?? {}, signal: new AbortController().signal }).limits);
   return createDocxCommandEngine<DocxInspectionCommandRequest, DocxInspectionCommandResult>({
     async readSource(source, request, budget) {
       const io = new DocumentIo({ limits, signal: request.signal, budget, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });

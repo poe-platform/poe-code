@@ -3,8 +3,10 @@ import { readBinary } from "./bytes.js";
 import type { BinaryInput, ByteContext } from "./contracts.js";
 import { partName, asciiKey } from "./package-uri.js";
 import { OfficeError } from "./errors.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface PackageContext extends ByteContext {
+  readonly limits: import("./contracts.js").ByteLimits;
   readonly archiveLimits: ZipLimits;
 }
 
@@ -28,8 +30,9 @@ const zip = createZipCodec(undefined, {
 
 export async function readPackage(
   input: BinaryInput,
-  context: PackageContext
+  settings: ResourceContext = {}
 ): Promise<AdmittedPackageReader> {
+  const context = resourceContext(settings);
   if (!context?.limits) {
     throw new OfficeError("invalid-type", "Explicit byte limits are required.", "usage");
   }
@@ -47,7 +50,7 @@ export async function readPackage(
   ] as const;
   if (
     Object.keys(limits).some((key) => !keys.some((known) => known === key)) ||
-    keys.some((key) => !Number.isSafeInteger(limits[key]) || limits[key] < 1) ||
+    keys.some((key) => (limits[key] !== Infinity && !Number.isSafeInteger(limits[key])) || limits[key] < 1) ||
     limits.chunkSize < 512 ||
     limits.chunkSize > 1024 * 1024
   ) {

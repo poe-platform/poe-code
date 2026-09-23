@@ -8,10 +8,9 @@ export const templateUsage =
   "Repeat mediaPolicy is required: shared-media | isolated-instance.\n" +
   "All selected slide slots require bindings. Values are literal; expressions are never evaluated.\n" +
   "Mutations require --output PATH | --in-place | --dry-run. Common: --json --limit NAME=VALUE.\n";
-const text = { type: "string", maxLength: 1048576 };
+const text = { type: "string" };
 export const templateBindingsSchema = {
   type: "array",
-  maxItems: 1000,
   items: {
     oneOf: ["text", "table", "image"].map((kind) => ({
       type: "object",
@@ -30,8 +29,7 @@ export const templateBindingsSchema = {
               ? {
                   type: "array",
                   minItems: 1,
-                  maxItems: 250000,
-                  items: { type: "array", minItems: 1, maxItems: 250000, items: text }
+                  items: { type: "array", minItems: 1, items: text }
                 }
               : {
                   type: "object",
@@ -65,11 +63,10 @@ export const templateSchema = {
           slides: {
             type: "array",
             minItems: 1,
-            maxItems: 1000,
             uniqueItems: true,
             items: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER }
           },
-          records: { type: "array", maxItems: 1000, items: templateBindingsSchema },
+          records: { type: "array", items: templateBindingsSchema },
           mediaPolicy: { enum: ["shared-media", "isolated-instance"] }
         }
       }

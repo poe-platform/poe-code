@@ -28,6 +28,7 @@ export interface XmlMerge {
   };
 }
 export interface XmlPart {
+  readonly limits: XmlLimits;
   readonly nodeCount: number;
   readonly root: XmlElement;
   bytes(): Uint8Array;
@@ -164,13 +165,13 @@ function apply(
   return output.join("");
 }
 
-export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): XmlPart {
+export function parseXmlPart(input: Uint8Array, requestedLimits: Partial<XmlLimits> = {}): XmlPart {
   if (!(input instanceof Uint8Array))
     throw new OfficeError("invalid-type", "Expected XML bytes.", "usage");
   if (!requestedLimits) fail("invalid-value");
-  const limits = { ...requestedLimits };
+  const limits = { maxBytes: Infinity, maxNodes: Infinity, maxDepth: Infinity, ...requestedLimits };
   for (const value of [limits.maxBytes, limits.maxNodes, limits.maxDepth])
-    if (!Number.isSafeInteger(value) || value < 1) fail("invalid-value");
+    if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) fail("invalid-value");
   if (input.length > limits.maxBytes) fail("resource-limit");
   const original = Uint8Array.from(input);
   const little = (input[0] === 255 && input[1] === 254) || (input[0] === 60 && input[1] === 0);
@@ -323,6 +324,7 @@ export function parseXmlPart(input: Uint8Array, requestedLimits: XmlLimits): Xml
     return output;
   }
   return Object.freeze({
+    limits: Object.freeze(limits),
     nodeCount: nodes,
     root,
     bytes: () => Uint8Array.from(original),

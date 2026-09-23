@@ -1,4 +1,4 @@
-import type { PptxCommandEngineOptions, PptxCommandRequest, PptxPublicationRequest } from "./command-engine.js";
+import type { AdmittedCommandEngineOptions as PptxCommandEngineOptions, PptxCommandRequest, PptxPublicationRequest } from "./command-engine.js";
 import type { OfficeResult, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { metadataSchemas } from "./metadata-schema.js";

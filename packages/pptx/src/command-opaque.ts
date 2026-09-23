@@ -1,5 +1,5 @@
 import { sha256 } from "@noble/hashes/sha2.js";
-import type { PptxCommandEngineOptions, PptxCommandRequest, PptxPublicationRequest } from "./command-engine.js";
+import type { AdmittedCommandEngineOptions as PptxCommandEngineOptions, PptxCommandRequest, PptxPublicationRequest } from "./command-engine.js";
 import type { OfficeResult } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { extractObject, readFonts, readObjects } from "./opaque-objects.js";

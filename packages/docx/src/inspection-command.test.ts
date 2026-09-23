@@ -125,10 +125,11 @@ it("emits coded warnings on stderr and leaves human summaries bounded", async ()
   expect(stderr).toContain("docx:");
   expect(stdout.length).toBeLessThan(1000);
 });
-it("rejects caller limits above the explicitly configured host ceilings before input access", async () => {
+it("accepts caller limits above the previously configured settings", async () => {
+  const bytes = await fixture();
   const engine = createDocxInspectionCommandEngine({ limits });
-  const result = await engine.execute({ args: ["inspect", "input.docx", "--limit", "compressedInput=65537", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { throw new Error("input must not be acquired"); } }, stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write() {} }, stderr: { async write() {} }, signal });
-  expect(result.exitCode).toBe(2);
+  const result = await engine.execute({ args: ["inspect", "input.docx", "--limit", "compressedInput=65537", "--json"].map(value => encoder.encode(value)), cwd: "/", filesystem: { async readFile() { return bytes; } }, stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } }, stdout: { async write() {} }, stderr: { async write() {} }, signal });
+  expect(result.exitCode).toBe(0);
 });
 it("classifies a failed diagnostic sink without masking it as invalid document", async () => {
   const bytes = await fixture();

@@ -126,7 +126,7 @@ export async function editDocumentControlRepeats(input: Uint8Array, options: Doc
     for (const stage of stages) stage(); const bytes = fragment.serialize(); const owned = new DocumentXmlEditor(bytes, {}, undefined, budget); rendered.push(owned.sourceXml(owned.root.children[0]!));
   }
   const replacement = open(content) + rendered.join("") + `</${content.name}>`; const value = { ...location.value, generation: 1 }; const after = { ...location, value, token: encodeLocation(value) }; const changes = [{ kind: "replace" as const, before: location, after }];
-  const prospective = { changed: true, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
+  const prospective = { changed: true, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "controls.repeat", ok: true, data: prospective, affected: 1, locations: [after], warnings: [], errors: [] }) + "\n").length);
   xml.replaceElement(content, replacement); const staged: DocumentArchive = planner.finish(editor);
   const published = await publishDocumentArchive(staged, { ...(identity ? { input: identity } : {}), ...(output === undefined ? {} : { output }), ...(inPlace === undefined ? {} : { inPlace }), ...(force === undefined ? {} : { force }), ...(dryRun === undefined ? {} : { dryRun }), ...(json === undefined ? {} : { json }) }, { ...context, budget }, archive);

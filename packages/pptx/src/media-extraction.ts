@@ -4,10 +4,11 @@ import { OfficeError } from "./errors.js";
 import { readMedia, type MediaRelationship, type ReadMediaOptions } from "./media.js";
 import { readPackage } from "./package-reader.js";
 import type { SelectionContext } from "./selectors.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface ExtractMediaOptions extends ReadMediaOptions {
-  readonly maxOutputBytes: number;
-  readonly maxOutputs: number;
+  readonly maxOutputBytes?: number;
+  readonly maxOutputs?: number;
   readonly deduplicate?: boolean;
 }
 export interface ExtractedMedia {
@@ -37,9 +38,10 @@ const extensions = new Map([
 
 export async function extractMedia(
   input: BinaryInput,
-  options: ExtractMediaOptions,
-  context: SelectionContext
+  options: ExtractMediaOptions = {},
+  settings: ResourceContext = {}
 ): Promise<readonly ExtractedMedia[]> {
+  const context: SelectionContext = resourceContext(settings);
   context.signal?.throwIfAborted();
   if (
     !options ||
@@ -60,12 +62,12 @@ export async function extractMedia(
         !("value" in Object.getOwnPropertyDescriptor(options, key)!)
     ) ||
     ![options.maxOutputBytes, options.maxOutputs].every(
-      (value) => Number.isSafeInteger(value) && value > 0
+      (value) => value === undefined || value === Infinity || (Number.isSafeInteger(value) && value > 0)
     ) ||
     (options.deduplicate !== undefined && typeof options.deduplicate !== "boolean")
   )
     throw new OfficeError("invalid-value", "Invalid media extraction options or limits.", "usage");
-  const { maxOutputBytes, maxOutputs, deduplicate, ...selection } = options;
+  const { maxOutputBytes = Infinity, maxOutputs = Infinity, deduplicate, ...selection } = options;
   const source = await readBinary(input, context);
   const inventory = await readMedia(source, selection, context);
   const groups: { ref: MediaRelationship; parts: Set<string>; ids: Set<string> }[] = [];
@@ -96,7 +98,7 @@ export async function extractMedia(
       if (
         !Number.isSafeInteger(total) ||
         total > maxOutputBytes ||
-        groups.length >= Math.min(maxOutputs, 999999)
+        groups.length >= maxOutputs
       )
         throw new OfficeError(
           "resource-limit",

@@ -1,7 +1,7 @@
 import { readPackage } from "./package-reader.js";
 import { parseXmlPart } from "./xml.js";
 import type {
-  PptxCommandEngineOptions,
+  AdmittedCommandEngineOptions as PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxPublicationRequest
 } from "./command-engine.js";

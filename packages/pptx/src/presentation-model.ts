@@ -37,8 +37,9 @@ import { resolvePartReference, packageUri } from "./package-uri.js";
 import { relPart } from "./masters.js";
 import { required } from "./masters.js";
 import type { SelectionContext } from "./selectors.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
-export interface PresentationContext extends Partial<SelectionContext> {
+export interface PresentationContext extends ResourceContext {
   readonly timestamp?: Date;
   readonly author?: string;
   readonly fontMetrics?: FontMetricsHandle;
@@ -64,35 +65,11 @@ function contextDefaults(context: PresentationContext): PresentationContext & Se
   )
     throw new ValueError("Expected a valid explicit timestamp.");
   return {
-    ...context,
+    ...resourceContext(context),
     author: context.author ?? "",
     ...(context.timestamp === undefined
       ? {}
       : { timestamp: new Date(context.timestamp.getTime()) }),
-    limits: { ...(context.limits ?? { maxBytes: 16_777_216, maxReads: 8192, chunkBytes: 65536 }) },
-    archiveLimits: {
-      ...(context.archiveLimits ?? {
-        maxArchiveBytes: 16_777_216,
-        maxEntryBytes: 8_388_608,
-        maxTotalBytes: 33_554_432,
-        maxMembers: 4096,
-        maxPathBytes: 1024,
-        maxDepth: 32,
-        maxPaxBytes: 4096,
-        maxTextBytes: 8_388_608,
-        chunkSize: 65536
-      })
-    },
-    xmlLimits: {
-      ...(context.xmlLimits ?? { maxBytes: 8_388_608, maxNodes: 100000, maxDepth: 128 })
-    },
-    relationshipLimits: {
-      ...(context.relationshipLimits ?? {
-        maxBytes: 8_388_608,
-        maxParts: 4096,
-        maxRelationships: 16384
-      })
-    }
   };
 }
 

@@ -159,7 +159,7 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
   const path = publication.inPlace ? publication.input?.path : publication.output;
   if (typeof path === "string") budget.check("serializedOutput", path.length);
   const prospective: XmlMutationData = { changed, changes, dryRun: publication.dryRun ?? false,
-    output: publication.dryRun ? null : { path: path ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) } };
+    output: publication.dryRun ? null : { path: path ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } };
   const summary = JSON.stringify({ version: 1, operation: "xml.set", ok: true, data: prospective,
     warnings: [], errors: [], affected: changed ? 1 : 0, locations: changes.map(change => change.after) }) + "\n";
   budget.check("serializedOutput", new TextEncoder().encode(summary).length);

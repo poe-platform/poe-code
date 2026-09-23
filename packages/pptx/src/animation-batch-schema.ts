@@ -22,7 +22,7 @@ const itemOptions = {
 export const animationBatchEnvelopeSchema = {
   type: "object", additionalProperties: false, required: ["version", "operations"],
   properties: { version: { const: 1 }, operations: {
-    type: "array", maxItems: 1000, items: { oneOf: ["add", "set", "remove"].map(action => ({
+    type: "array", items: { oneOf: ["add", "set", "remove"].map(action => ({
       type: "object", additionalProperties: false, required: ["operation", "arguments"],
       properties: {
         operation: { const: `animations.${action}` },
@@ -61,7 +61,7 @@ export const animationBatchSchema = {
       data: { oneOf: [{ type: "null" }, {
         type: "object", additionalProperties: false, required: ["results", "outputs"],
         properties: {
-          results: { type: "array", maxItems: 1000, items: { oneOf: ["add", "set", "remove"].map(action => animationSchemas[`animations.${action}`]!.result) } },
+          results: { type: "array", items: { oneOf: ["add", "set", "remove"].map(action => animationSchemas[`animations.${action}`]!.result) } },
           outputs: { type: "array", items: { type: "object", additionalProperties: false, required: ["path", "sha256", "bytes"], properties: { path: { type: "string" }, sha256: { type: "string" }, bytes: { type: "integer", minimum: 0 } } } }
         }
       }] }

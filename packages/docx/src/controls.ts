@@ -236,7 +236,7 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
     if (item.kind === "picture") { const placeholder = child(properties, "showingPlcHdr"); if (placeholder) stages.push(() => xml.replaceElement(placeholder, "")); }
   }
   const changes = chosen.map(before => { const value = { ...before.value, generation: 1 }; return { kind: "replace" as const, before, after: { ...before, value, token: encodeLocation(value) } }; });
-  const prospective = { changed: chosen.length > 0, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
+  const prospective = { changed: chosen.length > 0, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "controls.set", ok: true, data: prospective, affected: changes.length, locations: changes.map(change => change.after), warnings: [], errors: [] }) + "\n").length);
   for (const stage of stages) stage();
   const published = await publishDocumentArchive(finishControlPictures(result.editor, result.archive, { ...settings, budget }), { ...(identity ? { input: identity } : {}), ...(output === undefined ? {} : { output }), ...(inPlace ===undefined ? {} : { inPlace }), ...(force === undefined ? {} : { force }), ...(dryRun === undefined ? {} : { dryRun }), ...(json === undefined ? {} : { json }) }, { ...context, budget }, result.archive);

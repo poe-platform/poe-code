@@ -26,7 +26,6 @@ interface Region {
   width: number;
   height: number;
 }
-const limits = { maxBytes: 64000000, maxNodes: 4000000, maxDepth: 64 };
 function invalid(message: string): never {
   throw new OfficeError("invalid-value", message, "usage");
 }
@@ -43,10 +42,7 @@ function table(frame: XmlElement): XmlElement {
   return required(required(graphic, "graphicData"), "tbl");
 }
 function fragment(doc: XmlPart, element: XmlElement): XmlPart {
-  return parseXmlPart(new TextEncoder().encode(doc.markup(element, true)), {
-    ...limits,
-    maxDepth: Math.max(limits.maxDepth, doc.nodeCount)
-  });
+  return parseXmlPart(new TextEncoder().encode(doc.markup(element, true)), doc.limits);
 }
 function flag(cell: XmlElement, name: string): boolean {
   const value = attr(cell, name);

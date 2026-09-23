@@ -1,12 +1,12 @@
 import { Volume } from "memfs";
 import { writeArchive, type ArchiveContext } from "../../src/index.js";
 
-export const textContext: ArchiveContext = {
+export const textContext = {
   signal: new AbortController().signal,
   limits: { maxArchiveBytes: 131072, maxEntryBytes: 65536, maxTotalBytes: 131072,
     maxMembers: 32, maxPathBytes: 256, maxDepth: 32, maxExtraBytes: 0,
     maxCommentBytes: 32, maxRetainedBytes: 32 * 1024 * 1024, chunkSize: 1024 }
-};
+} satisfies ArchiveContext;
 export const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 export const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 export const run = (text: string) => `<w:r><w:t>${text}</w:t></w:r>`;

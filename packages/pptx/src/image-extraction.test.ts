@@ -165,7 +165,7 @@ it("rejects selected external images without fetching or silently dropping them"
     code: "unsupported-edit"
   });
 });
-it.each([0, -1, 1.5, Infinity])("rejects invalid extraction budgets %s", async (maxOutputs) => {
+it.each([0, -1, 1.5, NaN])("rejects invalid extraction budgets %s", async (maxOutputs) => {
   await expect(extractImages(fixture(), { ...limits, maxOutputs }, context)).rejects.toMatchObject({
     code: "invalid-value"
   });

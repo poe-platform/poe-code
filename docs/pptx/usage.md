@@ -174,15 +174,16 @@ filesystem/network/native runtime, clock, identity or font discovery. Time,
 author, cancellation and font metrics are explicit capabilities/options.
 Host callbacks are trusted code and must enforce VFS roots and publication rules.
 `PresentationContext` permits `timestamp`, `author`, `fontMetrics`, `signal`, and
-the four limit groups below. A supplied group replaces that group's defaults;
-supply every required field. Low-level operations require explicit groups.
+the four optional limit groups below. Every resource ceiling is optional and
+unlimited when omitted, even when another field is supplied. Chunk sizes control
+individual I/O requests and do not cap the total input or output.
 
 | Group | Fields and current model defaults |
 | --- | --- |
-| `limits` | `maxBytes: 16777216`, `maxReads: 8192`, `chunkBytes: 65536` |
-| `archiveLimits` | `maxArchiveBytes: 16777216`, `maxEntryBytes: 8388608`, `maxTotalBytes: 33554432`, `maxMembers: 4096`, `maxPathBytes: 1024`, `maxDepth: 32`, `maxPaxBytes: 4096`, `maxTextBytes: 8388608`, `chunkSize: 65536` |
-| `xmlLimits` | `maxBytes: 8388608`, `maxNodes: 100000`, `maxDepth: 128` |
-| `relationshipLimits` | `maxBytes: 8388608`, `maxParts: 4096`, `maxRelationships: 16384` |
+| `limits` | `maxBytes`, `maxReads`: unlimited; `chunkBytes: 65536` |
+| `archiveLimits` | `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`, `maxMembers`, `maxPathBytes`, `maxDepth`, `maxPaxBytes`, `maxTextBytes`: unlimited; `chunkSize: 65536` |
+| `xmlLimits` | `maxBytes`, `maxNodes`, `maxDepth`: unlimited |
+| `relationshipLimits` | `maxBytes`, `maxParts`, `maxRelationships`: unlimited |
 
 The proposed format profile (256 MiB compressed, 1 GiB expanded, 50,000 entries,
 32 MiB XML, depth 256, 5,000,000 nodes, 5,000 slides, 250,000 shapes, 256 MiB media,
@@ -190,18 +191,19 @@ The proposed format profile (256 MiB compressed, 1 GiB expanded, 50,000 entries,
 is **not the current model default** or a guarantee every operation accepts it.
 Corpus census limits are a separate QA profile.
 
-`createPptxCommandEngine` requires `context`, `maxArgumentBytes` and
+`createPptxCommandEngine` accepts optional `context`, `maxArgumentBytes` and
 `maxOutputBytes`; context optionally supplies `validationLimits` with `maxBytes`,
 `maxNodes`, `maxDepth`, `maxEntries`, `maxParts`, `maxRelationships`. Execution takes encoded
 `args`, `signal`, `readInput`, and optional `preflightOutput`, `publishOutput`,
 `publishOutputs` callbacks. Missing publication authority fails; a multi-output
 callback must actually provide an atomic transaction.
 
-CLI `--limit NAME=VALUE` lowers trusted ceilings: `maxBytes`, `maxNodes`,
+CLI `--limit NAME=VALUE` sets or overrides limits: `maxBytes`, `maxNodes`,
 `maxDepth`, `maxOutputBytes`; applicable extraction commands also accept
-`maxOutputs`. Names must be distinct, values positive safe integers, and output
-message budgets at least 512 bytes. Increasing a ceiling fails. Byte transport
-has separate optional lower limits; see [transport details](package-usage.md).
+`maxOutputs`. Names must be distinct and values positive safe integers.
+Overrides can raise earlier settings. Explicit bounds from multiple resource
+groups still apply together. Byte transport has separate optional limits; see
+[transport details](package-usage.md).
 
 ## Results, failures and unsupported behavior
 

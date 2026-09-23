@@ -225,11 +225,7 @@ export function applyAnimationEdit(
         } catch {
           unsupported();
         }
-        const generated = parseXmlPart(new TextEncoder().encode(effectXml(e, p, effects.at(-1))), {
-          maxBytes: 100000,
-          maxNodes: 1000,
-          maxDepth: 30
-        });
+        const generated = parseXmlPart(new TextEncoder().encode(effectXml(e, p, effects.at(-1))), doc.limits);
         if (canonical(doc.markup(par, true)) !== canonical(generated.markup(generated.root, true)))
           unsupported();
         if ((groupPosition === 0) !== (e.trigger === "on-click")) unsupported();

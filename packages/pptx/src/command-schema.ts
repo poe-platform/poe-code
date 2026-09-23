@@ -8,7 +8,6 @@ import { MSO_AUTO_SHAPE_TYPE, shapePresets } from "./shape-presets.js";
 const shapeValues = {
   adjustments: {
     type: "array",
-    maxItems: 4096,
     items: { type: "number" },
     description: "Complete normalized preset adjustment values in guide order."
   },
@@ -126,7 +125,6 @@ const pathValue = {
     commands: {
       type: "array",
       minItems: 2,
-      maxItems: 4096,
       items: {
         oneOf: Object.entries({
           move: ["x", "y"],
@@ -177,7 +175,6 @@ for (const action of ["add", "set"]) {
           vertices: {
             type: "array",
             minItems: 2,
-            maxItems: 4095,
             items: {
               type: "object",
               additionalProperties: false,

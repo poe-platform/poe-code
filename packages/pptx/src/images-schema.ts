@@ -107,7 +107,7 @@ const extractedProperties = {
 export const imageSchemas = {
   "images.extract": {
     description:
-      "Extract selected original image bytes with deterministic safe names and SHA256 manifests. Default output is per occurrence; explicit unique groups identical bytes while retaining provenance. External links reject. Active formats are copied as bytes without decoding or rendering. Multi-file publication requires a transaction or explicit allowPartialOutput. maxOutputs lowers the trusted archive-member ceiling; maxOutputBytes bounds total extracted bytes and the report independently.",
+      "Extract selected original image bytes with deterministic safe names and SHA256 manifests. Default output is per occurrence; explicit unique groups identical bytes while retaining provenance. External links reject. Active formats are copied as bytes without decoding or rendering. Multi-file publication requires a transaction or explicit allowPartialOutput. maxOutputs optionally bounds the number of extracted images; maxOutputBytes bounds total extracted bytes and the report independently.",
     input: textGetSchema.input,
     options: {
       type: "object",

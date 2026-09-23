@@ -11,12 +11,11 @@ const length = {
 const nullableLength = { anyOf: [length, { type: "null" }] };
 const color = { anyOf: [{ type: "string", minLength: 6, maxLength: 6 }, { type: "null" }] };
 export const tableValues = {
-  rows: { type: "integer", minimum: 1, maximum: 250000 },
-  columns: { type: "integer", minimum: 1, maximum: 250000 },
+  rows: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER },
+  columns: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER },
   data: {
     type: "array",
-    maxItems: 250000,
-    items: { type: "array", maxItems: 250000, items: { type: "string", maxLength: 1048576 } }
+    items: { type: "array", items: { type: "string" } }
   },
   text: { type: "string" },
   left: {

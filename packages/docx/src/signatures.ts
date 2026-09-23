@@ -124,7 +124,7 @@ export async function stripDocumentSignatures(input: Uint8Array, options: Signat
   for(const node of editor.root.children) if(edges.has(node.attributes.find(attribute=>!attribute.namespace && attribute.localName==="Id")!.value)) editor.replaceElement(node,"");
   return {...member,bytes:editor.serialize()};
  });
- const planned: SignatureMutationData={changed:removedParts.length+removedRelationships.length+removedContentTypes.length>0,dryRun:opts.dryRun ?? false,removedParts,removedRelationships,removedContentTypes,output:opts.dryRun ? null : {path:opts.inPlace ? identity?.path ?? null : opts.output ?? null,bytes:settings.limits.maxArchiveBytes,sha256:"0".repeat(64)}};
+ const planned: SignatureMutationData={changed:removedParts.length+removedRelationships.length+removedContentTypes.length>0,dryRun:opts.dryRun ?? false,removedParts,removedRelationships,removedContentTypes,output:opts.dryRun ? null : {path:opts.inPlace ? identity?.path ?? null : opts.output ?? null,bytes:Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER),sha256:"0".repeat(64)}};
  measurePackageResourceSerialization(planned,budget);
  if(context.admitPublication) {
   const result=context.admitPublication(planned);

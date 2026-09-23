@@ -102,7 +102,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       "maxTextBytes",
       "chunkSize"
     ] as const) {
-      number(limits[key], Number.MAX_SAFE_INTEGER, key);
+      if (key === "chunkSize" || limits[key] !== Infinity)
+        number(limits[key], Number.MAX_SAFE_INTEGER, key);
     }
     if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024)
       fail("ZIP chunk size must be between 512 and 1048576");

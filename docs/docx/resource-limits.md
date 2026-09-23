@@ -9,17 +9,20 @@ are used.
 
 ## Host and operation boundaries
 
-`new DocumentBudget(hostLimits?, signal?, yieldTurn?)` establishes trusted host
-ceilings. The host can explicitly raise defaults for a qualification profile.
-`budget.lower(operationLimits)` validates operation overrides and returns a view
-of the same counters. It rejects unknown names, accessor properties, nonnumbers,
-nonfinite/fractional/unsafe values, negative values and increases. Zero is allowed
+`new DocumentBudget(hostLimits?, signal?, yieldTurn?)` leaves every resource
+unlimited unless explicitly configured. Supplying one limit does not enable
+limits for omitted fields. `budget.lower(operationLimits)` is retained for API
+compatibility: it applies overrides, including increases, and returns a view of
+the same counters. It rejects unknown names, accessor properties, nonnumbers,
+NaN/fractional/unsafe values and negative values. SDK budgets use `Infinity` to
+represent unlimited resources. Zero is allowed
 only for media bytes, matches, inserted nodes and batch operations. All other
 ceilings require positive capacity. Limits and usage snapshots are immutable.
 Validate these options before acquiring any input.
 
-The existing `ArchiveContext.limits` is an explicit **trusted host** codec
-configuration, not an operation options object. Without a supplied budget its
+`ArchiveContext.limits` is an optional codec configuration with individually
+optional fields. Omitted resource fields are unlimited; `chunkSize` defaults to
+65536 and controls I/O rather than total resource consumption. Without a supplied budget its
 archive/expanded/member/retained values establish the corresponding ceilings for
 that primitive invocation. With a budget both bounds apply; legacy codec values
 cannot widen its ceilings. Pass `context.budget` through every phase of a larger
@@ -27,29 +30,30 @@ invocation, and pass the same budget to XML parsing, editors and validation.
 
 | Public name | Default | Scope |
 | --- | ---: | --- |
-| compressedInput | 67,108,864 | Per acquired document |
-| expandedPackage | 268,435,456 | Per acquired document |
-| zipEntries | 10,000 | Per document |
-| xmlPartBytes | 33,554,432 | Per XML part |
-| xmlNodes | 2,000,000 | Cumulative parsed elements, attributes and retained content nodes |
-| xmlDepth | 256 | Per XML tree |
-| embeddedMediaBytes | 67,108,864 | Per media item, also within expanded/retained bounds |
-| retainedBytes | 536,870,912 | Invocation reservations, including copies |
-| serializedOutput | 268,435,456 | Invocation serialized archive output |
-| batchOperations | 1,000 | Invocation |
-| matches | 100,000 | Invocation |
-| insertedNodes | 1,000,000 | Invocation |
-| tableCells | 100,000 | Per table |
-| tableRows | 10,000 | Per table |
-| tableColumns | 1,024 | Per table |
-| diagnosticBytes | 65,536 | Invocation diagnostic payload |
-| work | 536,870,912 | Invocation work units |
+| compressedInput | unlimited | Per acquired document |
+| expandedPackage | unlimited | Per acquired document |
+| zipEntries | unlimited | Per document |
+| xmlPartBytes | unlimited | Per XML part |
+| xmlNodes | unlimited | Cumulative parsed elements, attributes and retained content nodes |
+| xmlDepth | unlimited | Per XML tree |
+| embeddedMediaBytes | unlimited | Per media item, also within expanded/retained bounds |
+| retainedBytes | unlimited | Invocation reservations, including copies |
+| serializedOutput | unlimited | Invocation serialized archive output |
+| batchOperations | unlimited | Invocation |
+| matches | unlimited | Invocation |
+| insertedNodes | unlimited | Invocation |
+| tableCells | unlimited | Per table |
+| tableRows | unlimited | Per table |
+| tableColumns | unlimited | Per table |
+| diagnosticBytes | unlimited | Invocation diagnostic payload |
+| work | unlimited | Invocation work units |
 
-`work` makes the spec's implementation-defined finite work ceiling explicit.
-Other names match the command register. Future `--limit NAME=VALUE` parsing must
-use these same names and lower-only validation, including duplicate-name
-rejection, before calling the engine. Discovery must report actual host settings.
-No CLI/schema/capabilities coverage is claimed by exporting this register.
+`--limit NAME=VALUE` uses the same names and validation as SDK overrides,
+including duplicate-name rejection, before calling the engine. Finite caller
+settings remain enforced. Capabilities reports finite effective limits; omitted
+resources are unlimited. XML attribute, namespace and validation diagnostic
+ceilings are also opt-in. Format constraints, such as ZIP field widths, remain
+part of format validation.
 
 ## Charges and ownership
 
@@ -62,7 +66,7 @@ bounds without overflowing multiplication; empty dimensions are invalid.
 all invocation counters. `readArchive` does this for each input: two reads keep
 separate per-document ceilings and charge both inputs to retained bytes and work.
 `usage` reports aggregate accepted debits, including both input documents.
-Lowered operation views share counters; they cannot reset earlier work, matches,
+Operation views share counters; they cannot reset earlier work, matches,
 insertions or output. Ordered callers must charge each batch item and every
 match/insertion before executing or retaining it. Actual batch/diff integration
 belongs to their pending implementation tasks; the foundation tests exercise

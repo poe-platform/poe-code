@@ -72,18 +72,19 @@ without changing its Promise or EOF behavior.
 
 | Configuration                                                | Meaning                                                                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| `context.limits.maxBytes`                                    | Required positive safe integer ceiling for one byte transfer                               |
-| `context.limits.maxReads`                                    | Required positive safe integer ceiling for source calls, including empty chunks and EOF    |
-| `context.limits.chunkBytes`                                  | Required positive safe integer maximum read request or sink write size                     |
+| `context.limits.maxBytes`                                    | Optional ceiling for one byte transfer; unlimited when omitted                             |
+| `context.limits.maxReads`                                    | Optional ceiling for source calls, including empty chunks and EOF; unlimited when omitted  |
+| `context.limits.chunkBytes`                                  | Positive safe integer maximum read request or sink write size; defaults to 65536             |
 | `context.signal`                                             | Optional explicit cooperative cancellation signal passed to source, opener and sink writes |
-| `options.maxBytes`, `options.maxReads`, `options.chunkBytes` | Optional lower ceilings; an increase fails before I/O                                      |
+| `options.maxBytes`, `options.maxReads`, `options.chunkBytes` | Optional overrides; can raise or lower earlier settings                                    |
 | `writeBinary` option `close`                                 | Boolean, default false; await sink close after successful writes only                      |
 
 No environment variables or ambient configuration are read. `undefined` selects
-a default; `null`, fractions, nonfinite numbers, zero, negative limits and unknown
+a default; `null`, fractions, NaN, zero, negative limits and unknown
 options fail. `maxReads` controls source calls only and is rejected as an output option; output uses `maxBytes` and
 `chunkBytes`. Limits here are per transfer, not cumulative graph/merge budgets or
-a substitute for future archive/XML admission limits.
+a substitute for archive/XML admission limits. SDK resource ceilings also accept
+`Infinity` for unlimited; chunk sizes must remain finite.
 
 Both functions always return Promises, including invalid-input errors. Byte input
 is copied before the first yield; each source chunk is copied before the next

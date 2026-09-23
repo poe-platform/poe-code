@@ -115,7 +115,6 @@ function array(value: unknown): asserts value is unknown[] {
   if (
     !Array.isArray(value) ||
     value.length === 0 ||
-    value.length > 250000 ||
     Reflect.ownKeys(value).some(
       (k) =>
         k !== "length" &&
@@ -182,11 +181,9 @@ export function validateChartData(data: ChartData, type?: CreatableChartType): v
     array(data.categoryLevels);
     for (const level of data.categoryLevels) array(level);
     if (
-      data.categories !== undefined ||
-      data.categoryLevels.length > 64 ||
-      data.categoryLevels.length * (data.categoryLevels[0]?.length ?? 0) > 250000
+      data.categories !== undefined
     )
-      invalid("Hierarchical categories require at most 64 levels and 250000 labels.");
+      invalid("Hierarchical categories cannot accompany flat categories.");
     for (const level of data.categoryLevels) {
       array(level);
       if (

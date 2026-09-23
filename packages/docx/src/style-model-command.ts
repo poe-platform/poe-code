@@ -33,7 +33,7 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
   const warnings = model.warnings.map(warning => ({ code: warning.code, message: "Style ID lookup is deprecated; use a style name." }));
   const budget = archiveSettings(context).budget;
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: "batch", ok: true,
-    data: { results: model.results, dryRun: options.dryRun === true, output: [{ path: output ?? input?.path ?? "", bytes: context.limits.maxArchiveBytes }] },
+    data: { results: model.results, dryRun: options.dryRun === true, output: [{ path: output ?? input?.path ?? "", bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER) }] },
     warnings, errors: [], affected: model.affected, locations: [] }) + "\n").length);
   const publication: PublicationOptions = { ...(input ? { input } : {}), ...(output === undefined ? {} : { output }),
     ...(options.inPlace === undefined ? {} : { inPlace: options.inPlace as boolean }), ...(options.force === undefined ? {} : { force: options.force as boolean }),

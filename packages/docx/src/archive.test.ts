@@ -225,7 +225,7 @@ describe("document archive admission", () => {
 
   it("admits option types before bytes and never reads a host pathname", async () => {
     const bytes = await archive();
-    for (const value of [NaN, Infinity, -1, 0, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const value of [NaN, -1, 0, 0.5, Number.MAX_SAFE_INTEGER + 1]) {
       await expect(
         readArchive(bytes, { ...context, limits: { ...limits, maxMembers: value } })
       ).rejects.toMatchObject({ code: "usage" });

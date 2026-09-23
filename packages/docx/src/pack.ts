@@ -111,7 +111,7 @@ export async function packDocumentArchive(input: unknown, options: DocxOperation
     }
   }
   const dryRun = admitted.dryRun === true;
-  const prospective = { version: 1, operation: "pack", ok: true, data: { changed: true, changes: [], dryRun, output: dryRun ? null : { path: output, bytes: limits.maxArchiveBytes, sha256: "0".repeat(64) } }, warnings: [], errors: [], affected: 1, locations: [] };
+  const prospective = { version: 1, operation: "pack", ok: true, data: { changed: true, changes: [], dryRun, output: dryRun ? null : { path: output, bytes: Math.min(limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } }, warnings: [], errors: [], affected: 1, locations: [] };
   if (output !== "-" || dryRun) budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(prospective) + "\n").length);
   const result = await publishDocumentArchive(archive, { creation: true, ...(output === undefined ? {} : { output }), force: admitted.force === true, dryRun, json: admitted.json === true }, { ...settings, filesystem: fs, ...(context.stdout ? { stdout: context.stdout } : {}), encoding: { order: "name", compression: "store" } });
   return { changed: true, changes: [], dryRun, output: result.published.length ? { path: result.published[0]!.path, bytes: result.published[0]!.bytes, sha256: result.archiveSha256! } : null };

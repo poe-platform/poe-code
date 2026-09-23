@@ -9,6 +9,7 @@ import { readRelationshipGraph, type RelationshipLimits } from "./relationships.
 import { parseXmlPart, type XmlElement, type XmlLimits } from "./xml.js";
 import { interpretCompatibility } from "./compatibility.js";
 import { inspectInventory, type PresentationInventory } from "./inventory.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface SelectionContext extends PackageContext {
   readonly xmlLimits: XmlLimits;
@@ -157,8 +158,9 @@ export function decodeSelectionToken(token: string): Location {
 
 export async function readSelectionIndex(
   input: BinaryInput,
-  context: SelectionContext
+  settings: ResourceContext = {}
 ): Promise<SelectionIndex> {
+  const context = resourceContext(settings);
   const bytes = await readBinary(input, context, {
     maxBytes: Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
   });
@@ -172,8 +174,9 @@ export async function readSelectionIndex(
 export function buildSelectionIndex(
   reader: PackageReader,
   fingerprint: string,
-  context: SelectionContext
+  settings: ResourceContext = {}
 ): SelectionIndex {
+  const context = resourceContext(settings);
   const graph = readRelationshipGraph(reader, context.relationshipLimits);
   const roots = graph
     .outgoing("/")

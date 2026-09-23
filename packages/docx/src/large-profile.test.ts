@@ -14,7 +14,7 @@ async function fixture() {
   return { archive, bytes: new Uint8Array(Buffer.concat(chunks)) };
 }
 
-it("honors trusted node ceilings and lower-only operation limits before memfs edits", async () => {
+it("honors explicit node settings and operation overrides before memfs edits", async () => {
   const { bytes } = await fixture();
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/sentinel": "Keep original" });
   const before = volume.toJSON();
@@ -32,9 +32,10 @@ it("honors trusted node ceilings and lower-only operation limits before memfs ed
   expect(await invoke(1)).toMatchObject({ exitCode: 4, body: { ok: false, affected: 0, errors: [{ code: "limit-exceeded" }] } });
   expect(await invoke(10000)).toMatchObject({ exitCode: 0, body: { ok: true, affected: 1 } });
   expect(await invoke(10000, 1)).toMatchObject({ exitCode: 4, body: { ok: false } });
-  expect(await invoke(1, 2)).toMatchObject({ exitCode: 2, body: { ok: false } });
+  expect(await invoke(1, 2)).toMatchObject({ exitCode: 4, body: { ok: false } });
+  expect(await invoke(1, 10000)).toMatchObject({ exitCode: 0, body: { ok: true } });
   expect(volume.toJSON()).toEqual(before);
-  expect(documentLimitDefaults).toMatchObject({ expandedPackage: 256 * MiB, xmlPartBytes: 32 * MiB, xmlNodes: 2000000 });
+  expect(documentLimitDefaults).toMatchObject({ expandedPackage: Infinity, xmlPartBytes: Infinity, xmlNodes: Infinity });
 });
 
 it("uses admitted host validation capacities for both serialization and retained-byte publication", async () => {
@@ -58,7 +59,7 @@ it("charges attributes and retained text independently of an element-only census
   expect(() => parseDocumentXml(bytes, {}, new DocumentBudget({ xmlNodes: 3 }))).toThrowError(expect.objectContaining({ code: "limit-exceeded" }));
 });
 
-it("reports the default XML ceiling independently of larger archive media allowances", async () => {
+it("reports only explicit XML settings without hidden default ceilings", async () => {
   let stdout = "";
   const result = await createDocxInspectionCommandEngine({ limits }).execute({
     args: ["capabilities", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal,
@@ -67,7 +68,8 @@ it("reports the default XML ceiling independently of larger archive media allowa
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);
-  expect(JSON.parse(stdout).data.limits).toEqual(expect.arrayContaining([{ name: "xmlPartBytes", ceiling: 32 * MiB }, { name: "xmlNodes", ceiling: 2000000 }]));
+  expect(JSON.parse(stdout).data.limits).toContainEqual({ name: "xmlPartBytes", ceiling: 64 * MiB });
+  expect(JSON.parse(stdout).data.limits).not.toContainEqual(expect.objectContaining({ name: "xmlNodes" }));
 });
 
 it("rejects a next-style relationship between different definition kinds", async () => {

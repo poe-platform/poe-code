@@ -136,7 +136,7 @@ function lowerLimits(value: unknown, budget: DocumentBudget): DocumentBudget {
   const entries = value as { name: string; value: number }[];
   if (new Set(entries.map(item => item.name)).size !== entries.length) usage("Repeated document limit.");
   try { return budget.lower(Object.fromEntries(entries.map(item => [item.name, item.value]))); }
-  catch { return usage("Document limits must be within host ceilings."); }
+  catch { return usage("Document limits must be valid safe integers."); }
 }
 function optionFields(schema: DocxOperationSchema, cli: boolean) {
   return Object.fromEntries([...schema.commonOptions.map(name => [name, docxCommonOptions[name]!] as const), ...Object.entries(cli ? schema.fields : schema.sdkFields)]);

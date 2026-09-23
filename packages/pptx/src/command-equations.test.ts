@@ -123,9 +123,10 @@ it("schema and argument admission agree about insertion selectors and publicatio
     { ...valid, all: true }, { ...valid, scope: "notes" },
     { ...valid, inPlace: true, output: "/out.pptx" }, { ...valid, force: true }
   ]) expect(schema.validate(invalid).ok).toBe(false);
-  for (const flags of [["--limit", "maxBytes=999999"], ["--limit", "maxNodes=20", "--limit", "maxNodes=20"], ["--json", "--json"]]) {
+  for (const flags of [["--limit", "maxNodes=20", "--limit", "maxNodes=20"], ["--json", "--json"]]) {
     const rejected = await f.run(["equations", "list", "/deck.pptx", ...flags]);
     expect(rejected.exitCode).toBe(2);
   }
   expect(f.readInput).not.toHaveBeenCalled();
+  expect((await f.run(["equations", "list", "/deck.pptx", "--limit", "maxBytes=999999"])).exitCode).toBe(0);
 });

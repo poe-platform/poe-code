@@ -8,9 +8,10 @@ import type {
   WriteOptions
 } from "./contracts.js";
 import { OfficeError, PackageNotFoundError } from "./errors.js";
+import { resourceContext } from "./resource-limits.js";
 
 function admitLimits(context: ByteContext, options: ReadOptions, output: boolean): ByteLimits {
-  if (!context || !context.limits || !options || typeof options !== "object") {
+  if (!context || !options || typeof options !== "object") {
     throw new OfficeError("invalid-type", "Explicit byte limits are required.", "usage");
   }
   for (const key of Object.keys(options)) {
@@ -18,14 +19,12 @@ function admitLimits(context: ByteContext, options: ReadOptions, output: boolean
       throw new OfficeError("invalid-value", "Unknown byte option.", "usage");
     }
   }
-  const limits = { ...context.limits };
+  const limits = { ...resourceContext(context).limits };
   for (const key of ["maxBytes", "maxReads", "chunkBytes"] as const) {
-    const ceiling = context.limits[key];
-    const value = options[key] === undefined ? ceiling : options[key];
+    const value = options[key] === undefined ? limits[key] : options[key];
     if (
-      !Number.isSafeInteger(ceiling) ||
-      ceiling < 1 ||
-      !Number.isSafeInteger(value) ||
+      (value !== Infinity && !Number.isSafeInteger(value)) ||
+      (key === "chunkBytes" && !Number.isSafeInteger(value)) ||
       value < 1
     ) {
       throw new OfficeError(
@@ -33,9 +32,6 @@ function admitLimits(context: ByteContext, options: ReadOptions, output: boolean
         "Byte limits must be positive safe integers.",
         "usage"
       );
-    }
-    if (value > ceiling) {
-      throw new OfficeError("resource-limit", "Byte option exceeds its host ceiling.", "usage");
     }
     limits[key] = value;
   }
@@ -48,7 +44,7 @@ function checkCancellation(signal: AbortSignal | undefined, phase: "admit" | "pu
 
 export async function readBinary(
   input: BinaryInput,
-  context: ByteContext,
+  context: ByteContext = {},
   options: ReadOptions = {}
 ): Promise<Uint8Array> {
   const limits = admitLimits(context, options, false);
@@ -132,7 +128,7 @@ export async function readBinary(
 export async function writeBinary(
   bytes: Uint8Array,
   sink: ByteSink,
-  context: ByteContext,
+  context: ByteContext = {},
   options: WriteOptions = {}
 ): Promise<void> {
   const limits = admitLimits(context, options, true);

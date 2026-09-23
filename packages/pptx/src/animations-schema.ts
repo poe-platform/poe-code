@@ -12,7 +12,7 @@ export const animationsUsage =
   "Dependent triggers require a previous effect; unsafe timeline changes fail.\n" +
   "Output: --output PATH | --in-place | --dry-run; --force requires --output.\n" +
   "Selection: --slide N --shape NAME | --select TOKEN; --scope slides\n" +
-  "Common: --limit NAME=VALUE lowers XML and output budgets.\n" +
+  "Common: --limit NAME=VALUE sets optional XML and output budgets.\n" +
   "Get selects one slide graph; multiple slide graphs are ambiguous.\n" +
   "Shape selection retains its complete containing graph when targeted.\n" +
   "Items follow XML order. Parent IDs and children preserve graph structure.\n" +

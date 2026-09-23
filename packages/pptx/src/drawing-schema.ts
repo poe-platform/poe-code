@@ -166,7 +166,6 @@ export const drawingSchemaDefinitions = Object.fromEntries(
                         stops: {
                           type: "array",
                           minItems: 2,
-                          maxItems: 10000,
                           items: {
                             type: "object",
                             additionalProperties: false,

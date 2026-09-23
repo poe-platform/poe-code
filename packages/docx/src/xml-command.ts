@@ -1,6 +1,6 @@
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { SourceError, type DocxInvocation } from "./command.js";
-import { ResourceLimitError, CancellationError, type ArchiveContext } from "./archive.js";
+import { archiveSettings, ResourceLimitError, CancellationError, type ArchiveContext } from "./archive.js";
 import type { DocxInspectionCommandRequest } from "./inspection-command.js";
 import type { DocumentIo } from "./io.js";
 import { getDocumentXml, replaceDocumentXmlPart, type XmlOptions } from "./xml-parts.js";
@@ -30,7 +30,7 @@ export async function executeXmlCommand(invocation: DocxInvocation, bytes: Uint8
         let size = 0;
         for await (const chunk of source) {
           size += chunk.length;
-          if (size > Math.min(context.limits.maxEntryBytes, context.budget!.limits.xmlPartBytes)) throw new ResourceLimitError("XML input byte limit exceeded.");
+          if (size > Math.min(archiveSettings(context).limits.maxEntryBytes, context.budget!.limits.xmlPartBytes)) throw new ResourceLimitError("XML input byte limit exceeded.");
           yield chunk;
         }
       } };

@@ -25,11 +25,7 @@ export class ShapeIdAllocator {
     const source = this.read();
     const id = this.next();
     const markup = makeMarkup(id);
-    const inserted = parseXmlPart(new TextEncoder().encode(markup), {
-      maxBytes: 8388608,
-      maxNodes: 100000,
-      maxDepth: 128
-    });
+    const inserted = parseXmlPart(new TextEncoder().encode(markup), source.limits);
     const used = new Set<number>();
     const pending = [inserted.root];
     while (pending.length) {

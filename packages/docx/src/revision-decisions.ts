@@ -110,7 +110,7 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
     candidates.push({ xml, node, target, replacement, change: { kind: removed ? "remove" : "replace", before: location, after, revision: info } });
   }
   const changes = candidates.map(candidate => candidate.change);
-  const prospective = { changed: candidates.length > 0, changes, output: dryRun ? null : { path: inPlace ? request.input?.path ?? null : output ?? null, bytes: settings.limits.maxArchiveBytes, sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
+  const prospective = { changed: candidates.length > 0, changes, output: dryRun ? null : { path: inPlace ? request.input?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: request.operation, ok: true, data: prospective, affected: changes.length, locations: changes.flatMap(change => change.after ? [change.after] : []), warnings: [], errors: [] }) + "\n").length);
   for (const candidate of candidates) candidate.xml.replaceElement(candidate.target, candidate.replacement);
   const result = await publishDocumentArchive(editor.snapshot(), { ...(request.input ? { input: request.input } : {}), ...(output === undefined ? {} : { output }), ...(inPlace === undefined ? {} : { inPlace }), ...(force === undefined ? {} : { force }), ...(dryRun === undefined ? {} : { dryRun }), ...(json === undefined ? {} : { json }) }, { ...context, budget });

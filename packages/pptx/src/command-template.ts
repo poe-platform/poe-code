@@ -1,6 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import type {
-  PptxCommandEngineOptions,
+  AdmittedCommandEngineOptions as PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxPublicationRequest
 } from "./command-engine.js";
@@ -93,7 +93,7 @@ export async function executeTemplateCommand(
   if (args.dataFile !== undefined) {
     const data = await request.readInput(
       args.dataFile,
-      Math.min(context.limits.maxBytes, context.xmlLimits.maxBytes, 1048576)
+      Math.min(context.limits.maxBytes, context.xmlLimits.maxBytes)
     );
     let json: string;
     try {

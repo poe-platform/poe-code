@@ -56,7 +56,6 @@ function record(value: unknown, keys: readonly string[]): asserts value is Recor
 function array(value: unknown): asserts value is unknown[] {
   if (
     !Array.isArray(value) ||
-    value.length > 4096 ||
     Object.getPrototypeOf(value) !== Array.prototype ||
     Reflect.ownKeys(value).length !== value.length + 1
   )
@@ -79,7 +78,7 @@ export function validateShapePath(path: ShapePath): void {
   coordinate(path.height);
   if (path.width <= 0 || path.height <= 0) invalid();
   array(path.commands);
-  if (path.commands.length < 2 || path.commands.length > 4096) invalid();
+  if (path.commands.length < 2) invalid();
   let active = false,
     segments = 0;
   for (const command of path.commands) {
@@ -113,7 +112,7 @@ export function validateShapePath(path: ShapePath): void {
 }
 export function pathFromVertices(vertices: unknown, close: boolean): ShapePath {
   array(vertices);
-  if (typeof close !== "boolean" || vertices.length < 2 || vertices.length > 4095) invalid();
+  if (typeof close !== "boolean" || vertices.length < 2) invalid();
   const commands: ShapePathCommand[] = [];
   let width = 1,
     height = 1;

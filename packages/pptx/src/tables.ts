@@ -85,8 +85,7 @@ function emu(value: ShapeLength): number {
 function validateGridStorage(value: unknown): void {
   if (
     !Array.isArray(value) ||
-    Object.getPrototypeOf(value) !== Array.prototype ||
-    value.length > 250000
+    Object.getPrototypeOf(value) !== Array.prototype
   )
     invalid("Grid arrays require plain dense data.");
   const entries = Object.getOwnPropertyDescriptors(value);
@@ -100,8 +99,7 @@ function validateGridStorage(value: unknown): void {
     const row = value[i];
     if (
       !Array.isArray(row) ||
-      Object.getPrototypeOf(row) !== Array.prototype ||
-      row.length > 250000
+      Object.getPrototypeOf(row) !== Array.prototype
     )
       invalid("Grid rows require plain arrays.");
     const columns = Object.getOwnPropertyDescriptors(row);
@@ -136,10 +134,10 @@ export function validateTableUpdate(update: TableUpdate, creating = false): void
   for (const k of ["rows", "columns"] as const)
     if (
       (creating || update[k] !== undefined) &&
-      (!Number.isSafeInteger(update[k]) || update[k]! < 1 || update[k]! > 250000)
+      (!Number.isSafeInteger(update[k]) || update[k]! < 1)
     )
-      invalid("Table dimensions require positive bounded integers.");
-  if (creating && update.rows! * update.columns! > 250000) invalid("Table cell budget exceeded.");
+      invalid("Table dimensions require positive safe integers.");
+  if (creating && !Number.isSafeInteger(update.rows! * update.columns!)) invalid("Unsafe table cell count.");
   for (const k of [
     "left",
     "top",
@@ -179,12 +177,10 @@ export function validateTableUpdate(update: TableUpdate, creating = false): void
   if (
     update.data !== undefined &&
     (!Array.isArray(update.data) ||
-      update.data.length > 250000 ||
       update.data.some(
         (row) =>
           !Array.isArray(row) ||
-          row.length > 250000 ||
-          row.some((text) => typeof text !== "string" || text.length > 1048576)
+          row.some((text) => typeof text !== "string")
       ))
   )
     invalid("Table data requires a rectangular string grid.");
@@ -671,7 +667,7 @@ export function createTableXml(
     new TextEncoder().encode(
       `<p:graphicFrame xmlns:p="${p}" xmlns:a="${a}"><p:nvGraphicFramePr><p:cNvPr id="${id}" name="Table ${id}"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr><p:xfrm><a:off x="${emu(update.left!)}" y="${emu(update.top!)}"/><a:ext cx="${emu(update.width!)}" cy="${emu(update.height!)}"/></p:xfrm><a:graphic><a:graphicData uri="${a.slice(0, -5)}/table"><a:tbl><a:tblPr/><a:tblGrid>${cols.map((w) => `<a:gridCol w="${w}"/>`).join("")}</a:tblGrid>${rows.map((h) => `<a:tr h="${h}">${cols.map(() => `<a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p/></a:txBody><a:tcPr/></a:tc>`).join("")}</a:tr>`).join("")}</a:tbl></a:graphicData></a:graphic></p:graphicFrame>`
     ),
-    { maxBytes: 64000000, maxNodes: 4000000, maxDepth: 64 }
+    {}
   );
   const result = applyTableUpdate(doc, doc.root, update);
   return result.markup(result.root, true);

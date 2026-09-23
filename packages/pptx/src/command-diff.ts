@@ -1,5 +1,5 @@
 import type {
-  PptxCommandEngineOptions,
+  AdmittedCommandEngineOptions as PptxCommandEngineOptions,
   PptxCommandRequest,
   PptxCommandOutput
 } from "./command-engine.js";
@@ -121,21 +121,6 @@ export async function executeDiffCommand(
     } else {
       if (positionals.length !== 2 || positionals.every((path) => path === "-"))
         usage("Comparison requires two inputs and at most one stdin consumer.");
-      const validation = options.context.validationLimits;
-      const ceilings: Record<string, number> = {
-        maxBytes: Math.min(
-          options.context.limits.maxBytes,
-          options.context.archiveLimits.maxArchiveBytes,
-          options.context.xmlLimits.maxBytes,
-          validation?.maxBytes ?? Infinity
-        ),
-        maxNodes: Math.min(options.context.xmlLimits.maxNodes, validation?.maxNodes ?? Infinity),
-        maxDepth: Math.min(options.context.xmlLimits.maxDepth, validation?.maxDepth ?? Infinity),
-        maxOutputBytes
-      };
-      for (const [name, value] of Object.entries(limits))
-        if (value > ceilings[name]! || (name === "maxOutputBytes" && value < 512))
-          usage("Limits must lower trusted ceilings; output requires at least 512 bytes.");
       maxOutputBytes = limits.maxOutputBytes ?? maxOutputBytes;
       const context = {
         ...options.context,

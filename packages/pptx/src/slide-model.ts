@@ -241,7 +241,7 @@ export class SlidePlaceholder extends InheritedShape {
           xml.root.name.namespace
         )
       ),
-      { maxBytes: 8388608, maxNodes: 100000, maxDepth: 128 }
+      xml.limits
     );
     replacement = preservePlaceholder(xml, replacement);
     this.#binding.write(replacement);

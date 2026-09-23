@@ -128,11 +128,11 @@ export interface CreateMutationData {
 
 /** Creates and publishes through the same bounded engine used by the command. */
 export async function createDocument(options: DocumentCreateOptions, publication: Omit<PublicationOptions, "creation" | "inPlace">, context: PublicationContext): Promise<CreateMutationData> {
-  const { budget } = archiveSettings(context);
+  const { budget, limits } = archiveSettings(context);
   closedRecord(publication, ["input", "output", "force", "dryRun", "json"]);
   publication = { ...publication, ...(publication.input ? { input: { path: publication.input.path, stat: { ...publication.input.stat } } } : {}) };
   const prospective = { version: 1, operation: "create", ok: true, data: { changed: true, changes: [], dryRun: publication.dryRun ?? false,
-    output: publication.dryRun ? null : { path: publication.output ?? null, bytes: context.limits.maxArchiveBytes, sha256: "0".repeat(64) } }, warnings: [], errors: [], affected: 1, locations: [] };
+    output: publication.dryRun ? null : { path: publication.output ?? null, bytes: Math.min(limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) } }, warnings: [], errors: [], affected: 1, locations: [] };
   if (publication.output !== "-" || publication.dryRun) budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(prospective) + "\n").length);
   const archive = await createDocumentArchive(options, { ...context, budget });
   const result = await publishDocumentArchive(archive, { ...publication, creation: true }, { ...context, budget, encoding: { order: "name", compression: "store" } });

@@ -9,11 +9,12 @@ import {
 } from "./images.js";
 import { readPackage } from "./package-reader.js";
 import type { SelectionContext } from "./selectors.js";
+import { resourceContext, type ResourceContext } from "./resource-limits.js";
 
 export interface ExtractImagesOptions extends ReadImagesOptions {
   readonly sha256?: string;
-  readonly maxOutputBytes: number;
-  readonly maxOutputs: number;
+  readonly maxOutputBytes?: number;
+  readonly maxOutputs?: number;
 }
 export interface ExtractedImage {
   readonly name: string;
@@ -39,15 +40,16 @@ const extensions = new Map([
 
 export async function extractImages(
   input: BinaryInput,
-  options: ExtractImagesOptions,
-  context: SelectionContext
+  options: ExtractImagesOptions = {},
+  settings: ResourceContext = {}
 ): Promise<readonly ExtractedImage[]> {
+  const context: SelectionContext = resourceContext(settings);
   if (
     !options ||
     typeof options !== "object" ||
     ![Object.prototype, null].includes(Object.getPrototypeOf(options)) ||
     ![options.maxOutputBytes, options.maxOutputs].every(
-      (value) => Number.isSafeInteger(value) && value > 0
+      (value) => value === undefined || value === Infinity || (Number.isSafeInteger(value) && value > 0)
     )
   )
     throw new OfficeError(
@@ -55,7 +57,7 @@ export async function extractImages(
       "Explicit positive extraction limits are required.",
       "usage"
     );
-  const { maxOutputBytes, maxOutputs, sha256, ...selection } = options;
+  const { maxOutputBytes = Infinity, maxOutputs = Infinity, sha256, ...selection } = options;
   if (
     sha256 !== undefined &&
     (typeof sha256 !== "string" ||
@@ -107,7 +109,7 @@ export async function extractImages(
     if (
       !Number.isSafeInteger(total) ||
       total > maxOutputBytes ||
-      groups.length >= Math.min(maxOutputs, 999999)
+      groups.length >= maxOutputs
     )
       throw new OfficeError(
         "resource-limit",

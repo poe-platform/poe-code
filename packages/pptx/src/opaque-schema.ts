@@ -8,7 +8,7 @@ export const opaqueUsage =
   "Extraction preserves exact bytes and relationship closure under generated safe names; the manifest maps original parts.\n" +
   "No activation, recursive payload parsing, installation or rendering. Shape selectors and object editing are unsupported.\n" +
   "Extraction supports --force and --dry-run. Partial output is required unless the host supplies an atomic transaction.\n" +
-  "Common limits: --limit NAME=VALUE lowers trusted host ceilings.\n";
+  "Common limits: --limit NAME=VALUE sets optional resource ceilings.\n";
 const strings = { type: "array", items: { type: "string" } };
 const relationship = {
   type: "object", additionalProperties: false,

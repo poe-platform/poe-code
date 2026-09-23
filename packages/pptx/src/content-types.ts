@@ -84,14 +84,15 @@ function mediaType(value: string): string {
   return essence;
 }
 
-export function parseContentTypes(bytes: Uint8Array, limits: ContentTypeLimits): ContentTypeIndex {
+export function parseContentTypes(bytes: Uint8Array, settings: Partial<ContentTypeLimits> = {}): ContentTypeIndex {
+  const limits = { maxBytes: Infinity, maxEntries: Infinity, ...settings };
   if (!(bytes instanceof Uint8Array))
     throw new OfficeError("invalid-type", "Expected content-type bytes.", "usage");
   if (
     !limits ||
-    !Number.isSafeInteger(limits.maxBytes) ||
+    (limits.maxBytes !== Infinity && !Number.isSafeInteger(limits.maxBytes)) ||
     limits.maxBytes < 1 ||
-    !Number.isSafeInteger(limits.maxEntries) ||
+    (limits.maxEntries !== Infinity && !Number.isSafeInteger(limits.maxEntries)) ||
     limits.maxEntries < 1
   ) {
     throw new OfficeError("invalid-value", "Explicit content-type limits are required.", "usage");

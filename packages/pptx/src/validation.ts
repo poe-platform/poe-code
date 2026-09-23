@@ -9,6 +9,7 @@ import {
   type RelationshipEdge
 } from "./relationships.js";
 import { parseXmlPart, type XmlElement, type XmlLimits } from "./xml.js";
+import { resourceContext } from "./resource-limits.js";
 
 export interface ValidationLimits extends XmlLimits, ContentTypeLimits, RelationshipLimits {}
 const rules = [
@@ -74,8 +75,10 @@ function integer(value: string | undefined, min: number, max: number): number | 
 
 export function validatePresentation(
   reader: PackageReader,
-  limits: ValidationLimits
+  settings: Partial<ValidationLimits> = {}
 ): SemanticValidation {
+  const context = resourceContext({ xmlLimits: settings, relationshipLimits: settings });
+  const limits = { ...context.xmlLimits, ...context.relationshipLimits, maxEntries: Infinity, ...settings };
   const issues: { rule: Rule; part: string }[] = [];
   const fail = (rule: Rule, part: string) => {
     if (!issues.some((issue) => issue.rule === rule && issue.part === part))

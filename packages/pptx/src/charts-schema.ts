@@ -236,8 +236,7 @@ const chartData = {
     categoryLevels: {
       type: "array",
       minItems: 1,
-      maxItems: 64,
-      items: { type: "array", minItems: 1, maxItems: 250000, items: { type: ["string", "null"] } }
+      items: { type: "array", minItems: 1, items: { type: ["string", "null"] } }
     },
     numberFormat: { type: "string" },
     categoryNumberFormat: { type: "string" },

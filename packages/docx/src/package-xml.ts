@@ -40,15 +40,15 @@ export function documentXmlSettings(options: DocumentXmlLimits, budget = new Doc
     maxNodes: budget.limits.xmlNodes,
     maxContentNodes: budget.limits.xmlNodes,
     maxAttributes: budget.limits.xmlNodes,
-    maxAttributesPerElement: 128,
-    maxNamespaces: 256,
+    maxAttributesPerElement: Infinity,
+    maxNamespaces: Infinity,
     maxTextLength: budget.limits.xmlPartBytes,
     maxWork: budget.limits.work
   };
   for (const [key, value] of Object.entries(options)) {
     if (!Object.hasOwn(limits, key)) throw new InvalidValueError("Unknown XML limit.");
     if (value === undefined) continue;
-    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1 || value > limits[key as keyof typeof limits])
+    if (typeof value !== "number" || (value !== Infinity && !Number.isSafeInteger(value)) || value < 1)
       throw new InvalidValueError("XML limits must be positive safe integers.");
     limits[key as keyof typeof limits] = value;
   }
@@ -76,10 +76,11 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
     chunks.push(decoder.decode());
     const remaining = budget.limits.xmlNodes - budget.usage.xmlNodes;
     if (remaining < 1) throw new ResourceLimitError("XML node limit exceeded.");
-    const parser = parseXmlSteps(chunks.join(""), { ...limits, expectedEncoding: encoding,
+    const parserLimits = { ...limits,
       maxNodes: Math.min(limits.maxNodes, remaining),
       maxContentNodes: Math.min(limits.maxContentNodes, remaining),
-      maxAttributes: Math.min(limits.maxAttributes, remaining),
+      maxAttributes: Math.min(limits.maxAttributes, remaining) };
+    const parser = parseXmlSteps(chunks.join(""), { ...Object.fromEntries(Object.entries(parserLimits).filter(([, value]) => value !== Infinity)), expectedEncoding: encoding,
       onElement: () => budget.charge("xmlNodes", 1) });
     let work = bytes.length;
     try {

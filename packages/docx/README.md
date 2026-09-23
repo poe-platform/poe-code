@@ -1,6 +1,6 @@
 # docx
 
-Private ESM workspace for bounded DOCX admission, inspection, editing and
+Private ESM workspace for DOCX admission, inspection, editing and
 publication. It does not render Word documents and has no standalone binary.
 
 ```js
@@ -20,13 +20,17 @@ qualified behavior from declared APIs.
 ## Configuration and environment
 
 No product environment variables or configuration files are exposed. Host
-`ArchiveContext` supplies `limits`, `signal`, and optional `budget`.
-Command engines accept `limits` and optional `documentLimits`; I/O context may
+`ArchiveContext` supplies `signal` and optional `limits` and `budget`.
+Resources are unlimited by default. Each limit is optional; setting one leaves
+omitted resources unlimited. Command engines accept optional `limits` and
+`documentLimits`; I/O context may
 provide `registerCleanup`. Archive limits are `maxArchiveBytes`, `maxEntryBytes`,
 `maxTotalBytes`, `maxMembers`, `maxPathBytes`, `maxDepth`, `maxExtraBytes`,
 `maxCommentBytes`, `maxRetainedBytes`, and `chunkSize`.
 [Resource accounting](../../docs/docx/resource-limits.md) describes all document
-budget options. CLI `--limit NAME=VALUE` lowers host ceilings only.
+budget options. CLI `--limit NAME=VALUE` uses the same document settings as the
+SDK and can raise or lower an earlier setting. Capabilities lists finite limits;
+resources omitted from that list are unlimited.
 
 Filesystem and publication authority must be explicitly supplied. Linked content
 is inert; no ambient filesystem, network or native Office process is acquired.

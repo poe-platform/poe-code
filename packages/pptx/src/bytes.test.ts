@@ -50,7 +50,7 @@ describe("byte admission", () => {
     expect(openRead).toHaveBeenCalledOnce();
   });
 
-  it.each([0, -1, 1.5, Infinity, NaN])(
+  it.each([0, -1, 1.5, NaN])(
     "rejects invalid limits before reading: %s",
     async (maxBytes) => {
       const read = vi.fn();
@@ -61,12 +61,8 @@ describe("byte admission", () => {
     }
   );
 
-  it("allows lowered limits but refuses increases before I/O", async () => {
-    const read = vi.fn();
-    await expect(readBinary({ read }, context, { maxBytes: 9 })).rejects.toMatchObject({
-      code: "resource-limit"
-    });
-    expect(read).not.toHaveBeenCalled();
+  it("allows explicit limits above or below earlier settings", async () => {
+    await expect(readBinary(new Uint8Array(9), context, { maxBytes: 9 })).resolves.toHaveLength(9);
     await expect(readBinary(Uint8Array.of(1, 2), context, { maxBytes: 1 })).rejects.toMatchObject({
       code: "resource-limit"
     });

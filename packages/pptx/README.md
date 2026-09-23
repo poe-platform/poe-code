@@ -1,6 +1,6 @@
 # pptx
 
-Private ESM workspace for bounded PowerPoint package inspection, editing and
+Private ESM workspace for PowerPoint package inspection, editing and
 publication. It is not included in the published `poe-code` package. It has no
 standalone binary and does not render presentations.
 
@@ -14,7 +14,8 @@ Schema declarations alone do not establish complete PowerPoint compatibility.
 No environment variables or configuration files are exposed. Filesystem,
 publication, time, author and font metrics are explicit caller capabilities.
 `PresentationContext` accepts `timestamp`, `author`, `fontMetrics`, `signal`,
-and four limit groups. Supplying a group replaces its defaults:
+and four optional limit groups. Resources are unlimited by default; setting one
+limit leaves the others unlimited. Chunk sizes control I/O and default to 65536:
 
 - `limits`: `maxBytes`, `maxReads`, `chunkBytes`.
 - `archiveLimits`: `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`,
@@ -22,14 +23,14 @@ and four limit groups. Supplying a group replaces its defaults:
 - `xmlLimits`: `maxBytes`, `maxNodes`, `maxDepth`.
 - `relationshipLimits`: `maxBytes`, `maxParts`, `maxRelationships`.
 
-`createPptxCommandEngine` requires `context`, `maxArgumentBytes`, and
-`maxOutputBytes`. Context optionally supplies `validationLimits`: `maxBytes`,
+`createPptxCommandEngine` accepts optional `context`, `maxArgumentBytes`, and
+`maxOutputBytes`. Context optionally supplies individual `validationLimits`: `maxBytes`,
 `maxNodes`, `maxDepth`, `maxEntries`, `maxParts`, `maxRelationships`.
 Execution supplies encoded `args`, `signal`, `readInput` and optional
 `preflightOutput`, `publishOutput`, `publishOutputs` callbacks. Multi-output
 publication requires a real atomic host transaction.
 
-CLI `--limit NAME=VALUE` lowers trusted ceilings only: `maxBytes`, `maxNodes`,
+CLI `--limit NAME=VALUE` sets or overrides limits: `maxBytes`, `maxNodes`,
 `maxDepth`, `maxOutputBytes`, and `maxOutputs` for applicable extraction commands.
 [Configuration defaults](../../docs/pptx/usage.md#configuration-and-limits) and
 [byte transport options](../../docs/pptx/package-usage.md) document the complete

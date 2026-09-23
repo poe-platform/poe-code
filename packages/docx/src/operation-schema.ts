@@ -55,8 +55,7 @@ function text(value: unknown): value is string {
   return true;
 }
 function nonempty(value: unknown): value is string { return text(value) && value.length > 0 && !value.includes("\0"); }
-function safeGraph(value: unknown, visiting = new Set<object>(), depth = 0, budget = { values: 0 }): boolean {
-  if (++budget.values > 2000000 || depth > 256) return false;
+function safeGraph(value: unknown, visiting = new Set<object>()): boolean {
   if (typeof value === "string") return text(value);
   if (typeof value === "number") return Number.isFinite(value);
   if (value === undefined || value === null || typeof value === "boolean") return true;
@@ -71,7 +70,7 @@ function safeGraph(value: unknown, visiting = new Set<object>(), depth = 0, budg
   for (const key of Reflect.ownKeys(descriptors)) {
     if (typeof key !== "string" || ["__proto__", "constructor", "prototype"].includes(key)) return false;
     const descriptor = descriptors[key]!;
-    if (!("value" in descriptor) || !safeGraph(descriptor.value, visiting, depth + 1, budget)) return false;
+    if (!("value" in descriptor) || !safeGraph(descriptor.value, visiting)) return false;
   }
   visiting.delete(value);
   return true;

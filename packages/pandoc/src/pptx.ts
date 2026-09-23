@@ -3,7 +3,7 @@ import {
   readSelectionIndex, readAnimations, readCharts, readObjects, readNotes,
   mutateNotes, mutateTextParagraphs, Picture, GraphicFrame, Image, Emu, Pt,
   readLayouts, removeSlides, addSlide, readImages, Shape, PP_PLACEHOLDER_TYPE,
-  type PresentationContext, type ParagraphBullet, type LayoutRecord,
+  type PresentationContext, type SelectionContext, type ParagraphBullet, type LayoutRecord,
   OfficeError
 } from "pptx";
 import type { Attr, Block, Inline, Row } from "./ast-types.js";
@@ -11,7 +11,7 @@ import type { AdapterContext, Document, ReaderCapability, WriterCapability } fro
 import { PandocError } from "./errors.js";
 
 const attr: Attr = ["", [], []];
-function engineContext(context: AdapterContext): PresentationContext & Required<Pick<PresentationContext, "limits" | "archiveLimits" | "xmlLimits" | "relationshipLimits">> {
+function engineContext(context: AdapterContext): PresentationContext & SelectionContext {
   const l = context.limits;
   // Package expansion consumes resource ownership even when no image is emitted.
   // Pass the tighter host ceilings into the public sibling API before it allocates.

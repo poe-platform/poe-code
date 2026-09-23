@@ -14,7 +14,8 @@ export function copyOptions(context: CommandContext) {
   let ended = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
-    args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}` : argument);
+    args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}`
+      : !ended && argument === "--preserve" ? "--preserve=mode,ownership,timestamps" : argument);
     if (argument === "--") ended = true;
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
       ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
@@ -22,11 +23,24 @@ export function copyOptions(context: CommandContext) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "arRfnvPLbB:S:t:T", {
+  const parsed = options(args, "arRfnvPLpdbB:S:t:T", {
     archive: "a",
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
+    preserve: "preserve:", "attributes-only": false,
   });
+  const attributes = new Set<string>(parsed.flags.has("p") ? ["mode", "ownership", "timestamps"] : []);
+  for (const list of parsed.values.get("preserve") ?? []) {
+    for (const attribute of list.split(",")) {
+      if (!["mode", "ownership", "timestamps", "links", "context", "xattr", "all"].includes(attribute)) {
+        throw new UsageError(`invalid argument '${attribute}' for 'preserve attribute'`);
+      }
+      if (attribute === "all") for (const name of ["mode", "ownership", "timestamps", "links", "context", "xattr"]) attributes.add(name);
+      else attributes.add(attribute);
+    }
+  }
+  if (parsed.flags.has("d")) { parsed.flags.add("P"); attributes.add("links"); }
+  for (const attribute of attributes) parsed.flags.add(`preserve-${attribute}`);
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");
     parsed.flags.add("P");

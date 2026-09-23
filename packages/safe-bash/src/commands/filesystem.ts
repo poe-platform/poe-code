@@ -141,6 +141,7 @@ async function copy(
   context: CommandContext, source: string, target: string,
   flags: ReadonlySet<string>, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
   preflight = false, displaySource = source, displayTarget = target, backup?: CopyBackup,
+  copied: { stat: FileStat; target: string }[] = [],
 ): Promise<void> {
   context.signal.throwIfAborted();
   const link = await context.fs.lstat(source, { signal: context.signal });
@@ -159,6 +160,19 @@ async function copy(
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
+  const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal }) ?? context.fs.capabilities;
+  if (flags.has("preserve-context") || flags.has("preserve-xattr")
+    || !preserveLink && flags.has("preserve-mode") && (!context.fs.chmod || capabilities.permissions === false)
+    || !preserveLink && flags.has("preserve-timestamps") && (!context.fs.utimes || capabilities.timestamps === false)
+    || preserveLink && (flags.has("preserve-mode") || flags.has("preserve-timestamps"))) {
+    throw new FsError("ENOTSUP", { syscall: "cp", path: target, message: "requested metadata preservation is unavailable" });
+  }
+  if (flags.has("preserve-ownership") && (sourceStat.uid !== undefined || sourceStat.gid !== undefined)) {
+    const owner = targetStat ?? await context.fs.stat(dirname(target), { signal: context.signal });
+    if (owner.uid !== sourceStat.uid || owner.gid !== sourceStat.gid) {
+      throw new FsError("ENOTSUP", { syscall: "cp", path: target, message: "ownership preservation is unavailable" });
+    }
+  }
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
@@ -177,7 +191,7 @@ async function copy(
       if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
       for (const entry of await readDirectory(context, source, true)) {
         await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight,
-          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), backup);
+          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), backup, copied);
       }
     } finally { ancestors.delete(physicalSource); }
   } else if (preserveLink) {
@@ -211,11 +225,23 @@ async function copy(
     if (preflight) return;
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
+      const previous = flags.has("preserve-links") ? copied.find(entry => compareCopyIdentity(sourceStat, entry.stat) === "same") : undefined;
+      if (flags.has("attributes-only")) {
+        if (!targetStat || removeDestination || backup) await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", signal: context.signal });
+      } else if (previous) {
+        needCapability(context, "link");
+        if (targetStat && !removeDestination && !backup) {
+          if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) !== "distinct") {
+            throw new FsError("ENOTSUP", { path: target, message: "hard link copy unlink lacks authoritative distinctness" });
+          }
+          await context.fs.rm(target, { recursive: false, signal: context.signal });
+        }
+        await context.fs.link!(previous.target, target, { signal: context.signal });
+      } else await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
     }
     catch (error) {
       context.signal.throwIfAborted();
-      if (removeDestination || !replace || codeOf(error) !== "EACCES") throw error;
+      if (flags.has("attributes-only") || flags.has("preserve-links") || removeDestination || !replace || codeOf(error) !== "EACCES") throw error;
       const existing = await maybeStat(context, target, false);
       if (existing) {
         const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
@@ -230,6 +256,11 @@ async function copy(
       }
       await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
+    if (flags.has("preserve-links")) copied.push({ stat: sourceStat, target });
+  }
+  if (!preflight && !preserveLink) {
+    if (flags.has("preserve-mode")) await context.fs.chmod!(target, sourceStat.mode & 0o7777, { signal: context.signal });
+    if (flags.has("preserve-timestamps")) await context.fs.utimes!(target, sourceStat.atimeMs, sourceStat.mtimeMs, { signal: context.signal });
   }
   if (!preflight && flags.has("v")) await output(context, `'${escapeText(displaySource, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
 }
@@ -315,6 +346,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("cp", async context => {
       const parsed = copyOptions(context);
+      const copied: { stat: FileStat; target: string }[] = [];
       if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
       const destination = await destinations(context, parsed.operands, value(parsed, "t"), parsed.flags.has("T"));
@@ -328,7 +360,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const targetOperand = destination.targetOperand;
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
           parsed.flags, readDirectory, true, new Set(), false, operand,
-          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand, parsed.backup);
+          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand, parsed.backup, copied);
       });
     }),
     define("mv", async context => {

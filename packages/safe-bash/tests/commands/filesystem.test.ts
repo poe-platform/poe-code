@@ -6,6 +6,71 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const option of ["--preserve=mode", "-p"]) {
+  test(`cp ${option} preserves mode and copies contents`, async () => {
+    const fs = await fixture({ input: "new", output: "old" });
+    await fs.chmod("/work/input", 0o600);
+    await fs.utimes("/work/input", 1000, 2000);
+    const result = await run("cp", [option, "input", "output"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "new");
+    assert.equal((await fs.stat("/work/output")).mode & 0o7777, 0o600);
+    if (option === "-p") assert.equal((await fs.stat("/work/output")).mtimeMs, 2000);
+  });
+}
+
+test("cp --attributes-only retains existing contents and creates empty missing files", async () => {
+  const fs = await fixture({ input: "new", output: "old" });
+  for (const target of ["output", "missing"]) {
+    const result = await run("cp", ["--attributes-only", "input", target], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile(`/work/${target}`)), target === "output" ? "old" : "");
+  }
+});
+
+test("cp -d copies a symbolic link without dereferencing it", async () => {
+  const fs = await fixture({ input: "new" });
+  await fs.symlink("input", "/work/source");
+  const result = await run("cp", ["-d", "source", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await fs.readlink("/work/output"), "input");
+});
+
+test("cp -d preserves hard links across source operands", async () => {
+  const fs = await fixture({ input: "new" });
+  await fs.link("/work/input", "/work/alias");
+  await fs.mkdir("/work/output");
+  const result = await run("cp", ["-d", "input", "alias", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  await fs.writeFile("/work/output/input", new TextEncoder().encode("changed"));
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output/alias")), "changed");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "new");
+});
+
+test("cp recursively preserves directory modes and timestamps after copying children", async () => {
+  const fs = await fixture({ "input/file": "new" });
+  await fs.chmod("/work/input", 0o700);
+  await fs.utimes("/work/input", 1000, 2000);
+  const result = await run("cp", ["-Rp", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/output")).mode & 0o7777, 0o700);
+  assert.equal((await fs.stat("/work/output")).mtimeMs, 2000);
+});
+
+test("cp refuses unsupported preservation before changing destination bytes", async () => {
+  const backing = await fixture({ input: "new", output: "old" });
+  const fs: FileSystem = new Proxy(backing, { get(target, property) {
+    if (property === "chmod") return undefined;
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  for (const option of ["--preserve=mode", "--preserve=xattr", "--preserve=invalid"]) {
+    const result = await run("cp", [option, "input", "output"], { fs });
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(new TextDecoder().decode(await backing.readFile("/work/output")), "old");
+  }
+});
+
 async function prefixFixture() {
   const backing = await fixture({ "reports/drafts/note": "draft", "other/note": "other", "explicit/note": "kept", collision: "file" });
   await backing.chmod("/work/reports/drafts", 0o755);

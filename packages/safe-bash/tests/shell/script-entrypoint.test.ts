@@ -205,8 +205,10 @@ test("function locals and return scope do not enter scripts", async () => {
   const { shell, fs } = setup();
   await script(fs, "/program", '#!/usr/bin/bash\nargs "${PRIVATE-unset}"; return 8; args "$?"; exit 4');
   const result = await shell.exec('work() { local PRIVATE=secret; ./program; args "$?" "$PRIVATE"; }; work');
-  assert.equal(result.stdout, '["unset"]["1"]["4","secret"]');
-  assert.match(result.stderr, /return: not in a function/u);
+  assert.equal(result.exitCode, 0);
+  // Native Bash rejects return outside a function or sourced script with status 2.
+  assert.equal(result.stdout, '["unset"]["2"]["4","secret"]');
+  assert.equal(result.stderr, "return: can only `return' from a function or sourced script\n");
 });
 
 test("VFS relative paths, symlinks, cwd and argv0 stay virtual", async () => {

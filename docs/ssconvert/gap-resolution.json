@@ -1060,5 +1060,17 @@
     "publicFieldsEachSurface": 304,
     "guardedLintSubjects": 16410,
     "publication": "unverified"
+  },
+  "umaskLegacyWritesFollowup": {
+    "proof": "docs/ssconvert/umask-legacy-write-gap-proof.json",
+    "implementationCommit": "eba3ebe0b5aab689ce83aface63e902d6b78f905",
+    "remoteMainVerified": true,
+    "focusedControls": 339,
+    "previouslyFailingCohort": 116,
+    "remainingFailuresInCohort": 0,
+    "supplementalAuthorityControls": 56,
+    "remainingSeparateGlobFailures": 1,
+    "guardedLintSubjects": 16410,
+    "publication": "unverified"
   }
 }

@@ -5,6 +5,93 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const args of [
+  ["--field-separator=,", "{print $2}", "input"],
+  ["--field-separator", ",", "{print $2}", "input"],
+  ["--source={print $2}", "--field-separator=,", "input"],
+  ["--source", "{print $2}", "-F,", "input"],
+  ["-e{print $2}", "-F,", "input"],
+  ["-e", "{print $2}", "-F,", "input"],
+]) {
+  test(`awk GNU separator/source options: ${JSON.stringify(args)}`, async () => {
+    const fs = await makeFileSystem({ input: "a,b\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`awk ${args.map(value => `'${value}'`).join(" ")}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "b\n");
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const flag of ["--characters-as-bytes", "-b"]) {
+  test(`awk ${flag} counts and preserves raw bytes`, async () => {
+    const input = Buffer.from([0xc3, 0xa9, 0xff, 10]);
+    const result = await runVirtual("awk", { args: [flag, "{print length($0); print $0}"], stdin: input });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.concat([Buffer.from("3\n"), input]));
+    assert.equal(result.stderr.length, 0);
+  });
+}
+
+test("awk combines ordered source and program-file fragments", async () => {
+  const result = await runVirtual("awk", {
+    args: ["--source=BEGIN {print 1}", "-f", "program.awk", "-e", "END {print 3}", "input"],
+    files: { "program.awk": "{print $2}", input: "a 2\n" },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "1\n2\n3\n");
+});
+
+test("awk accepts an explicitly empty source without consuming a program operand", async () => {
+  const result = await runVirtual("awk", { args: ["--source=", "input"], files: { input: "a b\n" } });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.length, 0);
+});
+
+for (const [separator, input, expected] of [
+  ["", "abc\n", "b\n"],
+  [String.raw`\t`, "a\tb\n", "b\n"],
+  ["=", "a=b\n", "b\n"],
+] as const) {
+  test(`awk long separator preserves ${JSON.stringify(separator)}`, async () => {
+    const result = await runVirtual("awk", { args: [`--field-separator=${separator}`, "{print $2}"], stdin: input });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.toString(), expected);
+  });
+}
+
+test("awk source options respect the end of options before file operands", async () => {
+  const result = await runVirtual("awk", {
+    args: ["--source={print $2}", "--", "--source=input"], files: { "--source=input": "a b\n" },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "b\n");
+});
+
+for (const flag of ["--source-extra=BEGIN{}", "--characters-as-bytes=yes", "--bignum", "--sandbox"]) {
+  test(`awk rejects unsupported ${flag} before program effects`, async () => {
+    const result = await runVirtual("awk", { args: ["--source=BEGIN {print 1 > \"created\"}", flag] });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), `awk: unsupported awk option '${flag}'\n`);
+    assert.deepEqual(result.files, {});
+  });
+}
+
+for (const flag of ["--source", "--field-separator", "-e"]) {
+  test(`awk rejects missing ${flag} argument before reading stdin`, async () => {
+    let consumed = false;
+    const source = (async function* () { consumed = true; yield Buffer.from("input\n"); })();
+    const result = await runVirtual("awk", { args: [flag] }, {}, source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.stderr.toString(), `awk: ${flag} requires an argument\n`);
+    assert.equal(consumed, false);
+  });
+}
+
 for (const [name, replacement, expected] of [
   ["plain text", "plain", "plain"],
   ["literal backslash n", String.raw`\\n`, String.raw`\n`],

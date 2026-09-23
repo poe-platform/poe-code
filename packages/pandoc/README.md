@@ -21,6 +21,10 @@ compatibility. Office engines load when their formats are selected.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.
+Shell arguments accept `--read`/`-r` and `--write`/`-w` as format aliases,
+attached short values such as `-fcommonmark -thtml -ooutput.html`, and bare
+`-M draft` or `--metadata=draft` as boolean true. `-v` reports the same
+TypeScript converter identity as `--version`.
 
 ## Configuration
 

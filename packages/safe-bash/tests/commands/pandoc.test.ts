@@ -7,6 +7,26 @@ import {agentCommands} from "../../src/plugins/index.js";
 import {createPandocCommand, createPandocCommands, pandocCommands} from "../../src/commands/pandoc/index.js";
 
 import {fixture} from "./pandoc-fixture.js";
+test("pandoc accepts native aliases, attached values and bare metadata through Shell", async () => {
+  const {shell, volume} = fixture();
+  try {
+    for (const args of ["-r commonmark -w html", "--read=commonmark --write=html", "-fcommonmark -thtml", "-rcommonmark -whtml"]) {
+      const result = await shell.exec(`pandoc ${args} b.md`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "<p>Beta</p>\n");
+    }
+    const result = await shell.exec("pandoc -fcommonmark -tjson -M draft --metadata=review -Mempty= b.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout).meta, {draft: {t: "MetaBool", c: true}, review: {t: "MetaBool", c: true}, empty: {t: "MetaString", c: ""}});
+    const output = await shell.exec("pandoc -fcommonmark -tplain b.md -oout");
+    assert.equal(output.exitCode, 0, output.stderr);
+    assert.equal(volume.readFileSync("/work/out", "utf8"), "Beta\n");
+    assert.equal((await shell.exec("pandoc -v")).stdout, (await shell.exec("pandoc --version")).stdout);
+    const alias = await shell.exec("pandoc -fcommonmark -tplain b.md -ob.md");
+    assert.equal(alias.exitCode, 9, alias.stderr);
+    assert.equal(volume.readFileSync("/work/b.md", "utf8"), "Beta");
+  } finally {await shell.dispose();}
+});
 test("pandoc opt-in registration preflights collisions and supports replacement", async () => {
   const shell = new Shell({fs: new MemoryFileSystem()}).use(agentCommands());
   try {

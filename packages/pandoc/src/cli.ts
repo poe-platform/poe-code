@@ -20,7 +20,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   let destination: string | undefined;
   let outputSeen = false;
   let yes = false;
-  const names = new Map([["-f", "from"], ["--from", "from"], ["-t", "to"], ["--to", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]] as const);
+  const names = new Map<string, "from" | "to" | "rawContent" | "wrap">([["-f", "from"], ["--from", "from"], ["-r", "from"], ["--read", "from"], ["-t", "to"], ["--to", "to"], ["-w", "to"], ["--write", "to"], ["--raw-content", "rawContent"], ["--wrap", "wrap"]]);
   const fail = (message: string): never => {throw new PandocError("E_OPTION", "convert", message);};
   const source = (path: string, metadata = false): InputSource => {
     if (!files.readFile) fail("File operands require an explicit readFile capability");
@@ -31,7 +31,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   let positional = false;
   let stdinUsed = false;
   for (let i = 0; i < args.length; i++) {
-    const arg = args[i]!;
+    let arg = args[i]!;
     if (!positional && arg === "--yes") {if (yes) fail("Repeated option: --yes"); yes = true; continue;}
     if (arg === "--" && !positional) {positional = true; continue;}
     if (arg === "-") {
@@ -40,6 +40,9 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       operands.push({chunks: files.stdin!, source: "stdin"}); continue;
     }
     if (positional || !arg.startsWith("-")) {operands.push(source(arg)); continue;}
+    // Short options with an argument also accept it in the same token.
+    if (arg.length > 2 && ["-f", "-r", "-t", "-w", "-o"].includes(arg.slice(0, 2)) && arg[2] !== "=")
+      arg = `${arg.slice(0, 2)}=${arg.slice(2)}`;
     if (arg === "--lossy" || arg === "--standalone" || arg === "-s" || arg === "--fail-if-warnings") {
       const key = arg === "--lossy" ? "lossy" : arg === "--fail-if-warnings" ? "failIfWarnings" : "standalone";
       if (options[key] !== undefined) fail(`Repeated option: ${arg}`);
@@ -116,10 +119,10 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       const value = arg === "--metadata" || arg === "-M" ? args[++i] : arg.startsWith("--metadata=") ? arg.slice(11) : arg.slice(2);
       if (value === undefined) fail("Missing metadata value");
       const split = Math.min(...[value!.indexOf("="), value!.indexOf(":")].filter(n => n >= 0));
-      if (!Number.isFinite(split) || split < 1) fail("Metadata requires KEY=VALUE or KEY:VALUE");
-      const key = value!.slice(0, split);
+      if (split < 1 || value === "") fail("Metadata requires a key");
+      const key = Number.isFinite(split) ? value!.slice(0, split) : value!;
       if (["__proto__", "constructor", "prototype"].includes(key) || [...key].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "A" && ch <= "Z") && !(ch >= "0" && ch <= "9") && ch !== "-" && ch !== "_")) fail("Invalid metadata key");
-      const content = value!.slice(split + 1);
+      const content = Number.isFinite(split) ? value!.slice(split + 1) : "true";
       if (content.startsWith("{") || content.startsWith("[") || content.startsWith('"') || ["true", "false", "null"].includes(content)) {
         let parsed: unknown;
         try {parsed = JSON.parse(content);} catch {fail("Invalid JSON metadata value");}
@@ -130,7 +133,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       }
       continue;
     }
-    const key = names.get(name as "-f" | "--from" | "-t" | "--to" | "--raw-content" | "--wrap");
+    const key = names.get(name);
     if (!key) fail(`Unsupported option: ${name}`);
     if (options[key!] !== undefined) fail(`Repeated option: ${name}`);
     const value = equals < 0 ? args[++i] : arg.slice(equals + 1);

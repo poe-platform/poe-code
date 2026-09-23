@@ -3,6 +3,18 @@ import {parseConversionArgs} from "./cli.js";
 const signal = new AbortController().signal;
 const files = {stdin: [], readFile: async () => new Uint8Array(), writeFile: async () => {}};
 describe("opt-in CLI selection", () => {
+  it.each([["-r", "commonmark", "-w", "html"], ["--read=commonmark", "--write=html"], ["-fcommonmark", "-thtml"], ["-rcommonmark", "-whtml"]])("accepts format aliases and attached values: %s", (...args) => {
+    expect(parseConversionArgs(args, files, signal).options).toMatchObject({from: "commonmark", to: "html"});
+  });
+  it("accepts bare boolean metadata while preserving empty and repeated assignments", () => {
+    const result = parseConversionArgs(["-fcommonmark", "-tjson", "-M", "draft", "--metadata=review", "-Mempty=", "-Mdraft=false"], files, signal);
+    expect(result.options.metadataJson).toEqual([{draft: true}, {review: true}, {empty: ""}, {draft: false}]);
+  });
+  it("preserves literal operands and rejects repeated aliases, missing values and unsafe metadata", () => {
+    expect(parseConversionArgs(["-fcommonmark", "-thtml", "-oout", "--", "-rcommonmark"], files, signal).operands?.[0]?.source).toBe("-rcommonmark");
+    for (const args of [["-fcommonmark", "-r", "commonmark", "-thtml"], ["-r"], ["-w"], ["-fcommonmark", "-thtml", "-M"], ["-fcommonmark", "-thtml", "-M__proto__"], ["-fcommonmark", "-thtml", "--metadata="]])
+      expect(() => parseConversionArgs(args, files, signal)).toThrow();
+  });
   it("infers agreeing file formats and output only with yes", () => {
     expect(parseConversionArgs(["--yes", "a.md", "b.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "commonmark", to: "html5"});
   });

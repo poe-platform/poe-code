@@ -9,21 +9,21 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
   if (args[0] === "--help" || args[0] === "-h") {
     if (!args.every(arg => arg === "--help" || arg === "-h")) throw new PandocError("E_OPTION", "convert", "Use help flags alone");
     return "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n" +
-      "--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone[=true|false]/-s\n" +
+      "--from/--read/-f/-r --to/--write/-t/-w --output/-o PATH (use - for stdout) --yes --standalone[=true|false]/-s\n" +
       "--wrap=none|auto|preserve (auto/preserve: plain) --columns N (plain)\n" +
       "--number-sections/-N --toc (HTML standalone) --ascii (HTML)\n" +
       "--shift-heading-level-by -6..6 --strip-comments --eol=lf|crlf|native\n" +
-      "--metadata/-M KEY=VALUE --metadata-file FILE.json --lossy --fail-if-warnings\n" +
+      "--metadata/-M KEY[=VALUE] (bare KEY is true) --metadata-file FILE.json --lossy --fail-if-warnings\n" +
       "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n" +
       "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n" +
       "--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\n" +
       "PDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n" +
       "--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n" +
-      "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version\n" +
+      "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version/-v\n" +
       "Use -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\n" +
       "Capabilities (available directions):\n" + inspectFormats(["--list-input-formats", "--list-output-formats"], context);
   }
-  if (args[0] === "--version") {
+  if (args[0] === "--version" || args[0] === "-v") {
     if (args.length !== 1) throw new PandocError("E_OPTION", "convert", "Use --version alone");
     return "pandoc TypeScript converter 0.0.1 (original bounded implementation)\n";
   }

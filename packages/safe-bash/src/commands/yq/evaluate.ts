@@ -407,7 +407,11 @@ export class Evaluator {
         result = yaml.isMap(base.node) ? base.node.items.some(pair => yaml.isScalar(pair.key) && String(pair.key.value) === String(value(key.node, yaml))) : yaml.isSeq(base.node) && Number(value(key.node, yaml)) < base.node.items.length;
       } else if (name === "keys") {
         const node = new yaml.YAMLSeq(); this.work.node();
-        if (yaml.isMap(base.node)) for (const pair of base.node.items) node.items.push(await cloneNode(pair.key as Node, yaml, this.work));
+        if (yaml.isMap(base.node)) for (const pair of base.node.items) {
+          const key = await cloneNode(pair.key as Node, yaml, this.work);
+          delete key.commentBefore;
+          node.items.push(key);
+        }
         else if (yaml.isSeq(base.node)) base.node.items.forEach((_, index) => node.items.push(scalar(yaml, this.work, BigInt(index))));
         output.push(this.child(node, input)); continue;
       } else if (name === "style") result = yaml.isScalar(base.node) ? base.node.type === "QUOTE_SINGLE" ? "single" : base.node.type === "QUOTE_DOUBLE" ? "double" : base.node.type === "BLOCK_FOLDED" ? "folded" : base.node.type === "BLOCK_LITERAL" ? "literal" : "" : yaml.isCollection(base.node) && base.node.flow ? "flow" : "";

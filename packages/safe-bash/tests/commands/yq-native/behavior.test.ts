@@ -91,6 +91,21 @@ test("native factories have runtime identity and remain explicit plugins", async
   finally { await shell.dispose(); }
 });
 
+test("keys drops the mapping header without changing source comments", async () => {
+  const fs = createMemoryFileSystem();
+  const input = "# head\na: 1\n";
+  await fs.writeFile("/input.yaml", Buffer.from(input));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec("yq keys /input.yaml");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "- a\n");
+    assert.equal(result.stderr, "");
+    assert.equal((await shell.exec("yq . /input.yaml")).stdout, input);
+    assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), input);
+  } finally { await shell.dispose(); }
+});
+
 test("native factories reject malformed options and snapshot plugin replacement", async () => {
   for (const options of [{ unknown: true }, { replace: 1 }, { limits: [] }]) assert.throws(() => createMikeYqCommand(options as MikeYqOptions), TypeError);
   const options = { replace: false };

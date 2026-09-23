@@ -179,6 +179,102 @@ export class Evaluator {
     return result;
   }
 
+  async sameKey(left: Node, right: Node, depth: number): Promise<boolean> {
+    this.work.depth(depth);
+    await this.work.tick();
+    if (nodeTag(left, this.yaml) !== nodeTag(right, this.yaml)) return false;
+    if (this.yaml.isScalar(left) && this.yaml.isScalar(right)) return left.value === right.value;
+    if (this.yaml.isSeq(left) && this.yaml.isSeq(right)) {
+      if (left.items.length !== right.items.length) return false;
+      for (let index = 0; index < left.items.length; index++) {
+        if (!await this.sameKey(left.items[index] as Node, right.items[index] as Node, depth + 1)) return false;
+      }
+      return true;
+    }
+    if (this.yaml.isMap(left) && this.yaml.isMap(right)) {
+      if (left.items.length !== right.items.length) return false;
+      for (let index = 0; index < left.items.length; index++) {
+        const first = left.items[index]!, second = right.items[index]!;
+        if (!await this.sameKey(first.key as Node, second.key as Node, depth + 1) ||
+          !await this.sameKey(first.value as Node, second.value as Node, depth + 1)) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async warnMerge(): Promise<void> {
+    if (!this.#warnedMerge) {
+      this.#warnedMerge = true;
+      const now = new Date();
+      const offset = now.getTimezoneOffset();
+      const local = new Date(now.getTime() - offset * 60_000).toISOString().slice(0, -1);
+      const zone = offset === 0 ? "Z" : `${offset < 0 ? "+" : "-"}${String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0")}:${String(Math.abs(offset) % 60).padStart(2, "0")}`;
+      await this.work.write(Buffer.from(`time=${local}${zone} level=WARN msg="--yaml-fix-merge-anchor-to-spec is false; causing merge anchors to override the existing values which isn't to the yaml spec. This flag will default to true in late 2025. See https://mikefarah.gitbook.io/yq/operators/traverse-read for more details."\n`), true);
+    }
+  }
+
+  async explode(input: Candidate, depth = 0, active = new Set<Node>()): Promise<Node> {
+    this.work.depth(depth);
+    await this.work.tick();
+    const base = dereference(input, this.yaml, this.work);
+    if (active.has(base.node)) throw new MikeError("cyclic YAML alias");
+    active.add(base.node);
+    try {
+      const node = await cloneNode(base.node, this.yaml, this.work);
+      if ("anchor" in node) delete node.anchor;
+      if (this.yaml.isAlias(input.node)) {
+        if (input.node.comment !== undefined) node.comment = input.node.comment;
+        if (input.node.commentBefore !== undefined) node.commentBefore = input.node.commentBefore;
+        if (input.node.spaceBefore !== undefined) node.spaceBefore = input.node.spaceBefore;
+        const head = this.work.headComments.get(input.node);
+        if (head !== undefined) this.work.headComments.set(node, head);
+      }
+      if (this.yaml.isMap(base.node) && this.yaml.isMap(node)) {
+        for (let index = 0; index < base.node.items.length; index++) {
+          const pair = base.node.items[index]!;
+          if (this.yaml.isNode(pair.key)) node.items[index]!.key = await this.explode({ ...base, node: pair.key }, depth + 1, active);
+          if (this.yaml.isNode(pair.value)) node.items[index]!.value = await this.explode({ ...base, node: pair.value }, depth + 1, active);
+        }
+        const isMerge = (pair: Pair) => this.yaml.isScalar(pair.key) &&
+          (pair.key.tag === "tag:yaml.org,2002:merge" || pair.key.value === "<<" && pair.key.type === "PLAIN");
+        if (node.items.some(isMerge)) {
+          const pairs: Pair[] = [];
+          const add = async (pair: Pair, override: boolean) => {
+            for (let index = 0; index < pairs.length; index++) {
+              if (await this.sameKey(pairs[index]!.key as Node, pair.key as Node, depth + 1)) {
+                if (override) pairs[index] = pair;
+                return;
+              }
+            }
+            pairs.push(pair);
+          };
+          const merge = async (pair: Pair) => {
+            const sources = this.yaml.isSeq(pair.value) ? pair.value.items : [pair.value];
+            for (const source of sources) {
+              await this.work.tick();
+              if (!this.yaml.isMap(source)) throw new MikeError("merge requires a map or sequence of maps");
+              for (const incoming of source.items) await add(incoming, !this.mergeSpec);
+            }
+          };
+          if (this.mergeSpec) for (const pair of node.items) if (isMerge(pair)) await merge(pair);
+          for (const pair of node.items) {
+            await this.work.tick();
+            if (!isMerge(pair)) await add(pair, true);
+            else if (!this.mergeSpec) { await this.warnMerge(); await merge(pair); }
+          }
+          node.items = pairs;
+        }
+      } else if (this.yaml.isSeq(base.node) && this.yaml.isSeq(node)) {
+        for (let index = 0; index < base.node.items.length; index++) {
+          const child = base.node.items[index];
+          if (this.yaml.isNode(child)) node.items[index] = await this.explode({ ...base, node: child }, depth + 1, active);
+        }
+      }
+      return node;
+    } finally { active.delete(base.node); }
+  }
+
   async entries(input: Candidate, depth = 0): Promise<Map<string, Candidate>> {
     this.work.depth(depth);
     await this.work.tick();
@@ -205,14 +301,7 @@ export class Evaluator {
       await this.work.tick();
       if (isMerge(pair.key)) {
         if (!this.mergeSpec) {
-          if (!this.#warnedMerge) {
-            this.#warnedMerge = true;
-            const now = new Date();
-            const offset = now.getTimezoneOffset();
-            const local = new Date(now.getTime() - offset * 60_000).toISOString().slice(0, -1);
-            const zone = offset === 0 ? "Z" : `${offset < 0 ? "+" : "-"}${String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0")}:${String(Math.abs(offset) % 60).padStart(2, "0")}`;
-            await this.work.write(Buffer.from(`time=${local}${zone} level=WARN msg="--yaml-fix-merge-anchor-to-spec is false; causing merge anchors to override the existing values which isn't to the yaml spec. This flag will default to true in late 2025. See https://mikefarah.gitbook.io/yq/operators/traverse-read for more details."\n`), true);
-          }
+          await this.warnMerge();
           if (this.yaml.isNode(pair.value)) await merge(pair.value);
         }
       } else if (this.yaml.isScalar(pair.key) && this.yaml.isNode(pair.value)) entries.set(String(pair.key.value), this.child(pair.value, base, node, slot));
@@ -499,6 +588,19 @@ export class Evaluator {
     const output: Candidate[] = [];
     for (const input of inputs) {
       const name = expression.name;
+      if (name === "explode") {
+        const targets = await next(expression.args[0]!, [input], false, true);
+        const expanded: Node[] = [];
+        for (const target of targets) expanded.push(await this.explode(target));
+        for (let index = 0; index < targets.length; index++) {
+          const target = targets[index]!;
+          await replace(target, expanded[index]!, yaml, this.work);
+          if ("anchor" in target.node) delete target.node.anchor;
+          if (target === input) input.node = target.node;
+        }
+        output.push(input.isDocumentRoot ? { ...input, node: input.document.doc.contents! } : input);
+        continue;
+      }
       if (name === "path") {
         this.work.node();
         const node = new yaml.YAMLSeq();

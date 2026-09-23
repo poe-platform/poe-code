@@ -16,6 +16,7 @@ export interface CompressionOptions {
   level: number;
   extreme?: boolean;
   singleStream?: boolean;
+  xzDecompressMemory?: number;
   suffix?: string;
   zstd?: ZstdOptions;
   excludeCompressed?: boolean;
@@ -111,6 +112,16 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (profile.format === "xz") {
+      if (argument === "--memlimit-decompress" || argument.startsWith("--memlimit-decompress=")
+        || argument === "--memlimit-mt-decompress" || argument.startsWith("--memlimit-mt-decompress=")) {
+        const equal = argument.indexOf("=");
+        const name = equal < 0 ? argument.slice(2) : argument.slice(2, equal);
+        const value = equal < 0 ? args[++index] : argument.slice(equal + 1);
+        const memory = parseXzMemory(value);
+        // The codec is single-threaded: the MT soft limit never applies.
+        if (name === "memlimit-decompress") result.xzDecompressMemory = memory;
+        continue;
+      }
       if (argument === "--single-stream") { result.singleStream = true; continue; }
       // The frontend already writes dense output and emits no XZ warnings.
       if (argument === "--no-sparse" || argument === "--no-warn") continue;
@@ -213,4 +224,21 @@ export function parseOptions(command: string, args: readonly string[]): Compress
   if (result.small && !result.decompress) result.level = Math.min(result.level, 2);
   if (!result.operands.length) result.operands.push("-");
   return result;
+}
+
+/** Absolute XZ memory limits; host RAM percentages have no virtual-shell meaning. */
+function parseXzMemory(value: string | undefined): number {
+  if (!value) throw new UsageError("memory limit requires a value");
+  let end = 0;
+  while (end < value.length && value[end]! >= "0" && value[end]! <= "9") end++;
+  const suffix = value.slice(end);
+  const units = ["", "k", "m", "g"];
+  const unit = suffix.toLowerCase();
+  const power = units.indexOf(unit.endsWith("ib") ? unit.slice(0, -2)
+    : unit.endsWith("b") || unit.endsWith("i") ? unit.slice(0, -1) : unit);
+  if (!end || power < 0 || (suffix && power === 0)) throw new UsageError(`invalid memory limit '${value}'`);
+  const bytes = BigInt(value.slice(0, end)) * 1024n ** BigInt(power);
+  if (bytes > 0xffffffffffffffffn) throw new UsageError("memory limit exceeds the XZ uint64 limit");
+  // Zero disables the caller limit, never the codec's existing allocation ceiling.
+  return bytes === 0n ? 64 * 1024 * 1024 : Number(bytes > 67108864n ? 67108864n : bytes);
 }

@@ -105,6 +105,15 @@ Compression still consumes all input. `--format=auto`, `--format auto`,
 and XZ encoder. `--format=xz` / `-Fxz` select XZ encoding and restrict
 decoding to XZ streams, rejecting LZMA-alone input. `--no-sparse` selects the existing dense-output behavior;
 `--no-warn` selects the existing frontend profile without XZ warnings.
+`--memlimit-decompress=BYTES` (or a separate argument) limits allocations and
+XZ/LZMA decoder memory admission for every member, including test mode. Binary
+KiB/MiB/GiB suffixes and their XZ shorthand aliases are accepted. Zero disables
+the caller limit; values above 64 MiB retain the existing 64 MiB codec ceiling.
+The allocator's accounting includes allocation headers, so a tight limit may
+fail earlier than native XZ. Compression is unaffected.
+`--memlimit-mt-decompress` validates the same absolute values but has no effect
+on the single-threaded decoder, matching native XZ's soft MT limit behavior.
+Host-RAM percentages remain unsupported.
 Errors still fail and are reported unless quiet is repeated.
 Other forced formats, checksum controls, memory adjustment, custom filters, block
 controls and listing remain unsupported; these options do not lift codec limits.

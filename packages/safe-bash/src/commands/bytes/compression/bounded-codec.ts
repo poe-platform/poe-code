@@ -23,6 +23,7 @@ export interface BoundedCodecOptions {
   readonly decompress: boolean;
   readonly level: number;
   readonly extreme?: boolean;
+  readonly xzDecompressMemory?: number | undefined;
   readonly xzFormat?: "auto" | "xz" | undefined;
   /** bzip2's reduced-memory decoder. */
   readonly small?: boolean | undefined;

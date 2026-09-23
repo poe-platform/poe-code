@@ -1,7 +1,10 @@
 const NativeWeakMap = WeakMap;
-const get = WeakMap.prototype.get;
-const set = WeakMap.prototype.set;
-const apply = Reflect.apply;
+// Pin direct calls once; fresh argument arrays would otherwise be allocated
+// for both registry operations on every visited object.
+const get = Function.prototype.call.bind(WeakMap.prototype.get) as
+  (store: WeakMap<object, number>, value: object) => number | undefined;
+const set = Function.prototype.call.bind(WeakMap.prototype.set) as
+  (store: WeakMap<object, number>, value: object, generation: number) => unknown;
 
 export interface MeasurementSeen {
   has(value: object): boolean;
@@ -24,12 +27,12 @@ class VisitedObjects implements MeasurementSeen {
   }
 
   has(value: object): boolean {
-    return apply(get, this.#store, [value]) === this.#generation;
+    return get(this.#store, value) === this.#generation;
   }
 
   add(value: object): void {
     // Discard the native set return value; never reveal the private registry.
-    apply(set, this.#store, [value, this.#generation]);
+    set(this.#store, value, this.#generation);
   }
 }
 Object.freeze(VisitedObjects.prototype);

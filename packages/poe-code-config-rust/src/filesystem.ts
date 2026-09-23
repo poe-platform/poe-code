@@ -2,7 +2,7 @@ import {hasOwnErrorCode} from "./errors.js";
 export interface FileSystem{
  readFile(path:string,encoding:'utf8'):Promise<string>;
  writeFile(path:string,content:string,options?:{encoding:'utf8';flag?:string}):Promise<void>;
- mkdir(path:string,options?:{recursive:boolean}):Promise<void>;
+ mkdir(path:string,options?:{recursive:boolean}):Promise<unknown>;
  rename(oldPath:string,newPath:string):Promise<void>;
  unlink(path:string):Promise<void>;
  rm?(path:string,options?:{recursive?:boolean;force?:boolean}):Promise<void>;

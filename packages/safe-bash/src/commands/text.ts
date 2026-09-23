@@ -227,28 +227,28 @@ interface SortKey { start: number; startCharacter: number; end?: number; endChar
 
 function sortKey(specification: string): SortKey {
   let offset = 0;
-  const position = () => {
+  const position = (minimum: number) => {
     const begin = offset;
     while (specification[offset] !== undefined && "0123456789".includes(specification[offset]!)) offset++;
     if (offset === begin) throw new UsageError(`invalid key '${specification}'`);
-    return integer(specification.slice(begin, offset), 1);
+    return integer(specification.slice(begin, offset), minimum);
   };
   const flags = new Set<string>();
-  const endpoint = () => {
-    const field = position();
+  const endpoint = (minimumCharacter: number) => {
+    const field = position(1);
     let character: number | undefined;
-    if (specification[offset] === ".") { offset++; character = position(); }
+    if (specification[offset] === ".") { offset++; character = position(minimumCharacter); }
     while (specification[offset] !== undefined && "bdfghiMnrV".includes(specification[offset]!)) flags.add(specification[offset++]!);
     return { field, character };
   };
-  const start = endpoint();
+  const start = endpoint(1);
   let end: ReturnType<typeof endpoint> | undefined;
-  if (specification[offset] === ",") { offset++; end = endpoint(); }
+  if (specification[offset] === ",") { offset++; end = endpoint(0); }
   if (offset !== specification.length) throw new UsageError(`invalid key '${specification}'`);
   return {
     start: start.field, startCharacter: start.character ?? 1,
     ...(end === undefined ? {} : { end: end.field }),
-    ...(end?.character === undefined ? {} : { endCharacter: end.character }), flags,
+    ...(end?.character === undefined || end.character === 0 ? {} : { endCharacter: end.character }), flags,
   };
 }
 

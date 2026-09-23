@@ -1,0 +1,958 @@
+{
+  "scope": "Current installed format service inventory",
+  "status": "current-code-and-public-listings-authenticated-full-semantic-closure-open",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "candidateCommit": "feddfa7d67",
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "referenceProfileSha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e",
+  "historicalCoverage": {
+    "path": "docs/ssconvert/format-provider-coverage.json",
+    "sha256": "a89900e11a34a4c3659069808c29d9e30e0beae10325dfa833383a0c567501cd",
+    "retained": true,
+    "correction": "Historical zero-installed/unimplemented values describe the old candidate. All48current source directional service IDs have declared implementations;47appear in noninteractive public listings."
+  },
+  "counts": {
+    "sourceDirectionalServices": 48,
+    "registeredDirectionalServices": 48,
+    "noninteractiveListedServices": 47,
+    "listedImporters": 20,
+    "listedExporters": 27,
+    "interactiveOnlyRegisteredImporters": 1
+  },
+  "initialHarnessFailure": "An initial assumption that listServices includes interactive-only imports failed. Current registry intentionally filters those entries; coverage confirms registration independently. No product repair. The first AST reduction also did not account for arrow-function writer bindings;the reducer was corrected to identify the imported implementation call. No source changed.",
+  "services": [
+    {
+      "id": "Gnumeric_applix:applix",
+      "direction": "read",
+      "source": "plugins/applix/plugin.xml.in",
+      "extensions": [
+        "as"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_applix",
+      "providerPath": "packages/ssconvert/src/codecs/providers/applix.ts",
+      "providerSha256": "75e615caf0808cccb6f7c3c7441ced56de43b9c3a7aace8aa2ce9309d54d67e4",
+      "localId": "applix",
+      "binding": "readApplix",
+      "implementationPath": "packages/ssconvert/src/codecs/applix.ts",
+      "implementationSha256": "90f99b795b3068d62a59c60f50352cb169c5af695cc2ec37ae998151a379c4bb",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_dif:dif",
+      "direction": "read",
+      "source": "plugins/dif/plugin.xml.in",
+      "extensions": [
+        "dif"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_dif",
+      "providerPath": "packages/ssconvert/src/codecs/providers/dif.ts",
+      "providerSha256": "eda8037f76e6f1b3788e8670958c08d360855ff62c246dbd038e8cecc98ce1fa",
+      "localId": "dif",
+      "binding": "readDif",
+      "implementationPath": "packages/ssconvert/src/codecs/dif.ts",
+      "implementationSha256": "4b7e0b57deca5e4607cc19641ca09cb667962af477000ead835b3362f6c36e50",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_dif:dif",
+      "direction": "write",
+      "source": "plugins/dif/plugin.xml.in",
+      "extensions": [
+        "dif"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_dif",
+      "providerPath": "packages/ssconvert/src/codecs/providers/dif.ts",
+      "providerSha256": "eda8037f76e6f1b3788e8670958c08d360855ff62c246dbd038e8cecc98ce1fa",
+      "localId": "dif",
+      "binding": "writeDif",
+      "implementationPath": "packages/ssconvert/src/codecs/dif.ts",
+      "implementationSha256": "4b7e0b57deca5e4607cc19641ca09cb667962af477000ead835b3362f6c36e50",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xls",
+        "xlw",
+        "xlt"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel",
+      "binding": "readBiff",
+      "implementationPath": "packages/ssconvert/src/codecs/biff.ts",
+      "implementationSha256": "dfa83856cc91a8a7181839c16fa0596e4265ad56267758507248856dad5d8968",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel_biff8",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xls"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel_biff8",
+      "binding": "createBiffWriter(8)",
+      "implementationPath": "packages/ssconvert/src/codecs/biff.ts",
+      "implementationSha256": "dfa83856cc91a8a7181839c16fa0596e4265ad56267758507248856dad5d8968",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel_biff7",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xls"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel_biff7",
+      "binding": "createBiffWriter(7)",
+      "implementationPath": "packages/ssconvert/src/codecs/biff.ts",
+      "implementationSha256": "dfa83856cc91a8a7181839c16fa0596e4265ad56267758507248856dad5d8968",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel_dsf",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xls"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel_dsf",
+      "binding": "createBiffWriter(\"dsf\")",
+      "implementationPath": "packages/ssconvert/src/codecs/biff.ts",
+      "implementationSha256": "dfa83856cc91a8a7181839c16fa0596e4265ad56267758507248856dad5d8968",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel_xml",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xml"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel_xml",
+      "binding": "readSpreadsheetML",
+      "implementationPath": "packages/ssconvert/src/codecs/spreadsheetml.ts",
+      "implementationSha256": "62ca72ff4291754f904fb04e72a0ae6e1c97ce01301486e923b6d6ac4ec26411",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xlsx",
+        "xltx",
+        "xlsb",
+        "xlsm",
+        "xltm"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "xlsx",
+      "binding": "readXlsx",
+      "implementationPath": "packages/ssconvert/src/codecs/xlsx.ts",
+      "implementationSha256": "e7bbc92085e1c6e058f24a292a75e92212fa535cf6b45a17bda6ba450401b6f1",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xlsx"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "xlsx",
+      "binding": "createXlsxWriter(\"2006\")",
+      "implementationPath": "packages/ssconvert/src/codecs/xlsx.ts",
+      "implementationSha256": "e7bbc92085e1c6e058f24a292a75e92212fa535cf6b45a17bda6ba450401b6f1",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:xlsx2",
+      "direction": "write",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [
+        "xlsx"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "xlsx2",
+      "binding": "createXlsxWriter(\"2008\")",
+      "implementationPath": "packages/ssconvert/src/codecs/xlsx.ts",
+      "implementationSha256": "e7bbc92085e1c6e058f24a292a75e92212fa535cf6b45a17bda6ba450401b6f1",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_Excel:excel_enc",
+      "direction": "read",
+      "source": "plugins/excel/plugin.xml.in",
+      "extensions": [],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_Excel",
+      "providerPath": "packages/ssconvert/src/codecs/providers/excel.ts",
+      "providerSha256": "54a0463d17637451040018fac28605a828187df74552937f413ddf21f06a88d3",
+      "localId": "excel_enc",
+      "binding": "readBiff",
+      "implementationPath": "packages/ssconvert/src/codecs/biff.ts",
+      "implementationSha256": "dfa83856cc91a8a7181839c16fa0596e4265ad56267758507248856dad5d8968",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_glpk:glpk",
+      "direction": "write",
+      "source": "plugins/glpk/plugin.xml.in",
+      "extensions": [
+        "cplex"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_glpk",
+      "providerPath": "packages/ssconvert/src/codecs/providers/glpk.ts",
+      "providerSha256": "c3a3c641666a6f723178ee9ab63c82c08d91561b63e6c916cca5a0756ed9c7e2",
+      "localId": "glpk",
+      "binding": "(book, _options, context) => writeModelProgram(book, context, 'glpk')",
+      "implementationPath": "packages/ssconvert/src/codecs/model-program.ts",
+      "implementationSha256": "5e023d0d084e94e4b264aa21f14b31c32168cdaa3082b0fff8848432f01b5c18",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_GnomeGlossary:po",
+      "direction": "write",
+      "source": "plugins/gnome-glossary/plugin.xml.in",
+      "extensions": [
+        "po"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_GnomeGlossary",
+      "providerPath": "packages/ssconvert/src/codecs/providers/gnome-glossary.ts",
+      "providerSha256": "34e470474cce738ee8a63fac09e592b2e4ab7171740b94c12f3d8f5c330787de",
+      "localId": "po",
+      "binding": "writeGlossary",
+      "implementationPath": "packages/ssconvert/src/codecs/glossary.ts",
+      "implementationSha256": "560dc391f0202f12f0f4875298e27f52e3cce11cf8cd3a7fc25e791067372062",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:html",
+      "direction": "read",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html",
+        "htm"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "html",
+      "binding": "readHtml",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:html32",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "html32",
+      "binding": "createHtmlWriter({ header: \"HTML32\", legacy: true, fontColor: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:html40",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "html40",
+      "binding": "createHtmlWriter({ header: \"HTML40\" })",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:html40frag",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "html40frag",
+      "binding": "createHtmlWriter({ header: \"fragment\", fontColor: true, backgroundAttribute: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:xhtml",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "xhtml",
+      "binding": "createHtmlWriter({ header: \"XHTML\", fontColor: true, backgroundAttribute: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:xhtml_range",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "html"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "xhtml_range",
+      "binding": "createHtmlWriter({ header: \"XHTML\", fontColor: true, backgroundAttribute: true, rangeScope: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/html.ts",
+      "implementationSha256": "1028c1f4ec2ec0b0d1de54f27cf622e9f54e0ab5440dcc096741d9004341a37f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:latex",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "tex"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "latex",
+      "binding": "createLatexWriter({})",
+      "implementationPath": "packages/ssconvert/src/codecs/latex.ts",
+      "implementationSha256": "68274ff105a9b4dae92921b35d40cf147533048cdd9445d93c50d1d578d0fabf",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:latex_table",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "tex"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "latex_table",
+      "binding": "createLatexWriter({ fragment: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/latex.ts",
+      "implementationSha256": "68274ff105a9b4dae92921b35d40cf147533048cdd9445d93c50d1d578d0fabf",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:latex_table_visible",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "tex"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "latex_table_visible",
+      "binding": "createLatexWriter({ fragment: true, visibleRows: true })",
+      "implementationPath": "packages/ssconvert/src/codecs/latex.ts",
+      "implementationSha256": "68274ff105a9b4dae92921b35d40cf147533048cdd9445d93c50d1d578d0fabf",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_html:roff",
+      "direction": "write",
+      "source": "plugins/html/plugin.xml.in",
+      "extensions": [
+        "me"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_html",
+      "providerPath": "packages/ssconvert/src/codecs/providers/html.ts",
+      "providerSha256": "c9e125256bc81189f3a01cf2adf28b9a9cc7954c764060547133c33ab4bdb3bf",
+      "localId": "roff",
+      "binding": "writeRoff",
+      "implementationPath": "packages/ssconvert/src/codecs/roff.ts",
+      "implementationSha256": "77a1b9f399a30347bd56240eed2128ae4b72eabad50210ce70a8cc6dd99cbef6",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_lotus:lotus",
+      "direction": "read",
+      "source": "plugins/lotus-123/plugin.xml.in",
+      "extensions": [
+        "wk1",
+        "wk4",
+        "wr1",
+        "wks",
+        "123"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_lotus",
+      "providerPath": "packages/ssconvert/src/codecs/providers/lotus-123.ts",
+      "providerSha256": "2912fa85712eef2760512234641064f01bfb6bcf8287934f6e7609a0c5865bde",
+      "localId": "lotus",
+      "binding": "readLotus",
+      "implementationPath": "packages/ssconvert/src/codecs/lotus.ts",
+      "implementationSha256": "b4180103eb8b072d036bee959fb2086234fc95542de9a0aa5ae3c5a7da305480",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_lpsolve:lpsolve",
+      "direction": "write",
+      "source": "plugins/lpsolve/plugin.xml.in",
+      "extensions": [
+        "lp"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_lpsolve",
+      "providerPath": "packages/ssconvert/src/codecs/providers/lpsolve.ts",
+      "providerSha256": "e0bf3b80de55d32bef11130cd814d2089c98289bb833a45b1d2e8c7ac89524e8",
+      "localId": "lpsolve",
+      "binding": "(book, _options, context) => writeModelProgram(book, context, 'lpsolve')",
+      "implementationPath": "packages/ssconvert/src/codecs/model-program.ts",
+      "implementationSha256": "5e023d0d084e94e4b264aa21f14b31c32168cdaa3082b0fff8848432f01b5c18",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_mps:mps",
+      "direction": "read",
+      "source": "plugins/mps/plugin.xml.in",
+      "extensions": [
+        "mps"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_mps",
+      "providerPath": "packages/ssconvert/src/codecs/providers/mps.ts",
+      "providerSha256": "acc617a8646cd3715d739452759142481602d14be744da0fb02d2bab707ce7cb",
+      "localId": "mps",
+      "binding": "readMps",
+      "implementationPath": "packages/ssconvert/src/codecs/mps.ts",
+      "implementationSha256": "a32200942caad9b027563803085beb16b205e5fbed4e7ff62b1a861428e5cac5",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_oleo:oleo",
+      "direction": "read",
+      "source": "plugins/oleo/plugin.xml.in",
+      "extensions": [
+        "oleo"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_oleo",
+      "providerPath": "packages/ssconvert/src/codecs/providers/oleo.ts",
+      "providerSha256": "ab69f9f3640b6a7675cc8a903676fdd3cae6d85a72dcfe1a529580e182acb2db",
+      "localId": "oleo",
+      "binding": "readOleo",
+      "implementationPath": "packages/ssconvert/src/codecs/oleo.ts",
+      "implementationSha256": "dfc995fcd4d6b884bda37c5e538be06d447b3b0cd8ebc08c0dff83913bda5a68",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_OpenCalc:openoffice",
+      "direction": "read",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "extensions": [
+        "ods",
+        "ots",
+        "sxc",
+        "stc"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_OpenCalc",
+      "providerPath": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+      "providerSha256": "291f94bb8cc56c95db1cbaebad3f7672431fc8ae2824727db0be91bb6ea3e6de",
+      "localId": "openoffice",
+      "binding": "readOdf",
+      "implementationPath": "packages/ssconvert/src/codecs/odf.ts",
+      "implementationSha256": "c34b9e189b35c50e1a4d0e967d5defadcadec5b1f80ac0a3f8492143d70223c9",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_OpenCalc:openoffice",
+      "direction": "write",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "extensions": [
+        "ods"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_OpenCalc",
+      "providerPath": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+      "providerSha256": "291f94bb8cc56c95db1cbaebad3f7672431fc8ae2824727db0be91bb6ea3e6de",
+      "localId": "openoffice",
+      "binding": "createOdfWriter(\"strict\")",
+      "implementationPath": "packages/ssconvert/src/codecs/odf.ts",
+      "implementationSha256": "c34b9e189b35c50e1a4d0e967d5defadcadec5b1f80ac0a3f8492143d70223c9",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_OpenCalc:odf",
+      "direction": "write",
+      "source": "plugins/openoffice/plugin.xml.in",
+      "extensions": [
+        "ods"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_OpenCalc",
+      "providerPath": "packages/ssconvert/src/codecs/providers/openoffice.ts",
+      "providerSha256": "291f94bb8cc56c95db1cbaebad3f7672431fc8ae2824727db0be91bb6ea3e6de",
+      "localId": "odf",
+      "binding": "createOdfWriter(\"extended\")",
+      "implementationPath": "packages/ssconvert/src/codecs/odf.ts",
+      "implementationSha256": "c34b9e189b35c50e1a4d0e967d5defadcadec5b1f80ac0a3f8492143d70223c9",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_paradox:paradox",
+      "direction": "read",
+      "source": "plugins/paradox/plugin.xml.in",
+      "extensions": [
+        "db",
+        "px"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_paradox",
+      "providerPath": "packages/ssconvert/src/codecs/providers/paradox.ts",
+      "providerSha256": "8f6e7992e9e0486f1d41dd2b9dd75a7258468956a218091b3ba4c78e26dd6ae3",
+      "localId": "paradox",
+      "binding": "readParadox",
+      "implementationPath": "packages/ssconvert/src/codecs/paradox.ts",
+      "implementationSha256": "072cb5385c5afcd6f2326d54bb869f0ec150f833780940d51b9966f55e762766",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_paradox:paradox",
+      "direction": "write",
+      "source": "plugins/paradox/plugin.xml.in",
+      "extensions": [
+        "db"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_paradox",
+      "providerPath": "packages/ssconvert/src/codecs/providers/paradox.ts",
+      "providerSha256": "8f6e7992e9e0486f1d41dd2b9dd75a7258468956a218091b3ba4c78e26dd6ae3",
+      "localId": "paradox",
+      "binding": "writeParadox",
+      "implementationPath": "packages/ssconvert/src/codecs/paradox.ts",
+      "implementationSha256": "072cb5385c5afcd6f2326d54bb869f0ec150f833780940d51b9966f55e762766",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_pdf:pdf_assistant",
+      "direction": "write",
+      "source": "src/print-info.c:1074",
+      "extensions": [
+        "pdf"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_pdf",
+      "providerPath": "packages/ssconvert/src/codecs/providers/pdf.ts",
+      "providerSha256": "1d8ba5b6ec91f6c61a0d6ec973194dbe472313925a178051646818774e535d15",
+      "localId": "pdf_assistant",
+      "binding": "writePdf",
+      "implementationPath": "packages/ssconvert/src/codecs/pdf.ts",
+      "implementationSha256": "2f7ff58116caf76d270a3b0d136b458eb15fd5b9933023d2f6c1400903c2a399",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_plan_perfect:pln",
+      "direction": "read",
+      "source": "plugins/plan-perfect/plugin.xml.in",
+      "extensions": [
+        "pln"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_plan_perfect",
+      "providerPath": "packages/ssconvert/src/codecs/providers/plan-perfect.ts",
+      "providerSha256": "d5863ef60801ed456b35803a00591f1869e54994ca4615cf0df2254a8649bab6",
+      "localId": "pln",
+      "binding": "readPln",
+      "implementationPath": "packages/ssconvert/src/codecs/pln.ts",
+      "implementationSha256": "0f826f2516ea43607cb9e537e2bb9522f0fa9315a64766dcb0ec975916c30093",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_psiconv:psiconv",
+      "direction": "read",
+      "source": "plugins/psiconv/plugin.xml.in",
+      "extensions": [
+        "psisheet"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_psiconv",
+      "providerPath": "packages/ssconvert/src/codecs/providers/psiconv.ts",
+      "providerSha256": "594c80e397915e926cbacd412f71c2a67f3a2abb63b9206be209b1c016814945",
+      "localId": "psiconv",
+      "binding": "readPsion",
+      "implementationPath": "packages/ssconvert/src/codecs/psion.ts",
+      "implementationSha256": "027e1965903d5c231a0b2b1c6c1d8ece9123f414b782b89bada1e0f25cade9f2",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_QPro:qpro",
+      "direction": "read",
+      "source": "plugins/qpro/plugin.xml.in",
+      "extensions": [
+        "wb1",
+        "wb2",
+        "wb3"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_QPro",
+      "providerPath": "packages/ssconvert/src/codecs/providers/qpro.ts",
+      "providerSha256": "a53ad850925e876b3beb9558985e0fd4e6e184970245089a79224219116efa0b",
+      "localId": "qpro",
+      "binding": "readQpro",
+      "implementationPath": "packages/ssconvert/src/codecs/qpro.ts",
+      "implementationSha256": "7f9374b1818fa12ddcd2862ff469caa732095be5010fa212beb609927feb442e",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_sc:sc",
+      "direction": "read",
+      "source": "plugins/sc/plugin.xml.in",
+      "extensions": [],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_sc",
+      "providerPath": "packages/ssconvert/src/codecs/providers/sc.ts",
+      "providerSha256": "3044e88b1adf3d2ca7aff031282a8ef995e9d215d7247a166c709d335ee797ff",
+      "localId": "sc",
+      "binding": "readSc",
+      "implementationPath": "packages/ssconvert/src/codecs/sc.ts",
+      "implementationSha256": "a0f41b3dd45c323eb48987362d854383227af7cf48a179756b4c571f66675c7d",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_stf:stf_csvtab",
+      "direction": "read",
+      "source": "src/stf.c",
+      "extensions": [
+        "csv",
+        "tsv",
+        "txt"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_stf",
+      "providerPath": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "providerSha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746",
+      "localId": "stf_csvtab",
+      "binding": "readText",
+      "implementationPath": "packages/ssconvert/src/codecs/text.ts",
+      "implementationSha256": "6f17048edd3fdc4542801a116859acb37095a6313fc12f3ccd9c5d189b7eab20",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_stf:stf_assistant",
+      "direction": "read",
+      "source": "src/stf.c",
+      "extensions": [],
+      "registered": true,
+      "listed": false,
+      "interactiveOnly": true,
+      "providerId": "Gnumeric_stf",
+      "providerPath": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "providerSha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746",
+      "localId": "stf_assistant",
+      "binding": "readTextAssistant",
+      "implementationPath": "packages/ssconvert/src/codecs/text.ts",
+      "implementationSha256": "6f17048edd3fdc4542801a116859acb37095a6313fc12f3ccd9c5d189b7eab20",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_stf:stf_assistant",
+      "direction": "write",
+      "source": "src/stf-export.c:774",
+      "extensions": [
+        "txt"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_stf",
+      "providerPath": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "providerSha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746",
+      "localId": "stf_assistant",
+      "binding": "writeConfigurableText",
+      "implementationPath": "packages/ssconvert/src/codecs/text-export.ts",
+      "implementationSha256": "c15b00eb22ca307bc0ad46e2e49d602f235ec22fad64ccded15d5a3f8d0df7c8",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_stf:stf_csv",
+      "direction": "write",
+      "source": "src/stf.c",
+      "extensions": [
+        "csv"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_stf",
+      "providerPath": "packages/ssconvert/src/codecs/providers/stf.ts",
+      "providerSha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746",
+      "localId": "stf_csv",
+      "binding": "writePlainCsv",
+      "implementationPath": "packages/ssconvert/src/codecs/text-export.ts",
+      "implementationSha256": "c15b00eb22ca307bc0ad46e2e49d602f235ec22fad64ccded15d5a3f8d0df7c8",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_sylk:sylk",
+      "direction": "read",
+      "source": "plugins/sylk/plugin.xml.in",
+      "extensions": [
+        "slk",
+        "sylk"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_sylk",
+      "providerPath": "packages/ssconvert/src/codecs/providers/sylk.ts",
+      "providerSha256": "549ce657ddf0c68f2a44dec63777499bdceb3bccbfce895ff55b96a05ea0d7be",
+      "localId": "sylk",
+      "binding": "readSylk",
+      "implementationPath": "packages/ssconvert/src/codecs/sylk.ts",
+      "implementationSha256": "7c36c2fc333fbc5548bd460a02febf842152690df5ef2a77f28c6bf975c07ef0",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_sylk:sylk",
+      "direction": "write",
+      "source": "plugins/sylk/plugin.xml.in",
+      "extensions": [
+        "slk"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_sylk",
+      "providerPath": "packages/ssconvert/src/codecs/providers/sylk.ts",
+      "providerSha256": "549ce657ddf0c68f2a44dec63777499bdceb3bccbfce895ff55b96a05ea0d7be",
+      "localId": "sylk",
+      "binding": "writeSylk",
+      "implementationPath": "packages/ssconvert/src/codecs/sylk.ts",
+      "implementationSha256": "7c36c2fc333fbc5548bd460a02febf842152690df5ef2a77f28c6bf975c07ef0",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_xbase:xbase",
+      "direction": "read",
+      "source": "plugins/xbase/plugin.xml.in",
+      "extensions": [
+        "dbf"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_xbase",
+      "providerPath": "packages/ssconvert/src/codecs/providers/xbase.ts",
+      "providerSha256": "0f3ef509841d23dfde56098e297436972adf55e0361de7c208b2a22ec34528c3",
+      "localId": "xbase",
+      "binding": "readXbase",
+      "implementationPath": "packages/ssconvert/src/codecs/xbase.ts",
+      "implementationSha256": "5f6f81f963989ca8803f3ba57ec6327f6692564d7349e74dbf7c4df83616dfe5",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax",
+      "direction": "read",
+      "source": "src/xml-sax-read.c:3901",
+      "extensions": [
+        "gnumeric",
+        "xml"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_XmlIO",
+      "providerPath": "packages/ssconvert/src/codecs/providers/xml.ts",
+      "providerSha256": "ae76a20e59d57f68fd869bae6490e13a03886da669dda1942bc1522cb8b1384d",
+      "localId": "sax",
+      "binding": "readGnumeric",
+      "implementationPath": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "implementationSha256": "266ead7767cde42e6f6e01d65c90214931e09bd8ac47e7784a3aec387bdfb07f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax",
+      "direction": "write",
+      "source": "src/xml-sax-write.c",
+      "extensions": [
+        "gnumeric"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_XmlIO",
+      "providerPath": "packages/ssconvert/src/codecs/providers/xml.ts",
+      "providerSha256": "ae76a20e59d57f68fd869bae6490e13a03886da669dda1942bc1522cb8b1384d",
+      "localId": "sax",
+      "binding": "writeCompressedGnumeric",
+      "implementationPath": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "implementationSha256": "266ead7767cde42e6f6e01d65c90214931e09bd8ac47e7784a3aec387bdfb07f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    },
+    {
+      "id": "Gnumeric_XmlIO:sax:0",
+      "direction": "write",
+      "source": "src/xml-sax-write.c",
+      "extensions": [
+        "xml"
+      ],
+      "registered": true,
+      "listed": true,
+      "interactiveOnly": false,
+      "providerId": "Gnumeric_XmlIO",
+      "providerPath": "packages/ssconvert/src/codecs/providers/xml.ts",
+      "providerSha256": "ae76a20e59d57f68fd869bae6490e13a03886da669dda1942bc1522cb8b1384d",
+      "localId": "sax:0",
+      "binding": "writeGnumeric",
+      "implementationPath": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "implementationSha256": "266ead7767cde42e6f6e01d65c90214931e09bd8ac47e7784a3aec387bdfb07f",
+      "qualification": "Full version/record/roundtrip semantics remain open;registration and owner identity only."
+    }
+  ],
+  "qualificationLimits": [
+    "No native registration,metadata,all-format successful conversion or full record semantics is inferred from listing.",
+    "Filename extensions may include versions/subformats whose complete semantics require independent qualification.",
+    "Historical receipts remain unchanged and full original format/rendering/solver/extension/publication obligations stay open."
+  ]
+}

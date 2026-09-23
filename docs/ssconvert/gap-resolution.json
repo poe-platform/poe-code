@@ -821,8 +821,10 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "currentFinding": "implementation exists; comprehensive semantic evidence closure pending",
-      "proof": [],
+      "currentFinding": "Current source and public API inventory authenticates all48directional service registrations with parsed declarative implementation owners and SHA256s. Public noninteractive listings contain20importers/27exporters;the configurable text-import assistant is registered but intentionally hidden. Historical zero-installed/unimplemented coverage is stale for this candidate and retained separately. Registration does not certify every version/subformat/record/roundtrip;comprehensive semantic closure remains open.",
+      "proof": [
+        "docs/ssconvert/current-format-service-inventory.json"
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,

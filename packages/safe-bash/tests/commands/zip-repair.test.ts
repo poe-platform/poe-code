@@ -17,7 +17,8 @@ test("FF verifies complete central metadata once at the total byte boundary", as
   const second = 30 + view.getUint16(26, true) + view.getUint16(28, true) + view.getUint32(18, true);
   const payload = second + 30 + view.getUint16(second + 26, true) + view.getUint16(second + 28, true);
   bytes[payload] = bytes[payload]! ^ 255;
-  const limits = { ...settings({}), maxTotalBytes: 8 };
+  const limitOverrides = { maxTotalBytes: 8 };
+  const limits = settings({ limits: limitOverrides });
   const result = await repairZip(bytes, "FF", limits, signal);
   assert.equal(result.partial, true);
   assert.deepEqual(result.archive.entries.map(entry => entry.name), ["good"]);
@@ -25,13 +26,13 @@ test("FF verifies complete central metadata once at the total byte boundary", as
   await assert.rejects(repairZip(bytes, "FF", { ...limits, maxTotalBytes: 3 }, signal));
   const fs = await fixture(bytes);
   await fs.writeFile("/work/repaired.zip", Buffer.from("keep destination"));
-  assert.equal((await execute("zip", fs, ["-F", "sample.zip", "-O", "repaired.zip"], { limits })).exitCode, 3);
+  assert.equal((await execute("zip", fs, ["-F", "sample.zip", "-O", "repaired.zip"], { limits: limitOverrides })).exitCode, 3);
   assert.equal(Buffer.from(await fs.readFile("/work/repaired.zip")).toString(), "keep destination");
-  const command = await execute("zip", fs, ["-FF", "sample.zip", "-O", "repaired.zip"], { limits });
+  const command = await execute("zip", fs, ["-FF", "sample.zip", "-O", "repaired.zip"], { limits: limitOverrides });
   assert.equal(command.exitCode, 0, command.stderr);
   assert.ok(command.stdout.includes("partial recovery"));
   assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
-  assert.equal((await execute("unzip", fs, ["-t", "repaired.zip"], { limits })).exitCode, 0);
+  assert.equal((await execute("unzip", fs, ["-t", "repaired.zip"], { limits: limitOverrides })).exitCode, 0);
 });
 function directory(bytes: Uint8Array): number {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);

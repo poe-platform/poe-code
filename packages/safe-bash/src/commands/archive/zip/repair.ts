@@ -210,7 +210,7 @@ export async function repairZip(bytes: Uint8Array, mode: "F" | "FF", limits: Arc
         if (next > bytes.length) continue;
         const packed = wide ? view.getBigUint64(base + 4, true) : BigInt(view.getUint32(base + 4, true));
         const expanded = wide ? view.getBigUint64(base + 12, true) : BigInt(view.getUint32(base + 8, true));
-        if (packed !== BigInt(offset - payload) || expanded > BigInt(limits.maxEntryBytes)) continue;
+        if (packed !== BigInt(offset - payload) || Number.isFinite(limits.maxEntryBytes) && expanded > BigInt(limits.maxEntryBytes)) continue;
         if (compressed && packed !== BigInt(compressed) || size && expanded !== BigInt(size) || checksum && checksum !== view.getUint32(base, true)) continue;
         // An unknown-size descriptor needs a record boundary, not arbitrary
         // matching integers embedded in a payload.

@@ -20,6 +20,7 @@ type Shape = {
 };
 
 const recordToken = Symbol("compiler traversal authority");
+const defineCompilerProperty = Reflect.defineProperty;
 const NativeRowMap = Map;
 const nativeIndexMap = {
   get: Function.prototype.call.bind(Map.prototype.get) as <K, V>(
@@ -112,7 +113,7 @@ export class CompactModuleAst {
     this.persistentBoundaries.clear();
   }
 
-  /** Called only after the parser has completed and validated function syntax. */
+  /** Retirement consumes unobserved parser arrays after syntax validation. */
   pack<T extends object>(root: T, body = true, retire = false, persistent = true): T {
     if (this.finished) throw new TypeError("Compiler body storage is finished.");
     const seen = new WeakMap<object, number>();
@@ -120,6 +121,7 @@ export class CompactModuleAst {
       row: number;
       kind: number;
       values: unknown[];
+      index: number;
       bodyIndex?: number;
     }> = [];
     const encode = (value: unknown): number => {
@@ -138,8 +140,9 @@ export class CompactModuleAst {
       let kind: number,
         row: number,
         values: unknown[] = [];
-      const keys = Object.keys(value).filter((key) => key !== "nodeId");
-      if (Array.isArray(value)) {
+      const array = Array.isArray(value);
+      const keys = array ? [] : Object.keys(value).filter((key) => key !== "nodeId");
+      if (array) {
         kind = 0;
         row = this.reserve(2 + value.length);
         values = value;
@@ -221,6 +224,7 @@ export class CompactModuleAst {
           row,
           kind,
           values,
+          index: 0,
           bodyIndex: bodyIndex >= 0 ? bodyIndex : undefined
         });
       }
@@ -228,14 +232,20 @@ export class CompactModuleAst {
     };
     const reference = encode(root);
     while (pending.length) {
-      const { row, kind, values, bodyIndex } = pending.pop()!;
-      for (let i = 0; i < values.length; i++) {
-        const child = encode(values[i]);
-        this.write(row + (kind === 0 ? 2 : 1) + i, child);
-        if (i === bodyIndex && child >>> 28 === 0) {
-          this.boundaries.add(child - 1);
-          this.persistentBoundaries.add(child - 1);
-        }
+      const frame = pending[pending.length - 1]!;
+      if (frame.index === frame.values.length) {
+        pending.pop();
+        continue;
+      }
+      // Complete each descendant before retaining another sibling's fields.
+      const index = frame.index++;
+      const child = encode(frame.values[index]);
+      if (retire && frame.kind === 0)
+        defineCompilerProperty(frame.values, index, { value: undefined });
+      this.write(frame.row + (frame.kind === 0 ? 2 : 1) + index, child);
+      if (index === frame.bodyIndex && child >>> 28 === 0) {
+        this.boundaries.add(child - 1);
+        this.persistentBoundaries.add(child - 1);
       }
     }
     this.boundaries.add(reference - 1);

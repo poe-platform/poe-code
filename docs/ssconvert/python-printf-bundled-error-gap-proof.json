@@ -152,5 +152,14 @@
     "ancestorVerified": true,
     "containingPublication": "unverified"
   },
-  "remaining": "Address-varying RangeRef formats, complete native/optional profiles, broader diagnostics and all other original plan families remain open."
+  "remaining": "Address-varying RangeRef formats, complete native/optional profiles, broader diagnostics and all other original plan families remain open.",
+  "nativeUserDirectoryFollowup": {
+    "proof": "docs/ssconvert/native-user-plugin-fence-qualification.json",
+    "profiles": 2,
+    "casesPerProfile": 18,
+    "HOME": "unchanged inherited",
+    "syntheticExistingFileRead": "denied with EPERM and zero stdout",
+    "userDirectoryProbe": "ENOENT; not an EPERM enforcement control",
+    "scope": "Policy-bound Darwin output qualification; symlink aliases,complete plugin/dependency closure and exact14Linuxprofiles remain open"
+  }
 }

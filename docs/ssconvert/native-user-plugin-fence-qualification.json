@@ -1,0 +1,90 @@
+{
+  "policy": "(version 1)\n(allow default)\n(deny file-read* file-write* (subpath \"/Users/kjopek/.gnumeric\"))\n",
+  "policySha256": "00197226f0805f8038b87b46b50f1a8fe5356c7010870029286be913b0882311",
+  "probe": {
+    "exitCode": 1,
+    "stderr": "stat: /Users/kjopek/.gnumeric/__ssconvert_gap_read_probe__: stat: No such file or directory\n"
+  },
+  "profiles": [
+    {
+      "python": "3.14.7",
+      "exitCode": 0,
+      "stderrHex": "",
+      "stdoutHex": "0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a223c52616e6765526566206f626a656374206174203078202020220a222020203c52616e6765526566206f626a656374206174203078220a2220202020202020202020202020202020202020202020202020220a",
+      "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+      "nativeBytesExact": true,
+      "cases": 18,
+      "values": [
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "<RangeRef object at 0x   ",
+        "   <RangeRef object at 0x",
+        "                         "
+      ]
+    },
+    {
+      "python": "3.12.13",
+      "exitCode": 0,
+      "stderrHex": "",
+      "stdoutHex": "0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a223c52616e6765526566206f626a656374206174203078202020220a222020203c52616e6765526566206f626a656374206174203078220a2220202020202020202020202020202020202020202020202020220a",
+      "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+      "nativeBytesExact": true,
+      "cases": 18,
+      "values": [
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "",
+        "                        <",
+        "<RangeRef",
+        "<RangeRef object at ",
+        "<RangeRef object at 0x",
+        "<RangeRef object at 0x   ",
+        "   <RangeRef object at 0x",
+        "                         "
+      ]
+    }
+  ],
+  "inputUnchanged": true,
+  "inputSha256": "2e596ad640259eb46300ae438090a99c8cad9fef41d6d957569a857d8482fed5",
+  "HOME": "inherited unchanged",
+  "qualification": "Darwin sandbox read/write fence of Gnumeric user directory plus Python user-site disabled for these two cohorts. Not complete plugin/runtime/dependency closure or exact14Linuxprofiles.",
+  "authority": {
+    "gnumericArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "source": "src/gutils.c HOME/.gnumeric derivation and src/gnm-plugin.c versioned plugins discovery"
+  },
+  "enforcementControl": {
+    "exitCode": 1,
+    "stdoutHex": "",
+    "stderr": "cat: /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/native-user-plugin-closure/denial-control/token: Operation not permitted\n",
+    "syntheticFileKnownPresent": true,
+    "scope": "Same subpath denial syntax; no real user plugin created or inspected."
+  },
+  "controlPolicySha256": "ac783af2389ba1cdc1c27b5d6458119ea64b93fd7aa59131110dfa0b51a3d995",
+  "caveat": "User-directory probe returns ENOENT, not a direct EPERM control; synthetic existing-file read verifies sandbox enforcement. Symlink aliases and complete dependency/discovery closure remain unqualified.",
+  "sourceHashes": {
+    "out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/src/gutils.c": "2fd8ea8b60af29f5d437bde6f98ef2a91500f7d8e361ebcb53a42dd090c8a5a0",
+    "out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/src/gnm-plugin.c": "e56d17b3570766f1f8a784759fcc63fe9fbf173a17477eb226778b4fd2e300f7"
+  },
+  "purpose": "Narrow Darwin native RangeRef qualification with unchanged HOME and explicit sandbox user-directory policy; full discovery/dependency closure stays open"
+}

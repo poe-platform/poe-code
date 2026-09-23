@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
-import { build, type BuildOptions } from "esbuild";
+import { build, transformSync, type BuildOptions } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
@@ -329,7 +329,7 @@ it("admits Shell byte argv through an isolated packed private command graph", as
       if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
       const source = readFileSync(path.join(directory, "src", filename), "utf8");
       const compilerOptions = { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 };
-      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, ts.transpileModule(source, { compilerOptions }).outputText);
+      volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.js`, transformSync(source, { loader: "ts", format: "esm", target: "es2022" }).code);
       volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, ts.transpileDeclaration(source, { compilerOptions }).outputText);
     }
   }
@@ -399,7 +399,8 @@ it("admits Shell byte argv through an isolated packed private command graph", as
   volume.symlinkSync("/output/safe-bash", "/output/node_modules/@poe-platform/safe-bash");
   volume.symlinkSync("/output/safe-fs", "/output/node_modules/@poe-platform/safe-fs");
   volume.writeFileSync("/output/csvcut-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-csvcut-types.mts", import.meta.url)));
-  const compilerOptions = { module: ts.ModuleKind.NodeNext, target: ts.ScriptTarget.ES2022, strict: true, noEmit: true, types: [], customConditions: ["browser"] };
+  // Check the packaged declarations without rechecking TypeScript's own library.
+  const compilerOptions = { module: ts.ModuleKind.NodeNext, target: ts.ScriptTarget.ES2022, strict: true, noEmit: true, skipDefaultLibCheck: true, types: [], customConditions: ["browser"] };
   const host = ts.createCompilerHost(compilerOptions);
   const nativeRead = host.readFile;
   const nativeExists = host.fileExists;

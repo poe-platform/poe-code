@@ -119,6 +119,8 @@ filesystem and byte streams, not host executables.
 
 `cp -l` / `--link` creates hard links to source files; `cp -s` / `--symbolic-link` creates symbolic links using the source operand as the literal target. Relative symbolic targets require destinations in the current directory; use absolute source paths when copying into other directories. Link modes require filesystem link capabilities and support recursive copying, no-clobber and backups. `cp -x` / `--one-file-system` creates directories at known filesystem boundaries without copying their contents; unknown filesystem identities remain traversable.
 
+`ln -L` / `--logical` follows source symlinks for hard links; `-P` / `--physical` links the source entry (the default). The last source-mode option wins; both are ignored with `-s`. Physical symlink hard links depend on backend support and host link semantics on the real filesystem adapter.
+
 Tar creation also accepts `--sort=name` (bytewise directory-child order; operand order stays unchanged), `--sort=none` (default), `--dereference` / `-h` (archive symbolic-link targets), and `--exclude-caches` (retain directories with a valid `CACHEDIR.TAG` and their tag files, omitting other contents). Dereferencing retains backend containment and output-archive checks and rejects directory cycles.
 
 Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.

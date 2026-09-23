@@ -826,6 +826,50 @@ test("ln relative requires symbolic mode before replacing files", async () => {
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "keep");
 });
 
+for (const option of ["-L", "--logical", "-P", "--physical"]) {
+  test(`ln ${option} accepts regular sources through Shell`, async () => {
+    const fs = await fixture({ source: "data" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`ln ${option} source output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal((await fs.stat("/work/output")).ino, (await fs.stat("/work/source")).ino);
+  });
+}
+
+for (const [flags, logical] of [
+  ["", false], ["-P", false], ["--physical", false],
+  ["-L", true], ["--logical", true], ["-LP", false], ["-PL", true],
+  ["--logical --physical", false], ["--physical --logical", true],
+  ["-L -S P", true], ["-P -S L", false], ["-L -SP", true],
+] as const) {
+  test(`ln ${flags} selects the source symlink mode`, async () => {
+    const fs = await fixture({ source: "data" });
+    await fs.symlink("source", "/work/link");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`ln ${flags} link output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await fs.lstat("/work/output")).type, logical ? "file" : "symlink");
+    assert.equal((await fs.lstat("/work/output")).ino,
+      (await fs.lstat(logical ? "/work/source" : "/work/link")).ino);
+  });
+}
+
+test("ln physical links dangling sources, logical replacement preserves destinations on failure", async () => {
+  const fs = await fixture({ output: "old" });
+  await fs.symlink("missing", "/work/link");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  assert.equal((await shell.exec("ln -Pf link output")).exitCode, 0);
+  assert.equal(await fs.readlink("/work/output"), "missing");
+  assert.equal((await shell.exec("ln -Lf link output")).exitCode, 1);
+  assert.equal(await fs.readlink("/work/output"), "missing");
+  assert.equal((await shell.exec("ln -Ls missing symbolic")).exitCode, 0);
+  assert.equal(await fs.readlink("/work/symbolic"), "missing");
+  assert.equal((await shell.exec("ln -Ps missing other")).exitCode, 0);
+  assert.equal(await fs.readlink("/work/other"), "missing");
+});
+
 test("ln supports hardlinks and literal relative symbolic targets, replacement and target directories", async () => {
   const fs = await fixture({ source: "data" });
   await fs.mkdir("/work/out");

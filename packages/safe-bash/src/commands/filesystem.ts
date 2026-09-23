@@ -679,13 +679,28 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     define("ln", async context => {
       let ended = false;
       let optionValue = false;
+      let logical = false;
       const args = context.args.map(argument => {
         if (optionValue) { optionValue = false; return argument; }
         if (argument === "--") ended = true;
-        if (!ended && (argument === "-S" || argument === "--suffix" || argument === "-t" || argument === "--target-directory")) optionValue = true;
+        if (!ended) {
+          if (argument === "--logical") logical = true;
+          else if (argument === "--physical") logical = false;
+          else if (argument === "--suffix" || argument === "--target-directory") optionValue = true;
+          else if (argument.startsWith("-") && !argument.startsWith("--")) {
+            for (let offset = 1; offset < argument.length; offset++) {
+              const flag = argument[offset]!;
+              if (flag === "L" || flag === "P") logical = flag === "L";
+              if (flag === "S" || flag === "t" || flag === "B") {
+                optionValue = offset === argument.length - 1;
+                break;
+              }
+            }
+          }
+        }
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "srfnTvbB:S:t:", { symbolic: "s", relative: "r", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", backup: "B", suffix: "S", "target-directory": "t" });
+      const parsed = options(args, "srfnTvbLPB:S:t:", { symbolic: "s", relative: "r", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", logical: "L", physical: "P", backup: "B", suffix: "S", "target-directory": "t" });
       if (parsed.flags.has("r") && !parsed.flags.has("s")) throw new UsageError("cannot do --relative without --symbolic");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
@@ -710,7 +725,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       return eachOperand(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
-        const source = pathOf(context, operand);
+        const sourcePath = pathOf(context, operand);
+        const source = !symbolic && logical ? await context.fs.realpath(sourcePath, { signal: context.signal }) : sourcePath;
         const linkTarget = parsed.flags.has("r")
           ? relativePath(
             await canonicalizeReadlinkMissing(context, dirname(destination)),
@@ -722,7 +738,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (existing && (parsed.flags.has("f") || backupMode !== "none")) {
           if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
           if (!symbolic) {
-            await context.fs.stat(source, { signal: context.signal });
+            if (logical) await context.fs.stat(source, { signal: context.signal });
+            else await context.fs.lstat(source, { signal: context.signal });
             const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
             const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
             if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
@@ -743,7 +760,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             if (backup === source || backup === destination) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
             const backupStat = await maybeStat(context, backup, false);
             if (!symbolic && backupStat) {
-              const sourceStat = await context.fs.stat(source, { signal: context.signal });
+              const sourceStat = logical ? await context.fs.stat(source, { signal: context.signal }) : await context.fs.lstat(source, { signal: context.signal });
               if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
             }
             await admitFilesystemModes(context, "ln", ["backup"], [destination, backup]);

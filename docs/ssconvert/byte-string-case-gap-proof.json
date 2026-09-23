@@ -530,6 +530,14 @@
     "Complete matched native Unicode16 Gnumeric profile and additional profiles",
     "Warnings/errors/other byte consumers and wider Perl grammar",
     "All other active gap-resolution plan families",
-    "Remote-main ancestry and actual containing publication"
-  ]
+    "Actual successful containing publication and registry/installed artifact verification"
+  ],
+  "verifiedRemoteMainDelivery": {
+    "recordedAt": "2026-09-23T01:27:15.780858+00:00",
+    "implementationCommit": "2bca3ad352781eaf7eb5434f14459cd378a3e87a",
+    "evidenceCommit": "3ceaad00fc2a915a58b15a3a25533f37ada47ebe",
+    "remoteRefObserved": "3ceaad00fc2a915a58b15a3a25533f37ada47ebe",
+    "rebase": "Five incoming commits preserved; all seven owned code/test/config/notice SHA256 values unchanged.",
+    "actualPublication": "Not yet verified; run35806227505 pending; earlier implementation run cancelled by subsequent main push."
+  }
 }

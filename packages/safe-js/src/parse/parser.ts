@@ -753,7 +753,8 @@ export function parseSourceModule(
 export function parseExecutableModule(
   source: string,
   filename = "<input>",
-  owner?: CompileOwner
+  owner?: CompileOwner,
+  importSpecifiers?: readonly string[]
 ): Module {
   const compilation = new CompileScope(owner);
   try {
@@ -763,7 +764,10 @@ export function parseExecutableModule(
         source,
         compilation,
         "top-level",
-        { ...ordinaryFunctionContext, newTarget: false, requireAsyncAwait: true }
+        { ...ordinaryFunctionContext, newTarget: false, requireAsyncAwait: true },
+        true,
+        undefined,
+        new Set(importSpecifiers)
       ).parseModule()
     );
     throwIfImportMetaAssignment(result);
@@ -903,7 +907,8 @@ class Parser {
     private functionContext: FunctionParseContext = "top-level",
     private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false },
     private readonly allowImportMeta = true,
-    private readonly moduleSyntax?: SourceModuleSyntax
+    private readonly moduleSyntax?: SourceModuleSyntax,
+    private readonly importSpecifiers?: ReadonlySet<string>
   ) {
     this.functionScopes.add(this.scopes[0]!);
   }
@@ -2151,7 +2156,7 @@ class Parser {
 
     this.index += 1;
     const source = createStringLiteral(sourceToken);
-    assertBareImportSpecifier(source);
+    if (!this.importSpecifiers?.has(source.value)) assertBareImportSpecifier(source);
 
     return {
       type: "ImportDeclaration",

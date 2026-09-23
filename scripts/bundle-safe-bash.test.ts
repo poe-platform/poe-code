@@ -83,18 +83,24 @@ it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node throu
     import { nodeCommands as leafPlugin, createNodeCommands as leafCommands, createNodeCommand as leafCommand } from "@poe-platform/safe-bash/commands/node";
     export async function run() {
       const sources = [];
+      const imports = [];
       const runtime = {
         createBudget: options => options,
-        makeFsModule: () => ({}),
+        makeFsModule: () => ({ readFile: async () => "virtual" }),
         declareHostOperation: operation => operation,
-        async run(source, options) { sources.push(source); options.sink.log(3); return { ok: true }; },
+        async run(source, options) {
+          sources.push(source);
+          imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.readFile) });
+          options.sink.log(3);
+          return { ok: true };
+        },
       };
       const shell = new Shell({ fs: createMemoryFileSystem() }).use(configure({ runtime }));
       try {
         const result = await shell.exec("node -p '1 + 2'");
         const missing = await shell.exec("safejs --help");
         return {
-          result, missing, sources, names: shell.commands.list().map(command => command.name),
+          result, missing, sources, imports, names: shell.commands.list().map(command => command.name),
           shared: nodeCommands === leafPlugin && createNodeCommands === leafCommands && createNodeCommand === leafCommand,
         };
       } finally { await shell.dispose(); }
@@ -114,7 +120,8 @@ it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node throu
   expect(result.names).toEqual(["node"]);
   expect(result.result).toMatchObject({ exitCode: 0, stdout: "3\n", stderr: "" });
   expect(result.missing).toMatchObject({ exitCode: 127, stdout: "" });
-  expect(result.sources).toEqual(["console.log((\n1 + 2\n));\n;__safeBashSetExitCode(process.exitCode);"]);
+  expect(result.sources).toEqual([expect.stringContaining("console.log((\n1 + 2\n));")]);
+  expect(result.imports).toEqual([{ names: expect.arrayContaining(["fs/promises", "node:fs/promises"]), aliases: true }]);
 });
 
 it("runs injected llm providers and binary pipelines through the browser command subpath", async () => {

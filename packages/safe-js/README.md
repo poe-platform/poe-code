@@ -413,6 +413,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | --- | --- |
 | `bindings` | Global input values and host functions; none by default. |
 | `modules` | Module names mapped to export records or Maps; none by default. |
+| `importSpecifiers` | Optional exact names admitted beyond bare imports in harness execution; every name still requires explicit registration in `modules`. Supply the same allowlist to `restore` or snapshot replay. This does not load native, local, or network modules. |
 | `extensions`, `grants`, `builtinOverrides`, `limits` | Opt into a one-shot extension realm; see the supported options and lifetime rules above. |
 | `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
 | `signal` | Host `AbortSignal` for cancellation. |

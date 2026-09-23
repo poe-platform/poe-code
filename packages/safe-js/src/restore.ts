@@ -1,11 +1,11 @@
-import { hashSource } from "./parse/hash.js";
+import { hashParsedAst, hashSource } from "./parse/hash.js";
 import type { CompileOwner } from "./interp/budget.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { SnapshotValidationError, validateDumpEnvelope, validateRuntimeSnapshotDescriptors } from "./snapshot/validation.js";
 import { inMemoryRunSnapshots, serializeSafeJSSnapshot } from "./snapshot/dump-format.js";
 import { assertSnapshotInactive } from "./interp/running-state.js";
 import { validateSnapshotMigration, type SnapshotMigration } from "./snapshot/migration.js";
-import { parseModule } from "./parse/parser.js";
+import { parseExecutableModule, parseModule } from "./parse/parser.js";
 import { ParseError } from "./parse/format-error.js";
 import { createModuleSource, createDynamicSource, createEvalSource, type DynamicSource, type EvalSourceContext } from "./parse/dynamic-source.js";
 import { validateGuestFunctionAst } from "./snapshot/guest-ast-validation.js";
@@ -30,6 +30,7 @@ export type SafeJSSnapshot = {
 
 export type RestoreOptions = {
   source: string;
+  importSpecifiers?: readonly string[];
 };
 
 export class SnapshotMismatchError extends Error {
@@ -66,11 +67,10 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
   }
   validateSnapshotMigration(snapshot.migration, snapshot.sourceHash, owner);
 
-  const currentSourceHash = hashSource(
-    options.source,
-    owner,
-    snapshot.executionSemantics !== "jobs-v6" && snapshot.executionSemantics !== "jobs-v7"
-  );
+  const includeFunctionSource = snapshot.executionSemantics !== "jobs-v6" && snapshot.executionSemantics !== "jobs-v7";
+  const currentSourceHash = options.importSpecifiers === undefined
+    ? hashSource(options.source, owner, includeFunctionSource)
+    : hashParsedAst(parseExecutableModule(options.source, "<input>", owner, options.importSpecifiers), includeFunctionSource);
 
   if (snapshot.sourceHash !== currentSourceHash) {
     throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);
@@ -100,7 +100,9 @@ export function restore<TSnapshot extends SafeJSSnapshot>(
     }
     if (closures.length > 0) {
       const functions = new Map<number, Record<string, unknown>>();
-      const pending: unknown[] = [parseModule(options.source, "<input>", owner)];
+      const pending: unknown[] = [options.importSpecifiers === undefined
+        ? parseModule(options.source, "<input>", owner)
+        : parseExecutableModule(options.source, "<input>", owner, options.importSpecifiers)];
       while (pending.length > 0) {
         const value = pending.pop();
         if (value === null || typeof value !== "object") continue;

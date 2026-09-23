@@ -83,7 +83,9 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       };
       modules.fs = { ...fs, default: fs };
       const requiredModules = new Map([["fs/promises", fs], ["node:fs/promises", fs]]);
+      for (const name of requiredModules.keys()) modules[name] = modules.fs;
       return {
+        importSpecifiers: [...requiredModules.keys()],
         source: bufferSource + timerSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
         bindings: {
           __safeBashBuffer: bufferBindings(options),

@@ -18,6 +18,7 @@ export interface SafeJsCommandDialect {
     readonly fail: (error: unknown) => void;
   }) => {
     readonly source: string;
+    readonly importSpecifiers?: readonly string[];
     readonly bindings: SafeJsModule;
   };
 }
@@ -126,7 +127,8 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
       const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail });
       const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
-        budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings } : {}),
+        budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
+          ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
         sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
       })), "SafeJS run result");
       signal.throwIfAborted();

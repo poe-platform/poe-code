@@ -91,6 +91,7 @@ import {
 } from "./snapshot/replay-data.js";
 
 export type RunOptions = {
+  importSpecifiers?: readonly string[];
   sourceType?: "module";
   sourceResolver?: SourceResolver;
   sourceRoot?: string;
@@ -218,7 +219,8 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
       const restoredSnapshot =
         options.snapshot === undefined
           ? undefined
-          : restore(options.snapshot, { source }, operation.owner);
+          : restore(options.snapshot, { source,
+            ...(options.importSpecifiers ? { importSpecifiers: options.importSpecifiers } : {}) }, operation.owner);
       const promiseReplay = new PromiseReplay(restoredSnapshot?.promiseReplay);
       return await promiseReplayContext.run(promiseReplay, async () => {
         const deactivateOtelSink = activateOtelSink(options.otelSink);
@@ -254,10 +256,10 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
           }
           promiseReplay.attachBudget(budget);
           const filename = options.filename ?? "<input>";
-          const module = parseExecutableModule(source, filename, operation.owner);
+          const module = parseExecutableModule(source, filename, operation.owner, options.importSpecifiers);
           promiseReplay.validateNodes(module);
           const sourceHash =
-            findRegexLiteral(module) === undefined
+            findRegexLiteral(module) === undefined && options.importSpecifiers === undefined
               ? hashSource(source, operation.owner, functionSourceText)
               : hashParsedAst(module, functionSourceText);
           const hostCalls = new HostCallJournal(

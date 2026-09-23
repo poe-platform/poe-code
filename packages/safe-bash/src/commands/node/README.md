@@ -62,16 +62,17 @@ try {
   timer work is bounded by `arrayLength`, and all waits and callbacks share the
   command deadline, cancellation signal, output limit, and interpreter budget.
 - Async VFS access supports `import { readFile, writeFile } from "fs"`,
+  named, default, and namespace imports from `fs/promises` or `node:fs/promises`,
   `import fs from "fs"`, and `require("fs/promises")` or
   `require("node:fs/promises")`. `require` only resolves those two explicit names.
   The `stdio` and `command` SafeJS modules remain accessible.
 
-SafeJS syntax and runtime semantics apply, with top-level `await` and bare-name
-imports. `--input-type=module` is accepted; CommonJS input mode, synchronous fs,
+SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
+imports, and the two explicit filesystem promise import names above.
+`--input-type=module` is accepted; CommonJS input mode, synchronous fs,
 native modules, package/local-module loading, `process.exit`, and the native Node
-event loop are not supplied. In particular, `node:` and slash-containing *import*
-specifiers are rejected by SafeJS; use the bare `fs` import or the allowlisted
-`require` forms instead. Runtime hooks and filesystem adapters are trusted host code.
+event loop are not supplied. Other `node:` and slash-containing import specifiers
+remain rejected. Runtime hooks and filesystem adapters are trusted host code.
 
 ## Configuration
 
@@ -83,7 +84,8 @@ registries. All three execute the same runner.
 
 The `SafeJsRuntime<Budget>` contract requires `run`, `createBudget`, `makeFsModule`,
 and `declareHostOperation`. `run` receives injected `bindings` for the virtual
-process and allowlisted require function, guest modules, a fresh budget, signal,
+process and allowlisted require function, guest modules, an `importSpecifiers`
+allowlist for the two filesystem promise names, a fresh budget, signal,
 filename, and console sink. Use SafeJS's public factories as shown, or provide an
 implementation that honors that contract. There are no runtime environment switches.
 

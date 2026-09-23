@@ -1405,7 +1405,7 @@ function requestedBodies(args, options) {
 }
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
-  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "widened-exclusion", "traversal-exclusion", "postbuild"]) await withRepository(fixture => {
+  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "missing-comments-exclusion", "reordered-comments-exclusion", "widened-exclusion", "traversal-exclusion", "postbuild"]) await withRepository(fixture => {
     if (defect === "guard") {
       const bytes = mutation === "short" ? Buffer.from("throw new Error('untrusted guard');\n") : readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
@@ -1413,6 +1413,11 @@ for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects ba
     } else if (mutation === "postbuild") fixture.manifest.scripts.postbuild = "node untrusted-postbuild.mjs";
     else if (mutation === "short") fixture.manifest.files = ["src"];
     else if (mutation === "missing-exclusion") fixture.manifest.files.pop();
+    else if (mutation === "missing-comments-exclusion") fixture.manifest.files.splice(fixture.manifest.files.indexOf("!dist/commands/yq/comments.d.ts.map"), 1);
+    else if (mutation === "reordered-comments-exclusion") {
+      const index = fixture.manifest.files.indexOf("!dist/commands/yq/comments.js");
+      [fixture.manifest.files[index], fixture.manifest.files[index + 1]] = [fixture.manifest.files[index + 1], fixture.manifest.files[index]];
+    }
     else fixture.manifest.files.push(mutation === "widened-exclusion" ? "!dist/commands/yq" : "!dist/../src");
   }, fixture => {
     const sourceOids = new Set(fixture.git(["ls-tree", "-r", "--format=%(objectname)", "HEAD", "--", `${packagePrefix}/src`]).split("\n"));

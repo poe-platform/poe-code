@@ -8,6 +8,7 @@ import {
 import { parseFlowchart } from "./parsers/flowchart.js";
 import { parseSequenceDiagram } from "./parsers/sequence.js";
 import { parseStateDiagram } from "./parsers/state.js";
+import { parseClassDiagram } from "./parsers/class.js";
 import { readWord } from "./parser-utils.js";
 import { scanStatements } from "./scanner.js";
 
@@ -29,6 +30,9 @@ export function parseMermaid(
   }
   if (headWord === "stateDiagram-v2" || headWord === "stateDiagram") {
     return parseStateDiagram(statements, budget);
+  }
+  if (headWord === "classDiagram") {
+    return parseClassDiagram(statements, budget);
   }
 
   throw new MermaidError(

@@ -31,7 +31,7 @@ export function layoutSequenceDocument(
   document: MermaidDocument,
   options?: MermaidLayoutOptions
 ): MermaidScene {
-  const limits = admitMermaidLimits(options?.limits, options?.settings?.limits);
+  const limits = admitMermaidLimits(options?.limits, admitMermaidLimits(options?.settings?.limits));
   const budget = options?.budget ?? new MermaidBudget(limits, options?.signal);
   const { tokens: theme, backgroundColor } = resolveMermaidTheme(options);
   const padding = options?.padding ?? theme.padding;
@@ -348,14 +348,13 @@ export function layoutSequenceDocument(
       const loopX = rightEdgeX + 42;
       const startPt: Point = { x: rightEdgeX, y: y1 };
       const endPt: Point = { x: rightEdgeX, y: y2 };
-      const pullback = edge.endMarker === "arrow" ? 6.8 : edge.endMarker === "cross" ? 5 : 0;
       const waypoints: Point[] = [
         startPt,
         { x: loopX, y: y1 },
         { x: loopX, y: y2 },
         endPt
       ];
-      const built = buildRoundedOrthogonalPath(waypoints, 6, pullback);
+      const built = buildRoundedOrthogonalPath(waypoints, 6, "none", edge.endMarker);
 
       let labelPill: SceneLabelPill | undefined;
       if (pillInfo) {

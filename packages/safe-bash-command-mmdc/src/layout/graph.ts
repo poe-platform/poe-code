@@ -789,6 +789,67 @@ export function layoutGraphDocument(
     .map((item) => builtGroupById.get(item.doc.id)!)
     .filter(Boolean);
 
+
+  // Ensure disjoint groups (and their member nodes) have >= 24px separation
+  const isAncestorGroup = (ancId: string, descId: string): boolean => {
+    let curr = groupById.get(descId)?.parentId;
+    while (curr) {
+      if (curr === ancId) return true;
+      curr = groupById.get(curr)?.parentId;
+    }
+    return false;
+  };
+  const isNodeInGroupSubtree = (nodeGroupId: string | undefined, rootGroupId: string): boolean => {
+    if (!nodeGroupId) return false;
+    if (nodeGroupId === rootGroupId) return true;
+    return isAncestorGroup(rootGroupId, nodeGroupId);
+  };
+  for (let pass = 0; pass < 4; pass++) {
+    let shifted = false;
+    for (let i = 0; i < orderedGroups.length; i++) {
+      const g1 = orderedGroups[i]!;
+      for (let j = i + 1; j < orderedGroups.length; j++) {
+        const g2 = orderedGroups[j]!;
+        if (isAncestorGroup(g1.id, g2.id) || isAncestorGroup(g2.id, g1.id)) continue;
+        if (rectsIntersect(g1, g2, 24)) {
+          const shiftRight = g1.x <= g2.x ? g2 : g1;
+          const stayLeft = shiftRight === g2 ? g1 : g2;
+          const dx = stayLeft.x + stayLeft.width + 24 - shiftRight.x;
+          if (dx > 0) {
+            shifted = true;
+            for (let k = 0; k < rawSceneNodes.length; k++) {
+              const n = rawSceneNodes[k]!;
+              if (isNodeInGroupSubtree(n.groupId, shiftRight.id)) {
+                rawSceneNodes[k] = {
+                  ...n,
+                  x: n.x + dx,
+                  lines: n.lines.map((l) => ({ ...l, x: l.x + dx })),
+                  dividers: n.dividers.map((d) => ({ ...d, x1: d.x1 + dx, x2: d.x2 + dx })),
+                  badges: n.badges.map((b) => ({
+                    ...b,
+                    x: b.x + dx,
+                    text: { ...b.text, x: b.text.x + dx }
+                  }))
+                };
+              }
+            }
+            for (let k = 0; k < orderedGroups.length; k++) {
+              const gk = orderedGroups[k]!;
+              if (gk.id === shiftRight.id || isAncestorGroup(shiftRight.id, gk.id)) {
+                orderedGroups[k] = {
+                  ...gk,
+                  x: gk.x + dx,
+                  label: { ...gk.label, x: gk.label.x + dx }
+                };
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!shifted) break;
+  }
+
   // Route edges
   const rawEdges = routeGraphEdges(
     document.edges,

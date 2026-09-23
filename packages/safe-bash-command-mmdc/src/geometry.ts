@@ -390,6 +390,31 @@ export function verifySceneGeometry(scene: MermaidScene): GeometryReport {
     }
   }
 
+
+  const isGroupAncestor = (ancestorId: string, descId: string): boolean => {
+    let curr = groupById.get(descId)?.parentId;
+    while (curr) {
+      if (curr === ancestorId) return true;
+      curr = groupById.get(curr)?.parentId;
+    }
+    return false;
+  };
+  for (let i = 0; i < scene.groups.length; i++) {
+    const g1 = scene.groups[i]!;
+    if (g1.kind === "sequenceBlock") continue;
+    for (let j = i + 1; j < scene.groups.length; j++) {
+      const g2 = scene.groups[j]!;
+      if (g2.kind === "sequenceBlock") continue;
+      if (isGroupAncestor(g1.id, g2.id) || isGroupAncestor(g2.id, g1.id)) continue;
+      const gClearance = rectClearance(g1, g2);
+      if (gClearance < 16 - 0.1) {
+        violations.push(
+          `Invariant 3 (disjoint group clearance): groups "${g1.id}" and "${g2.id}" have clearance ${gClearance.toFixed(2)}px (< 16px)`
+        );
+      }
+    }
+  }
+
   // 4. Perpendicular port & arrow attachment
   if (scene.family !== "sequence") {
     for (const edge of scene.edges) {

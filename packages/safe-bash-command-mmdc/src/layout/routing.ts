@@ -219,6 +219,45 @@ function findSafePillCenter(
   return fallback;
 }
 
+function placeEndpointBadge(
+  anchorPt: Point,
+  adjPt: Point,
+  rawText: string,
+  theme: MermaidThemeTokens,
+  obstacles: readonly Rect[],
+  placedPills: Rect[],
+  otherEdgeSegments: readonly Rect[]
+): SceneLabelPill {
+  const testPill = buildLabelPill(rawText, { x: 0, y: 0 }, theme);
+  const dx = adjPt.x - anchorPt.x;
+  const dy = adjPt.y - anchorPt.y;
+  const len = Math.max(1, Math.hypot(dx, dy));
+  const ux = dx / len;
+  const uy = dy / len;
+  const nx = -uy;
+  const ny = ux;
+  const isVertical = Math.abs(dx) < 1;
+  const baseNormalDist = isVertical ? testPill.width / 2 + 10 : testPill.height / 2 + 10;
+  const baseAlongDist = isVertical ? testPill.height / 2 + 6 : testPill.width / 2 + 8;
+
+  for (const alongExtra of [0, 6, 12, 18]) {
+    const along = Math.max(baseAlongDist, Math.min(Math.max(baseAlongDist, len - 4), baseAlongDist + alongExtra));
+    for (const side of [-1, 1, -1.5, 1.5, -2.0, 2.0]) {
+      const cx = anchorPt.x + ux * along + nx * (baseNormalDist * side);
+      const cy = anchorPt.y + uy * along + ny * (baseNormalDist * side);
+      const pill = buildLabelPill(rawText, { x: cx, y: cy }, theme);
+      const collidesObstacle = obstacles.some((obs) => rectsIntersect(pill, obs, 4));
+      const collidesPill = placedPills.some((prev) => rectsIntersect(pill, prev, 4));
+      const collidesOtherEdge = otherEdgeSegments.some((segR) => rectsIntersect(pill, segR, 4));
+      if (!collidesObstacle && !collidesPill && !collidesOtherEdge) {
+        placedPills.push({ x: pill.x, y: pill.y, width: pill.width, height: pill.height });
+        return pill;
+      }
+    }
+  }
+  return findSafePillCenter([anchorPt, adjPt], rawText, theme, obstacles, placedPills, otherEdgeSegments);
+}
+
 export function routeGraphEdges(
   edges: readonly DocumentEdge[],
   nodes: readonly SceneNode[],
@@ -363,6 +402,14 @@ export function routeGraphEdges(
   }
 
   const placedPills: Rect[] = [];
+  const routedDrafts: {
+    readonly edge: DocumentEdge;
+    readonly built: ReturnType<typeof buildRoundedOrthogonalPath>;
+    readonly startMarker: SceneMarker | undefined;
+    readonly endMarker: SceneMarker | undefined;
+    readonly srcAttach: { readonly port: Point; readonly stubPoint: Point; readonly normal: Point };
+    readonly dstAttach: { readonly port: Point; readonly stubPoint: Point; readonly normal: Point };
+  }[] = [];
   const sceneEdges: SceneEdge[] = [];
 
   for (const edge of edges) {
@@ -543,7 +590,10 @@ export function routeGraphEdges(
             tip: p0,
             angleRadians: Math.atan2(p0.y - p1.y, p0.x - p1.x),
             stroke: theme.edge,
-            fill: edge.startMarker === "umlHollowTriangle" ? theme.canvas : theme.edge
+            fill:
+              edge.startMarker === "umlHollowTriangle" || edge.startMarker === "umlAggregation"
+                ? theme.canvas
+                : theme.edge
           }
         : undefined;
 
@@ -554,34 +604,61 @@ export function routeGraphEdges(
             tip: pn,
             angleRadians: Math.atan2(pn.y - pnPrev.y, pn.x - pnPrev.x),
             stroke: theme.edge,
-            fill: edge.endMarker === "umlHollowTriangle" ? theme.canvas : theme.edge
+            fill:
+              edge.endMarker === "umlHollowTriangle" || edge.endMarker === "umlAggregation"
+                ? theme.canvas
+                : theme.edge
           }
         : undefined;
 
+    routedDrafts.push({ edge, built, startMarker, endMarker, srcAttach, dstAttach });
+  }
+
+  for (const draft of routedDrafts) {
+    const { edge, built, startMarker, endMarker, srcAttach, dstAttach } = draft;
+    const otherEdgeSegments: Rect[] = [];
+    for (const other of routedDrafts) {
+      if (other.edge.id === edge.id) continue;
+      for (let k = 0; k + 1 < other.built.points.length; k++) {
+        const a = other.built.points[k]!;
+        const b = other.built.points[k + 1]!;
+        otherEdgeSegments.push({
+          x: Math.min(a.x, b.x),
+          y: Math.min(a.y, b.y),
+          width: Math.max(1, Math.abs(b.x - a.x)),
+          height: Math.max(1, Math.abs(b.y - a.y))
+        });
+      }
+    }
+
     const labelPill =
       edge.label !== undefined && edge.label.trim().length > 0
-        ? findSafePillCenter(built.points, edge.label, theme, obstacles, placedPills)
+        ? findSafePillCenter(built.points, edge.label, theme, obstacles, placedPills, otherEdgeSegments)
         : undefined;
 
     const sourceLabelPill =
       edge.sourceLabel !== undefined && edge.sourceLabel.trim().length > 0
-        ? findSafePillCenter(
-            [built.points[0]!, built.points[1]!],
+        ? placeEndpointBadge(
+            built.points[0]!,
+            built.points[1]!,
             edge.sourceLabel,
             theme,
             obstacles,
-            placedPills
+            placedPills,
+            otherEdgeSegments
           )
         : undefined;
 
     const targetLabelPill =
       edge.targetLabel !== undefined && edge.targetLabel.trim().length > 0
-        ? findSafePillCenter(
-            [built.points[built.points.length - 2]!, built.points[built.points.length - 1]!],
+        ? placeEndpointBadge(
+            built.points[built.points.length - 1]!,
+            built.points[built.points.length - 2]!,
             edge.targetLabel,
             theme,
             obstacles,
-            placedPills
+            placedPills,
+            otherEdgeSegments
           )
         : undefined;
 

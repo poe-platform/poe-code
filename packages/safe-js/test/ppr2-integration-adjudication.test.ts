@@ -120,19 +120,25 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         expect(snapshot.executionSemantics).toBe(expectedFresh);
         expect(snapshot.version).toBe(2);
         const before = JSON.stringify(snapshot);
-        const holdReplay = index < 2 && scenario.id === "retry-reissue";
+        const holdReplay = index < 2 && scenario.id.startsWith("retry");
         const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
+        const receiptGate = deferred<void>();
+        const provideReceipt = receiptsProvider(original.snapshot.hostCalls ?? [], requests);
         const resumedExecution = run(scenario.source, {
           snapshot,
           bindings: rebound.bindings,
           budget: new Budget({ maxSteps: 150_000 }),
-          hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
+          hostCallResumeProvider: async (request) => {
+            if (holdReplay) await receiptGate.promise;
+            return provideReceipt(request);
+          }
         });
         try {
           if (holdReplay) await waitForRetryEffects(resumedExecution);
         } finally {
           rebound.release();
+          receiptGate.resolve();
         }
         const resumed = await resumedExecution;
         expect(resumed.ok).toBe(true);

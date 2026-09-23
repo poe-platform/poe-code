@@ -3,7 +3,7 @@ import { ProgramError } from "./shared.js";
 import { validateFormat } from "./awk-values.js";
 
 export type Expression = { kind: "number"; value: number } | { kind: "string"; value: string }
-  | { kind: "regex"; pattern: Pattern } | { kind: "variable"; name: string }
+  | { kind: "regex"; pattern: Pattern; source?: string } | { kind: "variable"; name: string }
   | { kind: "field"; index: Expression } | { kind: "array"; name: string; indexes: Expression[] }
   | { kind: "tuple"; items: Expression[] }
   | { kind: "unary"; operator: string; operand: Expression; postfix: boolean }
@@ -47,6 +47,8 @@ export function decodeString(source: string): string {
 
 class Lexer {
   private offset = 0;
+  readonly messages = new Set<string>();
+  regexSource = "";
   constructor(private readonly source: string) {
     if (source.length > 1024 * 1024) throw new ProgramError("awk source exceeds 1 MiB");
   }
@@ -60,7 +62,9 @@ class Lexer {
     }
     const offset = this.offset;
     if (offset === this.source.length) return { kind: "end", text: "", offset };
-    const rest = this.source.slice(offset);
+    const marked = this.source[offset] === "_" && this.source[offset + 1] === '"';
+    if (marked) this.offset++;
+    const rest = this.source.slice(this.offset);
     const name = /^[A-Za-z_][A-Za-z0-9_]*/u.exec(rest)?.[0];
     if (name) { this.offset += name.length; return { kind: "name", text: name, offset }; }
     const number = /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/u.exec(rest)?.[0];
@@ -81,7 +85,9 @@ class Lexer {
         }
       }
       if (this.source[this.offset++] !== '"') throw new ProgramError("unterminated string literal");
-      return { kind: "string", text: decodeString(text), offset };
+      const value = decodeString(text);
+      if (marked) this.messages.add(value);
+      return { kind: "string", text: value, offset };
     }
     const operator = /^(?:\+\+|--|\+=|-=|\*=|\/=|%=|\^=|==|!=|<=|>=|&&|\|\||!~|>>|[{}()[\],;\n$+*\/%^=!<>~?:|\-])/u.exec(rest)?.[0];
     if (!operator) throw new ProgramError(`unsupported token '${rest[0]}' at byte ${offset}`);
@@ -96,7 +102,7 @@ class Lexer {
         const next = this.source[this.offset++];
         if (next === undefined) break;
         source += next === "/" ? "/" : `\\${next}`;
-      } else if (character === "/" && !bracket) return new Pattern(source);
+      } else if (character === "/" && !bracket) { this.regexSource = source; return new Pattern(source); }
       else {
         if (character === "\n") throw new ProgramError("newline in regular expression literal");
         if (character === "[") bracket = true;
@@ -133,6 +139,7 @@ export class AwkParser {
   private arrays = new Set<string>();
   private readonly calls: { expression: Extract<Expression, { kind: "call" }>; owner: string | undefined }[] = [];
   constructor(source: string, private readonly arities = builtinArities) { this.lexer = new Lexer(source); this.token = this.lexer.next(); }
+  get messages(): ReadonlySet<string> { return this.lexer.messages; }
   private advance(): Token { const previous = this.token; this.token = this.lexer.next(); return previous; }
   private at(text: string): boolean { return this.token.text === text && (this.token.kind === "operator" || this.token.kind === "name"); }
   private ended(): boolean { return this.token.kind === "end"; }
@@ -339,7 +346,7 @@ export class AwkParser {
     if (token.kind === "number") { this.advance(); return { kind: "number", value: Number(token.text) }; }
     if (token.kind === "string") { this.advance(); return { kind: "string", value: token.text }; }
     if (token.text === "/" || token.text === "/=") {
-      const pattern = this.lexer.regex(token.text === "/=" ? "=" : ""); this.token = this.lexer.next(); return { kind: "regex", pattern };
+      const pattern = this.lexer.regex(token.text === "/=" ? "=" : ""); const source = this.lexer.regexSource; this.token = this.lexer.next(); return { kind: "regex", pattern, source };
     }
     if (["+", "-", "!", "++", "--"].includes(token.text)) {
       this.advance(); const operand = this.expression(token.text.length === 2 ? 13 : 11);

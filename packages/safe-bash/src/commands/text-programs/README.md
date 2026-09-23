@@ -174,6 +174,21 @@ GNU installation paths. These identify the built-in implementation: no file is
 opened, no host library is loaded, and `AWKLIBPATH` is not searched. Other modules
 are refused; this does not provide native GNU extension ABI interoperability.
 
+GNU inspection option spellings are supported with local interpreter observations:
+`-d[file]` / `--dump-variables[=file]` dumps final stored variables (default
+`awkvars.out`); `-o[file]` / `--pretty-print[=file]` writes parsed, formatted source
+without running it (default `awkprof.out`); `-p[file]` / `--profile[=file]` runs
+the program and writes aggregate statement-kind execution counts (default
+`awkprof.out`). `-I` / `--trace` writes actual statement kinds and phases to
+stderr. These are safe-bash observations, without GNU opcodes, timestamps,
+unimplemented special variables, or GNU profile identity. Destinations use the
+configured filesystem and share the shell output limit. `-g` / `--gen-pot`
+extracts unique `_"message"` literals without execution or record reads; ordinary
+execution treats these markers as literal byte strings, without locale translation.
+`-Dfile` / `--debug=file` with `-f` supports an explicit VFS batch command file
+containing one `run` (`r`) and `quit` (`q`); interactive debugging, breakpoints,
+stepping, and other debugger commands are refused explicitly.
+
 Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`, random
 and time functions, regex/multibyte `RS`, locale/Unicode character semantics,
 hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such

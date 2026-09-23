@@ -7,6 +7,7 @@ import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, input, virtualPath, write } from "./shared.js";
 import { AwkRetention } from "./awk-retention.js";
 import { Reader } from "./awk-reader.js";
+import type { AwkInspection } from "./awk-inspection.js";
 
 function textSize(value: Value | undefined): number {
   return value && !(value instanceof AwkArray) && (value.kind === "string" || value.kind === "numeric") ? value.text.length : 0;
@@ -37,7 +38,7 @@ export class AwkRuntime {
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
-  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true, private readonly ordchr = false) {
+  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true, private readonly ordchr = false, private readonly inspection?: AwkInspection) {
     const defaults: Record<string, Scalar> = { FS: string(" "), RS: string("\n"), OFS: string(" "), ORS: string("\n"), OFMT: string("%.6g"), CONVFMT: string("%.6g"), SUBSEP: string("\x1c"), NR: numeric(0), FNR: numeric(0), NF: numeric(0), FILENAME: string(""), RSTART: numeric(0), RLENGTH: numeric(0), ARGC: numeric(args.length + 1) };
     try {
       for (const [name, value] of Object.entries(defaults)) this.storeScalar(this.variables, name, value);
@@ -461,6 +462,7 @@ export class AwkRuntime {
 
   private async execute(statement: Statement): Promise<void> {
     this.budget.step();
+    if (this.inspection) await this.inspection.observe(statement, this.phase);
     await this.budget.checkpoint();
     switch (statement.kind) {
       case "block": for (const child of statement.body) await this.execute(child); return;
@@ -552,7 +554,7 @@ export class AwkRuntime {
   async run(): Promise<number> {
     let status = 0, failed = false;
     let failure: unknown;
-    try { status = await this.runProgram(); }
+    try { status = await this.runProgram(); await this.inspection?.publish(this.variables); }
     catch (error) { failed = true; failure = error; }
     const readers = [...this.mainReader ? [this.mainReader] : [], ...this.inputs.values()];
     this.mainReader = undefined;

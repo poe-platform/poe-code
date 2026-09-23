@@ -977,6 +977,8 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/awk-file-output-budget.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/sed-file-output-budget.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-format-integration.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-gettext.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/awk-inspection.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/awk-format-work-budget.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/format-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/substitution-admission.test.ts"));

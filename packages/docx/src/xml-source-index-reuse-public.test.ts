@@ -16,7 +16,7 @@ it(`immutable XML source index public boundary; strict=${strict}; kind=${kind}; 
   expect(native.Document).not.toBe(api.Document);
   const memory = Volume.fromJSON({ "/input": Buffer.from(await textFixture('<w:p><w:r><w:t>InitialA</w:t></w:r></w:p>', {}, strict, { kind })), "/output": "" });
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), original = input.slice();
-  const budget = new product.DocumentBudget({}, textContext.signal), context = { ...textContext, budget };
+  const budget = new product.DocumentBudget({ work: 512 * 1024 * 1024, retainedBytes: 512 * 1024 * 1024 }, textContext.signal), context = { ...textContext, budget };
   const document = await product.Document(input, context);
   const xml = readPackage(input).get("word/document.xml")!, bytes = xml.slice();
   const before = budget.usage;

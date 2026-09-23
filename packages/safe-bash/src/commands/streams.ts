@@ -143,6 +143,7 @@ function headTail(name: "head" | "tail", maxTailFollowHandles = 64): CommandDefi
     const names = parsed.operands.length ? parsed.operands : ["-"];
     if (follow?.mode) return followTail(context, {
       names, mode: follow.mode, idleMs: follow.idleMs, count, bytes, positive,
+      retry: follow.retry, sleepMs: follow.sleepMs, maxUnchangedStats: follow.maxUnchangedStats,
       headers: parsed.flags.has("v") || names.length > 1 && !parsed.flags.has("q"),
     }, maxTailFollowHandles, (target, source) => positive
       ? prefix(target, source, Math.max(0, count - 1), bytes, true, delimiter)

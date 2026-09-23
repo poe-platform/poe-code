@@ -57,6 +57,74 @@ function fixture() {
   return result;
 }
 
+for (const flags of ["--follow", "--follow=descriptor", "--follow=name", "-F --follow=descriptor", "-F --follow", "--retry --follow=descriptor", "-f --retry", "-f -s 0.01", "-f -s0.01", "-fs0.01", "-f --sleep-interval=0.01", "-f --sleep-interval 0.01", "-f --max-unchanged-stats=1", "-f --max-unchanged-stats 1"]) {
+  test(`Shell admits GNU tail follow options: ${flags}`, async () => {
+    const { shell, fs } = fixture();
+    await fs.writeFile("/log", encode("first\nlast\n"));
+    try {
+      const result = await shell.exec(`tail ${flags} --max-idle=0 -n1 /log`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "last\n");
+      assert.equal(result.stderr, flags.includes("--retry") ? "tail: warning: --retry only effective for the initial open\n" : "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("Shell tail honors polling interval and unchanged-stat reopening threshold", async context => {
+  const clock = new Clock(context);
+  const { shell, fs } = fixture();
+  await fs.writeFile("/log", encode("old\n"));
+  const controller = new AbortController();
+  const chunks: Uint8Array[] = [];
+  const running = shell.exec("tail --follow=name -s .25 --max-unchanged-stats=3 -n0 /log", { signal: controller.signal, stdout: { async write(chunk) { chunks.push(chunk.slice()); } } });
+  const observed = assert.rejects(running, error => error === controller.signal.reason);
+  try {
+    await until(() => clock.timers.size > 0);
+    assert.equal([...clock.timers.values()][0]!.due, 250);
+    await fs.rename("/log", "/old");
+    await fs.writeFile("/log", encode("new\n"));
+    clock.advance(249);
+    assert.equal(chunks.length, 0);
+    clock.advance(1);
+    await until(() => [...clock.timers.values()].some(timer => timer.due === 500));
+    assert.equal(chunks.length, 0);
+    clock.advance(250);
+    await until(() => chunks.length > 0);
+    assert.equal(Buffer.concat(chunks).toString(), "new\n");
+  } finally { controller.abort(); await observed; await shell.dispose(); }
+});
+
+for (const mode of ["descriptor", "name"]) test(`Shell tail retries an initially missing file by ${mode}`, async context => {
+  const clock = new Clock(context);
+  const { shell, fs } = fixture();
+  const controller = new AbortController();
+  const chunks: Uint8Array[] = [];
+  const running = shell.exec(`tail --follow=${mode} --retry -s .01 /missing`, { signal: controller.signal, stdout: { async write(chunk) { chunks.push(chunk.slice()); } } });
+  const observed = assert.rejects(running, error => error === controller.signal.reason);
+  try {
+    await until(() => clock.timers.size > 0);
+    await fs.writeFile("/missing", encode("appeared\n"));
+    clock.advance(10);
+    await until(() => chunks.length > 0);
+    assert.equal(Buffer.concat(chunks).toString(), "appeared\n");
+  } finally { controller.abort(); await observed; await shell.dispose(); }
+});
+
+test("Shell tail name follow without retry retires an initially missing file", async () => {
+  const { shell } = fixture();
+  try {
+    const result = await shell.exec("tail --follow=name /missing");
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("/missing"));
+  } finally { await shell.dispose(); }
+});
+
+for (const flags of ["--follow=invalid", "-f -s -1", "-f -s NaN", "-f -s 0X10", "-f -s 0x10", "-f --sleep-interval", "-f --max-unchanged-stats=-1", "-f --max-unchanged-stats=1.5", "-f --max-unchanged-stats"]) test(`Shell tail rejects invalid follow options: ${flags}`, async () => {
+  const { shell } = fixture();
+  try { assert.equal((await shell.exec(`tail ${flags}`)).exitCode, 2); }
+  finally { await shell.dispose(); }
+});
+
 for (const browser of [false, true]) test(`actual ${browser ? "browser" : "standard"} tail follow uses retained memory and initial-only output`, async () => {
   const { shell, fs } = setup();
   shell.use(browser ? agentCommands({ maxTailFollowHandles: 2 }) : standardCommands({ maxTailFollowHandles: 2 }));

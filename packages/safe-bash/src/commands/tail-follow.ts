@@ -16,16 +16,37 @@ export const tailFollowScheduler: TailFollowScheduler = {
   clearTimeout: handle => clearTimeout(handle as ReturnType<typeof setTimeout>),
 };
 
-export function parseTailFollow(arguments_: readonly string[]): { args: string[]; mode: "f" | "F" | undefined; idleMs: number | undefined } {
+export function parseTailFollow(arguments_: readonly string[]): { args: string[]; mode: "f" | "F" | undefined; idleMs: number | undefined; retry: boolean; sleepMs: number; maxUnchangedStats: number | undefined } {
   const args: string[] = [];
   let mode: "f" | "F" | undefined;
   let idleMs: number | undefined;
+  let retry = false;
+  let explicitRetry = false;
+  let sleepMs = 100;
+  let maxUnchangedStats: number | undefined;
+  const sleep = (text: string | undefined) => {
+    const seconds = !text || [...text].some(character => !(character >= "0" && character <= "9") && !".eE+-".includes(character)) ? NaN : Number(text);
+    if (!Number.isFinite(seconds) || seconds < 0 || seconds * 1000 > Number.MAX_SAFE_INTEGER) throw new UsageError(`invalid number of seconds: '${text ?? ""}'`);
+    return seconds * 1000;
+  };
   let ended = false;
   for (let index = 0; index < arguments_.length; index++) {
     const argument = arguments_[index]!;
     if (ended || argument === "-" || !argument.startsWith("-")) { args.push(argument); continue; }
     if (argument === "--") { ended = true; args.push(argument); continue; }
-    if (argument === "--max-idle" || argument.startsWith("--max-idle=")) {
+    if (argument === "--follow" || argument.startsWith("--follow=")) {
+      const method = argument === "--follow" ? "descriptor" : argument.slice(9);
+      if (method !== "descriptor" && method !== "name") throw new UsageError(`invalid argument '${method}' for 'follow'`);
+      mode = method === "name" ? "F" : "f";
+      if (method === "descriptor") retry = explicitRetry;
+    } else if (argument === "--retry") { retry = true; explicitRetry = true; }
+    else if (argument === "--sleep-interval" || argument.startsWith("--sleep-interval=")) {
+      sleepMs = sleep(argument === "--sleep-interval" ? arguments_[++index] : argument.slice(17));
+    } else if (argument === "--max-unchanged-stats" || argument.startsWith("--max-unchanged-stats=")) {
+      const text = argument === "--max-unchanged-stats" ? arguments_[++index] : argument.slice(22);
+      if (!text || [...text].some(digit => digit < "0" || digit > "9") || !Number.isSafeInteger(Number(text))) throw new UsageError(`invalid maximum number of unchanged stats: '${text ?? ""}'`);
+      maxUnchangedStats = Number(text);
+    } else if (argument === "--max-idle" || argument.startsWith("--max-idle=")) {
       const text = argument === "--max-idle" ? arguments_[++index] : argument.slice(11);
       if (text === undefined || !/^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$/u.test(text)) throw new UsageError("max-idle must be nonnegative decimal seconds");
       const [whole = "", fraction = ""] = text.split(".");
@@ -40,7 +61,11 @@ export function parseTailFollow(arguments_: readonly string[]): { args: string[]
       let kept = "-";
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset]!;
-        if (flag === "f" || flag === "F") mode = flag;
+        if (flag === "f" || flag === "F") { mode = flag; retry = flag === "F" || explicitRetry; }
+        else if (flag === "s") {
+          sleepMs = sleep(offset + 1 === argument.length ? arguments_[++index] : argument.slice(offset + 1));
+          break;
+        }
         else {
           kept += flag;
           if (flag === "n" || flag === "c") {
@@ -57,7 +82,7 @@ export function parseTailFollow(arguments_: readonly string[]): { args: string[]
     }
   }
   if (idleMs !== undefined && mode === undefined) throw new UsageError("max-idle requires -f or -F");
-  return { args, mode, idleMs };
+  return { args, mode, idleMs, retry, sleepMs, maxUnchangedStats };
 }
 
 interface Reader {
@@ -72,12 +97,16 @@ interface FollowEntry {
   offset: number;
   error: string | undefined;
   active: boolean;
+  unchanged: number;
 }
 
 interface FollowSelection {
   readonly names: readonly string[];
   readonly mode: "f" | "F";
   readonly idleMs: number | undefined;
+  readonly retry: boolean;
+  readonly sleepMs: number;
+  readonly maxUnchangedStats: number | undefined;
   readonly count: number;
   readonly bytes: boolean;
   readonly positive: boolean;
@@ -261,7 +290,7 @@ export async function followTail(
   if (selection.mode === "F" && selection.names.includes("-")) throw new FsError("ENOTSUP", { message: "cannot follow standard input by name" });
   const session = new FollowSession(caller, cap, scheduler);
   const context = session.context;
-  const entries: FollowEntry[] = selection.names.map(name => ({ name, reader: undefined, identity: undefined, offset: 0, error: undefined, active: name !== "-" }));
+  const entries: FollowEntry[] = selection.names.map(name => ({ name, reader: undefined, identity: undefined, offset: 0, error: undefined, active: name !== "-", unchanged: 0 }));
   let lastHeader: FollowEntry | undefined;
   let exitCode = 0;
   let primary: { reason: unknown } | undefined;
@@ -279,8 +308,9 @@ export async function followTail(
     if (initial && reason.code === "EISDIR" || !initial && reason.code === "EACCES" && entry.reader) await header(entry);
     if (entry.error !== reason.code) await diagnostic(context, reason);
     entry.error = reason.code;
+    const opened = entry.reader !== undefined;
     if (entry.reader) { await session.release(entry.reader); entry.reader = undefined; }
-    if (selection.mode === "f") { entry.active = false; exitCode = 1; }
+    if (selection.mode === "f" && opened || !selection.retry) { entry.active = false; exitCode = 1; }
   };
   const acquire = async (entry: FollowEntry, initial: boolean): Promise<FileStat | undefined> => {
     let candidate: Reader | undefined;
@@ -314,6 +344,7 @@ export async function followTail(
     return stat;
   };
   try {
+    if (selection.retry && selection.mode === "f") await diagnostic(context, new PublicDiagnostic("warning: --retry only effective for the initial open"));
     for (const entry of entries) {
       if (entry.name === "-") {
         await header(entry);
@@ -357,10 +388,17 @@ export async function followTail(
         for (const entry of entries) {
           if (!entry.active) continue;
           let stat: FileStat | undefined;
-          if (selection.mode === "F") stat = await acquire(entry, false);
+          if (!entry.reader || selection.mode === "F" && selection.maxUnchangedStats === undefined) stat = await acquire(entry, false);
           else {
             try { stat = await session.stat(entry.reader!); }
             catch (reason) { await failure(entry, reason, false); }
+            if (stat && selection.mode === "F" && selection.maxUnchangedStats !== undefined) {
+              entry.unchanged = stat.size === entry.offset ? entry.unchanged + 1 : 0;
+              if (entry.unchanged >= selection.maxUnchangedStats) {
+                entry.unchanged = 0;
+                stat = await acquire(entry, false);
+              }
+            }
           }
           if (!stat) continue;
           if (stat.size < entry.offset) {
@@ -388,8 +426,8 @@ export async function followTail(
         }
         await yieldTurn(caller.signal);
         if (!progressed && entries.some(entry => entry.active)) {
-          const remaining = selection.idleMs === undefined ? 100 : Math.min(100, selection.idleMs - (scheduler.now() - acknowledged));
-          if (remaining <= 0) break;
+          const remaining = selection.idleMs === undefined ? selection.sleepMs : Math.min(selection.sleepMs, selection.idleMs - (scheduler.now() - acknowledged));
+          if (selection.idleMs !== undefined && scheduler.now() - acknowledged >= selection.idleMs) break;
           await session.wait<void>(undefined, remaining);
         }
       }

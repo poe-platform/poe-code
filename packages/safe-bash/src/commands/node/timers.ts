@@ -14,11 +14,10 @@ function setTimeout(callback, delay, ...args) {
 function clearTimeout(timer) { __safeBashTimers.clear(timer); }
 `;
 
-export function timerBindings<Budget>(options: NodeSafeJsCommandOptions<Budget>, signal: AbortSignal, fail: (error: unknown) => void): SafeJsModule {
+export function timerBindings<Budget>(options: NodeSafeJsCommandOptions<Budget>, signal: AbortSignal, fail: (error: unknown) => void, pending: Set<Promise<void>>): SafeJsModule {
   const declare = options.runtime.declareHostOperation;
   const limits = commandLimits(options.limits);
   const timers = new Map<number, { handle: ReturnType<typeof setTimeout>; complete: () => void }>();
-  const pending = new Set<Promise<void>>();
   let nextId = 0;
   const clear = (id: unknown): void => {
     if (typeof id !== "number") return;

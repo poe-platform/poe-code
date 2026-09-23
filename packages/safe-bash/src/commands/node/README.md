@@ -78,7 +78,12 @@ try {
   the text or throws the VFS error before the next guest statement; the host
   event loop remains asynchronous. An encoding is required; binary reads and
   other synchronous filesystem operations are not supplied. `fs.promises`
-  exposes the asynchronous helpers. All reads use the invocation's VFS, virtual
+  exposes the asynchronous helpers. `fs.readFile(path, encoding, callback)`
+  also supports asynchronous text callbacks: success supplies `(null, text)` and
+  failure supplies the VFS error. The command waits for callback reads and their
+  nested timers; callbacks share timer admission limits, cancellation, and budgets.
+  The existing Promise-returning `fs.readFile(path, encoding)` remains supported.
+  All reads use the invocation's VFS, virtual
   cwd, cancellation signal, and interpreter value limits.
   The `stdio` and `command` SafeJS modules remain accessible.
 - `require("./data.json")` loads UTF-8 JSON from the virtual filesystem and

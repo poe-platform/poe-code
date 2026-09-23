@@ -5,6 +5,7 @@ import { onlyKeys, record } from "../../integrations/safejs/values.js";
 import { UsageError } from "../internal.js";
 import { bufferBindings, bufferSource } from "./buffer.js";
 import { timerBindings, timerSource } from "./timers.js";
+import { nodeReadFile } from "./filesystem.js";
 import { createNodePathModule } from "./path.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
 import type { Invocation } from "../safejs/options.js";
@@ -85,6 +86,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
         ? undefined : selected.source !== undefined || selected.file === "-" ? "." : dirname(selected.file);
       const stdio = modules.stdio!;
       const fs = modules.fs!;
+      const pending = new Set<Promise<void>>();
       const processModule = {
         argv: ["/virtual/bin/node", ...(selected.source === undefined ? [selected.file] : []), ...selected.args],
         env: command.env,
@@ -96,6 +98,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       };
       const nodeFs = {
         ...fs,
+        readFile: nodeReadFile(options, fs, lifecycle.signal, lifecycle.fail, pending),
         promises: fs,
         readFileSync: options.runtime.declareHostOperation(
           // Give the synchronous facade its own declaration so readFile stays asynchronous.
@@ -133,7 +136,7 @@ const require = (() => {
         bindings: {
           ...(directory === undefined ? {} : { __safeBashDirectory: directory }),
           __safeBashBuffer: bufferBindings(options),
-          __safeBashTimers: timerBindings(options, lifecycle.signal, lifecycle.fail),
+          __safeBashTimers: timerBindings(options, lifecycle.signal, lifecycle.fail, pending),
           process: processModule, __safeBashSetExitCode: command.setExitCode,
           __safeBashJsonRead: nodeFs.readFileSync,
           __safeBashJsonPath: options.runtime.declareHostOperation((name: unknown) => {

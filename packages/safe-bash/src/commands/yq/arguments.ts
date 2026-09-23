@@ -106,7 +106,6 @@ function parseIndent(value: string): number {
 }
 
 export function parseMikeArguments(context: CommandContext): MikeArguments {
-  let bytes = 0;
   const carrier = getCommandArguments(context);
   for (let index = 0; index < carrier.args.length; index++) {
     try { new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(carrier.bytes(index)); }

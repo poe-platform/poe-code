@@ -14,15 +14,10 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
   if (!["read", "skip"].includes(devices)) throw new UsageError(`invalid argument '${devices}' for 'devices'`);
   const work = { signal: context.signal, remaining: Infinity, exhausted() { throw new UsageError("file filter work limit exceeded"); } };
   const rules: { pattern: string; include: boolean }[] = [];
-  let bytes = 0;
-  const add = (pattern: string, include: boolean) => {
-    bytes += Buffer.byteLength(pattern);
-    rules.push({ pattern, include });
-  };
   for (const { key, pattern } of filters) {
-    if (key === "I" || key === "X") add(pattern, key === "I");
+    if (key === "I" || key === "X") rules.push({ pattern, include: key === "I" });
     if (key === "Y") {
-      for await (const line of lines(requiredFileInput(context, grepRequirements, "pattern-file", pattern, bufferLimit))) add(Buffer.from(line.bytes).toString(), false);
+      for await (const line of lines(requiredFileInput(context, grepRequirements, "pattern-file", pattern, bufferLimit))) rules.push({ pattern: Buffer.from(line.bytes).toString(), include: false });
     }
   }
   const excludedDirectories = parsed.values.get("T") ?? [];

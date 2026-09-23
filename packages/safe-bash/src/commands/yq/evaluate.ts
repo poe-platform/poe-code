@@ -777,6 +777,9 @@ export class Evaluator {
         const keyNode = dereference(key, yaml, this.work).node;
         result = yaml.isMap(base.node) ? base.node.items.some(pair => yaml.isScalar(pair.key) && String(pair.key.value) === String(value(key.node, yaml))) : yaml.isSeq(base.node) && nodeTag(keyNode, yaml) === "!!int" && Number(value(keyNode, yaml)) < base.node.items.length;
       } else if (name === "keys") {
+        if (!yaml.isMap(base.node) && !yaml.isSeq(base.node)) {
+          throw new MikeError(`cannot get keys of ${nodeTag(base.node, yaml)}, keys only works for maps and arrays`);
+        }
         const node = new yaml.YAMLSeq(); this.work.node();
         if (yaml.isMap(base.node)) for (const pair of base.node.items) {
           const key = await cloneNode(pair.key as Node, yaml, this.work);

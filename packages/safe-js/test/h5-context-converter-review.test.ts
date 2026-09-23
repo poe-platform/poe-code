@@ -1,3 +1,4 @@
+import { setImmediate as nextTurn } from "node:timers/promises";
 import { expect, expectTypeOf, it } from "vitest";
 import {
   declareHostOperation,
@@ -70,7 +71,7 @@ async function bounded<Value>(promise: PromiseLike<Value>, phase: string): Promi
       complete = true;
     }
   );
-  for (let turn = 0; turn < 8192 && !complete; turn++) await Promise.resolve();
+  for (let turn = 0; turn < 8192 && !complete; turn++) await nextTurn();
   if (!complete) throw new Error("Finite notification budget: " + phase);
   if (rejected) throw failure;
   return result!;

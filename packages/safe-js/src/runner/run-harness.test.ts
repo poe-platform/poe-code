@@ -915,9 +915,7 @@ describe("runHarness", () => {
     await vi.advanceTimersByTimeAsync(30_000);
     first.resolve("alpha");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
-
-    expect(waitCalls).toBe(2);
+    await vi.waitFor(() => expect(waitCalls).toBe(2), { interval: 1, timeout: 1000 });
     expect(
       JSON.parse(vol.readFileSync("/checkpoints/harness.json", "utf8") as string)
     ).toMatchObject({

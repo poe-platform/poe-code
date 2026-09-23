@@ -161,9 +161,7 @@ describe("run snapshot checkpointing", () => {
 
     vi.advanceTimersByTime(30_000);
     first.resolve("alpha");
-    await flushMicrotasks();
-
-    expect(waitCalls).toBe(2);
+    await vi.waitFor(() => expect(waitCalls).toBe(2), { interval: 1, timeout: 1000 });
 
     second.resolve("omega");
     await expect(result).rejects.toBe(diskFull);

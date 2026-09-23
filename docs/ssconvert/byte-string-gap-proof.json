@@ -1486,5 +1486,74 @@
       }
     ],
     "remaining": "Bytecase/locales/warnings/othercontexts/fullprofiles/containingpublication and all remaining plan obligations."
+  },
+  "verifiedRemoteMainDelivery": {
+    "recordedAt": "2026-09-23T01:01:53.792342+00:00",
+    "delivered": [
+      {
+        "sha": "bcddabc851d00c46d837c28ab7b1b3d09bb8f397",
+        "subject": "feat(ssconvert): preserve native byte strings in formulas and CSV",
+        "pushExit": 0,
+        "verifiedRemoteMain": "bcddabc851d00c46d837c28ab7b1b3d09bb8f397",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "89160a981f94230b7ae73181a1692e3837212e2e",
+        "subject": "test: remove warnings blocking integrated lint",
+        "pushExit": 0,
+        "verifiedRemoteMain": "89160a981f94230b7ae73181a1692e3837212e2e",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "a73e9de1d97f231183f4a478b06588797176ec7d",
+        "subject": "fix(ssconvert): retain native byte text categories",
+        "pushExit": 0,
+        "verifiedRemoteMain": "a73e9de1d97f231183f4a478b06588797176ec7d",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "9ec4f3de0fac1ab45a656424cf3992f4e6f61dcc",
+        "subject": "docs(ssconvert): qualify remaining byte case and containing CI gaps",
+        "pushExit": 0,
+        "verifiedRemoteMain": "9ec4f3de0fac1ab45a656424cf3992f4e6f61dcc",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "17e0cf40218da5ddab087c17e8e5caa2ee0afc53",
+        "subject": "docs(ssconvert): distinguish Unicode case profiles and qualify holdouts",
+        "pushExit": 0,
+        "verifiedRemoteMain": "17e0cf40218da5ddab087c17e8e5caa2ee0afc53",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "b283c6245243e3eda9980973db4bfa9ad545b497",
+        "subject": "docs(ssconvert): qualify native Turkic and Lithuanian case contexts",
+        "pushExit": 0,
+        "verifiedRemoteMain": "b283c6245243e3eda9980973db4bfa9ad545b497",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "93068c11e23fc39039f18094b524fa047133a28b",
+        "subject": "docs(ssconvert): record successful broad byte value verification",
+        "pushExit": 0,
+        "verifiedRemoteMain": "93068c11e23fc39039f18094b524fa047133a28b",
+        "isAncestorOfRemoteMain": true
+      },
+      {
+        "sha": "e9a6169555d29a5883aaf155db2f994154cee63c",
+        "subject": "docs(ssconvert): verify rebased byte integration across public paths",
+        "pushExit": 0,
+        "verifiedRemoteMain": "e9a6169555d29a5883aaf155db2f994154cee63c",
+        "isAncestorOfRemoteMain": true
+      }
+    ],
+    "publication": "pending containing GitHub release and registry verification",
+    "preservedIncomingBeforeDelivery": {
+      "firstRebase": 41,
+      "finalRebase": 5,
+      "finalBase": "3e0c0207e",
+      "limits": "Final five incoming commits affect SafeJS node/compiler paths; no ssconvert source or dependency interface changes."
+    },
+    "wholeGoal": "active; case/locales/diagnostics/widercontexts/profiles/remainingfamilies and containingpublication stayrequired"
   }
 }

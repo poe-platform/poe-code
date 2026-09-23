@@ -819,11 +819,18 @@
     ]
   },
   "byteValueBroadFrozenChecks": {
-    "status": "passed locally; rebase integration/remote delivery/publication pending",
+    "status": "Passed locally; rebase integration passed;8atomiccommits verified onremote main;containingpublication pending",
     "proof": "docs/ssconvert/byte-string-gap-proof.json",
     "localHead": "58f3dde0720ed54e4e14ca53b7c52ccbe80c4b6a",
     "build": "passed normal maintained route",
     "tests": "passed maintained full npmtest/nativeevents/rootposttest",
     "lint": "passed sequential rootroute complete16301files zeroerrors/warnings"
+  },
+  "byteValueRemoteMainDelivery": {
+    "through": "e9a6169555d29a5883aaf155db2f994154cee63c",
+    "runtime": "bcddabc851d00c46d837c28ab7b1b3d09bb8f397",
+    "textCategories": "a73e9de1d97f231183f4a478b06588797176ec7d",
+    "publication": "pending; whole-goal stillactive",
+    "proof": "docs/ssconvert/byte-string-gap-proof.json"
   }
 }

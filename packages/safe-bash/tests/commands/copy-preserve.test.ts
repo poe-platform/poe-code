@@ -239,7 +239,6 @@ test("cp restores temporary directory permissions after child cancellation", asy
   assert.equal((await backing.stat("/work/target")).mode & 0o7777, 0o550);
 });
 
-
 test("cp preservation combines with backups and target directories", async () => {
   const fs = await fixture({ input: "new", "target/input": "old" });
   await fs.chmod("/work/input", 0o600);
@@ -283,3 +282,45 @@ test("cp -dp backs up existing destinations while preserving hard links", async 
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/target/one~")), "old one");
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/target/two~")), "old two");
 });
+
+for (const dangling of [false, true]) {
+  test(`cp --attributes-only backs up a destination before copying a symlink, dangling=${dangling}`, async () => {
+    const fs = await fixture({ output: "old", ...dangling ? {} : { referent: "source" } });
+    const linkTarget = dangling ? "missing" : "referent";
+    await fs.symlink(linkTarget, "/work/input");
+    const result = await run("cp", ["-db", "--attributes-only", "input", "output"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(await fs.readlink("/work/input"), linkTarget);
+    assert.equal(await fs.readlink("/work/output"), linkTarget);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output~")), "old");
+    if (dangling) await assert.rejects(fs.stat("/work/output"), { code: "ENOENT" });
+    else assert.equal(new TextDecoder().decode(await fs.readFile("/work/referent")), "source");
+  });
+}
+
+test("cp refuses a backup suffix that aliases a dangling source entry", async () => {
+  const fs = await fixture({ "source/output": "old" });
+  await fs.symlink("missing", "/work/source/output.bak");
+  await fs.symlink("source", "/work/alias");
+  const before = await fs.lstat("/work/source/output.bak");
+  const result = await run("cp", ["-db", "--attributes-only", "-S", ".bak", "source/output.bak", "alias/output"], { fs });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.ok(result.stderr.includes("backup would destroy source"), result.stderr);
+  assert.equal(await fs.readlink("/work/source/output.bak"), "missing");
+  assert.equal((await fs.lstat("/work/source/output.bak")).ino, before.ino);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/source/output")), "old");
+});
+
+for (const symlink of [false, true]) {
+  test(`cp --attributes-only removes the destination entry when requested, symlink=${symlink}`, async () => {
+    const fs = await fixture({ output: "old", ...symlink ? {} : { input: "new" } });
+    if (symlink) await fs.symlink("missing", "/work/input");
+    await fs.link("/work/output", "/work/retained");
+    const result = await run("cp", ["-d", "--attributes-only", "--remove-destination", "input", "output"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/retained")), "old");
+    if (symlink) assert.equal(await fs.readlink("/work/output"), "missing");
+    else assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "");
+  });
+}

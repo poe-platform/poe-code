@@ -1,4 +1,4 @@
-import { basename, dirname, FsError, type CommandContext, type FileStat } from "../contracts/index.js";
+import { basename, dirname, joinPath, FsError, type CommandContext, type FileStat } from "../contracts/index.js";
 import { codeOf, options, UsageError, value } from "./internal.js";
 import { admitFilesystemModes } from "./filesystem-requirements.js";
 import { type DirectoryReader } from "./directory-admission.js";
@@ -80,10 +80,18 @@ export async function backupCopyTarget(
   }
   const backupPath = backup.mode === "numbered" || highest > 0n ? `${target}.~${highest + 1n}~` : target + backup.suffix;
   // A suffix can name the source itself; reject this before moving any entry.
-  let existing;
+  const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
+  const backupEntry = joinPath(await context.fs.realpath(dirname(backupPath), { signal: context.signal }), basename(backupPath));
+  if (sourceEntry === backupEntry) throw new FsError("EINVAL", { path: backupPath, message: "backup would destroy source" });
+  let existing, referent;
   try { existing = await context.fs.realpath(backupPath, { signal: context.signal }); }
   catch (error) { context.signal.throwIfAborted(); if (codeOf(error) !== "ENOENT") throw error; }
-  if (existing === await context.fs.realpath(source, { signal: context.signal })) {
+  try { referent = await context.fs.realpath(source, { signal: context.signal }); }
+  catch (error) {
+    context.signal.throwIfAborted();
+    if (codeOf(error) !== "ENOENT" || (await context.fs.lstat(source, { signal: context.signal })).type !== "symlink") throw error;
+  }
+  if (existing !== undefined && existing === referent) {
     throw new FsError("EINVAL", { path: backupPath, message: "backup would destroy source" });
   }
   await admitFilesystemModes(context, "cp", ["backup"], [target, backupPath]);

@@ -241,7 +241,7 @@ async function copy(
     const linkTarget = await context.fs.readlink!(source, { signal: context.signal });
     const existing = await maybeStat(context, target, false);
     if (existing) {
-      if (attributesOnly) throw new FsError("EEXIST", { syscall: "symlink", path: target });
+      if (attributesOnly && !backup && !removeDestination) throw new FsError("EEXIST", { syscall: "symlink", path: target });
       await admitFilesystemModes(context, "cp", ["replace"], [target]);
       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
       const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
@@ -254,10 +254,17 @@ async function copy(
     }
     if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else if (attributesOnly) {
-    await admitFilesystemModes(context, "cp", [targetStat && !backup ? "attributes" : "attributes-create"], [target]);
+    await admitFilesystemModes(context, "cp", [targetStat && !backup && !removeDestination ? "attributes" : "attributes-create", ...removeDestination ? ["replace"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (removeDestination && targetStat) {
+      const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
+        : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
+      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "copy unlink lacks authoritative distinctness" });
+    }
     if (backup && targetStat) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
-    if ((!targetStat || backup) && !preflight) {
+    else if (removeDestination && targetStat && !preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
+    if ((!targetStat || backup || removeDestination) && !preflight) {
       await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", mode: sourceStat.mode & 0o777, signal: context.signal });
     }
   } else {

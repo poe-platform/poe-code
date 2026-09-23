@@ -141,7 +141,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           if (/[89]/u.test(supplied)) number = NaN;
           else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
         }
-        if (!Number.isFinite(number)) {
+        if (!Number.isFinite(number) || supplied === "" && suppliedIndex < args.length) {
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }

@@ -29,6 +29,40 @@ for (const [format, negative, positive] of [
   }
 });
 
+for (const [specifier, zero] of [["d", "0"], ["i", "0"], ["u", "0"], ["o", "0"], ["x", "0"], ["X", "0"], ["f", "0.000000"], ["F", "0.000000"], ["e", "0.000000e+00"], ["E", "0.000000E+00"], ["g", "0"], ["G", "0"]]) {
+  test(`printf %${specifier} distinguishes empty numeric operands from omitted defaults`, async () => {
+    const format = `%${specifier}|%${specifier}`;
+    for (const operands of [[], ["0"], ["0", "0"]]) {
+      const result = await run("printf", [format, ...operands]);
+      assert.equal(result.stdout, `${zero}|${zero}`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+    for (const operands of [[""], ["", "0"], ["0", ""], ["", ""]]) {
+      const result = await run("printf", [format, ...operands]);
+      assert.equal(result.stdout, `${zero}|${zero}`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "printf: '': invalid number\n".repeat(operands.filter(value => value === "").length));
+    }
+  });
+}
+
+test("printf empty numeric operands retain failure across repeated formats and shell status", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const result = await shell.exec("printf '%d:%f|' '' 0 0 ''; result=$?; printf 'STATUS:%s' \"$result\"; exit \"$result\"");
+    assert.equal(result.stdout, "0:0.000000|0:0.000000|STATUS:1");
+    assert.equal(result.stderr, "printf: '': invalid number\n".repeat(2));
+    assert.equal(result.exitCode, 1);
+    for (const operands of [[], [""], ["", ""]]) {
+      const strings = await run("printf", ["<%s>|<%b>", ...operands]);
+      assert.equal(strings.stdout, "<>|<>");
+      assert.equal(strings.stderr, "");
+      assert.equal(strings.exitCode, 0);
+    }
+  } finally { await shell.dispose(); }
+});
+
 const nativeConsumerGoldens = [
   {
     "id": "printf-negative-zero-pipeline",

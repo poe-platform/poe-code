@@ -7,11 +7,12 @@ import { caseByteText } from "./byte-case.js";
 import { trimByteText } from "./byte-trim.js";
 import { properByteText } from "./byte-proper.js";
 import { findByteText } from "./byte-find.js";
+import { searchByteText } from "./byte-search.js";
 import { replaceByteText } from "./byte-replaceb.js";
 import { substituteByteText } from "./byte-substitute.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
-import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
+import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported } from "./common.js";
 import type { FunctionHost, FunctionImplementation, SpecialForm, Value } from "./types.js";
 import { fixedNumber, formatText } from "../../formatting/number-format.js";
 import { canonicalTextPattern, formattingLocale } from "../../formatting/locale.js";
@@ -51,16 +52,8 @@ function search(name: string, args: readonly (Value | undefined)[], host: Functi
     const found = findByteText(byteTextArg(args, 0, host), byteTextArg(args, 1, host), start, bytes, host.tick);
     return found === undefined ? error("#VALUE!") : numericResult(found);
   }
-  const needle = textArg(args, 0, host), source = textArg(args, 1, host), chars = Array.from(source), offsets = byteOffsets(source, host);
-  const length = bytes ? offsets.at(-1)! : chars.length;
-  const invalidStart = bytes ? start > length : start >= 2147483647 || Math.trunc(start) > length + 1;
-  if (start < 1 || invalidStart) return error("#VALUE!");
-  const initial = bytes ? offsets.findIndex(offset => offset >= Math.trunc(start) - 1) : Math.trunc(start) - 1;
-  for (let index = initial; index <= chars.length; index++) {
-    host.tick(); const tail = chars.slice(index).join("");
-    if (wildcard(needle, tail, host, false)) return numericResult((bytes ? offsets[index]! : index) + 1);
-  }
-  return error("#VALUE!");
+  const found = searchByteText(byteTextArg(args, 0, host), byteTextArg(args, 1, host), start, bytes, host.tick);
+  return found === undefined ? error("#VALUE!") : numericResult(found);
 }
 function width(name: string, source: string, host: FunctionHost): CellValue {
   const chars = Array.from(source); let result = "";

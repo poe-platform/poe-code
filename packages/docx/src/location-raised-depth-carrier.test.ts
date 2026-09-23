@@ -83,8 +83,9 @@ it(`retains original isolated deep carrier publication semantics; strict=${stric
 
 for (const strict of [false, true]) for (const route of ["native", "sdk", "typed", "cli"])
 for (const depth of [250, 251])
-it(`honors the original exact default depth boundary; strict=${strict}; route=${route}; depth=${depth}`, async () => {
+it(`honors an explicit exact depth boundary; strict=${strict}; route=${route}; depth=${depth}`, async () => {
   const text = "Boundary 日本 עברית ẹ́ 🌊 𠀀";
+  const documentLimits = { xmlDepth: 256 }, context = { ...textContext, budget: new DocumentBudget(documentLimits, textContext.signal) };
   const body = `<w:p xmlns:f="urn:original:default-depth" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="f" mc:ProcessContent="f:p">${"<f:p>".repeat(depth)}<w:r><w:rPr><w:rtl/></w:rPr><w:t>${text}</w:t></w:r>${"</f:p>".repeat(depth)}</w:p>`;
   const input = await textFixture(body, {}, strict), memory = Volume.fromJSON({ "/input": Buffer.from(input) });
   const operations = [
@@ -93,7 +94,7 @@ it(`honors the original exact default depth boundary; strict=${strict}; route=${
   ];
   if (route === "cli") {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); await fs.writeFile("/destination", new TextEncoder().encode("Retain destination"));
-    const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+    const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits: textContext.limits, documentLimits }) }));
     try {
       const result = await shell.exec("docx text /input --json"), envelope = JSON.parse(result.stdout);
       expect(result.exitCode, result.stdout + result.stderr).toBe(depth === 250 ? 0 : 4);
@@ -104,9 +105,9 @@ it(`honors the original exact default depth boundary; strict=${strict}; route=${
     } finally { await shell.dispose(); }
   } else {
     const perform = async () => {
-      if (route === "native") return (await Document(input, textContext)).paragraphs[0]!.text;
-      if (route === "typed") return (await applyStyleModelBatch(input, { version: 1, operations }, textContext)).results[1]!.value;
-      return (await extractDocumentText(input, textContext)).text;
+      if (route === "native") return (await Document(input, context)).paragraphs[0]!.text;
+      if (route === "typed") return (await applyStyleModelBatch(input, { version: 1, operations }, context)).results[1]!.value;
+      return (await extractDocumentText(input, context)).text;
     };
     if (depth === 250) expect(await perform()).toBe(text);
     else await expect(perform()).rejects.toMatchObject({ code: "limit-exceeded" });

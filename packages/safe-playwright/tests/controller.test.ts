@@ -240,6 +240,9 @@ test('invalid arguments, unsupported engines/options and invalid limits have no 
   }
   assert.deepEqual(f.events, []);
   assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { maxSessions: 0 } }));
+  for (const key of ['maxSnapshotBytes', 'maxSnapshotRefs']) {
+    for (const value of [0, -1, 1.5, Infinity, NaN]) assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
+  }
 });
 
 test('capacity is reserved during acquisition and sessions serialize independently', async () => {

@@ -774,6 +774,26 @@ function splitNormalized(
       operation.release();
     }
   }
+  const arrayLimit = budget.limits.arrayLength;
+  if (arrayLimit !== undefined) {
+    let count = 1;
+    if (separator === "") {
+      count = Math.min(value.length, limit);
+    } else if (separator !== undefined) {
+      let offset = 0;
+      // Count only far enough to admit the guest limit or reject the host
+      // limit. No parts array is created during this bounded preflight.
+      while (count < limit && count <= arrayLimit) {
+        const index = value.indexOf(separator, offset);
+        if (index === -1) break;
+        count++;
+        offset = index + separator.length;
+      }
+    }
+    budget.allocateArrayLength(count);
+    // If checks are suspended, admission succeeds even beyond arrayLimit;
+    // the native call must still honor the original guest limit.
+  }
   const result = value.split(separator as string, limit);
   budget.allocateArrayLength(result.length);
   // Admit the container before checking each string; keep the native output

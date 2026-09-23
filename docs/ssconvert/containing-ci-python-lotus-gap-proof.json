@@ -556,20 +556,36 @@
         "sha256": "dacc11aed8a7561aceb491655479f0136ed961853a72fc998653c470ac2fdff6",
         "excludedComparedWithMaintained314": "8 unmodified node-export-boundary tests, retained unchanged in maintained suite"
       },
-      "requiredAfterApply": "run maintained314 suite and appropriate type/style gate; no assertion or registration changes"
+      "requiredAfterApply": "run maintained314 suite and appropriate type/style gate; no assertion or registration changes",
+      "maintainedFollowup": {
+        "commit": "87940a68a",
+        "classification": "applied source-runtime and filesystem import correction; assertions and registration unchanged",
+        "tests": 314,
+        "pass": 314,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 23137.395209,
+        "logSha256": "3f0b4412078b48f1074eec374c956014e47700434b4dea434969b94b1ae55c64",
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/maintained-green.log",
+        "typecheck": "failed; requires faithful declaration/source/isolated-consumer dependency closure repair, without relaxing strict options or historical seals",
+        "typecheckLogSha256": "3a4048e4970e31cc5638120c687e275159f19053f026e0c0cdf71e64a0abe27b"
+      }
     }
   },
   "rootVerification": {
     "normalBuild": "passed:126 declared workspace builds plus root suffix bundle; one no-declared-build workspace is not a pass",
     "guardedLint": {
-      "configured": 16382,
-      "linted": 16382,
+      "configured": 16386,
+      "linted": 16386,
       "exitCode": 0,
       "errorCount": 0,
       "warningCount": 0,
-      "failedConcurrentRunRetained": true
+      "failedConcurrentRunRetained": true,
+      "logSha256": "194e39ea03a110de3faf4d5dca80fad70509d4bd2d0ec0f7945a26924e327e54"
     },
-    "expandedNode": "Root-bundled314tests initially312pass/2fail from mixed FsError identities. Coherent source and public routes both pass exact Node7/output/save and mv0/mode/timestamp workflows. Source unit import correction pending maintained314rerun.",
+    "expandedNode": "Root-bundled314tests initially312pass/2fail from mixed FsError identities. Coherent source and public routes both pass exact Node7/output/save and mv0/mode/timestamp workflows. Applied source unit import correction passes maintained314/314; maintained typecheck remains failing and is being repaired separately.",
     "ssconvert": "352files/13289tests,lint/types/selected build passed",
     "publication": "Not yet verified; registry remains17.0.34 historicalgitHead"
   },

@@ -15,6 +15,7 @@ interface Instruction {
   file?: string;
   pattern?: Pattern;
   replacement?: string;
+  replacementGroupCount?: number;
   global?: boolean;
   occurrence?: number;
   print?: boolean;
@@ -130,6 +131,14 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
       if (!delimiter || delimiter === "\\" || delimiter === "\n") throw new ProgramError("invalid substitution delimiter");
       const pattern = delimited(delimiter);
       instruction.replacement = delimited(delimiter);
+      instruction.replacementGroupCount = 0;
+      for (let index = 0; index < instruction.replacement.length; index++) {
+        if (instruction.replacement[index] !== "\\") continue;
+        const escaped = instruction.replacement[++index];
+        if (escaped !== undefined && escaped >= "1" && escaped <= "9") {
+          instruction.replacementGroupCount = Math.max(instruction.replacementGroupCount, Number(escaped));
+        }
+      }
       let ignoreCase = false;
       while (offset < source.length && ![";", "\n", "}", " ", "\t"].includes(source[offset]!)) {
         const flag = source[offset++]!;
@@ -146,9 +155,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
       if (!pattern && ignoreCase) throw new ProgramError("flags on an empty regex are not supported");
       if (pattern) {
         instruction.pattern = new Pattern(pattern, extended, ignoreCase);
-        for (const reference of instruction.replacement.matchAll(/\\([1-9])/gu)) {
-          if (Number(reference[1]) > instruction.pattern.groupCount) throw new ProgramError("replacement references an undefined capture group");
-        }
+        if (instruction.replacementGroupCount > instruction.pattern.groupCount) throw new ProgramError("replacement references an undefined capture group");
       }
     } else if (kind === "r" || kind === "w") {
       if (kind === "r" && second) throw new ProgramError("read accepts at most one address");
@@ -371,7 +378,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             break;
           }
           case "s": {
-            const changed = await substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
+            const expression = getPattern(instruction.pattern);
+            if (instruction.replacementGroupCount! > expression.groupCount) throw new ProgramError("replacement references an undefined capture group");
+            const changed = await substitute(pattern, expression, instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             pattern = changed.text;
             if (changed.count) { substituted = true; if (instruction.print) await print(); if (instruction.file) await writeFile(instruction.file); }
             break;

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createHash } from "node:crypto";
 import { FsError, type FileSystem } from "../../../../src/contracts/index.js";
 import { Shell } from "../../../../src/shell/index.js";
 import { chunks, encoder, fixture, overrideFs, registry, run } from "./helpers.js";
@@ -13,6 +14,80 @@ const vectors = {
   md5sum: ["d41d8cd98f00b204e9800998ecf8427e", "900150983cd24fb0d6963f7d28e17f72"],
 } as const;
 const abcSha = vectors.sha256sum[1];
+
+test("SM3 padding and multiple compression blocks match an independent engine", async () => {
+  for (const length of [0, 3, 55, 56, 63, 64, 65, 127, 128, 129, 4096]) {
+    const bytes = Uint8Array.from({ length }, (_, i) => i % 256);
+    const expected = createHash("sm3").update(bytes).digest("hex");
+    for (const size of [1, 31, 64, 1024]) {
+      assert.equal((await run("cksum", ["-a", "sm3"], { stdin: chunks(bytes, size) })).stdout, `SM3 (-) = ${expected}\n`);
+    }
+  }
+});
+
+test("cksum SHA family widths select real digests rather than truncation", async () => {
+  for (const family of ["sha2", "sha3"]) {
+    for (const bits of [224, 256, 384, 512]) {
+      const name = family === "sha2" ? `sha${bits}` : `sha3-${bits}`;
+      const expected = createHash(name).update("abc").digest("hex");
+      const result = await run("cksum", [`--algorithm=${family}`, `--length=${bits}`], { stdin: "abc" });
+      assert.deepEqual(result, { exitCode: 0, stdout: `${name.toUpperCase()} (-) = ${expected}\n`, stderr: "" });
+    }
+  }
+});
+
+test("cksum additional engines yield during CPU work and preserve cancellation", async () => {
+  const bytes = new Uint8Array(1024 * 1024);
+  for (const algorithm of ["bsd", "sysv", "crc32b", "sm3", "blake2b", "sha3"]) {
+    const controller = new AbortController();
+    const reason = new Error(`cancel ${algorithm}`);
+    const timer = setTimeout(() => controller.abort(reason), 0);
+    try {
+      await assert.rejects(run("cksum", ["-a", algorithm, ...(algorithm === "sha3" ? ["-l", "256"] : [])],
+        { stdin: bytes, signal: controller.signal }), error => error === reason);
+    } finally { clearTimeout(timer); }
+  }
+});
+
+test("cksum additional algorithms and family lengths match GNU vectors across stream boundaries", async () => {
+  const fs = await fixture({ input: "Independent checksum bytes\n" });
+  const cases: [string[], string][] = [
+    [["-a", "bsd"], "07057     1 input"],
+    [["-a", "sysv"], "2610 1 input"],
+    [["-a", "crc32b"], "2408717191 27 input"],
+    [["-a", "sm3"], "SM3 (input) = 908aecc56bdc51f0b0a3b90382802359057a2dfded5ee5c4f21481ad1c1ef07e"],
+    [["-a", "blake2b"], "BLAKE2b (input) = f5a166aad359b4c95d16762c4377703970caf64a3d3b9a07f5b6518e006bc3d1dc476244604e05f1e0d37c9425ba2e15adc50361529574b13c99b7143cabf8f4"],
+    [["-a", "blake2b", "--length=256"], "BLAKE2b-256 (input) = 7381ed261b9287e1d8c2e3a20892f49c95470c5b4ebcb22e468dc448ab240d12"],
+    [["-a", "sha3", "-l", "256"], "SHA3-256 (input) = e3728d71b68d3a9b0308e0c41124a09547aed580d8c68930346a719d78d52027"],
+    [["-a", "sha2", "--length=224"], "SHA224 (input) = 886fe5de9b7142b025458bd87e14f49746bdf860b1bb812630ffa727"],
+  ];
+  for (const [args, expected] of cases) {
+    assert.deepEqual(await run("cksum", [...args, "input"], { fs }), { exitCode: 0, stdout: `${expected}\n`, stderr: "" });
+    for (const size of [1, 7, 64]) {
+      assert.equal((await run("cksum", [...args, "-"], { stdin: chunks(encoder.encode("Independent checksum bytes\n"), size) })).stdout,
+        `${expected.replaceAll("input", "-")}\n`);
+    }
+  }
+});
+
+test("cksum invalid lengths fail before input acquisition", async () => {
+  const stdin = { [Symbol.asyncIterator]() { assert.fail("invalid length acquired input"); } };
+  for (const algorithm of ["sha2", "sha3"]) {
+    for (const args of [["-a", algorithm], ["-a", algorithm, "-l", "0"]]) {
+      assert.equal((await run("cksum", args, { stdin })).exitCode, 2);
+    }
+  }
+  for (const [algorithm, length] of [["sha2", "128"], ["sha3", "8"], ["blake2b", "7"], ["blake2b", "520"], ["sha256", "224"], ["crc", "32"], ["sha2", "junk"]]) {
+    assert.equal((await run("cksum", ["-a", algorithm!, "-l", length!], { stdin })).exitCode, 2);
+  }
+});
+
+test("cksum refuses unsupported verification engines before consuming a manifest", async () => {
+  const stdin = { [Symbol.asyncIterator]() { assert.fail("unsupported verification acquired input"); } };
+  for (const algorithm of ["bsd", "sysv", "crc32b", "blake2b", "sha3"]) {
+    assert.equal((await run("cksum", ["-c", "-a", algorithm, ...(algorithm === "sha3" ? ["-l", "256"] : [])], { stdin })).exitCode, 2);
+  }
+});
 
 for (const [name, [empty, abc]] of Object.entries(vectors)) {
   test(`${name}: static vectors, byte boundaries, binary/text modes and stdin`, async () => {

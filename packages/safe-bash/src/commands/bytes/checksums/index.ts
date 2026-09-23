@@ -1,4 +1,7 @@
 import { yieldTurn } from "../../../contracts/yield.js";
+import { SM3 } from "./sm3.js";
+import { blake2b } from "@noble/hashes/blake2.js";
+import { sha3_224, sha3_256, sha3_384, sha3_512 } from "@noble/hashes/sha3.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
@@ -12,8 +15,9 @@ const manifestLineBytes = 64 * 1024;
 const filenameBytes = 16 * 1024;
 const maxLength = (1n << 64n) - 1n;
 const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-type Algorithm = "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5" | "crc";
-const hashes = { sha512, sha384, sha256, sha224, sha1, md5 };
+type Algorithm = "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5" | "crc" | "bsd" | "sysv" | "crc32b" | "sm3" | "blake2b" | "sha3";
+const hashes = { sha512, sha384, sha256, sha224, sha1, md5, sm3: { create: () => new SM3() } };
+const numericAlgorithms = new Set<Algorithm>(["crc", "crc32b", "bsd", "sysv"]);
 type ReportMode = "normal" | "quiet" | "status" | "warn";
 
 interface Settings {
@@ -26,6 +30,8 @@ interface Settings {
   ignoreMissing: boolean;
   report: ReportMode;
   encoding?: "raw" | "base64";
+  length?: number;
+  label?: string;
 }
 
 interface InputState { stdinUsed: boolean; budget: ByteInputBudget }
@@ -35,20 +41,31 @@ interface Entry { digest: string; filename: string; algorithm: Algorithm }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
   let report: ReportMode = "normal";
-  const parsed = options(args, "a:bczw", { check: "c", warn: "w", quiet: false, status: false, strict: false, "ignore-missing": false, algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false },
+  const parsed = options(args, "a:l:bczw", { length: "l", check: "c", warn: "w", quiet: false, status: false, strict: false, "ignore-missing": false, algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false },
     false, undefined, undefined, key => {
       if (key === "quiet" || key === "status") report = key;
       if (key === "w") report = "warn";
     });
-  const algorithm = value(parsed, "a") ?? "crc";
-  if (!["crc", "md5", "sha1", "sha224", "sha256", "sha384", "sha512"].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
-  if (parsed.flags.has("raw") && (algorithm === "crc" || ["tag", "untagged", "base64", "z"].some(flag => parsed.flags.has(flag)))) {
+  let algorithm = value(parsed, "a") ?? "crc";
+  if (!["crc", "bsd", "sysv", "crc32b", "sm3", "blake2b", "sha2", "sha3", ...Object.keys(hashes)].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
+  const requestedLength = value(parsed, "l");
+  const length = requestedLength === undefined ? 0 : Number(requestedLength);
+  if (requestedLength !== undefined && (!requestedLength.length || ![...requestedLength].every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(length))) throw new UsageError(`invalid length '${requestedLength}'`);
+  const family = algorithm === "sha2" || algorithm === "sha3";
+  if (family && ![224, 256, 384, 512].includes(length)) throw new UsageError(`${algorithm} requires --length 224, 256, 384 or 512`);
+  if (length && (family ? ![224, 256, 384, 512].includes(length) : algorithm === "blake2b" ? length > 512 || length % 8 !== 0 : true)) throw new UsageError(`invalid length '${requestedLength}' for ${algorithm}`);
+  const bits = length || 512;
+  if (algorithm === "sha2") algorithm = `sha${bits}`;
+  const label = algorithm === "blake2b" ? `BLAKE2b${bits === 512 ? "" : `-${bits}`}` : algorithm === "sha3" ? `SHA3-${bits}` : algorithm.toUpperCase();
+  if (parsed.flags.has("raw") && (numericAlgorithms.has(algorithm as Algorithm) || ["tag", "untagged", "base64", "z"].some(flag => parsed.flags.has(flag)))) {
     throw new UsageError("--raw requires a hash algorithm and cannot be combined with --tag, --untagged, --base64 or --zero");
   }
   const check = parsed.flags.has("c");
+  if (check && algorithm !== "crc" && !(algorithm in hashes)) throw new UsageError(`verification is not supported for '${algorithm}'`);
   if (!check && (report !== "normal" || parsed.flags.has("strict") || parsed.flags.has("ignore-missing"))) throw new UsageError("verification options require --check");
   if (check && ["b", "z", "tag", "raw", "base64"].some(flag => parsed.flags.has(flag))) throw new UsageError("output options are not supported with --check");
   return { algorithm: algorithm as Algorithm, settings: {
+    length: bits, label,
     operands: parsed.operands, binary: parsed.flags.has("b"), check,
     zero: parsed.flags.has("z"), tag: !parsed.flags.has("untagged") || parsed.flags.has("tag"),
     strict: parsed.flags.has("strict"), ignoreMissing: parsed.flags.has("ignore-missing"), report,
@@ -149,9 +166,9 @@ const crcTable = Uint32Array.from({ length: 256 }, (_, index) => {
   return remainder >>> 0;
 });
 
-async function digest(input: ByteSource, algorithm: Algorithm, signal: AbortSignal, progress?: ReadProgress): Promise<Digest> {
-  const hash = algorithm === "crc" ? undefined : hashes[algorithm].create();
-  let crc = 0;
+async function digest(input: ByteSource, algorithm: Algorithm, signal: AbortSignal, progress?: ReadProgress, bits = 512): Promise<Digest> {
+  const hash = numericAlgorithms.has(algorithm) ? undefined : algorithm === "blake2b" ? blake2b.create({ dkLen: bits / 8 }) : algorithm === "sha3" ? ({ 224: sha3_224, 256: sha3_256, 384: sha3_384, 512: sha3_512 }[bits]!).create() : hashes[algorithm as keyof typeof hashes].create();
+  let crc = algorithm === "crc32b" ? 0xffffffff : 0;
   let length = 0n;
   try {
     for await (const block of blocks(input, signal)) {
@@ -159,9 +176,22 @@ async function digest(input: ByteSource, algorithm: Algorithm, signal: AbortSign
       length += BigInt(block.length);
       if (length > maxLength) throw new FsError("EFBIG", { message: "checksum input exceeds 2^64-1 bytes" });
       if (hash) hash.update(block);
-      else for (const byte of block) crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ byte) & 255]!;
+      else for (const byte of block) {
+        if (algorithm === "bsd") crc = (((crc >>> 1) | ((crc & 1) << 15)) + byte) & 65535;
+        else if (algorithm === "sysv") crc = (crc + byte) >>> 0;
+        else if (algorithm === "crc32b") {
+          crc ^= byte;
+          for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+        } else crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ byte) & 255]!;
+      }
     }
     if (hash) return { hex: bytesToHex(hash.digest()), length };
+    if (algorithm === "bsd") return { hex: String(crc).padStart(5, "0"), length };
+    if (algorithm === "sysv") {
+      crc = (crc & 65535) + (crc >>> 16);
+      return { hex: String((crc & 65535) + (crc >>> 16)), length };
+    }
+    if (algorithm === "crc32b") return { hex: String((~crc) >>> 0), length };
     for (let remaining = length; remaining > 0n; remaining >>= 8n) {
       crc = (crc << 8) ^ crcTable[((crc >>> 24) ^ Number(remaining & 255n)) & 255]!;
     }
@@ -209,7 +239,7 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
   try { line = utf8.decode(bytes); } catch { return undefined; }
   if (line.endsWith("\r")) line = line.slice(0, -1);
   if (line === "" || line.startsWith("#")) return "skip";
-  const digits = { sha512: 128, sha384: 96, sha256: 64, sha224: 56, sha1: 40, md5: 32, crc: 0 }[algorithm];
+  const digits = { sha512: 128, sha384: 96, sha256: 64, sha224: 56, sha1: 40, md5: 32, crc: 0, bsd: 0, sysv: 0, crc32b: 0, sm3: 64, blake2b: 128, sha3: 128 }[algorithm];
   const tagged = new RegExp(`^[ \\t]*(\\\\?)${algorithm.toUpperCase()} ?\\((.*)\\)[ \\t]*=[ \\t]*([a-fA-F0-9]{${digits}})$`, "su").exec(line);
   const match = tagged ? null : new RegExp(`^[ \\t]*(\\\\?)([a-fA-F0-9]{${digits}})[ \\t][ *](.+)$`, "su").exec(line);
   if (!tagged && !match) return undefined;
@@ -292,10 +322,14 @@ function command(name: string, algorithm: Algorithm, maxInputBytes: number): Com
         continue;
       }
       let result: Digest;
-      try { result = await digest(source(context, filename, state), selectedAlgorithm, context.signal); }
+      try { result = await digest(source(context, filename, state), selectedAlgorithm, context.signal, undefined, settings.length); }
       catch (error) { state.budget.assertOpen(context.signal); await diagnostic(context, error); failed = true; continue; }
       const delimiter = settings.zero ? "\0" : "\n";
-      if (selectedAlgorithm === "crc") await output(context, `${result.hex} ${result.length}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
+      if (numericAlgorithms.has(selectedAlgorithm)) {
+        const size = selectedAlgorithm === "bsd" ? (result.length + 1023n) / 1024n : selectedAlgorithm === "sysv" ? (result.length + 511n) / 512n : result.length;
+        const count = selectedAlgorithm === "bsd" ? String(size).padStart(5, " ") : String(size);
+        await output(context, `${result.hex} ${count}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
+      }
       else {
         if (settings.encoding === "raw") {
           await output(context, hexToBytes(result.hex));
@@ -305,7 +339,7 @@ function command(name: string, algorithm: Algorithm, maxInputBytes: number): Com
           ? btoa(String.fromCharCode(...hexToBytes(result.hex))) : result.hex;
         const display = settings.zero ? { prefix: "", name: filename } : escaped(filename);
         await output(context, settings.tag
-          ? `${display.prefix}${selectedAlgorithm.toUpperCase()} (${display.name}) = ${encoded}${delimiter}`
+          ? `${display.prefix}${settings.label ?? selectedAlgorithm.toUpperCase()} (${display.name}) = ${encoded}${delimiter}`
           : `${display.prefix}${encoded} ${settings.binary ? "*" : " "}${display.name}${delimiter}`);
       }
     }

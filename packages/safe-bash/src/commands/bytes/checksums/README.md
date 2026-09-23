@@ -3,8 +3,8 @@
 `index.ts` exports `createChecksumCommands(): readonly CommandDefinition[]`,
 containing `sha256sum`, `sha1sum`, `md5sum`, and `cksum`. Registration and the
 shared byte-command plugin belong to the root integrator, not this subtree.
-There are no new dependencies. Production code uses `node:crypto` for the three
-digests; it does not open host paths, launch processes, evaluate code, or write
+Production code uses portable streaming digest engines;
+it does not open host paths, launch processes, evaluate code, or write
 VFS files. MD5 and SHA-1 are compatibility utilities, not security recommendations.
 
 ## Flags and defaults
@@ -39,7 +39,13 @@ usage errors. Unknown options, option arguments such as `--check=yes`, abbreviat
 long options, `--tag`, `--help`, and `--version` are rejected, not ignored.
 
 `cksum` defaults to POSIX CRC and accepts `-a`/`--algorithm` with crc, md5,
-sha1, sha224, sha256, sha384 or sha512. Explicit hash algorithms use GNU tagged
+sha1, sha224, sha256, sha384, sha512, bsd, sysv, crc32b, sm3, blake2b,
+sha2 or sha3. `-l`/`--length` selects SHA2/SHA3 widths 224, 256, 384 or 512,
+or BLAKE2b widths from 8 through 512 in multiples of eight. SHA2 and SHA3
+require an explicit nonzero width; BLAKE2b defaults to 512, also selected by zero.
+Fixed algorithms reject nonzero
+length overrides. BSD and System V print their native block counts; CRC32b
+prints its decimal CRC and byte count. Explicit hash algorithms use GNU tagged
 output, including filename escaping; `-z`/`--zero` preserves literal names with
 NUL termination. `-b`/`--binary` and `--tag` are accepted: CRC retains its
 checksum/length format, and hash algorithms retain tagged output. Input bytes
@@ -50,12 +56,13 @@ Base64 instead of hex, in either tagged or untagged records. `--raw` emits only
 the hash digest bytes, without names or delimiters; it requires a hash algorithm
 and cannot be combined with `--tag`, `--untagged`, `--base64` or `--zero`.
 CRC keeps its decimal checksum/length format with `--untagged` or `--base64`.
-Other algorithms, text selectors and output-length options remain rejected.
+Text selectors remain rejected.
 `-c`/`--check` supports the reporting flags in the table above. Without a
 selected hash, verification detects the algorithm of each tagged SHA/MD5
 record, including mixed manifests; an explicit hash also accepts untagged
 records. Binary, zero, explicit tag, raw and base64 output options cannot be
 combined with verification. Legacy decimal CRC records are not verifiable.
+Verification of BSD, System V, CRC32b, BLAKE2b and SHA3 remains unsupported.
 This is not the complete modern GNU interface. Existing SHA/MD5 command
 verification behavior and default CRC bytes/length output are unchanged.
 

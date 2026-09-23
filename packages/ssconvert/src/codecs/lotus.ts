@@ -83,9 +83,11 @@ async function lotusFormat(fmt: number, context: CapabilityContext): Promise<str
   return "";
 }
 
+type LotusNamedRange = { first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } };
+
 async function lotusFormula(bytes: Uint8Array, version: number, group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
-  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions): Promise<string> {
+  consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>): Promise<string> {
   const b = new Binary(bytes), stack: string[] = [], modern = version >= 0x1002;
   let at = 0;
   const pop = async () => {
@@ -104,7 +106,7 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
   };
   const newRef = (p: number, flags: number) => {
     const target = b.u8(p + 2), name = sheetName(target);
-    return (target === sheetIndex ? "" : `'${name.split("'").join("''")}'!`) + ref(b.u16(p), b.u8(p + 3), !!(flags & 1), !!(flags & 2));
+    return (target === sheetIndex ? "" : quoteFormulaString(name, "'", gnumericGrammar) + "!") + ref(b.u16(p), b.u8(p + 3), !!(flags & 1), !!(flags & 2));
   };
   while (at < bytes.length) {
     context.signal.throwIfAborted();
@@ -134,7 +136,28 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       const start = at; while (at < bytes.length && bytes[at]) at++;
       stack.push('"' + (await lmbcs(bytes.subarray(start, at), group, context)).split('"').join('""') + '"'); at++;
     } else if (modern && (op === 7 || op === 8)) {
-      await context.diagnostic?.({ code: "lotus", severity: "warning", message: "Named ranges not implemented." });
+      const start = at;
+      while (at < bytes.length && bytes[at]) { context.signal.throwIfAborted(); at++; }
+      if (at === bytes.length) {
+        await context.diagnostic?.({ code: "lotus", severity: "warning", message: "Unterminated Lotus named reference." });
+        stack.push("#REF!"); break;
+      }
+      let name = await lmbcs(bytes.subarray(start, at), group, context); at++;
+      if (name.startsWith("$")) name = name.slice(1);
+      const range = names?.get(name);
+      if (!range) {
+        await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unknown Lotus named reference '${name}'.` });
+        stack.push("#NAME?");
+      } else {
+        // libwps resolves name tokens to coordinates: op7 keeps relative axes,
+        // op8 keeps absolute axes. Workbook names are retained independently.
+        const crossSheet = range.first.sheet !== range.last.sheet;
+        const endpoint = (point: LotusNamedRange["first"]) =>
+          (point.sheet === sheetIndex && !crossSheet ? "" : quoteFormulaString(sheetName(point.sheet), "'", gnumericGrammar) + "!") +
+          ref(point.row, point.column, op === 7, op === 7);
+        const single = range.first.row === range.last.row && range.first.column === range.last.column && range.first.sheet === range.last.sheet;
+        stack.push(endpoint(range.first) + (single ? "" : ":" + endpoint(range.last)));
+      }
     } else if (modern && op >= 9 && op <= 11) {
       const length = op === 9 ? 4 : op === 10 ? 5 : 11;
       if (at + length > bytes.length) break;
@@ -170,6 +193,7 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
   }
   const result = stack.pop() ?? "#VALUE!";
   if (stack.length) await context.diagnostic?.({ code: "lotus", severity: "warning", message: `${formatA1(row, column)}: args remain on stack` });
+  context.signal.throwIfAborted();
   return `=${result}`;
 }
 
@@ -193,7 +217,9 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   };
   let database: LotusRldb | undefined, databaseType = 0;
   const styles = new Map<number, Record<string, ImportedValue>>();
-  const names = new Map<string, { first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } }>();
+  const names = new Map<string, LotusNamedRange>();
+  const deferredFormulas: { tokens: Uint8Array; group: number; index: number; cell: Cell }[] = [];
+  const deferredByCell = new WeakMap<Cell, typeof deferredFormulas[number]>();
   const sheets: { id: string; name: string; cells: Map<string, Cell>; columns: Map<number, AxisMetadata>; rows: Map<number, AxisMetadata>; defaultColumnWidth?: number; view: Record<string, ImportedValue>; metadata: UnsupportedRecord[]; formats: Map<string, string> }[] = [];
   const sheet = (index: number) => {
     if (index >= context.limits.sheets) throw new SsconvertError("resource-limit", "ssconvert Lotus sheets limit exceeded");
@@ -486,7 +512,9 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       if (id === 24) { const n = data.u16(4); value = { kind: "number", value: smallNumber(n >= 32768 ? n - 65536 : n) }; }
       if (id === 37) value = { kind: "number", value: packedNumber(data.u32(4)) };
       if (id === 39 || id === 40) value = { kind: "number", value: data.f64(4) };
-      if (id === 25 || id === 40) formula = await lotusFormula(data.bytes.subarray(id === 25 ? 14 : 12), version, group, row, column, index, i => sheet(i).name, context, consumeOperation);
+      // Names and display sheet names can follow formula records. Decode after
+      // record collection; the placeholder also preserves cached string records.
+      if (id === 25 || id === 40) formula = "=#VALUE!";
     }
     const key = `${row}:${column}`, old = s.cells.get(key);
     if (!old && ++count > context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert Lotus cells limit exceeded");
@@ -502,12 +530,27 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       if (range.style) style = { ...style, ...range.style as Record<string, ImportedValue> };
     }
     if (modern && format !== undefined) s.formats.set(key, format);
-    s.cells.set(key, { row, column, value, ...(format ? { format } : {}), ...(style ? { style } : {}),
-      ...(formula ? { formula, cachedResult: value, formulaDirty: false } : id === 26 && old?.formula ? { formula: old.formula, cachedResult: value, formulaDirty: false } : {}) });
+    const cell: Cell = { row, column, value, ...(format ? { format } : {}), ...(style ? { style } : {}),
+      ...(formula ? { formula, cachedResult: value, formulaDirty: false } : id === 26 && old?.formula ? { formula: old.formula, cachedResult: value, formulaDirty: false } : {}) };
+    s.cells.set(key, cell);
+    if (modern && (id === 25 || id === 40)) {
+      const pending = { tokens: data.bytes.subarray(id === 25 ? 14 : 12), group, index, cell };
+      deferredFormulas.push(pending); deferredByCell.set(cell, pending);
+    } else if (modern && id === 26 && old) {
+      const pending = deferredByCell.get(old);
+      if (pending) { pending.cell = cell; deferredByCell.set(cell, pending); }
+    }
   }
   if (database) await warn(database.root.remaining ? "Unfinished rldb." : "Unused rldb.");
   context.signal.throwIfAborted();
   if (!sheets.length) throw new SsconvertError("io", "Error while reading lotus workbook.");
+  for (const pending of deferredFormulas) {
+    context.signal.throwIfAborted();
+    const formula = await lotusFormula(pending.tokens, version, pending.group, pending.cell.row, pending.cell.column,
+      pending.index, i => sheet(i).name, context, consumeOperation, lotusFunctions, names);
+    const owner = sheet(pending.index), key = `${pending.cell.row}:${pending.cell.column}`;
+    if (owner.cells.get(key) === pending.cell) owner.cells.set(key, { ...pending.cell, formula });
+  }
   let nameTextBytes = 0;
   const chargeNameText = (text: string, escapeQuotes = false) => {
     for (const character of text) {

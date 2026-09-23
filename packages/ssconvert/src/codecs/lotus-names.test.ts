@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import type { CapabilityContext } from "../contracts.js";
 import { readLotus } from "./lotus.js";
 import { snapshotWorkbook } from "../workbook.js";
+import { parseExpression } from "../formulas/parser.js";
+import { rewriteReferences } from "../formulas/rewriting.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {}, environment: { env: {}, locale: "C", timezone: "UTC" },
@@ -89,4 +91,68 @@ it("recalculates imported names after an apostrophe-containing sheet rename", as
   const book = await readLotus(modern(newName("Value"), record(24, [0, 0, 0, 0, 22, 0]), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0])), context);
   const result = recalculateWorkbook({ ...book, sheets: book.sheets.map(s => ({ ...s, cells: [...s.cells, { row: 0, column: 1, formula: "=Value+1", formulaDirty: true, value: { kind: "blank" as const } }] })) }, context);
   expect(result.sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 12 });
+});
+
+const namedToken = (text: string, opcode = 7) => [opcode, ...Array.from(text, c => c.charCodeAt(0)), 0];
+const formulaRecord = (tokens: number[], row = 0, column = 1, sheet = 0) => record(25, [...word(row), sheet, column, ...Array<number>(10).fill(0), ...tokens, 3]);
+it.each([7, 8])("resolves a forward WK3 name token %i and continues subsequent arithmetic", async opcode => {
+  const warnings: string[] = [];
+  const book = await readLotus(modern(formulaRecord([...namedToken(opcode === 8 ? "$Value" : "Value", opcode), 5, 2, 0, 15]), newName("Value"), record(24, [0, 0, 0, 0, 22, 0])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(book.sheets[0]?.cells.find(c => c.column === 1)?.formula).toBe(opcode === 7 ? "=(A1+1)" : "=($A$1+1)");
+  const result = recalculateWorkbook(book, context, true);
+  expect(result.sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 12 });
+  expect(warnings).toEqual([]);
+});
+it.each([7, 8])("retains token %i copy semantics at the formula position", async opcode => {
+  const book = await readLotus(modern(newName("Value"), formulaRecord(namedToken("Value", opcode), 2, 2)), context);
+  const parsed = parseExpression(book.sheets[0]!.cells[0]!.formula!, { position: { sheet: "lotus-0", row: 2, column: 2 } });
+  expect(parsed.ok).toBe(true); if (!parsed.ok) return;
+  expect(rewriteReferences(parsed.document, { translation: "copy", position: { sheet: "lotus-0", row: 3, column: 3 } })).toBe(opcode === 7 ? "=B2" : "=$A$1");
+});
+it("uses final escaped sheets and both endpoints for named formula ranges", async () => {
+  const book = await readLotus(modern(formulaRecord(namedToken("Across", 8)), newName("Across", [0, 0, 0], [1, 1, 2]), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0]), record(0x204, [...Array<number>(10).fill(0), 76, 97, 115, 116, 0])), context);
+  expect(book.sheets[0]?.cells[0]?.formula).toBe("='O\\'B'!$A$1:'Last'!$C$2");
+});
+it("retains deferred named formulas through their cached string record", async () => {
+  const book = await readLotus(modern(formulaRecord(namedToken("Value", 8)), record(26, [0, 0, 0, 1, 120, 0]), newName("Value")), context);
+  expect(book.sheets[0]?.cells[0]).toMatchObject({ formula: "=$A$1", cachedResult: { kind: "string", value: "x" }, formulaDirty: false });
+});
+it("does not resurrect an overwritten deferred formula", async () => {
+  const book = await readLotus(modern(formulaRecord(namedToken("Value", 8)), record(24, [0, 0, 0, 1, 14, 0]), newName("Value")), context);
+  expect(book.sheets[0]?.cells[0]).toMatchObject({ value: { kind: "number", value: 7 } });
+  expect(book.sheets[0]?.cells[0]?.formula).toBeUndefined();
+});
+it("consumes a complete missing name without interpreting its bytes as opcodes", async () => {
+  const warnings: string[] = [];
+  const book = await readLotus(modern(formulaRecord([...namedToken("Missing"), 5, 2, 0, 15])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(book.sheets[0]?.cells[0]?.formula).toBe("=(#NAME?+1)");
+  expect(warnings).toEqual(["Unknown Lotus named reference 'Missing'."]);
+});
+it("rejects an unterminated named token without inventing a terminator", async () => {
+  const warnings: string[] = [];
+  const book = await readLotus(modern(record(40, [0, 0, 0, 1, ...Array<number>(8).fill(0), 7, 88])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(book.sheets[0]?.cells[0]?.formula).toBe("=#REF!");
+  expect(warnings).toEqual(["Unterminated Lotus named reference."]);
+});
+
+it("preserves cancellation raised by the final unterminated-name diagnostic", async () => {
+  const controller = new AbortController(), reason = new Error("token cancellation");
+  await expect(readLotus(modern(record(40, [0, 0, 0, 1, ...Array<number>(8).fill(0), 7, 88])), { ...context, signal: controller.signal, async diagnostic() { controller.abort(reason); } })).rejects.toBe(reason);
+});
+it("decodes exact-case and LMBCS token names without selecting a duplicate", async () => {
+  const book = await readLotus(modern(newName("N"), newName("n", [0, 0, 2]), newName(String.fromCharCode(0x82), [1, 0, 0]), newName("N", [0, 0, 3]), formulaRecord([...namedToken("N", 8), ...namedToken("n", 8), 15, ...namedToken(String.fromCharCode(0x82), 8), 15])), context);
+  expect(book.sheets[0]?.cells[0]?.formula).toBe("=(($A$1+$C$1)+$A$2)");
+});
+it("qualifies a final apostrophe-containing named endpoint from another sheet", async () => {
+  const book = await readLotus(modern(formulaRecord(namedToken("Value", 8), 0, 1, 1), newName("Value"), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0])), context);
+  expect(book.sheets[1]?.cells[0]?.formula).toBe("='O\\'B'!$A$1");
+});
+it("charges deferred named tokens against the formula operation budget", async () => {
+  await expect(readLotus(modern(newName("N"), formulaRecord([...namedToken("N"), ...namedToken("N"), 15])), { ...context, limits: { ...context.limits, operations: 2 } })).rejects.toThrow("operations limit exceeded");
+});
+
+it.each([false, true])("recalculates a named sheet span with an owner endpoint (reverse=%s)", async reverse => {
+  const first = reverse ? [0, 2, 0] : [0, 0, 0], last = reverse ? [0, 0, 0] : [0, 2, 0];
+  const book = await readLotus(modern(formulaRecord([...namedToken("Across", 8), 80, 1]), newName("Across", first, last), record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 1, 0, 26, 0]), record(24, [0, 0, 2, 0, 34, 0])), context);
+  expect(recalculateWorkbook(book, context, true).sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 41 });
 });

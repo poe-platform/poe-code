@@ -41,8 +41,32 @@
       "logSha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
     },
     "build": {
-      "command": "npm run build",
-      "status": "running;do not infer completedbuild"
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
+      "status": "passed maintained explicitlyselected dependencyclosure",
+      "logSha256": "cb67a3cecc17c8d376587114e73f3f46aea1b600156eeb3f286ba3c14626e65e",
+      "selection": "@poe-code/ssconvert",
+      "maintainedResult": {
+        "workspaces": 127,
+        "builds": 4,
+        "edges": 400,
+        "layers": 11,
+        "noBuild": [],
+        "manifestless": [
+          "packages/braintrust",
+          "packages/safe-python",
+          "packages/safejs"
+        ],
+        "cache": "SHARED",
+        "cacheHits": 2,
+        "cacheMisses": 0,
+        "fingerprintMs": 3503,
+        "executionMs": 15213
+      },
+      "fullRootAttempt": {
+        "command": "npm run build",
+        "status": "ownedprocessgroup terminated143 after >10minutes of unrelatednativebuilds;no completedrootbuild claimed",
+        "logSha256": "d8a0af0b4ade180a7c0fa52d1934a27c4877bfc540c481684d535f0aa4342916"
+      }
     }
   },
   "backendSource": {
@@ -6101,5 +6125,12 @@
     "Newcurrentmodel coordinates retain9/22exact leadingpositions and0/22exactfullbounds;alllargerwidth/vertical/header/glyphspacing/shaping obligations stayopen.",
     "Rawdrawingwidthrefusal isretained alongside roundedlogicalwidthfit;thisatomicfix doesnotexpandglyphpainter support.",
     "All19originalgapfamilies and containingpublication remainopen."
-  ]
+  ],
+  "delivery": {
+    "implementationCommit": "fd8362c1bb28332a4c888f0c61a7ab146679aba2",
+    "remoteMainPush": "verified remote-main ancestor fd8362c1bb28332a4c888f0c61a7ab146679aba2",
+    "publication": "unverified",
+    "releaseRun": 35877533110,
+    "releaseStatus": "pending;unverifiedpublication"
+  }
 }

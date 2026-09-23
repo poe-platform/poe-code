@@ -882,6 +882,14 @@
         "remoteMainObserved": "66a974db3450c6ac08ad9daf4ed1b125cd068b18",
         "ancestryVerified": true,
         "publication": "unverified"
+      },
+      "roundedShapedAdvanceDelivery": {
+        "implementationCommit": "fd8362c1bb28332a4c888f0c61a7ab146679aba2",
+        "maintainedBuild": "explicitlyselected @poe-code/ssconvert buildclosure passed;4declaredbuilds/11layers derived by maintainedrunner,not fixedtasklist",
+        "remoteMain": "fd8362c1bb28332a4c888f0c61a7ab146679aba2 ancestryverified",
+        "publication": "unverified",
+        "wholeFamilyComplete": false,
+        "releaseRun": 35877533110
       }
     },
     {

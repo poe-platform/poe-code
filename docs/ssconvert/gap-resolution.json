@@ -905,5 +905,25 @@
     "publication": "pending/notverified",
     "releaseRun": 35807493296,
     "registryVersion": "17.0.34"
+  },
+  "umaskRetainedCleanupFollowup": {
+    "proof": "docs/ssconvert/umask-retained-cleanup-gap-proof.json",
+    "runtimeCommit": "9c72e0dc4",
+    "remoteMain": "3a391e48d1e01d3f6e9810678df26ca96ac62c77",
+    "ancestorVerified": true,
+    "packageTests": {
+      "compressionAndUmask": 243,
+      "neighbors": 125,
+      "independentNestedStress": 8
+    },
+    "guardedLint": {
+      "complete": true,
+      "subjects": 16392,
+      "errors": 0,
+      "warnings": 0
+    },
+    "containingReleaseRun": 35816270280,
+    "publication": "pending; not verified",
+    "remaining": "maintained typecheck artifact/source closure and all original plan families"
   }
 }

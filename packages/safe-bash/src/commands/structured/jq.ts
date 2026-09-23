@@ -38,12 +38,15 @@ async function argumentsFor(context: CommandContext, budget: Budget): Promise<Op
   }
   const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, rawOutput0: false, monochrome: false, format: { indent: "  ", ascii: false, color: false }, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], moduleDirectories: [], variables: new Map() };
   const named = object();
+  const positional: Json[] = [];
+  let positionalMode: "--args" | "--jsonargs" | undefined;
   let ended = false;
   let variableBytes = 0;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
     const operand = (): string => { const value = args[++index]; if (value === undefined) throw new JqError(`${argument} requires an operand`, 2); return value; };
     if (!ended && argument === "--") { ended = true; continue; }
+    if (!ended && (argument === "--args" || argument === "--jsonargs")) { positionalMode = argument; continue; }
     if (!ended && argument.startsWith("-L")) {
       options.moduleDirectories.push(argument === "-L" ? operand() : argument.slice(2));
       continue;
@@ -91,7 +94,10 @@ async function argumentsFor(context: CommandContext, budget: Budget): Promise<Op
     // Each result already reaches the awaited sink before the next input is read.
     if (!ended && argument === "--unbuffered") continue;
     const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e", "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M" };
-    if (!ended && argument.startsWith("-") && argument !== "-") {
+    const flagStart = argument[1] ?? "";
+    // jq treats negative numbers and punctuation after '-' as operands.
+    const positionalOperand = positionalMode !== undefined && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
+    if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
       if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
@@ -110,10 +116,21 @@ async function argumentsFor(context: CommandContext, budget: Budget): Promise<Op
       continue;
     }
     if (options.source === undefined && options.programFile === undefined) options.source = argument;
+    else if (positionalMode !== undefined) {
+      budget.text(argument);
+      let value: Json;
+      try { value = positionalMode === "--args" ? argument : parseJson(argument, budget); }
+      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError("invalid JSON text passed to --jsonargs", 2); }
+      if (typeof value === "string" && !wellFormed(value)) throw new JqError("arguments must contain well-formed Unicode", 2);
+      variableBytes += budget.value(value) + (positional.length ? 1 : 2);
+      if (variableBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      positional.push(value);
+    }
     else options.files.push(argument);
   }
   options.format.color &&= !options.monochrome;
-  options.variables.set("ARGS", copyObject({ positional: [], named }));
+  if (positional.length) budget.value(positional);
+  options.variables.set("ARGS", copyObject({ positional, named }));
   options.source ??= options.programFile === undefined ? "." : undefined;
   return options;
 }

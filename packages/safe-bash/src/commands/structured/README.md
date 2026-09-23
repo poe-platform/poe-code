@@ -72,6 +72,7 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `--argjson NAME JSON` | Bind exactly one parsed JSON value. |
 | `--rawfile NAME FILE` | Bind the entire virtual file as a string, preserving CR, LF, BOM and NUL. |
 | `--slurpfile NAME FILE` | Bind all JSON values in a virtual file as an array; an empty file binds `[]`. |
+| `--args`, `--jsonargs` | Collect subsequent operands after the filter into `$ARGS.positional` as strings or parsed JSON values. |
 | `-f`, `--from-file` | Read the following operand as a virtual program file. |
 | `-L DIRECTORY`, `-LDIRECTORY` | Search explicit virtual directories for `.jq` modules, in option order. |
 | `--` | End option parsing, including for a negative numeric filter. |
@@ -94,8 +95,15 @@ The short output/input/status flags may be combined, such as `-crne`. `-f` must
 be separate, not combined into `-cf` or attached to its operand. Long options
 take separate operands, not `--option=value`. Unsupported flags fail rather
 than being ignored. Repeated argument names retain their first binding, matching
-the tested native build. `$ARGS.named` exposes named bindings and
-`$ARGS.positional` is an empty array; positional-argument flags are not supported.
+the tested native build. `$ARGS.named` exposes named bindings. `--args` and
+`--jsonargs` populate `$ARGS.positional`, which is otherwise empty. The flags may
+appear before or after the filter; switching modes affects later operands only.
+Options remain active until `--`, which allows option-looking string arguments.
+Negative numeric arguments are accepted directly. Each JSON argument must contain
+exactly one value; invalid JSON returns 2 before acquiring the filter file or input.
+Files listed before a positional flag remain input files; otherwise stdin remains
+the data source unless `-n` is set. Positional values share the named-variable byte
+budget and retain input, collection, depth and work limits even when unused.
 An explicit `--arg ARGS ...` is retained in `$ARGS.named.ARGS`; it does not
 replace the automatic `$ARGS` object. Its insertion order is `positional`, then
 `named`, matching the captured native build.

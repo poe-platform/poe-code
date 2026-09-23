@@ -292,7 +292,7 @@ test("cancellation closes input and forbids post-abort writes; limits are invoca
 test("names shortcut emits only names and closes input, tabs override delimiter, skip physical lines", async () => {
   const names = fixture(["-n"], base);
   assert.equal((await createCsvgrepCommand().execute(names.context)).exitCode, 0);
-  assert.equal(names.text(), "1: x\n2: y\n3: id\n");
+  assert.equal(names.text(), "  1: x\n  2: y\n  3: id\n");
   const tabs = fixture(["-c", "x", "-m", "a", "-d", ";", "-t"], "x\ty\na\tb\n");
   await createCsvgrepCommand().execute(tabs.context);
   assert.equal(tabs.text(), "x,y\na,b\n");
@@ -388,7 +388,7 @@ test("names stops after header across producer chunks", async () => {
     yield encoder.encode("a,b\n");
   })();
   await createCsvgrepCommand().execute({ ...f.context, stdin });
-  assert.equal(f.text(), "1: x\n2: y\n");
+  assert.equal(f.text(), "  1: x\n  2: y\n");
   assert.equal(advanced, false);
 });
 test("input cleanup failure retains the original falsey execution error", async () => {

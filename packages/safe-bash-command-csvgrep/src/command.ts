@@ -466,7 +466,7 @@ export async function csvgrep(
             }
             if (options.names) {
               for (let i = 0; i < headers.length; i++)
-                await write(`${i + (options.zero ? 0 : 1)}: ${headers[i]}\n`);
+                await write(`${String(i + (options.zero ? 0 : 1)).padStart(3)}: ${headers[i]}\n`);
               return;
             }
             columns = selectColumns(options.columns!, headers, options.zero ?? false, b);

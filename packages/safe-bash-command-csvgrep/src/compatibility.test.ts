@@ -11,6 +11,12 @@ const cells: readonly {
   id: string; input: string; args: string[]; options: CsvgrepOptions;
   output: string; file?: string; status?: number; error?: string;
 }[] = [
+  { id: "names-width-three", input: "name,n\na,1\n", args: ["--names"],
+    options: { names: true }, output: "  1: name\n  2: n\n" },
+  { id: "names-width-three-zero", input: "name,n\na,1\n", args: ["--names", "--zero"],
+    options: { names: true, zero: true }, output: "  0: name\n  1: n\n" },
+  { id: "names-line-numbers", input: "name,n\na,1\n", args: ["--names", "-l"],
+    options: { names: true, lineNumbers: true }, output: "  1: line_numbers\n  2: name\n  3: n\n" },
   { id: "physical-multiline", input: 'x,id\n"a\nb",1\nc,2\na,3\n',
     args: ["-cx", "-ma", "-l"], options: { columns: "x", match: "a", lineNumbers: true },
     output: 'line_numbers,x,id\n2,"a\nb",1\n4,a,3\n' },

@@ -31,7 +31,7 @@ await csvgrep(context, { columns: 'name,city', match: 'York', any: true });
 | `-l`, `--linenumbers` | Prepend `line_numbers`; physical parser line number minus one for a header, before filtering. |
 | `-K`, `--skip-lines` | Skip a nonnegative number of physical input lines. |
 | `--zero` | Use zero-based column positions and names output. |
-| `-n`, `--names` | Print `position: name` lines and stop after the header; requires a header row. |
+| `-n`, `--names` | Print `position: name` lines with positions right-aligned to width three and stop after the header; requires a header row. |
 | `-d`, `--delimiter`; `-t`, `--tabs` | Input delimiter; tabs override delimiter. Default comma; no sniffing. |
 | `-q`, `--quotechar`; `-p`, `--escapechar` | Single UTF-16-unit quote/escape characters; default quote is `"`, escape unset. |
 | `-b`, `--no-doublequote`; `-S`, `--skipinitialspace` | Disable doubled quotes; skip initial ASCII spaces. |

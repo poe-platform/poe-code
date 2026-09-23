@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import assert from "node:assert/strict";
 import type { CapabilityContext } from "../contracts.js";
-import type { Workbook } from "../workbook.js";
+import { snapshotWorkbook, type Workbook } from "../workbook.js";
 import { BiffFormulaWriter } from "./biff-write-formulas.js";
 import { BiffOutput, writeCfb } from "./biff-write-binary.js";
 import { Binary, readCfb, readBiffRecords } from "./biff-binary.js";
@@ -16,8 +16,8 @@ const context: CapabilityContext = { signal: new AbortController().signal, own()
 it.each([7, 8] as const)("BIFF%i resolves local names before workbook names and honors qualified scope", revision => {
   const book: Workbook = { sheets: [{ id: "s1", name: "First", cells: [] }, { id: "s2", name: "Second", cells: [] }],
     names: [{ name: "Answer", expression: "=1" }, { name: "Answer", expression: "=2", sheet: "s1" },
-      { name: "Answer", expression: "=3", sheet: "Second" }] };
-  const writer = new BiffFormulaWriter(book, revision, context);
+      { name: "Answer", expression: "=3", sheet: "s2" }] };
+  const writer = new BiffFormulaWriter(snapshotWorkbook(book, context.limits), revision, context);
   const index = (source: string, sheet: string) => {
     const tokens = writer.compile(source, sheet, 0, 0).tokens;
     const qualified = source.includes("!");

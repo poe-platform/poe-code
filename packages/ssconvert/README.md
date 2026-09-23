@@ -60,7 +60,7 @@ links calculate to `#REF!`; their cached values and raw link records remain reta
 and linked workbooks are never fetched. External names use supported on-file
 declarations during recalculation; missing or inactive names produce `#REF!`,
 while a declaration can supply the expression for a linked workbook name placeholder.
-BIFF7/8 exports preserve case-insensitive sheet references and sheet-local names.
+BIFF7/8 exports resolve sheet references without regard to case and preserve the exact spelling and scope of defined names.
 Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
 The optional `datasource` binding enables `ATL_LAST(tag)` through an owned host

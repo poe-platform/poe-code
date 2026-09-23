@@ -105,9 +105,9 @@ export class BiffFormulaWriter {
           this.book.sheets.find(s => foldSheetName(s.name) === foldSheetName(sheet));
         const scope = node.sheet === undefined ? current :
           this.book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!));
-        const matches = (name: { readonly name: string }): boolean => name.name.toUpperCase() === node.name.toUpperCase();
+        const matches = (name: { readonly name: string }): boolean => name.name === node.name;
         let index = node.workbook === "" && node.sheet === undefined ? -1 : this.book.names?.findIndex(n => matches(n) && n.sheet !== undefined && scope !== undefined &&
-          (n.sheet === scope.id || n.sheet === scope.name)) ?? -1;
+          n.sheet === scope.id) ?? -1;
         if (index < 0 && (node.sheet === undefined || scope !== undefined))
           index = this.book.names?.findIndex(n => matches(n) && n.sheet === undefined) ?? -1;
         if (index < 0 || node.workbook) { push([28, 29]); return; }

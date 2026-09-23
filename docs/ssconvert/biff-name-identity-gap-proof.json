@@ -1,0 +1,526 @@
+{
+  "scope": "Preserve exact defined-name spelling and internal sheet scope during BIFF7/8 and dual-stream export.",
+  "baseline": "4b31570df3ec152046a2837deed83abf76e135c2",
+  "originalFailure": {
+    "unitTests": 6,
+    "unitFailures": 6,
+    "publicExpected": "2\n3\n11\n13\n29\n#NAME?\n",
+    "publicActual": "2\n2\n11\n11\n26\n2\n",
+    "unitLogSha256": "6018c9591850d9f0e396669b21b780669e7a110b2e1aa77c4118ff8a4872be93",
+    "publicLogSha256": "23cb58680ee8f88f0118ef10f04f25914d248f8f8d4202e240746b818c115786"
+  },
+  "sourceAuthority": {
+    "gnumericVersion": "1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "exprNameSha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+    "findings": [
+      "expr-name.c lines175-187 uses exact g_str_hash/g_str_equal for names.",
+      "expr_name_lookup lines537-555 selects local names before global names using exact spelling.",
+      "workbook/model.ts rejects named-expression scope not present in the internal sheet-ID map."
+    ]
+  },
+  "fixtureCorrection": {
+    "initialFocusedFailures": 2,
+    "file": "packages/ssconvert/src/codecs/biff-write-stress.test.ts",
+    "change": "Replace invalid name.sheet=Second with internal ID s2 and pass the fixture through snapshotWorkbook. Retain all five original token-index expectations per revision.",
+    "initialFocusedLogSha256": "b7fafe59d63f921e9ead1352fd4becf27d9794d47b1c626b543b5cdb8485a970"
+  },
+  "checks": {
+    "focusedTests": 118,
+    "workspaceTests": 22746,
+    "workspaceFiles": 378,
+    "workspaceFailures": 0,
+    "lint": "Maintained workspace ESLint plus source/test/consumer TypeScript checks passed.",
+    "build": "Maintained @poe-code/ssconvert closure: four builds across eleven layers.",
+    "independent": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/biff-write-formulas.ts",
+          "sha256": "f75c92aded046fcdc68e57a408fe187bb28a5ba4eaea0c763303eef45c223e1e"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/biff-write.ts",
+          "sha256": "31c4a72091c73fe1a139e7d06fd4f9271e45aa106903a356693893d307d91096"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/biff-name-identity.test.ts",
+          "sha256": "2d056088b21c1a53c214cf89629b9b6ddc6dedef935c9ac9f519eba68a9845dc"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/biff.ts",
+          "sha256": "7761d69ed7df683001ccab3929fe0d639ae8e87a7e11fafc7e68ea554374a538"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/biff-binary.ts",
+          "sha256": "cba6ab70c7ec27953d750ed4fb5f10ecff158373d097bcdfe12431ab2129be8b"
+        },
+        {
+          "path": "packages/ssconvert/src/workbook/model.ts",
+          "sha256": "2fb7b7803ee73b4f48bc31b28a5c75d630e992476b52635f0bdda1cc0ba938da"
+        },
+        {
+          "path": "out/ssconvert-biff-sheet-resolution/expr-name.c",
+          "sha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353"
+        }
+      ],
+      "stable": true,
+      "checks": 57,
+      "passed": 57,
+      "failures": [],
+      "rows": [
+        {
+          "label": "indexed-token 7 =Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =[]Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =[]rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =[]RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='dAtA'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='DATA'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Data'!RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='target'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='TARGET'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='oThEr'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Other'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Data'!OnlyGlobal",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =Bridge",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =ArrayRef",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =Stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =STRASSE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 =stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Data'!Stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Data'!STRASSE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Data'!stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='Missing'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 7 ='[foreign.xls]Data'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =[]Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =[]rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =[]RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='dAtA'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='DATA'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Data'!RATE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='target'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='TARGET'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='oThEr'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Other'!rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Data'!OnlyGlobal",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =Bridge",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =ArrayRef",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =Stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =STRASSE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 =stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Data'!Stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Data'!STRASSE",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Data'!stra\u00dfe",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='Missing'!Rate",
+          "pass": true
+        },
+        {
+          "label": "indexed-token 8 ='[foreign.xls]Data'!Rate",
+          "pass": true
+        },
+        {
+          "label": "complete-roundtrip 7",
+          "pass": true
+        },
+        {
+          "label": "complete-roundtrip 8",
+          "pass": true
+        },
+        {
+          "label": "complete-roundtrip dsf",
+          "pass": true
+        },
+        {
+          "label": "array-name-identity 7",
+          "pass": true
+        },
+        {
+          "label": "array-name-identity 8",
+          "pass": true
+        },
+        {
+          "label": "array-name-identity dsf",
+          "pass": true
+        },
+        {
+          "label": "metadata rejects display aliases instead of internal IDs",
+          "pass": true
+        },
+        {
+          "label": "corrected historical lower-case-only expectation 7",
+          "pass": true
+        },
+        {
+          "label": "corrected historical lower-case-only expectation 8",
+          "pass": true
+        }
+      ],
+      "scope": "Source token+CFB NAME scope field+reader/evaluator checks. Exact name spelling independent of folded sheet syntax. No compiled public/native runtime claim."
+    },
+    "public": {
+      "formulas": [
+        "='Data'!Rate",
+        "='dAtA'!rate",
+        "=[]Rate",
+        "=[]rate",
+        "='Data'!Bridge",
+        "='Data'!RATE"
+      ],
+      "book": {
+        "names": [
+          {
+            "name": "Rate",
+            "expression": "=11"
+          },
+          {
+            "name": "rate",
+            "expression": "=13"
+          },
+          {
+            "name": "Rate",
+            "sheet": "target",
+            "expression": "=2"
+          },
+          {
+            "name": "rate",
+            "sheet": "target",
+            "expression": "=3"
+          },
+          {
+            "name": "Bridge",
+            "sheet": "target",
+            "expression": "=Rate+rate+[]Rate+[]rate"
+          }
+        ],
+        "sheets": [
+          {
+            "id": "home",
+            "name": "Here",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "formula": "='Data'!Rate",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "formula": "='dAtA'!rate",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              },
+              {
+                "row": 2,
+                "column": 0,
+                "formula": "=[]Rate",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              },
+              {
+                "row": 3,
+                "column": 0,
+                "formula": "=[]rate",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              },
+              {
+                "row": 4,
+                "column": 0,
+                "formula": "='Data'!Bridge",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              },
+              {
+                "row": 5,
+                "column": 0,
+                "formula": "='Data'!RATE",
+                "value": {
+                  "kind": "number",
+                  "value": 999
+                }
+              }
+            ]
+          },
+          {
+            "id": "decoy",
+            "name": "target",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "value": {
+                  "kind": "number",
+                  "value": 99
+                }
+              }
+            ]
+          },
+          {
+            "id": "target",
+            "name": "Data",
+            "cells": [
+              {
+                "row": 0,
+                "column": 0,
+                "value": {
+                  "kind": "number",
+                  "value": 7
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "rows": [
+        {
+          "profile": "excel_biff7",
+          "sdkSha256": "8b3e513dd204aaaca926c2fd4cd52e4b7d98c084e40792f4f341d2683780d993",
+          "shellSha256": "66b218717c3e0a560f725783caa9d94031cf394f4a0d129f42564118b65593cd",
+          "expectedCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "resolutions": 0,
+          "inputAndKeepPreserved": true
+        },
+        {
+          "profile": "excel_biff8",
+          "sdkSha256": "ce4aa71b25a043f4d31f55ef76b4f8a592306628be1b2eba7e72173460fb9597",
+          "shellSha256": "a410547717d07326af630c0103aff4aea9c6b8f971cd47370d649285386695f5",
+          "expectedCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "resolutions": 0,
+          "inputAndKeepPreserved": true
+        },
+        {
+          "profile": "excel_dsf",
+          "sdkSha256": "c0257ed18769ec8360c0969c188a639dbae4290bee04149c16519a8d98f76263",
+          "shellSha256": "b50e7129a762567737c65609c04c8f9cff84572d2a226f50329744758cd77a78",
+          "expectedCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "resolutions": 0,
+          "inputAndKeepPreserved": true
+        }
+      ],
+      "xmlSha256": "dc6cf721de285147d9927682335c2f4fd70ba8712a7f2d53f9ec9318e4ab8f2d"
+    },
+    "screenshot": {
+      "sha256": "f14a7c7b57d4709d09fe0d8c512a0293ead89901a4302f07a558bef327c65e7c",
+      "inspected": true,
+      "finding": "All three profile output rows readable and unclipped."
+    }
+  },
+  "bindings": [
+    {
+      "path": "packages/ssconvert/src/codecs/biff-write-formulas.ts",
+      "sha256": "f75c92aded046fcdc68e57a408fe187bb28a5ba4eaea0c763303eef45c223e1e"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-write.ts",
+      "sha256": "31c4a72091c73fe1a139e7d06fd4f9271e45aa106903a356693893d307d91096"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-name-identity.test.ts",
+      "sha256": "2d056088b21c1a53c214cf89629b9b6ddc6dedef935c9ac9f519eba68a9845dc"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-write-stress.test.ts",
+      "sha256": "c808f837cfd691e7012ae22d2031e70622d611f12420dd993cd9857ddab9c244"
+    },
+    {
+      "path": "packages/ssconvert/dist/index.js",
+      "sha256": "ca6aa993bfe4456e6623f5ce1b8e6e9fd8ea5d3a499fdb1b4ba17a351a9cac04"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+      "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+    }
+  ],
+  "logs": {
+    "green-corrected-fixture.log": "42a2ba37b4750816cdcd9c7a2ecb01676e0b0b81d9c86d6b7b7339b48c86a55f",
+    "package-tests.log": "ce2d46123bb4d713c132d309f42394cb4654f617f2b14e3a044d9d83b288b89b",
+    "lint.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c",
+    "build.log": "bdb4d2f8c5fda41593979a75eaa77a3b65259def77bad1b528473df9eedd35ff",
+    "public-green.log": "a0341a3a935e8919baad2afcea7a110726226e03a9cb59eb846fbd033a71586c",
+    "independent/qualified.log": "a9bd0a0e8e79a868929afd6a166a626c27cf109eb063bf4a995f2df123c0338b"
+  },
+  "separateObservation": {
+    "formula": "='Missing'!Rate",
+    "globalRateValue": 11,
+    "sourceEvaluatorValue": 11,
+    "writerTokensHex": "1c1d",
+    "writerMeaning": "#NAME?",
+    "status": "Separate unresolved evaluator/writer disagreement; no native expected behavior claimed",
+    "originalFailureLabels": [
+      "complete-roundtrip 7",
+      "complete-roundtrip 8",
+      "complete-roundtrip dsf"
+    ],
+    "writerDetachedScopeBranchUnchangedFrom": "4b31570df",
+    "evidence": "stress.mts/stress.log/receipt.json preserve initial observations; qualified roundtrips include only present sheet namespaces, while indexed-token tests retain detached-sheet refusal"
+  },
+  "limitations": [
+    "Native execution of these emitted files is pending; the current result combines authenticated native source with product tests.",
+    "Missing-sheet evaluator/writer agreement remains a separate unresolved observation.",
+    "All 19 original families remain open."
+  ],
+  "delivery": {
+    "status": "pending"
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34"
+  }
+}

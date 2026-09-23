@@ -135,7 +135,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   for (const { name, formula } of named) {
     const text = biffString(name.name, revision, context, 1), header = new Uint8Array(14), view = new DataView(header.buffer);
     header[3] = text[0]!; view.setUint16(4, formula.tokens.length, true);
-    const scope = name.sheet === undefined ? 0 : book.sheets.findIndex(sheet => sheet.id === name.sheet || sheet.name === name.sheet) + 1;
+    const scope = name.sheet === undefined ? 0 : book.sheets.findIndex(sheet => sheet.id === name.sheet) + 1;
     view.setUint16(revision === 8 ? 8 : 6, scope, true);
     output.record(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)));
   }

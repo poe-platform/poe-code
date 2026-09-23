@@ -4,6 +4,7 @@ import { isUnicodePrintable, simpleUnicodeCase } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
 import { byteTextLength, sliceByteText } from "../../encoding/byte-text.js";
 import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
+import { caseByteText } from "./byte-case.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
 import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
@@ -231,8 +232,8 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
   UNICODE: (args, host) => { const point = textArg(args, 0, host).codePointAt(0); return point === undefined ? error("#VALUE!") : numericResult(point); },
   LEN: (args, host) => numericResult(byteTextLength(byteTextArg(args, 0, host), host.tick)),
   LENB: (args, host) => numericResult(byteLength(textArg(args, 0, host))),
-  LOWER: (args, host) => boundedText(textArg(args, 0, host).toLowerCase(), host),
-  UPPER: (args, host) => boundedText(textArg(args, 0, host).toUpperCase(), host),
+  LOWER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), false, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
+  UPPER: (args, host) => byteStringValue(caseByteText(byteTextArg(args, 0, host), true, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   EXACT: (args, host) => bool(textArg(args, 0, host).normalize("NFD") === textArg(args, 1, host).normalize("NFD")),
   ENCODEURL: (args, host) => {
     let result = "";

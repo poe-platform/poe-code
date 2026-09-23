@@ -88,13 +88,13 @@ external backend writers, independent wrappers, changing mounts, or a remote
 provider. Identity observations are point-in-time evidence, not a lease or a
 guarantee that a provider preserves inode identity during replacement.
 
-This existing-file growth correction is not a comprehensive composed-namespace
-quota guarantee. In particular, creating a previously absent file through two
-mounts of the same empty backend can expose two namespace entries while the
-existing creation path charges once. That separate pre-existing creation case
-is not repaired here. Use an appropriately bounded backing filesystem when that
-composition is required; do not infer protection from this contract's narrower
-existing-file checks.
+Initial creation projects the new logical size through every visible alias of
+its parent directory, including repeated mounts of an empty backing store.
+Directories without comparable identities or an explicit comparison are treated
+as possible aliases. If a missing symlink referent cannot be located safely,
+admission refuses before publication. Conditional descriptors reserve bytes for
+all possible parent aliases until publication or close. Retained zero-length
+creation adds no bytes; subsequent growth counts every visible file alias.
 
 ## General retained descriptors
 

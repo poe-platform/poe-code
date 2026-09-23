@@ -59,7 +59,7 @@ function fixture(supported = true) {
     capabilities: { ...memory.capabilities, retainedRead: true, retainedResize: true },
     async openResizeFile() { return original; },
     async openReadFile() { return original; },
-    async stat(path) { return observe(lookup(path)); },
+    async stat(path) { return path === "/" ? memory.stat(path) : observe(lookup(path)); },
     async lstat(path) { return observe(lookup(path)); },
     readdir: vi.fn(async () => Array.from(entries.keys(), path => ({ name: path.slice(1), type: "file" as const }))),
     async writeFile(path, bytes) { events.push("write"); entries.set(path, { bytes, end: BigInt(bytes.length), ino: 2 }); },

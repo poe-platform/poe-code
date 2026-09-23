@@ -38,7 +38,11 @@ function namespaceMetadata<Value>(metadata: Promise<Value>, signal?: AbortSignal
   });
 }
 
-async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, change?: { path: string; stat: FileStat; delta: number; retained?: boolean }, retained = change?.retained === true): Promise<number> {
+interface QuotaChange { path: string; stat: FileStat; delta: number; retained?: boolean }
+
+async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; maxScanDepth: number }, options?: FsOptions, changeInput?: QuotaChange | (() => Promise<QuotaChange>), retained = typeof changeInput !== "function" && changeInput?.retained === true): Promise<number> {
+  let change = typeof changeInput === "function" ? undefined : changeInput;
+  let prepare = typeof changeInput === "function" ? changeInput : undefined;
   let total = 0;
   let retainedTotal = 0n;
   let shrinkCredited = false;
@@ -56,6 +60,18 @@ async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; m
     const count = entries.length;
     admitDirectoryEntries(count, remaining, directory.path);
     remaining -= count;
+    if (prepare) { change = await prepare(); prepare = undefined; }
+    if (change?.stat.type === "directory") {
+      const stat = await fs.stat(directory.path, options);
+      const comparable = completeIdentity(stat) && completeIdentity(change.stat);
+      const comparison = comparable
+        ? stat.identityScope === change.stat.identityScope && stat.dev === change.stat.dev && stat.ino === change.stat.ino ? "same" : "distinct"
+        : fs.compareEntry ? await fs.compareEntry(change.path, fs, directory.path, options) : "unknown";
+      options?.signal?.throwIfAborted();
+      if (comparison !== "same" && comparison !== "distinct" && comparison !== "unknown") throw new FsError("EIO", { syscall: "compareEntry", path: change.path });
+      if (comparison !== "distinct") { total += Math.max(0, change.delta); possibleAliases++; }
+    }
+
     let processed = 0;
     for (const entry of entries) {
       options?.signal?.throwIfAborted();
@@ -77,7 +93,7 @@ async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; m
           options?.signal?.throwIfAborted();
           if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("EIO", { syscall: "lstat", path, message: "invalid quota entry size" });
           retainedTotal += BigInt(stat.size);
-          if (!change || stat.type !== "file") continue;
+          if (!change || change.stat.type !== "file" || stat.type !== "file") continue;
           const known = completeIdentity(stat);
           const same = known && change.stat.identityScope === stat.identityScope && change.stat.dev === stat.dev && change.stat.ino === stat.ino;
           const nextBytes = change.stat.size + change.delta;
@@ -95,7 +111,7 @@ async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; m
           continue;
         }
         total += stat.size;
-        if (!change || stat.type !== "file") continue;
+        if (!change || change.stat.type !== "file" || stat.type !== "file") continue;
         const scope = change.stat.identityScope;
         const comparable = [scope, stat.identityScope].every(value => typeof value === "symbol" || typeof value === "object" && value !== null)
           && [change.stat.dev, change.stat.ino, stat.dev, stat.ino].every(value => typeof value === "number" && Number.isSafeInteger(value) && value >= 0);
@@ -161,6 +177,28 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
       return typeof original === "function" ? original.bind(fs) : original;
     },
   });
+  const creationChange = async (path: string, delta: number, fsOptions?: FsOptions) => {
+    // Resolve existing ancestors before comparing directory identities. A dangling
+    // final symlink cannot safely identify its publication directory here.
+    let target: string;
+    try { target = fs.canonicalizeMissingTarget?.(path, fsOptions) ?? path; }
+    catch (error) {
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") throw new FileSystemQuotaError(options.maxBytes);
+      throw error;
+    }
+    try {
+      const entry = fs.canonicalizeMissingTarget ? undefined : await fs.lstat(target, fsOptions);
+      if (entry?.type === "symlink") throw new FsError("ENOTSUP", { syscall: "write", path, message: "quota cannot locate missing symlink referent" });
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    }
+    const boundary = target.lastIndexOf("/");
+    const parent = await fs.realpath(boundary <= 0 ? "/" : target.slice(0, boundary), fsOptions);
+    const stat = await fs.stat(parent, fsOptions);
+    fsOptions?.signal?.throwIfAborted();
+    if (stat.type !== "directory") throw new FsError("ENOTDIR", { syscall: "write", path });
+    return { path: parent, stat, delta };
+  };
   const assertDelta = async (path: string, nextBytes: number, fsOptions?: FsOptions): Promise<void> => {
     fsOptions?.signal?.throwIfAborted();
     let current: FileStat | undefined;
@@ -170,7 +208,9 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     }
     const projected = current?.type === "file" && nextBytes > current.size
       ? await usedBytes(fs, scanLimits, fsOptions, { path, stat: current, delta: nextBytes - current.size })
-      : await usedBytes(fs, scanLimits, fsOptions) - (current?.type === "directory" ? 0 : current?.size ?? 0) + nextBytes;
+      : !current && nextBytes > 0
+        ? await usedBytes(fs, scanLimits, fsOptions, () => creationChange(path, nextBytes, fsOptions))
+        : await usedBytes(fs, scanLimits, fsOptions) - (current?.type === "directory" ? 0 : current?.size ?? 0) + nextBytes;
     fsOptions?.signal?.throwIfAborted();
     if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
   };
@@ -192,8 +232,14 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
           const conditional = descriptor.capabilities.publication === "conditional" && pinned !== undefined;
           let publishedSize = pinned?.size ?? 0;
           let reserved = 0;
+          let publicationAliases = 1;
+          if (conditional) {
+            const baseline = await usedBytes(fs, scanLimits, admitted);
+            publicationAliases = await usedBytes(fs, scanLimits, admitted, () => creationChange(path, 1, admitted)) - baseline;
+            if (!Number.isSafeInteger(publicationAliases) || publicationAliases < 1) throw new FsError("ENOTSUP", { syscall: "open", path, message: "quota cannot determine publication aliases" });
+          }
           const reserve = (size: number): void => {
-            const next = Math.max(0, size - publishedSize);
+            const next = Math.max(0, size - publishedSize) * publicationAliases;
             reservedBytes += next - reserved;
             reserved = next;
           };
@@ -217,11 +263,11 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
           const admitSize = async (stat: FileStat, nextBytes: number, operationOptions: FsOptions): Promise<void> => {
             if (!Number.isSafeInteger(nextBytes) || nextBytes < 0) throw new FsError("EFBIG", { syscall: "write", path });
             const projected = conditional
-              ? await usedBytes(fs, scanLimits, operationOptions) - reserved + Math.max(0, nextBytes - publishedSize)
+              ? await usedBytes(fs, scanLimits, operationOptions) - reserved + Math.max(0, nextBytes - publishedSize) * publicationAliases
               : await usedBytes(fs, scanLimits, operationOptions, { path, stat, delta: nextBytes - stat.size, retained: true });
             operationOptions.signal?.throwIfAborted();
             if (projected > options.maxBytes) throw new FileSystemQuotaError(options.maxBytes);
-            if (conditional) reserve(Math.max(nextBytes, publishedSize + reserved));
+            if (conditional) reserve(Math.max(nextBytes, publishedSize + reserved / publicationAliases));
           };
           const forwarded = forwardFileDescriptor(descriptor, (syscall, operationOptions, action) => syscall === "close" && !conditional ? action() : mutate(async () => {
             try {

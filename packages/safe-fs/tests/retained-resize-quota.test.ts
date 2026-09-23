@@ -29,7 +29,7 @@ function controlled() {
   const handles: FileResizeHandle[] = [];
   const overrides: { -readonly [Key in keyof FileSystem]?: FileSystem[Key] } = {
     capabilities: { ...memory.capabilities, retainedResize: true },
-    async stat(path) { return { ...lookup(path) }; },
+    async stat(path) { return path === "/" ? memory.stat(path) : { ...lookup(path) }; },
     async lstat(path) { return { ...lookup(path) }; },
     async readdir(path) {
       const prefix = path === "/" ? "/" : path + "/";

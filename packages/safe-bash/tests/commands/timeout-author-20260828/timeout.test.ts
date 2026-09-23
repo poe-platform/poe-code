@@ -171,14 +171,15 @@ test("present malformed invoke never falls back and absent invoke uses standalon
   assert.equal(fallbackReceiver, undefined);
 });
 
-test("duration validation is exact at MAX_SAFE and invalid syntax outranks overflow", async () => {
+test("duration validation rounds at MAX_SAFE and rejects malformed huge operands", async () => {
   const scheduler = new ManualScheduler();
   const valid = captureContext(["9007199254740.991s", "child"], { invoke: immediateInvoker() });
   assert.deepEqual(await createTimeoutCommand({ scheduler }).execute(valid.context), { exitCode: 0 });
   assert.deepEqual(scheduler.setCalls, [2147483647]);
-  const overflow = captureContext(["9007199254740.9911s", "child"], { invoke: immediateInvoker() });
-  assert.deepEqual(await createTimeoutCommand().execute(overflow.context), { exitCode: 125 });
-  assert.equal(overflow.stderr(), "timeout: duration exceeds supported range\n");
+  const larger = captureContext(["9007199254740.9911s", "child"], { invoke: immediateInvoker() });
+  assert.deepEqual(await createTimeoutCommand({ scheduler }).execute(larger.context), { exitCode: 0 });
+  assert.equal(larger.stderr(), "");
+  assert.deepEqual(scheduler.setCalls, [2147483647, 2147483647]);
   const invalid = captureContext([`${"9".repeat(10000)}x`, "child"], { invoke: immediateInvoker() });
   assert.deepEqual(await createTimeoutCommand().execute(invalid.context), { exitCode: 125 });
   assert.equal(invalid.stderr(), "timeout: invalid duration\n");

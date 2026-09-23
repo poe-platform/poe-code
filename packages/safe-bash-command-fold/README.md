@@ -22,6 +22,11 @@ try {
 Use `foldCommands({ locale?, limits?, replace? })` for registration or
 `createFoldCommand({ locale?, limits? })` for a command definition. With
 `agentCommands()`, use `replace: true` to replace its existing fold command.
+The default aggregate fold accepts `-c`, `--characters`, unique abbreviations
+such as `--char`, and grouped flags such as `-sc`. Its fixed C byte profile counts
+one character per byte and retains TAB/CR/BS column controls; the last `-b` or
+`-c` wins. Locale environment variables do not enable UTF-8 decoding there.
+Register this plugin to use the pinned Unicode profile described below.
 
 | Command flag | Behavior |
 | --- | --- |

@@ -10,9 +10,53 @@ import {
 import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
 import { wkhtmltopdfCommands, wkhtmltopdfLimits } from "../../src/commands/wkhtmltopdf/index.js";
 
+for (const flags of ['-c', '--characters', '-sc', '--char']) {
+  for (const pipe of [false, true]) {
+    test(`default fold admits ${flags} through ${pipe ? 'a pipe' : 'a named file'}`, async t => {
+      const fs = createMemoryFileSystem();
+      const shell = new Shell({ fs }).use(agentCommands());
+      t.after(() => shell.dispose());
+      const input = new TextEncoder().encode('ChangedAlpha Beta Gamma\r\n');
+      await fs.writeFile('/Changed fold.txt', input);
+      const result = await shell.exec(pipe
+        ? `cat '/Changed fold.txt' | fold ${flags} -w3`
+        : `fold ${flags} -w3 '/Changed fold.txt'`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, '');
+      assert.equal(result.stdout, flags === '-sc'
+        ? 'Cha\nnge\ndAl\npha\n \nBet\na \nGam\nma\r\n'
+        : 'Cha\nnge\ndAl\npha\n Be\nta \nGam\nma\r\n');
+      assert.deepEqual(await fs.readFile('/Changed fold.txt'), input);
+    });
+  }
+}
+
 function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware installation"); }, registerFileSystem() { throw new Error("Unexpected filesystem installation"); } };
 }
+
+test("default fold counting flags use the last requested mode and retain the C profile", async t => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: 'C.UTF-8' } }).use(agentCommands());
+  t.after(() => shell.dispose());
+  for (const flags of ['-bc', '-b -c', '--bytes --characters']) {
+    const result = await shell.exec(`printf 'ab\\rcd' | fold ${flags} -w2`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, 'ab\rcd');
+    assert.equal(result.stderr, '');
+  }
+  for (const flags of ['-cb', '-c -b', '--characters --bytes']) {
+    const result = await shell.exec(`printf 'ab\\rcd' | fold ${flags} -w2`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, 'ab\n\rc\nd');
+    assert.equal(result.stderr, '');
+  }
+  const unicode = await shell.exec("printf 'éé' | fold -c -w2");
+  assert.equal(unicode.stdout, 'é\né');
+  assert.equal(unicode.exitCode, 0);
+  const invalid = await shell.exec("printf abc | fold --characters=yes");
+  assert.equal(invalid.exitCode, 1);
+  assert.equal(invalid.stdout, '');
+});
 
 async function direct(commands: CommandRegistry, command: string, args: readonly string[], input = "") {
   const chunks: Uint8Array[] = [];

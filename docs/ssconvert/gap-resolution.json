@@ -1086,5 +1086,19 @@
     "gateScope": "Frozen owned candidate before eight later incoming commits; rebased98focused controls pass",
     "remaining": "Separate native-validated noclobber self-symlink issue, all original ssconvert families and actual publication",
     "publication": "unverified"
+  },
+  "pandocOperandAggregationFollowup": {
+    "proof": "docs/ssconvert/pandoc-operand-aggregation-gap-proof.json",
+    "implementationCommit": "6e90b288581854e595ec27abde598970b324eb5d",
+    "remoteMainVerified": true,
+    "native": "Pandoc3.10.1 Darwin commonmark",
+    "focusedRedTests": 41,
+    "focusedRedFailures": 9,
+    "maintainedFiles": 48,
+    "maintainedTests": 1093,
+    "rebasedShellUmaskGlobTests": 98,
+    "integratedGuardedLintSubjects": 16428,
+    "publication": "unverified",
+    "remaining": "Native Linux profiles, complete Pandoc/ssconvert plan families and actual containing publication"
   }
 }

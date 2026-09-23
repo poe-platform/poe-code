@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "classification": "Validated containing CI feedback; Pandoc native operand aggregation",
+  "problem": "Commonmark operands with no final LF joined with only one LF, producing one paragraph. Maintained old integration expectation of hard line breaks was also inconsistent with native Pandoc.",
+  "native": {
+    "binary": "/opt/homebrew/Cellar/pandoc/3.10.1/bin/pandoc",
+    "binaryBytes": 277080112,
+    "binarySha256": "61574e53a089110eae07817b91510ff150e826807ac020aa744e0ade23025e0d",
+    "version": "pandoc 3.10.1\nFeatures: +server +lua\nScripting engine: Lua 5.4\nUser data directory: /Users/kjopek/.local/share/pandoc\nCopyright (C) 2006-2025 John MacFarlane. Web:  https://pandoc.org\nThis is free software; see the source for copying conditions. There is no\nwarranty, not even for merchantability or fitness for a particular purpose.\n",
+    "command": [
+      "/opt/homebrew/bin/pandoc",
+      "-f",
+      "commonmark",
+      "-t",
+      "plain",
+      "a b.md",
+      "-",
+      "b.md"
+    ],
+    "stdin": "Middle",
+    "inputFiles": {
+      "a b.md": "Alpha",
+      "b.md": "Beta"
+    },
+    "exitCode": 0,
+    "stdout": "Alpha\n\nMiddle\n\nBeta\n",
+    "stderr": "",
+    "neighbor": {
+      "args": [
+        "-f",
+        "commonmark",
+        "-t",
+        "plain",
+        "--",
+        "-name.md"
+      ],
+      "input": "Dash",
+      "exitCode": 0,
+      "stdout": "Dash\n",
+      "stderr": ""
+    },
+    "setupFailure": "First bounded-hash guard128MiB rejected277080112byte executable metadata; repeated with explicit512MiB bound and streaming hash. No executable was text-decoded."
+  },
+  "nativeSeparatorControls": [
+    {
+      "name": "none",
+      "inputs": [
+        "Alpha",
+        "Beta"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "Alpha\n\nBeta\n",
+      "stderr": ""
+    },
+    {
+      "name": "none",
+      "inputs": [
+        "Alpha",
+        "Beta"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Alpha\"}]},{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Beta\"}]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "one",
+      "inputs": [
+        "Alpha\n",
+        "Beta"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "Alpha\n\nBeta\n",
+      "stderr": ""
+    },
+    {
+      "name": "one",
+      "inputs": [
+        "Alpha\n",
+        "Beta"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Alpha\"}]},{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Beta\"}]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "two",
+      "inputs": [
+        "Alpha\n\n",
+        "Beta"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "Alpha\n\nBeta\n",
+      "stderr": ""
+    },
+    {
+      "name": "two",
+      "inputs": [
+        "Alpha\n\n",
+        "Beta"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Alpha\"}]},{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Beta\"}]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "empty",
+      "inputs": [
+        "",
+        "Beta"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "Beta\n",
+      "stderr": ""
+    },
+    {
+      "name": "empty",
+      "inputs": [
+        "",
+        "Beta"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Str\",\"c\":\"Beta\"}]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence",
+      "inputs": [
+        "```\nAlpha",
+        "Beta\n```"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "    Alpha\n\n    Beta\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence",
+      "inputs": [
+        "```\nAlpha",
+        "Beta\n```"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"Alpha\\n\\nBeta\"]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "reference",
+      "inputs": [
+        "[x]",
+        "[x]: /target"
+      ],
+      "to": "plain",
+      "status": 0,
+      "stdout": "x\n",
+      "stderr": ""
+    },
+    {
+      "name": "reference",
+      "inputs": [
+        "[x]",
+        "[x]: /target"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"Para\",\"c\":[{\"t\":\"Link\",\"c\":[[\"\",[],[]],[{\"t\":\"Str\",\"c\":\"x\"}],[\"/target\",\"\"]]}]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence-0",
+      "inputs": [
+        "```\nAlpha",
+        "Beta\n```"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"Alpha\\n\\nBeta\"]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence-1",
+      "inputs": [
+        "```\nAlpha\n",
+        "Beta\n```"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"Alpha\\n\\nBeta\"]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence-2",
+      "inputs": [
+        "```\nAlpha\n\n",
+        "Beta\n```"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"Alpha\\n\\n\\nBeta\"]}]}\n",
+      "stderr": ""
+    },
+    {
+      "name": "fence-3",
+      "inputs": [
+        "```\nAlpha\n\n\n",
+        "Beta\n```"
+      ],
+      "to": "json",
+      "status": 0,
+      "stdout": "{\"pandoc-api-version\":[1,23,1,2],\"meta\":{},\"blocks\":[{\"t\":\"CodeBlock\",\"c\":[[\"\",[],[]],\"Alpha\\n\\n\\n\\nBeta\"]}]}\n",
+      "stderr": ""
+    }
+  ],
+  "red": {
+    "focusedTests": 41,
+    "pass": 32,
+    "fail": 9,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/pandoc-separators-red.log",
+      "bytes": 16434,
+      "sha256": "81eb3745d6c94fab5945359d33c079f3454f2c8884a8dce7f4698282b2f55f6a"
+    }
+  },
+  "intermediate": {
+    "tests": 1093,
+    "pass": 1092,
+    "fail": 1,
+    "reason": "Existing custom reader assertion still required old oneLF operand join",
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/pandoc-separators-green.log",
+      "bytes": 7184,
+      "sha256": "a362b6459f68dcabba4d23881143c0ec7ccd3c95098bf2d865956cf7c448882f"
+    }
+  },
+  "repair": "Retain each input final newline and insert an additional LF between joined operands; admit separator retainedBytes before materialization and include each separator in source line offsets. Shared reference scope, resources/base ownership and selected reader operand policies preserved.",
+  "green": {
+    "files": 48,
+    "tests": 1093,
+    "pass": 1093,
+    "fail": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/pandoc-separators-final-green.log",
+      "bytes": 3632,
+      "sha256": "33b2b05485055c2ec6674481d70209f6685174b1f83ffc71d7b2d311c3049cf8"
+    }
+  },
+  "lint": {
+    "command": "npm run lint --workspace=@poe-code/pandoc",
+    "exitCode": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/pandoc-separators-rebased-lint.log",
+      "bytes": 274,
+      "sha256": "fdfd06ceca46bd424312371f145eec5ed2f368fff152b25a0fb7c78c3b525366"
+    }
+  },
+  "rebasedShellUmaskGlob": {
+    "tests": 98,
+    "pass": 98,
+    "fail": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/creating-open-pandoc-rebased-green.log",
+      "bytes": 21467,
+      "sha256": "2ee57f071ff3e86531a70d333bb64d7a67ebdbeebd44a05ecb403dce0837b33a"
+    }
+  },
+  "publicQualification": {
+    "SDKAndRootShell": "Exact native ordered Alpha/Middle/Beta paragraphs; root Shell registers createPandocCommand from public @poe-code/pandoc API",
+    "stdout": "Alpha\n\nMiddle\n\nBeta\n",
+    "exitCode": 0,
+    "stderr": "",
+    "glob": "Three backing entry stats plus one parent; device view owns /dev; created mode0600under077",
+    "deviceDiagnostics": [
+      {
+        "source": ": >/dev",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev: Permission denied\n"
+      },
+      {
+        "source": "set -C; : >/dev",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: ENOTSUP: exclusive creation is not supported, write '/dev'\n"
+      },
+      {
+        "source": ": >/dev/null",
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "source": "set -C; : >/dev/null",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null: cannot overwrite existing file\n"
+      },
+      {
+        "source": ": >/dev/null/child",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null/child: Not a directory\n"
+      },
+      {
+        "source": "set -C; : >/dev/null/child",
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": "shell: line 1: /dev/null/child: Not a directory\n"
+      }
+    ],
+    "screenshot": "Inspected readable terminal screenshot; final process success",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public.mjs",
+        "bytes": 2065,
+        "sha256": "a5f256424f3ae12e1dbbeb10107bc9c48300fd6aaea1c45c82be6c33ae4d6cfd"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public.log",
+        "bytes": 907,
+        "sha256": "7719d69c3620620c7683797697ff336501b29998c3c6bb7d57aa2cd0e272b7df"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-screenshot.log",
+        "bytes": 62,
+        "sha256": "1e65666c6535820f925c3436faf10932fcb8f77df39359d29f776ba9c6dc8100"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-visible.png",
+        "bytes": 359545,
+        "sha256": "73703d0ebf68a792ef96001f447fc5b79451c0e0d2de6bacf079e3b8af1d456c"
+      }
+    ]
+  },
+  "integratedGate": {
+    "baseline": "5ebc7d104f024902828e6a453adbbb07bfabc164",
+    "normalRootBuild": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-root-build.log",
+        "bytes": 24759,
+        "sha256": "3c03944ad4d8876ac4b3d9a322f32c078cbb6efbe4d58a5bc88a42b143608ea7"
+      }
+    },
+    "guardedRootLint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "subjects": 16428,
+      "errors": 0,
+      "warnings": 0,
+      "types": 0,
+      "workflows": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-stable-root-lint.log",
+        "bytes": 1748,
+        "sha256": "43092a3032f4b993a33268c5c550b8b4b03cfe7e2e34d6e5b3fa2fcf0ef41774"
+      }
+    },
+    "limits": "Frozen owned candidate passed before rebase over eight later incoming commits. Full gate does not qualify later unrelated source. Rebased focused98controls/package lint pass; incoming code and containing publication require CI."
+  },
+  "sourceBindings": [
+    {
+      "path": "packages/pandoc/src/engine.ts",
+      "bytes": 27865,
+      "sha256": "b96ef7e2c9869bc36ae02648f91a0f452aeea917b6a3e5a65f8b793aea9e77a0"
+    },
+    {
+      "path": "packages/pandoc/src/orchestration.test.ts",
+      "bytes": 7952,
+      "sha256": "7c6aa0d82f1bbeb1189a7daa18b4b12086747276bfee678c1da2416c83570066"
+    },
+    {
+      "path": "packages/pandoc/src/consumer.test.ts",
+      "bytes": 14909,
+      "sha256": "8ac1c57826be34b4e3c0bbc899c52336b396b15b22a2fe745c7dc3b4dc3b296c"
+    },
+    {
+      "path": "packages/pandoc/src/safe-bash.test.ts",
+      "bytes": 16097,
+      "sha256": "be03bc9486fe86226d522449478d8d23f4afc9dae51e3b732539866879ffe4b9"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/pandoc.test.ts",
+      "bytes": 7531,
+      "sha256": "20dc4b3db98d87db2868dc8b79cc9a7fcb71b1b68ed57185cc006d39df21ac52"
+    }
+  ],
+  "setupFailuresPreserved": [
+    {
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public-setup-failure.log",
+        "bytes": 665,
+        "sha256": "34b28935e09ad649b12efb4b714829a1b1fe62bfac510816a90fa0e4d67e291e"
+      },
+      "reason": "Root safe-bash has no pandocCommands export; corrected to public createPandocCommand registration."
+    },
+    {
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public-stat-setup-failure.log",
+        "bytes": 1405,
+        "sha256": "b0d4c4bab23efce82cf771a880d050a7f849352964c433a68aa44cbc2beeb48b"
+      },
+      "reason": "Device-owned /dev does not invoke backing MemoryFS.stat; corrected exact backing observation."
+    },
+    {
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-public-mode-setup-failure.log",
+        "bytes": 1237,
+        "sha256": "6c8d0db21c8fc153d78597df4879ebdea85d1a5401536e3037691a924810c0bd"
+      },
+      "reason": "FsStat.mode includes file type bits; corrected fixture masks permission bits."
+    },
+    {
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/creating-open-pandoc-screenshot-mode-setup-failure.log",
+        "bytes": 168,
+        "sha256": "1271bec29d8121f66a0169c3694e7566991c941223524ff42ecd83aa004536ff"
+      },
+      "reason": "Screenshot wrapper saved failed child; final child success separately verified."
+    }
+  ],
+  "discardedTemporaryExpectation": "Earlier spaces-only assertion passed portable tests but failed actual native oracle; reverted before this native-derived repair. Native emits blank-line-separated paragraphs.",
+  "limits": [
+    "Only native Pandoc3.10.1 Darwin commonmark operand join controls qualified here; not complete Pandoc parity.",
+    "Native fenced controls preserve raw native JSON escapes; custom reader seam verifies selected concatenation without claiming whole fenced writer parity.",
+    "All original ssconvert plan families, optional Linux profiles and successful containing publication remain required."
+  ],
+  "delivery": {
+    "implementationCommit": "6e90b288581854e595ec27abde598970b324eb5d",
+    "remoteMainVerified": true,
+    "publication": "unverified"
+  }
+}

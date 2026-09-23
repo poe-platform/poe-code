@@ -1,7 +1,8 @@
-import { FsError, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, resolvePath, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { openFileOutput, type FileOutput } from "../../contracts/filesystem-output.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import { outputFailure, type ByteSink } from "../../contracts/io.js";
-import { Budget, IconvError, settings, type IconvCommandsOptions, type IconvLimits } from "./internal.js";
+import { Budget, IconvError, pathText, settings, type IconvCommandsOptions, type IconvLimits } from "./internal.js";
 import { Lifecycle } from "./lifecycle.js";
 import { Reader, fsDetail } from "./reader.js";
 import { parse, type Parsed } from "./options.js";
@@ -34,6 +35,7 @@ async function transcode(options: Parsed, lifecycle: Lifecycle): Promise<number>
 
 async function execute(context: CommandContext, limits: IconvLimits): Promise<{ exitCode: number }> {
   let lifecycle: Lifecycle | undefined;
+  let fileOutput: FileOutput | undefined;
   const caller = context.signal;
   caller.throwIfAborted();
   const stdout = context.stdout;
@@ -49,9 +51,15 @@ async function execute(context: CommandContext, limits: IconvLimits): Promise<{ 
   const destination = capability ?? stdout;
   const write = async (value: Uint8Array): Promise<void> => {
     lifecycle!.assertOpen();
-    const method = destination.write;
+    const selected = fileOutput?.sink ?? destination;
+    const method = selected.write;
     lifecycle!.assertOpen();
-    await Reflect.apply(method, destination, [value]);
+    try { await Reflect.apply(method, selected, [value]); }
+    catch (error) {
+      lifecycle!.budget.signal.throwIfAborted();
+      if (!fileOutput || !(error instanceof FsError)) throw error;
+      throw new IconvError(`error while writing output: ${fsDetail(error)}`);
+    }
   };
   const captured: ByteSink = {
     write,
@@ -68,7 +76,31 @@ async function execute(context: CommandContext, limits: IconvLimits): Promise<{ 
   let exitCode = 0;
   try {
     lifecycle = new Lifecycle(budget, output, captured);
-    exitCode = await transcode(parse(budget), lifecycle);
+    const options = parse(budget);
+    if (options.output !== undefined && options.output !== "-") {
+      try {
+        if (options.output === "") throw new FsError("ENOENT", { path: "" });
+        const path = resolvePath(context.cwd, pathText(options.output));
+        fileOutput = await lifecycle.operation(() => openFileOutput({
+          fs: context.fs, signal: budget.signal,
+          registerCleanup: output.registerCleanup.bind(output),
+          outputBudget: "independent",
+        }, path, "w"));
+      } catch (error) {
+        budget.signal.throwIfAborted();
+        if (!(error instanceof FsError)) throw error;
+        throw new IconvError(`cannot open output file \`${options.output}': ${fsDetail(error)}`);
+      }
+    }
+    exitCode = await transcode(options, lifecycle);
+    if (fileOutput) {
+      try { await lifecycle.operation(() => fileOutput!.finish()); }
+      catch (error) {
+        budget.signal.throwIfAborted();
+        if (!(error instanceof FsError)) throw error;
+        throw new IconvError(`error while writing output: ${fsDetail(error)}`);
+      }
+    }
   } catch (error) {
     primary = { reason: error };
     if (error instanceof IconvError && !output.signal.aborted && lifecycle) {

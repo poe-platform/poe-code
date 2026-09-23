@@ -180,6 +180,7 @@ Exit 1 means no match; exit 2 means filtering failed. If a preceding action
 succeeded, inspect its resulting state and retry only the read-only verification
 before repeating the action. A configured regex executor may support more syntax.
 `tee` accepts `-i` / `--ignore-interrupts`, `-p`, and `--output-error[=warn|warn-nopipe|exit|exit-nopipe]` alongside `-a` / `--append`. File write failures continue with the remaining destinations in warn modes and stop in exit modes; the last error option wins. Bare `--output-error` and `-p` select `warn-nopipe`. Virtual commands have no native signal handlers or OS pipes: host cancellation and shell downstream-failure handling remain in effect.
+`iconv -f UTF-8 -t UTF-16BE -o result source` writes converted bytes to a virtual file, replacing its existing contents. `--output=result` is equivalent; omit input files to convert stdin, and use `--output=-` to write to stdout. Conversion output limits also apply to file output.
 
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 

@@ -7,6 +7,7 @@ export interface Parsed {
   readonly discard: boolean;
   readonly transliterate: boolean;
   readonly files: readonly string[];
+  readonly output: string | undefined;
 }
 
 function encoding(value: string): Encoding {
@@ -25,7 +26,7 @@ function encoding(value: string): Encoding {
 
 export function parse(budget: Budget): Parsed {
   const args = budget.arguments();
-  let from: string | undefined, to: string | undefined, discard = false, ended = false;
+  let from: string | undefined, to: string | undefined, output: string | undefined, discard = false, ended = false;
   const files: string[] = [];
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -35,19 +36,23 @@ export function parse(budget: Budget): Parsed {
     if (argument.startsWith("--")) {
       const equals = argument.indexOf("=");
       const option = equals < 0 ? argument : argument.slice(0, equals);
-      if (option !== "--from-code" && option !== "--to-code") throw new IconvError(`unsupported option: ${argument}`, 64);
+      if (option !== "--from-code" && option !== "--to-code" && option !== "--output") throw new IconvError(`unsupported option: ${argument}`, 64);
       const value = equals < 0 ? args[++index] : argument.slice(equals + 1);
       if (value === undefined) throw new IconvError(`option '${option}' requires an argument`, 64);
-      if (option === "--from-code") from = value; else to = value;
+      if (option === "--from-code") from = value;
+      else if (option === "--to-code") to = value;
+      else output = value;
       continue;
     }
     for (let offset = 1; offset < argument.length; offset++) {
       const flag = argument[offset]!;
       if (flag === "c") { discard = true; continue; }
-      if (flag !== "f" && flag !== "t") throw new IconvError(`invalid option -- '${flag}'`, 64);
+      if (flag !== "f" && flag !== "t" && flag !== "o") throw new IconvError(`invalid option -- '${flag}'`, 64);
       const value = argument.slice(offset + 1) || args[++index];
       if (value === undefined) throw new IconvError(`option requires an argument -- '${flag}'`, 64);
-      if (flag === "f") from = value; else to = value;
+      if (flag === "f") from = value;
+      else if (flag === "t") to = value;
+      else output = value;
       break;
     }
   }
@@ -72,5 +77,5 @@ export function parse(budget: Budget): Parsed {
     else throw new IconvError(`unsupported default encoding locale: ${locale}; specify -f and -t`);
     from ??= fallback; to ??= fallback;
   }
-  return { from: encoding(from), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"] };
+  return { from: encoding(from), to: encoding(to), discard, transliterate, files: files.length ? files : ["-"], output };
 }

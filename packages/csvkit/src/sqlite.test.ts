@@ -6,7 +6,7 @@ import init from '@sqlite.org/sqlite-wasm';
 import { createSqliteDatabaseProvider } from './sqlite.js';
 import reference from '../../../docs/csvkit/csvsql-reference.json' with { type: 'json' };
 import sqliteReference from '../../../docs/csvkit/sqlite-engine-reference.json' with { type: 'json' };
-import { execute, defaultLimits } from './engine.js';
+import { execute, run, defaultLimits } from './engine.js';
 import { OwnedArguments } from './argv.js';
 import { utf8Codec } from './codecs/utf8.js';
 import type { CsvkitContext } from './contracts.js';
@@ -45,9 +45,23 @@ const blockedQueries = new Set(['PRAGMA encoding', "SELECT CAST(x'80' AS TEXT) A
   'CREATE VIRTUAL TABLE docs USING fts3(content)', 'CREATE VIRTUAL TABLE docs4 USING fts4(content)', 'CREATE VIRTUAL TABLE geo USING geopoly(a,b,c)',
   "SELECT 'abc' REGEXP '^a' AS matches"]);
 const differentials = [
+  ...['echo False', 'future True', 'echo False future True'].flatMap(options => {
+    const tokens = options.split(' ');
+    const flags = tokens.flatMap((token, index) => index % 2 === 0 ? ['--engine-option', token, tokens[index + 1]!] : []);
+    return [
+      { command: 'sql2csv', argv: ['--db', 'sqlite:///:memory:', ...flags, '--query', 'SELECT 1 AS n'], stdin: '', stdout: 'n\n1\n', stderr: '', status: 0, label: `sql2csv engine options ${options}` },
+      { command: 'csvsql', argv: [...flags, '--tables', 'data', '--query', 'SELECT count(*) AS n FROM data'], stdin: 'name,n\nAda,2\nGrace,1\n', stdout: 'n\n2\n', stderr: '', status: 0, label: `csvsql engine options ${options}` }
+    ];
+  }),
   ...reference.cases.flatMap((item, index) => item.argv.includes('--query') ? [{ ...item, command: 'csvsql', label: `csvsql ${index}` }] : []),
   ...sqliteReference.executables.filter(item => !blockedQueries.has(item.argv[1]!)).map((item, index) => ({ ...item, stdin: '', label: `sql2csv ${index}` }))
 ];
+
+test('SQLite continues to refuse engine options outside its supported values', async () => {
+  for (const options of [{ echo: true }, { future: false }, { echo: 'False' }, { future: 1 }, { pool_size: 2 }, { echo: false, connect_args: {} }]) {
+    await assert.rejects(provider.connect('sqlite://', options, signal), /SQLite engine options profile/);
+  }
+});
 for (const item of differentials) {
   test(`bound SQLite 3.50.4 original differential ${item.label}`, async () => {
     let stdout = '', stderr = '';
@@ -66,6 +80,19 @@ for (const item of differentials) {
     const status = await execute(item.command, context);
     await Promise.all(cleanups.map(cleanup => cleanup()));
     assert.deepEqual({ stdout, stderr, status }, { stdout: item.stdout, stderr: item.stderr, status: item.status });
+    if (item.label.includes('engine options')) {
+      stdout = ''; stderr = ''; cleanups.length = 0;
+      const engine_option: [string, string][] = [];
+      item.argv.forEach((value, index) => {
+        if (value === '--engine-option') engine_option.push([item.argv[index + 1]!, item.argv[index + 2]!]);
+      });
+      const sdkContext = { ...context, stdin: (async function* () { yield new TextEncoder().encode(item.stdin); })() };
+      const sdkStatus = await run(item.command === 'csvsql'
+        ? { command: 'csvsql', settings: { engine_option, table_names: 'data', queries: ['SELECT count(*) AS n FROM data'] } }
+        : { command: 'sql2csv', settings: { engine_option, connection_string: 'sqlite:///:memory:', query: 'SELECT 1 AS n' } }, sdkContext);
+      await Promise.all(cleanups.map(cleanup => cleanup()));
+      assert.deepEqual({ stdout, stderr, status: sdkStatus }, { stdout: item.stdout, stderr: item.stderr, status: item.status });
+    }
   });
 }
 

@@ -20,6 +20,11 @@ configuration. Database connections, compression and Python interpretation requi
 appropriate host bindings; ambient host credentials are never loaded implicitly.
 The engine does not fall back to native csvkit processes.
 
+The configured SQLite provider accepts `--engine-option echo False` and
+`--engine-option future True` for `csvsql` and `sql2csv`, including both together.
+SDK callers can supply the same values through `engine_option` pairs. Other
+SQLite engine options remain unsupported.
+
 See the [usage guide](../../docs/csvkit/usage-draft.md) for command registration,
 encoding, environment settings and limits. Safe Bash provides an opt-in
 `csvkitCommands` plugin using the same SDK.

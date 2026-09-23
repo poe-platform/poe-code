@@ -95,7 +95,9 @@ export function createSqliteDatabaseProvider(settings: SQLiteOptions): SQLiteDat
     async connect(url, options, signal, invocation): Promise<DatabaseSession> {
       signal.throwIfAborted();
       if (disposed) throw new Error('SQLite provider disposed');
-      if (Object.keys(options).length) throw new CsvkitBlocked('SQLite engine options profile');
+      // SQLAlchemy 2 already uses the future API; disabling echo adds no logging.
+      if (Object.entries(options).some(([key, value]) => !((key === 'echo' && value === false) || (key === 'future' && value === true))))
+        throw new CsvkitBlocked('SQLite engine options profile');
       const parsed = parseDatabaseUrl(url);
       if (!['sqlite', 'sqlite+pysqlite'].includes(parsed.drivername)) throw new CsvkitBlocked('SQLite connection URL');
       sqliteDialect.validateUrl!(parsed);

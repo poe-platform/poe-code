@@ -405,7 +405,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (header(response.headers, "content-range") === `bytes */${resumeOffset}`) return 0;
       }
       if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
-      const suppressBody = args.fail && failure !== undefined;
+      const suppressBody = response.status === 304 || args.fail && failure !== undefined;
       let published = 0;
       if (!args.download?.spider && (!suppressBody || included.length)) {
         if (args.download && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });

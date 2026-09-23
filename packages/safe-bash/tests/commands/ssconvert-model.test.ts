@@ -111,7 +111,7 @@ test('ssconvert graph image command and SDK preserve target IDs, reversed ties a
   const good = await shell.exec('ssconvert --export-graphs -T svg /original.gnumeric /graph-%n-%o.svg');
   assert.equal(good.exitCode, 0, good.stderr);
   assert.equal(good.stdout, ''); assert.equal(good.stderr, '');
-  assert.match(volume.readFileSync('/graph-2-Later.svg', 'utf8'), /width="71" height="35"/u);
+  assert.match(volume.readFileSync('/graph-2-Later.svg', 'utf8').toString(), /width="71" height="35"/u);
   volume.mkdirSync('/denied-0.svg');
   const denied = await shell.exec('ssconvert --export-graphs -T svg /original.gnumeric /denied-%n.svg');
   assert.equal(denied.exitCode, 1);
@@ -126,7 +126,10 @@ test('ssconvert graph image command and SDK preserve target IDs, reversed ties a
   try {
     const sdkFiles: string[] = [];
     const result = await engine.exportGraphs({ input: { kind: 'stream', source: [new TextEncoder().encode(original)], filename: '/original.gnumeric' }, graph: { template: '/sdk-%n-%o.svg', format: 'svg' } }, { signal: new AbortController().signal });
-    for (const artifact of result.artifacts) sdkFiles.push(artifact.uri);
+    for (const artifact of result.artifacts) {
+      assert.ok(artifact.uri);
+      sdkFiles.push(artifact.uri);
+    }
     assert.equal(result.exitCode, 0);
     assert.deepEqual(sdkFiles, ['file:///sdk-0-Last.svg', 'file:///sdk-1-First.svg', 'file:///sdk-2-Later.svg']);
     assert.equal(volume.readFileSync('/sdk-0-Last.svg', 'utf8'), volume.readFileSync('/graph-0-Last.svg', 'utf8'));

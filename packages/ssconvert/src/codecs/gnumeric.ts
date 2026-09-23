@@ -300,9 +300,13 @@ function names(node: XmlElement | undefined, sheet: string, local = false): Name
 }
 
 /** Native XML cell expressions bind before delayed name definitions are parsed. */
-function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void): ReadonlyMap<XmlElement, string> {
+function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void): {
+  formulas: ReadonlyMap<XmlElement, string>; placeholders: readonly NamedExpression[];
+} {
   const bound = new Map<XmlElement, string>();
+  const placeholders: NamedExpression[] = [];
   const globals = new Set<string>(), locals = new Map<string, Set<string>>();
+  const futureGlobals = new Set(children(root, "Names").flatMap(group => names(group, "").map(entry => entry.name)));
   const futureLocals = new Map<string, Set<string>>();
   for (const sheet of children(child(root, "Sheets"), "Sheet")) {
     const name = sheetName(sheet);
@@ -312,6 +316,11 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
     const key = foldSheetName(name);
     // sheet_constructed installs these permanent names before XML content.
     if (!locals.has(key)) locals.set(key, new Set(["Sheet_Title", "Print_Area"]));
+  };
+  const addGlobalPlaceholder = (name: string, row: number, column: number) => {
+    if (globals.has(name)) return;
+    globals.add(name);
+    if (!futureGlobals.has(name)) placeholders.push({ name, expression: "#NAME?", position: { sheet: "", row, column } });
   };
   for (const section of root.children) {
     if (!namespaces.has(section.namespace)) continue;
@@ -337,14 +346,19 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
           visitFormula(parsed.document.root, node => {
             tick();
             if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return;
-            if (node.workbook === "" && node.sheet === undefined) { globals.add(node.name); return; }
+            if (node.workbook === "" && node.sheet === undefined) { addGlobalPlaceholder(node.name, row, column); return; }
             const scope = foldSheetName(node.sheet ?? name), visible = locals.get(scope);
             if (!visible || visible.has(node.name)) return;
             if (!globals.has(node.name)) {
               // An unknown unqualified name creates a global placeholder;
               // a qualified name creates a placeholder on that sheet.
-              if (node.sheet !== undefined) { visible.add(node.name); return; }
-              globals.add(node.name);
+              if (node.sheet !== undefined) {
+                visible.add(node.name);
+                if (!futureLocals.get(scope)?.has(node.name)) placeholders.push({ name: node.name, expression: "#NAME?",
+                  sheet: scope, position: { sheet: scope, row, column } });
+                return;
+              }
+              addGlobalPlaceholder(node.name, row, column);
             }
             if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
           });
@@ -355,7 +369,7 @@ function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () =>
       }
     }
   }
-  return bound;
+  return { formulas: bound, placeholders };
 }
 function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
   const result: AxisMetadata[] = [];
@@ -442,7 +456,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0 || row >= size.rows || column >= size.columns) invalid("invalid cell position");
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
-      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? boundNames.get(item) ?? text : undefined;
+      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? boundNames.formulas.get(item) ?? text : undefined;
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
         const parsed = parseExpression(original.formula, { position: original, signal: context.signal });
@@ -499,6 +513,13 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
   const allNames = [...children(root, "Names").flatMap(group => names(group, sheets[0]?.id ?? "s1")),
     ...sheetNodes.flatMap((n, i) => children(n, "Names").flatMap(group => names(group, sheets[i]!.id, true)))];
+  const sheetIds = new Map(sheets.map(sheet => [foldSheetName(sheet.name), sheet.id]));
+  for (const placeholder of boundNames.placeholders) {
+    tick();
+    const sheet = placeholder.sheet === undefined ? undefined : sheetIds.get(placeholder.sheet)!;
+    allNames.push({ ...placeholder, ...(sheet === undefined ? {} : { sheet }),
+      position: { ...placeholder.position!, sheet: sheet ?? sheets[0]!.id } });
+  }
   return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: allNames, properties: metadata(root),
     dateSystem,
     calculationMode: manualRecalc ? "manual" : "automatic", iteration,

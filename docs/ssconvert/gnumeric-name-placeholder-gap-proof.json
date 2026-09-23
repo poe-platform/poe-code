@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "validatedBase": "8bc6140a9de9b39a60116228080a7c4a40a632ef",
+  "problem": "A parsed local name placeholder was tracked only during XML binding and discarded from the imported model. A later global declaration then captured the formula, yielding11 instead of native #NAME?. Global placeholders were also missing from model/name-edit/XML-export data.",
+  "native": {
+    "run": 35931353812,
+    "evidence": "docs/ssconvert/gnumeric-name-placeholder-native-capture.json",
+    "inputs": 4,
+    "commands": 12,
+    "allExitZero": true,
+    "stderrBytes": 0,
+    "findings": [
+      "Native first import of the late-global fixture returns #NAME?,11,#NAME?; its own XML replay returns11,11,12.",
+      "The filled-local control first returns2,11,3 and replays11,11,12. Early-global returns11,11,12 both times; no-global returns three #NAME? values both times.",
+      "Native writes local Rate=#NAME? atA1 and, in the no-global input, global Rate=#NAME? atA2. Stored placeholder definitions are not fabricated aliases.",
+      "Exact runhead, artifact digest, source/profile/workflow bindings, AArch64/0755 binary,46active plugins,49module entries/48resolvedfiles,2prefix libraries and8fonts authenticated."
+    ]
+  },
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "members": [
+      {
+        "path": "src/parser.y",
+        "sha256": "b0ebd707f3205031b00e4fcb5da8f7ea75f1d0e1b03b1d54c118c7dcb434b9c3",
+        "finding": "parser_simple_name creates missing unqualified names in workbook scope and qualified names on the target sheet, preserving original parse coordinates."
+      },
+      {
+        "path": "src/expr-name.c",
+        "sha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+        "finding": "expr_name_add_unlinked turns NULL expression into constant #NAME?, retains namespace/position, and reuses placeholders when a real declaration arrives. Collection lists include placeholders."
+      },
+      {
+        "path": "src/xml-sax-read.c",
+        "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+        "finding": "Declarations are installed as they arrive; delayed expression bodies fill the same name objects after reading."
+      },
+      {
+        "path": "src/xml-sax-write.c",
+        "sha256": "5605cd67d0be77854c0f28e1cab71bcae99175fa8edca8fa62d10e4a6ba7a013",
+        "finding": "xml_write_named_expressions serializes all listed name definitions, including placeholders and positions."
+      }
+    ]
+  },
+  "implementation": "Retain global/local #NAME? placeholders encountered by the existing XML cell-binding pass, deduplicate on exact name identity, preserve first parse coordinates and avoid duplicating later real definitions. Map folded local display names to final internal sheet IDs. Continue charging existing AST and final name-materialization work; preserve cancellation and engine-owned model admission.",
+  "validation": {
+    "localTdd": {
+      "initial": {
+        "tests": 8,
+        "failed": 1,
+        "passed": 7
+      },
+      "expanded": {
+        "tests": 13,
+        "failed": 5,
+        "passed": 8
+      }
+    },
+    "globalTdd": {
+      "tests": 15,
+      "failed": 2,
+      "passed": 13,
+      "baseline": "Intermediate local-placeholder implementation"
+    },
+    "focused": {
+      "files": 3,
+      "tests": 42,
+      "passed": 42
+    },
+    "workspace": {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "files": 380,
+      "tests": 22790,
+      "passed": 22790
+    },
+    "lint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "finalPassed": true,
+      "scope": "ESLint and source/test/consumer types"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
+      "builds": 4,
+      "layers": 11,
+      "passed": true
+    },
+    "public": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+          "sha256": "0d08e0263ba49691e79c86dfc7d7fa81c8bc0c12c2d872dadaf39248490940b5"
+        },
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric-name-order.test.ts",
+          "sha256": "09142e29e31e9e604ebf05dce3a2a237e4373dd61844ec57dda01f665fd26807"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "ea025d878d7c1f6046090e216fe4984eb857d6f98d8462ba29e8e65457948806"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "results": [
+        {
+          "id": "late-global-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "4359c539a5234c85df900002f1db701d342512bcfee5ab136a6c39981e3ee40a",
+          "expected": "#NAME?\n11\n#NAME?\n",
+          "sdk": "#NAME?\n11\n#NAME?\n",
+          "shell": "#NAME?\n11\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "c125a9dcb1f8a7bac9281aae8c490115217c865f98c5d008e44a370244d8fb5a",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "98893de54124c6c827a0656d5f48277d480b7a7789c43738a2832c1dc8006d9f",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "68fb623dcb9190416d448399884c86eff1a43f44b4bd1aa24c42fb5ac1b6f591",
+          "expected": "#NAME?\n11\n#NAME?\n",
+          "sdk": "#NAME?\n11\n#NAME?\n",
+          "shell": "#NAME?\n11\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "4b617f59e467279257fff6a7f7d3c89a132650c60e76cfb3eeea1c13745789c2",
+          "expected": "#NAME?\n11\n#NAME?\n",
+          "sdk": "#NAME?\n11\n#NAME?\n",
+          "shell": "#NAME?\n11\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "d40b0be445dc28b38202fff27f40c172946aa1857d2946b933524a76182a5794",
+          "expected": "#NAME?\n11\n#NAME?\n",
+          "sdk": "#NAME?\n11\n#NAME?\n",
+          "shell": "#NAME?\n11\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "late-global-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "f306670caed8b570e7f37065a2e91f7b87da6aca15967efffb8dced41d33092a",
+          "expected": "#NAME?\n11\n#NAME?\n",
+          "sdk": "#NAME?\n11\n#NAME?\n",
+          "shell": "#NAME?\n11\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "32e0cb44f4d802ba41f996f069f31aa8da43a45a9b0ebc98fa7082643eb8bade",
+          "expected": "2\n11\n3\n",
+          "sdk": "2\n11\n3\n",
+          "shell": "2\n11\n3\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "b196df590fbf18b47b49adb7274d592cee31a608a882fcb01258b591b44641ce",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "cfb6a9ab85e82c7992638e68ba7695fec8164fef1511c35286ae43f22e87c0b7",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "0f6e844d11f56943f766b7a84d5e47ba247fd0310f73d8d2bf6af8f34bd10746",
+          "expected": "2\n11\n3\n",
+          "sdk": "2\n11\n3\n",
+          "shell": "2\n11\n3\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "fd55d7ef9c931d86e6a848d631be57483d62ee43f38e5cee36efcf13f0946637",
+          "expected": "2\n11\n3\n",
+          "sdk": "2\n11\n3\n",
+          "shell": "2\n11\n3\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "6e9a661b08795eb779d6be8e9013d04e47314d5bcd3d3502f31b8009b4d11f6c",
+          "expected": "2\n11\n3\n",
+          "sdk": "2\n11\n3\n",
+          "shell": "2\n11\n3\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "filled-local-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "9f6f0e2242b555e41d56206162b7886ebb2f869e2fa721c5dd881954b47a5792",
+          "expected": "2\n11\n3\n",
+          "sdk": "2\n11\n3\n",
+          "shell": "2\n11\n3\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "6850ef797d2c9d8b9d96c2248b6215737f1f00265d55abef7493498a1037a1ef",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "787c31252cd85e399f325ddd937953fd254ea23d21376c6ed1f8d3d12982cde4",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "ab0b07e337be73304b5c8721e27086da8dd644fa3eb976ae814aa023a7589dfe",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "f3301f2f23c4e4b3337361f83a0d8be14717c229e37084b112e3ec32a11e030d",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "e86f62c02f0b7836bf595b7f8eeb302312aae197ae6d9f552963fe33ac6f8edb",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "8d1d9235b625f851e6c50438a9ff46296f39c9da85c7ce1536423726c76ba24d",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "early-global-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "5e205a716329f65dd66be5be900e6e9b87008a54d92df39e04a51d0b568ebe82",
+          "expected": "11\n11\n12\n",
+          "sdk": "11\n11\n12\n",
+          "shell": "11\n11\n12\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-original",
+          "filename": "input.gnumeric",
+          "inputSha256": "aec189f16ade48af57a78d40cbe0a41aef0168fdf4631d51e60eff5aae35b834",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-native-xml",
+          "filename": "native.gnumeric",
+          "inputSha256": "3579eacdc5593da2c4953682528bcc92ca6fc9701decda0ee88d85bc712ad939",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "inputSha256": "1cc882b1a11e0a434a927f29cc16f706a376afbcf73f80c3e556a7e36a19f15b",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-replay7.xls",
+          "filename": "replay7.xls",
+          "inputSha256": "7cbd678ada2e530c294fd366be00d2317b1f5e269e0e545e0513c375aaf71e29",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-replay8.xls",
+          "filename": "replay8.xls",
+          "inputSha256": "e6ab3d08350cb6eaefcd246b93513f021a3222aeb627502eb841976221b0c7eb",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-replay-dsf.xls",
+          "filename": "replay-dsf.xls",
+          "inputSha256": "d6d7c5a878bc015415797dd78d61ee901d93f9a1e1ee412ef1152acd374f951e",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        },
+        {
+          "id": "no-global-replay.xlsx",
+          "filename": "replay.xlsx",
+          "inputSha256": "050c623f7f9604c189f3b19ef18e693d1f5cc15e04ed7edd88a05fe2b4e9998b",
+          "expected": "#NAME?\n#NAME?\n#NAME?\n",
+          "sdk": "#NAME?\n#NAME?\n#NAME?\n",
+          "shell": "#NAME?\n#NAME?\n#NAME?\n",
+          "diagnostics": [],
+          "inputAndNamespacePreserved": true
+        }
+      ],
+      "outputs": [
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "98893de54124c6c827a0656d5f48277d480b7a7789c43738a2832c1dc8006d9f",
+          "bytes": 2097
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "68fb623dcb9190416d448399884c86eff1a43f44b4bd1aa24c42fb5ac1b6f591",
+          "bytes": 5632
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "4b617f59e467279257fff6a7f7d3c89a132650c60e76cfb3eeea1c13745789c2",
+          "bytes": 5632
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "d40b0be445dc28b38202fff27f40c172946aa1857d2946b933524a76182a5794",
+          "bytes": 9728
+        },
+        {
+          "id": "late-global",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "f306670caed8b570e7f37065a2e91f7b87da6aca15967efffb8dced41d33092a",
+          "bytes": 4949
+        },
+        {
+          "id": "filled-local",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "cfb6a9ab85e82c7992638e68ba7695fec8164fef1511c35286ae43f22e87c0b7",
+          "bytes": 2092
+        },
+        {
+          "id": "filled-local",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "0f6e844d11f56943f766b7a84d5e47ba247fd0310f73d8d2bf6af8f34bd10746",
+          "bytes": 5632
+        },
+        {
+          "id": "filled-local",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "fd55d7ef9c931d86e6a848d631be57483d62ee43f38e5cee36efcf13f0946637",
+          "bytes": 5632
+        },
+        {
+          "id": "filled-local",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "6e9a661b08795eb779d6be8e9013d04e47314d5bcd3d3502f31b8009b4d11f6c",
+          "bytes": 9728
+        },
+        {
+          "id": "filled-local",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "9f6f0e2242b555e41d56206162b7886ebb2f869e2fa721c5dd881954b47a5792",
+          "bytes": 4928
+        },
+        {
+          "id": "early-global",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "ab0b07e337be73304b5c8721e27086da8dd644fa3eb976ae814aa023a7589dfe",
+          "bytes": 1903
+        },
+        {
+          "id": "early-global",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "f3301f2f23c4e4b3337361f83a0d8be14717c229e37084b112e3ec32a11e030d",
+          "bytes": 5632
+        },
+        {
+          "id": "early-global",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "e86f62c02f0b7836bf595b7f8eeb302312aae197ae6d9f552963fe33ac6f8edb",
+          "bytes": 5632
+        },
+        {
+          "id": "early-global",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "8d1d9235b625f851e6c50438a9ff46296f39c9da85c7ce1536423726c76ba24d",
+          "bytes": 9728
+        },
+        {
+          "id": "early-global",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "5e205a716329f65dd66be5be900e6e9b87008a54d92df39e04a51d0b568ebe82",
+          "bytes": 4922
+        },
+        {
+          "id": "no-global",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "filename": "replay.gnumeric",
+          "sha256": "1cc882b1a11e0a434a927f29cc16f706a376afbcf73f80c3e556a7e36a19f15b",
+          "bytes": 2101
+        },
+        {
+          "id": "no-global",
+          "exportType": "Gnumeric_Excel:excel_biff7",
+          "filename": "replay7.xls",
+          "sha256": "7cbd678ada2e530c294fd366be00d2317b1f5e269e0e545e0513c375aaf71e29",
+          "bytes": 5632
+        },
+        {
+          "id": "no-global",
+          "exportType": "Gnumeric_Excel:excel_biff8",
+          "filename": "replay8.xls",
+          "sha256": "e6ab3d08350cb6eaefcd246b93513f021a3222aeb627502eb841976221b0c7eb",
+          "bytes": 5632
+        },
+        {
+          "id": "no-global",
+          "exportType": "Gnumeric_Excel:excel_dsf",
+          "filename": "replay-dsf.xls",
+          "sha256": "d6d7c5a878bc015415797dd78d61ee901d93f9a1e1ee412ef1152acd374f951e",
+          "bytes": 9728
+        },
+        {
+          "id": "no-global",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "filename": "replay.xlsx",
+          "sha256": "050c623f7f9604c189f3b19ef18e693d1f5cc15e04ed7edd88a05fe2b4e9998b",
+          "bytes": 4943
+        }
+      ],
+      "csvExecutions": 56,
+      "exports": 20,
+      "resolutions": 0,
+      "nativeRun": 35931353812,
+      "nativeQualification": "Four original inputs and four native XML replays authenticated; native serialization changes the two forward local bindings"
+    },
+    "screenshot": {
+      "path": "out/ssconvert-gnumeric-name-placeholder/public.png",
+      "sha256": "96d71982594f7f6b343e11920e1ad51fc67e0846f4b0b911848f33764f66456b",
+      "inspected": true,
+      "finding": "All original/replay result rows readable without clipping."
+    }
+  },
+  "draftCorrections": [
+    "The first local model-edit test explicitly assigned names:undefined under exactOptionalPropertyTypes; the maintained test typecheck rejected it. It now maps an explicit array, and final focused/package/lint/type checks pass.",
+    "Native input fixtures were inserted before older fixtures by an ambiguous patch context rather than appended at the end. Native authentication selects the four exact IDs, verifies their complete objects, and proves the other68inputs retain their original relative order and bytes/fields. All12new commands executed successfully."
+  ],
+  "bindings": [
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "sha256": "0d08e0263ba49691e79c86dfc7d7fa81c8bc0c12c2d872dadaf39248490940b5"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric-name-order.test.ts",
+      "sha256": "09142e29e31e9e604ebf05dce3a2a237e4373dd61844ec57dda01f665fd26807"
+    },
+    {
+      "path": "packages/ssconvert/dist/index.js",
+      "sha256": "ea025d878d7c1f6046090e216fe4984eb857d6f98d8462ba29e8e65457948806"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+      "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+    }
+  ],
+  "logs": [
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/red.log",
+      "sha256": "d97a374f9dfc043b6177f0020c9b7d740dd7c5894a8d816b7c8e425fcffdae77"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/red-cohort.log",
+      "sha256": "46a289da73b251aea05df99f98b86f69f72316ec5a8e3888d7da61d1ecb3aabd"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/global-red.log",
+      "sha256": "09200a8649c0a8c9d51de07071e02ad09a22ed08c30c5bc794f7c0d408ba47fa"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/green.log",
+      "sha256": "2424639a0a5c3ba93c60c14028486637db731849e765cdfccf83e4d21c48af85"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/global-green.log",
+      "sha256": "56d3b795f6153db65ad144d89bedb0d31953a1ead93b5c44f4c0fcee5f2a5a33"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/package-tests.log",
+      "sha256": "d24e77e8626a85e146b9a79222c6c7fd305fe883fe385d8182379ca12d4a274e"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/package-tests-final.log",
+      "sha256": "f2af197dd3592bc1ddd102d6d19e8af34a9d8554cc63c686bfc1f89a84c12a1a"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/lint.log",
+      "sha256": "cdf1511ac5c3261963ca967732bc51adb1d083c7e24c1f7e60a49507d7be83d9"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/lint-final.log",
+      "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/lint-global-final.log",
+      "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/build.log",
+      "sha256": "5b7cfd64f0b43b756e036686a04f944c9091c1acb512203d49044f1b1a514071"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/public.mjs",
+      "sha256": "c60bb30c00b8df8c00683c3496fb958c4abf013ef3146993df011ffd2cf97446"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/public.log",
+      "sha256": "e93cdf0583d254275e4b0716efd7be917fb66dbb13821b908e52de00487a17dc"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/screenshot.log",
+      "sha256": "f13033b996018759211c9dcd56ee252da6a48ddadfb9ef9c8793b1c8146ec91a"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/authenticate-native.py",
+      "sha256": "2283fc9a7df7e6a1f7f7694962cbbf9c213581b5f954f34eaf6fc9f0ae5c0319"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-placeholder/native-authentication.log",
+      "sha256": "d4947410fda694d9e92f4536c7b99a9e9cfbdc2207c97f547a2c2533c0a60085"
+    }
+  ],
+  "limits": [
+    "Native XML serialization/replay changes the two forward local bindings. This evidence retains both actual outcomes rather than claiming round-trip identity.",
+    "This change retains placeholders encountered by the existing parsed-cell binding pass. Full malformed-expression side effects, delayed definition parsing, permanent-name model emission, arrays and broader shared-copy/name-mutation parity remain separate requirements.",
+    "Public native parity is qualified for the four original inputs and four native XML files. Additional binary/XML exports are portable replay checks, not new independent native BIFF/XLSX captures.",
+    "All19 original families and containing root publication remain open."
+  ],
+  "delivery": {
+    "nativeFixtureCommit": "8bc6140a9de9b39a60116228080a7c4a40a632ef",
+    "nativeFixtureExactRemoteMainVerified": true,
+    "runtime": "Commit containing this proof; remote delivery is verified separately"
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34"
+  }
+}

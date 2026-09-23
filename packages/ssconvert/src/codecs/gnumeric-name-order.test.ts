@@ -52,6 +52,70 @@ it("reserves a forward local placeholder when no global definition is visible ye
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 2 });
 });
 
+it("does not bind a local placeholder to a global declaration that appears later", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Data!Rate"])], ["Data", ""]], names([["Rate", "11"]]), true), context);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
+  expect(book.names).toContainEqual({ name: "Rate", expression: "#NAME?", sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } });
+});
+
+it("resolves later unqualified uses on the placeholder's own sheet to that placeholder", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Data!Rate"])], ["Data", cells(["=Rate"])]], names([["Rate", "11"]]), true), context);
+  expect(recalculateWorkbook(book, context, true).sheets.map(sheet => sheet.cells[0]!.value)).toEqual([
+    { kind: "error", value: "#NAME?" }, { kind: "error", value: "#NAME?" }
+  ]);
+});
+
+it("retains exact placeholder names and their first parse position under folded sheet spelling", async () => {
+  const source = cells(["=Data!Rate", "='dAtA'!Rate", "=Data!rate", "=Rate", "=rate"]);
+  const book = await readGnumeric(input([["Here", source], ["Data", ""]], names([["Rate", "11"], ["rate", "13"]]), true), context);
+  expect(book.names?.filter(name => name.sheet === "s2")).toEqual([
+    { name: "Rate", expression: "#NAME?", sheet: "s2", position: { sheet: "s2", row: 0, column: 0 } },
+    { name: "rate", expression: "#NAME?", sheet: "s2", position: { sheet: "s2", row: 2, column: 0 } }
+  ]);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "error", value: "#NAME?" }, { kind: "error", value: "#NAME?" }, { kind: "error", value: "#NAME?" },
+    { kind: "number", value: 11 }, { kind: "number", value: 13 }
+  ]);
+});
+
+it("keeps a placeholder available for a later explicit model definition", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Data!Rate"])], ["Data", ""]], names([["Rate", "11"]]), true), context);
+  const edited = { ...book, names: (book.names ?? []).map(name => name.sheet === "s2" && name.name === "Rate" ? { ...name, expression: "7" } : name) };
+  expect(recalculateWorkbook(edited, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
+});
+
+it("does not add a duplicate placeholder when a later local declaration fills it", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Data!Rate"])], ["Data", names([["Rate", "2"]])]], names([["Rate", "11"]]), true), context);
+  expect(book.names?.filter(name => name.sheet === "s2" && name.name === "Rate")).toHaveLength(1);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 2 });
+});
+
+it("retains an unresolved local placeholder in XML when no later global definition exists", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Data!Rate"])], ["Data", ""]], ""), context);
+  const replay = await readGnumeric(await writeGnumeric(book, [], context), context);
+  expect(replay.names?.find(name => name.name === "Rate" && name.sheet === "s2")?.expression).toBe("#NAME?");
+  expect(recalculateWorkbook(replay, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#NAME?" });
+});
+
+it("retains global placeholders created by unqualified and explicitly global names", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Unknown", "=[]Explicit", "=Unknown"])], ["Data", ""]], ""), context);
+  expect(book.names).toEqual([
+    { name: "Unknown", expression: "#NAME?", position: { sheet: "s1", row: 0, column: 0 } },
+    { name: "Explicit", expression: "#NAME?", position: { sheet: "s1", row: 1, column: 0 } }
+  ]);
+  const replay = await readGnumeric(await writeGnumeric(book, [], context), context);
+  expect(replay.names).toEqual(book.names);
+});
+
+it("retains an earlier global placeholder beside a later same-spelled local declaration", async () => {
+  const book = await readGnumeric(input([["Here", cells(["=Rate", "=Data!Rate"])], ["Data", names([["Rate", "2"]])]], ""), context);
+  expect(book.names?.find(name => name.sheet === undefined && name.name === "Rate")?.expression).toBe("#NAME?");
+  const edited = { ...book, names: (book.names ?? []).map(name => name.sheet === undefined ? { ...name, expression: "7" } : name) };
+  expect(recalculateWorkbook(edited, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "number", value: 7 }, { kind: "number", value: 7 }
+  ]);
+});
+
 it("includes earlier global placeholders in later qualified-name lookup", async () => {
   const book = await readGnumeric(input([["Here", cells(["=Rate", "=Data!Rate"])], ["Data", names([["Rate", "2"]])]], ""), context);
   expect(recalculateWorkbook(book, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual([

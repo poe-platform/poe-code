@@ -6,26 +6,41 @@ export interface Parsed {
   readonly to: Encoding;
   readonly discard: boolean;
   readonly transliterate: boolean;
-  readonly files: readonly string[];
-  readonly output: string | undefined;
   readonly verbose: boolean;
+  readonly output: string | undefined;
+  readonly files: readonly string[];
 }
+
+const aliases: Record<string, Encoding> = {
+  ASCII: "ascii", "US-ASCII": "ascii", "ANSI_X3.4-1968": "ascii",
+  LATIN1: "latin1", "LATIN-1": "latin1", "ISO-8859-1": "latin1", "ISO8859-1": "latin1",
+  UTF8: "utf8", "UTF-8": "utf8", UTF16: "utf16", "UTF-16": "utf16",
+  UTF16LE: "utf16le", "UTF-16LE": "utf16le", UTF16BE: "utf16be", "UTF-16BE": "utf16be",
+};
 
 function encoding(value: string): Encoding {
   const key = value.toUpperCase();
-  const aliases: Record<string, Encoding> = {
-    ASCII: "ascii", "US-ASCII": "ascii", "ANSI_X3.4-1968": "ascii",
-    LATIN1: "latin1", "LATIN-1": "latin1", "ISO-8859-1": "latin1", "ISO8859-1": "latin1",
-    UTF8: "utf8", "UTF-8": "utf8", UTF16: "utf16", "UTF-16": "utf16",
-    UTF16LE: "utf16le", "UTF-16LE": "utf16le", UTF16BE: "utf16be", "UTF-16BE": "utf16be",
-  };
   if (key.includes("//")) throw new IconvError(`unsupported encoding suffix: ${value}`);
   const result = Object.hasOwn(aliases, key) ? aliases[key] : undefined;
   if (!result) throw new IconvError(`unsupported encoding: ${value}`);
   return result;
 }
 
-export function parse(budget: Budget): Parsed {
+const usage = "Usage: iconv [-lcs?V] [-f NAME] [-t NAME] [-o FILE] [--from-code=NAME]\n" +
+  "             [--to-code=NAME] [--list] [--output=FILE] [--silent] [--verbose]\n" +
+  "             [--help] [--usage] [--version] [FILE...]\n";
+const information: Record<string, string> = {
+  l: Object.keys(aliases).sort().map(name => `${name}//\n`).join(""),
+  "?": usage + "Convert text using the safe-bash bounded encoding engine.\n" +
+    "  -f, --from-code=NAME  input encoding\n  -t, --to-code=NAME    output encoding\n" +
+    "  -l, --list            list supported encodings and aliases\n" +
+    "  -c                    omit invalid characters\n  -o, --output=FILE     virtual output file (- for stdout)\n" +
+    "  -s, --silent          suppress warnings\n      --verbose         report input operands\n" +
+    "  -?, --help            show help\n      --usage           show usage\n  -V, --version         show engine identity\n",
+  V: "iconv (safe-bash bounded encoding engine)\n",
+};
+
+export function parse(budget: Budget): Parsed | { readonly information: string } {
   const args = budget.arguments();
   let from: string | undefined, to: string | undefined, output: string | undefined, discard = false, ended = false;
   let verbose = false;
@@ -35,6 +50,10 @@ export function parse(budget: Budget): Parsed {
     budget.charge(argument.length + 1);
     if (ended || argument === "-" || !argument.startsWith("-")) { files.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
+    if (argument === "--list") return { information: information.l! };
+    if (argument === "--help") return { information: information["?"]! };
+    if (argument === "--version") return { information: information.V! };
+    if (argument === "--usage") return { information: usage };
     if (argument === "--silent") continue;
     if (argument === "--verbose") { verbose = true; continue; }
     if (argument.startsWith("--")) {
@@ -50,6 +69,7 @@ export function parse(budget: Budget): Parsed {
     }
     for (let offset = 1; offset < argument.length; offset++) {
       const flag = argument[offset]!;
+      if (Object.hasOwn(information, flag)) return { information: information[flag]! };
       if (flag === "c") { discard = true; continue; }
       if (flag === "s") continue;
       if (flag !== "f" && flag !== "t" && flag !== "o") throw new IconvError(`invalid option -- '${flag}'`, 64);

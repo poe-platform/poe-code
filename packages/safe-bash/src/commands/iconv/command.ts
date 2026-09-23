@@ -81,28 +81,32 @@ async function execute(context: CommandContext, limits: IconvLimits): Promise<{ 
   try {
     lifecycle = new Lifecycle(budget, output, captured);
     const options = parse(budget);
-    if (options.output !== undefined && options.output !== "-") {
-      try {
-        if (options.output === "") throw new FsError("ENOENT", { path: "" });
-        const path = resolvePath(context.cwd, pathText(options.output));
-        fileOutput = await lifecycle.operation(() => openFileOutput({
-          fs: context.fs, signal: budget.signal,
-          registerCleanup: output.registerCleanup.bind(output),
-          outputBudget: "independent",
-        }, path, "w"));
-      } catch (error) {
-        budget.signal.throwIfAborted();
-        if (!(error instanceof FsError)) throw error;
-        throw new IconvError(`cannot open output file \`${options.output}': ${fsDetail(error)}`);
+    if ("information" in options) {
+      await lifecycle.write(new TextEncoder().encode(options.information));
+    } else {
+      if (options.output !== undefined && options.output !== "-") {
+        try {
+          if (options.output === "") throw new FsError("ENOENT", { path: "" });
+          const path = resolvePath(context.cwd, pathText(options.output));
+          fileOutput = await lifecycle.operation(() => openFileOutput({
+            fs: context.fs, signal: budget.signal,
+            registerCleanup: output.registerCleanup.bind(output),
+            outputBudget: "independent",
+          }, path, "w"));
+        } catch (error) {
+          budget.signal.throwIfAborted();
+          if (!(error instanceof FsError)) throw error;
+          throw new IconvError(`cannot open output file \`${options.output}': ${fsDetail(error)}`);
+        }
       }
-    }
-    exitCode = await transcode(options, lifecycle);
-    if (fileOutput) {
-      try { await lifecycle.operation(() => fileOutput!.finish()); }
-      catch (error) {
-        budget.signal.throwIfAborted();
-        if (!(error instanceof FsError)) throw error;
-        throw new IconvError(`error while writing output: ${fsDetail(error)}`);
+      exitCode = await transcode(options, lifecycle);
+      if (fileOutput) {
+        try { await lifecycle.operation(() => fileOutput!.finish()); }
+        catch (error) {
+          budget.signal.throwIfAborted();
+          if (!(error instanceof FsError)) throw error;
+          throw new IconvError(`error while writing output: ${fsDetail(error)}`);
+        }
       }
     }
   } catch (error) {

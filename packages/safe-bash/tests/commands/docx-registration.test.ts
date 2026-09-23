@@ -169,6 +169,7 @@ test("docx registers only by opt-in and refuses collisions before deliberate rep
 test("docx dispatch preserves literal byte arguments streams and SDK archive behavior", async () => {
   const volume = Volume.fromJSON({ "/work": null });
   const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
   fs.readFile = async (path, options) => { options?.signal?.throwIfAborted(); return new Uint8Array(volume.readFileSync(path) as Buffer); };
   fs.writeFile = async (path, bytes, options) => { options?.signal?.throwIfAborted(); volume.writeFileSync(path, bytes); };
   const seen: Uint8Array[][] = [];

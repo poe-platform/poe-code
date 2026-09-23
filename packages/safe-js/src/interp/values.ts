@@ -799,6 +799,8 @@ interface DataContinuation {
 }
 const defineDataContinuation = Reflect.defineProperty;
 const nativeDataArrayFrom = Array.from.bind(Array);
+const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
+const nativeDataArraySetPrototype = Object.setPrototypeOf;
 
 function appendDataContinuation(pending: DataContinuation[], values: readonly unknown[], depth: number): void {
   // Do not expose the stack or its mutable frames through later Array hooks.
@@ -1414,10 +1416,18 @@ function measureSandboxDataWithSeen(
             // no graph edges; only references and observable primitives need a visit.
             if (typeof data === "string") usage += data.length;
             else if (typeof data === "bigint" || typeof data === "symbol" ||
-                (typeof data === "object" && data !== null)) (retained ??= []).push(data);
+                (typeof data === "object" && data !== null)) {
+              retained ??= nativeDataArraySetPrototype([], null);
+              nativeDataArrayAppend(retained, data);
+            }
           }
-          else for (const closure of retainedAccessorClosures(descriptor)) (retained ??= []).push(closure);
+          else for (const closure of retainedAccessorClosures(descriptor)) {
+            retained ??= nativeDataArraySetPrototype([], null);
+            nativeDataArrayAppend(retained, closure);
+          }
         }
+        // A pinned append on a private null-prototype array cannot invoke later
+        // native hooks or inherited index setters. Capture all edges before visits.
         if (retained !== undefined && retained.length > 0) {
           if (retained.length > 1)
             appendDataContinuation(pending ??= [], retained, depth + 1);

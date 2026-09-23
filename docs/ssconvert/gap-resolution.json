@@ -1159,5 +1159,11 @@
     "status": "verified-remote-main-publication-pending",
     "verifiedRemoteHead": "55f9f69146",
     "wholeGoalComplete": false
+  },
+  "byteStringSearchFollowup": {
+    "proof": "docs/ssconvert/byte-string-search-gap-proof.json",
+    "status": "verified-remote-main-publication-pending",
+    "commit": "d1923f7ec216b5e1da8bda95cfbdf2d615d799e0",
+    "wholeGoalComplete": false
   }
 }

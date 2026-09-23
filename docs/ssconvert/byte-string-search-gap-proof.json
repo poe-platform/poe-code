@@ -1,0 +1,235 @@
+{
+  "scope": "SEARCH/SEARCHB native byte starts, UTF8 tails and caseless wildcards",
+  "status": "verified-remote-main-publication-pending",
+  "wholeGoalComplete": false,
+  "reference": {
+    "target": "Gnumeric1.12.61",
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "profile": "Darwin arm64/installed GLib2.90.0, owned corrected Perl directory loader, inherited HOME with .gnumeric read/write fence, memory schema, C/UTC; not full Linux profile"
+  },
+  "native": {
+    "rawRows": 51,
+    "rawFields": 1071,
+    "rawBytes": 8808,
+    "rawWarningBytes": 494,
+    "wildcardRows": 18,
+    "wildcardFields": 738,
+    "wildcardBytes": 5025,
+    "wildcardWarningBytes": 0,
+    "exactSurfaces": [
+      "built public SDK",
+      "built public Shell",
+      "XML formula checkpoint replay",
+      "browser",
+      "dedicated worker"
+    ],
+    "publicResults": [
+      {
+        "label": "search-native51",
+        "caseCount": 1071,
+        "bytes": 8808,
+        "sdkExact": true,
+        "shellExact": true,
+        "xmlReplayExact": true
+      },
+      {
+        "label": "search-wildcard18",
+        "caseCount": 738,
+        "bytes": 5025,
+        "sdkExact": true,
+        "shellExact": true,
+        "xmlReplayExact": true
+      }
+    ]
+  },
+  "tdd": {
+    "originalTests": 1740,
+    "originalFailures": 989,
+    "originalPassed": 751,
+    "newGreen": 1742,
+    "focusedNeighbors": 1907,
+    "maintainedFiles": 360,
+    "maintainedTests": 19472,
+    "allMaintainedPassed": true
+  },
+  "controls": [
+    "SEARCHB exact byte start; interior continuation tails refuse",
+    "SEARCH nonvalidating GLib lead-byte start advancement with safe owned clamping",
+    "strict UTF8 pattern and whole selected tail; invalid skipped prefix may succeed",
+    "native fractional range check then truncation",
+    "empty-source SEARCH/SEARCHB distinction",
+    "single-character Unicode caseless matching without full expansions",
+    "ANY newline dot exclusions: LF CR CRLF VT FF NEL LS PS",
+    "tilde escapes only star/question/tilde",
+    "NUL host clipping and malformed visible UTF16 refusal",
+    "exact falsey cancellation; immutable input; O(source length) wildcard memory"
+  ],
+  "manualGates": {
+    "packageLintAndSourceTestConsumerTypes": 0,
+    "selectedMaintainedBuild": 0,
+    "broaderIntegratedChecks": "Containing CI must qualify incoming source. Prior root16456subject lint does not certify this new source."
+  },
+  "delivery": {
+    "commit": "d1923f7ec216b5e1da8bda95cfbdf2d615d799e0",
+    "verifiedRemoteMain": "d1923f7ec216b5e1da8bda95cfbdf2d615d799e0",
+    "publication": "pending"
+  },
+  "sources": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-search.ts",
+      "bytes": 3626,
+      "sha256": "5e992aab1c038ea8f6f4a8238f14820d478504ee4478bf9373b3980b2f15af14"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-search.test.ts",
+      "bytes": 146941,
+      "sha256": "adfa919dbee6101a9007b6a9abc58aed94f3c0ec835c20946cdff7e4667c2bca"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "bytes": 27195,
+      "sha256": "1c30fc2bb8e8145710e488dc626a128aceb91f8aa809d136c27134d7331bafad"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9498,
+      "sha256": "75260e5c907c4958403e8c339699fdda8d3a70287e3c3b52faca7f2582eca648"
+    },
+    {
+      "path": "packages/ssconvert/README.md",
+      "bytes": 3698,
+      "sha256": "a3d5bda5501a04a5ecacf1cab54c821546faf0ef468bca9e64e4157e8b005024"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-browser-console.log",
+      "bytes": 55,
+      "sha256": "d0e5634bb0c1271965327ad2ac18107af18fa7da6d2c9ce13e03eeda6cb603db"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-browser-results.log",
+      "bytes": 591,
+      "sha256": "cbb38e50aa131bb9087f8ce43e30d80681d6123560cfd5e97bea6a0aac8dd766"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-browser-server.mjs",
+      "bytes": 1051,
+      "sha256": "8fe8e4504896b2ae44e83c8480a9068f4b5aa52eb56c6d61e716ced1a93004de"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-browser.png",
+      "bytes": 82054,
+      "sha256": "cdc4835c0d0491b696880d3438073750444979a6630bbd1a0d12b7e56474e03f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-build.log",
+      "bytes": 911,
+      "sha256": "d808015ffa9331df3409274d06e52953c0daa590aa60557e2e4abfcc55ff795d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-focused-final.log",
+      "bytes": 469,
+      "sha256": "c851908d7bbd8080830db1d974b83f4dfe939ede165b062d6cddaac2f78cd9ce"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-green.log",
+      "bytes": 469,
+      "sha256": "a2ab55612244638d0d40cd7ecb73389243e2af08b44e7b6b4bc330615d9ce6ac"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-lint-clean.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-lint.log",
+      "bytes": 433,
+      "sha256": "e070620a724189daa5abd1f4262c0b4184add5738591959b44c690a8b6e05a60"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-maintained.log",
+      "bytes": 28584,
+      "sha256": "ece90a2f7ecf67372f8fb217a9c29348ce47ea6f8be0cda438693a04a127c1a2"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-native-qualify.py",
+      "bytes": 2634,
+      "sha256": "244f5b6ef128549954bdd2112b37e3db1693e4b6ece49fbd7f4a3d253098eee0"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-native-results.json",
+      "bytes": 276569,
+      "sha256": "209d3984a22c4a34c7156e06b8c56e352e52b67d0231828351462a918a5280ff"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-native-user-fence.sb",
+      "bytes": 94,
+      "sha256": "00197226f0805f8038b87b46b50f1a8fe5356c7010870029286be913b0882311"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-native.gnumeric",
+      "bytes": 52976,
+      "sha256": "b93c17ec6377b29ce8cc2e9e518feb7e1a3daf7160a6e79b502c5ab3dadcd92a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-public-cases.json",
+      "bytes": 282856,
+      "sha256": "7e4f46489aec83409e6ce7bb3008477533e2e00ea0abd8c821bc51ff72157b04"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-public-fixture-red.log",
+      "bytes": 1345,
+      "sha256": "fae2390159bd072bcc69a756a8da7d198691e66e1c1f26484111d9cef126b8bf"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-public-results.json",
+      "bytes": 316,
+      "sha256": "89a62d0960af1d42276cb099a955672739130de0120facb733441ac73de44198"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-public.log",
+      "bytes": 292,
+      "sha256": "01cb17577307583afeea2c7635c73096016ff4ab11f4380ba1680c596b786165"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-public.mjs",
+      "bytes": 2424,
+      "sha256": "bf05e02d03e6e7ee9d2f638743a918b1ff66ab33564fba61c5e650f8e7d886f6"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-red.log",
+      "bytes": 1192939,
+      "sha256": "6b31a4a53e62c821b77f9c10fafe91d67734c20bde6bba6e1bf7cabe1755c214"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-wildcard-native-qualify.py",
+      "bytes": 3318,
+      "sha256": "d074074586398a3b2db43c191d207216a3d993c85dacb70387cb4fb4f5a2089a"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-wildcard-native-results.json",
+      "bytes": 195515,
+      "sha256": "c1c3a4ce055695c67207b89fdb121c44ff3368da64c9c047703fc73e31aff1fe"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-search-wildcard-native.gnumeric",
+      "bytes": 40023,
+      "sha256": "b59a0bf36550464d0d006a61567a27d71fe7abfffdb05b59cd9091ca0531d6ef"
+    }
+  ],
+  "setupQualification": [
+    "Literal CR in XML normalized to LF; corrected with &#13; references. Native CSV source field containing bare CR produced ambiguous extra row. Numeric/error result capture instead emits ASCII id and inlines identical source formulas.",
+    "Gnumeric_stf:stf_csv rejects quoting-mode=always; invalid exporter option removed. Custom STF source supports it on a different exporter, not this selected route.",
+    "Extended wildcard native capture timed out at15s under machine load, succeeded unchanged with60s capture deadline. No unit timeout increased.",
+    "Initial CASE_SOURCE always returned byte-string, which violates canonical representation for valid UTF8. Corrected trusted binding returns ordinary strings for validUTF8 and byte-string only for invalidUTF8; raw fixture-red retained.",
+    "Owned ephemeral browser server54558 and browser session closed; console0errors/0warnings; screenshot inspected. Older unrelated native/server artifacts preserved."
+  ],
+  "remaining": [
+    "Wider PCRE Unicode version/case profile qualification",
+    "Other byte consumers and full RangeRef",
+    "All remaining original plan families",
+    "Exact14Linux profiles and frozen installed/registry replay",
+    "Actual containing publication"
+  ]
+}

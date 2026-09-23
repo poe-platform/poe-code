@@ -35,6 +35,7 @@ test("factory surface validates containers and exact property order", () => {
   });
   createTimeoutCommands(options);
   assert.deepEqual(reads, [
+    "options.killAfterPolicy",
     "options.invoke",
     "options.scheduler",
     "scheduler.now",

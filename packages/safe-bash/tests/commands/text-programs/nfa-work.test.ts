@@ -59,6 +59,47 @@ for (const source of ["(a*)b", String.raw`(a*)\1b`]) {
   });
 }
 
+test("sed scans large browser snapshots for links without exhausting its default work budget", async () => {
+  const lines = Array.from({ length: 20001 }, (_, index) => `- button "Item${index}" [ref=e${index}]`);
+  lines.push("- [Snapshot](.playwright-cli/page.yml)");
+  const result = await runVirtual("sed", {
+    args: ["-n", String.raw`s/.*\[Snapshot\](\([^)]*\)).*/\1/p`],
+    stdin: lines.join("\n") + "\n",
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stderr.length, 0);
+  assert.equal(result.stdout.toString(), ".playwright-cli/page.yml\n");
+});
+
+test("missing mandatory literal scans grow linearly with subject length", async () => {
+  const pattern = new Pattern(String.raw`.*\[Snapshot\]\(([^)]*)\).*`);
+  const counts: number[] = [];
+  for (const length of [64, 128, 256]) {
+    let steps = 0;
+    assert.equal(await pattern.find("x".repeat(length), {
+      maxBufferBytes: 32768,
+      step(count = 1) { steps += count; },
+      async checkpoint() {},
+    }), undefined);
+    counts.push(steps);
+  }
+  assert.ok(counts[1]! <= counts[0]! * 3, `64/128 character work: ${counts}`);
+  assert.ok(counts[2]! <= counts[1]! * 3, `128/256 character work: ${counts}`);
+});
+
+test("literal scan optimization preserves alternatives, optional branches, offsets and case folding", async () => {
+  for (const [source, input, from, ignoreCase, expected] of [
+    [".*foo(bar)", "xxfoobar", 0, false, { start: 0, end: 8, groups: ["xxfoobar", "bar"] }],
+    [".*foo|bar", "bar", 0, false, { start: 0, end: 3, groups: ["bar"] }],
+    ["(foo)?bar", "bar", 0, false, { start: 0, end: 3, groups: ["bar", undefined] }],
+    [".*foo", "foo xx", 3, false, undefined],
+    [".*foo", "xxFOO", 0, true, { start: 0, end: 5, groups: ["xxFOO"] }],
+    [".*foo\\.(bar)", "xxfoo.bar", 0, false, { start: 0, end: 9, groups: ["xxfoo.bar", "bar"] }],
+  ] as const) {
+    assert.deepEqual(await new Pattern(source, true, ignoreCase).find(input, makeBudget(100000), from), expected);
+  }
+});
+
 test("NFA yields inside one find before its small work limit and preserves queued cancellation", async context => {
   let now = 0;
   context.mock.method(performance, "now", () => now);
@@ -69,12 +110,13 @@ test("NFA yields inside one find before its small work limit and preserves queue
   context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
   const abort = setImmediate(() => controller.abort(reason));
   try {
-    await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaaaaaa", budget), error => error === reason);
+    // Include the required literal so the search must enter the NFA.
+    await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaaaaaab", budget), error => error === reason);
   } finally { clearImmediate(abort); }
 });
 
 test("NFA combines visited and queued storage rather than admitting both independently", async () => {
-  await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaa", makeBudget(2048, 1450)),
+  await assert.rejects(async () => await new Pattern("(a*)(a*)b").find("aaaab", makeBudget(2048, 1450)),
     error => error instanceof ProgramError && error.message === "regular expression state buffer limit exceeded");
 });
 
@@ -91,6 +133,22 @@ test("literal synchronous match awaits its started checkpoint before buffer refu
   });
   await assert.rejects(async () => pattern.tryFindSync("a".repeat(32), budget), error => error === false);
   assert.equal(calls, 2);
+});
+
+test("mandatory literal scans retain explicit work limits and queued cancellation", async context => {
+  const pattern = new Pattern(".*needle");
+  await assert.rejects(pattern.find("x".repeat(128), makeBudget(64)), { message: "execution step limit exceeded" });
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  const controller = new AbortController();
+  const budget = makeBudget(512, 8192, controller.signal);
+  const step = budget.step.bind(budget);
+  context.mock.method(budget, "step", (count = 1) => { now += count; step(count); });
+  const reason = Object.freeze({ cancelled: "literal scan" });
+  const abort = setImmediate(() => controller.abort(reason));
+  try {
+    await assert.rejects(pattern.find("x".repeat(128), budget), error => error === reason);
+  } finally { clearImmediate(abort); }
 });
 
 test("NFA refuses a capture state before serializing its key", async () => {

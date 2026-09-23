@@ -13,6 +13,37 @@ function deferred() {
   return { promise, resolve };
 }
 
+test("pr whole-file fallback supports unlimited defaults and explicit byte caps", async () => {
+  for (const [limits, maximum, admitted] of [
+    [{}, undefined, true],
+    [{ maxInputBytes: 2 }, 2, true],
+    [{ maxBufferedBytes: 128 }, 64, true],
+    [{ maxInputBytes: 1 }, 1, false],
+  ] as const) {
+    const fs: MemoryFileSystem & Pick<FileSystem, "capabilitiesFor"> = new MemoryFileSystem();
+    await fs.writeFile("/input", Uint8Array.of(65, 10));
+    fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingRead: false });
+    const original = fs.readFile.bind(fs);
+    let reads = 0;
+    fs.readFile = async (path, options) => {
+      reads++;
+      assert.equal(options?.maxBytes, maximum);
+      assert.equal(options?.signal?.aborted, false);
+      return original(path, options);
+    };
+    const shell = new Shell({ fs }).use(prCommands({ limits }));
+    try {
+      const result = await shell.exec("pr -t input");
+      assert.equal(result.exitCode, admitted ? 0 : 1, result.stderr);
+      assert.equal(result.stdout, admitted ? "A\n" : "");
+      assert.equal(reads, Number(admitted));
+      if (admitted) assert.equal(result.stderr, "");
+      else assert.match(result.stderr, /buffered input bytes limit exceeded/);
+      assert.deepEqual(await original("/input"), Uint8Array.of(65, 10));
+    } finally { await shell.dispose(); }
+  }
+});
+
 for (const reason of [false, 0, "", null, "dispose"] as const) {
   test(`pr drains admitted nonstreaming readFile for ${JSON.stringify(reason)}`, async () => {
     const fs: MemoryFileSystem & Pick<FileSystem, "capabilitiesFor"> = new MemoryFileSystem();

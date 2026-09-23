@@ -25,7 +25,7 @@ test("consumer work budgets reject before a later mutation and allow another inv
   );
   // The loop command and each condition also consume the command budget.
   assert.equal(completed, 4_999);
-  await assert.rejects(fs.stat("/after"), (error) => error.code === "ENOENT");
+  await assert.rejects(fs.stat("/after"), { code: "ENOENT" });
   const settled = completed;
   assert.equal((await shell.exec("completed; : > /healthy")).exitCode, 0);
   assert.equal(completed, settled + 1);

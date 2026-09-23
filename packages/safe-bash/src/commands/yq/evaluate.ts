@@ -414,7 +414,7 @@ export class Evaluator {
           const candidate = (await next(field.value, [input], false))[0];
           if (key && candidate) node.items.push(new yaml.Pair(await cloneNode(key.node, yaml, this.work), await cloneNode(candidate.node, yaml, this.work)));
         }
-        output.push(this.child(node, input));
+        if (node.items.length || !expression.fields.length) output.push(this.child(node, input));
       }
       return output;
     }

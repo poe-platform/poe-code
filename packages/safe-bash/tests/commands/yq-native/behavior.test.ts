@@ -128,6 +128,25 @@ for (const entry of [
   });
 });
 
+for (const fixture of [
+  { name: "absent value on false", expression: '{"name": .name}', input: "false\n", stdout: "" },
+  { name: "absent value on a string", expression: '{"name": .name}', input: "hello\n", stdout: "" },
+  { name: "filtered value", expression: '{"name": select(false)}', input: "name: Ada\n", stdout: "" },
+  { name: "explicit empty object", expression: '{}', input: "false\n", stdout: "{}\n" },
+  { name: "missing mapping member yields null", expression: '{"name": .name}', input: "{}\n", stdout: "name: null\n" },
+  { name: "explicit null member", expression: '{"name": .name}', input: "name: null\n", stdout: "name: null\n" },
+  { name: "present member", expression: '{"name": .name}', input: "name: Ada\n", stdout: "name: Ada\n" },
+]) test(`object construction: ${fixture.name}`, async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from(fixture.input));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`yq '${fixture.expression}' input.yaml`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, fixture.stdout);
+});
+
 test("native factories reject malformed options and snapshot plugin replacement", async () => {
   for (const options of [{ unknown: true }, { replace: 1 }, { limits: [] }]) assert.throws(() => createMikeYqCommand(options as MikeYqOptions), TypeError);
   const options = { replace: false };

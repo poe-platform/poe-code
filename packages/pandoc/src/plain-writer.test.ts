@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { writeDocument } from "./engine.js";
+import { convert, writeDocument } from "./engine.js";
 import { createPandocCommand } from "./safe-bash.js";
 import type { Attr, Block, Inline } from "./ast-types.js";
 import type { Document, WriteOptions } from "./types.js";
@@ -8,17 +8,36 @@ const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
 const d = (...blocks: Block[]): Document => ({blocks, metadata: {}, resources: []});
 const plain = (document: Document, options: Partial<WriteOptions> = {}) => writeDocument(document, {to: "plain", ...options}, {});
+it.each([
+  ["code", "`code`\n\n```js\nlet x=1;\n```\n", "code\n\n    let x=1;\n"],
+  ["bullets (Pandoc 3.11)", "- a\n- b\n", "- a\n- b\n"],
+  ["ordered list", "1. a\n2. b\n", "1.  a\n2.  b\n"],
+  ["quote soft break", "> a\n> b\n", "  a b\n"],
+  ["link", '[title](https://example.org "Tip")\n', "title\n"],
+  ["reference link", "[title][id]\n\n[id]: https://example.org\n", "title\n"],
+  ["rule", "a\n\n---\n\nb\n", `a\n\n${"-".repeat(72)}\n\nb\n`],
+  ["empty", "", "\n"],
+  ["paragraph soft break", "a\nb\n", "a b\n"],
+  ["hard break", "a  \nb\n", "a\nb\n"],
+] as const)("matches native plain %s bytes through SDK and command", async (_name, input, expected) => {
+  const bytes = new TextEncoder().encode(input);
+  expect(await convert([{bytes}], {from: "commonmark", to: "plain", wrap: "none"}, {})).toMatchObject({text: expected, diagnostics: []});
+  const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});
+  expect(await createPandocCommand().execute({args: ["-f", "commonmark", "-t", "plain", "--wrap=none"], stdin: [bytes], stdout: {write: stdout}, stderr: {write: stderr}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+  expect(stdout.mock.calls.map(([chunk]) => new TextDecoder().decode(chunk)).join("")).toBe(expected);
+  expect(stderr).not.toHaveBeenCalled();
+});
 it("handles empty nodes, headings, paragraphs, quotes and Unicode without styling or wrapping", async () => {
-  expect(await plain(d())).toMatchObject({text: ""});
-  expect(await plain(d(p(), {t: "Div", c: [a, []]}))).toMatchObject({text: ""});
+  expect(await plain(d())).toMatchObject({text: "\n"});
+  expect(await plain(d(p(), {t: "Div", c: [a, []]}))).toMatchObject({text: "\n"});
   expect(await plain(d({t: "Header", c: [2, a, [s("标题 العربية 👩🏽‍💻 é")]]}, p({t: "Quoted", c: ["DoubleQuote", [s("word")]]}, {t: "Space"}, {t: "Strong", c: [s("next")]})))).toMatchObject({text: '标题 العربية 👩🏽‍💻 é\n\n"word" next\n', diagnostics: []});
 });
 it("renders nested and empty list items with hanging indentation and meaningful code whitespace", async () => {
-  expect(await plain(d({t: "BulletList", c: [[{t: "Plain", c: [s("outer")]}, {t: "OrderedList", c: [[3, "Decimal", "Period"], [[p(s("inner"))], []]]}], []]}, {t: "CodeBlock", c: [a, "  x\n\ty  \n"]}))).toMatchObject({text: "- outer\n  3. inner\n  4.\n-\n\n      x\n    \ty  \n\n"});
+  expect(await plain(d({t: "BulletList", c: [[{t: "Plain", c: [s("outer")]}, {t: "OrderedList", c: [[3, "Decimal", "Period"], [[p(s("inner"))], []]]}], []]}, {t: "CodeBlock", c: [a, "  x\n\ty  \n"]}))).toMatchObject({text: "- outer\n  3.  inner\n  4.\n-\n\n      x\n    \ty  \n"});
 });
-it("retains link destinations, titles, empty image boundaries and inline notes", async () => {
+it("renders link labels, empty image boundaries and inline notes", async () => {
   const url = "https://example.test/" + "segment/".repeat(30);
-  expect(await plain(d(p({t: "Link", c: [a, [s("label")], [url, "Title"]]}, {t: "Space"}, {t: "Link", c: [a, [s(url)], [url, ""]]}, {t: "Space"}, s("before"), {t: "Image", c: [a, [], ["pic.png", ""]]}, s("after"), {t: "Note", c: [p(s("one")), p(s("two"))]})))).toMatchObject({text: `label (${url}) "Title" ${url} before after[note: one\n\ntwo]\n`});
+  expect(await plain(d(p({t: "Link", c: [a, [s("label")], [url, "Title"]]}, {t: "Space"}, {t: "Link", c: [a, [s(url)], [url, ""]]}, {t: "Space"}, s("before"), {t: "Image", c: [a, [], ["pic.png", ""]]}, s("after"), {t: "Note", c: [p(s("one")), p(s("two"))]})))).toMatchObject({text: `label ${url} before after[note: one\n\ntwo]\n`});
 });
 it("preserves multi-paragraph cells, captions and all physical rows", async () => {
   expect(await plain(d({t: "Table", c: [a, [[s("Short")], [p(s("Long"))]], [["AlignDefault", {t: "ColWidthDefault"}], ["AlignDefault", {t: "ColWidthDefault"}]], [a, []], [[a, 0, [], [[a, [[a, "AlignDefault", 1, 1, [p(s("one")), p(s("two"))]], [a, "AlignDefault", 1, 1, [p(s("end"))]]]]]]], [a, []]]}))).toMatchObject({text: "Short\n\nLong\none\n\ntwo\tend\n"});
@@ -53,7 +72,7 @@ it("preserves line blocks, inline code, definitions, figure content and alternat
     {t: "DefinitionList", c: [[[s("term")], [[p(s("first")), p(s("second"))]]]]},
     {t: "Figure", c: [a, [[s("short")], [p(s("caption"))]], [p({t: "Image", c: [a, [s("alt")], ["image.png", "image title"]]})]]},
     {t: "BlockQuote", c: [p(s("quoted"))]}, {t: "HorizontalRule"}
-  ))).toMatchObject({text: 'one   a\tb  \ntwo\n三\n\nأربعة\n\nterm\n  first\n\n  second\n\nalt "image title"\n\nshort\n\ncaption\n\n  quoted\n\n---\n', diagnostics: []});
+  ))).toMatchObject({text: `one   a\tb   two\n三\n\nأربعة\n\nterm\n  first\n\n  second\n\nalt "image title"\n\nshort\n\ncaption\n\n  quoted\n\n${"-".repeat(72)}\n`, diagnostics: []});
 });
 it("preserves raw block source, bounds diagnostics, and rejects columns rather than accepting an unused policy", async () => {
   const document = d({t: "RawBlock", c: ["latex", "a\\quad b"]});

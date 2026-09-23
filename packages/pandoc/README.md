@@ -18,6 +18,9 @@ The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `formatCapabilities`, and `PandocError`. Inspect format capabilities before
 conversion: support is format-specific and does not imply full native Pandoc
 compatibility. Office engines load when their formats are selected.
+Plain output uses link labels, spaces for soft breaks, four-column decimal list
+prefixes, 72-character rules, and a final newline even for empty documents.
+Bullet lists use the compact spacing of Pandoc 3.11.
 
 ## Configuration
 

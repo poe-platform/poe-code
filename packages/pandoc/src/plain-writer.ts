@@ -28,15 +28,17 @@ class Plain {
       switch(node.t) {
         case "Str": parts.push(node.c); break;
         case "Space": parts.push(" "); break;
-        case "SoftBreak": case "LineBreak": parts.push("\n"); break;
+        case "SoftBreak": parts.push(" "); break;
+        case "LineBreak": parts.push("\n"); break;
         case "Code": parts.push(node.c[1]); break;
         case "Math": this.fail(p, "Plain cannot preserve math meaning"); break;
         case "Cite": this.fail(p, "Plain cannot resolve citation meaning"); break;
         case "RawInline": parts.push(this.raw(node.c[1], p)); break;
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, await this.inline(node.c[1], `${p}.c[1]`), quote])); break;}
-        case "Link": case "Image": {
-          const label = await this.inline(node.c[1], `${p}.c[1]`), [url, title] = node.c[2];
-          const value = node.t === "Image" ? label || " " : label ? label === url || !url ? label : this.join([label, " (", url, ")"]) : url || " ";
+        case "Link": parts.push(await this.inline(node.c[1], `${p}.c[1]`)); break;
+        case "Image": {
+          const label = await this.inline(node.c[1], `${p}.c[1]`), title = node.c[2][1];
+          const value = label || " ";
           parts.push(title ? this.join([value, ' "', title, '"']) : value); break;
         }
         case "Note": parts.push(this.join(["[note: ", await this.blocks(node.c, `${p}.c`), "]"])); break;
@@ -64,8 +66,8 @@ class Plain {
       switch(node.t) {
         case "Plain": case "Para": value = await this.inline(node.c, `${p}.c`); break;
         case "Header": value = await this.inline(node.c[2], `${p}.c[2]`); break;
-        case "HorizontalRule": value = "---"; break;
-        case "CodeBlock": if(node.c[1]) value = this.indent(node.c[1], "    ", "    "); break;
+        case "HorizontalRule": value = "-".repeat(72); break;
+        case "CodeBlock": if(node.c[1]) value = this.indent(node.c[1].endsWith("\n") ? node.c[1].slice(0, -1) : node.c[1], "    ", "    "); break;
         case "RawBlock": value = this.raw(node.c[1], p); break;
         case "LineBlock": {const lines: string[] = []; for(const [j, line] of node.c.entries()) lines.push(await this.inline(line, `${p}.c[${j}]`)); value = this.join(lines, "\n"); break;}
         case "BlockQuote": {const content = await this.blocks(node.c, `${p}.c`); if(content) value = this.indent(content, "  ", "  "); break;}
@@ -77,7 +79,8 @@ class Plain {
           for(const [j, item] of items.entries()) {
             const marker = node.t === "BulletList" ? "-" : `${node.c[0][0] + j}.`;
             const content = await this.blocks(item, `${p}.c${node.t === "OrderedList" ? "[1]" : ""}[${j}]`);
-            rendered.push(content ? this.indent(content, marker + " ", " ".repeat(marker.length + 1)) : marker);
+            const prefix = node.t === "BulletList" ? marker + " " : marker + " ".repeat(Math.max(1, 4 - marker.length));
+            rendered.push(content ? this.indent(content, prefix, " ".repeat(prefix.length)) : marker);
           }
           value = this.join(rendered, "\n"); break;
         }
@@ -117,5 +120,5 @@ class Plain {
 export async function writePlain(document: Document, context: AdapterContext): Promise<SerializedDocument> {
   const out = new Plain(context);
   const text = await out.blocks(document.blocks, "$.blocks");
-  return {kind: "text", text: text ? out.join([text, "\n"]) : ""};
+  return {kind: "text", text: out.join([text, "\n"])};
 }

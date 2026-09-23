@@ -21,10 +21,9 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
   const queries: string[] = [];
   const traps: string[] = [];
   const writes: string[] = [];
-  const capabilities = { ...backing.capabilities, streamingRead: true, streamingWrite: true, retainedRead: true };
   const wrap = (backing: FileSystem): FileSystem => new Proxy(backing, {
     get(target, property) {
-      if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => wrap(await target.confineExtraction!(...args));
+      const capabilities = { ...target.capabilities, streamingRead: true, streamingWrite: true, retainedRead: true };
       if (property === "capabilities") return capabilities;
       if (property === "capabilitiesFor") return async (path: string, options?: FsOptions) => {
         options?.signal?.throwIfAborted();
@@ -48,6 +47,8 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
         writes.push(args[0]);
         return target[property](...args);
       };
+      if (property === "confineExtraction" && target.confineExtraction) return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) =>
+        wrap(await target.confineExtraction!(...args));
       const value: unknown = Reflect.get(target, property);
       return typeof value === "function" ? value.bind(target) : value;
     },
@@ -56,20 +57,22 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
   return { shell, memory, reads, queries, traps, writes };
 }
 
+const readLimit = 1024 * 1024;
 const ordinaryCases = [
-  ["jq", "jq -r -f /filter.jq /input.json", "ok\n"],
-  ["yq", "yq -o json -r .name /input.yaml", "ok\n"],
-  ["file", "file -b --mime-type /input.txt", "text/plain\n"],
-  ["tac", "tac /input.txt", "second\nfirst\n"],
-  ["nl", "nl -ba /input.txt", "     1\tfirst\n     2\tsecond\n"],
-  ["awk", 'awk \'BEGIN { getline line < "/input.txt"; print line }\'', "first\n"],
+  ["jq", "jq -r -f /filter.jq /input.json", "ok\n", structuredCommands({ replace: true, limits: { maxSourceBytes: readLimit, maxInputBytes: readLimit } })],
+  ["yq", "yq -o json -r .name /input.yaml", "ok\n", undefined],
+  ["file", "file -b --mime-type /input.txt", "text/plain\n", fileCommands({ replace: true, limits: { maxReadFileBytes: readLimit } })],
+  ["tac", "tac /input.txt", "second\nfirst\n", streamInspectionCommands({ replace: true, limits: { maxInputBytes: readLimit } })],
+  ["nl", "nl -ba /input.txt", "     1\tfirst\n     2\tsecond\n", streamFormatCommands({ replace: true, limits: { maxInputBytes: readLimit } })],
+  ["awk", 'awk \'BEGIN { getline line < "/input.txt"; print line }\'', "first\n", textProgramCommands({ replace: true, maxBufferBytes: readLimit })],
 ] as const;
 
 for (const mode of ["disabled", "absent"] as const) {
-  for (const [name, command, stdout] of ordinaryCases) {
-    test(`${mode}: ${name} uses an ordinary-file fallback without an implicit byte cap`, async () => {
+  for (const [name, command, stdout, plugin] of ordinaryCases) for (const maxBytes of plugin ? [undefined, readLimit] : [undefined]) {
+    test(`${mode}: ${name} uses the ordinary-file fallback with ${maxBytes === undefined ? "no quota" : "an explicit quota"}`, async () => {
       const state = await fixture(mode);
       try {
+        if (maxBytes !== undefined && plugin) state.shell.use(plugin);
         const result = await state.shell.exec(command);
         assert.equal(result.exitCode, 0, `${result.stderr}; traps=${JSON.stringify(state.traps)}`);
         assert.equal(result.stdout, stdout);
@@ -77,25 +80,30 @@ for (const mode of ["disabled", "absent"] as const) {
         assert.ok(state.reads.length > 0);
         for (const read of state.reads) {
           assert.ok(state.queries.includes(read.path), read.path);
-          assert.equal(read.maxBytes, undefined, read.path);
+          assert.equal(read.maxBytes, maxBytes, read.path);
         }
       } finally { await state.shell.dispose(); }
     });
   }
 
   test(`${mode}: tar reads and publishes ordinary files without disabled streams`, async () => {
-    const state = await fixture(mode);
-    try {
-      for (const command of ["tar -cf /bundle.tar /input.txt", "tar -tf /bundle.tar", "tar -xf /bundle.tar -C /out"]) {
-        const result = await state.shell.exec(command);
-        assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
-      }
-      assert.equal(new TextDecoder().decode(await state.memory.readFile("/out/input.txt")), "first\nsecond\n");
-      assert.deepEqual(state.traps, []);
-      assert.ok(state.queries.includes("/out/input.txt"));
-      assert.ok(state.writes.includes("/out/input.txt"));
-      assert.ok(state.reads.every(read => read.maxBytes === undefined));
-    } finally { await state.shell.dispose(); }
+    for (const maxBufferedFileBytes of [undefined, 1024 * 1024]) {
+      const state = await fixture(mode);
+      try {
+        if (maxBufferedFileBytes !== undefined)
+          state.shell.use(archiveCommands({ replace: true, limits: { maxBufferedFileBytes } }));
+        for (const command of ["tar -cf /bundle.tar /input.txt", "tar -tf /bundle.tar", "tar -xf /bundle.tar -C /out"]) {
+          const result = await state.shell.exec(command);
+          assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+        }
+        assert.equal(new TextDecoder().decode(await state.memory.readFile("/out/input.txt")), "first\nsecond\n");
+        assert.deepEqual(state.traps, []);
+        assert.ok(state.queries.includes("/out/input.txt"));
+        assert.ok(state.writes.includes("/out/input.txt"));
+        assert.ok(state.reads.length > 0);
+        for (const read of state.reads) assert.equal(read.maxBytes, maxBufferedFileBytes, read.path);
+      } finally { await state.shell.dispose(); }
+    }
   });
 
   test(`${mode}: null workflows bypass disabled backing streams and retain the masked row`, async () => {

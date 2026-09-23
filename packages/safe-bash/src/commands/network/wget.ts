@@ -1,4 +1,5 @@
-import { collectBytes, getCommandArguments, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { collectNetworkBytes as collectBytes } from "./shared.js";
+import { getCommandArguments, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { yieldTurn } from "../../contracts/yield.js";
@@ -101,7 +102,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
           if (flag === "O") { result.output = output; result.remoteName = false; }
           else if (flag === "P") result.outputDirectory = output;
           else if (flag === "i") inputFile = output;
-          else if (flag === "T") { const seconds = number(output, false); result.maxTimeMs = seconds === 0 ? limits.maxTimeMs : Math.min(seconds * 1000, limits.maxTimeMs); }
+          else if (flag === "T") { const seconds = number(output, false); result.maxTimeMs = Math.min(seconds === 0 ? Infinity : seconds * 1000, limits.maxTimeMs); }
           else { const tries = number(output, true); result.retries = tries === 0 ? limits.maxRetries : Math.min(tries - 1, limits.maxRetries); }
           break;
         } else throw new CurlError(2, `Unsupported option: -${flag}`);
@@ -127,7 +128,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     if (flag === "--output-document") { if (!operand) throw new CurlError(2, "Output filename must not be empty"); result.output = operand; result.remoteName = false; }
     else if (flag === "--directory-prefix") result.outputDirectory = operand;
     else if (flag === "--input-file") inputFile = operand;
-    else if (flag === "--timeout") { const seconds = number(operand, false); result.maxTimeMs = seconds === 0 ? limits.maxTimeMs : Math.min(seconds * 1000, limits.maxTimeMs); }
+    else if (flag === "--timeout") { const seconds = number(operand, false); result.maxTimeMs = Math.min(seconds === 0 ? Infinity : seconds * 1000, limits.maxTimeMs); }
     else if (flag === "--tries") { const tries = number(operand, true); result.retries = tries === 0 ? limits.maxRetries : Math.min(tries - 1, limits.maxRetries); }
     else if (flag === "--header") {
       if (operand === "") { headers.clear(); continue; }
@@ -173,7 +174,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
   if (!result.help && !result.version) {
     if (inputFile !== undefined) {
       let bytes: Uint8Array;
-      try { bytes = inputFile === "-" ? await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxBufferBytes }) : await context.fs.readFile(pathOf(context, inputFile), { signal: context.signal, maxBytes: limits.maxBufferBytes }); }
+      try { bytes = inputFile === "-" ? await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxBufferBytes }) : await context.fs.readFile(pathOf(context, inputFile), { signal: context.signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }); }
       catch { context.signal.throwIfAborted(); throw new CurlError(26, "Failed reading virtual URL input file"); }
       let text: string;
       try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }

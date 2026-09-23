@@ -168,8 +168,8 @@ test("count constructors accept zero, negative zero, one, defaults and exact saf
     construct({ maxRedirects: value }); construct({ maxRetries: value });
     construct({ maxRedirects: value, maxRetries: value });
   }
-  assert.equal(defaultNetworkLimits.maxRedirects, 10);
-  assert.equal(defaultNetworkLimits.maxRetries, 5);
+  assert.equal(defaultNetworkLimits.maxRedirects, Infinity);
+  assert.equal(defaultNetworkLimits.maxRetries, Infinity);
   assert.ok(Object.isFrozen(defaultNetworkLimits));
 });
 
@@ -185,7 +185,7 @@ for (const name of ["maxRedirects", "maxRetries"] as const) {
 
 for (const name of ["maxUploadBytes", "maxDownloadBytes", "maxBufferBytes", "maxHeaderBytes", "maxUrls", "maxTimeMs"] as const) {
   test(`${name} retains positive safe boundaries`, () => {
-    const maximum = name === "maxTimeMs" ? 2_147_483_647 : Number.MAX_SAFE_INTEGER;
+    const maximum = Number.MAX_SAFE_INTEGER;
     construct({ [name]: 1 }); construct({ [name]: maximum });
     for (const value of [0, -0, ...invalid, maximum + 1]) {
       assert.throws(() => construct({ [name]: value } as Partial<NetworkLimits>), {
@@ -365,13 +365,13 @@ for (const mode of ["direct", "shell"] as const) {
     assertRequests(setup.state, [0]);
   });
 
-  test(`${mode}: omitted host caps retain ten redirects and five retries`, async () => {
-    const redirects = await fixture(mode, {}, Array.from({ length: 11 }, () => ({ status: 307, headers: [["Location", url]] as HttpHeaders })));
-    assert.equal((await redirects.run(["-L", "--max-redirs", "99", url])).exitCode, 47);
-    assertRequests(redirects.state, Array<number>(11).fill(0));
-    const retries = await fixture(mode, {}, Array.from({ length: 6 }, () => ({ status: 503 })));
+  test(`${mode}: omitted host caps permit more than ten redirects and five retries`, async () => {
+    const redirects = await fixture(mode, {}, [...Array.from({ length: 12 }, () => ({ status: 307, headers: [["Location", url]] as HttpHeaders })), {}]);
+    assert.equal((await redirects.run(["-L", "--max-redirs", "99", url])).exitCode, 0);
+    assertRequests(redirects.state, Array<number>(13).fill(0));
+    const retries = await fixture(mode, {}, [...Array.from({ length: 6 }, () => ({ status: 503 })), {}]);
     assert.equal((await retries.run(["--retry", "99", "--retry-delay", "0.001", url])).exitCode, 0);
-    assertRequests(retries.state, [0, 1, 2, 3, 4, 5]);
+    assertRequests(retries.state, [0, 1, 2, 3, 4, 5, 6]);
     const implicit = await fixture(mode, {}, [{ status: 503 }]);
     assert.equal((await implicit.run([url])).exitCode, 0); assertRequests(implicit.state, [0]);
   });

@@ -74,16 +74,17 @@ export interface NetworkCommandsOptions {
   readonly replace?: boolean;
 }
 
+/** Infinity denotes an omitted quota internally; callers configure finite limits explicitly. */
 export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
-  maxUploadBytes: 64 * 1024 * 1024,
-  maxDownloadBytes: 64 * 1024 * 1024,
-  maxBufferBytes: 8 * 1024 * 1024,
-  maxHeaderBytes: 64 * 1024,
-  maxRedirects: 10,
-  maxRetries: 5,
-  maxUrls: 32,
-  maxTimeMs: 120_000,
-  maxTotalTimeMs: 120_000,
+  maxUploadBytes: Infinity,
+  maxDownloadBytes: Infinity,
+  maxBufferBytes: Infinity,
+  maxHeaderBytes: Infinity,
+  maxRedirects: Infinity,
+  maxRetries: Infinity,
+  maxUrls: Infinity,
+  maxTimeMs: Infinity,
+  maxTotalTimeMs: Infinity,
 });
 
 export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.freeze({

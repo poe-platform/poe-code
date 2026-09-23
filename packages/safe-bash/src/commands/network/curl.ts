@@ -1,7 +1,8 @@
+import { collectNetworkBytes as collectBytes } from "./shared.js";
 import { normalizePath, posixPath as posix } from "../../contracts/path.js";
 import { FsError } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
-import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import { validateRequestHeader, type CurlArguments } from "./args.js";
@@ -222,7 +223,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     if (args.etagCompare !== undefined) {
       let bytes: Uint8Array;
       try {
-        bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.etagCompare!), { signal, maxBytes: limits.maxBufferBytes }), signal);
+        bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.etagCompare!), { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }), signal);
       } catch (error) {
         signal.throwIfAborted();
         if (!(error instanceof FsError && error.code === "ENOENT")) throw new CurlError(26, "Failed reading virtual ETag file");
@@ -236,7 +237,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     let ca: Uint8Array | undefined;
     if (args.caFile !== undefined) {
       try {
-        const bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.caFile!), { signal, maxBytes: limits.maxBufferBytes }), signal);
+        const bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.caFile!), { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }), signal);
         signal.throwIfAborted();
         if (bytes.length > limits.maxBufferBytes) throw new CurlError(77, "CA certificate exceeds host buffer limit");
         ca = new Uint8Array(bytes);
@@ -249,7 +250,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       try {
         const bytes = format === "@-"
           ? await collectBytes(borrowed, { signal, maxBytes: limits.maxBufferBytes })
-          : await withSignal(() => context.fs.readFile(pathOf(context, format!.slice(1)), { signal, maxBytes: limits.maxBufferBytes }), signal);
+          : await withSignal(() => context.fs.readFile(pathOf(context, format!.slice(1)), { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }), signal);
         format = Buffer.from(bytes).toString("utf8");
       } catch { signal.throwIfAborted(); throw new CurlError(26, "Failed reading write-out format"); }
     }

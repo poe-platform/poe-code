@@ -135,16 +135,18 @@ other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,
 
 ## Streaming, quotas and failure state
 
-Defaults: 64 MiB upload, 64 MiB response body, 8 MiB replay/query/argument buffer,
-64 KiB combined redirect headers, ten redirects, five retries, 32 URLs, and
-120 seconds per URL including retries. CLI settings cannot raise host ceilings.
+Network byte, buffer, count and time quotas are unlimited by default. Each
+`options.limits` setting enables only that quota. Curl and wget values have no
+implicit ceiling; an explicitly configured host quota can restrict them. Zero
+`--max-time`, `--timeout` or `--tries` removes that command limit while preserving
+explicit host quotas. Curl still defaults to no retries; wget defaults to 20 attempts.
 For Workers, pass `limits: cloudflareWorkerNetworkLimits`; its worst-case URL,
 retry, and redirect combination is 48 fetches, within the smallest 50-subrequest
 budget, and its byte/deadline ceilings are substantially smaller.
 
 `options.limits.maxRedirects` and `maxRetries` accept safe integers in the inclusive
 range 0–9,007,199,254,740,991 (`Number.MAX_SAFE_INTEGER`), including JavaScript `-0`.
-Their defaults remain 10 and 5 respectively. Zero permits the initial authorized
+Both host quotas are omitted by default. Zero permits the initial authorized
 request but forbids additional redirect or retry requests of that kind, even with
 `-L`, `--max-redirs`, `--retry` or `Retry-After`. These are independent per-input-URL
 caps, not a global network denial: zero redirects can still allow status retries,
@@ -157,8 +159,9 @@ succeed within the upload quota; zero does not require replay or deny initial re
 
 All other host limits require positive safe integers: `maxUploadBytes`,
 `maxDownloadBytes`, `maxBufferBytes`, `maxHeaderBytes` and `maxUrls` accept the
-inclusive range 1–9,007,199,254,740,991. `maxTimeMs` accepts the inclusive range
-1–2,147,483,647 milliseconds. Explicit invalid overrides are rejected, not defaulted.
+inclusive range 1–9,007,199,254,740,991. `maxTimeMs` and `maxTotalTimeMs` accept
+the same positive safe-integer range in milliseconds; long deadlines are rearmed
+within the host timer range. Explicit invalid overrides are rejected, not defaulted.
 
 Body bytes stream between VFS/stdin, HTTP, stdout and VFS; filesystem providers
 may themselves buffer. A file upload is reopened when replay is necessary, so a

@@ -432,6 +432,7 @@ const boundary = {
 
 function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/network/url-globs.test.ts"));
+  assert.ok(files.includes("tests/commands/network/optional-limits.test.ts"));
   const removed = [
     "tests/fs/memory/faithful-binding.test.ts",
     "tests/fs/mount/comparison.test.ts",

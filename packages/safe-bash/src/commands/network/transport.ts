@@ -1,3 +1,4 @@
+import { scheduleNetworkDeadline } from "./deadline.js";
 import { curlRequestTarget } from "./url.js";
 import { request as httpRequest, validateHeaderName, validateHeaderValue, type ClientRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
@@ -16,8 +17,8 @@ export interface NodeHttpTransportOptions {
 }
 
 export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}): HttpTransport {
-  const maxHeaderSize = options.maxHeaderBytes ?? 64 * 1024;
-  if (!Number.isSafeInteger(maxHeaderSize) || maxHeaderSize < 1) throw new RangeError("Invalid header limit");
+  const maxHeaderSize = options.maxHeaderBytes ?? Infinity;
+  if (maxHeaderSize !== Infinity && (!Number.isSafeInteger(maxHeaderSize) || maxHeaderSize < 1)) throw new RangeError("Invalid header limit");
   const ca = Array.isArray(options.ca) ? [...options.ca] : options.ca;
   const resolveAddress = options.resolveAddress ?? (async (hostname: string) => lookup(hostname, { all: false }));
   const transport: HttpTransport = async input => {
@@ -39,13 +40,13 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
     }
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
-    let connectTimer: ReturnType<typeof setTimeout> | undefined;
+    let cancelConnect: (() => void) | undefined;
     let request: ClientRequest | undefined;
     let finish: (() => void) | undefined;
     const closed = new Promise<void>(resolve => { finish = resolve; });
     let cleanup: Promise<void> | undefined;
     const dispose = (): Promise<void> => {
-      clearTimeout(connectTimer);
+      cancelConnect?.();
       stopped.abort();
       cleanup ??= Promise.resolve().then(async () => {
         if (request) { request.destroy(); await closed; }
@@ -58,10 +59,10 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
       input.registerCleanup?.(dispose);
       signal.throwIfAborted();
       if (input.connectTimeoutMs !== undefined) {
-        if (!Number.isFinite(input.connectTimeoutMs) || input.connectTimeoutMs <= 0 || input.connectTimeoutMs > 2_147_483_647) {
+        if (!Number.isFinite(input.connectTimeoutMs) || input.connectTimeoutMs <= 0) {
           throw new CurlError(2, "Invalid connection timeout");
         }
-        connectTimer = setTimeout(() => stopped.abort(new CurlError(28, "Connection timed out")), input.connectTimeoutMs);
+        cancelConnect = scheduleNetworkDeadline(input.connectTimeoutMs, () => stopped.abort(new CurlError(28, "Connection timed out")));
       }
       if (input.denyPrivateNetworks === true) {
         if (privateHostname(url.hostname)) throw new CurlError(7, "Private network destination denied");
@@ -96,7 +97,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
         method: input.method,
         path: curlRequestTarget(input.url),
         headers: pinned && headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
-        signal, maxHeaderSize, agent: false,
+        signal, maxHeaderSize: Number.isFinite(maxHeaderSize) ? maxHeaderSize : Number.MAX_SAFE_INTEGER, agent: false,
         ...(requestCa === undefined ? {} : { ca: requestCa as string | Buffer | (string | Buffer)[] }),
         ...(input.ca === undefined ? {} : { rejectUnauthorized: true }),
         ...pinned,
@@ -124,10 +125,11 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
           async dispose() { response.destroy(); await dispose(); },
         });
       });
+      request.maxHeadersCount = 0;
       request.on("error", error => { stopped.abort(error); reject(error); });
       request.on("close", () => { stopped.abort(); finish?.(); });
       request.once("socket", socket => {
-        socket.once(url.protocol === "https:" ? "secureConnect" : "connect", () => clearTimeout(connectTimer));
+        socket.once(url.protocol === "https:" ? "secureConnect" : "connect", () => cancelConnect?.());
       });
       const upload = async (): Promise<void> => {
         signal.throwIfAborted();
@@ -145,7 +147,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
     } catch (error) {
       await dispose();
       throw error;
-    } finally { clearTimeout(connectTimer); }
+    } finally { cancelConnect?.(); }
   };
   Object.defineProperty(transport, "supportsPrivateNetworkDeny", { value: true });
   Object.defineProperty(transport, "supportsConnectTimeout", { value: true });

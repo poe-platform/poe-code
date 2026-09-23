@@ -1,4 +1,5 @@
-import type { CommandContext } from "../../contracts/index.js";
+import { scheduleNetworkDeadline } from "./deadline.js";
+import { collectBytes, readBytes, type ByteSource, type CommandContext } from "../../contracts/index.js";
 import { writeDiagnostic } from "../../escaping.js";
 import { CurlError, defaultNetworkLimits, type HttpHeaders, type NetworkLimits } from "./types.js";
 
@@ -6,9 +7,9 @@ export const encode = (text: string): Uint8Array => new TextEncoder().encode(tex
 
 export function limitsFor(overrides: Partial<NetworkLimits> = {}): NetworkLimits {
   const result = { ...defaultNetworkLimits, ...overrides };
-  for (const [name, value] of Object.entries(result)) {
+  for (const [name, value] of Object.entries(overrides)) {
     const minimum = name === "maxRedirects" || name === "maxRetries" ? 0 : 1;
-    if (!Number.isSafeInteger(value) || value < minimum || (name === "maxTimeMs" && value > 2_147_483_647)) {
+    if (!Number.isSafeInteger(value) || value < minimum) {
       throw new RangeError(`Invalid network limit: ${name}`);
     }
   }
@@ -26,9 +27,9 @@ export async function withSignal<Value>(operation: () => PromiseLike<Value> | Va
 }
 
 export async function delay(milliseconds: number, signal: AbortSignal): Promise<void> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try { await withSignal(() => new Promise<void>(resolve => { timer = setTimeout(resolve, milliseconds); }), signal); }
-  finally { clearTimeout(timer); }
+  let cancel: (() => void) | undefined;
+  try { await withSignal(() => new Promise<void>(resolve => { cancel = scheduleNetworkDeadline(milliseconds, resolve); }), signal); }
+  finally { cancel?.(); }
 }
 
 export function header(headers: HttpHeaders, name: string): string | undefined {
@@ -47,4 +48,19 @@ export function networkError(error: unknown): CurlError {
 
 export async function diagnostic(context: CommandContext, error: CurlError): Promise<void> {
   await writeDiagnostic(context.stderr, `${context.command}: (${error.exitCode}) ${error.message}\n`, context.signal);
+}
+
+/** Buffered operands use a quota only when the host supplies one. */
+export async function collectNetworkBytes(source: ByteSource, options: { signal: AbortSignal; maxBytes: number }): Promise<Uint8Array> {
+  if (Number.isFinite(options.maxBytes)) return collectBytes(source, options);
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for await (const chunk of readBytes(source, options.signal)) {
+    chunks.push(new Uint8Array(chunk));
+    size += chunk.length;
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  return bytes;
 }

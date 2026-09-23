@@ -40,7 +40,7 @@ function limits(maxTotalTimeMs = 100): Partial<NetworkLimits> {
 }
 
 test("aggregate defaults and Worker profile are independent host deadlines", () => {
-  assert.equal(defaultNetworkLimits.maxTotalTimeMs, 120_000);
+  assert.equal(defaultNetworkLimits.maxTotalTimeMs, Infinity);
   assert.equal(cloudflareWorkerNetworkLimits.maxTotalTimeMs, 10_000);
 });
 

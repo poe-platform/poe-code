@@ -1,4 +1,5 @@
-import { collectBytes, type CommandContext } from "../../contracts/index.js";
+import { collectNetworkBytes as collectBytes } from "./shared.js";
+import { type CommandContext } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { flags, longValues, parseArguments, values, type CurlArguments } from "./args.js";
 import { CurlError, type NetworkLimits } from "./types.js";
@@ -71,7 +72,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
     try {
       const maxBytes = limits.maxBufferBytes - inputBytes;
       const bytes = file === "-" ? await collectBytes(context.stdin, { signal: context.signal, maxBytes })
-        : await withSignal(() => context.fs.readFile(pathOf(context, file), { signal: context.signal, maxBytes }), context.signal);
+        : await withSignal(() => context.fs.readFile(pathOf(context, file), { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) }), context.signal);
       context.signal.throwIfAborted();
       inputBytes += bytes.length;
       if (inputBytes > limits.maxBufferBytes) throw new CurlError(2, "Curl input exceeds host buffer limit");

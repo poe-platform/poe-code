@@ -216,7 +216,7 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "url": result.urls.push(value!); break;
       case "max-time": {
         const milliseconds = timeoutSeconds(value!) * 1000;
-        result.maxTimeMs = milliseconds === 0 ? limits.maxTimeMs : Math.min(milliseconds, limits.maxTimeMs);
+        result.maxTimeMs = Math.min(milliseconds === 0 ? Infinity : milliseconds, limits.maxTimeMs);
         break;
       }
       case "connect-timeout": {

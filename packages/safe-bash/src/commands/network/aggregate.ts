@@ -1,3 +1,4 @@
+import { scheduleNetworkDeadline } from "./deadline.js";
 import { createOutputOperation, type ByteSink, type CommandContext, type OutputOperation } from "../../contracts/index.js";
 import { diagnostic } from "./shared.js";
 import { CurlError } from "./types.js";
@@ -7,9 +8,8 @@ export function createDeadlineOutput(context: CommandContext, destination: ByteS
   const signal = AbortSignal.any([context.signal, lifetime.signal]);
   const operation = createOutputOperation({ ...context, signal }, destination);
   if (operation.signal.aborted) return operation;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  operation.registerCleanup(() => { clearTimeout(timer); timer = undefined; });
-  timer = setTimeout(() => lifetime.abort(new CurlError(28, "Operation timed out")), Math.max(0, remaining));
+  const cancel = scheduleNetworkDeadline(remaining, () => lifetime.abort(new CurlError(28, "Operation timed out")));
+  operation.registerCleanup(cancel);
   return operation;
 }
 

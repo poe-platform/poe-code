@@ -6,9 +6,11 @@ import { pathOf } from "../internal.js";
 import type { CurlArguments, DataArgument } from "./args.js";
 import { encode } from "./shared.js";
 import { CurlError, type NetworkLimits } from "./types.js";
+import { filePartHeaders, validatePartHeader } from "./form-headers.js";
 import { formContentType } from "./form-content-type.js";
 
 interface Part {
+  readonly headers?: readonly { value: string; file: boolean }[];
   readonly encoder?: string;
   readonly bytes?: Uint8Array;
   readonly separator?: boolean;
@@ -94,11 +96,11 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   const input = argument.value.slice(equals + 1);
   const upload = argument.kind === "form" && input.startsWith("@");
   const isFile = argument.kind === "form" && (upload || input.startsWith("<"));
-  const entries: { value: string; file?: string; filename?: string; type?: string; encoder?: string }[] = [];
+  const entries: { value: string; file?: string; filename?: string; type?: string; encoder?: string; headers?: { value: string; file: boolean }[] }[] = [];
   let start = isFile ? 1 : 0;
   do {
     const word = argument.kind === "form" ? formWord(input, start, isFile) : { value: input, end: input.length };
-    const entry: { value: string; file?: string; filename?: string; type?: string; encoder?: string } = { value: word.value };
+    const entry: { value: string; file?: string; filename?: string; type?: string; encoder?: string; headers?: { value: string; file: boolean }[] } = { value: word.value };
     if (isFile) {
       if (!word.value) throw new CurlError(2, "Empty multipart file operand");
       entry.file = word.value;
@@ -114,6 +116,12 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
       } else if (input.startsWith("filename=", attributeStart)) {
         const attribute = formWord(input, attributeStart + 9, upload);
         entry.filename = attribute.value;
+        end = attribute.end;
+      } else if (input.startsWith("headers=", attributeStart)) {
+        const file = input[attributeStart + 8] === "@";
+        const attribute = formWord(input, attributeStart + 8 + (file ? 1 : 0), upload);
+        if (!attribute.value) throw new CurlError(2, "Empty multipart header operand");
+        (entry.headers ??= []).push({ value: file ? attribute.value : validatePartHeader(attribute.value), file });
         end = attribute.end;
       } else if (input.startsWith("encoder=", attributeStart)) {
         const attribute = formWord(input, attributeStart + 8, upload);
@@ -143,9 +151,8 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
       preamble += `Content-Type: ${entry.type ?? inferred ?? "application/octet-stream"}\r\n`;
     }
     if (entry.encoder) preamble += `Content-Transfer-Encoding: ${entry.encoder}\r\n`;
-    preamble += "\r\n";
     const encoding = entry.encoder === undefined ? {} : { encoder: entry.encoder };
-    parts.push({ bytes: encode(preamble) }, entry.file !== undefined ? { file: entry.file, ...encoding } : { bytes: encode(entry.value), ...encoding }, { bytes: encode("\r\n") });
+    parts.push({ bytes: encode(preamble), headers: entry.headers ?? [] }, entry.file !== undefined ? { file: entry.file, ...encoding } : { bytes: encode(entry.value), ...encoding }, { bytes: encode("\r\n") });
   }
   if (mixed) parts.push({ bytes: encode(`--${childBoundary}--\r\n\r\n`) });
   return parts;
@@ -229,7 +236,32 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
   let cache: Uint8Array[] = [];
   let stdinUsed = false;
   const source = async function* (part: Part, signal: AbortSignal): ByteSource {
-    if (part.bytes !== undefined) { yield part.bytes; return; }
+    if (part.bytes !== undefined) {
+      if (!part.headers) { yield part.bytes; return; }
+      const headers: string[] = [];
+      let headerBytes = 0;
+      for (const header of part.headers) {
+        signal.throwIfAborted();
+        if (header.file) {
+          const bytes = await collectBytes(source({ file: header.value }, signal), {
+            signal, maxBytes: Math.min(limits.maxBufferBytes, limits.maxUploadBytes) - headerBytes,
+          });
+          headerBytes += bytes.length;
+          headers.push(...filePartHeaders(bytes));
+        } else {
+          headerBytes += encode(header.value).length;
+          if (headerBytes > Math.min(limits.maxBufferBytes, limits.maxUploadBytes))
+            throw new CurlError(63, "Multipart headers exceed host byte limit");
+          headers.push(header.value);
+        }
+      }
+      const overridden = new Set(headers.map(header => header.slice(0, header.indexOf(":")).toLowerCase()));
+      const defaults = Buffer.from(part.bytes).toString("utf8").split("\r\n");
+      const preamble = defaults.filter((line, index) => index === 0 ||
+        (line && !overridden.has(line.slice(0, line.indexOf(":")).toLowerCase())));
+      yield encode([...preamble, ...headers, "", ""].join("\r\n"));
+      return;
+    }
     if (part.file === "-") {
       if (!stdinUsed) { stdinUsed = true; yield* readBytes(context.stdin, signal); }
       return;

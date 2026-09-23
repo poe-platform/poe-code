@@ -783,6 +783,49 @@ for (const code of ["EACCES", "ENOTSUP", "EROFS", "ENOTEMPTY"] as const) {
   });
 }
 
+for (const flags of ["-sr", "--symbolic --relative"]) {
+  test(`ln ${flags} creates relative targets through Shell`, async () => {
+    const fs = await fixture({ source: "data", "nested/input": "nested" });
+    await fs.mkdir("/work/out");
+    await fs.symlink("out", "/work/alias");
+    await fs.symlink("source", "/work/source-alias");
+    await fs.symlink("missing/child", "/work/missing-alias");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    for (const [source, destination, expected] of [
+      ["source", "output", "source"],
+      ["/work/source", "out/absolute", "../source"],
+      ["source-alias", "alias/resolved", "../source"],
+      ["missing/child", "out/dangling", "../missing/child"],
+      ["missing-alias", "out/dangling-alias", "../missing/child"],
+      ["out/../source", "out/dots", "../source"],
+      ["out", "out/self", "."],
+    ]) {
+      const result = await shell.exec(`ln ${flags} ${source} ${destination}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(await fs.readlink(`/work/${destination}`), expected);
+    }
+    const result = await shell.exec(`ln ${flags} -v -t alias nested/input`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await fs.readlink("/work/out/input"), "../nested/input");
+    assert.equal(result.stdout, "'alias/input' -> '../nested/input'\n");
+    assert.deepEqual(await fs.readFile("/work/out/input"), await fs.readFile("/work/nested/input"));
+    const replaced = await shell.exec(`ln ${flags} -f -b source out/input`);
+    assert.equal(replaced.exitCode, 0, replaced.stderr);
+    assert.equal(await fs.readlink("/work/out/input"), "../source");
+    assert.equal(await fs.readlink("/work/out/input~"), "../nested/input");
+  });
+}
+
+test("ln relative requires symbolic mode before replacing files", async () => {
+  const fs = await fixture({ source: "data", output: "keep" });
+  const result = await run("ln", ["-rf", "source", "output"], { fs });
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr, "ln: cannot do --relative without --symbolic\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "keep");
+});
+
 test("ln supports hardlinks and literal relative symbolic targets, replacement and target directories", async () => {
   const fs = await fixture({ source: "data" });
   await fs.mkdir("/work/out");

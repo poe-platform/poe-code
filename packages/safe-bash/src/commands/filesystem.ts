@@ -677,7 +677,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (!ended && (argument === "-S" || argument === "--suffix" || argument === "-t" || argument === "--target-directory")) optionValue = true;
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "sfnTvbB:S:t:", { symbolic: "s", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", backup: "B", suffix: "S", "target-directory": "t" });
+      const parsed = options(args, "srfnTvbB:S:t:", { symbolic: "s", relative: "r", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", backup: "B", suffix: "S", "target-directory": "t" });
+      if (parsed.flags.has("r") && !parsed.flags.has("s")) throw new UsageError("cannot do --relative without --symbolic");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
       const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
@@ -702,6 +703,11 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
         const source = pathOf(context, operand);
+        const linkTarget = parsed.flags.has("r")
+          ? relativePath(
+            await canonicalizeReadlinkMissing(context, dirname(destination)),
+            await canonicalizeReadlinkMissing(context, operand.startsWith("/") ? operand : `${context.cwd}/${operand}`),
+          ) || "." : operand;
         if (!symbolic && source === destination) throw new FsError("EEXIST", { path: destination });
         const existing = await maybeStat(context, destination, false);
         let backup: string | undefined;
@@ -737,7 +743,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           } else await context.fs.rm(destination, { signal: context.signal });
         }
         try {
-          if (symbolic) await context.fs.symlink!(operand, destination, { signal: context.signal });
+          if (symbolic) await context.fs.symlink!(linkTarget, destination, { signal: context.signal });
           else await context.fs.link!(source, destination, { signal: context.signal });
         } catch (error) {
           if (backup) await context.fs.rename(backup, destination, { signal: context.signal });
@@ -745,7 +751,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         if (parsed.flags.has("v")) {
           const displayTarget = directory ? childOperand(operands.at(-1)!, basename(operand)) : operands.at(-1)!;
-          await output(context, `'${escapeText(displayTarget, "display")}' ${symbolic ? "->" : "=>"} '${escapeText(operand, "display")}'\n`);
+          await output(context, `'${escapeText(displayTarget, "display")}' ${symbolic ? "->" : "=>"} '${escapeText(linkTarget, "display")}'\n`);
         }
       });
     }),

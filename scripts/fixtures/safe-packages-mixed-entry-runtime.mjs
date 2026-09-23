@@ -147,11 +147,11 @@ export async function verifyNumfmtCommands(entry = defaultEntry) {
   const shell = new entry.Shell({ fs: filesystem, env: { LC_ALL: "C" } }).use(entry.agentCommands());
   try {
     for (const [script, stdout, stderr = "", exitCode = 0] of [
-      ["numfmt --to=si 1000 2500000", "1.0K\n2.5M\n"],
+      ["numfmt --to=si 1000 2500000", "1.0k\n2.5M\n"],
       ["cat /numfmt-numbers | numfmt --to=iec", "1.0K\n1.0M\n"],
       ["env numfmt --from=iec-i 1Ki 2Mi", "1024\n2097152\n"],
-      ["printf '1000 2000' | xargs numfmt --to=si", "1.0K\n2.0K\n"],
-      ["sh /numfmt-script", "name,bytes\nalpha,1.0K\nbeta,2.5M\n"],
+      ["printf '1000 2000' | xargs numfmt --to=si", "1.0k\n2.0k\n"],
+      ["sh /numfmt-script", "name,bytes\nalpha,1.0k\nbeta,2.5M\n"],
       ["numfmt --round=nearest --format=%.1f -- 1.25 -1.25", "1.3\n-1.3\n"],
       ["numfmt --from=iec-i 1Ki invalid 2Mi", "1024\n", "numfmt: invalid number: 'invalid'\n", 2],
     ]) {
@@ -161,7 +161,7 @@ export async function verifyNumfmtCommands(entry = defaultEntry) {
       }
     }
     const binary = await shell.exec("numfmt --delimiter=, --field=2 --to=si", { stdin: new Uint8Array([255, 44, 49, 48, 48, 48, 10]) });
-    if (binary.exitCode !== 0 || binary.stderr !== "" || JSON.stringify(Array.from(binary.stdoutBytes)) !== "[255,44,49,46,48,75,10]") {
+    if (binary.exitCode !== 0 || binary.stderr !== "" || JSON.stringify(Array.from(binary.stdoutBytes)) !== "[255,44,49,46,48,107,10]") {
       throw new Error(`Public numfmt binary output changed: ${JSON.stringify(binary)}`);
     }
   } finally { await shell.dispose(); }

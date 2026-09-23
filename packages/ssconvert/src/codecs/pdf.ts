@@ -10,7 +10,7 @@ import { objectRectangle } from "../objects/layout.js";
 import { graphBackground } from "../rendering/images/scene.js";
 import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
-import { admitDefaultCellPrintStyle } from "../rendering/print/default-cell-style.js";
+import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
@@ -80,19 +80,24 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   tick();
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  let font: PDFFont | undefined, ascentRatio = 0, descentRatio = 0;
-  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number }) => {
+  const fonts = new Map<boolean, {font: PDFFont; ascentRatio: number; descentRatio: number}>();
+  let fontBytes = 0;
+  const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle }) => {
     tick(value.length);
-    if (!font) {
+    if (!value) return;
+    const bold = cellBox?.style.bold ?? false;
+    let selected = fonts.get(bold);
+    if (!selected) {
       pdf.registerFontkit(fontkit);
       let bytes: Uint8Array;
       if (context.fonts) {
-        const supplied = await context.fonts.resolve(Object.freeze({ family: "Sans", bold: false, italic: false,
-          maxBytes: context.limits.inputBytes, signal: context.signal }));
+        const supplied = await context.fonts.resolve(Object.freeze({ family: "Sans", bold, italic: false,
+          maxBytes: context.limits.inputBytes - fontBytes, signal: context.signal }));
         tick();
         if (supplied === undefined) unsupported("supplied font unavailable");
         if (!(supplied instanceof Uint8Array)) unsupported("supplied font bytes");
-        if (supplied.byteLength > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PDF font bytes limit exceeded");
+        if (supplied.byteLength > context.limits.inputBytes - fontBytes) throw new SsconvertError("resource-limit", "ssconvert PDF font bytes limit exceeded");
+        fontBytes += supplied.byteLength;
         tick(supplied.byteLength);
         bytes = new Uint8Array(supplied);
         admitTrueTypeFont(bytes, message => unsupported(`supplied font: ${message}`), tick);
@@ -100,10 +105,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       try {
         const parsed = fontkit.create(bytes);
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
-        ascentRatio = parsed.ascent / parsed.unitsPerEm;
-        descentRatio = -parsed.descent / parsed.unitsPerEm;
         pdf.registerFontkit({ create: () => parsed });
-        font = await pdf.embedFont(bytes, { subset: true });
+        selected = {font: await pdf.embedFont(bytes, { subset: true }),
+          ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
+        fonts.set(bold, selected);
       }
       catch (error) {
         context.signal.throwIfAborted();
@@ -112,6 +117,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       tick();
     }
+    const {font, ascentRatio, descentRatio} = selected;
     if (cellBox && (value.includes("\n") || value.includes("\r"))) unsupported("default-style text layout");
     const supported = new Set(font.getCharacterSet());
     for (const scalar of value) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
@@ -124,7 +130,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       x += 2 + 0.5 + 3 * printDisplayScale;
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
     }
-    page.drawText(value, { x: x - (alignment === "left" ? 0 : font.widthOfTextAtSize(value, size) / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
+    page.drawText(value, { x: x - (alignment === "left" ? 0 : font.widthOfTextAtSize(value, size) / (alignment === "center" ? 2 : 1)), y: baseline, size, font, ...(cellBox ? {color: rgb(...cellBox.style.foreground)} : {}) });
   };
   const metrics = (sheet: Sheet) => {
     const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {
@@ -220,7 +226,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       for (const cell of sheet.cells) if (cell.style) {
         tick();
         if (!context.fonts || cell.value.kind !== "string" && cell.value.kind !== "blank") unsupported("styled or merged cells");
-        admitDefaultCellPrintStyle(cell.style, tick);
+        cellPrintStyle(cell.style, tick);
       }
       const storedPaper = print.paper === undefined ? undefined : papers[paperName(print.paper)];
       if (settings.paper === undefined && print.paper !== undefined && storedPaper === undefined) unsupported("persisted paper size");
@@ -275,9 +281,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
           const value = context.formatting ? await context.formatting.format(cell.value, cell.format ?? "General", context) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value));
           tick();
-          await text(page, value, geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start,
-            geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start, cell.style ? 10 * printDisplayScale : 10, "left",
-            cell.style ? { width: positions.column(cell.column).size, height: positions.row(cell.row).size } : undefined);
+          const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
+          const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
+          const style = cell.style ? cellPrintStyle(cell.style, tick) : undefined;
+          const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
+          if (style?.background) page.drawRectangle({x: x + 2, y: page.getHeight() - y - height - 0.2,
+            width: width + 0.2, height: height + 0.2, color: rgb(...style.background)});
+          await text(page, value, x, y, style ? style.size * printDisplayScale : 10, "left",
+            style ? {width, height, style} : undefined);
         }
         for (const { object, rectangle } of objects) {
           tick();

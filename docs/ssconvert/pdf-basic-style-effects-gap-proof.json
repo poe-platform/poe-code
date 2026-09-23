@@ -1,0 +1,274 @@
+{
+  "scope": "Bounded source/native-qualified PDF font,size,foreground and solid background effects",
+  "status": "repaired-and-five-public-surfaces-qualified;full-rendering-open",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "candidate": [
+    {
+      "path": "packages/ssconvert/src/codecs/pdf.ts",
+      "sha256": "54bd4ee86b42ce0b7620890430b44cbc97614e1567cbae71272b5414d8b8a13c"
+    },
+    {
+      "path": "packages/ssconvert/src/rendering/print/cell-style.ts",
+      "sha256": "82db77f5066f9e0ade4cf5b3a9a39b4bca9894bcc9dbc56db3841a87d1757acb"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/pdf-basic-style-effects.test.ts",
+      "sha256": "3bb6705352820c85b4c82c6156baac409440f1144c2cb94144b3a3c67e8ae622"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/pdf-default-styles.test.ts",
+      "sha256": "f4a6358de34f5dd10b108d3a410b43e2fa72d0986e94d3ff48f2036060be6318"
+    },
+    {
+      "path": "packages/ssconvert/README.md",
+      "sha256": "3198fd3d055dbe45bde6fd04ee1f522900153648538f1c22cd767446fc43f199"
+    }
+  ],
+  "red": {
+    "failed": 3,
+    "controlsPassed": 1,
+    "logSha256": "6415de04032936877f7d5b931c1da67d6dcf00bcd09c1324f591c49e7fb47491"
+  },
+  "checks": {
+    "focused": {
+      "passed": 24,
+      "files": 3,
+      "logSha256": "48c0116a16a030cf9151aba3589bc9b713432d835c00cbdd1dde18bc7f420c78"
+    },
+    "tests": {
+      "command": "npm test --workspace=@poe-code/ssconvert",
+      "passed": 22551,
+      "files": 369,
+      "logSha256": "5d9e0c57e5f8ebd810a7b40fa105931eca7495211d12e435dc82f5bd2fbb649e"
+    },
+    "lint": {
+      "command": "npm run lint --workspace=@poe-code/ssconvert",
+      "status": "source/test/consumer types and ESLint passed",
+      "logSha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "maintained workspaces and root suffix stages passed",
+      "logSha256": "dea429f4574f0ff71d794456332001e15c4e8b0dda1e4233c080bc9b76c6cda6"
+    }
+  },
+  "nativeProofs": [
+    "docs/ssconvert/linux-basic-print-styles-native-capture.json",
+    "docs/ssconvert/linux-hard-axis-print-styles-native-capture.json"
+  ],
+  "public": {
+    "inputSha256": "a6e4b60571ab896abbceafbe28a3ee94286b28f1c27e65a81eab08b657ecaa1a",
+    "modelId": "print-font-color-solid-background-hard-axes",
+    "fonts": [
+      {
+        "bold": false,
+        "identity": {
+          "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+          "bytes": 759720,
+          "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+        },
+        "path": "out/ssconvert-gap-resolution/linux-run35870365334/ssconvert-linux-94a1c01a05ee534b2c9db55c2da660947665600c-35870365334/__w/poe-code/poe-code/out/ssconvert-linux/fonts/57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e.ttf"
+      },
+      {
+        "bold": true,
+        "identity": {
+          "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+          "bytes": 708920,
+          "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890"
+        },
+        "path": "out/ssconvert-gap-resolution/linux-run35870365334/ssconvert-linux-94a1c01a05ee534b2c9db55c2da660947665600c-35870365334/__w/poe-code/poe-code/out/ssconvert-linux/fonts/a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890.ttf"
+      }
+    ],
+    "requests": [
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 2000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 1240280
+      },
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 2000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 1240280
+      },
+      {
+        "family": "Sans",
+        "bold": false,
+        "italic": false,
+        "maxBytes": 2000000
+      },
+      {
+        "family": "Sans",
+        "bold": true,
+        "italic": false,
+        "maxBytes": 1240280
+      }
+    ],
+    "results": [
+      {
+        "mode": "sdk",
+        "bytes": 12398,
+        "outputSha256": "9a686b96b02f178fc0b6359b1461908eed591792b4573b7784ffde132aa335c6",
+        "pages": 1,
+        "geometry": [
+          612,
+          792
+        ],
+        "nativeReplayPageTokensExact": true,
+        "text": "Native style controls   print-font-color-solid-background-hard-axes   1/1\n\n\n\nnormal\n\nbold\n\nsmall\n\nlarge\nred\n\nfill\n\n\n\n\n                                          Page 1\n\f",
+        "fonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nDejaVuSans-979                       CID TrueType      Identity-H       yes no  yes      5  0\nDejaVuSans-Bold-2708                 CID TrueType      Identity-H       yes no  yes      7  0\n",
+        "diagnostics": []
+      },
+      {
+        "mode": "shell",
+        "bytes": 12398,
+        "outputSha256": "9a686b96b02f178fc0b6359b1461908eed591792b4573b7784ffde132aa335c6",
+        "pages": 1,
+        "geometry": [
+          612,
+          792
+        ],
+        "nativeReplayPageTokensExact": true,
+        "text": "Native style controls   print-font-color-solid-background-hard-axes   1/1\n\n\n\nnormal\n\nbold\n\nsmall\n\nlarge\nred\n\nfill\n\n\n\n\n                                          Page 1\n\f",
+        "fonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nDejaVuSans-979                       CID TrueType      Identity-H       yes no  yes      5  0\nDejaVuSans-Bold-2708                 CID TrueType      Identity-H       yes no  yes      7  0\n",
+        "diagnostics": []
+      },
+      {
+        "mode": "xml-replay",
+        "bytes": 12398,
+        "outputSha256": "9a686b96b02f178fc0b6359b1461908eed591792b4573b7784ffde132aa335c6",
+        "pages": 1,
+        "geometry": [
+          612,
+          792
+        ],
+        "nativeReplayPageTokensExact": true,
+        "text": "Native style controls   print-font-color-solid-background-hard-axes   1/1\n\n\n\nnormal\n\nbold\n\nsmall\n\nlarge\nred\n\nfill\n\n\n\n\n                                          Page 1\n\f",
+        "fonts": "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\nDejaVuSans-979                       CID TrueType      Identity-H       yes no  yes      5  0\nDejaVuSans-Bold-2708                 CID TrueType      Identity-H       yes no  yes      7  0\n",
+        "diagnostics": []
+      }
+    ],
+    "inputAndFontsUnchanged": true,
+    "qualification": "Actual native styled checkpoint prints across SDK/Shell/XML replay with matching native replay page tokens and geometry;regular/bold host selection and aggregate byte budget exact. Full native shaping/placement/pixel parity remains open."
+  },
+  "browserAndWorker": {
+    "browser": {
+      "exitCode": 0,
+      "diagnostics": [],
+      "stderr": "",
+      "pages": 1,
+      "geometry": [
+        {
+          "width": 612,
+          "height": 792
+        }
+      ],
+      "inputUnchanged": true,
+      "fontsUnchanged": true,
+      "requests": [
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 2000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 1240280
+        }
+      ],
+      "outputBytes": 12398,
+      "outputSha256": "9a686b96b02f178fc0b6359b1461908eed591792b4573b7784ffde132aa335c6",
+      "pass": true
+    },
+    "worker": {
+      "exitCode": 0,
+      "diagnostics": [],
+      "stderr": "",
+      "pages": 1,
+      "geometry": [
+        {
+          "width": 612,
+          "height": 792
+        }
+      ],
+      "inputUnchanged": true,
+      "fontsUnchanged": true,
+      "requests": [
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 2000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 1240280
+        }
+      ],
+      "outputBytes": 12398,
+      "outputSha256": "9a686b96b02f178fc0b6359b1461908eed591792b4573b7784ffde132aa335c6",
+      "pass": true
+    }
+  },
+  "visualReview": {
+    "result": "Both rendered pages show readable normal/bold/small/large text,red foreground and solid yellow fill without overlap/clipping;browser dashboard passes both surfaces. No pixel-equivalence claim.",
+    "screenshots": [
+      {
+        "name": "sdk-page.png",
+        "sha256": "815de14dc69e1ac19294230d0d13f0545c430bccd68fba3a1e9f49c012bcb82d",
+        "width": 1082,
+        "height": 1400,
+        "inspected": true
+      },
+      {
+        "name": "native-replayed-page.png",
+        "sha256": "ceb892d4c7c013f566fe7cc6872e11967c9ffd1a0eafcd83f40739c99a09fd76",
+        "width": 1082,
+        "height": 1400,
+        "inspected": true
+      },
+      {
+        "name": "dashboard.png",
+        "sha256": "d75721b6ceebd807dae0a2888208390a23afd36a268d2444da0828ce7e9785ea",
+        "width": 1280,
+        "height": 720,
+        "inspected": true
+      }
+    ],
+    "browserConsole": {
+      "messages": 0,
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "setupCorrections": [
+    "Initial memory fixture omitted explicit top margin while expecting72pt;its maintained default was120pt. Fixture now declares72pt margins;no painter offset repair inferred.",
+    "Default-only native checkpoint had12.04pt rows and selected14pt text did not fit;portable correctly refused. Hard-axis native checkpoint has18.89pt hard rows and fits. Original native failure/mismatched geometry remains captured."
+  ],
+  "qualificationLimits": [
+    "Admitted complete Sans styles only:regular/bold,units8/10/14,black/red foreground,shade0/1 andwhite/yellow background,blank or fitting single-line string cells.",
+    "Regular andbold fonts have separate invocation caches with one aggregate font-byte budget;authority requests remainingbytes and missing fonts refuse.",
+    "Input original hard-axis controls omit Version and native rewrites72/20 to68/18.89. Current public qualification uses the authenticated native replay checkpoint and native replayPDF,not equal original-vs-replayed geometry.",
+    "Numeric/boolean/error and explicit cell alignment remain refused;native General numeric minus U+2212 and wider formatting remain open.",
+    "Full shaping,pixel/placement,vertical/header,other styles/merges/layouts,legacy version conversion,all original goal families and containing publication remain open."
+  ]
+}

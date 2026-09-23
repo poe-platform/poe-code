@@ -44,9 +44,11 @@ uses a native spreadsheet converter as a fallback. PDF exports can use an explic
 TrueType font bytes, which the engine copies. The default request is Sans, regular; missing supplied
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. Font bytes and character-map work are bounded before parsing. With explicit fonts,
-PDF export also admits fully materialized default Gnumeric Sans styles for blank
-cells and single-line text that fits the selected font and cell. This profile
-uses the captured native 96-DPI scale and print insets, including 7.5-point cell text. Other styles,
+PDF export also admits fully materialized Gnumeric Sans styles for blank cells
+and single-line text that fits the selected font and cell: regular or bold, sizes
+8/10/14, black or red text, and solid white or yellow backgrounds. Font selections
+share one invocation byte budget. This profile uses the captured native 96-DPI
+scale and print insets, so size 10 paints at 7.5 points. Other styles,
 merges and text layouts retain explicit refusals. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,

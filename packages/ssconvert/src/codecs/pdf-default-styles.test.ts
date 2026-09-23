@@ -3,7 +3,7 @@ import {PDFDocument, PDFPage} from "pdf-lib";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
-import {admitDefaultCellPrintStyle} from "../rendering/print/default-cell-style.js";
+import {cellPrintStyle} from "../rendering/print/cell-style.js";
 import type {ImportedValue} from "../workbook.js";
 import {writePdf} from "./pdf.js";
 const context: CapabilityContext = {signal: new AbortController().signal, own() {},
@@ -29,11 +29,11 @@ it("requires explicit fonts for materialized Sans styles", async () => {
   const {fonts: ignoredFonts, ...withoutFonts} = context;
   await expect(writePdf(await fixture(), [], withoutFonts)).rejects.toThrow("styled or merged cells");
 });
-it.each([['WrapText="0"', 'WrapText="1"'], ['Fore="0:0:0"', 'Fore="FFFF:0:0"'], ['Shade="0"', 'Shade="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_RIGHT"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
+it.each([['WrapText="0"', 'WrapText="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_RIGHT"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
   await expect(writePdf(await fixture("h", attributes.replace(before, after)), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses unknown font effects and borders without publishing a style approximation", async () => {
-  for (const child of [font.replace('Bold="0"', 'Bold="1"'), font+'<g:StyleBorder/>', font.replace('>Sans<', '>Serif<')])
+  for (const child of [font+'<g:StyleBorder/>', font.replace('>Sans<', '>Serif<')])
     await expect(writePdf(await fixture("h", attributes, child), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("keeps unsupported general numeric layout refused", async () => {
@@ -54,11 +54,11 @@ it("rejects foreign namespaces,duplicate attributes and unsupported style owners
     {...style, xlsx: {}},
     {gnumeric: {...node, text: "unsupported retained effect"}}
   ];
-  for (const candidate of cases) expect(() => admitDefaultCellPrintStyle(candidate, () => {})).toThrow("styled or merged cells");
+  for (const candidate of cases) expect(() => cellPrintStyle(candidate, () => {})).toThrow("styled or merged cells");
 });
 it("charges retained style text and propagates work cancellation", async () => {
   const style = (await fixture()).sheets[0]!.cells[0]!.style!;
-  expect(() => admitDefaultCellPrintStyle(style, amount => {if ((amount ?? 1) > 1) throw new Error("style work refused");})).toThrow("style work refused");
+  expect(() => cellPrintStyle(style, amount => {if ((amount ?? 1) > 1) throw new Error("style work refused");})).toThrow("style work refused");
 });
 it("refuses a cell shorter than the selected font metrics", async () => {
   const book = await fixture(), sheet = book.sheets[0]!;

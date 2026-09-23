@@ -26,6 +26,36 @@ test("agentCommands: tac regex reverses VFS files and piped stdin", async () => 
   } finally { await shell.dispose(); }
 });
 
+test("strings custom separators replace every newline through agentCommands", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("abc\0def\0"));
+  await fs.writeFile("/ending", Buffer.from("xy\0ghi"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    for (const [args, expected] of [
+      ["--output-separator=: -n3 input", "abc:def:"],
+      ["--output-separator ':' -n3 input", "abc:def:"],
+      ["-s ':' -n3 input", "abc:def:"],
+      ["-s:: -n3 input ending", "abc::def::ghi::"],
+      ["--output-separator='' -n3 input", "abcdef"],
+      ["-s first -s '海' -n3 input", "abc海def海"],
+      ["-fs ':' -td -n3 input", "input:       0 abc:input:       4 def:"],
+      ["-n3 input", "abc\ndef\n"],
+    ]) {
+      const result = await shell.exec(`strings ${args}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, expected);
+    }
+    const stdin = await shell.exec("strings -s ':' -n3", { stdin: Buffer.from("abc\0def") });
+    assert.equal(stdin.exitCode, 0, stdin.stderr);
+    assert.equal(stdin.stdout, "abc:def:");
+    const missing = await shell.exec("strings -s");
+    assert.equal(missing.exitCode, 1);
+    assert.equal(missing.stdout, "");
+  } finally { await shell.dispose(); }
+});
+
 test("opt-in plugin collision preflight and replacement use existing contracts", () => {
   assert.deepEqual(createStreamInspectionCommands().map(command => command.name), ["tac", "expand", "fold", "strings"]);
   const original = { name: "strings", execute: () => ({ exitCode: 42 }) };

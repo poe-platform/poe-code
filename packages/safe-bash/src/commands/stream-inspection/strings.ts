@@ -5,7 +5,8 @@ import { command, RecordBuffer, type StreamInspectionLimits } from "./shared.js"
 
 export function createStringsCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("strings", limits, async session => {
-    const parsed = numericOptions(session.context.args, "afn:t:", { all: "a", "print-file-name": "f", bytes: "n", radix: "t" });
+    const parsed = numericOptions(session.context.args, "afn:s:t:", { all: "a", "print-file-name": "f", bytes: "n", "output-separator": "s", radix: "t" });
+    const separator = new TextEncoder().encode(value(parsed, "s") ?? "\n");
     let minimum = 4;
     for (const specification of parsed.values.get("n") ?? []) minimum = integer(specification, 1);
     if (parsed.legacyValue !== undefined) {
@@ -27,7 +28,7 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
           const location = radix === undefined ? "" : `${start.toString(radix === "x" ? 16 : radix === "o" ? 8 : 10).padStart(7, " ")} `;
           await session.output(new TextEncoder().encode(label + location));
           await session.output(record.view());
-          await session.output(Uint8Array.of(10));
+          await session.output(separator);
         }
         record.clear();
       };

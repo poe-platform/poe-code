@@ -94,6 +94,8 @@ Exit 1 means no match; exit 2 means filtering failed. If a preceding action
 succeeded, inspect its resulting state and retry only the read-only verification
 before repeating the action. A configured regex executor may support more syntax.
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
+
+Use `strings -s ':'` or `--output-separator=:` to separate extracted strings with custom text, including after the final string. An empty separator joins the strings.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.
 It preserves original UTF-8 byte offsets and supports case/word selection on ASCII

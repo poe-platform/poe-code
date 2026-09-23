@@ -27,7 +27,8 @@ test("csvgrep same-file redirects through symlink aliases are destructive, not a
     const result = await shell.exec(`csvgrep -cx -ma /input > ${destination}`);
     assert.equal(result.exitCode, 0);
     assert.equal(result.stdout, "");
-    assert.deepEqual(await fs.readFile("/input"), new Uint8Array());
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await fs.readFile("/input"), Uint8Array.of(10));
   }
 });
 test("csvgrep has no host executable or network command fallback", async (t) => {

@@ -3863,3 +3863,20 @@ test("import-origin R2 operational inventory pin rejects missing swapped and rel
     assert.ok(reads.every(path => path === "/package/integration-lint-inventory.json"));
   }
 });
+
+test("runner exact file selection uses authenticated discovery and retains serial execution", () => {
+  const files = ["tests/commands/yq-author-20260828/yq.test.ts", "tests/current/other.test.ts"];
+  const fileSystem = {
+    ...fileSystemFor(new Map([["/package/integration-boundaries.json", Buffer.from(JSON.stringify(boundary))], ["/package/" + fixture.owner, Buffer.from(owner)]])),
+    globSync() { return [...files]; },
+  };
+  assert.equal(runTests("/package", ["--test-file=" + files[0], "--test-reporter=tap"], (executable, args) => {
+    assert.equal(executable, process.execPath);
+    assert.deepEqual(args, ["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=1", "--test-reporter=tap", files[0]]);
+    return { status: 0, signal: null };
+  }, fileSystem), 0);
+  for (const selection of [[""], ["../outside.test.ts"], ["tests/missing.test.ts"], [files[0], files[0]]]) {
+    assert.throws(() => runTests("/package", selection.map(file => "--test-file=" + file), () => { assert.fail("invalid selection must not spawn"); }, fileSystem), /selection/);
+  }
+  assert.throws(() => runTests("/package", ["--test-file=" + files[0]], () => { assert.fail("selection must not alter shards"); }, fileSystem, { shardIndex: 0, shardCount: 4, concurrency: 1 }), /selection/);
+});

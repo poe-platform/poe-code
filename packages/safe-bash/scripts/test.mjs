@@ -24,8 +24,17 @@ export function parseTestExecution(env) {
 
 export function runTests(root, args, spawn = spawnSync, fileSystem, execution) {
   const boundaries = loadBoundaries(root, fileSystem);
-  const files = discoverTests(root, boundaries, fileSystem);
+  let files = discoverTests(root, boundaries, fileSystem);
   console.log(`# safe-bash discovery: ${files.length} active TypeScript test files; ${boundaries.fixtureDirectories.length} authenticated fixture roots; ${boundaries.heldEvidenceDirectories.length} held evidence roots`);
+  const selection = args.filter(argument => argument.startsWith("--test-file=")).map(argument => argument.slice("--test-file=".length));
+  if (selection.length) {
+    assert.ok(!execution, "Exact file selection cannot alter shard membership");
+    assert.equal(new Set(selection).size, selection.length, "Duplicate test file selection");
+    assert.ok(selection.every(file => files.includes(file)), "Test file selection must belong to authenticated active discovery");
+    files = selection;
+    args = args.filter(argument => !argument.startsWith("--test-file="));
+    console.log(`# safe-bash selection: ${files.length} active test files; ${JSON.stringify(files)}`);
+  }
   if (execution) {
     validateShardArguments(args);
     assert.ok(Number.isInteger(execution.shardIndex) && execution.shardIndex >= 0 && execution.shardIndex < execution.shardCount, "Invalid Bash shard index");

@@ -46,12 +46,15 @@ export async function writeDdOutput(context: CommandContext, handle: DdFileHandl
 
 async function openDescriptor(context: CommandContext, path: string, request: DdFileRequest): Promise<DdFileHandle> {
   const input = request.direction === "input";
+  const writeSync = !input && request.flags.has("sync") ? "all" : !input && request.flags.has("dsync") ? "data" : undefined;
+  const synchronization = request.synchronization === "all" || writeSync === "all" ? "all" : request.synchronization ?? writeSync;
   const descriptor = await openCommandFile(context, path, {
     access: input ? "read" : "write",
     creation: input || request.creation === "never" ? "never" : request.creation === "exclusive" ? "exclusive" : "ifMissing",
     truncate: request.truncate,
     append: !input && request.flags.has("append"),
-    ...(request.synchronization === undefined ? {} : { synchronization: request.synchronization }),
+    ...(request.flags.has("nofollow") ? { noFollow: true } : {}),
+    ...(synchronization === undefined ? {} : { synchronization }),
   });
   try {
     const stat = await descriptor.stat();
@@ -82,6 +85,7 @@ async function openDescriptor(context: CommandContext, path: string, request: Dd
       } } : { async write(chunk: Uint8Array, options: FsOptions) {
         const count = await descriptor.write(chunk, positioned ? position : null, options);
         position += count;
+        if (writeSync !== undefined) await descriptor.sync(writeSync === "data", options);
         return count;
       } }),
       ...(positioned ? { async seek(offset: bigint, options: FsOptions) {
@@ -130,14 +134,19 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
   for (const flag of request.flags) {
     if (["binary", "text", "noctty", "count_bytes", "skip_bytes", "seek_bytes", "fullblock"].includes(flag)) continue;
     if (flag === "append") continue;
-    if (request.path === undefined && flag === "nofollow") continue;
+    if (flag === "nofollow") continue;
+    if (request.path !== undefined && request.direction === "output" && (flag === "dsync" || flag === "sync")) continue;
     throw new DdError(`${flag}: Operation not supported by the filesystem stream adapter`);
   }
   const path = request.path === undefined || request.path === "" ? request.path
     : request.path.startsWith("/") ? request.path : `${context.cwd}/${request.path}`;
   if (path !== undefined && context.fs.open) {
+    if (request.flags.has("nofollow")) return openDescriptor(context, path, request);
     const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
     if (capabilities.open !== false && (request.direction !== "input" || (await context.fs.stat(path, { signal })).type !== "directory")) return openDescriptor(context, path, request);
+  }
+  if (path !== undefined) for (const flag of ["nofollow", "dsync", "sync"]) {
+    if (request.flags.has(flag)) throw new DdError(`${flag}: Operation not supported by the filesystem stream adapter`);
   }
   if (request.synchronization) throw new DdError(`${request.synchronization === "all" ? "fsync" : "fdatasync"}: Operation not supported by the filesystem stream adapter`);
   if (request.direction === "output" && request.flags.has("append") && request.truncate) throw new DdError("append with truncation: Operation not supported by the filesystem stream adapter");

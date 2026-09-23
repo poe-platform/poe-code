@@ -252,10 +252,10 @@ export class DeviceFileSystem implements FileSystem {
   async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     options?.signal?.throwIfAborted();
     if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
-    const resolved = await this.#resolve(path, options, options.creation !== "exclusive");
+    const resolved = await this.#resolve(path, options, !options.noFollow && options.creation !== "exclusive");
     options.signal?.throwIfAborted();
     if (resolved === nullPath) return openFileDescriptor<FileStat>(path, options, {
-      position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
+      noFollow: true, position: true, positionedRead: true, positionedWrite: true, positionedAppendWrite: true,
       openTruncate: true, delegateZeroLengthWrite: true, truncate: false, synchronization: "none",
     }, async admitted => {
       if (admitted.creation === "exclusive") throw new FsError("EEXIST", { syscall: "open", path });
@@ -277,7 +277,7 @@ export class DeviceFileSystem implements FileSystem {
     if (resolved === deviceDirectory) throw new FsError("ENOTSUP", { syscall: "open", path });
     const query = this.#filesystem.capabilitiesFor;
     options.signal?.throwIfAborted();
-    const capabilities = query && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
+    const capabilities = query && !options.noFollow && options.creation !== "exclusive" ? await Reflect.apply(query, this.#filesystem, [path, options]) : this.#filesystem.capabilities;
     options.signal?.throwIfAborted();
     const open = this.#filesystem.open;
     options.signal?.throwIfAborted();

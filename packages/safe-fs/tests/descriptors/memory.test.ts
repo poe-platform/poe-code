@@ -4,6 +4,30 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 
+it("nofollow atomically rejects final symlinks while following parent symlinks", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/file", bytes("original"));
+  await fs.symlink("/dir", "/parent");
+  for (const target of ["/dir/file", "/missing", "/link", "/dir"]) {
+    await fs.symlink(target, "/link");
+    for (const creation of ["never", "ifMissing", "exclusive"] as const) {
+      await expect(fs.open("/link", { access: "write", truncate: true, creation, noFollow: true }))
+        .rejects.toMatchObject({ code: creation === "exclusive" ? "EEXIST" : "ELOOP" });
+    }
+    await fs.rm("/link");
+    expect(await fs.readFile("/dir/file")).toEqual(bytes("original"));
+    await expect(fs.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });
+  }
+  const descriptor = await fs.open("/parent/file", { access: "read", noFollow: true });
+  try {
+    const buffer = new Uint8Array(8);
+    expect(await descriptor.read(buffer, null)).toBe(8);
+    expect(buffer).toEqual(bytes("original"));
+    expect(descriptor.capabilities.noFollow).toBe(true);
+  } finally { await descriptor.close(); }
+});
+
 describe.each(["direct", "python"] as const)("memory canonical descriptors (%s)", transport => {
   const createFileSystem = transport === "python" ? pythonDescriptorFixture : (options?: ConstructorParameters<typeof MemoryFileSystem>[0]) => new MemoryFileSystem(options);
   it("keeps cursor independent of positioned operations and retains tails", async () => {

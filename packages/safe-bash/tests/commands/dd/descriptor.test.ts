@@ -8,6 +8,90 @@ import { openDdFile, type DdFileHandle } from "../../../src/commands/dd/io.js";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { bytes, run } from "./helpers.js";
 
+for (const operand of ["iflag=nofollow", "oflag=nofollow", "oflag=dsync", "oflag=sync", "oflag=dsync,sync"]) {
+  test(`default Shell descriptor flags copy binary files: ${operand}`, async () => {
+    const fs = createMemoryFileSystem();
+    const input = bytes("abcdef\0\0gh\n");
+    await fs.writeFile("/input", input);
+    await fs.writeFile("/output", bytes("old output contents"));
+    const shell = new Shell({ fs }).use(ddCommands());
+    try {
+      const result = await shell.exec(`dd if=input of=output ${operand} status=none`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(await fs.readFile("/output"), input);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const direction of ["input", "output"] as const) {
+  for (const target of ["/target", "/missing", "/link", "/directory", "/dev/null"]) {
+    test(`nofollow refuses ${direction} symlink to ${target} before output effects`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.writeFile("/input", bytes("new"));
+      await fs.writeFile("/output", bytes("old"));
+      await fs.writeFile("/target", bytes("target"));
+      await fs.mkdir("/directory");
+      await fs.symlink(target, "/link");
+      const shell = new Shell({ fs }).use(ddCommands());
+      try {
+        const command = direction === "input"
+          ? "dd if=/link of=/output iflag=nofollow status=none"
+          : "dd if=/input of=/link oflag=nofollow status=none";
+        const result = await shell.exec(command);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stderr, "dd: failed to open '/link': Too many levels of symbolic links\n");
+        assert.deepEqual(await fs.readFile("/output"), bytes("old"));
+        assert.deepEqual(await fs.readFile("/target"), bytes("target"));
+        assert.equal((await fs.lstat("/link")).type, "symlink");
+        await assert.rejects(fs.stat("/missing"), { code: "ENOENT" });
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const flag of ["dsync", "sync", "dsync,sync"]) {
+  test(`synchronized writes flush every partial write on the retained output: ${flag}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", bytes("XYZ"));
+    await fs.writeFile("/output", bytes("old"));
+    const open = fs.open.bind(fs);
+    const events: string[] = [];
+    fs.open = async (path, options) => {
+      const descriptor = await open(path, options);
+      if (path !== "/output") return descriptor;
+      assert.equal(options.synchronization, flag === "dsync" ? "data" : "all");
+      const inode = (await descriptor.stat()).ino;
+      const write = descriptor.write.bind(descriptor), sync = descriptor.sync.bind(descriptor);
+      descriptor.write = async (chunk, position, forwarded) => {
+        events.push("write");
+        const count = await write(chunk.subarray(0, 1), position, forwarded);
+        if (events.length === 1) {
+          await fs.rename("/output", "/retained");
+          await fs.writeFile("/output", bytes("replacement"));
+        }
+        return count;
+      };
+      descriptor.sync = async (dataOnly, forwarded) => {
+        events.push(dataOnly ? "data" : "all");
+        assert.equal((await descriptor.stat()).ino, inode);
+        await sync(dataOnly, forwarded);
+      };
+      return descriptor;
+    };
+    const shell = new Shell({ fs }).use(ddCommands());
+    try {
+      const result = await shell.exec(`dd if=/input of=/output bs=3 oflag=${flag} status=none`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const sync = flag === "dsync" ? "data" : "all";
+      assert.deepEqual(events, ["write", sync, "write", sync, "write", sync]);
+      assert.deepEqual(await fs.readFile("/retained"), bytes("XYZ"));
+      assert.deepEqual(await fs.readFile("/output"), bytes("replacement"));
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("dd carries the current command runtime identity", () => {
   assert.equal(createDdCommand().runtimeIdentity, commandRuntimeIdentity);
 });
@@ -433,4 +517,76 @@ test("canonical provider refusal has no read-modify-replace fallback", async () 
     assert.equal(result.exitCode, 1, operands.join(" "));
     assert.deepEqual(await backing.readFile("/file"), bytes("original"));
   }
+});
+
+
+for (const flag of ["dsync", "sync"]) {
+  test(`synchronized output stops after a failed flush and closes once: ${flag}`, async () => {
+    const fs = createMemoryFileSystem();
+    const open = fs.open.bind(fs);
+    let writes = 0, closes = 0;
+    fs.open = async (path, options) => {
+      const descriptor = await open(path, options);
+      const write = descriptor.write.bind(descriptor), close = descriptor.close.bind(descriptor);
+      descriptor.write = async (...args) => { writes++; return write(...args); };
+      descriptor.sync = async () => { throw new FsError("EIO"); };
+      descriptor.close = async () => { closes++; await close(); };
+      return descriptor;
+    };
+    const result = await run(["of=/output", `oflag=${flag}`, "bs=1", "status=none"], bytes("XYZ"), { fs });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "dd: error writing '/output': Input/output error\n");
+    assert.equal(writes, 1);
+    assert.equal(closes, 1);
+    assert.deepEqual(await fs.readFile("/output"), bytes("X"));
+  });
+}
+
+for (const operand of ["iflag=nofollow", "oflag=nofollow", "oflag=dsync", "oflag=sync"]) {
+  test(`stream-only filesystems refuse descriptor guarantees without output effects: ${operand}`, async () => {
+    const memory = createMemoryFileSystem();
+    await memory.writeFile("/input", bytes("new"));
+    await memory.writeFile("/output", bytes("old"));
+    const fs = new Proxy(memory, { get(target, property) {
+      if (property === "open") return undefined;
+      const value = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const result = await run(["if=/input", "of=/output", operand, "status=none"], undefined, { fs });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /Operation not supported/);
+    assert.deepEqual(await memory.readFile("/output"), bytes("old"));
+  });
+}
+
+test("nofollow still rejects a symlink installed immediately before descriptor acquisition", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", bytes("original"));
+  await fs.writeFile("/target", bytes("target"));
+  await fs.writeFile("/output", bytes("old"));
+  const open = fs.open.bind(fs);
+  fs.open = async (path, options) => {
+    if (path === "/input") {
+      await fs.rm(path);
+      await fs.symlink("/target", path);
+    }
+    return open(path, options);
+  };
+  const result = await run(["if=/input", "of=/output", "iflag=nofollow", "status=none"], undefined, { fs });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "dd: failed to open '/input': Too many levels of symbolic links\n");
+  assert.deepEqual(await fs.readFile("/output"), bytes("old"));
+});
+
+
+test("nofollow plus exclusive creation preserves EEXIST for self-loop symlinks through Shell umask", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.symlink("/link", "/link");
+  const shell = new Shell({ fs }).use(ddCommands());
+  try {
+    const result = await shell.exec("dd of=/link oflag=nofollow conv=excl count=0 status=none");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "dd: failed to open '/link': File exists\n");
+    assert.equal(await fs.readlink("/link"), "/link");
+  } finally { await shell.dispose(); }
 });

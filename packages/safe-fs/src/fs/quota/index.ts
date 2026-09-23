@@ -177,11 +177,11 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
   const mutations: Partial<FileSystem> = {
     open(path, openOptions) {
       return openFileDescriptor<FileDescriptor>(path, openOptions, {
-        positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+        noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
       }, admitted => mutate(async () => {
         admitted.signal?.throwIfAborted();
         const open = fs.open;
-        const capabilities = admitted.creation === "exclusive" ? fs.capabilities : await fs.capabilitiesFor?.(path, admitted) ?? fs.capabilities;
+        const capabilities = admitted.noFollow || admitted.creation === "exclusive" ? fs.capabilities : await fs.capabilitiesFor?.(path, admitted) ?? fs.capabilities;
         admitted.signal?.throwIfAborted();
         if (!open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
         admitted.signal?.throwIfAborted();

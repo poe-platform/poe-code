@@ -83,9 +83,9 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });
     if (request.access !== "read") assertCountedFileOutput(context);
     const fsOptions = { signal: scope };
-    // A following capability query cannot precede atomic exclusive acquisition:
-    // even a self-loop final symlink must be refused by open with EEXIST.
-    const capabilities = request.creation === "exclusive" ? context.fs.capabilities
+    // Final-symlink admission belongs to the enforcing open, including dangling
+    // and self-loop links that a following capability query cannot resolve.
+    const capabilities = request.noFollow || request.creation === "exclusive" ? context.fs.capabilities
       : await context.fs.capabilitiesFor?.(path, { ...fsOptions, ...(request.creation === "ifMissing" ? { create: true } : {}) }) ?? context.fs.capabilities;
     check();
     if (!accepting) throw new FsError("EBADF", { syscall: "open", path });

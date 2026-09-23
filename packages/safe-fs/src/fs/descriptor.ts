@@ -24,6 +24,7 @@ export interface DescriptorBackend<Resource> {
 
 function admitCapabilities(path: string, options: OpenFileOptions, capabilities: FileDescriptorCapabilities): void {
   if (![capabilities.positionedRead, capabilities.positionedWrite, capabilities.truncate].every(value => typeof value === "boolean")
+    || capabilities.noFollow !== undefined && typeof capabilities.noFollow !== "boolean"
     || capabilities.publication !== undefined && capabilities.publication !== "conditional"
     || capabilities.position !== undefined && typeof capabilities.position !== "boolean"
     || capabilities.readObservation !== undefined && typeof capabilities.readObservation !== "boolean"
@@ -31,7 +32,8 @@ function admitCapabilities(path: string, options: OpenFileOptions, capabilities:
     || capabilities.positionedAppendWrite !== undefined && typeof capabilities.positionedAppendWrite !== "boolean"
     || capabilities.delegateZeroLengthWrite !== undefined && typeof capabilities.delegateZeroLengthWrite !== "boolean"
     || !["none", "volatile", "storage"].includes(capabilities.synchronization)) throw new FsError("EINVAL", { syscall: "open", path });
-  if (options.truncate && !(capabilities.openTruncate ?? capabilities.truncate) || options.synchronization !== undefined && capabilities.synchronization === "none") {
+  if (options.noFollow && capabilities.noFollow !== true
+    || options.truncate && !(capabilities.openTruncate ?? capabilities.truncate) || options.synchronization !== undefined && capabilities.synchronization === "none") {
     throw new FsError("ENOTSUP", { syscall: "open", path });
   }
 }
@@ -91,6 +93,7 @@ class ManagedFileDescriptor<Resource> implements FileDescriptor {
     this.#backend = backend;
     const positionedAppendWrite = capabilities.positionedAppendWrite === true && capabilities.positionedWrite && options.access !== "read";
     this.capabilities = Object.freeze({
+      ...(capabilities.noFollow === undefined ? {} : { noFollow: capabilities.noFollow }),
       ...(capabilities.publication === undefined ? {} : { publication: capabilities.publication }),
       ...(capabilities.position === undefined ? {} : { position: capabilities.position }),
       ...(capabilities.readObservation === undefined ? {} : { readObservation: capabilities.readObservation }),
@@ -219,11 +222,12 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
   if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
   const signal = options.signal;
   signal?.throwIfAborted();
-  const keys = ["access", "creation", "truncate", "append", "mode", "exactMode", "synchronization", "signal"];
+  const keys = ["access", "creation", "truncate", "append", "mode", "exactMode", "noFollow", "synchronization", "signal"];
   const { access, creation = "never", truncate = false, append = false, mode = 0o666, synchronization } = options;
   if (Object.keys(options).some(key => !keys.includes(key))
     || !["read", "write", "readwrite"].includes(access)
     || !["never", "ifMissing", "exclusive"].includes(creation)
+    || options.noFollow !== undefined && typeof options.noFollow !== "boolean"
     || options.exactMode !== undefined && typeof options.exactMode !== "boolean"
     || typeof truncate !== "boolean" || typeof append !== "boolean"
     || access === "read" && (truncate || append)
@@ -232,6 +236,7 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
     throw new FsError("EINVAL", { syscall: "open", path });
   }
   const admitted: DescriptorOpenOptions = Object.freeze({ access, creation, truncate, append, mode,
+    ...(options.noFollow === undefined ? {} : { noFollow: options.noFollow }),
     ...(options.exactMode === undefined ? {} : { exactMode: options.exactMode }),
     ...(signal === undefined ? {} : { signal }), ...(synchronization === undefined ? {} : { synchronization }) });
   const admittedCapabilities = Object.freeze({ ...capabilities });

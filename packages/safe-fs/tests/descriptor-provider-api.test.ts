@@ -52,3 +52,14 @@ for (const [name, surface] of [["core", core], ["node", node]] as const) describ
     expect(acquire).not.toHaveBeenCalled();
   });
 });
+
+
+it("refuses nofollow before acquisition unless the provider guarantees it", async () => {
+  const acquire = vi.fn(async () => { throw new Error("Must not acquire"); });
+  const capabilities = { positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile" as const };
+  await expect(core.openFileDescriptor("/file", { access: "write", truncate: true, noFollow: true }, capabilities, acquire))
+    .rejects.toMatchObject({ code: "ENOTSUP", syscall: "open" });
+  await expect(core.openFileDescriptor("/file", { access: "read", noFollow: "yes" } as unknown as core.OpenFileOptions, capabilities, acquire))
+    .rejects.toMatchObject({ code: "EINVAL", syscall: "open" });
+  expect(acquire).not.toHaveBeenCalled();
+});

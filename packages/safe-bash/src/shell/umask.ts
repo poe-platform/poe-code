@@ -31,7 +31,8 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
             if (existing?.type === "directory") return Reflect.apply(method, target, args);
           }
           let capabilities = target.capabilities;
-          while (target.capabilitiesFor) {
+          // Atomic final-symlink admission must precede any following path query.
+          while (target.capabilitiesFor && !(key === "open" && options.noFollow)) {
             try {
               capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
                 : (key === "writeFile" || key === "writeStream") && (options.flag === "wx" || options.flag === "ax") ? { ...options, creation: "exclusive" } : options);

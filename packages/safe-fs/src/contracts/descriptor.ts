@@ -5,6 +5,8 @@ export interface OpenFileOptions extends FsOptions {
   readonly creation?: "never" | "ifMissing" | "exclusive";
   readonly truncate?: boolean;
   readonly append?: boolean;
+  /** Atomically reject a final symlink; parent symlinks still follow provider policy. */
+  readonly noFollow?: boolean;
   readonly mode?: number;
   /** Apply mode exactly to new entries, without an additional host umask. */
   readonly exactMode?: boolean;
@@ -12,6 +14,7 @@ export interface OpenFileOptions extends FsOptions {
 }
 
 export interface FileDescriptorCapabilities {
+  readonly noFollow?: boolean;
   readonly publication?: "conditional";
   readonly position?: boolean;
   readonly readObservation?: boolean;

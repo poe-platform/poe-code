@@ -370,14 +370,15 @@ export class MemoryFileSystem implements FileSystem {
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     return openFileDescriptor<{ node: FileNode | undefined; position: number }>(path, options, {
-      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile", position: true,
+      noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "volatile", position: true,
     }, async admitted => {
       const location = this.resolve(path, "open", {
-        followFinal: admitted.creation !== "exclusive", allowMissing: admitted.creation !== "never",
+        followFinal: !admitted.noFollow && admitted.creation !== "exclusive", allowMissing: admitted.creation !== "never",
       });
       let node = location.node;
       if (node) {
         if (admitted.creation === "exclusive") this.fail("EEXIST", "open", path);
+        if (node.type === "symlink" && admitted.noFollow) this.fail("ELOOP", "open", path);
         if (node.type !== "file") this.fail("EISDIR", "open", path);
         this.permission(node, admitted.access === "read" ? 4 : admitted.access === "write" ? 2 : 6, "open", path);
       } else {

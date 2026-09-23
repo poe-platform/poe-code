@@ -446,12 +446,12 @@ export class RealFileSystem implements FileSystem {
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     return openFileDescriptor<{ handle: native.FileHandle | undefined }>(path, options, {
-      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+      noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
     }, async admitted => {
       let handle: native.FileHandle | undefined;
       try {
         const target = await this.path(path, {
-          ...admitted, followFinal: admitted.creation !== "exclusive",
+          ...admitted, followFinal: !admitted.noFollow && admitted.creation !== "exclusive",
           ...(admitted.creation === "never" ? {} : { missing: "final" as const }),
         });
         let flags = (admitted.access === "read" ? constants.O_RDONLY : admitted.access === "write" ? constants.O_WRONLY : constants.O_RDWR)

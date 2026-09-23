@@ -27,6 +27,15 @@ values and null in place of optional values are invalid rather than silently
 ignored. Read-only access cannot request truncation or append. Creation remains
 an independent open operation: readonly wrappers must also reject creating opens.
 
+`noFollow: true` requires atomic refusal of a final symlink with `ELOOP`,
+including dangling links. Exclusive creation keeps its `EEXIST` precedence.
+Parent symlinks still follow provider namespace policy. Providers must advertise
+`FileDescriptorCapabilities.noFollow: true` to accept this option; missing/false
+support rejects with `ENOTSUP` before creation or truncation. Memory resolves and
+retains the entry without yielding; real acquisition preserves the final pathname
+for the native `O_NOFOLLOW` open. Forwarding wrappers preserve this admission or
+refuse it. The option does not establish hostile ancestor-race containment.
+
 `synchronization: "data" | "all"` requests availability of the corresponding
 descriptor synchronization operation, not a promise that a subsequent flush
 cannot fail. A provider must reject unsupported requested guarantees before

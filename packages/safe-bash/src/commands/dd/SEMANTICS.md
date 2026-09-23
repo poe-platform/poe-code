@@ -107,14 +107,19 @@ without notrunc truncates/extends the retained file to the requested offset befo
 copying, including count=0. Memory sync acknowledges its volatile store; only a
 provider advertising storage synchronization delegates a storage operation. A
 successful sync syscall is not evidence of survival under physical power loss.
+`oflag=dsync` and `oflag=sync` flush the same retained descriptor after each write;
+`conv=fdatasync` and `conv=fsync` remain independent end-of-copy operations.
+Memory synchronization remains volatile. Borrowed stdout and stream-only output
+cannot supply these synchronized-write guarantees and continue to refuse them.
 
 Providers explicitly refusing descriptors retain the stream path, not a
 read/modify/replace descriptor imitation. Input uses stat/access and lazy
 `readStream`, or bounded `readFile` when streaming is unavailable. Only this
 fallback can reopen regular-file input by path/range; concurrent replacement can
 then change the selected inode. Character devices remain opt-in stream providers,
-not native host device admission. Input directories retain the read-time EISDIR
-diagnostic even though canonical regular-file open refuses them.
+not native host device admission. Unflagged input directories retain the read-time EISDIR
+diagnostic even though canonical regular-file open refuses them. Named nofollow
+requests use only canonical acquisition, including its directory refusal.
 
 Fallback named output requires streaming write support and uses `openFileOutput`
 for backpressure, cleanup and the shell's aggregate file-output byte budget.
@@ -133,8 +138,9 @@ Default support for flags:
 | input append | No effect on reads |
 | output append with notrunc | Canonical append, or provider streaming append |
 | nofollow with implicit stdin/stdout | No pathname is opened |
-| named nofollow, directory, nolinks | Refused: canonical open has no corresponding atomic admission options |
-| direct, cio, dsync, sync, noatime, nocache, nonblock | Refused: no corresponding provider guarantee |
+| named nofollow | Canonical `noFollow` acquisition atomically refuses the final symlink; stream-only providers refuse |
+| output dsync, sync | Require descriptor synchronization at open; await data/full sync after every write, including partial writes. Full sync wins when both are selected |
+| directory, nolinks, direct, cio, input dsync/sync, noatime, nocache, nonblock | Refused: no corresponding provider guarantee |
 | output append with truncation | Canonical open only; refused by the stream fallback |
 
 Stream-only named `notrunc` without append, `nocreat`, output seek, and durability

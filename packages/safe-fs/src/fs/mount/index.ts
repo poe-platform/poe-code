@@ -449,16 +449,17 @@ export class MountFileSystem implements FileSystem {
 
   open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
     return openFileDescriptor(globalPath(path), options, {
-      positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
+      noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
     }, async admitted => {
       try {
         const location = await this.resolve(path, admitted, {
-          allowMissing: admitted.creation !== "never", followFinal: admitted.creation !== "exclusive",
+          allowMissing: admitted.creation !== "never", followFinal: !admitted.noFollow && admitted.creation !== "exclusive",
         });
         if (location.synthetic) fail("EISDIR");
         if (admitted.access !== "read" || admitted.creation !== "never" || admitted.truncate || admitted.append) this.mutable(location);
         const backend = location.mount.backend;
-        const capabilities = await backend.capabilitiesFor?.(location.local, admitted) ?? backend.capabilities;
+        const capabilities = admitted.noFollow || admitted.creation === "exclusive" ? backend.capabilities
+          : await backend.capabilitiesFor?.(location.local, admitted) ?? backend.capabilities;
         if (!backend.open || capabilities.open === false) fail("ENOTSUP");
         admitted.signal?.throwIfAborted();
         const descriptor = await backend.open(location.local, admitted);

@@ -84,9 +84,10 @@ export class ReadOnlyFileSystem implements FileSystem {
     if (options && (options.access === "write" || options.access === "readwrite" || options.truncate === true || options.append === true
       || options.creation === "ifMissing" || options.creation === "exclusive")) readOnly("open", path);
     return openFileDescriptor(path, options, {
-      positionedRead: true, positionedWrite: false, truncate: false, synchronization: "none",
+      noFollow: true, positionedRead: true, positionedWrite: false, truncate: false, synchronization: "none",
     }, async admitted => {
-      const capabilities = await this.#filesystem.capabilitiesFor?.(path, admitted) ?? this.#filesystem.capabilities;
+      const capabilities = admitted.noFollow ? this.#filesystem.capabilities
+        : await this.#filesystem.capabilitiesFor?.(path, admitted) ?? this.#filesystem.capabilities;
       if (!this.#filesystem.open || capabilities.open === false) throw new FsError("ENOTSUP", { syscall: "open", path });
       admitted.signal?.throwIfAborted();
       const descriptor = await this.#filesystem.open(path, admitted);

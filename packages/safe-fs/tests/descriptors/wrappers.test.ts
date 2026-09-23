@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { FileSystem, OpenFileOptions } from "../../src/contracts/filesystem.js";
 import { FsError } from "../../src/contracts/errors.js";
+import { createDeviceFileSystem } from "../../src/fs/devices/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { MountFileSystem } from "../../src/fs/mount/index.js";
 import { ReadOnlyFileSystem } from "../../src/fs/readonly/index.js";
@@ -149,3 +150,30 @@ describe("descriptor wrapper admission", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 });
+
+
+for (const [name, wrap] of [
+  ["mount", (fs: FileSystem) => new MountFileSystem({ root: fs })],
+  ["readonly", (fs: FileSystem) => new ReadOnlyFileSystem(fs)],
+  ["quota", (fs: FileSystem) => withFileSystemQuota(fs, { maxBytes: 1024 })],
+  ["devices", (fs: FileSystem) => createDeviceFileSystem(fs)],
+  ["composed", (fs: FileSystem) => createDeviceFileSystem(new MountFileSystem({ root: withFileSystemQuota(new ReadOnlyFileSystem(fs), { maxBytes: 1024 }) }))],
+] as const) {
+  it(`${name} preserves nofollow through acquisition and retained capabilities`, async () => {
+    const source = new MemoryFileSystem();
+    await source.writeFile("/file", new Uint8Array([1, 2]));
+    const wrapper = wrap(source);
+    for (const target of ["/file", "/missing", "/link", "/dev/null"]) {
+      await source.symlink(target, "/link");
+      await expect(wrapper.open!("/link", { access: "read", noFollow: true })).rejects.toMatchObject({ code: "ELOOP" });
+      await source.rm("/link");
+    }
+    const descriptor = await wrapper.open!("/file", { access: "read", noFollow: true });
+    try {
+      expect(descriptor.capabilities.noFollow).toBe(true);
+      const buffer = new Uint8Array(2);
+      expect(await descriptor.read(buffer, null)).toBe(2);
+      expect(buffer).toEqual(new Uint8Array([1, 2]));
+    } finally { await descriptor.close(); }
+  });
+}

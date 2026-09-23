@@ -18,6 +18,20 @@ beforeEach(() => {
 });
 
 describe("rooted real canonical descriptors (memfs fixtures)", () => {
+  it("passes final symlinks unchanged to atomic O_NOFOLLOW admission", async () => {
+    const filesystem = new RealFileSystem("/machine");
+    for (const target of ["file", "missing", "link", "/outside/file"]) {
+      await fs.promises.symlink(target, "/machine/link");
+      vi.mocked(native.open).mockRejectedValue(Object.assign(new Error("nofollow"), { code: "ELOOP" }));
+      await expect(filesystem.open("/link", { access: "write", creation: "ifMissing", truncate: true, noFollow: true }))
+        .rejects.toMatchObject({ code: "ELOOP", path: "/link" });
+      expect(native.open).toHaveBeenLastCalledWith("/machine/link", constants.O_WRONLY | constants.O_CREAT | constants.O_NOFOLLOW | constants.O_NONBLOCK, 0o666);
+      expect(await fs.promises.readFile("/machine/file", "utf8")).toBe("abcdef");
+      expect(await fs.promises.readFile("/outside/file", "utf8")).toBe("secret");
+      await fs.promises.unlink("/machine/link");
+    }
+  });
+
   it("retains one native handle, forwards exact positions, and closes once", async () => {
     const handle = await fs.promises.open("/machine/file", "r+");
     const read = vi.spyOn(handle, "read");

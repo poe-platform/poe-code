@@ -42,6 +42,34 @@ test("timeout foreground retains cooperative expiry and preserve-status", async 
   }
 });
 
+test("timeout rejects arguments attached to foreground flags before child invocation", async () => {
+  for (const option of ["--foreground=yes", "-fyes"]) {
+    const capture = captureContext([option, "2", "child"], {
+      invoke: async () => { assert.fail("invalid foreground option invoked child"); },
+    });
+    assert.equal((await createTimeoutCommand().execute(capture.context)).exitCode, 125);
+    assert.notEqual(capture.stderr(), "");
+  }
+});
+
+test("timeout foreground selection reaches the explicit kill-after host policy", async () => {
+  for (const option of ["-f", "--foreground"]) {
+    const capture = captureContext([option, "-k0.03", "2", "child"], {
+      invoke: async () => assert.fail("host policy bypassed"),
+    });
+    const command = createTimeoutCommand({
+      killAfterPolicy: async (_context, _child, _args, _streams, policy) => {
+        assert.deepEqual(policy, {
+          durationMilliseconds: 2000, killAfterMilliseconds: 30, signalNumber: 15,
+          preserveStatus: false, foreground: true,
+        });
+        return { exitCode: 9 };
+      },
+    });
+    assert.equal((await command.execute(capture.context)).exitCode, 9);
+  }
+});
+
 test("timeout accepts preserve-status and named, numeric, attached signal options through Shell", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() });
   await shell.use(agentCommands());

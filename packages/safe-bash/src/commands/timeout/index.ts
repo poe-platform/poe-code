@@ -22,7 +22,7 @@ export type KillAfterPolicy = (
   command: string,
   args: readonly string[],
   options: NonNullable<Parameters<CommandInvoker>[2]>,
-  policy: Readonly<{ durationMilliseconds: number; killAfterMilliseconds: number; signalNumber: number; preserveStatus: boolean }>,
+  policy: Readonly<{ durationMilliseconds: number; killAfterMilliseconds: number; signalNumber: number; preserveStatus: boolean; foreground?: true }>,
 ) => Promise<{ readonly exitCode: number }>;
 
 export interface TimeoutCommandsOptions extends TimeoutCommandOptions {
@@ -96,7 +96,6 @@ function settings(value: unknown, includeReplace: boolean): Settings {
   return { invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
 }
 
-
 async function status(context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
   await writeBytes(stdout ? context.stdout : context.stderr, bytes, context.signal);
   return { exitCode };
@@ -119,6 +118,7 @@ function definition(configuration: Settings): CommandDefinition {
       let offset = 0;
       let preserveStatus = false;
       let verbose = false;
+      let foreground = false;
       let signalNumber = 15;
       let killAfterMilliseconds: number | undefined;
       while (offset < originalArgs.length) {
@@ -137,6 +137,7 @@ function definition(configuration: Settings): CommandDefinition {
         }
         // Virtual invocation already runs without a separate POSIX process group.
         if (token === "--foreground" || token === "-f") {
+          foreground = true;
           offset++;
           continue;
         }
@@ -192,6 +193,7 @@ function definition(configuration: Settings): CommandDefinition {
         context.signal.throwIfAborted();
         const result = await configuration.killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
           durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
+          ...(foreground ? { foreground: true as const } : {}),
         }));
         context.signal.throwIfAborted();
         return result;

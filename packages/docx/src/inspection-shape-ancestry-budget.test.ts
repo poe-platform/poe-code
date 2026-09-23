@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { DocumentBudget, createDocumentArchive, createDocxInspectionCommandEngine, documentDialects, inspectDocument, parseDocumentXml, writeDocumentArchive } from "./index.js";
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
 import { DocumentSession } from "./document-session.js";

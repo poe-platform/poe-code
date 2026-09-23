@@ -1,8 +1,8 @@
 import { beforeAll, expect, it } from "vitest";
 import { build } from "esbuild";
 import { Volume } from "memfs";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import type * as api from "./index.js";
 import { readPackage } from "../tests/assertions.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";

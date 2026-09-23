@@ -1,8 +1,8 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as api from "./index.js";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 
 for (const strict of [false, true]) for (const carrier of ["choice", "fallback", "process"] as const) for (const domain of ["paragraph-properties"] as const) for (const operation of ["runs.add", "paragraphs.add"] as const) for (const route of ["sdk", "shell"] as const)

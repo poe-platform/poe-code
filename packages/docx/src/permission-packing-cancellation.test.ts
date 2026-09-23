@@ -1,6 +1,6 @@
 import { Volume } from "memfs";
 import { expect, it, vi } from "vitest";
-import { MemoryFileSystem } from "virtual-bash";
+import { MemoryFileSystem } from "@poe-platform/safe-bash";
 import * as api from "./index.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 

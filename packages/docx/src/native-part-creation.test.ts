@@ -1,8 +1,8 @@
 import * as api from "./index.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage, xmlStructure } from "../tests/assertions.js";
 import type { PackageView, XmlPartView } from "./index.js";

@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as source from "./index.js";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { signatureFixture } from "../tests/fixtures/signatures.js";

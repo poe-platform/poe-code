@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { Volume } from "memfs";
 import { Document, DocumentBudget, createDocxInspectionCommandEngine, editDocumentLists, executeDocumentBatch, extractDocumentText, readDocumentArchive } from "../../src/index.js";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textFixture, textContext, w } from "./text.js";
 import { readPackage } from "../assertions.js";
 

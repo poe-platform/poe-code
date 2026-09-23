@@ -1,8 +1,8 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import type { FileSystem } from "@poe-code/safe-fs/core";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { createDocxInspectionCommandEngine, packDocumentArchive } from "./index.js";
 import { textContext } from "../tests/fixtures/text.js";
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)

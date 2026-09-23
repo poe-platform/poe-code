@@ -1,8 +1,8 @@
 import { Volume } from "memfs";
 import { spawn } from "node:child_process";
 import { expect, it } from "vitest";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import * as api from "./index.js";
 import type * as compiledTypes from "docx";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
@@ -35,7 +35,7 @@ it(`revision decision retains selected admitted native property depth; strict=${
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), original = input.slice();
   const operation = `revisions.${action}` as const, arguments_ = { revision: 1 }, batch = { version: 1 as const, operations: [{ operation, arguments: arguments_ }] };
   if (route.startsWith("native")) {
-    const script = `import {Volume} from 'memfs';import * as api from 'docx';import {Shell,MemoryFileSystem} from 'virtual-bash';import {docxCommands} from 'virtual-bash/commands/docx';
+    const script = `import {Volume} from 'memfs';import * as api from 'docx';import {Shell,MemoryFileSystem} from '@poe-platform/safe-bash';import {docxCommands} from '@poe-platform/safe-bash/commands/docx';
 let source='';for await(const bytes of process.stdin)source+=bytes;const request=JSON.parse(source),input=new Uint8Array(Buffer.from(request.input,'base64')),memory=Volume.fromJSON({'/output':''}),signal=new AbortController().signal,context={limits:request.limits,signal,budget:new api.DocumentBudget(request.documentLimits,signal),encoding:{order:'input',compression:'store'},stdout:{async write(bytes){memory.appendFileSync('/output',bytes);}}},batch={version:1,operations:[{operation:request.operation,arguments:{revision:1}}]};
 try{let result;if(request.route.includes('sdk'))result=request.route.endsWith('batch')?(await api.executeDocumentBatch(input,batch,{output:'-'},context)).results[0].data:await api.editDocumentRevisionDecisions(input,{operation:request.operation,options:{revision:1,output:'-'}},context);else{const fs=new MemoryFileSystem(),retained=new TextEncoder().encode('Retained forced destination');await fs.writeFile('/input',input);await fs.writeFile('/output',retained);await fs.writeFile('/ops',new TextEncoder().encode(JSON.stringify(batch)));const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:request.limits,documentLimits:request.documentLimits})}));try{const response=await shell.exec((request.route.endsWith('batch')?'docx batch /input --ops-file /ops':'docx '+request.operation.split('.').join(' ')+' /input --revision 1')+' --output /output --force --json');if(Buffer.compare(Buffer.from(await fs.readFile('/input')),Buffer.from(input)))throw Error('Input changed');if(response.exitCode){if(Buffer.compare(Buffer.from(await fs.readFile('/output')),Buffer.from(retained)))throw Error('Destination changed');throw Error(response.stdout+response.stderr);}const envelope=JSON.parse(response.stdout);result=request.route.endsWith('batch')?envelope.data.results[0].data:envelope.data;memory.writeFileSync('/output',await fs.readFile('/output'));}finally{await shell.dispose();}}console.log(JSON.stringify({ok:true,result,output:Buffer.from(memory.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,code:error.code??null,outputBytes:memory.statSync('/output').size}));}`;
     const response = await new Promise<string>((resolve, reject) => {

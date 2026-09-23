@@ -1,8 +1,8 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import * as api from "./index.js";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 import { replacementPng } from "../tests/fixtures/image-replacement.js";

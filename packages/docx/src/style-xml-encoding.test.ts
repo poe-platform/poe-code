@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, openDocumentStyleModel, applyStyleModelBatch, createDocxInspectionCommandEngine, createDocument, editDocumentStyles, inspectDocumentStyles, writeArchive, WD_STYLE_TYPE, ParagraphStyle } from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { fidelityBytes, type FidelityEncoding } from "../tests/fixtures/xml-fidelity.js";

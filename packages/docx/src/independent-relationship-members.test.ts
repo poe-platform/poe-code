@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, Inches, applyStyleModelBatch, createDocxInspectionCommandEngine, editDocumentComments, editDocumentLists, editDocumentNotes, editDocumentLinks, editDocumentSections, editDocumentStories, inspectDocument, inspectDocumentComments, inspectDocumentNotes, inspectDocumentSections, insertDocumentImage, openDocumentLocations, writeArchive } from "./index.js";
 import { replacementPng } from "../tests/fixtures/image-replacement.js";
 import { textContext } from "../tests/fixtures/text.js";

@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { beforeAll, expect, it } from "vitest";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, createDocxInspectionCommandEngine, replaceDocumentImage, writeArchive } from "./index.js";
 import { replacementFixture, replacementPng, replacementBinary, replacementContext } from "../tests/fixtures/image-replacement.js";
 import { readPackage } from "../tests/assertions.js";

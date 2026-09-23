@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { Shell, MemoryFileSystem } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, createDocxInspectionCommandEngine, formatDocumentRuns, getDocumentXml, replaceDocumentXmlPart } from "./index.js";
 import { textContext } from "../tests/fixtures/text.js";
 import { fidelityBytes, xmlFidelityFixture, type FidelityEncoding } from "../tests/fixtures/xml-fidelity.js";

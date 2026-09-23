@@ -1,8 +1,8 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import * as api from "./index.js";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 const cases=[{row:561,count:0,companion:false},...[0,1,2,3].map((count,i)=>({row:562+i,count,companion:false})),...[1,2,3].map(count=>({row:562+count,count,companion:true}))];

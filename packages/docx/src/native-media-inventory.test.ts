@@ -1,7 +1,7 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { Document, createDocxInspectionCommandEngine, inspectDocument, inspectDocumentCharts, inspectDocumentDiagrams, inspectDocumentEquations, inspectDocumentPackageResources, replaceDocumentText, writeArchive } from "./index.js";
 import { chartFixture, chartContext, chartSpace, chartMime, sheetMime, series } from "../tests/fixtures/charts.js";
 import { diagramCarrier } from "../tests/fixtures/diagrams.js";

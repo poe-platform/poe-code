@@ -1,8 +1,8 @@
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import * as api from "./index.js";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
 import { assertPackageLinks, readPackage } from "../tests/assertions.js";
 const ref = (resultHandle: string, index?: number) => ({ resultHandle, ...(index === undefined ? {} : { index }) });

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { readPackage } from "../tests/assertions.js";
 import { Document, DocumentBudget, Twips, WD_TABLE_ALIGNMENT, WD_TABLE_DIRECTION, WD_CELL_VERTICAL_ALIGNMENT, WD_ROW_HEIGHT_RULE, applyStyleModelBatch, createDocxInspectionCommandEngine, executeDocumentBatch, writeArchive, inspectDocumentTables, readArchive } from "./index.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";

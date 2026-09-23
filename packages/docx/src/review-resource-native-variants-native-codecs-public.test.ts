@@ -1,8 +1,8 @@
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import type * as compiledTypes from "docx";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 const api = await compiledPublicRuntime as unknown as typeof compiledTypes;

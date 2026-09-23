@@ -1,8 +1,8 @@
 import {expect,it} from "vitest";
 import * as api from "./index.js";
 import {Volume} from "memfs";
-import {Shell,MemoryFileSystem} from "virtual-bash";
-import {docxCommands} from "virtual-bash/commands/docx";
+import {Shell,MemoryFileSystem} from "@poe-platform/safe-bash";
+import {docxCommands} from "@poe-platform/safe-bash/commands/docx";
 import {textContext,textFixture} from "../tests/fixtures/text.js";
 const ref=(resultHandle:string,index?:number)=>({resultHandle,...(index===undefined?{}:{index})});
 for(const strict of [false,true])for(const kind of ["docx","dotx"] as const)for(const row of [956,963] as const)for(const action of ["presence","part","relink"] as const)for(const route of ["model","sdk","shell"] as const)

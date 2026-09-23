@@ -2,8 +2,8 @@ import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import { DocumentXmlEditor } from "./xml-write.js";
 import { Document, createDocxInspectionCommandEngine, executeDocumentBatch, writeArchive, type XmlElementView } from "./index.js";
-import { MemoryFileSystem, Shell } from "virtual-bash";
-import { docxCommands } from "virtual-bash/commands/docx";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { svgPairFixture, svgContext } from "../tests/fixtures/svg-image.js";
 import { readPackage } from "../tests/assertions.js";
 

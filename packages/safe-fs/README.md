@@ -100,7 +100,7 @@ before implementing the host operation; ordinary writes do not provide it.
 
 | Backend or wrapper | Use it for |
 | --- | --- |
-| `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams |
+| `createMemoryFileSystem()` | Isolated, nonpersistent storage with links, permissions, timestamps, and streams; each path resolution admits at most 65,536 cumulative UTF-16 code units across the input and followed symlink targets, rejecting excess with `ENAMETOOLONG` before component allocation |
 | `createRealFileSystem({ root })` | An existing host directory, with virtual paths rooted inside it; Node only |
 | `new S3FileSystem({ transport, bucket, … })` | Bucket/prefix storage through an explicitly supplied transport; Node only |
 | `new WebDavFileSystem({ baseUrl, fetch, … })` | A WebDAV namespace through an explicitly supplied Fetch implementation |

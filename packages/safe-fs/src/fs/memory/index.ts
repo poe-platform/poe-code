@@ -315,6 +315,9 @@ export class MemoryFileSystem implements FileSystem {
 
   private resolve(path: string, syscall: string, options: ResolveOptions = {}): Location {
     this.validatePath(path, syscall);
+    // Bound all component arrays allocated by this resolution, including cycles.
+    let remainingPathUnits = 65_536 - path.length;
+    if (remainingPathUnits < 0) this.fail("ENAMETOOLONG", syscall, path);
     const pending = path.split("/").filter(Boolean);
     if (path.endsWith("/")) pending.push("");
     const stack: { node: MemoryNode; name: string }[] = [{ node: this.root, name: "" }];
@@ -345,6 +348,8 @@ export class MemoryFileSystem implements FileSystem {
       }
       if (node.type === "symlink" && (options.followFinal !== false || pending.length > 0)) {
         if (++links > 40) this.fail("ELOOP", syscall, path);
+        if (node.target.length > remainingPathUnits) this.fail("ENAMETOOLONG", syscall, path);
+        remainingPathUnits -= node.target.length;
         const target = node.target.split("/").filter(Boolean);
         if (node.target.endsWith("/")) target.push("");
         if (options.resizeCreate !== undefined && target.at(-1) === "" && pending[0] === "") target.pop();

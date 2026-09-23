@@ -154,7 +154,7 @@ test('request-body skips absent bodies while publishing explicitly empty and non
       const run = (options: PlaywrightAbilityRequest['options']) => playwrightEventAbilities['request-body']!.execute({
         command: 'request-body', args: [String(offset + 1)], options, session: 's', signal: new AbortController().signal,
         browserSession: { context, page, registerCleanup() {}, resolveTarget: async () => { throw new Error('unused'); }, selectPage: async () => {} },
-        write: async () => {}, readFile: async () => new Uint8Array(), writeArtifact: async (bytes, filename) => { files.set(filename, bytes); }, registerCleanup() {},
+        write: async () => {}, readFile: async () => new Uint8Array(), writeArtifact: async (bytes, filename) => { assert.ok(filename !== undefined); files.set(filename, bytes); }, registerCleanup() {},
       });
       const raw = await run({});
       const filename = `body-${offset}.txt`;

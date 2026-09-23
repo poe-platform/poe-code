@@ -813,7 +813,6 @@ interface DataContinuation {
   depth: number;
   capture: CaptureBuffer | undefined;
 }
-const nativeDataArrayFrom = Array.from.bind(Array);
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
 const MAX_REUSABLE_CAPTURE_LENGTH = 64;
@@ -1403,44 +1402,44 @@ function measureSandboxDataWithSeen(
           if (mapped !== undefined) {
             for (const retained of mapped.scope.retainedDataRoots()) visit(retained, depth + 1);
           }
-          let retained: SandboxValue[] | undefined;
-          let retainedCount = 0;
-          const keys = Object.getOwnPropertyNames(value);
-          for (const key of keys) {
-            const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-            if ("value" in descriptor) {
-              usage += 1 + key.length;
-              const data = descriptor.value;
-              if (typeof data === "string") usage += data.length;
-              else if (
-                typeof data === "bigint" ||
-                typeof data === "symbol" ||
-                (typeof data === "object" && data !== null)
-              ) {
-                retained ??= nativeDataArrayFrom({
-                  __proto__: null,
-                  length: keys.length * 2
-                } as ArrayLike<SandboxValue>);
-                retained[retainedCount++] = data;
-              }
-            } else {
-              const closures = retainedAccessorClosures(descriptor);
-              // The native restricted callee accessor retains no sandbox data.
-              if (closures.length > 0) usage += 1 + key.length;
-              for (let index = 0; index < closures.length; index++) {
-                retained ??= nativeDataArrayFrom({
-                  __proto__: null,
-                  length: keys.length * 2
-                } as ArrayLike<SandboxValue>);
-                retained[retainedCount++] = closures[index]!;
+          let roots: CaptureBuffer | undefined;
+          try {
+            const keys = Object.getOwnPropertyNames(value);
+            for (const key of keys) {
+              const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+              if ("value" in descriptor) {
+                usage += 1 + key.length;
+                const data = descriptor.value;
+                if (typeof data === "string") usage += data.length;
+                else if (
+                  typeof data === "bigint" ||
+                  typeof data === "symbol" ||
+                  (typeof data === "object" && data !== null)
+                ) appendNativeCapture(data);
+              } else {
+                const closures = retainedAccessorClosures(descriptor);
+                // The native restricted callee accessor retains no sandbox data.
+                if (closures.length > 0) usage += 1 + key.length;
+                for (let index = 0; index < closures.length; index++)
+                  appendNativeCapture(closures[index]!);
               }
             }
+            roots = captures;
+          } finally {
+            if (roots === undefined && captures !== undefined) releaseCaptures(captures);
+            captures = undefined;
           }
-          // Capture every descriptor before callbacks. Pinned Array.from creates
-          // own slots for at most two accessor roots per key, so indexed writes
-          // cannot invoke inherited setters or expose the snapshot to Array hooks.
-          if (retained !== undefined)
-            for (let index = 0; index < retainedCount; index++) visit(retained[index], depth + 1);
+          // Capture every descriptor before callbacks. Private null-prototype
+          // vectors reuse bounded storage without hooks or inherited setters.
+          // Continuations own pending snapshots, including later argument siblings.
+          if (roots !== undefined && roots.length > 0) {
+            value = roots.values[0];
+            if (roots.length > 1)
+              appendContinuation(roots.values, depth + 1, roots);
+            else releaseCaptures(roots);
+            depth++;
+            continue walk;
+          }
           break entry;
         }
 

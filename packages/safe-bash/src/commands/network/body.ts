@@ -144,7 +144,8 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
     }
     if (entry.encoder) preamble += `Content-Transfer-Encoding: ${entry.encoder}\r\n`;
     preamble += "\r\n";
-    parts.push({ bytes: encode(preamble) }, entry.file !== undefined ? { file: entry.file, encoder: entry.encoder } : { bytes: encode(entry.value), encoder: entry.encoder }, { bytes: encode("\r\n") });
+    const encoding = entry.encoder === undefined ? {} : { encoder: entry.encoder };
+    parts.push({ bytes: encode(preamble) }, entry.file !== undefined ? { file: entry.file, ...encoding } : { bytes: encode(entry.value), ...encoding }, { bytes: encode("\r\n") });
   }
   if (mixed) parts.push({ bytes: encode(`--${childBoundary}--\r\n\r\n`) });
   return parts;

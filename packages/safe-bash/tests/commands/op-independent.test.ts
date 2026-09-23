@@ -15,17 +15,21 @@ function backendFixture() {
   });
 }
 
-test("independent op pipeline injects stdin into cwd-relative VFS output", async () => {
+for (const [source, stdout] of [
+  ["cat template | op inject --out-file rendered", "/work/rendered\n"],
+  ["cat template | op inject --out-file rendered && cat rendered", "/work/rendered\nTOKEN=synthetic-token\n"],
+] as const) test(`independent op pipeline injects stdin into cwd-relative VFS output: ${source}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");
   await fs.writeFile("/work/template", encode("TOKEN={{ op://Team/Login/password }}\n"));
   const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands());
   assert.notEqual((await shell.exec("op --version")).exitCode, 0);
   shell.use(opCommands({ backend: backendFixture(), authorize: () => "allow" }));
-  const result = await shell.exec("cat template | op inject --out-file rendered && cat rendered");
+  const result = await shell.exec(source);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "TOKEN=synthetic-token\n");
-  assert.deepEqual(await fs.readFile("/work/rendered"), encode(result.stdout));
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(await fs.readFile("/work/rendered"), encode("TOKEN=synthetic-token\n"));
   assert.equal((await fs.stat("/work/rendered")).mode & 0o777, 0o600);
 });
 

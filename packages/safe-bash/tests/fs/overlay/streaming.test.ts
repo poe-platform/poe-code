@@ -118,22 +118,23 @@ test("failed streamed publication preserves lower, whiteouts, and existing upper
   assert.deepEqual((await upper.readdir("/")).map((entry) => entry.name), ["file"]);
 });
 
-test("conditional lower streaming keeps upper usable and retains bounded lower fallback", async () => {
+test("retained lower handles support streams without pathname read fallbacks", async () => {
   const upper = createMemoryFileSystem();
   const lower = createMemoryFileSystem();
   await lower.writeFile("/file", encode("base"));
-  let fallbackReads = 0;
+  let retainedOpens = 0;
   const overlay = createOverlayFileSystem({ upper, lower: wrapped(lower, {
     capabilities: { ...lower.capabilities, streamingRead: false },
     readStream() { assert.fail("explicitly unsupported lower stream invoked"); },
-    async readFile(path, options) { fallbackReads++; assert.equal(options?.maxBytes, 8); return lower.readFile(path, options); },
+    async readFile() { assert.fail("pathname fallback must not replace a retained read"); },
+    async openReadFile(path, options) { retainedOpens++; return lower.openReadFile(path, options); },
   }), maxBufferBytes: 8 });
-  assert.equal(Object.hasOwn(overlay.capabilities, "streamingRead"), false);
-  assert.equal(Object.hasOwn(overlay.capabilities, "streamingWrite"), false);
+  assert.equal(overlay.capabilities.streamingRead, true);
+  assert.equal(overlay.capabilities.streamingWrite, true);
   assert.deepEqual(await collectBytes(overlay.readStream("/file"), { maxBytes: 8 }), encode("base"));
   await overlay.writeStream("/file", toByteSource("!"), { flag: "a" });
   assert.deepEqual(await collectBytes(overlay.readStream("/file"), { maxBytes: 8 }), encode("base!"));
-  assert.equal(fallbackReads, 2);
+  assert.equal(retainedOpens, 2);
   assert.deepEqual(await lower.readFile("/file"), encode("base"));
 });
 
@@ -156,13 +157,17 @@ test("overlay streamed read aborts blocked delegate and observes late failure", 
   await lower.writeFile("/file", encode("data"));
   const started = deferred<void>();
   let rejectPending!: (reason: unknown) => void;
-  const pending = new Promise<IteratorResult<Uint8Array>>((resolve, reject) => { rejectPending = reject; });
+  const pending = new Promise<Uint8Array>((resolve, reject) => { rejectPending = reject; });
   let closed = 0;
   const overlay = createOverlayFileSystem({ upper: createMemoryFileSystem(), lower: wrapped(lower, {
-    readStream: () => ({ [Symbol.asyncIterator]() { return {
-      next() { started.resolve(); return pending; },
-      async return() { closed++; return { done: true as const, value: undefined }; },
-    }; } }),
+    async openReadFile(path, options) {
+      const handle = await lower.openReadFile(path, options);
+      return {
+        stat: handle.stat.bind(handle),
+        read() { started.resolve(); return pending; },
+        async close() { closed++; await handle.close(); },
+      };
+    },
   }) });
   const controller = new AbortController();
   const reading = overlay.readStream("/file", { signal: controller.signal })[Symbol.asyncIterator]().next();
@@ -176,16 +181,20 @@ test("overlay streamed read aborts blocked delegate and observes late failure", 
   await new Promise<void>((resolve) => setImmediate(resolve));
 });
 
-test("overlay read errors retain identity and close the selected iterator", async () => {
+test("overlay read errors retain identity and close the retained handle", async () => {
   const lower = createMemoryFileSystem();
   await lower.writeFile("/file", encode("data"));
   const failure = new FsError("EIO", { path: "/provider/file" });
   let closed = 0;
   const overlay = createOverlayFileSystem({ upper: createMemoryFileSystem(), lower: wrapped(lower, {
-    readStream: () => ({ [Symbol.asyncIterator]() { return {
-      async next() { throw failure; },
-      async return() { closed++; throw new Error("cleanup failure"); },
-    }; } }),
+    async openReadFile(path, options) {
+      const handle = await lower.openReadFile(path, options);
+      return {
+        stat: handle.stat.bind(handle),
+        async read() { throw failure; },
+        async close() { closed++; await handle.close(); throw new Error("cleanup failure"); },
+      };
+    },
   }) });
   await assert.rejects(collectBytes(overlay.readStream("/file"), { maxBytes: 4 }), (error: unknown) => error === failure);
   assert.equal(closed, 1);

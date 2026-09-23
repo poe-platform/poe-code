@@ -942,7 +942,7 @@ export class OverlayFileSystem implements FileSystem {
     });
     let failed = true;
     try {
-      yield* this.handleBytes(handle, options);
+      yield* readBytes(this.handleBytes(handle, options), options.signal);
       failed = false;
     } finally { await finishCleanup(() => handle.close(), failed); }
   }

@@ -1,0 +1,372 @@
+{
+  "status": "Candidate repair validated by guarded build tests, independent stress, real synthetic committed-archive positive and maintained lint; remote delivery and publication tracked separately.",
+  "cause": "OS temp ancestor has38908names and2271796foldedcharacters. Stable oversized directories bypassed full-name index and rescanned on every physical input traversal. Quiet compiler sample dominated by getdirentries64.",
+  "quietReproduction": {
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "durationMs": 92114.635458,
+    "terminal": "ENOTEMPTY cleanup of nested node-compile-cache masks outer90s timeout; prior full run retains12explicit ETIMEDOUT failures. All observed childPIDs terminated."
+  },
+  "tdd": {
+    "red": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    "green": {
+      "tests": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "requirement": "At most2listings of stable oversized ancestor for2distinct queried path components"
+  },
+  "fullGuardSuite": {
+    "tests": 395,
+    "pass": 395,
+    "fail": 0,
+    "skip": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "durationMs": 2564.147875
+  },
+  "repair": "Bounded partial folded-component lookups for stable oversized directories, preserving full directory alias scan on unseen component,7-field fresh identity reuse, incomplete/unstable noncaching, aggregate existing budgets and LRU eviction. No timeout/limit increases.",
+  "logs": [
+    {
+      "path": "out/ssconvert-pwd-packed/archive-positive-quiet.log",
+      "sha256": "f8846346f99ba8d9135f331bcac8ab9f70cd4a395ae545912520be485f497981"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-positive-compiler.sample.txt",
+      "sha256": "249b3e58aa04dd6471bd70786f82e428c5d577214f1578b2fdb61e84c4c69c51"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-directory-cache-red.log",
+      "sha256": "c856220c07b033085a7f1edfd4b02e65f5aced7da35be92de3e7270a543920ea"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-directory-cache-green.log",
+      "sha256": "96688d42a02abfb9177c87a4d4aca2a4d6bf21f7bf3e4bc5a001e6026cb99bf4"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-directory-guard-green.log",
+      "sha256": "7bcc72919f535c732abef59072d39f61dac4bd6bd91581d8c9c63a1a568fe790"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-positive-cache-repaired.log",
+      "sha256": "831e31a2753dc6fa0dc0a742eecb961dbd6ead5f6903f8bd1ef613582ce616cc"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/build-cache-independent.mjs",
+      "sha256": "2be333f4e2f87aa2386711df2846b600eb72a08bf111c045c7c9b86b2644176e"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/build-cache-independent.json",
+      "sha256": "87ecfe9fc3255d6e6a6b56a326c676db5f3ef89ab25a9b4ef5febb480cf6922f"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/build-cache-independent.log",
+      "sha256": "87ecfe9fc3255d6e6a6b56a326c676db5f3ef89ab25a9b4ef5febb480cf6922f"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/archive-directory-cache-lint.log",
+      "sha256": "117cd3efba13bc7e6e6cef4ddc2ba84cc0e7c9df480184f75be464aec94326d8"
+    }
+  ],
+  "realArchivePositive": {
+    "command": "node --import tsx --conditions=poe-code-source --test --test-name-pattern='^synthetic committed package passes consumers with ancestor Git isolation and hostile inherited startup settings$' tests/integration/s3-http-exports/archive-controls.test.mjs",
+    "cwd": "packages/safe-bash",
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "exitCode": 0,
+    "durationMs": 23111.464958,
+    "testDurationMs": 22136.247083,
+    "childTimeoutMs": 90000,
+    "selection": "withRepository reads authority scripts/build.mjs into synthetic fixture via put, commits fixture paths, then verifyCommittedExports selects revision HEAD and extracts admitted Git blobs. The passing test asserts isolated committed compiler build uses scripts/build.mjs and build source appears in blobReads/archivePaths; staged poisoned uncommitted product bytes do not enter build. This qualifies synthetic fixture, not real release archive."
+  },
+  "candidate": [
+    {
+      "path": "packages/safe-bash/scripts/build.mjs",
+      "sha256": "5315f79ecde06c2703cf236f67d0f53ece8a4c3d618dadd7e27fb365dbcfbc6c"
+    },
+    {
+      "path": "packages/safe-bash/scripts/build.test.mjs",
+      "sha256": "cf8384a2599aaabf5dab8004cec164045de2e99410a0a9b4841646fce891012b"
+    }
+  ],
+  "independentReview": {
+    "sourceHash": "5315f79ecde06c2703cf236f67d0f53ece8a4c3d618dadd7e27fb365dbcfbc6c",
+    "extraction": "Unchanged below/compilerInputs declarations selected through TypeScript AST; actual public compiler host methods with memfs. No compiler emit or real archive run.",
+    "cases": [
+      {
+        "name": "negative partial cache invalidation: created",
+        "status": "pass",
+        "milliseconds": 10.096666999999968,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "negative partial cache invalidation: case-alias",
+        "status": "pass",
+        "milliseconds": 7.6318749999999795,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "negative partial cache invalidation: ambiguous",
+        "status": "pass",
+        "milliseconds": 9.510207999999977,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial map preserves negative, positive and ambiguous cached results independently",
+        "status": "pass",
+        "milliseconds": 11.128250000000037,
+        "evidence": {
+          "enumerations": 3
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: dev",
+        "status": "pass",
+        "milliseconds": 4.11749999999995,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: ino",
+        "status": "pass",
+        "milliseconds": 3.838542000000018,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: mode",
+        "status": "pass",
+        "milliseconds": 6.545541999999955,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: nlink",
+        "status": "pass",
+        "milliseconds": 3.888500000000022,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: size",
+        "status": "pass",
+        "milliseconds": 3.708541000000025,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: mtimeMs",
+        "status": "pass",
+        "milliseconds": 3.0831249999999955,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "partial positive identity invalidation: ctimeMs",
+        "status": "pass",
+        "milliseconds": 3.4715419999999995,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "incomplete identity cannot retain partial result: undefined",
+        "status": "pass",
+        "milliseconds": 2.1335409999999797,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "incomplete identity cannot retain partial result: NaN",
+        "status": "pass",
+        "milliseconds": 2.439041999999972,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "incomplete identity cannot retain partial result: Infinity",
+        "status": "pass",
+        "milliseconds": 2.149041000000011,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "cached name still requires fresh child nonlink identity",
+        "status": "pass",
+        "milliseconds": 1.9562080000000037
+      },
+      {
+        "name": "unstable outside scans never retain partial names",
+        "status": "pass",
+        "milliseconds": 4.5731250000000045,
+        "evidence": {
+          "initial": 1,
+          "additionalEnumerations": 6
+        }
+      },
+      {
+        "name": "partial names are not carried across changed outside scan identity",
+        "status": "pass",
+        "milliseconds": 5.689458000000002,
+        "evidence": {
+          "additionalEnumerations": 3
+        }
+      },
+      {
+        "name": "aggregate name budget evicts a partial map before reusing its negative result",
+        "status": "pass",
+        "milliseconds": 9.119708000000003,
+        "evidence": {
+          "partialEnumerations": 2,
+          "fullEnumerations": 1
+        }
+      },
+      {
+        "name": "aggregate character budget evicts partial negative maps",
+        "status": "pass",
+        "milliseconds": 30.350915999999984,
+        "evidence": {
+          "firstEnumerations": 5,
+          "secondEnumerations": 2
+        }
+      },
+      {
+        "name": "oversized single query is not cached or admitted through a truncated key",
+        "status": "pass",
+        "milliseconds": 29.730375000000038,
+        "evidence": {
+          "enumerations": 2
+        }
+      },
+      {
+        "name": "global directory budget evicts the oldest partial map",
+        "status": "pass",
+        "milliseconds": 18.195333000000005,
+        "evidence": {
+          "directories": 260,
+          "firstEnumerations": 2
+        }
+      }
+    ],
+    "pass": 21,
+    "fail": 0
+  },
+  "lint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16626,
+      "linted": 16626,
+      "ignored": 2241,
+      "unconfigured": 39638,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "unprocessed": {
+      "directories": [],
+      "entries": [],
+      "descendantsUnknown": false
+    },
+    "timings": {
+      "traversalMs": 546189,
+      "parsingMs": 110671,
+      "initializationMs": 24965
+    },
+    "cacheHits": 0,
+    "command": "npm run lint:eslint",
+    "opens": 18687,
+    "closes": 18687,
+    "warnings": "2 unchanged ls-inode unused vars",
+    "sha256": "117cd3efba13bc7e6e6cef4ddc2ba84cc0e7c9df480184f75be464aec94326d8"
+  },
+  "sourceFrozenThroughLint": true,
+  "finalLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16626,
+      "linted": 16626,
+      "ignored": 2241,
+      "unconfigured": 39638,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "counters": {
+      "metadataOperations": 3748683,
+      "directories": 7888,
+      "entries": 101614,
+      "configurationBytes": 24184781,
+      "subjectBytes": 126625973,
+      "subjects": 16626,
+      "opens": 18687,
+      "closes": 18687,
+      "readCalls": 18996,
+      "readBytes": 150810754,
+      "receiptChecks": 206,
+      "failed": false,
+      "reading": false,
+      "used": true,
+      "bootstrap": true,
+      "receiptsComplete": true,
+      "lastMetadata": {
+        "method": "realpathSync",
+        "path": "/Users/kjopek/Workspace/poe-code/.claude/skills/poe-code-experiment-plan",
+        "descriptor": null,
+        "admitted": true,
+        "completed": true
+      },
+      "lastInput": {
+        "path": "e2e/vitest.config.ts",
+        "phase": "subject"
+      }
+    },
+    "unprocessed": {
+      "directories": [],
+      "entries": [],
+      "descendantsUnknown": false
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "packages/safe-bash/scripts/build.mjs",
+      "sha256": "5315f79ecde06c2703cf236f67d0f53ece8a4c3d618dadd7e27fb365dbcfbc6c"
+    },
+    {
+      "path": "packages/safe-bash/scripts/build.test.mjs",
+      "sha256": "cf8384a2599aaabf5dab8004cec164045de2e99410a0a9b4841646fce891012b"
+    }
+  ],
+  "limitations": [
+    "The real positive executes the current guarded build helper from a synthetic committed fixture. It is not a full current release archive or full 221-test suite pass.",
+    "Original complete archive failure is retained in release-archive-formats-feedback.json. No timeouts, cache limits or path guards were relaxed.",
+    "All 19 original ssconvert gap families and successful containing publication remain open."
+  ]
+}

@@ -704,6 +704,50 @@ for (const limit of ["names", "characters"]) test(`build directory index falls b
   owned.fileSystem.readdirSync = (path, ...args) => path === "/owned" ? [...listing(path, ...args), ...names] : listing(path, ...args);
   assert.equal((await owned.run()).status, 0, owned.output.join(""));
   assert.ok(owned.listings.filter(path => path === "/owned").length > 1);
+  assert.ok(owned.listings.filter(path => path === "/owned").length <= 2, "stable oversized ancestor must scan only once per queried component");
+  noHeldReads(owned);
+});
+
+for (const field of ["dev", "ino", "mode", "nlink", "size", "mtimeMs", "ctimeMs"]) test(`oversized directory lookups invalidate changed ${field} before admitting an alias`, async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync, metadata = owned.fileSystem.lstatSync;
+  const neighbors = Array.from({ length: 32769 }, (_, index) => "extra-" + index);
+  let changed = false;
+  owned.fileSystem.readdirSync = (path, ...args) => path === "/owned"
+    ? [...listing(path, ...args), ...neighbors, ...(changed ? ["PACKAGE"] : [])]
+    : listing(path, ...args);
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && changed) stat[field] += 1;
+    return stat;
+  };
+  afterInputRead(owned, root + "/integration-boundaries.json", () => { changed = true; });
+  await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+  assert.ok(!owned.reads.includes(root + "/src/index.ts"));
+  noHeldReads(owned);
+});
+
+for (const defect of ["alias", "spelling", "incomplete"]) test(`oversized directory lookups retain ${defect} admission checks`, async () => {
+  const owned = fixture();
+  const listing = owned.fileSystem.readdirSync, metadata = owned.fileSystem.lstatSync;
+  const neighbors = Array.from({ length: 32769 }, (_, index) => "extra-" + index);
+  owned.fileSystem.readdirSync = (path, ...args) => {
+    const names = listing(path, ...args);
+    if (path !== "/owned") return names;
+    return [...names.map(name => defect === "spelling" && name === "package" ? "PACKAGE" : name), ...neighbors, ...(defect === "alias" ? ["PACKAGE"] : [])];
+  };
+  owned.fileSystem.lstatSync = path => {
+    const stat = metadata(path);
+    if (path === "/owned" && defect === "incomplete") stat.ctimeMs = undefined;
+    return stat;
+  };
+  if (defect === "incomplete") {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.listings.filter(path => path === "/owned").length > 2);
+  } else {
+    await assert.rejects(owned.run(), /noncanonical compiler path spelling/);
+    assert.deepEqual(owned.reads, []);
+  }
   noHeldReads(owned);
 });
 

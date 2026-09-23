@@ -51,17 +51,18 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
   };
   const directoryName = (directory, stat, component) => {
     let identity = [stat.dev, stat.ino, stat.mode, stat.nlink, stat.size, stat.mtimeMs, stat.ctimeMs];
+    const foldedComponent = component.toLowerCase();
     const cached = directoryIndexes.get(directory);
-    if (cached && identity.every((value, index) => value === cached.identity[index])) {
+    if (cached && identity.every((value, index) => value === cached.identity[index]) && (!cached.partial || cached.names.has(foldedComponent))) {
       directoryIndexes.delete(directory);
       directoryIndexes.set(directory, cached);
-      return cached.names.get(component.toLowerCase());
+      return cached.names.get(foldedComponent);
     }
     discardIndex(directory);
     const outside = directory !== root && (directory === sep || below(directory, root)) && !toolRoots.some(toolRoot => below(toolRoot, directory));
     let entries;
     const uncachedName = () => {
-      const aliases = entries.filter(name => name.toLowerCase() === component.toLowerCase());
+      const aliases = entries.filter(name => name.toLowerCase() === foldedComponent);
       return aliases.length > 1 ? null : aliases[0];
     };
     for (let attempt = 0; ; attempt += 1) {
@@ -77,25 +78,44 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       identity = afterIdentity;
     }
     const complete = identity.every((value, index) => index < 5 ? Number.isSafeInteger(value) : Number.isFinite(value));
-    if (!complete || entries.length > indexLimits.names) return uncachedName();
+    if (!complete) return uncachedName();
     let characters = directory.length;
     for (const name of entries) {
       characters += name.length + name.toLowerCase().length;
-      if (characters > indexLimits.characters) return uncachedName();
+      if (characters > indexLimits.characters) break;
+    }
+    const partial = entries.length > indexLimits.names || characters > indexLimits.characters;
+    const names = new Map();
+    if (partial) {
+      // Large ancestors retain only queried names; every new query still scans
+      // the complete listing, and every reuse requires a fresh matching identity.
+      if (cached?.partial && identity.every((value, index) => value === cached.identity[index])) {
+        for (const [key, value] of cached.names) names.set(key, value);
+      }
+      const name = uncachedName();
+      names.set(foldedComponent, name);
+      characters = directory.length;
+      for (const [key, value] of names) characters += key.length + (value?.length ?? 0);
+      if (names.size > indexLimits.names || characters > indexLimits.characters) {
+        names.clear();
+        names.set(foldedComponent, name);
+        characters = directory.length + foldedComponent.length + (name?.length ?? 0);
+      }
+    } else {
+      for (const name of entries) {
+        const folded = name.toLowerCase();
+        names.set(folded, names.has(folded) ? null : name);
+      }
     }
     if (characters > indexLimits.characters) return uncachedName();
-    while (directoryIndexes.size >= indexLimits.directories || indexedNames + entries.length > indexLimits.names || indexedCharacters + characters > indexLimits.characters) {
+    const count = partial ? names.size : entries.length;
+    while (directoryIndexes.size >= indexLimits.directories || indexedNames + count > indexLimits.names || indexedCharacters + characters > indexLimits.characters) {
       discardIndex(directoryIndexes.keys().next().value);
     }
-    const names = new Map();
-    for (const name of entries) {
-      const folded = name.toLowerCase();
-      names.set(folded, names.has(folded) ? null : name);
-    }
-    directoryIndexes.set(directory, { identity, names, count: entries.length, characters });
-    indexedNames += entries.length;
+    directoryIndexes.set(directory, { identity, names, count, characters, partial });
+    indexedNames += count;
     indexedCharacters += characters;
-    return names.get(component.toLowerCase());
+    return names.get(foldedComponent);
   };
   const held = path => {
     const absolute = resolve(root, path);

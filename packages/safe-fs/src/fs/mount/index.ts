@@ -93,6 +93,9 @@ function snapshotStat(stat: FileStat): FileStat {
 export class MountFileSystem implements FileSystem {
   readonly capabilities: FileSystemCapabilities;
   private readonly mounts: readonly Mount[];
+  private activeNamespaceOperations = 0;
+  private namespaceMutation = false;
+  private readonly namespaceWaiters = new Set<() => void>();
 
   constructor(options: MountFileSystemOptions) {
     const mounts: Mount[] = [];
@@ -217,13 +220,17 @@ export class MountFileSystem implements FileSystem {
   }
 
   async openReadFile(path: string, options: OpenReadFileOptions = {}): Promise<FileReadHandle> {
+    let release: (() => void) | undefined;
     try {
+      release = await this.acquireNamespace(options);
       options.signal?.throwIfAborted();
       const location = await this.resolve(path, options);
       if (location.synthetic) fail("EISDIR");
       return await openRetainedReadFile(location.mount.backend, location.local, options);
     } catch (error) {
       throw error ? this.error(error, "openReadFile", path, options) : error;
+    } finally {
+      release?.();
     }
   }
 
@@ -243,7 +250,9 @@ export class MountFileSystem implements FileSystem {
   }
 
   async openResizeFile(path: string, options: OpenResizeFileOptions = {}): Promise<FileResizeHandle> {
+    let release: (() => void) | undefined;
     try {
+      release = await this.acquireNamespace(options);
       options.signal?.throwIfAborted();
       const resolution = this.resolve(path, options, { allowMissing: options.create === true, resizeCreate: options.create ?? false });
       const signal = options.signal;
@@ -261,6 +270,8 @@ export class MountFileSystem implements FileSystem {
       return await openRetainedResizeFile(location.mount.backend, location.local, options);
     } catch (error) {
       throw error ? this.error(error, "openResizeFile", path, options) : error;
+    } finally {
+      release?.();
     }
   }
 
@@ -271,17 +282,52 @@ export class MountFileSystem implements FileSystem {
     });
   }
 
+  // Keep guest namespace changes outside every path admission/action interval.
+  // Backend references held outside this view still require backend confinement.
+  private async acquireNamespace(options: FsOptions, mutation = false): Promise<() => void> {
+    const signal = options.signal;
+    signal?.throwIfAborted();
+    while (this.namespaceMutation || mutation && this.activeNamespaceOperations > 0) {
+      await new Promise<void>((resolve, reject) => {
+        const wake = (): void => { cleanup(); resolve(); };
+        const abort = (): void => { cleanup(); reject(signal!.reason); };
+        const cleanup = (): void => {
+          this.namespaceWaiters.delete(wake);
+          signal?.removeEventListener("abort", abort);
+        };
+        this.namespaceWaiters.add(wake);
+        signal?.addEventListener("abort", abort, { once: true });
+        if (signal?.aborted) abort();
+      });
+      signal?.throwIfAborted();
+    }
+    this.activeNamespaceOperations++;
+    if (mutation) this.namespaceMutation = true;
+    return () => {
+      this.activeNamespaceOperations--;
+      if (mutation) this.namespaceMutation = false;
+      for (const wake of this.namespaceWaiters) wake();
+    };
+  }
+
   private async operation<Result>(
     syscall: string, path: string, options: FsOptions,
     action: () => Promise<Result>, dest?: string, preserveReceipt = false,
   ): Promise<Result> {
+    let release: (() => void) | undefined;
     try {
-      options.signal?.throwIfAborted();
+      release = await this.acquireNamespace(options, [
+        "rename", "symlink", "link", "unlink", "rm", "rmdir",
+        "removeEntryConditional", "removeFileConditional", "removeTreeConditional",
+        "publishStagedFile", "removeStagedFile",
+      ].includes(syscall));
       const result = await action();
       if (!preserveReceipt) options.signal?.throwIfAborted();
       return result;
     } catch (error) {
       throw this.error(error, syscall, path, options, dest);
+    } finally {
+      release?.();
     }
   }
 
@@ -451,7 +497,9 @@ export class MountFileSystem implements FileSystem {
     return openFileDescriptor(globalPath(path), options, {
       noFollow: true, positionedRead: true, positionedWrite: true, truncate: true, synchronization: "storage",
     }, async admitted => {
+      let release: (() => void) | undefined;
       try {
+        release = await this.acquireNamespace(admitted);
         const location = await this.resolve(path, admitted, {
           allowMissing: admitted.creation !== "never", followFinal: !admitted.noFollow && admitted.creation !== "exclusive",
         });
@@ -472,6 +520,8 @@ export class MountFileSystem implements FileSystem {
       } catch (error) {
         admitted.signal?.throwIfAborted();
         throw this.error(error, "open", path, admitted);
+      } finally {
+        release?.();
       }
     });
   }
@@ -850,7 +900,9 @@ export class MountFileSystem implements FileSystem {
   }
 
   async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
+    let release: (() => void) | undefined;
     try {
+      release = await this.acquireNamespace(options);
       options.signal?.throwIfAborted();
       const location = await this.resolve(path, options);
       if (location.synthetic) fail("EISDIR");
@@ -862,6 +914,8 @@ export class MountFileSystem implements FileSystem {
       options.signal?.throwIfAborted();
     } catch (error) {
       throw this.error(error, "readStream", path, options);
+    } finally {
+      release?.();
     }
   }
 

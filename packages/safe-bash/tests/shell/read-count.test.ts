@@ -23,7 +23,7 @@ for (const flag of ["n", "N"]) {
       assert.ok(result.stderr.includes("read:"));
     });
   }
-  for (const count of ["2147483648", "4294967296", "9007199254740991"]) {
+  for (const count of ["2147483648", "4294967296", "9007199254740991", "9007199254740992"]) {
     for (const attached of [false, true]) {
       test(`default read -${flag} rejects ${count} (${attached ? "attached" : "separate"}) without consuming input`, async () => {
         const { shell } = setup();

@@ -544,40 +544,40 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
   if (database) await warn(database.root.remaining ? "Unfinished rldb." : "Unused rldb.");
   context.signal.throwIfAborted();
   if (!sheets.length) throw new SsconvertError("io", "Error while reading lotus workbook.");
+  let expressionTextBytes = 0;
+  const chargeExpressionText = (text: string, escapeQuotes = false) => {
+    for (const character of text) {
+      context.signal.throwIfAborted();
+      const point = character.codePointAt(0)!;
+      expressionTextBytes += (point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4) + (escapeQuotes && (character === "'" || character === "\\") ? 1 : 0);
+      if (expressionTextBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
+        throw new SsconvertError("resource-limit", "ssconvert Lotus expression text limit exceeded");
+    }
+  };
   for (const pending of deferredFormulas) {
     context.signal.throwIfAborted();
     const formula = await lotusFormula(pending.tokens, version, pending.group, pending.cell.row, pending.cell.column,
       pending.index, i => sheet(i).name, context, consumeOperation, lotusFunctions, names);
     const owner = sheet(pending.index), key = `${pending.cell.row}:${pending.cell.column}`;
-    if (owner.cells.get(key) === pending.cell) owner.cells.set(key, { ...pending.cell, formula });
+    if (owner.cells.get(key) === pending.cell) { chargeExpressionText(formula); owner.cells.set(key, { ...pending.cell, formula }); }
   }
-  let nameTextBytes = 0;
-  const chargeNameText = (text: string, escapeQuotes = false) => {
-    for (const character of text) {
-      context.signal.throwIfAborted();
-      const point = character.codePointAt(0)!;
-      nameTextBytes += (point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4) + (escapeQuotes && (character === "'" || character === "\\") ? 1 : 0);
-      if (nameTextBytes > (context.limits.workbookTextBytes ?? context.limits.inputBytes))
-        throw new SsconvertError("resource-limit", "ssconvert Lotus named-expression text limit exceeded");
-    }
-  };
   const importedNames = [...names].map(([name, { first, last }]) => {
-    consumeOperation(); chargeNameText(name); chargeNameText("=");
+    consumeOperation(); chargeExpressionText(name); chargeExpressionText("=");
     const qualifier = (index: number) => {
-      chargeNameText("''!"); chargeNameText(sheets[index]!.name, true);
+      chargeExpressionText("''!"); chargeExpressionText(sheets[index]!.name, true);
       return quoteFormulaString(sheets[index]!.name, "'", gnumericGrammar) + "!";
     };
     const address = (row: number, column: number) => {
       const a1 = formatA1(row, column); let digits = 0;
       while (a1[digits]! >= "A" && a1[digits]! <= "Z") digits++;
       const result = "$" + a1.slice(0, digits) + "$" + a1.slice(digits);
-      chargeNameText(result); return result;
+      chargeExpressionText(result); return result;
     };
     const single = first.sheet === last.sheet && first.row === last.row && first.column === last.column;
     const firstQualifier = qualifier(first.sheet), firstAddress = address(first.row, first.column);
     let end = "";
     if (!single) {
-      chargeNameText(":");
+      chargeExpressionText(":");
       const lastQualifier = first.sheet === last.sheet ? "" : qualifier(last.sheet), lastAddress = address(last.row, last.column);
       end = ":" + lastQualifier + lastAddress;
     }

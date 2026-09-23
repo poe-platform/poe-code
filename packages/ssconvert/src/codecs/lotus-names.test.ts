@@ -84,7 +84,7 @@ it("exposes imported names through actual arithmetic and range recalculation", a
 });
 
 it("admits aggregate named-expression text before retaining expanded sheet qualifiers", async () => {
-  await expect(readLotus(modern(newName("One"), newName("Two")), { ...context, limits: { ...context.limits, workbookTextBytes: 30 } })).rejects.toThrow("named-expression text limit");
+  await expect(readLotus(modern(newName("One"), newName("Two")), { ...context, limits: { ...context.limits, workbookTextBytes: 30 } })).rejects.toThrow("expression text limit");
 });
 
 it("recalculates imported names after an apostrophe-containing sheet rename", async () => {
@@ -155,4 +155,14 @@ it.each([false, true])("recalculates a named sheet span with an owner endpoint (
   const first = reverse ? [0, 2, 0] : [0, 0, 0], last = reverse ? [0, 0, 0] : [0, 2, 0];
   const book = await readLotus(modern(formulaRecord([...namedToken("Across", 8), 80, 1]), newName("Across", first, last), record(24, [0, 0, 0, 0, 22, 0]), record(24, [0, 0, 1, 0, 26, 0]), record(24, [0, 0, 2, 0, 34, 0])), context);
   expect(recalculateWorkbook(book, context, true).sheets[0]?.cells.find(c => c.column === 1)?.value).toEqual({ kind: "number", value: 41 });
+});
+
+it("admits named definitions and expanded formula text under one aggregate budget", async () => {
+  const input = modern(newName("N"), formulaRecord(namedToken("N", 8), 0, 1, 1), formulaRecord(namedToken("N", 8), 0, 1, 2));
+  const book = await readLotus(input, context);
+  const total = (book.names ?? []).reduce((sum, n) => sum + n.name.length + n.expression.length, 0) +
+    book.sheets.reduce((sum, s) => sum + s.cells.reduce((n, c) => n + (c.formula?.length ?? 0), 0), 0);
+  expect(total).toBe(43);
+  await expect(readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total - 1 } })).rejects.toThrow("expression text limit");
+  expect((await readLotus(input, { ...context, limits: { ...context.limits, workbookTextBytes: total } })).names).toEqual(book.names);
 });

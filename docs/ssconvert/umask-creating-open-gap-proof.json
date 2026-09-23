@@ -338,7 +338,7 @@
         "sha256": "66d288a76226de0f7c3e7ec76f34630960a4824b5929b619d15ca98a74bf8564"
       }
     },
-    "contract": "Incoming expectation counted two parent stats for pre-fix create-query behavior. Fixed generic mode query leaves only acquisition parent stat. Exact entry/order/oneparent contract retained, with additional0644createdmode assertion; no source/incomingchanges reverted."
+    "contract": "Incoming expectation counted two parent stats for pre-fix create-query behavior. Fixed generic mode query leaves only acquisition parent stat. Incoming expectation was updated for that repaired path; exact entry/order/one-parent traffic and created0644mode are asserted."
   },
   "rebasedGreen": {
     "tests": 98,

@@ -96,7 +96,15 @@ it is removed from the file list, so `strings - file` does not consume stdin.
 Use `./-` for a VFS file literally named `-`. With no operands, stdin is scanned.
 An operand list consisting only of `-` entries is a usage error, not stdin:
 GNU2.44's native behavior is preserved with a shorter utility diagnostic.
-This follows the GNU raw/all-data distinction; no object format is parsed.
+`-d`, `--data` selects initialized, allocated ELF sections; the last all/data
+option wins. ELF32 and ELF64 headers in either byte order are parsed within the
+input/work limits, without a native fallback. Each section is scanned separately,
+retaining original file offsets. Ordinary files, unrecognized or malformed objects
+fall back to whole-file scanning; stdin always uses whole-data scanning.
+`-T`, `--target` accepts `elf64-x86-64` and `elf32-i386`; a mismatched object falls
+back to whole-file scanning. Other targets are explicitly unsupported. This is
+a bounded ELF profile, not a general BFD implementation. Data scanning buffers
+the operand within the existing input limit before selecting sections.
 
 `-n N`, `--bytes=N` sets a positive minimum run length (default4). Runs contain
 ASCII bytes32–126 plus TAB by default; other bytes terminate them. `-e`,
@@ -111,8 +119,8 @@ in a minimum seven-character right-aligned field. `-f`, `--print-file-name`
 prefixes the literal operand, or `{standard input}`, followed by `: `.
 Offsets reset for each file; each accepted run ends with LF, including at EOF.
 
-This is a binary marker extractor with no object-section analysis. GNU `-d`,
-`-w` and `-o` are remaining compatibility gaps. Numeric `-NUMBER` syntax is
+This is a bounded binary marker extractor. GNU `-w` and `-o` remain
+compatibility gaps. Numeric `-NUMBER` syntax is
 supported under the pinned GNU strings2.44 Darwin profile, including leading-zero
 octal lengths and deferred numeric selection overriding valid ordinary `-n`.
 Zero and unsigned overflow are rejected. Legacy getopt ordering quirks are

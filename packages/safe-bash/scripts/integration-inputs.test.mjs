@@ -480,6 +480,7 @@ function assertSource7Discovery(files) {
     "tests/contracts/value.test.ts",
     "tests/commands/diff-patch/diff-admitted-options.test.ts",
     "tests/commands/stream-inspection/contracts.test.ts",
+    "tests/commands/stream-inspection/strings-object.test.ts",
     "tests/commands/stream-inspection/integration.test.ts",
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/agent-commands.test.ts",

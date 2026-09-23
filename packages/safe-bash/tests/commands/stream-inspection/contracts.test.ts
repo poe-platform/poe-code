@@ -131,7 +131,7 @@ for (const name of names) {
     const invalid = name === "tac" ? [["-z"], ["-s"], ["--before=yes"]]
       : name === "expand" ? [["-t0"], ["-t", "4,3"], ["-t", "+4,8"], ["-t", "4\n8"], ["--tabs"]]
       : name === "fold" ? [["-w0"], ["-w", "NaN"], ["--width"], ["-q"]]
-      : [["-n0"], ["-tq"], ["--radix"], ["-d"]];
+      : [["-n0"], ["-tq"], ["--radix"], ["-T"]];
     for (const args of invalid) {
       const result = await runFixture(fixture("invalid", name, args, "abcd\n"));
       assert.equal(result.exitCode, 1); assert.equal(result.stdout, ""); assert.ok(result.stderr.startsWith(`${name}: `));

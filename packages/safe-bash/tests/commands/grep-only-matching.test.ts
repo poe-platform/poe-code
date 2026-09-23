@@ -40,7 +40,7 @@ for (const [name, args, input, output, status] of cases) test(`bounded grep -o: 
 
 for (const [flags, expected, status, input] of [
   ["-co", "1\n", 0, "aaa\n"], ["-qo", "", 0, "aaa\n"], ["-lo", "(standard input)\n", 0, "aaa\n"],
-  ["-Lo", "", 1, "aaa\n"], ["-vo", "", 0, "aaa\nb\n"],
+  ["-Lo", "", 0, "aaa\n"], ["-vo", "", 0, "aaa\nb\n"],
 ] as const) {
   test(`bounded grep ${flags} only needs selection, not extraction ranges`, async () => {
     const shell = new Shell({ fs: createMemoryFileSystem() }).use(portableSearchCommands({ provider: createBoundedRegexProvider({ maxMatchesPerLine: 1 }) }));

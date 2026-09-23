@@ -186,7 +186,7 @@ inspect the resulting state before repeating the action.
                 continue;
               }
               count++;
-              if (!parsed.flags.has("L")) anySelected = true;
+              anySelected = true;
               if (parsed.flags.has("q")) return { exitCode: 0 };
               if (parsed.flags.has("l") || parsed.flags.has("L")) break records;
               if (!parsed.flags.has("c")) {
@@ -220,7 +220,7 @@ inspect the resulting state before repeating the action.
           }
           if (parsed.flags.has("q")) continue;
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
-            await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n")); anySelected = true;
+            await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n"));
           } else if (parsed.flags.has("c") && !parsed.flags.has("l") && !parsed.flags.has("L")) await output(context, prefix() + count + delimiter);
         } catch (error) {
           context.signal.throwIfAborted();

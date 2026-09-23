@@ -42,7 +42,7 @@ for (const entry of [
   assert.deepEqual(captured, entry.expected);
 });
 
-test("timeout legacy invocation omits carrier metadata and snapshots argv before asynchronous work", async () => {
+test("timeout legacy invocation forwards cancellation, omits carrier metadata and snapshots argv before asynchronous work", async () => {
   const args = ["0", "capture", "before"];
   const stdin = toByteSource("");
   const stdout = { async write() {} };
@@ -55,7 +55,8 @@ test("timeout legacy invocation omits carrier metadata and snapshots argv before
       assert.equal(command, "capture");
       assert.deepEqual(selected, ["before"]);
       assert.ok(Object.isFrozen(selected));
-      assert.deepEqual(options, { stdin, stdout, stderr });
+      assert.deepEqual(options, { signal: context.signal, stdin, stdout, stderr });
+      assert.equal(options?.signal, context.signal);
       return { exitCode: 7 };
     },
   };

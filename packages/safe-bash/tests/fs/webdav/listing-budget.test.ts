@@ -17,16 +17,15 @@ test("root plus 256 locally namespaced DAV children fit the advertised listing b
   assert.ok(entries.every((entry) => entry.type === "file"));
 });
 
-test("metadata-rich 12000-entry listings exceed independent XML structural caps despite sufficient byte and entry budgets", async () => {
+test("metadata-rich 12000-entry listings have no implicit XML structural cap and retain configured byte and entry limits", async () => {
   const body = listing(12_000);
   const maxXmlBytes = Buffer.byteLength(body);
   const options = { baseUrl: "https://example.test/dav/", fetch: async () => xmlResponse(body), maxXmlBytes, maxEntries: 12_001 };
-  await assert.rejects(new WebDavFileSystem(options).readdir("/"), {
-    code: "EIO",
-    syscall: "PROPFIND",
-    path: "/",
-    cause: new SyntaxError("Invalid WebDAV XML: XML attribute limit exceeded"),
-  });
+  const entries = await new WebDavFileSystem(options).readdir("/");
+  assert.equal(entries.length, 12_000);
+  assert.ok(entries.every(entry => entry.type === "file"));
+  await assert.rejects(new WebDavFileSystem({ ...options, maxEntries: 12_000 }).readdir("/"), { code: "EFBIG" });
+  await assert.rejects(new WebDavFileSystem({ ...options, maxXmlBytes: maxXmlBytes - 1 }).readdir("/"), { code: "EFBIG" });
 });
 
 test("minimal 12000-entry listings fit independent XML caps and enforce configured byte and entry limits", async () => {

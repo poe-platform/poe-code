@@ -44,7 +44,7 @@ for (const length of [0, 4099]) {
   }
 }
 
-test("cross-mount bounded fallback omits unsupported mode and forwards cancellation", async () => {
+test("cross-mount buffered fallback omits implicit limits and unsupported mode and forwards cancellation", async () => {
   const root = createMemoryFileSystem();
   const disk = createMemoryFileSystem();
   const controller = new AbortController();
@@ -53,7 +53,7 @@ test("cross-mount bounded fallback omits unsupported mode and forwards cancellat
     root: wrapped(root, {
       capabilities: { streamingRead: false },
       async readFile(path, options) {
-        assert.equal(options?.maxBytes, 64 * 1024 * 1024);
+        assert.equal(Object.hasOwn(options ?? {}, "maxBytes"), false);
         assert.equal(options?.signal, controller.signal);
         return root.readFile(path, options);
       },

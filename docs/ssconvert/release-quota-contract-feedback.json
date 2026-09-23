@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 1,
+  "releaseRun": "35897322426",
+  "baseRevision": "e8e67694f3a41dbab6dc2cc8172a1fbafc1f29b1",
+  "scope": "Reconcile six failed expectations with current opt-in filesystem quota and zero-duration timeout cancellation contracts; four test files only.",
+  "validatedContractCommit": "7b9e7e32e8877d54d1f772c89be0f98e0e231d3e",
+  "productCodeChanged": false,
+  "changes": [
+    {
+      "path": "packages/safe-bash/tests/commands/execution.test.ts",
+      "sha256": "498ba376a7341d6e2e727ec90c762e82783331365b8885cb393933fd4a26ccac",
+      "beforeSha256": "a934df83fad2d17cd30abdcfe36ac6d82faa4a69f19fa4b4b5ad2167952adb25"
+    },
+    {
+      "path": "packages/safe-bash/tests/fs/mount/streaming.test.ts",
+      "sha256": "148f6f548b6eaffbd1f9d8f9642c66c8c5b02370de1dfffe855153407464c40d",
+      "beforeSha256": "557b388a3fad243c9ca42a82de2d14eee421156d11fac0d54f59bf1976a47dae"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/memory-storage-limits.test.ts",
+      "sha256": "4e2faabd6050a04364b72c8bbd1f5bcd92c258f4ea47049c100ab2cab7c5ca58",
+      "beforeSha256": "59880c921db3634d84402f2da99807063b3fe6b2caa9e8a454b0bbaf0c2a99d5"
+    },
+    {
+      "path": "packages/safe-bash/tests/fs/webdav/listing-budget.test.ts",
+      "sha256": "9fe564ecbd1ae157c433318bb7cf9b523b23df6519e54fa002e4586593c26a1a",
+      "beforeSha256": "03f7c1f1f215155de64355071095d054b6ec20727ad5f181fe23f2b817e317e3"
+    }
+  ],
+  "sourceContracts": [
+    {
+      "path": "packages/safe-fs/src/fs/memory/limits.ts",
+      "sha256": "286a095bb6822df7bf4e855d9b174f0c93cdc56b2ae17c31393006a09ff9fe36"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/mount/index.ts",
+      "sha256": "60f0a4eefb539af6bba2fa1ed27fb2a41d6f86f9b720b962aef8992ec1260495"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/webdav/webdav.ts",
+      "sha256": "675f812252c6c2e76ea0b47f31b17c78f6e64884cb87b69787242465810d9000"
+    },
+    {
+      "path": "packages/safe-fs/src/xml.ts",
+      "sha256": "3b044bc1564b716f577802b39ec5300c95c37d87b1a15f7246ac0f928fbf251e"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/timeout/index.ts",
+      "sha256": "5c9a62554519f5c8aa4de888ec1895a218171a9cc6affd1c9e5dbf6c15c5bf84"
+    }
+  ],
+  "ciFailures": [
+    {
+      "path": "out/ssconvert-pwd-packed/release35897322426-bash2-raw.log",
+      "sha256": "bcb57e0781d6a935ac3a79913639a6e35632ef0bf874ae45c2c69faa96b12836"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/release35897322426-bash4-raw.log",
+      "sha256": "9d9f737296e2649999140c15af049ba911d4ad5625e6d07d256efe83d6eb0884"
+    }
+  ],
+  "reproduction": {
+    "command": "node --import tsx --conditions=poe-code-source --test --test-concurrency=1 tests/commands/execution.test.ts tests/fs/mount/streaming.test.ts tests/shell/memory-storage-limits.test.ts tests/fs/webdav/listing-budget.test.ts",
+    "cwd": "packages/safe-bash",
+    "tests": 68,
+    "passed": 62,
+    "failed": 6,
+    "log": {
+      "path": "out/ssconvert-quota-ci-feedback/current-red.log",
+      "sha256": "01b25e8c397408a4212a677884c862d8fa372ed863c9d5538430617961a21eb7"
+    }
+  },
+  "focusedValidation": {
+    "command": "node --import tsx --conditions=poe-code-source --test --test-concurrency=1 tests/commands/execution.test.ts tests/fs/mount/streaming.test.ts tests/shell/memory-storage-limits.test.ts tests/fs/webdav/listing-budget.test.ts",
+    "cwd": "packages/safe-bash",
+    "tests": 71,
+    "passed": 71,
+    "failed": 0,
+    "skipped": 0,
+    "log": {
+      "path": "out/ssconvert-quota-ci-feedback/current-green-signal-identity.log",
+      "sha256": "259408b1d61fac013949d9f3f153f8dc1b728f2d9d1b210f9b38e6cc4059a271"
+    },
+    "initialGreen": {
+      "path": "out/ssconvert-quota-ci-feedback/current-green.log",
+      "sha256": "8836612fd05212532137bcf1cda1a765ee2f29e9c493d2c3fef8149bfa80a7eb"
+    }
+  },
+  "retainedChecks": [
+    "Timeout invocation still requires exact options and same parent signal; carrier metadata omitted and argv frozen before asynchronous work.",
+    "Mount copy still compares exact binary contents, unsupported mode omission and same signal; no implicit maxBytes field.",
+    "Each default Memory creation route exercises original 5000-entry workload; explicit maxMetadataUnits3 refuses overflow without effects and reclaims after removal.",
+    "Same12000-entry metadata-rich WebDAV body succeeds without implicit XML attribute limit; explicitly configured byte and entry limits still reject with EFBIG.",
+    "Existing minimal listing explicit quotas and Shell borrowed replacement storage quota lifetime tests remain active."
+  ],
+  "independentReview": {
+    "state": "passed",
+    "reviewer": "/root/xxd_ci_feedback",
+    "implementedFeedback": "Added direct assert.equal(options?.signal, context.signal): deep object equality alone does not establish AbortSignal identity.",
+    "probes": {
+      "cases": [
+        {
+          "name": "memory route 0 explicit metadata exhaustion leaves namespace unchanged and reclaim is reusable",
+          "passed": true
+        },
+        {
+          "name": "memory route 0 explicit content quota is independent of omitted metadata quota",
+          "passed": true
+        },
+        {
+          "name": "memory route 1 explicit metadata exhaustion leaves namespace unchanged and reclaim is reusable",
+          "passed": true
+        },
+        {
+          "name": "memory route 1 explicit content quota is independent of omitted metadata quota",
+          "passed": true
+        },
+        {
+          "name": "memory route 2 explicit metadata exhaustion leaves namespace unchanged and reclaim is reusable",
+          "passed": true
+        },
+        {
+          "name": "memory route 2 explicit content quota is independent of omitted metadata quota",
+          "passed": true
+        },
+        {
+          "name": "timeout zero forwards borrowed signal identity and its subsequent abort reason",
+          "passed": true
+        },
+        {
+          "name": "buffered mount copy has no implicit maxBytes while explicit backend quota rejects before destination publication",
+          "passed": true
+        },
+        {
+          "name": "WebDAV rich attributes: default",
+          "passed": true
+        },
+        {
+          "name": "WebDAV rich attributes: exact",
+          "passed": true
+        },
+        {
+          "name": "WebDAV rich attributes: bytes-under",
+          "passed": true
+        },
+        {
+          "name": "WebDAV rich attributes: entries-under",
+          "passed": true
+        }
+      ],
+      "passed": 12,
+      "profile": "Direct current SafeFS source and Safe Bash timeout source; memfs-style in-memory backends, mock WebDAV response, no real network or build"
+    },
+    "identityNegative": {
+      "sourcePath": "packages/safe-bash/tests/commands/execution.test.ts",
+      "sourceSha256": "498ba376a7341d6e2e727ec90c762e82783331365b8885cb393933fd4a26ccac",
+      "substitution": "distinct fresh signal in otherwise matching child invocation options",
+      "outcome": "rejected by exact-reference assertion",
+      "operator": "strictEqual"
+    },
+    "receipts": [
+      {
+        "path": "out/ssconvert-quota-ci-feedback/independent.json",
+        "sha256": "bf69212db19d6ff622aa04136d6fecfd163fcf846f2ff499b0857df66ed5fb4c"
+      },
+      {
+        "path": "out/ssconvert-quota-ci-feedback/independent.mjs",
+        "sha256": "09f4b1fdaca9c8c57d4a685d70cd7aa5729e7a80d13b28ccbd672c52d4e4d62f"
+      },
+      {
+        "path": "out/ssconvert-quota-ci-feedback/independent-corrected.log",
+        "sha256": "8f1c50e695a9068b2175d1b6c72daf1b5a07e3ea4b0d409abbe4bdec32b42597"
+      },
+      {
+        "path": "out/ssconvert-quota-ci-feedback/signal-identity-negative.json",
+        "sha256": "ef234da2dbb41523a4b646704c0b3fb39f487552165aa2f4b1b322cc4a927cd8"
+      }
+    ],
+    "initialProbeCorrection": "The first scratch expected ENOSPC for a per-file-size limit; documented EFBIG was confirmed from the quota ledger and the scratch assertion was corrected. The original failed log remains preserved."
+  },
+  "limits": [
+    "Focused checks do not imply whole-workspace runtime, typecheck, lint or release completion.",
+    "No sealed fixtures or original CI logs were edited."
+  ],
+  "delivery": "Local candidate; remote-main delivery and containing release pending.",
+  "guardedRootLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16640,
+      "linted": 16640,
+      "ignored": 2241,
+      "unconfigured": 39650,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "timings": {
+      "traversalMs": 521810,
+      "parsingMs": 126220,
+      "initializationMs": 26442
+    },
+    "cacheHits": 0,
+    "sha256": "69a51af768bc8f7b4aeda25883cd8a7247ad11f7b90cd67234235dfe896d2386"
+  }
+}

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   createFileSystem, createMemoryFileSystem, createNodeFileSystemAdapterRegistry,
-  FsError, MemoryFileSystem,
+  FsError, MemoryFileSystem, type MemoryFileSystemOptions,
 } from "poe-code/safe-fs";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { Shell } from "../../src/shell/index.js";
@@ -10,17 +10,26 @@ import { Shell } from "../../src/shell/index.js";
 const storageFull = (error: unknown): boolean => error instanceof FsError && error.code === "ENOSPC";
 
 for (const [name, create] of [
-  ["constructor", () => new MemoryFileSystem()],
-  ["factory", () => createMemoryFileSystem()],
-  ["configuration", () => createFileSystem({ type: "memory" }, { registry: createNodeFileSystemAdapterRegistry() })],
+  ["constructor", (options?: MemoryFileSystemOptions) => new MemoryFileSystem(options)],
+  ["factory", (options?: MemoryFileSystemOptions) => createMemoryFileSystem(options)],
+  ["configuration", (options?: MemoryFileSystemOptions) => createFileSystem({ type: "memory", ...(options === undefined ? {} : { options }) }, { registry: createNodeFileSystemAdapterRegistry() })],
 ] as const) {
-  test(`default ${name} stops metadata growth without an opt-in wrapper`, async () => {
+  test(`default ${name} permits metadata growth beyond the former implicit quota`, async () => {
     const filesystem = await create();
     for (let index = 0; index < 4_999; index++) await filesystem.mkdir(`/d${index}`);
-    await assert.rejects(filesystem.mkdir("/overflow"), storageFull);
-    assert.equal((await filesystem.readdir("/")).length, 4_999);
+    await filesystem.mkdir("/overflow");
+    assert.equal((await filesystem.readdir("/")).length, 5_000);
     await filesystem.rmdir!("/d0");
     await filesystem.mkdir("/replacement");
+  });
+  test(`explicit ${name} metadata quota rejects growth and reclaims removed entries`, async () => {
+    const filesystem = await create({ maxMetadataUnits: 3 });
+    await filesystem.mkdir("/first");
+    await assert.rejects(filesystem.mkdir("/overflow"), storageFull);
+    assert.deepEqual((await filesystem.readdir("/")).map(entry => entry.name), ["first"]);
+    await filesystem.rmdir!("/first");
+    await filesystem.mkdir("/replacement");
+    assert.deepEqual((await filesystem.readdir("/")).map(entry => entry.name), ["replacement"]);
   });
 }
 

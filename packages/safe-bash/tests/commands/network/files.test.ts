@@ -9,6 +9,40 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
 
+test("curl remote-name uses curl_response for root URLs and retains path filenames", async () => {
+  const payload = Buffer.from([65, 255, 0, 13, 10]);
+  for (const path of ["/", "/?query=value", "/#fragment", "/directory/", "/file%20name.bin"]) {
+    for (const flag of ["-O", "--remote-name"]) {
+      for (const directory of [undefined, "Changed folder"]) {
+        for (const existing of [false, true]) {
+          const fs = await fixture();
+          if (directory) await fs.mkdir(`/work/${directory}`);
+          const name = path.startsWith("/directory") ? "directory" : path.startsWith("/file") ? "file%20name.bin" : "curl_response";
+          const output = directory ? `${directory}/${name}` : name;
+          if (existing) await fs.writeFile(`/work/${output}`, Buffer.from("previous"));
+          let requests = 0;
+          const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({
+            authorize: () => true,
+            transport: async () => {
+              requests++;
+              return { status: 200, statusText: "OK", headers: [],
+                body: (async function* () { yield payload; })(), async dispose() {} };
+            },
+          }));
+          try {
+            const result = await shell.exec(`curl -s ${flag} ${directory ? "--output-dir 'Changed folder'" : ""} -w '%{filename_effective}' 'http://example.test${path}'`);
+            assert.equal(result.exitCode, 0, `${path}: ${result.stderr}`);
+            assert.equal(result.stdout, output);
+            assert.equal(requests, 1);
+            assert.deepEqual(Buffer.from(await fs.readFile(`/work/${output}`)), payload);
+            if (directory) await assert.rejects(fs.stat(`/work/${name}`), { code: "ENOENT" });
+          } finally { await shell.dispose(); }
+        }
+      }
+    }
+  }
+});
+
 test("curl --output-dir writes explicit and remote filenames in the existing VFS directory", async () => {
   const host = await server(); const fs = await fixture();
   const payload = Buffer.from([0, 255, 195, 169, 10, 13, 128]);

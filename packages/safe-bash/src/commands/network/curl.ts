@@ -81,6 +81,7 @@ function pipeClosed(error: unknown): boolean {
 }
 
 function remoteFilename(url: URL): string {
+  if (url.pathname === "/") return "curl_response";
   const name = posix.basename(url.pathname);
   if (!name || name === "/" || name === "." || name === "..") throw new CurlError(23, "URL has no safe remote filename");
   return name;

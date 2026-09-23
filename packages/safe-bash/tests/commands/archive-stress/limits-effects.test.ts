@@ -70,8 +70,9 @@ test("B01 configured entry, PAX and expanded-archive boundaries accept exact and
   }
 });
 
-test("B02 explicit 64 MiB entry declaration rejects plus one before body reads or publication", async () => {
-  for (const over of [false, true]) {
+test("B02 explicit 64 MiB entry limit rejects plus one while uncapped defaults admit both headers", async () => {
+  for (const maxEntryBytes of [undefined, 67_108_864]) for (const over of [false, true]) {
+    const overLimit = maxEntryBytes !== undefined && over;
     const fs = await fixture();
     await fs.writeFile("/output/data", Buffer.from("old destination"));
     const original = await fs.stat("/output/data");
@@ -93,16 +94,17 @@ test("B02 explicit 64 MiB entry declaration rejects plus one before body reads o
       },
       async return() { returns++; closed.resolve(); return { done: true, value: undefined }; },
     }; } };
-    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input, onInternalError(error) { reported.push(error); } }, { limits: { maxEntryBytes: 67_108_864 } });
+    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input, onInternalError(error) { reported.push(error); } },
+      maxEntryBytes === undefined ? {} : { limits: { maxEntryBytes } });
     assert.equal(result.exitCode, 2);
-    assert.equal(result.stderr, over ? "tar: entry byte limit exceeded\n" : "tar: internal error\n");
-    if (over) assert.deepEqual(reported, []);
+    assert.equal(result.stderr, overLimit ? "tar: entry byte limit exceeded\n" : "tar: internal error\n");
+    if (overLimit) assert.deepEqual(reported, []);
     else { assert.equal(reported.length, 1); assert.equal(reported[0], failure); }
-    assert.equal(pulls, over ? 1 : 2);
+    assert.equal(pulls, overLimit ? 1 : 2);
     await deadline(closed.promise);
     assert.equal(returns, 1);
-    assert.equal(publications, over ? 0 : 1);
-    if (over) {
+    assert.equal(publications, overLimit ? 0 : 1);
+    if (overLimit) {
       fs.writeStream = writeStream;
       const retained = await fs.stat("/output/data");
       assert.deepEqual(retained, original);
@@ -110,10 +112,10 @@ test("B02 explicit 64 MiB entry declaration rejects plus one before body reads o
       assert.equal(retained.dev, original.dev);
       assert.equal(retained.ino, original.ino);
     }
-    assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), over ? Buffer.from("old destination") : Buffer.alloc(0));
+    assert.deepEqual(Buffer.from(await fs.readFile("/output/data")), overLimit ? Buffer.from("old destination") : Buffer.alloc(0));
     assert.deepEqual(await names(fs), ["data"]);
     await sentinel(fs);
-    console.log(JSON.stringify({ over, declaredBytes: 67_108_864 + Number(over), headerBytes: bytes.length, fixtureSha256: digest(bytes), pulls, returns, publications, ...result }));
+    console.log(JSON.stringify({ maxEntryBytes, over, declaredBytes: 67_108_864 + Number(over), headerBytes: bytes.length, fixtureSha256: digest(bytes), pulls, returns, publications, ...result }));
   }
 });
 

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { setup } from "./helpers.js";
+import { spawnSync } from "node:child_process";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+import { setup } from "./helpers.js";
 
 for (const canonical of [true, false]) for (const option of ["-C", "-o noclobber", "-uC"]) {
   test(`noclobber ${option} preserves existing output with descriptor API ${canonical}`, async () => {
@@ -44,6 +45,41 @@ test("noclobber is visible in option queries and does not persist across exec", 
   const listed = await shell.exec("set -C; set +o");
   assert.ok(listed.stdout.includes("set -o noclobber\n"));
   assert.equal((await shell.exec("[[ -o noclobber ]]")).exitCode, 1);
+});
+
+for (const source of [
+  `set -a; VALUE=hello; sh -c 'printf %s "$VALUE"'`,
+  `BEFORE=hidden; set -a; VALUE=hello; set +a; AFTER=hidden; VALUE+=world; sh -c 'printf "<%s><%s><%s>" "$BEFORE" "$VALUE" "$AFTER"'`,
+  `set -aeu; VALUE=hello; set +au; sh -c 'printf %s "$VALUE"'`,
+  `set -o allexport; VALUE=hello; set +o allexport; AFTER=hidden; sh -c 'printf "<%s><%s>" "$VALUE" "$AFTER"'`,
+  `set -a; (set +a; INNER=hidden); OUTER=hello; sh -c 'printf "<%s><%s>" "$INNER" "$OUTER"'`,
+  `set -a; f() { local VALUE=local; sh -c 'printf %s "$VALUE"'; }; f; sh -c 'printf "<%s>" "$VALUE"'`,
+  `set -a; : "\${VALUE:=default}"; for ITEM in one two; do :; done; let 'COUNT=3'; sh -c 'printf "<%s><%s><%s>" "$VALUE" "$ITEM" "$COUNT"'`,
+  `set -a; case "$-" in *a*) printf on;; esac; set +a; case "$-" in *a*) printf bad;; *) printf off;; esac`,
+  `set -a; [[ -o allexport ]]; printf '%s' "$?"; set +a; [[ -o allexport ]]; printf '%s' "$?"`,
+  String.raw`set -a; sh -c 'CHILD=hidden; sh -c '\''printf "<%s>" "$CHILD"'\'''`,
+  `set -a; VALUE=original; VALUE=temporary sh -c 'printf "<%s>" "$VALUE"'; sh -c 'printf "<%s>" "$VALUE"'`,
+  `set -a; VALUE=hello; unset VALUE; set +a; VALUE=hidden; sh -c 'printf "<%s>" "$VALUE"'`,
+]) {
+  test(`automatic export matches Bash: ${source}`, async context => {
+    const env = { PATH: "/usr/bin:/bin", LC_ALL: "C", TZ: "UTC" };
+    const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { cwd: "/", env, timeout: 2000 });
+    assert.equal(expected.error, undefined);
+    assert.equal(expected.signal, null);
+    const shell = new Shell({ fs: createMemoryFileSystem(), env }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const actual = await shell.exec(source);
+    assert.deepEqual({ stdout: Buffer.from(actual.stdoutBytes).toString("hex"), stderr: Buffer.from(actual.stderrBytes).toString("hex"), exitCode: actual.exitCode },
+      { stdout: expected.stdout.toString("hex"), stderr: expected.stderr.toString("hex"), exitCode: expected.status });
+  });
+}
+
+test("set lists the automatic export option", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  assert.ok((await shell.exec("set -o")).stdout.startsWith("allexport\toff\n"));
+  assert.ok((await shell.exec("set -a; set +o")).stdout.startsWith("set -o allexport\n"));
+  assert.ok((await shell.exec("set -a; set +a; set +o")).stdout.startsWith("set +o allexport\n"));
 });
 
 test("native-backed errexit forms stop before subsequent commands and file effects", async () => {

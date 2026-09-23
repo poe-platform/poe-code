@@ -102,7 +102,7 @@ const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
-  "allexport", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
+  "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
   "ignoreeof", "interactive-comments", "keyword", "monitor", "noexec", "nolog",
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
@@ -478,6 +478,7 @@ export interface State {
   braceexpand?: boolean;
   noglob?: boolean;
   noclobber?: boolean;
+  allexport?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
@@ -1767,6 +1768,7 @@ export class Runtime {
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
     }
     publishVariable(state, name, value);
+    if (state.allexport) state.exported.add(name);
     if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
   }
 
@@ -3342,7 +3344,7 @@ export class Runtime {
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
-            option: name => name === "braceexpand" ? state.braceexpand !== false : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
+            option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
               if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
@@ -5266,6 +5268,7 @@ export class Runtime {
       for (let position = 1; valid && position < option.length; position++) {
         const flag = option[position];
         if (flag === "e") state.errexit = enabled;
+        else if (flag === "a") state.allexport = enabled;
         else if (flag === "u") state.nounset = enabled;
         else if (flag === "f") state.noglob = enabled;
         else if (flag === "C") state.noclobber = enabled;
@@ -5276,10 +5279,11 @@ export class Runtime {
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
+            const options = [["allexport", !!state.allexport], ["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
             for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
+            else if (name === "allexport") state.allexport = enabled;
             else if (name === "nounset") state.nounset = enabled;
             else if (name === "pipefail") state.pipefail = enabled;
             else if (name === "braceexpand") state.braceexpand = enabled;
@@ -5296,7 +5300,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u/f/B/C clusters, -- arguments and terminal o with braceexpand, noclobber, noglob, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/u/f/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noglob, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -6662,7 +6666,7 @@ export class Runtime {
     }
     let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

@@ -58,7 +58,9 @@ physical permissions, and the host process mask remains unchanged.
   member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
-  control failures; Bash-profile `set -f` / `set -o noglob` disables pathname
+  control failures; `set -a` (or `set -o allexport`) exports subsequent variable
+  assignments to child commands, and `set +a` disables automatic export.
+  Bash-profile `set -f` / `set -o noglob` disables pathname
   expansion, and `set +f` restores it. `set -C` (or `set -o noclobber`) protects existing output
   files from `>` redirection; `>|` overrides it and `>>` still appends.
   `shopt -s dotglob` includes dotfiles in globs.

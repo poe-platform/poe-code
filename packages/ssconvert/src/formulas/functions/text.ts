@@ -297,11 +297,15 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
   PROPER: (args, host) => byteStringValue(properByteText(byteTextArg(args, 0, host), host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   TRIM: (args, host) => byteStringValue(trimByteText(byteTextArg(args, 0, host), host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   REPT: (args, host) => {
-    const source = textArg(args, 0, host), count = numberArg(args, 1, host), length = byteLength(source);
-    if (count < 0 || length && count >= 2147483647 / length) return error("#VALUE!");
+    const source = byteTextArg(args, 0, host), count = numberArg(args, 1, host), length = source.length;
+    if (count < 0) return error("#VALUE!");
     if (!length || count < 1) return str("");
-    if (length * Math.trunc(count) > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
-    return str(source.repeat(Math.trunc(count)));
+    if (count >= Math.trunc(2147483647 / length)) return error("#VALUE!");
+    const size = length * Math.trunc(count);
+    if (size > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+    const result = new Uint8Array(size);
+    for (let offset = 0; offset < size;) for (const byte of source) { host.tick(); result[offset++] = byte; }
+    return byteStringValue(result, host.tick, host.context.limits.outputBytes);
   },
   ...Object.fromEntries(["REPLACE", "REPLACEB"].map(name => [name, ((args, host) => {
     const source = textArg(args, 0, host), start = numberArg(args, 1, host), count = numberArg(args, 2, host), replacement = textArg(args, 3, host), chars = Array.from(source);

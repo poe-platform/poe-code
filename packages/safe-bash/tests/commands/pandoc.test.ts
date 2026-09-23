@@ -25,7 +25,7 @@ test("pandoc uses literal quoted operands, ordered stdin, -- names, pipes and re
   try {
     const result = await shell.exec("printf 'Middle' | pandoc -f commonmark -t plain 'a b.md' - b.md");
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, "Alpha\nMiddle\nBeta\n");
+    assert.equal(result.stdout, "Alpha\n\nMiddle\n\nBeta\n");
     const redirected = await shell.exec("pandoc -f commonmark -t plain -- -name.md > rendered");
     assert.equal(redirected.exitCode, 0, redirected.stderr);
     assert.equal(volume.readFileSync("/work/rendered", "utf8"), "Dash\n");

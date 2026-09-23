@@ -451,6 +451,10 @@ export async function convert(
       let line = 1;
       for (const input of ownedInputs) {
         const text = input.text!;
+        if (parts.length) {
+          session.charge("retainedBytes", 2);
+          line++;
+        }
         joinedLocations.push({source: input.source ?? `input[${parts.length}]`, line, ...(input.base === undefined ? {} : {base: input.base})});
         session.charge("retainedBytes", text.length * 2 + 2);
         const part = text.endsWith("\n") ? text : text + "\n";
@@ -461,7 +465,7 @@ export async function convert(
           if (offset % 256 === 0) await session.cooperate(0);
         }
       }
-      const text = parts.join("");
+      const text = parts.join("\n");
       session.charge("retainedBytes", text.length * 2);
       session.charge("retainedBytes", text.length * 3);
       const bytes = new TextEncoder().encode(text);

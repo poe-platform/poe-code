@@ -5,9 +5,18 @@ import { PandocError } from "./errors.js";
 
 const input = (text: string, base?: string) => ({bytes: new TextEncoder().encode(text), ...(base ? {base} : {})});
 const empty = {blocks: [], metadata: {}, resources: []};
-it("joins Markdown operands in order with final newlines and shared reference scope", async () => {
+it("joins Markdown operands in order with shared reference scope", async () => {
   const result = await convert([input("[x]"), input("\n[x]: /target")], {from: "commonmark", to: "json"}, {});
   expect(result.kind === "text" && JSON.parse(result.text).blocks[0].c[0].t).toBe("Link");
+});
+it.each(["", "\n", "\n\n", "\n\n\n"])("separates Markdown operands after trailing %j", async suffix => {
+  const result = await convert([input("Alpha" + suffix), input("Beta")], {from: "commonmark", to: "plain"}, {});
+  expect(result.kind === "text" && result.text).toBe("Alpha\n\nBeta\n");
+});
+it.each(["", "\n", "\n\n", "\n\n\n"])("preserves fenced content across operand boundaries after %j", async suffix => {
+  const read = vi.fn(async (_input: import("./types.js").Input) => empty);
+  await convert([input("```\nAlpha" + suffix), input("Beta\n```")], {from: "commonmark", to: "json"}, {reader: {format: "commonmark", read}});
+  expect(read.mock.calls[0]![0].text).toBe("```\nAlpha" + (suffix || "\n") + "\nBeta\n```\n");
 });
 it("rejects multiple JSON inputs before acquiring either operand", async () => {
   const next = vi.fn(async () => ({done: true as const, value: undefined}));
@@ -37,12 +46,12 @@ it("preserves later reader parse locations and never writes earlier results", as
 });
 it("maps joined reader errors to the original operand line", async () => {
   await expect(convert([{...input("a"), source: "first.md"}, {...input("b\nc"), source: "second.md"}], {from: "commonmark", to: "json"}, {
-    reader: {format: "commonmark", read: async () => {throw new PandocError("E_PARSE", "read", "bad token", "commonmark", "3:2");}}
+    reader: {format: "commonmark", read: async () => {throw new PandocError("E_PARSE", "read", "bad token", "commonmark", "4:2");}}
   })).rejects.toMatchObject({code: "E_PARSE", operation: "convert", format: "commonmark", location: "second.md:2:2"});
 });
 it("maps joined reader warning locations before warning preflight", async () => {
   await expect(convert([{...input("a"), source: "first.md"}, {...input("b"), source: "second.md"}], {from: "commonmark", to: "json", failIfWarnings: true}, {
-    reader: {format: "commonmark", read: async (_input, ctx) => {ctx.report({code: "W_RAW_CONTENT", operation: "read", message: "loss", location: "2:1"}); return empty;}}
+    reader: {format: "commonmark", read: async (_input, ctx) => {ctx.report({code: "W_RAW_CONTENT", operation: "read", message: "loss", location: "3:1"}); return empty;}}
   })).rejects.toMatchObject({code: "E_WARNINGS", location: "second.md:1:1"});
 });
 it("parses bounded strict JSON metadata and preserves syntax locations", async () => {

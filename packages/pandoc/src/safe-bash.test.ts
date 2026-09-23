@@ -143,7 +143,7 @@ it("publishes files through memfs only after warning preflight and keeps destina
 it("joins file and explicit stdin operands in their supplied order", async () => {
   const ctx = {...context(["-f=commonmark", "-t=plain", "a.md", "-", "b.md"], "middle"), readFile: vi.fn(async (path: string) => encode(path === "a.md" ? "first" : "last"))};
   expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
-  expect(text(ctx.stdout)).toBe("first middle last\n");
+  expect(text(ctx.stdout)).toBe("first\n\nmiddle\n\nlast\n");
 });
 it("supplies only its configured VFS for CLI resource search and extraction", async () => {
   const volume = Volume.fromJSON({"/work/doc.md": "![x](p.png)", "/assets/p.png": "image"});

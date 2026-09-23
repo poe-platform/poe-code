@@ -256,7 +256,7 @@ describe("public conversion seam (original adapters, no format conformance claim
     );
     expect(result).toEqual({ kind: "text", text: "1\n", diagnostics: [] });
     expect(ctx.reader!.read).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(ctx.reader!.read).mock.calls[0]![0].text).toBe("one\ntwo\n");
+    expect(vi.mocked(ctx.reader!.read).mock.calls[0]![0].text).toBe("one\n\ntwo\n");
     expect(ctx.writer!.write).toHaveBeenCalledTimes(1);
   });
   it("shares validation before any input or writer work", async () => {

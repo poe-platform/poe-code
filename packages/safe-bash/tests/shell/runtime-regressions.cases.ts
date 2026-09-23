@@ -196,33 +196,31 @@ test("arithmetic stays bounded and handles short circuit, updates and overflow",
 });
 
 for (const terms of [5000, 5001, 8000]) {
-  test(`arithmetic enforces node visits without host recursion: ${terms} terms`, () => {
+  test(`arithmetic evaluates without a fixed node ceiling or host recursion: ${terms} terms`, () => {
     const program = prepareArithmetic(Array(terms).fill("1").join("+"));
     assert.ok(program.tree);
-    if (terms === 5000) assert.equal(evaluateArithmetic(program, {}), 5000n);
-    else assert.throws(() => evaluateArithmetic(program, {}), { message: "Arithmetic operation limit exceeded" });
+    assert.equal(evaluateArithmetic(program, {}), BigInt(terms));
   });
 
   for (const mode of ["expansion", "command", "let"] as const) {
-    test(`arithmetic ${mode} preserves the operation cap for ${terms} terms`, async () => {
+    test(`arithmetic ${mode} has no implicit operation cap for ${terms} terms`, async () => {
       const { shell } = setup();
       const expression = Array(terms).fill("1").join("+");
       const source = mode === "expansion" ? `say $(( ${expression} ))` : mode === "command" ? `(( ${expression} ))` : `let '${expression}'`;
       try {
         const result = await shell.exec(source);
-        assert.equal(result.exitCode, terms === 5000 ? 0 : 1, result.stderr);
-        if (terms === 5000) assert.equal(result.stdout, mode === "expansion" ? "5000\n" : "");
-        else assert.match(result.stderr, /Arithmetic operation limit exceeded/u);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, mode === "expansion" ? `${terms}\n` : "");
         assert.doesNotMatch(result.stderr, /call stack|RangeError/u);
       } finally { await shell.dispose(); }
     });
   }
 }
 
-test("arithmetic charges exactly one step per entered node", () => {
+test("arithmetic preserves short circuit beyond former node ceiling", () => {
   const chain = Array(5000).fill("1").join("+");
   assert.equal(evaluateArithmetic(prepareArithmetic(`+(${chain})`), {}), 5000n);
-  assert.throws(() => evaluateArithmetic(prepareArithmetic(`++ignored,(${chain})`), {}), { message: "Arithmetic operation limit exceeded" });
+  assert.equal(evaluateArithmetic(prepareArithmetic(`++ignored,(${chain})`), {}), 5000n);
   for (const expression of [`0 && (${chain}+1)`, `1 || (${chain}+1)`, `1 ? 7 : (${chain}+1)`, `0 ? (${chain}+1) : 9`]) {
     const expected = expression.startsWith("0 &&") ? 0n : expression.startsWith("1 ||") ? 1n : expression.startsWith("1 ?") ? 7n : 9n;
     assert.equal(evaluateArithmetic(prepareArithmetic(expression), {}), expected);
@@ -259,8 +257,7 @@ test("arithmetic variable recursion remains scoped to active references", () => 
   assert.equal(evaluateArithmetic(prepareArithmetic("first+first"), { first: "second", second: "7" }), 14n);
   for (const count of [64, 65]) {
     const variables = Object.fromEntries(Array.from({ length: count }, (_, index) => [`v${index}`, index + 1 === count ? "1" : `v${index + 1}`]));
-    if (count === 64) assert.equal(evaluateArithmetic(prepareArithmetic("v0"), variables), 1n);
-    else assert.throws(() => evaluateArithmetic(prepareArithmetic("v0"), variables), /Arithmetic variable recursion/u);
+    assert.equal(evaluateArithmetic(prepareArithmetic("v0"), variables), 1n);
   }
   const cycles: Record<string, string>[] = [{ first: "first" }, { first: "second", second: "first" }];
   for (const variables of cycles) {

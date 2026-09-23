@@ -172,7 +172,6 @@ export function arithmeticEnd(source: string, start: number, allowSubshell = fal
 
 export function evaluateArithmetic(program: ArithmeticProgram, variables: Record<string, string>, budget = new ParseBudget()): bigint {
   const visiting = new Set<string>();
-  let steps = 0;
   const binary = (operator: string, left: bigint, right: bigint, offset: number): bigint => {
     switch (operator) {
       case "+": return left + right;
@@ -220,11 +219,11 @@ export function evaluateArithmetic(program: ArithmeticProgram, variables: Record
     while (pending.length) {
       const frame = pending.pop()!;
       if (frame.kind === "evaluate") {
-        if (++steps > 10_000) throw new PublicDiagnostic("Arithmetic operation limit exceeded");
+        budget.admit(0);
         const node = frame.node;
         if (node.kind === "literal") value = node.value;
         else if (node.kind === "name") {
-          if (visiting.has(node.name) || visiting.size >= 64) throw new PublicDiagnostic("Arithmetic variable recursion");
+          if (visiting.has(node.name)) throw new PublicDiagnostic("Arithmetic variable recursion");
           visiting.add(node.name);
           pending.push({ kind: "variable", name: node.name }, { kind: "evaluate", node: parseArithmetic(variables[node.name] ?? "0", 0, budget) });
         } else if (node.kind === "conditional") {

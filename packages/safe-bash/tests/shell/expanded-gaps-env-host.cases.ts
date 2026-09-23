@@ -11,7 +11,7 @@ for (const [header, expected] of [
   const fs = createMemoryFileSystem(); await fs.writeFile("/script", Buffer.from(`#!${header}\nprintf forbidden`), { mode: 0o755 });
   const shell = new Shell({ fs }).use(agentCommands());
   try {
-    if (expected === null) await assert.rejects(shell.exec("/script"), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
+    if (expected === null) await assert.rejects(shell.exec("/script", { limits: { maxSubstitutionDepth: 64 } }), error => error instanceof ShellLimitError && error.limit === "maxSubstitutionDepth");
     else { const result = await shell.exec("/script"); assert.deepEqual([result.exitCode, result.stdout, result.stderr], expected); }
     assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["script"]);
     assert.deepEqual(Buffer.from(await fs.readFile("/script")), Buffer.from(`#!${header}\nprintf forbidden`));

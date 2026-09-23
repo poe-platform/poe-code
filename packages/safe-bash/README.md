@@ -476,18 +476,16 @@ one execution. `stdin` accepts a string, `Uint8Array`, or async byte source;
 `stdout`/`stderr` accept byte sinks. Results still buffer output when sinks are
 provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/types.ts).
 
-| Limit | Default |
-| --- | --- |
-| `maxInputBytes` | 32 MiB per redirected input (`<`), independent of output; applies to buffered and streaming reads. |
-| `maxOutputBytes` | 16 MiB |
-| `maxCommands`, `maxLoopIterations` | 10,000 each |
-| `maxSubstitutionDepth` | 64 |
-| `maxSourceBytes` | 1 MiB |
-| `maxExpansionFields` | 10,000 |
-| `maxExpansionBytes` | 16 MiB |
-| `maxWallClockMs` | 30 seconds |
-| `maxCpuMs` | 30 seconds elapsed including waits; checkpoint-enforced, not CPU accounting or preemptive enforcement. |
-| `pipeHighWaterMark` | 64 KiB |
+Execution quotas are unlimited by default. Set individual `limits` to opt in;
+supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
+`maxInputBytes`, `maxOutputBytes`, `maxCommands`, `maxFileSystemOperations`,
+`maxPathComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
+`maxSubstitutionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
+`maxWallClockMs`, and `maxCpuMs`. The CPU deadline measures elapsed time including
+waits at cooperative checkpoints. `pipeHighWaterMark` defaults to 64 KiB for
+streaming backpressure and does not cap total work. `cloudflareWorkerLimits` is
+an explicit restrictive preset. Background job quotas (`maxJobs`, `maxWaiters`,
+`maxCleanupsPerJob`) are also unlimited unless supplied.
 
 Always call `dispose()` when finished. Shell failures normally produce an exit
 code and stderr; limit violations, cancellation, and host failures can reject `exec()`.

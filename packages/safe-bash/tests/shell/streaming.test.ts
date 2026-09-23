@@ -16,7 +16,7 @@ test("pipeline stage admission rejects before any stage starts", async context =
   });
   commands.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
   try {
-    await assert.rejects(shell.exec(Array(65).fill("effect").join(" | ")),
+    await assert.rejects(shell.exec(Array(65).fill("effect").join(" | "), { limits: { maxPipelineStages: 64 } }),
       error => error instanceof ShellLimitError && error.limit === "maxPipelineStages");
     assert.equal(stages, 0);
     assert.equal(effects, 0);

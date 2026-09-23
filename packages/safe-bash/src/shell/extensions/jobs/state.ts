@@ -374,14 +374,14 @@ class JobRegistry implements JobState {
 
 export function createJobState(options: JobStateOptions = {}): JobState {
   if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("invalid job options");
-  const limits = { maxJobs: 256, maxWaiters: 64, maxCleanupsPerJob: 64 };
+  const limits = { maxJobs: Infinity, maxWaiters: Infinity, maxCleanupsPerJob: Infinity };
   for (const key of Reflect.ownKeys(options)) {
     if (key === "signal" || key === "registerCleanup") continue;
     if (typeof key !== "string" || !Object.hasOwn(limits, key)) throw new TypeError("unknown job option");
     const name = key as keyof JobLimits;
     const value = options[name];
     if (value === undefined) continue;
-    if (!Number.isSafeInteger(value) || value < 1 || value > limits[name]) throw new TypeError(`invalid job limit: ${key}`);
+    if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`invalid job limit: ${key}`);
     limits[name] = value;
   }
   if (options.signal !== undefined && !(options.signal instanceof AbortSignal)) throw new TypeError("invalid job owner signal");

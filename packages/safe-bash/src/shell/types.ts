@@ -31,6 +31,7 @@ export interface ShellCommandContext extends CommandContext {
   readonly invoke: (command: string, args: readonly string[], options?: ShellInvokeOptions) => Promise<CommandResult>;
 }
 
+/** Resource quotas are unlimited when omitted; each supplied quota is independent. */
 export interface ShellLimits {
   readonly maxParseUnits?: number;
   readonly maxInputBytes?: number;
@@ -38,7 +39,7 @@ export interface ShellLimits {
   readonly maxCommands?: number;
   readonly maxFileSystemOperations?: number;
   readonly maxPathComponents?: number;
-  /** Maximum redirects per executed command, including implicit |&; defaults to 64.
+  /** Maximum redirects per executed command, including implicit |&; unlimited when omitted.
    * Zero permits only redirect-free commands. Not a global byte or filesystem-call budget. */
   readonly maxRedirects?: number;
   readonly maxPipelineStages?: number;

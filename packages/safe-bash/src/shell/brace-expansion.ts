@@ -106,7 +106,7 @@ export async function* expandBraces(word: Word, budget: Budget, signal: AbortSig
     if (step === 0n) step = 1n;
     const distance = end! - start!;
     const cardinality = (distance < 0n ? -distance : distance) / step + 1n;
-    if (cardinality > BigInt(budget.limits.maxExpansionFields)) budget.fail("maxExpansionFields");
+    if (budget.limits.maxExpansionFields !== Infinity && cardinality > BigInt(budget.limits.maxExpansionFields)) budget.fail("maxExpansionFields");
     const padded = (value: string): boolean => value.length > 1 && value.startsWith("0") || value.length > 2 && value.startsWith("-0");
     const width = numeric && (padded(first) || padded(last)) ? Math.max(first.length, last.length) : 0;
     const count = Number(cardinality);

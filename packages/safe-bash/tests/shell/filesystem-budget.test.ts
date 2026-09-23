@@ -43,7 +43,7 @@ function observeAdmissions(context: TestContext) {
 }
 
 test("filesystem operation profiles and nonnegative safe-integer validation", () => {
-  assert.equal(Reflect.get(resolveLimits(), "maxFileSystemOperations"), 100_000);
+  assert.equal(Reflect.get(resolveLimits(), "maxFileSystemOperations"), Infinity);
   assert.equal(Reflect.get(cloudflareWorkerLimits, "maxFileSystemOperations"), 10_000);
   for (const value of [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => resolveLimits({ maxFileSystemOperations: value }), RangeError);

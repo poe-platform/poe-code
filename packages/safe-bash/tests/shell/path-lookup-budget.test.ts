@@ -26,7 +26,7 @@ function deferred() {
   return { promise, resolve };
 }
 
-test("PATH lookup consults at most 64 of 9000 nonexistent directories", async context => {
+test("explicit PATH quota consults at most 64 of 9000 nonexistent directories", async context => {
   const fs = new MemoryFileSystem();
   const stat = context.mock.method(fs, "stat");
   const shell = new Shell({ fs, commands: new CommandRegistry(), env: {
@@ -34,7 +34,7 @@ test("PATH lookup consults at most 64 of 9000 nonexistent directories", async co
   } });
   context.after(() => shell.dispose());
   try {
-    await assert.rejects(shell.exec("missing"), error => error instanceof ShellLimitError && error.limit === "maxPathComponents");
+    await assert.rejects(shell.exec("missing", { limits: { maxPathComponents: 64 } }), error => error instanceof ShellLimitError && error.limit === "maxPathComponents");
   } finally {
     assert.equal(stat.mock.callCount(), 64);
   }
@@ -63,9 +63,9 @@ test("PATH lookup caches positive metadata but rechecks executable access", asyn
 });
 
 test("PATH component defaults, overrides and expansion admission stay independent", async context => {
-  assert.equal(resolveLimits().maxPathComponents, 64);
+  assert.equal(resolveLimits().maxPathComponents, Infinity);
   assert.equal(cloudflareWorkerLimits.maxPathComponents, 64);
-  assert.equal(resolveLimits().maxFileSystemOperations, 100_000);
+  assert.equal(resolveLimits().maxFileSystemOperations, Infinity);
   for (const maximum of [-1, 0.5, NaN, Infinity]) assert.throws(() => resolveLimits({ maxPathComponents: maximum }), RangeError);
   const { fs, shell } = fixture(context, "/first:/second:/third");
   const stat = context.mock.method(fs, "stat");
@@ -84,7 +84,7 @@ test("PATH cap counts consulted components, not unused trailing directories", as
   const stat = context.mock.method(fs, "stat");
   assert.equal((await shell.exec("command -v tool")).stdout, "/dir0/tool\n");
   assert.equal(stat.mock.callCount(), 1);
-  await assert.rejects(shell.exec("type -ap tool"), limitIs("maxPathComponents"));
+  await assert.rejects(shell.exec("type -ap tool", { limits: { maxPathComponents: 64 } }), limitIs("maxPathComponents"));
   assert.equal(stat.mock.callCount(), 65);
   assert.equal((await shell.exec("command -v /dir0/tool", { limits: { maxPathComponents: 0 } })).exitCode, 0);
 });

@@ -25,7 +25,7 @@ import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescr
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { evaluateArithmetic, prepareArithmetic, type ArithmeticProgram } from "./arithmetic.js";
-import { defaultMaxParseUnits, ParseBudget } from "./parse-budget.js";
+import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern } from "./pattern.js";
@@ -107,21 +107,21 @@ async function signedLong(argument: string, budget: Budget, signal: AbortSignal)
 }
 
 export const defaultLimits: Required<ShellLimits> = {
-  maxParseUnits: defaultMaxParseUnits,
-  maxInputBytes: 32 * 1024 * 1024,
-  maxOutputBytes: 16 * 1024 * 1024,
-  maxCommands: 10_000,
-  maxFileSystemOperations: 100_000,
-  maxPathComponents: 64,
-  maxRedirects: 64,
-  maxPipelineStages: 64,
-  maxLoopIterations: 10_000,
-  maxSubstitutionDepth: 64,
-  maxSourceBytes: 1024 * 1024,
-  maxExpansionFields: 10_000,
-  maxExpansionBytes: 16 * 1024 * 1024,
-  maxWallClockMs: 30_000,
-  maxCpuMs: 30_000,
+  maxParseUnits: Infinity,
+  maxInputBytes: Infinity,
+  maxOutputBytes: Infinity,
+  maxCommands: Infinity,
+  maxFileSystemOperations: Infinity,
+  maxPathComponents: Infinity,
+  maxRedirects: Infinity,
+  maxPipelineStages: Infinity,
+  maxLoopIterations: Infinity,
+  maxSubstitutionDepth: Infinity,
+  maxSourceBytes: Infinity,
+  maxExpansionFields: Infinity,
+  maxExpansionBytes: Infinity,
+  maxWallClockMs: Infinity,
+  maxCpuMs: Infinity,
   pipeHighWaterMark: 64 * 1024,
 };
 
@@ -156,7 +156,7 @@ function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmeti
 
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): Required<ShellLimits> {
   const result = Object.assign({}, defaultLimits, ...limits) as Required<ShellLimits>;
-  for (const [key, value] of Object.entries(result)) {
+  for (const [key, value] of Object.entries(Object.assign({}, ...limits) as ShellLimits)) {
     if (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0)) {
       throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);
     }
@@ -275,10 +275,10 @@ export class Budget {
 
   constructor(readonly limits: Required<ShellLimits>, signal?: AbortSignal, readonly onInternalError?: InternalErrorHandler) {
     this.signal = signal ? AbortSignal.any([signal, this.controller.signal]) : this.controller.signal;
-    this.parsing = new ParseBudget(limits.maxParseUnits, this.signal, error => this.controller.abort(error));
+    this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, error => this.controller.abort(error));
     this.values = new ValueArena(limits.maxExpansionBytes, limits.maxExpansionFields, () => this.signal.throwIfAborted(), limit => this.fail(limit));
     this.#wallClockDeadline = Date.now() + limits.maxWallClockMs;
-    this.#armWallClock();
+    if (limits.maxWallClockMs !== Infinity) this.#armWallClock();
   }
 
   #armWallClock(): void {
@@ -5113,7 +5113,7 @@ export class Runtime {
         await interruptible(this.fs.access(path, ACCESS_MODES.R_OK | (direct ? ACCESS_MODES.X_OK : 0), options), this.signal);
         const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
         if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
-        const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+        const bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
         this.budget.source(bytes.byteLength);
         sourceBytes = bytes;
         const newline = bytes.indexOf(10);
@@ -5300,7 +5300,7 @@ export class Runtime {
       await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
       const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
       if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
-      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+      const bytes = await interruptible(this.fs.readFile(path, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) }), this.signal);
       this.budget.source(bytes.byteLength);
       source = this.sourceText(bytes, target);
     } catch (error) {
@@ -5598,7 +5598,7 @@ export class Runtime {
     if (supplied.length > fields) this.budget.fail("maxExpansionFields");
     const maxBytes = saturatedProduct(bytes, saturatedSum(supplied.length, 1));
     const maxSteps = saturatedSum(saturatedProduct(maxBytes, 2), saturatedSum(supplied.length, 2));
-    const work = { maxArguments: fields, maxBytes, maxSteps, yieldEvery: 128, signal: this.signal, checkpoint };
+    const work = { maxArguments: supplied.length, maxBytes, maxSteps, yieldEvery: 128, signal: this.signal, checkpoint };
     let input = monitor?.getoptsInput;
     let allocation: ValueScope | undefined;
     let result;

@@ -64,6 +64,11 @@ export class ArrayLedger {
   }
 
   internal(commandLimit: number): ArrayLedger {
+    if (commandLimit === Infinity) {
+      const ledger = new ArrayLedger(Infinity, Infinity);
+      ledger.#sequence = this.#sequence;
+      return ledger;
+    }
     const requested = BigInt(commandLimit) + 1n;
     const maximum = BigInt(Number.MAX_SAFE_INTEGER) / 33024n;
     const units = requested < maximum ? requested : maximum;
@@ -100,7 +105,7 @@ export class ArrayLedger {
     const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
     for (let index = 0; index < requested.length; index++) {
       const amount = requested[index]!;
-      if (amount < 0n || amount > BigInt(caps[index]! - this.#used[index]!)) {
+      if (amount < 0n || caps[index] !== Infinity && amount > BigInt(caps[index]! - this.#used[index]!)) {
         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
       }
     }
@@ -111,6 +116,9 @@ export class ArrayLedger {
   }
 
   private derive(): Counters {
+    if (this.bytes === Infinity || this.fields === Infinity) {
+      return [this.fields, this.fields, this.bytes, 128 * this.fields, 8 * this.bytes + 512 * this.fields, 8 * this.fields, 32 * this.bytes + 256 * this.fields];
+    }
     const bytes = BigInt(this.bytes);
     const fields = BigInt(this.fields);
     const values = [fields, fields, bytes, 128n * fields, 8n * bytes + 512n * fields, 8n * fields, 32n * bytes + 256n * fields];

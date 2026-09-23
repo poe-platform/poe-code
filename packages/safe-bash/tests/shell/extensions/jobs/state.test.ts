@@ -274,7 +274,7 @@ test("snapshot is immutable and cannot mutate retained state", async context => 
 });
 
 test("invalid options, statuses and excessive targets fail explicitly", async context => {
-  for (const options of [{ maxJobs: 0 }, { maxJobs: 257 }, { maxWaiters: NaN }, { maxWaiters: 65 }, { maxCleanupsPerJob: 1.5 }, { maxCleanupsPerJob: 65 }]) assert.throws(() => createJobState(options), TypeError);
+  for (const options of [{ maxJobs: 0 }, { maxWaiters: NaN }, { maxCleanupsPerJob: 1.5 }]) assert.throws(() => createJobState(options), TypeError);
   assert.throws(() => createJobState({ unknown: 1 } as Parameters<typeof createJobState>[0]), TypeError);
   const state = setup(context, { maxJobs: 1 });
   const invalid = await (await state.start(() => ({ run: () => 256 }))).completion;
@@ -502,8 +502,8 @@ test("cleanup-only failure keeps its exact identity through natural finish", asy
   await assert.rejects(state.finish(), error => error === undefined);
 });
 
-test("default retained quota is 256 and wait-all permits fresh admission", async context => {
-  const state = setup(context);
+test("explicit retained quota is 256 and wait-all permits fresh admission", async context => {
+  const state = setup(context, { maxJobs: 256 });
   for (let index = 0; index < 256; index++) await state.start(() => ({ run: () => 0 }));
   await assert.rejects(state.start(() => { throw new Error("must not acquire"); }), /maxJobs/u);
   await state.wait();

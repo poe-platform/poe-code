@@ -11,22 +11,23 @@ function integer(value: number): void {
 }
 
 function multiply(value: number, factor: number, ceiling: number): number {
+  if (value === Infinity) return Infinity;
   return value > Math.floor(ceiling / factor) ? ceiling : value * factor;
 }
 
 export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
-  integer(bounds.maxExpansionBytes);
-  integer(bounds.maxExpansionFields);
+  if (bounds.maxExpansionBytes !== Infinity) integer(bounds.maxExpansionBytes);
+  if (bounds.maxExpansionFields !== Infinity) integer(bounds.maxExpansionFields);
   const bytes = bounds.maxExpansionBytes;
   const fields = bounds.maxExpansionFields;
   const byteUnits = multiply(bytes, 8, 4_000_000);
   const fieldUnits = multiply(fields, 128, 4_000_000);
   return Object.freeze({
-    patternBytes: Math.min(bytes, 65_536),
-    subjectBytes: Math.min(bytes, 1_048_576),
+    patternBytes: bytes === Infinity ? Infinity : Math.min(bytes, 65_536),
+    subjectBytes: bytes === Infinity ? Infinity : Math.min(bytes, 1_048_576),
     work: multiply(bytes, 32, 50_000_000),
     states: multiply(fields, 8, 65_536),
-    allocationUnits: byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
+    allocationUnits: byteUnits === Infinity || fieldUnits === Infinity ? Infinity : byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
     captureBytes: bytes,
     captureSlots: fields,
   });

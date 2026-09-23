@@ -1,14 +1,14 @@
 import { ShellLimitError } from "./types.js";
 
-export const defaultMaxParseUnits = 262_144;
+export const defaultMaxParseUnits = Infinity;
 
 export class ParseBudget {
   #remaining: number;
   #failure: ShellLimitError | undefined;
 
-  constructor(maximum = defaultMaxParseUnits, private readonly signal?: AbortSignal, private readonly onLimit?: (error: ShellLimitError) => void) {
-    if (!Number.isSafeInteger(maximum) || maximum < 0) throw new RangeError("maxParseUnits must be a nonnegative safe integer");
-    this.#remaining = maximum;
+  constructor(maximum?: number, private readonly signal?: AbortSignal, private readonly onLimit?: (error: ShellLimitError) => void) {
+    if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("maxParseUnits must be a nonnegative safe integer");
+    this.#remaining = maximum ?? defaultMaxParseUnits;
   }
 
   admit(units = 1): void {

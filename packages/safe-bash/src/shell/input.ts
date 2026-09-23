@@ -338,7 +338,7 @@ export async function fileInput(fs: FileSystem, path: string, maxBytes: number, 
   signal.throwIfAborted();
   async function bufferedInput(): Promise<ByteSource> {
     signal.throwIfAborted();
-    const bytes = await interruptible(fs.readFile(path, { signal, maxBytes }), signal);
+    const bytes = await interruptible(fs.readFile(path, { signal, ...(maxBytes === Infinity ? {} : { maxBytes }) }), signal);
     signal.throwIfAborted();
     if (bytes.byteLength > maxBytes) throw new FsError("EFBIG", { syscall: "readFile", path });
     return toByteSource(bytes);

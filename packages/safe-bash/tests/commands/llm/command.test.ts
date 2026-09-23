@@ -151,10 +151,10 @@ test("models help works through Shell with empty or configured providers", async
 
 test("models help does not read stdin", async () => {
   const run = await fixture(["models", "--help"], {
-    options: { providers: [], defaultModel: undefined },
+    options: { providers: [] },
     stdin: { [Symbol.asyncIterator]() { return assert.fail("must not read stdin"); } },
   });
-  assert.equal((await run.execute()).exitCode, 0);
+  assert.equal((await createLlmCommands({ providers: [] })[0]!.execute(run.context)).exitCode, 0);
   assert.equal(Buffer.concat(run.stderr).toString(), "");
 });
 

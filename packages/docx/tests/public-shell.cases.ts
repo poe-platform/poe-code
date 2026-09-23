@@ -88,7 +88,7 @@ test("built public output types save and reopen staged bytes and scoped VFS path
     const document = await sdk.Document(undefined, { ...context(), vfs: capability });
     document.paragraphs[0]!.text = "Public output consumer";
     for (const output of outputs) await document.save(output, options);
-    const reopened = await rootSdk.Document(path, { ...context(), vfs: capability });
+    const reopened = await sdk.Document(path, { ...context(), vfs: capability });
     assert.equal(reopened.paragraphs[0]!.text, "Public output consumer");
     assert.deepEqual(volume.readFileSync("/work/path.docx"), volume.readFileSync("/work/bytes.docx"));
     assert.equal(sdk.validateDocumentArchive(await sdk.readDocumentArchive(new Uint8Array(volume.readFileSync("/work/bytes.docx") as Uint8Array), context())).valid, true);
@@ -223,7 +223,7 @@ test("built owned numbering creation agrees across the public SDK and explicit s
     assert.equal(created.exitCode, 0, created.stderr);
     const input = new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array);
     const model = await sdk.Document(input, context());
-    const part: sdk.NumberingPart = rootSdk.NumberingPart.new(model.part.package);
+    const part: sdk.NumberingPart = sdk.NumberingPart.new(model.part.package);
     assert.equal(part.package, model.part.package);
     assert.equal(model.part.numbering_part, part);
     assert.equal(part.numbering_definitions.length, 0);
@@ -240,7 +240,7 @@ test("built owned numbering creation agrees across the public SDK and explicit s
     const reused = await shell.exec("docx batch numbered.docx --ops-file numbering.json -o - > reused.docx");
     assert.equal(reused.exitCode, 0, reused.stderr);
     const reusedBytes = new Uint8Array(volume.readFileSync("/work/reused.docx") as Uint8Array);
-    const reopened = await rootSdk.Document(reusedBytes, context());
+    const reopened = await sdk.Document(reusedBytes, context());
     assert.deepEqual(reopened.part.numbering_part.blob, part.blob);
     assert.deepEqual(reusedBytes, output);
     assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array), input);

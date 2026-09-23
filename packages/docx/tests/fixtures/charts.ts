@@ -7,7 +7,7 @@ export const chartNamespace = 'http://schemas.openxmlformats.org/drawingml/2006/
 export const strictChartNamespace = 'http://purl.oclc.org/ooxml/drawingml/chart';
 export const chartMime = 'application/vnd.openxmlformats-officedocument.drawingml.chart+xml';
 export const sheetMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-export const chartContext:ArchiveContext = {...textContext,limits:{...textContext.limits,maxMembers:64}};
+export const chartContext = {...textContext,limits:{...textContext.limits,maxMembers:64}} satisfies ArchiveContext;
 export function chartSpace(groups='<c:barChart/>',strict=false,extra=''):string {
  const c=strict?strictChartNamespace:chartNamespace;
  const r=strict?'http://purl.oclc.org/ooxml/officeDocument/relationships':'http://schemas.openxmlformats.org/officeDocument/2006/relationships';

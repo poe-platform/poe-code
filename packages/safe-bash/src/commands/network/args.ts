@@ -23,6 +23,7 @@ export interface CurlArguments {
   headers: [string, string | null][];
   method?: string;
   range?: string;
+  continueAt?: number | "auto";
   user?: string;
   bearer?: string;
   upload?: string;
@@ -55,7 +56,7 @@ export interface CurlArguments {
 }
 
 export const values: Readonly<Record<string, string>> = {
-  X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
+  C: "continue-at", X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
   o: "output", D: "dump-header", w: "write-out", T: "upload-file", m: "max-time", F: "form", r: "range",
 };
 export const flags: Readonly<Record<string, string>> = {
@@ -117,6 +118,16 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       return;
     }
     switch (option) {
+      case "continue-at": {
+        if (value === "-") result.continueAt = "auto";
+        else {
+          if (!value || [...value].some(character => !"0123456789".includes(character)) || !Number.isSafeInteger(Number(value))) {
+            throw new CurlError(2, "Invalid resume offset");
+          }
+          result.continueAt = Number(value);
+        }
+        break;
+      }
       case "etag-save": result.etagSave = value!; break;
       case "etag-compare": result.etagCompare = value!; break;
       case "cacert": result.caFile = value!; break;

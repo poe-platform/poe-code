@@ -111,6 +111,7 @@ outbound HTTP(S) authority.
 | ETag files | `--etag-save VFSFILE` saves the response ETag plus LF (empty when absent); `-` writes to stdout. `--etag-compare VFSFILE` reads a bounded VFS file, removes CR/LF, and sends `If-None-Match`; missing or empty files send `""`. Explicit `-H` overrides or suppresses the generated header. HTTP 304 suppresses the body and preserves existing body files. ETags are server observations, not filesystem leases or durability guarantees. |
 | Response files | `-o/--output`, `-O/--remote-name`, `--output-dir`, `-D/--dump-header`; paths resolve in the VFS, `-` means stdout. `--output-dir DIR` prefixes body filenames with `DIR/`; stdout and header dumps are unchanged. `-O` uses the original URL path basename without percent decoding or Content-Disposition trust. Parents must exist. Repeated `-o` and `-O` assign destinations to successive URLs; remaining URLs stream to stdout. Header dumps combine response envelopes across transfers. |
 | Byte ranges | `-r/--range RANGE` sends `Range: bytes=RANGE`, including closed (`0-2`), open-ended (`3-`), suffix (`-2`), and comma-separated ranges. Repeated options use the last value; `-H 'Range: ...'` overrides it and `-H 'Range:'` suppresses it. The server determines the response; bodies stream unchanged to stdout or VFS files. |
+| Resume | `-C/--continue-at OFFSET` requests a byte suffix; `-C -` derives the offset from the VFS output file. Valid partial responses append to the file. Unsupported or mismatched ranges fail without replacing its prefix. |
 | Response encoding | `--compressed` advertises gzip/deflate and streams decoded content to stdout or VFS files; headers stay encoded and `size_download` counts transport body bytes. Both encoded and decoded bodies obey the download ceiling. `--raw` disables content decoding even with `--compressed`; already-decoded content and raw transfer framing (such as chunked encoding) fail with code 61. `--no-compressed` and `--no-raw` disable their respective flags. |
 | HTTP status | `-f/--fail`, `--fail-with-body`, `-s/--silent`, `-S/--show-error`; HTTP errors otherwise return zero. No progress meter is generated. `-v` emits method/origin, header names with all values redacted, and numeric response status. Explicit body/header outputs remain raw. |
 | Redirects | `-L/--location`, `--max-redirs`; 301/302/303 method/body changes and 307/308 replay; explicit `-X` is retained. HTTPS downgrade and credential-bearing Location URLs are rejected. All custom request headers and generated credentials are dropped permanently after crossing origins, more conservative than native curl. |
@@ -129,7 +130,7 @@ The total transfer deadline still applies. Custom transports must advertise
 Fetch cannot expose connection completion and rejects positive connection timeouts.
 
 Unknown flags fail, including proxy/config/netrc, `-k`,
-other CA/client-cert file flags, cookie-jar, HTTP/2/3, resume, parallel,
+other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,
 `--location-trusted`, `--retry-all-errors`, and non-HTTP protocols.
 
 ## Streaming, quotas and failure state

@@ -277,6 +277,11 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     }
     values.filename_effective = output && output !== "-" ? output : "";
     let resumeOffset = 0;
+    if (args.continueAt !== undefined) {
+      resumeOffset = args.continueAt === "auto"
+        ? output && output !== "-" ? await existingSize(context, output, signal) ?? 0 : 0
+        : args.continueAt;
+    }
     if (args.download && !args.download.spider && output && output !== "-") {
       if (args.download.noClobber && !args.download.contentDisposition && await existingSize(context, output, signal) !== undefined) return 0;
       if (args.download.resume) resumeOffset = await existingSize(context, output, signal) ?? 0;
@@ -419,12 +424,13 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       let append = false;
       if (resumeOffset && response.status === 206) {
         const range = header(response.headers, "content-range") ?? "";
-        if (!range.startsWith(`bytes ${resumeOffset}-`)) throw new CurlError(56, "Invalid resume Content-Range");
+        if (!range.startsWith(`bytes ${resumeOffset}-`)) throw new CurlError(args.continueAt === undefined ? 56 : 33, "Invalid resume Content-Range");
         append = true;
       }
       if (resumeOffset && response.status === 416) {
         if (header(response.headers, "content-range") === `bytes */${resumeOffset}`) return 0;
       }
+      if (resumeOffset && args.continueAt !== undefined && !append) throw new CurlError(33, "Server does not support resuming this transfer");
       if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
       const suppressBody = response.status === 304 || args.fail && failure !== undefined;
       let published = 0;

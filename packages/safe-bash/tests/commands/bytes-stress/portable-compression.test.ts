@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Shell } from "../../../src/shell/shell.js";
+import { agentCommands } from "../../../src/plugins/index.js";
+import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { chunks, run } from "./helpers.js";
 
 // Native bzip2/xz/zstd -c captures; unit tests use only in-memory byte fixtures.
@@ -18,6 +21,64 @@ for (const name of ["bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", 
 }
 
 for (const format of formats) {
+  for (const command of [format.name, format.decode, format.cat]) {
+    test(`${command} force stdout preserves unrecognized file bytes through Shell`, async () => {
+      const fs = createMemoryFileSystem();
+      const shell = new Shell({ fs }).use(agentCommands());
+      for (const input of [Buffer.from("x\n"), binary]) {
+        await fs.writeFile("/input", input);
+        for (const flags of ["-dcf", "--decompress --stdout --force"]) {
+          const result = await shell.exec(`${command} ${flags} /input > /output`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.deepEqual(await fs.readFile("/output"), new Uint8Array(input));
+          assert.deepEqual(await fs.readFile("/input"), new Uint8Array(input));
+        }
+      }
+    });
+  }
+
+  test(`${format.name} force stdout preserves fragmented plaintext`, async () => {
+    for (const [input, width] of [
+      [Buffer.from("plain\n"), 1],
+      [binary, 3],
+      [Buffer.alloc(65537, 0xff), 65537],
+    ] as const) {
+      const result = await run(format.name, ["-dcf"], chunks(input, width));
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.deepEqual(result.stdout, input);
+    }
+  });
+
+  test(`${format.name} force preserves a reused producer buffer across prefix probing`, async () => {
+    const input = Buffer.from("plaintext with binary \0\xff", "latin1");
+    const source = (async function* () {
+      const buffer = Buffer.alloc(3);
+      for (let offset = 0; offset < input.length; offset += buffer.length) {
+        const length = input.copy(buffer, 0, offset, offset + buffer.length);
+        yield buffer.subarray(0, length);
+        buffer.fill(0);
+        yield new Uint8Array();
+      }
+    })();
+    const result = await run(format.name, ["-dcf"], source);
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, input);
+  });
+
+  test(`${format.name} rejects plaintext without force`, async () => {
+    const result = await run(format.name, ["-dc"], "x\n");
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.stdout.length, 0);
+  });
+
+  test(`${format.name} force still validates compressed input in test mode`, async () => {
+    const result = await run(format.name, ["-tf"], "x\n");
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.stdout.length, 0);
+    assert.ok(result.stderr.length > 0);
+  });
+
   test(`${format.name} crosses codec windows with incompressible bytes`, async () => {
     const data = Buffer.alloc(96 * 1024 + 17);
     let state = 0x12345678;
@@ -48,17 +109,21 @@ for (const format of formats) {
     // bzip2 block CRC, XZ footer CRC, and Zstandard content checksum respectively.
     const offset = format.name === "bzip2" ? 10 : format.name === "xz" ? corrupt.length - 12 : corrupt.length - 1;
     corrupt[offset] = corrupt[offset]! ^ 1;
-    const result = await run(format.decode, ["-c"], corrupt);
-    assert.notEqual(result.exitCode, 0);
-    assert.ok(result.stderr.length > 0);
+    for (const flags of ["-c", "-cf"]) {
+      const result = await run(format.decode, [flags], chunks(corrupt, 1));
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.length > 0);
+    }
   });
 
   for (const command of [format.name, format.decode, format.cat]) {
     test(`${command} decodes native binary members split at every byte`, async () => {
-      const result = await run(command, command === format.name ? ["-dc"] : ["-c"], chunks(Buffer.from(format.binary, "hex"), 1));
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr.length, 0);
-      assert.deepEqual(result.stdout, binary);
+      for (const flags of ["-dc", "-dcf"]) {
+        const result = await run(command, [flags], chunks(Buffer.from(format.binary, "hex"), 1));
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr.length, 0);
+        assert.deepEqual(result.stdout, binary);
+      }
     });
   }
 
@@ -123,5 +188,37 @@ for (const format of formats) {
     assert.ok(result.stderr.length > 0);
     assert.deepEqual(await result.fs.readFile(`/work/${name}`), new Uint8Array(truncated));
     await assert.rejects(result.fs.stat("/work/data"), { code: "ENOENT" });
+  });
+}
+
+for (const command of ["zstd", "unzstd", "zstdcat"]) {
+  test(`${command} explicit no-pass-through rejects forced plaintext in either order`, async () => {
+    for (const flags of [["-dcf", "--no-pass-through"], ["--no-pass-through", "-dcf"]]) {
+      const result = await run(command, flags, "x\n");
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout.length, 0);
+      assert.ok(result.stderr.length > 0);
+    }
+  });
+}
+
+for (const fixture of [
+  { command: "bzip2", copied: ["425a6830", "425a6878", "425a61"], rejected: ["", "42", "425a", "425a68", "425a6839"] },
+  { command: "xz", copied: ["", "fd", "fd377a585a", "fd377a585a01", "5d00008000ffffffffffffff"], rejected: ["fd377a585a00", "5d00008000ffffffffffffffff"] },
+  { command: "zstd", copied: ["28", "28b52f", "fd377a"], rejected: ["", "25b52ffd", "26b52ffd", "27b52ffd", "28b52ffd", "502a4d18", "5f2a4d18", "fd377a58", "1f8b0800", "5d000080", "04224d18"] },
+]) {
+  test(`${fixture.command} force distinguishes plaintext from recognized truncated headers`, async () => {
+    for (const hex of fixture.copied) {
+      const input = Buffer.from(hex, "hex");
+      const result = await run(fixture.command, ["-dcf"], chunks(input, 1));
+      assert.equal(result.exitCode, 0, `${hex}: ${result.stderr}`);
+      assert.deepEqual(result.stdout, input);
+    }
+    for (const hex of fixture.rejected) {
+      const result = await run(fixture.command, ["-dcf"], chunks(Buffer.from(hex, "hex"), 1));
+      assert.notEqual(result.exitCode, 0, hex);
+      assert.equal(result.stdout.length, 0, hex);
+      assert.ok(result.stderr.length > 0, hex);
+    }
   });
 }

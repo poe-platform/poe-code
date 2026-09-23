@@ -51,7 +51,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     format: profile.format,
     decompress: command !== profile.names[0], stdout: command === profile.names[2], keep: profile.keep,
     force: false, test: false, help: false, quiet: 0, recursive: false, level: profile.level, operands: [],
-    passthrough: command === "zstdcat",
+    ...(command === "zstdcat" ? { passthrough: true } : {}),
     ...(profile.format === "zstd" ? { zstd: { check: true, literals: 0, row: 0, window: 0, sizeHint: 0 } } : {}),
   };
   let ended = false;

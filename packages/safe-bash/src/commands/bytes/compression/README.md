@@ -45,10 +45,14 @@ two or more suppress processing and filesystem error messages as well. Quiet
 does not change output bytes, validation, file handling or failure exit codes.
 Option-usage diagnostics remain visible.
 
-`zstdcat` implicitly copies unrecognized nonempty input to stdout without `-f`.
-Recognized compressed headers still go through decoding and validation; damaged
-frames fail. `zstd` and `unzstd` retain their default rejection of plaintext.
-Test mode (`-t`) validates compressed input rather than copying plaintext.
+The bzip2, XZ and zstd families copy unrecognized input unchanged with `-dcf`
+(`--decompress --stdout --force`), including through their decompression and cat
+aliases. Named inputs are retained. `zstdcat` also copies unrecognized nonempty
+input without `-f`. Recognized compressed headers still go through decoding and
+validation; damaged or unsupported streams fail. XZ accepts empty input in
+forced stdout mode; bzip2 and zstd reject it. Force alone does not enable
+file-output passthrough or test-mode copying. Zstandard's explicit
+`--no-pass-through` disables copying even with force.
 
 The Zstandard family supports `--[no-]check` for checksum generation and
 validation, `--stream-size=BYTES` for a pledged input size (written in the frame

@@ -48774,5 +48774,553 @@
         "sha256": "8ff8805a0b90ef5581ad0f05cbeff30e902bbbfa3474c53298dfef6d390c931b"
       }
     ]
+  },
+  "privateUnicode16LocaleQualification": {
+    "recordedAt": "2026-09-23T00:45:08.810162+00:00",
+    "scope": "Case contexts under real DarwinC,tr_TR.UTF-8,lt_LT.UTF-8 LC_CTYPE activation using private unmodified2.84case/property source; not matching complete nativeGnumeric/GLib2.84profiles.",
+    "captured": {
+      "reference": "Private unmodified authenticated GLib2.84.4 case/property implementation with installedGLib2.90allocation/UTF8 and real DarwinLC_CTYPE activation; not complete activatedGnumeric/GLib2.84profiles.",
+      "profiles": [
+        {
+          "requestedLocale": "C",
+          "activatedLocaleReceipt": "activated LC_CTYPE=C",
+          "exit": 0,
+          "cases": [
+            {
+              "inputHex": "49",
+              "lowerHex": "69",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "69",
+              "lowerHex": "69",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "c4b0",
+              "lowerHex": "69cc87",
+              "upperHex": "c4b0"
+            },
+            {
+              "inputHex": "c4b1",
+              "lowerHex": "c4b1",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "49cca3cc87",
+              "lowerHex": "69cca3cc87",
+              "upperHex": "49cca3cc87"
+            },
+            {
+              "inputHex": "efbca9",
+              "lowerHex": "efbd89",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "efbca9cc87",
+              "lowerHex": "efbd89cc87",
+              "upperHex": "efbca9cc87"
+            },
+            {
+              "inputHex": "efbd89",
+              "lowerHex": "efbd89",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "4acc81",
+              "lowerHex": "6acc81",
+              "upperHex": "4acc81"
+            },
+            {
+              "inputHex": "efbcaacc81",
+              "lowerHex": "efbd8acc81",
+              "upperHex": "efbcaacc81"
+            },
+            {
+              "inputHex": "49cc81",
+              "lowerHex": "69cc81",
+              "upperHex": "49cc81"
+            },
+            {
+              "inputHex": "c4aecc81",
+              "lowerHex": "c4afcc81",
+              "upperHex": "c4aecc81"
+            },
+            {
+              "inputHex": "c38c",
+              "lowerHex": "c3ac",
+              "upperHex": "c38c"
+            },
+            {
+              "inputHex": "c38d",
+              "lowerHex": "c3ad",
+              "upperHex": "c38d"
+            },
+            {
+              "inputHex": "c4a8",
+              "lowerHex": "c4a9",
+              "upperHex": "c4a8"
+            },
+            {
+              "inputHex": "69cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "49cc8741cc87"
+            },
+            {
+              "inputHex": "6941cc8742cc87",
+              "lowerHex": "6961cc8762cc87",
+              "upperHex": "4941cc8742cc87"
+            },
+            {
+              "inputHex": "69cc816acc87",
+              "lowerHex": "69cc816acc87",
+              "upperHex": "49cc814acc87"
+            },
+            {
+              "inputHex": "69c4b0cc87",
+              "lowerHex": "6969cc87cc87",
+              "upperHex": "49c4b0cc87"
+            },
+            {
+              "inputHex": "69cd85cc87",
+              "lowerHex": "69cd85cc87",
+              "upperHex": "49cc87ce99"
+            },
+            {
+              "inputHex": "cea3",
+              "lowerHex": "cf82",
+              "upperHex": "cea3"
+            },
+            {
+              "inputHex": "ce9fcea3cc81ce91",
+              "lowerHex": "cebfcf82cc81ceb1",
+              "upperHex": "ce9fcea3cc81ce91"
+            },
+            {
+              "inputHex": "cd85cc87cc81",
+              "lowerHex": "cd85cc87cc81",
+              "upperHex": "cc87cc81ce99"
+            },
+            {
+              "inputHex": "e285a3e29390",
+              "lowerHex": "e285a3e29390",
+              "upperHex": "e285a3e29390"
+            },
+            {
+              "inputHex": "c349cc87",
+              "lowerHex": "c349cc87",
+              "upperHex": "c349cc87"
+            },
+            {
+              "inputHex": "e08189cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "e08189cc87"
+            },
+            {
+              "inputHex": "e084b8",
+              "lowerHex": "e084b8",
+              "upperHex": "c4b8"
+            },
+            {
+              "inputHex": "80",
+              "lowerHex": "80",
+              "upperHex": "80"
+            },
+            {
+              "inputHex": "c3",
+              "lowerHex": "c3",
+              "upperHex": "c3"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "49cc8741cc87"
+            }
+          ]
+        },
+        {
+          "requestedLocale": "tr_TR.UTF-8",
+          "activatedLocaleReceipt": "activated LC_CTYPE=tr_TR.UTF-8",
+          "exit": 0,
+          "cases": [
+            {
+              "inputHex": "49",
+              "lowerHex": "c4b1",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "69",
+              "lowerHex": "69",
+              "upperHex": "c4b0"
+            },
+            {
+              "inputHex": "c4b0",
+              "lowerHex": "69",
+              "upperHex": "c4b0"
+            },
+            {
+              "inputHex": "c4b1",
+              "lowerHex": "c4b1",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "49cca3cc87",
+              "lowerHex": "c4b1cca3cc87",
+              "upperHex": "49cca3cc87"
+            },
+            {
+              "inputHex": "efbca9",
+              "lowerHex": "c4b1",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "efbca9cc87",
+              "lowerHex": "69",
+              "upperHex": "efbca9cc87"
+            },
+            {
+              "inputHex": "efbd89",
+              "lowerHex": "efbd89",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "4acc81",
+              "lowerHex": "6acc81",
+              "upperHex": "4acc81"
+            },
+            {
+              "inputHex": "efbcaacc81",
+              "lowerHex": "efbd8acc81",
+              "upperHex": "efbcaacc81"
+            },
+            {
+              "inputHex": "49cc81",
+              "lowerHex": "c4b1cc81",
+              "upperHex": "49cc81"
+            },
+            {
+              "inputHex": "c4aecc81",
+              "lowerHex": "c4afcc81",
+              "upperHex": "c4aecc81"
+            },
+            {
+              "inputHex": "c38c",
+              "lowerHex": "c3ac",
+              "upperHex": "c38c"
+            },
+            {
+              "inputHex": "c38d",
+              "lowerHex": "c3ad",
+              "upperHex": "c38d"
+            },
+            {
+              "inputHex": "c4a8",
+              "lowerHex": "c4a9",
+              "upperHex": "c4a8"
+            },
+            {
+              "inputHex": "69cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "c4b0cc87"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "c4b0cc8741cc87"
+            },
+            {
+              "inputHex": "6941cc8742cc87",
+              "lowerHex": "6961cc8762cc87",
+              "upperHex": "c4b041cc8742cc87"
+            },
+            {
+              "inputHex": "69cc816acc87",
+              "lowerHex": "69cc816acc87",
+              "upperHex": "c4b0cc814acc87"
+            },
+            {
+              "inputHex": "69c4b0cc87",
+              "lowerHex": "6969cc87",
+              "upperHex": "c4b0c4b0cc87"
+            },
+            {
+              "inputHex": "69cd85cc87",
+              "lowerHex": "69cd85cc87",
+              "upperHex": "c4b0cc87ce99"
+            },
+            {
+              "inputHex": "cea3",
+              "lowerHex": "cf82",
+              "upperHex": "cea3"
+            },
+            {
+              "inputHex": "ce9fcea3cc81ce91",
+              "lowerHex": "cebfcf82cc81ceb1",
+              "upperHex": "ce9fcea3cc81ce91"
+            },
+            {
+              "inputHex": "cd85cc87cc81",
+              "lowerHex": "cd85cc87cc81",
+              "upperHex": "cc87cc81ce99"
+            },
+            {
+              "inputHex": "e285a3e29390",
+              "lowerHex": "e285a3e29390",
+              "upperHex": "e285a3e29390"
+            },
+            {
+              "inputHex": "c349cc87",
+              "lowerHex": "c349cc87",
+              "upperHex": "c349cc87"
+            },
+            {
+              "inputHex": "e08189cc87",
+              "lowerHex": "69",
+              "upperHex": "e08189cc87"
+            },
+            {
+              "inputHex": "e084b8",
+              "lowerHex": "e084b8",
+              "upperHex": "c4b8"
+            },
+            {
+              "inputHex": "80",
+              "lowerHex": "80",
+              "upperHex": "80"
+            },
+            {
+              "inputHex": "c3",
+              "lowerHex": "c3",
+              "upperHex": "c3"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "c4b0cc8741cc87"
+            }
+          ]
+        },
+        {
+          "requestedLocale": "lt_LT.UTF-8",
+          "activatedLocaleReceipt": "activated LC_CTYPE=lt_LT.UTF-8",
+          "exit": 0,
+          "cases": [
+            {
+              "inputHex": "49",
+              "lowerHex": "69",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "69",
+              "lowerHex": "69",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "c4b0",
+              "lowerHex": "69cc87",
+              "upperHex": "c4b0"
+            },
+            {
+              "inputHex": "c4b1",
+              "lowerHex": "c4b1",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69cc87cc87",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "49cca3cc87",
+              "lowerHex": "69cc87cca3cc87",
+              "upperHex": "49cca3cc87"
+            },
+            {
+              "inputHex": "efbca9",
+              "lowerHex": "efbd89",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "efbca9cc87",
+              "lowerHex": "efbd89cc87cc87",
+              "upperHex": "efbca9cc87"
+            },
+            {
+              "inputHex": "efbd89",
+              "lowerHex": "efbd89",
+              "upperHex": "efbca9"
+            },
+            {
+              "inputHex": "4acc81",
+              "lowerHex": "6acc87cc81",
+              "upperHex": "4acc81"
+            },
+            {
+              "inputHex": "efbcaacc81",
+              "lowerHex": "efbd8acc87cc81",
+              "upperHex": "efbcaacc81"
+            },
+            {
+              "inputHex": "49cc81",
+              "lowerHex": "69cc87cc81",
+              "upperHex": "49cc81"
+            },
+            {
+              "inputHex": "c4aecc81",
+              "lowerHex": "c4afcc87cc81",
+              "upperHex": "c4aecc81"
+            },
+            {
+              "inputHex": "c38c",
+              "lowerHex": "69cc87cc80",
+              "upperHex": "c38c"
+            },
+            {
+              "inputHex": "c38d",
+              "lowerHex": "69cc87cc81",
+              "upperHex": "c38d"
+            },
+            {
+              "inputHex": "c4a8",
+              "lowerHex": "69cc87cc83",
+              "upperHex": "c4a8"
+            },
+            {
+              "inputHex": "69cc87",
+              "lowerHex": "69cc87",
+              "upperHex": "49"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "4941"
+            },
+            {
+              "inputHex": "6941cc8742cc87",
+              "lowerHex": "6961cc8762cc87",
+              "upperHex": "494142"
+            },
+            {
+              "inputHex": "69cc816acc87",
+              "lowerHex": "69cc816acc87",
+              "upperHex": "49cc814a"
+            },
+            {
+              "inputHex": "69c4b0cc87",
+              "lowerHex": "6969cc87cc87",
+              "upperHex": "4949"
+            },
+            {
+              "inputHex": "69cd85cc87",
+              "lowerHex": "69cd85cc87",
+              "upperHex": "49cd85"
+            },
+            {
+              "inputHex": "cea3",
+              "lowerHex": "cf82",
+              "upperHex": "cea3"
+            },
+            {
+              "inputHex": "ce9fcea3cc81ce91",
+              "lowerHex": "cebfcf82cc81ceb1",
+              "upperHex": "ce9fcea3cc81ce91"
+            },
+            {
+              "inputHex": "cd85cc87cc81",
+              "lowerHex": "cd85cc87cc81",
+              "upperHex": "cc87cc81ce99"
+            },
+            {
+              "inputHex": "e285a3e29390",
+              "lowerHex": "e285a3e29390",
+              "upperHex": "e285a3e29390"
+            },
+            {
+              "inputHex": "c349cc87",
+              "lowerHex": "c349cc87",
+              "upperHex": "c349cc87"
+            },
+            {
+              "inputHex": "e08189cc87",
+              "lowerHex": "69cc87cc87",
+              "upperHex": "e08189cc87"
+            },
+            {
+              "inputHex": "e084b8",
+              "lowerHex": "e084b8",
+              "upperHex": "c4b8"
+            },
+            {
+              "inputHex": "80",
+              "lowerHex": "80",
+              "upperHex": "80"
+            },
+            {
+              "inputHex": "c3",
+              "lowerHex": "c3",
+              "upperHex": "c3"
+            },
+            {
+              "inputHex": "49cc87",
+              "lowerHex": "69cc87cc87",
+              "upperHex": "49cc87"
+            },
+            {
+              "inputHex": "69cc8741cc87",
+              "lowerHex": "69cc8761cc87",
+              "upperHex": "4941"
+            }
+          ]
+        }
+      ]
+    },
+    "counts": {
+      "profiles": 3,
+      "sourceRowsPerProfile": 33,
+      "directionFields": 198,
+      "turkicDirectionDifferencesAgainstC": 18,
+      "lithuanianDirectionDifferencesAgainstC": 19
+    },
+    "construction": "ASCII/dotted/dotless/fullwidthI/J,immediate dot versus intervening below mark,above accents,precomposed grave/acute/tilde,Lithuanian persistent i history,Greek marks/sigma,nonletter case symbols and invalid/historical/truncated byte spans.",
+    "activation": "Oracle checks setlocale return,records actual LC_CTYPE,exits nonzero if requested locale unavailable; all three actual activations succeeded.",
+    "portableLimits": "Existing public formatting profiles admit capturedC/English andGerman names. These private source controls do not silently activate additional portable locales or establish current public support. Locale profile behavior/activation,formatting and native warning/public-path qualification remain required.",
+    "status": "Qualification only; no new product fix,delivery,public parity or full-profile closure claimed.",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-locale-oracle.c",
+        "bytes": 921,
+        "sha256": "00b1a16c44e06fb1c9bb2da9ede422676f18e12a98d95bf571962ce027f89cbc"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-case-locales-unicode16.json",
+        "bytes": 12605,
+        "sha256": "75d3cbdb1bd6d8794ee75c9a398fa4f04e5cd3f32836a8e09f4aaaabc42f3bbc"
+      }
+    ]
   }
 }

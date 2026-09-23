@@ -81,6 +81,15 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
   const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C.UTF-8";
   const escapeErrors: string[] = [];
   const unicode = { utf8: locale !== "C" && locale !== "POSIX", missingDigit: (escape: string) => { escapeErrors.push(escape); } };
+  const quotedNumber = (index: number): number => {
+    const bytes = arguments_.bytes(index)?.subarray(1) ?? new Uint8Array();
+    const first = bytes[0] ?? 0;
+    if (!unicode.utf8 || first < 128) return first;
+    const length = first >= 194 && first <= 223 ? 2 : first >= 224 && first <= 239 ? 3 : first >= 240 && first <= 244 ? 4 : 0;
+    if (!length || bytes.length < length) return first;
+    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes.subarray(0, length)).codePointAt(0) ?? first; }
+    catch (error) { if (error instanceof TypeError) return first; throw error; }
+  };
   do {
     const before = argument;
     for (let offset = 0; offset < formatLength && !stopped;) {
@@ -104,8 +113,9 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       offset += match[0].length;
       let flags = match[1]!;
       const dynamic = (): number => {
-        const token = args[argument++] ?? "0";
-        const parsed = token.startsWith("'") || token.startsWith('"') ? token.codePointAt(1) ?? 0 : Number(token);
+        const index = argument++;
+        const token = args[index] ?? "0";
+        const parsed = token.startsWith("'") || token.startsWith('"') ? quotedNumber(index) : Number(token);
         if (!Number.isSafeInteger(parsed)) throw new UsageError(`invalid width or precision '${token}'`);
         return parsed;
       };
@@ -134,10 +144,24 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         stopped = escaped.stop;
         continue;
       }
-      if (specifier === "q") text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => character === "\n" ? "$'\\n'" : `\\${character}`);
-      else if (specifier === "c") text = supplied ? String.fromCodePoint(supplied.codePointAt(0)!) : "\0";
+      if (specifier === "c") {
+        const byte = arguments_.bytes(suppliedIndex)?.subarray(0, 1);
+        const padding = " ".repeat(Math.max(0, width - 1));
+        if (!flags.includes("-")) await output(context, padding);
+        await output(context, byte?.length ? byte : Uint8Array.of(0));
+        if (flags.includes("-")) await output(context, padding);
+        continue;
+      }
+      if (specifier === "q") {
+        const bytes = arguments_.bytes(suppliedIndex) ?? new Uint8Array();
+        if (bytes.some(byte => byte >= 128)) {
+          text = "$'";
+          for (const byte of bytes) text += `\\${byte.toString(8).padStart(3, "0")}`;
+          text += "'";
+        } else text = supplied === "" ? "''" : supplied.replace(/[^a-zA-Z0-9_./-]/gu, character => character === "\n" ? "$'\\n'" : `\\${character}`);
+      }
       else {
-        let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? supplied.codePointAt(1) ?? 0 : Number(supplied);
+        let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);
         if (/^[+-]0[xX][0-9a-fA-F]+$/u.test(supplied.trim())) {
           number = Number(supplied.trim().slice(1)) * (supplied.trim().startsWith("-") ? -1 : 1);
         }
@@ -160,7 +184,8 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         else {
           const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
           const unsigned = /[uoxX]/u.test(specifier);
-          const parsed = printfInteger(suppliedIndex < args.length ? supplied : "0", unsigned);
+          const numericOperand = supplied.startsWith("'") || supplied.startsWith('"') ? String(quotedNumber(suppliedIndex)) : supplied;
+          const parsed = printfInteger(suppliedIndex < args.length ? numericOperand : "0", unsigned);
           const integral = parsed.value;
           if (parsed.error) {
             await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);

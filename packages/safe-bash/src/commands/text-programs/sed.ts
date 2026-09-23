@@ -358,20 +358,19 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "H": hold = joinSpace(hold, pattern); holdTerminated = record.terminated; break;
           case "g":
             pattern = hold;
-            if (separator === "\0") record = { ...record, terminated: holdTerminated };
+            record = { ...record, terminated: holdTerminated };
             break;
           case "G":
             pattern = joinSpace(pattern, hold);
-            if (separator === "\0") record = { ...record, terminated: holdTerminated };
+            record = { ...record, terminated: holdTerminated };
             break;
-          case "x":
+          case "x": {
             [pattern, hold] = [hold, pattern];
-            if (separator === "\0") {
-              const terminated = record.terminated;
-              record = { ...record, terminated: holdTerminated };
-              holdTerminated = terminated;
-            }
+            const terminated = record.terminated;
+            record = { ...record, terminated: holdTerminated };
+            holdTerminated = terminated;
             break;
+          }
           case "s": {
             const changed = await substitute(pattern, getPattern(instruction.pattern), instruction.replacement!, budget, instruction.global ?? false, instruction.occurrence ?? 1);
             pattern = changed.text;

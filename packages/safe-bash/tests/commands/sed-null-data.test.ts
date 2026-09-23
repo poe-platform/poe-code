@@ -9,6 +9,45 @@ import { agentCommands } from "../../src/plugins/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./text-programs/helpers.js";
 
 for (const separator of ["\n", "\0"]) {
+  for (const tail of ["DifferentTail", "Different\xfeTail"]) {
+    for (const terminated of [false, true]) {
+      const input = Buffer.from(tail + (terminated ? separator : ""), "latin1");
+      for (const [program, expected] of [
+        ["g", separator],
+        ["x", separator],
+        ["G", tail + separator + separator],
+        ["h;g", tail + (terminated ? separator : "")],
+        ["H;g", separator + tail + (terminated ? separator : "")],
+        ["h;G", tail + separator + tail + (terminated ? separator : "")],
+        ["x;x", tail + (terminated ? separator : "")],
+      ] as const) {
+        test(`sed hold termination ${JSON.stringify(separator)} ${program} ${input.toString("hex")}`, async () => {
+          const fs = await makeFileSystem({ input });
+          const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+          const mode = separator === "\0" ? "-z " : "";
+          const result = await shell.exec(`sed ${mode}'${program}' input > actual; result=$?; cat actual; exit "$result"`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          const bytes = Buffer.from(expected, "latin1");
+          assert.deepEqual(Buffer.from(result.stdoutBytes), bytes);
+          assert.deepEqual(Buffer.from(await fs.readFile("/work/actual")), bytes);
+          assert.deepEqual(Buffer.from(await fs.readFile("/work/input")), input);
+        });
+      }
+      for (const program of ["1h;2g", "1h;2x", "1h;2G"]) {
+        test(`sed saved hold termination ${JSON.stringify(separator)} ${program} ${input.toString("hex")}`, async () => {
+          const source = Buffer.concat([Buffer.from("First" + separator), input]);
+          const result = await runVirtual("sed", { args: [...(separator === "\0" ? ["-z"] : []), program], stdin: source });
+          assert.equal(result.exitCode, 0, result.stderr.toString());
+          assert.equal(result.stderr.length, 0);
+          assert.deepEqual(result.stdout, Buffer.from("First" + separator + (program.endsWith("G") ? tail + separator : "") + "First" + separator, "latin1"));
+        });
+      }
+    }
+  }
+}
+
+for (const separator of ["\n", "\0"]) {
   for (const input of [Buffer.from("OwnedTail"), Buffer.from("Owned\xffTail", "latin1")]) {
     for (const terminated of [false, true]) {
       const source = terminated ? Buffer.concat([input, Buffer.from(separator)]) : input;

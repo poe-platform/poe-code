@@ -459,6 +459,7 @@ function assertSource7Discovery(files) {
     "tests/commands/node-safejs.test.ts",
     "tests/commands/node-text-encoder.test.ts",
     "tests/commands/node-path.test.ts",
+    "tests/commands/node-fs-promises.test.ts",
     "tests/commands/node-buffer.test.ts",
     "tests/commands/node-export-boundary.test.ts",
     "tests/commands/input.test.ts",

@@ -15,6 +15,34 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it("delivers explicitly awaited host results to synchronous guest calls and replay", async () => {
+    const read = vi.fn(async () => "body");
+    const bindings = { read: declareHostOperation(read, "read-side-effect", { awaitResult: true }) };
+    const source = 'const text = read(); return [typeof text, text + "!"];';
+    const first = await run(source, { bindings });
+    expect(first).toMatchObject({ ok: true, returnValue: ["string", "body!"] });
+    expect(await run(source, { bindings, snapshot: JSON.parse(await dump(first)) }))
+      .toMatchObject({ ok: true, returnValue: ["string", "body!"] });
+    expect(read).toHaveBeenCalledTimes(1);
+  });
+
+  it("awaits explicit host operations without a recovery journal", async () => {
+    const budget = new Budget();
+    const read = declareHostOperation(async () => "body", "read-side-effect", { awaitResult: true });
+    const fail = declareHostOperation(async () => { throw new Error("missing"); }, "read-side-effect", { awaitResult: true });
+    const bindings = wrapCallerInjectedBindings({ read, fail }, { budget });
+    expect(await (bindings.read as SandboxClosure).call([])).toBe("body");
+    await expect((bindings.fail as SandboxClosure).call([])).rejects.toMatchObject({ name: "Error", message: "missing" });
+  });
+
+  it("throws explicitly awaited host rejections at the synchronous guest call", async () => {
+    const read = declareHostOperation(async () => {
+      throw Object.assign(new Error("missing"), { code: "ENOENT" });
+    }, "read-side-effect", { awaitResult: true });
+    expect(await run('try { read(); return "missed"; } catch (error) { return [error.message,error.code]; }', { bindings: { read } }))
+      .toMatchObject({ ok: true, returnValue: ["missing", "ENOENT"] });
+  });
+
   it.each([Error, TypeError, RangeError])(
     "preserves synchronous %s metadata through repeated replay",
     async (ErrorType) => {

@@ -267,7 +267,7 @@ test("node is opt-in, has no safejs alias and requires deliberate replacement", 
   } finally { await shell.dispose(); }
 });
 
-test("node require exposes only the injected asynchronous VFS module", async () => {
+test("node require exposes only the injected VFS modules", async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(nodeCommands({ runtime }));
   try {
@@ -277,7 +277,7 @@ test("node require exposes only the injected asynchronous VFS module", async () 
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "virtual\n");
     }
-    for (const name of ["fs", "node:fs", "./local.js", "__proto__"]) {
+    for (const name of ["./local.js", "__proto__"]) {
       assert.equal((await shell.exec("node -e " + quote(`require(${JSON.stringify(name)})`))).exitCode, 1);
     }
   } finally { await shell.dispose(); }

@@ -7,6 +7,65 @@ import { Shell } from "../../src/shell/index.js";
 
 const runtime = { run, makeFsModule, declareHostOperation, createBudget: (options: ConstructorParameters<typeof Budget>[0]) => new Budget(options) };
 
+test("node require fs readFileSync returns text before the next guest statement", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("abc\n"));
+  const shell = new Shell({ fs }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec(`node -e 'console.log(require("fs").readFileSync("input","utf8"))' a b`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "abc\n\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+for (const name of ["fs", "node:fs"]) {
+  for (const loading of ["require", "named", "default", "namespace"]) {
+    test(`node readFileSync loads ${name} through ${loading} using virtual cwd`, async () => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work");
+      await fs.writeFile("/work/input", Buffer.from("virtual"));
+      const source = loading === "require" ? `const fs = require("${name}");`
+        : loading === "named" ? `import {readFileSync} from "${name}"; const fs = {readFileSync};`
+        : loading === "default" ? `import fs from "${name}";`
+        : `import * as fs from "${name}";`;
+      const shell = new Shell({ fs, cwd: "/work" }).use(nodeCommands({ runtime }));
+      try {
+        const result = await shell.exec(`node -e '${source} const text = fs.readFileSync("input", {encoding:"utf8"}); console.log(typeof text, text);'`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "string virtual\n");
+        assert.equal(result.stderr, "");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("node readFileSync throws VFS errors at the call site and retains async fs helpers", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec(`node -e 'const fs = require("node:fs"); try { fs.readFileSync("missing", "utf8"); console.log("missed"); } catch (error) { console.log(error.code); } await fs.promises.writeFile("input", "saved", "utf8"); console.log(fs.readFileSync("input", "utf8")); console.log(await fs.readFile("input", "utf8"));'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "ENOENT\nsaved\nsaved\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("node readFileSync retains interpreter and output limits", async () => {
+  for (const [limits, source] of [
+    [{ maxSteps: 2000 }, 'const fs = require("fs"); while (true) { fs.readFileSync("input", "utf8"); }'],
+    [{ maxOutputBytes: 2 }, 'console.log(require("fs").readFileSync("input", "utf8"))'],
+    [{ stringLength: 1024 }, 'require("fs").readFileSync("input", "utf8")'],
+  ] as const) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("a".repeat(2048)));
+    const shell = new Shell({ fs }).use(nodeCommands({ runtime, limits }));
+    try {
+      const result = await shell.exec(`node -e '${source}'`);
+      assert.equal(result.exitCode, 124, result.stderr);
+    } finally { await shell.dispose(); }
+  }
+});
+
 for (const name of ["fs/promises", "node:fs/promises"]) {
   for (const input of ["inline", "file", "stdin"]) {
     test(`node imports ${name} from ${input} source using the VFS`, async () => {
@@ -54,31 +113,34 @@ test("node filesystem promise imports retain interpreter and output limits", asy
   }
 });
 
-test("node filesystem promise imports propagate caller cancellation to VFS reads", async () => {
-  let started!: () => void;
-  const reading = new Promise<void>(resolve => { started = resolve; });
-  class PendingFileSystem extends MemoryFileSystem {
-    override async readFile(path: string, options?: Parameters<MemoryFileSystem["readFile"]>[1]): Promise<Uint8Array> {
-      if (path !== "/input") return super.readFile(path, options);
-      const signal = options?.signal;
-      assert.ok(signal);
-      signal.throwIfAborted();
-      started();
-      return new Promise((_, reject) => { signal.addEventListener("abort", () => reject(signal.reason), { once: true }); });
+for (const source of ['import {readFile} from "node:fs/promises"; await readFile("input", "utf8");', 'require("fs").readFileSync("input", "utf8");']) {
+  test(`node filesystem calls propagate caller cancellation to VFS reads: ${source}`, async () => {
+    let started!: () => void;
+    const reading = new Promise<void>(resolve => { started = resolve; });
+    class PendingFileSystem extends MemoryFileSystem {
+      override async readFile(path: string, options?: Parameters<MemoryFileSystem["readFile"]>[1]): Promise<Uint8Array> {
+        if (path !== "/input") return super.readFile(path, options);
+        const signal = options?.signal;
+        assert.ok(signal);
+        signal.throwIfAborted();
+        started();
+        return new Promise((_, reject) => { signal.addEventListener("abort", () => reject(signal.reason), { once: true }); });
+      }
     }
-  }
-  const shell = new Shell({ fs: new PendingFileSystem() }).use(nodeCommands({ runtime }));
-  const controller = new AbortController();
-  const reason = new Error("cancel virtual read");
-  try {
-    const pending = shell.exec('node -e \'import {readFile} from "node:fs/promises"; await readFile("input", "utf8");\'', { signal: controller.signal });
-    await reading;
-    controller.abort(reason);
-    await assert.rejects(pending, error => error === reason);
-  } finally { await shell.dispose(); }
-});
+    const shell = new Shell({ fs: new PendingFileSystem() }).use(nodeCommands({ runtime }));
+    const controller = new AbortController();
+    const reason = new Error("cancel virtual read");
+    try {
+      const pending = shell.exec(`node -e '${source}'`, { signal: controller.signal });
+      await reading;
+      controller.abort(reason);
+      await assert.rejects(pending, error => error === reason);
+    } finally { await shell.dispose(); }
+  });
 
-for (const name of ["node:fs", "node:child_process", "./local.mjs", "https://example.com/module.mjs"]) {
+}
+
+for (const name of ["node:child_process", "./local.mjs", "https://example.com/module.mjs"]) {
   test(`node does not load unregistered module ${name}`, async () => {
     const fs = new MemoryFileSystem();
     await fs.writeFile("/local.mjs", Buffer.from('console.log("loaded"); export const readFile = () => "host";'));

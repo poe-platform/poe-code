@@ -1,3 +1,4 @@
+import { resolveSandboxValue } from "./promise.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { copyCollectionProperties, getCollectionProperties } from "./collection-properties.js";
 import { runResources } from "./resources.js";
@@ -103,6 +104,8 @@ type CallerInjectedFunction = {
   bivarianceHack(...args: readonly unknown[]): unknown;
 }["bivarianceHack"];
 
+const awaitedHostOperations = new WeakSet<CallerInjectedFunction>();
+
 const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCallPolicyMode>();
 const hostOperationReplayHandlers = new WeakMap<
   CallerInjectedFunction,
@@ -158,9 +161,11 @@ export type CallerInjectedBinding =
 export function declareHostOperation<TFunction extends CallerInjectedFunction>(
   operation: TFunction,
   policy: PendingHostCallPolicyMode,
-  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void } = {}
+  options: { onReplay?: (args: readonly unknown[], outcome: HostCallOutcome) => void; awaitResult?: boolean } = {}
 ): TFunction {
   hostOperationPolicies.set(operation, policy);
+  if (options.awaitResult === true) awaitedHostOperations.add(operation);
+  else awaitedHostOperations.delete(operation);
   if (options.onReplay !== undefined) hostOperationReplayHandlers.set(operation, options.onReplay);
   return operation;
 }
@@ -211,9 +216,10 @@ function wrapCallerInjectedFunction(
   const nativeName = name === "default" ? Object.getOwnPropertyDescriptor(value, "name")?.value : undefined;
   const bindingName = typeof nativeName === "string" && nativeName.length > 0 ? nativeName : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
+  const awaitResult = awaitedHostOperations.has(value) || options.realm?.awaitResult(callable) === true;
 
   return createSandboxClosure({
-    ...(isAsyncFunction(callable) && !options.realm?.awaitResult(callable) ? { async: true as const } : {}),
+    ...(isAsyncFunction(callable) && !awaitResult ? { async: true as const } : {}),
     cancellationSignal: options.signal,
     call: (args, context) => {
       options.realm?.assertActive();
@@ -257,25 +263,25 @@ function wrapCallerInjectedFunction(
           readRegisteredPendingHostCallPolicy(moduleId, operation) ??
           "re-issue";
         if (hostCalls === undefined) {
+          let result: unknown;
           if (options.realm !== undefined) {
-            let result: unknown;
             try {
               result = options.realm.invoke(callable, () => Reflect.apply(callable, undefined, hostArgs));
             } catch (error) {
               captured!.rollback();
               throw error;
             }
-            if (options.realm.awaitResult(callable)) {
-              return wrapHostPromiseWithSignal(Promise.resolve(result), options.signal)
-                .then(value => copyHostResultToSandbox(value, stackFrames, options));
-            }
-            return copyHostResultToSandbox(result, stackFrames, options);
+          } else {
+            result = invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options);
           }
-          return copyHostResultToSandbox(
-            invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
-            stackFrames,
-            options
-          );
+          if (awaitResult) {
+            return wrapHostPromiseWithSignal(Promise.resolve(result), options.signal)
+              .then(value => copyHostResultToSandbox(value, stackFrames, options), error => {
+                if (isFatalBridgeError(error)) throw error;
+                throw createHostErrorValue(error, stackFrames, options.budget, context?.span);
+              });
+          }
+          return copyHostResultToSandbox(result, stackFrames, options);
         }
 
         const sharedArguments:SharedArrayBuffer[]=[];
@@ -355,7 +361,7 @@ function wrapCallerInjectedFunction(
             issued.record,
             callbacks.restored.map((invocation) => invocation.result)
           );
-        return executeHostCall(
+        const result = executeHostCall(
           issued.record,
           issued.restored,
           () => invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
@@ -365,6 +371,9 @@ function wrapCallerInjectedFunction(
           callbacks,
           hostOperationReplayHandlers.get(value)?.bind(undefined, hostArgs)
         );
+        return awaitResult && isSandboxPromise(result)
+          ? resolveSandboxValue(result)
+          : result;
       } catch (error) {
         compilation.dispose();
         if (

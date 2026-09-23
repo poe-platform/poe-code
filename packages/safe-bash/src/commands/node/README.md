@@ -65,6 +65,13 @@ try {
   named, default, and namespace imports from `fs/promises` or `node:fs/promises`,
   `import fs from "fs"`, and `require("fs/promises")` or
   `require("node:fs/promises")`.
+  `fs` and `node:fs` also support require, default, named, and namespace imports
+  of `readFileSync(path, encoding)` (or `{ encoding }`) for text reads. It returns
+  the text or throws the VFS error before the next guest statement; the host
+  event loop remains asynchronous. An encoding is required; binary reads and
+  other synchronous filesystem operations are not supplied. `fs.promises`
+  exposes the asynchronous helpers. All reads use the invocation's VFS, virtual
+  cwd, cancellation signal, and interpreter value limits.
   The `stdio` and `command` SafeJS modules remain accessible.
 - `path` and `node:path` support `require`, default, named, and namespace imports.
   The POSIX helpers are `join`, `normalize`, `resolve`, `relative`, `basename`,
@@ -73,7 +80,7 @@ try {
 
 SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
 imports, and the explicit filesystem promise and path import names above.
-`--input-type=module` is accepted; CommonJS input mode, synchronous fs,
+`--input-type=module` is accepted; CommonJS input mode, other synchronous fs,
 native modules, package/local-module loading, `process.exit`, and the native Node
 event loop are not supplied. Other `node:` and slash-containing import specifiers
 remain rejected. Runtime hooks and filesystem adapters are trusted host code.
@@ -91,7 +98,10 @@ and `declareHostOperation`. `run` receives injected `bindings` for the virtual
 process and allowlisted require function, guest modules, an `importSpecifiers`
 allowlist for the filesystem promise and path names, a fresh budget, signal,
 filename, and console sink. Use SafeJS's public factories as shown, or provide an
-implementation that honors that contract. There are no runtime environment switches.
+implementation that honors that contract, including
+`declareHostOperation(operation, policy, { awaitResult: true })`: finish the
+host operation and copy its result or throw its error at the guest call site,
+without exposing a guest Promise. There are no runtime environment switches.
 
 | `limits` option | Default |
 | --- | --- |

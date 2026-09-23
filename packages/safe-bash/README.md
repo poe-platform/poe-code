@@ -235,6 +235,10 @@ views, and shell streams. Await `process.stdout.write(text)` and
 `setTimeout(callback, delay?, ...args)` and `clearTimeout(id)` support cancellable
 guest timers, including during top-level `await`. Pending callbacks finish before
 the command exits and share its deadline and interpreter budgets.
+`require("fs").readFileSync(path, "utf8")` reads text from the VFS before the next
+guest statement; `node:fs` and named/default/namespace imports work too. An encoding
+is required. Async helpers remain available through `fs.promises` and
+`fs/promises`.
 
 Import async filesystem functions from `"fs"`, or use
 `const fs = require("node:fs/promises")`. SafeJS imports use bare module names:

@@ -220,6 +220,7 @@ for (const separator of [separators[0], separators[1], separators[2], separators
 }
 
 const boundaries = [
+  ["scalar indirect expansion", 'a=name; name=value; printf "%s" "${!a}"', "value"],
   ["word prefix and suffix", 'a=([2]=x [10]=y); printf "<%s>" pre"${!a[@]}"post', "<pre2><10post>"],
   ["empty splice", 'unset a; printf "<%s>" pre"${!a[@]}"post', "<prepost>"],
   ["adjacent splices", 'a=([2]=x [10]=y); printf "<%s>" "${!a[@]}${!a[@]}"', "<2><102><10>"],

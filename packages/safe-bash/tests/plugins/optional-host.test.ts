@@ -56,7 +56,7 @@ test("optional host re-exports exactly fifteen canonical helpers and twenty cano
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);
   }
-  for (const name of ["codeOf", "compareCopyIdentity", "compareObservedEntries", "output", "pathOf", "prepareUtf8EreSubject"]) assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
+  for (const name of ["codeOf", "compareCopyIdentity", "compareObservedEntries", "output", "pathOf", "prepareUtf8EreSubject", "parseTomlDocument", "YqLedger", "Decimal", "numberText"]) assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
   for (const name of ["EreLedger", "EreSyntaxError", "EreUnsupportedError", "EreProfileLimitError", "compileEre"] as const) assert.equal(host[name], core[name]);
   const sameTypes: Same<HostTypes, CoreTypes> = true;
   assert.equal(sameTypes, true);

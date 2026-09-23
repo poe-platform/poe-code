@@ -118,6 +118,8 @@ const helpText = [
   "                         up, down, from-zero (default), towards-zero, nearest",
   "      --suffix=SUFFIX  add SUFFIX to output numbers, and accept optional",
   "                         SUFFIX in input numbers",
+  "      --unit-separator=SEP  insert SEP between number and unit on output,",
+  "                         and accept optional SEP in input numbers",
   "      --to=UNIT        auto-scale output numbers to UNITs; see UNIT below",
   "      --to-unit=N      the output unit size (instead of the default 1)",
   "  -z, --zero-terminated    line delimiter is NUL, not newline",
@@ -403,6 +405,7 @@ interface Settings {
   delimiter: string | undefined;
   separator: string;
   suffix: string;
+  unitSeparator?: string;
   header: bigint;
   fields: [bigint, bigint][] | undefined;
   format: string | undefined;
@@ -506,7 +509,7 @@ function parse(context: CommandContext): Settings {
   bytes = 0;
   for (const value of argumentsCarrier.values) { bytes += typeof value === "string" ? utf8Size(value) : shellValueByteLength(value); if (bytes > 65536) throw new PublicDiagnostic("argument limit exceeded"); }
   const args = argumentsCarrier.values.map((value, index) => byteText(typeof value === "string" ? encoder.encode(value) : argumentsCarrier.bytes(index)!));
-  const options: Readonly<Record<string, number>> = { from: 1, "from-unit": 1, to: 1, "to-unit": 1, round: 1, padding: 1, suffix: 1, grouping: 0, delimiter: 1, field: 1, debug: 0, "-debug": 0, header: 2, format: 1, invalid: 1, "zero-terminated": 0, help: 0, version: 0 };
+  const options: Readonly<Record<string, number>> = { from: 1, "from-unit": 1, to: 1, "to-unit": 1, round: 1, padding: 1, suffix: 1, "unit-separator": 1, grouping: 0, delimiter: 1, field: 1, debug: 0, "-debug": 0, header: 2, format: 1, invalid: 1, "zero-terminated": 0, help: 0, version: 0 };
   const match = (name: string, value: string, choices: readonly string[]): string => {
     const matches = choices.filter(choice => choice.startsWith(value));
     if (choices.includes(value)) return value;
@@ -532,6 +535,7 @@ function parse(context: CommandContext): Settings {
       if (settings.fields) throw new NumfmtDiagnostic("multiple field specifications");
       settings.fields = fields(value!, settings.unicode);
     } else if (name === "suffix") settings.suffix = value!;
+    else if (name === "unit-separator") settings.unitSeparator = value!;
     else if (name === "format") settings.format = value!;
     else if (name === "grouping") settings.grouping = true;
     else if (name === "debug" || name === "-debug") { settings.debug = true; if (name === "-debug") settings.developer = true; }
@@ -596,6 +600,7 @@ class Converter {
     if (settings.debug && !settings.localeValid) await this.warning("failed to set locale");
     if (settings.debug && settings.from === "none" && settings.to === "none" && !settings.grouping && !settings.padding && settings.format === undefined) await this.warning("no conversion option specified");
     if (settings.format !== undefined) await this.parseFormat(settings.format);
+    if (settings.debug && settings.unitSeparator !== undefined && settings.delimiter === undefined) await this.warning("field delimiters have higher precedence than unit separators");
     if (settings.grouping) {
       if (settings.to !== "none") throw new NumfmtDiagnostic("grouping cannot be combined with --to");
       if (settings.debug && !settings.thousands) await this.warning("grouping has no effect in this locale");
@@ -692,7 +697,8 @@ class Converter {
     let exponent = 0;
     let base = settings.from === "iec" || settings.from === "iec-i" ? 1024 : 1000;
     if (offset < text.length) {
-      while (blank(text[offset])) offset++;
+      if (settings.unitSeparator !== undefined && text.startsWith(settings.unitSeparator, offset)) offset += settings.unitSeparator.length;
+      else while (blank(text[offset])) offset++;
       const suffix = text[offset] === "k" ? "K" : text[offset];
       if (suffix !== undefined && !"KMGTPEZY".includes(suffix)) return this.failure(`invalid suffix in input: ${quoted}`);
       if (settings.from === "none") return this.failure(`rejecting suffix in input: ${quoted} (consider using --from)`);
@@ -765,7 +771,9 @@ class Converter {
       const negative = rendered.startsWith("-");
       rendered = (negative ? "-" : "") + (negative ? rendered.slice(1) : rendered).padStart(Number(settings.zeroPadding) - Number(negative), "0");
     }
-    if (settings.to !== "none") rendered += powerIndex ? (settings.to === "si" ? "kMGTPEZY" : "KMGTPEZY")[powerIndex - 1] ?? "(error)" : "";
+    if (settings.to !== "none" && powerIndex) {
+      rendered += (settings.unitSeparator ?? "") + ((settings.to === "si" ? "kMGTPEZY" : "KMGTPEZY")[powerIndex - 1] ?? "(error)");
+    }
     if (rendered.length >= (settings.to === "none" ? 128 : 127)) throw new NumfmtDiagnostic(`failed to prepare value '${fixed(printedValue, 6)}' for printing`);
     if (settings.to === "iec-i" && powerIndex) rendered += "i";
     if (settings.developer && settings.to !== "none") await this.output.emit(`  returning value: ${quote(rendered, settings.unicode)}\n`, true);

@@ -22,6 +22,43 @@ async function format(args: readonly string[], input: string | Uint8Array | Byte
   return { exitCode: result.exitCode, stdoutHex: Buffer.concat(stdout).toString("hex"), stderrHex: Buffer.concat(stderr).toString("hex") };
 }
 
+for (const entry of [
+  { args: ["--to=si", "--unit-separator=_"], input: "2700\n-8100\n", output: "2.7_k\n-8.1_k\n" },
+  { args: ["--to=iec-i", "--unit-separator=_"], input: "2816\n-8448\n", output: "2.8_Ki\n-8.3_Ki\n" },
+  { args: ["--from=auto", "--unit-separator=_"], input: "2.75_K\n-8.25_Mi\n", output: "2750\n-8650752\n" },
+  { args: ["--from=auto", "--unit-separator=_"], input: "2.75K\n12\n", output: "2750\n12\n" },
+  { args: ["--from=auto", "--unit-separator="], input: "2.75Ki\n", output: "2816\n" },
+  { args: ["--from=auto", "--unit-separator", "·"], input: "2.75·Ki\n-8.25·Mi\n", output: "2816\n-8650752\n" },
+  { args: ["--to=si", "--unit-separator="], input: "2700\n-8100\n", output: "2.7k\n-8.1k\n" },
+  { args: ["--to=iec", "--unit-separator=units"], input: "1024\n12\n", output: "1.0unitsK\n12\n" },
+  { args: ["--to=iec-i", "--unit-separator=·", "-z"], input: "1024\0-2048\0", output: "1.0·Ki\0-2.0·Ki\0" },
+  { args: ["--from=auto", "--unit-separator=_", "-d,", "--field=2"], input: "label,2.75_K\n", output: "label,2750\n" },
+  { args: ["--to=iec", "--unit-separator=_", "--suffix=B", "--padding=8"], input: "1024\n", output: "  1.0_KB\n" },
+]) test(`numfmt unit separator ${JSON.stringify(entry.args)}`, async () => {
+  const expected = { exitCode: 0, stdoutHex: Buffer.from(entry.output).toString("hex"), stderrHex: "" };
+  assert.deepEqual(await format(entry.args, entry.input), expected);
+  const partitioned: ByteSource = { async *[Symbol.asyncIterator]() {
+    const reusable = new Uint8Array(1);
+    for (const byte of Buffer.from(entry.input)) { reusable[0] = byte; yield reusable; }
+  } };
+  assert.deepEqual(await format(entry.args, partitioned), expected);
+});
+
+test("numfmt unit separator preserves invalid-input diagnostics and required argument", async () => {
+  assert.deepEqual(await format(["--from=auto", "--unit-separator=_"], "2__K\n"), { exitCode: 2, stdoutHex: "", stderrHex: Buffer.from("numfmt: invalid suffix in input: '2__K'\n").toString("hex") });
+  assert.deepEqual(await format(["--unit-separator"]), { exitCode: 1, stdoutHex: "", stderrHex: Buffer.from("numfmt: option '--unit-separator' requires an argument\nTry 'numfmt --help' for more information.\n").toString("hex") });
+});
+
+test("numfmt unit separator through Shell operands", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([numfmtCommand()]), env: { LC_ALL: "C" } });
+  try {
+    const result = await shell.exec("numfmt --from=auto --to=iec-i --unit-separator='·' '2·Ki'");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "2.0·Ki\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 interface NativeCase {
   name: string;
   args: string[];
@@ -72,6 +109,12 @@ const native = ["./numfmt-native.snapshot.json", "./numfmt-extended.snapshot.jso
   }
   return { ...entry, stdoutHex: Buffer.from(stdout, "latin1").toString("hex"), stderrHex: Buffer.from(stderr, "latin1").toString("hex") };
 });
+// Preserve the historical oracle captures while accounting for the new option
+// in the virtual command's help output.
+for (const entry of native) {
+  const stdout = Buffer.from(entry.stdoutHex, "hex").toString();
+  if (stdout.startsWith("Usage: numfmt")) entry.stdoutHex = Buffer.from(stdout.replace("      --to=UNIT", "      --unit-separator=SEP  insert SEP between number and unit on output,\n                         and accept optional SEP in input numbers\n      --to=UNIT")).toString("hex");
+}
 for (const entry of native) test(`numfmt native ${entry.name}`, async () => {
   const result = await format(entry.args, Buffer.from(entry.stdinHex, "hex"), { env: { LC_ALL: entry.locale, ...entry.extraEnv } });
   assert.deepEqual(result, { stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex, exitCode: entry.exitCode });

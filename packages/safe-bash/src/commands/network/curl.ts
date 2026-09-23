@@ -40,13 +40,18 @@ function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL;
   return { url, ...(user === undefined ? {} : { user }) };
 }
 
-function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number): HttpHeaders {
+function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number, previous?: string): HttpHeaders {
   const json = args.data[0]?.kind === "json";
   // --json supplies semantic headers even when a redirect or -G removes the body.
   if (json) contentType = "application/json";
   const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
+  const referer = args.autoReferer && previous !== undefined ? previous : args.referer;
+  if (referer) {
+    validateRequestHeader("Referer", referer);
+    defaults.push(["Referer", referer]);
+  }
   if (scoped && args.etag !== undefined) defaults.push(["If-None-Match", args.etag]);
   if (args.range !== undefined) defaults.push(["Range", `bytes=${args.range}`]);
   if (scoped && user !== undefined) defaults.push(["Authorization", `Basic ${Buffer.from(user).toString("base64")}`]);
@@ -326,7 +331,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (policy.denyPrivateNetworks && transport.supportsPrivateNetworkDeny !== true) {
           throw new CurlError(7, "Transport cannot enforce private network policy");
         }
-        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
+        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes, previous);
         if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
         const upload: ByteSource | undefined = currentBody && (async function* () {
           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }

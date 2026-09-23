@@ -15,6 +15,8 @@ export interface CurlArguments {
   httpVersion?: "1.0" | "1.1";
   ignoreContentLength?: boolean;
   agent?: string;
+  referer?: string;
+  autoReferer?: boolean;
   retryTransport?: boolean;
   directoryIndex?: string;
   download?: { spider: boolean; resume: boolean; noClobber: boolean; contentDisposition: boolean };
@@ -145,7 +147,13 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
         catch { throw new CurlError(2, "Invalid byte range"); }
         result.range = value!; break;
       case "user-agent": addHeader(result, `User-Agent: ${value!}`); break;
-      case "referer": addHeader(result, `Referer: ${value!}`); break;
+      case "referer": {
+        validateRequestHeader("Referer", value!);
+        const auto = value!.indexOf(";auto");
+        result.autoReferer = auto >= 0;
+        result.referer = auto >= 0 ? value!.slice(0, auto) : value!;
+        break;
+      }
       case "user":
         if (!value!.includes(":")) throw new CurlError(2, "Basic authentication requires user:password; prompting is unsupported");
         result.user = value!; break;

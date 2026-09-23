@@ -543,3 +543,73 @@ test("compressed responses enforce decoded quotas and reject invalid or unknown 
     }
   } finally { await compressed.close(); }
 });
+for (const option of ["--referer", "-e"]) {
+  for (const seed of ["", "https://seed.invalid/Changed%20Seed"]) {
+    test(`curl ${option} ${seed};auto updates Referer on redirect`, async () => {
+      const http = await server();
+      try {
+        const result = await run(["-s", "-L", `${option}${option === "-e" ? seed + ";auto" : ""}`,
+          ...(option === "--referer" ? [seed + ";auto"] : []), `${http.origin}/redirect/307`]);
+        assert.equal(result.exitCode, 0);
+        assert.deepEqual(http.requests.map(request => request.headers.referer), [seed || undefined, `${http.origin}/redirect/307`]);
+      } finally { await http.close(); }
+    });
+  }
+}
+
+test("curl automatic Referer matches native across multiple hops and literal controls", async () => {
+  const observed: (string | undefined)[] = [];
+  const http = await server((request, response) => {
+    observed.push(request.headers.referer);
+    if (request.url === "/first") response.writeHead(307, { Location: "/second?changed=1" });
+    else if (request.url === "/second?changed=1") response.writeHead(302, { Location: "/final" });
+    response.end("done");
+    return true;
+  });
+  try {
+    for (const args of [
+      ["--referer", ";auto"], ["--referer", "https://seed.invalid/start;auto"],
+      ["-eliteral;value"], ["-H", "Referer: ;auto"],
+      ["--referer", ";auto", "-H", "Referer: custom;auto"],
+      ["-H", "Referer:", "--referer", ";auto"],
+      ["--referer", ";auto", "--referer", "last"],
+    ]) {
+      observed.length = 0;
+      const native = await promisify(execFile)("curl", ["-q", "-s", "-L", ...args, `${http.origin}/first`], { env: { PATH: process.env.PATH } });
+      assert.equal(native.stdout, "done");
+      const expected = [...observed];
+      observed.length = 0;
+      const result = await run(["-s", "-L", ...args, `${http.origin}/first`]);
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.deepEqual(observed, expected, JSON.stringify(args));
+    }
+  } finally { await http.close(); }
+});
+
+test("curl automatic Referer validates raw operands and each hop header budget", async () => {
+  for (const value of ["seed\r\nInjected: value;auto", ";auto\nInjected: value"]) {
+    const result = await run(["--referer", value, `${host.origin}/echo`]);
+    assert.equal(result.exitCode, 2);
+  }
+  let requests = 0;
+  const result = await run(["-L", "--referer", ";auto", `${host.origin}/redirect/307`], {
+    options: { limits: { maxHeaderBytes: 65 }, transport: async () => {
+      requests++;
+      return { status: 307, headers: [["Location", "/echo"]], body: toByteSource(""), async dispose() {} };
+    } },
+  });
+  assert.equal(result.exitCode, 63);
+  assert.equal(requests, 1);
+});
+
+test("curl automatic Referer works through Shell and VFS response files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" });
+  shell.use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  const start = host.requests.length;
+  const result = await shell.exec(`curl -s -L -e';auto' '${host.origin}/redirect/307' > 'changed output'`);
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(host.requests.slice(start).map(request => request.headers.referer), [undefined, `${host.origin}/redirect/307`]);
+  assert.ok((await fs.readFile("/work/changed output")).length > 0);
+});

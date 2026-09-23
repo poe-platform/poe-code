@@ -77,8 +77,13 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         await writeDiagnostic(context.stderr, `${context.command}: ${error.message}\n`, context.signal);
         return { exitCode: 125 };
       }
+      const debug = parsed.flags.has("v");
+      if (debug && parsed.flags.has("i")) await writeDiagnostic(context.stderr, "cleaning environ\n", context.signal);
       const env: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, parsed.flags.has("i") ? {} : context.env);
-      for (const name of parsed.values.get("u") ?? []) delete env[name];
+      for (const name of parsed.values.get("u") ?? []) {
+        if (debug) await writeDiagnostic(context.stderr, `unset:    ${name}\n`, context.signal);
+        delete env[name];
+      }
       const inheritedNames = Object.keys(env);
       const addedNames: string[] = [];
       let offset = 0;
@@ -89,6 +94,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         if (!name || name.includes("\0")) throw new UsageError("invalid environment variable name");
         const content = assignment.slice(equals + 1);
         if (content.includes("\0")) throw new UsageError("environment values cannot contain NUL");
+        if (debug) await writeDiagnostic(context.stderr, `setenv:   ${assignment}\n`, context.signal);
         if (!Object.hasOwn(env, name)) addedNames.push(name);
         env[name] = content;
       }
@@ -97,11 +103,18 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       let cwd = context.cwd;
       const directory = value(parsed, "C");
       if (directory !== undefined) {
+        if (debug) await writeDiagnostic(context.stderr, `chdir:    '${directory}'\n`, context.signal);
         cwd = pathOf(context, directory);
         if ((await context.fs.stat(cwd, { signal: context.signal })).type !== "directory") throw new FsError("ENOTDIR", { path: cwd });
         cwd = await context.fs.realpath(cwd, { signal: context.signal });
       }
       if (offset < parsed.operands.length) {
+        if (debug) {
+          await writeDiagnostic(context.stderr, `executing: ${parsed.operands[offset]}\n`, context.signal);
+          for (let index = offset; index < parsed.operands.length; index++) {
+            await writeDiagnostic(context.stderr, `   arg[${index - offset}]= '${parsed.operands[index]}'\n`, context.signal);
+          }
+        }
         const childArguments = parsed.operandValues!.slice(offset + 1);
         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
         if (context.invoke) return context.invoke(parsed.operands[offset]!, childArguments.args, {

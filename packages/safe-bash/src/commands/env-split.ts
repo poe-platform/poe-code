@@ -215,7 +215,7 @@ export async function parseEnvOptions(
   const operands: string[] = [];
   const operandValues: ShellValue[] = [];
   const longOptions = new Map([
-    ["ignore-environment", "i"], ["unset", "u"], ["null", "0"], ["chdir", "C"], ["split-string", "S"],
+    ["ignore-environment", "i"], ["unset", "u"], ["null", "0"], ["chdir", "C"], ["split-string", "S"], ["debug", "v"],
   ]);
   const accept = async (key: string, content?: string, source: ShellValue = content ?? "") => {
     if (key === "S") {
@@ -253,7 +253,7 @@ export async function parseEnvOptions(
     for (let index = 1; index < argument.length; index++) {
       if (work.tick()) await work.pause();
       const key = argument[index]!;
-      if (key !== "i" && key !== "u" && key !== "0" && key !== "C" && key !== "S") throw new UsageError(`invalid option -- '${key}'`);
+      if (key !== "i" && key !== "u" && key !== "0" && key !== "C" && key !== "S" && key !== "v") throw new UsageError(`invalid option -- '${key}'`);
       const required = key === "u" || key === "C" || key === "S";
       const attached = argument.slice(index + 1);
       const content = required ? attached || next() : undefined;

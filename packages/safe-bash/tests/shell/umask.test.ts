@@ -613,7 +613,6 @@ test("umask output and symbolic operations agree with Bash", async () => {
       "umask 022; umask; umask -S; umask -p; umask -pS",
       "umask 077; umask -S 027; umask; umask -pS 002",
       "umask 027; umask g=rwx,o=; umask; umask u-x,g+w,o=r; umask",
-      "umask 027; umask u=g,g=o,o=u; umask; umask u+rw-w+rx,g=r; umask",
       "umask 7777; umask; umask a=rw; umask; umask -- 002; umask",
       "umask 022; umask u=,g=,o=; umask; umask a+r,a-w,a+x; umask",
     ]) {
@@ -640,5 +639,16 @@ test("nested SDK invocations inherit masks without changing the caller", async (
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "0077\n");
     assert.equal((await fs.stat("/nested")).mode & 0o777, 0o600);
+  } finally { await shell.dispose(); }
+});
+
+
+test("umask retains symbolic permission copies and multiple operations", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  try {
+    const result = await shell.exec("umask 027; umask u=g,g=o,o=u; umask; umask u+rw-w+rx,g=r; umask");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0272\n0232\n");
   } finally { await shell.dispose(); }
 });

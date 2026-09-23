@@ -5,6 +5,7 @@ export type PlatformErrno = number | undefined;
 export type PlatformComparisonCallback<Callback> = Callback & never;
 
 export const platform = Object.freeze({
+  maxCollectionBytes: 32 * 1024 * 1024,
   errno(_code: string): PlatformErrno {
     return undefined;
   },

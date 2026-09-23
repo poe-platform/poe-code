@@ -253,6 +253,8 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 
 `access` takes a separate mode bitmask from `ACCESS_MODES`. `chmod` takes a mode, `utimes` takes millisecond timestamps, and `truncate` takes a byte length (default 0). Backend limits still apply. Node-shaped bridge methods translate their own options rather than accepting these raw option objects; see the [bridge signatures](src/bridge/filesystem.ts).
 
+`collectBytes(source, { maxBytes, maxMemoryBytes, signal })` snapshots streamed chunks into one growing buffer. `maxMemoryBytes` limits owned capacity, the current input's full backing buffer, and overlapping allocations during growth; exhaustion throws `EFBIG`. Browser and Worker bundles additionally share a fixed 32 MiB budget across active collectors, even when byte limits are omitted. The returned view may retain geometric spare capacity. This budget covers collection, not caller-retained results, transport buffering, archive decoding, strings, or the rest of the runtime; use streaming APIs and limit concurrent workloads for larger inputs.
+
 <details>
 <summary>S3 filesystem and HTTP transport options</summary>
 

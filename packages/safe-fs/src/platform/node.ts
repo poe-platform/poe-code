@@ -19,6 +19,7 @@ const systemErrnos = (() => {
 const negotiating = new AsyncLocalStorage<boolean>();
 
 export const platform = Object.freeze({
+  maxCollectionBytes: Infinity,
   errno(code: string): PlatformErrno {
     const errno = systemErrnos.get(code === "EOPNOTSUPP" ? "ENOTSUP" : code);
     if (errno === undefined) throw new TypeError(`Unsupported platform errno code: ${code}`);

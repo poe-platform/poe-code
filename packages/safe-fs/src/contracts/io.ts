@@ -1,10 +1,13 @@
 import { FsError } from "./errors.js";
 import { finishCleanup } from "./cleanup.js";
+import { platform } from "#safe-fs-platform";
 
 export type ByteSource = AsyncIterable<Uint8Array>;
 
 export interface CollectOptions {
   readonly maxBytes?: number;
+  /** Owned capacity, current input backing storage, and replacement allocation peak. */
+  readonly maxMemoryBytes?: number;
   readonly signal?: AbortSignal;
 }
 
@@ -18,28 +21,60 @@ export function toByteSource(input: string | Uint8Array): ByteSource {
   })();
 }
 
+let activeCollectionBytes = 0;
+
 export async function collectBytes(source: ByteSource, options: CollectOptions): Promise<Uint8Array> {
   if (options.maxBytes !== undefined && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) {
     throw new RangeError("maxBytes must be a nonnegative safe integer");
   }
-  const chunks: Uint8Array[] = [];
+  if (options.maxMemoryBytes !== undefined && (!Number.isSafeInteger(options.maxMemoryBytes) || options.maxMemoryBytes < 0)) {
+    throw new RangeError("maxMemoryBytes must be a nonnegative safe integer");
+  }
+  const memoryLimit = options.maxMemoryBytes ?? Infinity;
+  let reserved = 0;
+  let inputBytes = 0;
+  let buffer = new Uint8Array(0);
   let size = 0;
-  options.signal?.throwIfAborted();
-  for await (const chunk of readBytes(source, options.signal)) {
-    if (chunk.byteLength > (options.maxBytes ?? Infinity) - size) {
-      throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
+  function reserve(bytes: number): void {
+    if (bytes > memoryLimit - reserved || bytes > platform.maxCollectionBytes - activeCollectionBytes) {
+      throw new FsError("EFBIG", { syscall: "collectBytes", message: "collection exceeds memory budget" });
     }
-    if (chunk.byteLength > 0) chunks.push(new Uint8Array(chunk));
-    size += chunk.byteLength;
+    reserved += bytes;
+    activeCollectionBytes += bytes;
   }
-  options.signal?.throwIfAborted();
-  const result = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.byteLength;
+  try {
+    options.signal?.throwIfAborted();
+    for await (const chunk of readBytes(source, options.signal)) {
+      activeCollectionBytes -= inputBytes;
+      reserved -= inputBytes;
+      inputBytes = 0;
+      if (chunk.byteLength > (options.maxBytes ?? Infinity) - size) {
+        throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
+      }
+      // A small view can retain a large backing buffer. Keep this reservation
+      // while awaiting the next chunk, including while its source is suspended.
+      reserve(chunk.buffer.byteLength);
+      inputBytes = chunk.buffer.byteLength;
+      const nextSize = size + chunk.byteLength;
+      if (nextSize > buffer.byteLength) {
+        const capacity = Math.min(options.maxBytes ?? Infinity, Math.max(nextSize, buffer.byteLength * 2));
+        // Admit both generations before allocation. Do not fall back to repeated
+        // exact-size growth when geometric growth exceeds the budget.
+        reserve(capacity);
+        const replacement = new Uint8Array(capacity);
+        replacement.set(buffer.subarray(0, size));
+        activeCollectionBytes -= buffer.byteLength;
+        reserved -= buffer.byteLength;
+        buffer = replacement;
+      }
+      buffer.set(chunk, size);
+      size = nextSize;
+    }
+    options.signal?.throwIfAborted();
+    return buffer.subarray(0, size);
+  } finally {
+    activeCollectionBytes -= reserved;
   }
-  return result;
 }
 
 async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {

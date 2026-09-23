@@ -404,7 +404,9 @@ export class S3FileSystem implements FileSystem {
 
   private async body(output: S3GetOutput, path: string, options: ReadFileOptions): Promise<Uint8Array> {
     const limit = Math.min(this.maxReadBytes, options.maxBytes === undefined ? this.maxReadBytes : validateLimit(options.maxBytes, "maxBytes", 0));
+    let iterator: AsyncIterator<Uint8Array> | undefined;
     return this.call("readFile", path, options, async () => {
+      if (output.Body && Symbol.asyncIterator in output.Body) iterator = output.Body[Symbol.asyncIterator]();
       if (output.ContentLength !== undefined && output.ContentLength > limit) fail("EFBIG", "readFile", path);
       const body = output.Body;
       if (!body) fail("EIO", "readFile", path, "transport omitted the response body");
@@ -413,7 +415,7 @@ export class S3FileSystem implements FileSystem {
         if (body.byteLength > limit) fail("EFBIG", "readFile", path);
         bytes = new Uint8Array(body);
       } else if (Symbol.asyncIterator in body) {
-        bytes = await collectBytes(body, { ...(limit === Infinity ? {} : { maxBytes: limit }), ...(options.signal ? { signal: options.signal } : {}) });
+        bytes = await collectBytes({ [Symbol.asyncIterator]: () => iterator! }, { ...(limit === Infinity ? {} : { maxBytes: limit }), ...(options.signal ? { signal: options.signal } : {}) });
       } else if ("transformToByteArray" in body) {
         const converted = await body.transformToByteArray();
         if (!(converted instanceof Uint8Array)) fail("EIO", "readFile", path, "transport body is not binary");
@@ -424,7 +426,7 @@ export class S3FileSystem implements FileSystem {
       if (output.ContentLength !== undefined && output.ContentLength !== bytes.byteLength) fail("EIO", "readFile", path, "response body length does not match ContentLength");
       return bytes;
     }).catch((error: unknown) => {
-      this.dispose(output.Body);
+      this.dispose(iterator ?? output.Body);
       throw error;
     });
   }
@@ -439,7 +441,10 @@ export class S3FileSystem implements FileSystem {
     const info = await this.stat(input, options);
     if (info.type === "directory") fail("EISDIR", "readFile", path);
     if (info.size > Math.min(this.maxReadBytes, options.maxBytes ?? this.maxReadBytes)) fail("EFBIG", "readFile", path);
-    return this.body(await this.get(path, options), path, options);
+    const output = this.capabilities.streamingRead
+      ? await this.call("getObject", path, options, () => this.transport.getObjectStream!({ Bucket: this.bucket, Key: this.key(path) }, this.requestOptions(options)))
+      : await this.get(path, options);
+    return this.body(output, path, options);
   }
 
   private etag(metadata: S3HeadOutput | undefined, path: string): string {

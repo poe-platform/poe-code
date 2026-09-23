@@ -155,6 +155,21 @@ os.scandir = _safe_scandir
 
 `;
 
+export const pythonHardLinks = `
+import os, json, errno
+_safe_link_callback = _safe_hard_link
+def _safe_link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True):
+ if src_dir_fd is not None or dst_dir_fd is not None:
+  raise OSError(errno.ENOTSUP, 'dir_fd hard links are unsupported')
+ source = os.fsdecode(os.fspath(src))
+ destination = os.fsdecode(os.fspath(dst))
+ value = json.loads(_safe_link_callback(source, destination, bool(follow_symlinks)))
+ if 'errno' in value:
+  raise OSError(value['errno'], 'hard link creation failed', src, None, dst)
+os.link = _safe_link
+os.supports_follow_symlinks.add(_safe_link)
+`;
+
 export const pythonTreeCleanup = `
 import shutil, os, json
 _safe_tree_callback = _safe_tree_cleanup

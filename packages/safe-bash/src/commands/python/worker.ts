@@ -1,6 +1,6 @@
 import { mountPythonFileSystem } from '@poe-code/safe-fs/core';
 import { pythonExecution } from './execution.js';
-import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup } from './runtime-scripts.js';
+import { pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup } from './runtime-scripts.js';
 import { parsePythonInvocation } from './invocation.js';
 import { installPythonPackages } from './provisioning-runtime.js';
 import type { PythonPackageStart } from './provisioning.js';
@@ -229,6 +229,21 @@ export async function runPythonWorker(options: {
       } catch (error) { return JSON.stringify({errno:(error as {errno?:number}).errno ?? errno.EIO}); }
     });
     runtime.runPython(pythonStatProjection);
+    runtime.globals.set('_safe_hard_link', (source: string, destination: string, follow: boolean) => {
+      try {
+        const absolute = (path: string) => path.length === 0 || path.startsWith('/') ? path : `${runtime.FS.cwd()}/${path}`;
+        source = absolute(source);
+        destination = absolute(destination);
+        // The interpreter's private read-only mount is not application storage.
+        for (const path of [source, destination]) {
+          if (path === start.runtimeMount || path.startsWith(start.runtimeMount + '/')) throw new runtime.FS.ErrnoError(errno.EROFS);
+        }
+        if (follow) source = request('realpath', source);
+        request('link', source, destination);
+        return JSON.stringify({});
+      } catch (error) { return JSON.stringify({ errno: (error as { errno?: number }).errno ?? errno.EIO }); }
+    });
+    runtime.runPython(pythonHardLinks);
     runtime.globals.set('_safe_tree_cleanup', (path: string) => {
       const absolute = path.startsWith('/') ? path : `${runtime.FS.cwd()}/${path}`;
       if (absolute === start.runtimeMount || absolute.startsWith(start.runtimeMount + '/')) return JSON.stringify({ supported: false });

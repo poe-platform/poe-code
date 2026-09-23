@@ -63,6 +63,66 @@ function createWorker({onInitialization} = {}) {
  return { postMessage:value=>worker.postMessage(value), subscribe(listener,error){const receive=value=>{if(value.type==='qualification-initializing'){onInitialization?.();return;}listener(value);};worker.on('message',receive);worker.on('error',error);return()=>{worker.off('message',receive);worker.off('error',error);};},terminate:async()=>{await worker.terminate();} };
 }
 
+test('Shell Python hard links share canonical storage and preserve filesystem errors', async t => {
+ const fs = new MemoryFileSystem();
+ await fs.mkdir('/work');
+ await fs.writeFile('/work/input', new TextEncoder().encode('abc'));
+ const shell = new Shell({ fs, cwd: '/work' }).use(pythonCommands({ createWorker }));
+ t.after(() => shell.dispose());
+ const source = `import os, pathlib, errno
+assert os.link('input', 'link') is None
+with open('input', 'a') as f: f.write('X')
+assert open('link').read() == 'abcX'
+assert os.path.samefile('input', 'link')
+assert os.stat('link').st_nlink == 2
+os.link(pathlib.Path('input'), b'bytes-link')
+os.symlink('input', 'symbolic')
+os.link('symbolic', 'followed')
+assert not os.path.islink('followed')
+os.link('symbolic', 'unfollowed', follow_symlinks=False)
+assert os.path.islink('unfollowed')
+assert os.link in os.supports_follow_symlinks
+for src, dst, expected in [('missing', 'new', errno.ENOENT), ('input', 'link', errno.EEXIST), ('.', 'directory-link', errno.EPERM), ('input', '/.pyodide-runtime/new', errno.EROFS)]:
+ try: os.link(src, dst)
+ except OSError as error:
+  assert error.errno == expected, (src, error)
+  assert error.filename == src and error.filename2 == dst
+ else: raise AssertionError('link unexpectedly succeeded')
+for options in ({'src_dir_fd': 0}, {'dst_dir_fd': 0}):
+ try: os.link('input', 'unsupported', **options)
+ except OSError as error: assert error.errno == errno.ENOTSUP
+ else: raise AssertionError('dir_fd unexpectedly supported')
+os.unlink('input')
+assert open('link').read() == 'abcX'
+print('hard links passed')`;
+ const result = await shell.exec("python3 -c '" + source.replaceAll("'", "'\\''") + "'");
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, 'hard links passed\n');
+ assert.equal(new TextDecoder().decode(await fs.readFile('/work/link')), 'abcX');
+ const stat = await fs.stat('/work/link');
+ assert.ok(stat.ino !== undefined);
+ assert.equal(stat.ino, (await fs.stat('/work/bytes-link')).ino);
+});
+
+test('Shell Python hard links preserve readonly and unsupported backend capabilities', async t => {
+ for (const profile of ['readonly', 'unsupported']) {
+  const memory = new MemoryFileSystem();
+  await memory.writeFile('/input', new TextEncoder().encode('abc'));
+  if (profile === 'unsupported') Object.defineProperty(memory, 'link', { value: undefined });
+  const fs = profile === 'readonly' ? new ReadOnlyFileSystem(memory) : memory;
+  const shell = new Shell({ fs }).use(pythonCommands({ createWorker }));
+  t.after(() => shell.dispose());
+  const source = `import os, errno
+try: os.link('input', 'link')
+except OSError as error: assert error.errno == errno.${profile === 'readonly' ? 'EROFS' : 'ENOTSUP'}, error
+else: raise AssertionError('backend unexpectedly supports link')`;
+  const result = await shell.exec("python -c '" + source.replaceAll("'", "'\\''") + "'");
+  assert.equal(result.exitCode, 0, profile + ': ' + result.stderr);
+  await assert.rejects(memory.stat('/link'), { code: 'ENOENT' });
+  assert.equal(new TextDecoder().decode(await memory.readFile('/input')), 'abc');
+ }
+});
+
 test('Shell Python file, alias, module, source pipe and canonical retained descriptors',async(t)=>{
  const fs=new MemoryFileSystem();await fs.mkdir('/work');await fs.mkdir('/tmp');await fs.mkdir('/lib');
  await fs.writeFile('/lib/user.txt',new TextEncoder().encode('canonical lib'));

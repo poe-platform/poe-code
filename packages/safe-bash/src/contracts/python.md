@@ -52,6 +52,15 @@ start messages may supply `invocation.command`; omission uses `python`.
 
 ## Configuration and ownership
 
+Python `os.link(src, dst)` delegates to the configured filesystem's hard-link
+operation, preserving shared contents and backend errors rather than copying
+files. Path-like and byte paths are accepted through Python's filesystem path
+conversion. `follow_symlinks=False` links the source entry itself; the default
+resolves the source first. Resolution and creation are separate backend calls,
+so this provides no atomic protection against concurrent source replacement.
+Directory-descriptor options are unsupported (`ENOTSUP`), runtime-mount operands
+are read-only (`EROFS`), and backends without hard links remain unsupported.
+
 ### Temporary-directory cleanup
 
 On filesystems advertising `atomicTreeRemoval` with `removeTreeConditional`,

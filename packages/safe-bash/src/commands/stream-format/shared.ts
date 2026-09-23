@@ -1,5 +1,6 @@
 import { yieldTurn } from "../../contracts/yield.js";
-import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { FsError, getCommandArguments, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { shellValueByteLength } from "../../contracts/value.js";
 import { diagnostic, pathOf } from "../internal.js";
 
 export interface StreamFormatLimits {
@@ -47,7 +48,7 @@ export class Session {
 
   constructor(readonly context: CommandContext, readonly limits: StreamFormatLimits) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
-    this.check(context.args.reduce((size, argument) => size + Buffer.byteLength(argument), 0), limits.maxArgumentBytes, "argument");
+    this.check(getCommandArguments(context).values.reduce((size, argument) => size + shellValueByteLength(argument), 0), limits.maxArgumentBytes, "argument");
   }
 
   check(size: number, maximum: number, label: string): void {

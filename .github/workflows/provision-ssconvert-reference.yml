@@ -323,7 +323,7 @@ jobs:
                       expected_exit_codes=probe['expectedExitCodes'], fifo_producer=probe.get('fifoProducer'))
               outputs = []
               for output in sorted(root.glob('*')):
-                  if output.suffix in ['.xls', '.xlsx', '.po']:
+                  if output.suffix in ['.xls', '.xlsx', '.po', '.pdf', '.gnumeric']:
                       outputs.append(dict(name=output.name, bytes=output.stat().st_size, sha256=hashlib.sha256(output.read_bytes()).hexdigest()))
               service_inputs.append(dict(id=fixture['id'], inputSha256=fixture['inputSha256'], scope=fixture['scope'], generatedOutputs=outputs))
           scalar_path = pathlib.Path('docs/ssconvert/linux-scalar-native-probes.json')

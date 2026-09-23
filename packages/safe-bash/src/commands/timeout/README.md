@@ -35,7 +35,8 @@ it does not establish native hard preemption.
 
 Hosts with actual escalation capability can supply `killAfterPolicy` to
 `createTimeoutCommand` or `timeoutCommands`. This trusted callback receives the
-original context, literal child command and arguments, forwarded stream options,
+original context, literal child command and arguments, forwarded stream options
+including the parent cancellation signal,
 and a policy containing `durationMilliseconds`, `killAfterMilliseconds`,
 `signalNumber` and `preserveStatus`. It owns deadline scheduling, truthful signal
 delivery, hard escalation, status selection and child cleanup. It must honor

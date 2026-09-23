@@ -43,6 +43,9 @@ try {
 - `process.cwd()` and `process.env` expose virtual state, never host state.
   Environment edits remain local to one invocation. Set `process.exitCode` to an
   integer from 0–255; it is applied when the program finishes normally.
+- `__dirname` is `.` for eval, print, and stdin programs, and the absolute virtual
+  parent directory for `.js` and `.cjs` files. It is absent with
+  `--input-type=module` and in `.mjs` files.
 - `TextEncoder` encodes UTF-8 into guest `Uint8Array` values; `encodeInto`
   writes complete code points into a supplied byte view and reports bytes written.
 - `Buffer` provides guest-owned bytes with `from`, `alloc`, `concat`, `byteLength`,
@@ -73,6 +76,16 @@ try {
   exposes the asynchronous helpers. All reads use the invocation's VFS, virtual
   cwd, cancellation signal, and interpreter value limits.
   The `stdio` and `command` SafeJS modules remain accessible.
+- `require("./data.json")` loads UTF-8 JSON from the virtual filesystem and
+  returns a guest value before the next statement. Relative paths use the entry
+  file's directory, or virtual cwd for eval, print, and stdin source; absolute
+  virtual paths are also supported. A UTF-8 BOM is accepted. Resolved paths share
+  a guest cache within one invocation, preserving object identity and mutations;
+  filesystem writes do not invalidate the cache. Missing files throw
+  `MODULE_NOT_FOUND`; invalid JSON throws `SyntaxError` and is not cached.
+  Reads and parsing retain cancellation and interpreter value limits. Package
+  search, extension inference, local JavaScript loading, and JSON imports are
+  not supplied.
 - `path` and `node:path` support `require`, default, named, and namespace imports.
   The POSIX helpers are `join`, `normalize`, `resolve`, `relative`, `basename`,
   `dirname`, `extname`, and `isAbsolute`, with `sep`, `delimiter`, and `posix`.
@@ -81,7 +94,7 @@ try {
 SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
 imports, and the explicit filesystem promise and path import names above.
 `--input-type=module` is accepted; CommonJS input mode, other synchronous fs,
-native modules, package/local-module loading, `process.exit`, and the native Node
+native modules, package/local JavaScript loading, `process.exit`, and the native Node
 event loop are not supplied. Other `node:` and slash-containing import specifiers
 remain rejected. Runtime hooks and filesystem adapters are trusted host code.
 
@@ -95,7 +108,7 @@ registries. All three execute the same runner.
 
 The `SafeJsRuntime<Budget>` contract requires `run`, `createBudget`, `makeFsModule`,
 and `declareHostOperation`. `run` receives injected `bindings` for the virtual
-process and allowlisted require function, guest modules, an `importSpecifiers`
+process and virtual JSON/builtin require helpers, guest modules, an `importSpecifiers`
 allowlist for the filesystem promise and path names, a fresh budget, signal,
 filename, and console sink. Use SafeJS's public factories as shown, or provide an
 implementation that honors that contract, including

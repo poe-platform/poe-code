@@ -240,10 +240,12 @@ guest statement; `node:fs` and named/default/namespace imports work too. An enco
 is required. Async helpers remain available through `fs.promises` and
 `fs/promises`.
 
-Import async filesystem functions from `"fs"`, or use
-`const fs = require("node:fs/promises")`. SafeJS imports use bare module names:
-`import … from "node:fs/promises"` is not supported. There is no synchronous fs,
-package/local-module loading, `process.exit()`, or native module fallback.
+Import async filesystem functions from `"fs"` or `"node:fs/promises"`, or use
+`const fs = require("node:fs/promises")`. `require("./data.json")` loads virtual
+JSON relative to the entry file's directory, or virtual cwd for inline and stdin
+source. JSON values share a cache within one invocation and retain interpreter
+limits and cancellation. Other synchronous fs operations, package/local
+JavaScript loading, `process.exit()`, and native module fallback are unavailable.
 Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
 see [defaults and configuration](src/commands/node/README.md#configuration).
 

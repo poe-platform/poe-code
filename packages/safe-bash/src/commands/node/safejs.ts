@@ -1,3 +1,4 @@
+import { dirname, resolvePath } from "../../contracts/path.js";
 import type { CommandDefinition } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
 import { onlyKeys, record } from "../../integrations/safejs/values.js";
@@ -32,6 +33,7 @@ export function safeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOptions<Bu
 function invocation(args: readonly string[]): Invocation {
   let source: string | undefined;
   let print = false;
+  let inputType: "module" | undefined;
   let index = 0;
   for (; index < args.length; index++) {
     const argument = args[index]!;
@@ -40,6 +42,7 @@ function invocation(args: readonly string[]): Invocation {
     if (argument === "--input-type" || argument.startsWith("--input-type=")) {
       const value = argument === "--input-type" ? args[++index] : argument.slice(13);
       if (value !== "module") throw new UsageError("SafeJS node supports only --input-type=module");
+      inputType = value;
       continue;
     }
     const mode = argument === "--eval" || argument.startsWith("--eval=") || argument.startsWith("-e") ? "eval"
@@ -56,8 +59,8 @@ function invocation(args: readonly string[]): Invocation {
     if (argument !== "-" && argument.startsWith("-")) throw new UsageError(`unsupported node option '${argument}'`);
     break;
   }
-  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false };
-  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false };
+  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, ...(inputType ? { inputType } : {}) };
+  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, ...(inputType ? { inputType } : {}) };
 }
 
 export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
@@ -68,10 +71,12 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nNative modules and local module loading are not supported.\n",
+    help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse require(\"./data.json\") for virtual JSON modules.\nNative modules and local JavaScript module loading are not supported.\n",
     invocation,
     prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
+      const directory = selected.inputType === "module" || selected.source === undefined && selected.file.endsWith(".mjs")
+        ? undefined : selected.source !== undefined || selected.file === "-" ? "." : dirname(selected.file);
       const stdio = modules.stdio!;
       const fs = modules.fs!;
       const processModule = {
@@ -98,12 +103,40 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       return {
         importSpecifiers: [...requiredModules.keys()],
-        source: bufferSource + timerSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
+        source: bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + `
+const require = (() => {
+  const cache = new Map();
+  return name => {
+    const path = __safeBashJsonPath(name);
+    if (path === null) return __safeBashRequire(name);
+    if (cache.has(path)) return cache.get(path);
+    let text;
+    try { text = __safeBashJsonRead(path, "utf8"); }
+    catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      const missing = new Error("Cannot find module '" + name + "'");
+      missing.code = "MODULE_NOT_FOUND";
+      throw missing;
+    }
+    const value = JSON.parse(text.startsWith("\\uFEFF") ? text.slice(1) : text);
+    cache.set(path, value);
+    return value;
+  };
+})();
+` + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
         bindings: {
+          ...(directory === undefined ? {} : { __safeBashDirectory: directory }),
           __safeBashBuffer: bufferBindings(options),
           __safeBashTimers: timerBindings(options, lifecycle.signal, lifecycle.fail),
           process: processModule, __safeBashSetExitCode: command.setExitCode,
-          require: options.runtime.declareHostOperation((name: unknown) => {
+          __safeBashJsonRead: nodeFs.readFileSync,
+          __safeBashJsonPath: options.runtime.declareHostOperation((name: unknown) => {
+            if (typeof name !== "string" || !name.endsWith(".json") ||
+              !(name.startsWith("./") || name.startsWith("../") || name.startsWith("/"))) return null;
+            const base = selected.source === undefined && selected.file !== "-" ? dirname(selected.file) : command.cwd as string;
+            return resolvePath(base, name);
+          }, "read-side-effect"),
+          __safeBashRequire: options.runtime.declareHostOperation((name: unknown) => {
             const module = typeof name === "string" ? requiredModules.get(name) : undefined;
             if (!module) throw new TypeError("Unsupported node module; use fs, node:fs, fs/promises, node:fs/promises, path or node:path");
             return module;

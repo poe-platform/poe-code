@@ -1062,7 +1062,7 @@ class CdLookup {
 
   constructor(private readonly signal: AbortSignal) {}
 
-  private async charge(amount: number): Promise<void> {
+  async charge(amount: number): Promise<void> {
     this.signal.throwIfAborted();
     if (amount > 8_388_608 - this.spent) throw new PublicDiagnostic("cd: helper work limit exceeded");
     while (amount > 0) {
@@ -1103,20 +1103,36 @@ class CdLookup {
     return { bytes, components };
   }
 
-  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined): Promise<{ path: string; print: boolean }> {
+  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined, physical: boolean): Promise<{ path: string; print?: string }> {
     const targetBytes = (await this.scan(target)).bytes;
     const absolute = target.startsWith("/");
     const cwdBytes = absolute ? 0 : (await this.scan(cwd)).bytes;
     const eligible = !absolute && target !== "." && target !== ".." && !target.startsWith("./") && !target.startsWith("../");
     const search = eligible && cdpath ? await this.scan(cdpath, true) : undefined;
-    const probe = async (component: string, componentBytes: number): Promise<string> => {
+    const probe = async (component: string, componentBytes: number): Promise<{ path: string; print?: string }> => {
       const rawBytes = absolute ? targetBytes : component.startsWith("/") ? componentBytes + 1 + targetBytes
         : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
       if (rawBytes > 65_536) throw new PublicDiagnostic("cd: path exceeds 65536 UTF-8 bytes");
       await this.charge(2 * rawBytes);
       const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target);
-      const path = resolvePath(cwd, raw);
-      const operand = pathOf({ cwd }, raw);
+      let path = resolvePath(cwd, raw);
+      const operand = physical ? raw : path;
+      if (!physical) {
+        const components: string[] = [];
+        for (const component of raw.split("/")) {
+          await this.charge(1);
+          if (component === "..") {
+            // A logical parent removes the preceding component only after
+            // checking that it names a directory, including links.
+            await this.charge(rawBytes);
+            const parent = `/${components.join("/")}`;
+            const stat = await fs.stat(parent, { signal: this.signal });
+            this.signal.throwIfAborted();
+            if (stat.type !== "directory") throw new FsError("ENOTDIR", { path: parent });
+            components.pop();
+          } else if (component && component !== ".") components.push(component);
+        }
+      }
       await this.scan(path);
       this.signal.throwIfAborted();
       if (++this.probes > 4097) throw new PublicDiagnostic("cd: probe limit exceeded");
@@ -1129,18 +1145,26 @@ class CdLookup {
       this.signal.throwIfAborted();
       await fs.access(operand, ACCESS_MODES.X_OK, { signal: this.signal });
       this.signal.throwIfAborted();
-      return path;
+      if (physical) {
+        await this.charge(1);
+        path = await fs.realpath(operand, { signal: this.signal });
+        this.signal.throwIfAborted();
+        await this.scan(path);
+      }
+      return {
+        path,
+        ...(component ? { print: physical ? `${component}${component.endsWith("/") ? "" : "/"}${target}` : path } : {}),
+      };
     };
     for (const component of search?.components ?? []) {
       try {
-        const path = await probe(cdpath!.slice(component.start, component.end), component.bytes);
-        return { path, print: component.start !== component.end };
+        return await probe(cdpath!.slice(component.start, component.end), component.bytes);
       } catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EACCES"].includes(error.code)) throw error;
       }
     }
-    return { path: await probe("", 0), print: false };
+    return probe("", 0);
   }
 }
 
@@ -5498,12 +5522,29 @@ export class Runtime {
   private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
     const name = stackHooks?.name ?? "cd";
     this.signal.throwIfAborted();
-    if (args.length > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }
-    const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
-    if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
-    let selected: { path: string; print: boolean };
+    const lookup = new CdLookup(this.signal);
+    let offset = 0;
+    let physical = false;
+    // Directory-stack callers have already parsed their options and pass a path.
+    if (!stackHooks) for (; offset < args.length; offset++) {
+      await lookup.charge(1);
+      const option = args[offset]!;
+      if (option === "--") { offset++; break; }
+      if (!option.startsWith("-") || option === "-") break;
+      for (let index = 1; index < option.length; index++) {
+        await lookup.charge(1);
+        const flag = option[index]!;
+        if (flag === "L" || flag === "P") physical = flag === "P";
+        else { await writeDiagnostic(context.stderr, `cd: -${flag}: invalid option\n`); return 2; }
+      }
+    }
+    if (args.length - offset > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }
+    const operand = args[offset];
+    const target = operand === "-" ? state.variables.OLDPWD : (operand ?? state.variables.HOME);
+    if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+    let selected: { path: string; print?: string };
     try {
-      selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
+      selected = await lookup.find(this.fs, state.cwd, target || ".", state.variables.CDPATH, physical);
     } catch (error) {
       this.signal.throwIfAborted();
       const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
@@ -5520,9 +5561,10 @@ export class Runtime {
     this.writeVariable(state, "PWD", path);
     state.exported.add("PWD");
     state.exported.add("OLDPWD");
-    if (selected.print || args[0] === "-") {
-      if (stackHooks) await stackHooks.emit(`${path}\n`);
-      else await writeText(context.stdout, `${path}\n`);
+    const printedPath = selected.print ?? (operand === "-" ? target : undefined);
+    if (printedPath !== undefined) {
+      if (stackHooks) await stackHooks.emit(`${printedPath}\n`);
+      else await writeText(context.stdout, `${printedPath}\n`);
     }
     return 0;
   }

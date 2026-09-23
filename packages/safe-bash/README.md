@@ -76,6 +76,9 @@ Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`
 `declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
 name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
 global declarations (`-g`), inherited locals (`-I`), and function inspection (`-f`/`-F`).
+`cd -L` preserves symlinks in `PWD` (the default); `cd -P` resolves symlinks before
+following `..` and records the physical directory. Use `cd -- <path>` for paths
+beginning with a dash.
 Each invocation starts with `umask 0022`; numeric and symbolic masks affect new
 files and default directory modes through the supplied filesystem. Host umask
 is unchanged and may further restrict real file modes; remote modes can be advisory.

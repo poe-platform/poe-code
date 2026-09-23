@@ -207,7 +207,13 @@ function definition(configuration: Settings): CommandDefinition {
       if (parsed.milliseconds === 0) {
         if (selected === undefined) return status(context, records.invokeUnavailable, 125);
         context.signal.throwIfAborted();
-        const result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: context.signal, ...streams }]);
+        let result: { readonly exitCode: number };
+        try {
+          result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: context.signal, ...streams }]);
+        } catch (error) {
+          context.signal.throwIfAborted();
+          throw error;
+        }
         context.signal.throwIfAborted();
         return result;
       }

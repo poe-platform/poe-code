@@ -38,3 +38,20 @@ test("zero duration checks parent cancellation after child settlement", async ()
   });
   await assert.rejects(async () => createTimeoutCommand().execute(capture.context), error => error === reason);
 });
+
+test("zero duration child rejection preserves parent cancellation precedence", async () => {
+  for (const cancelled of [true, false]) {
+    const parent = new AbortController();
+    const parentFailure = new Error("parent cancelled");
+    const childFailure = new Error("child cleanup failed");
+    const capture = captureContext(["-k0.03", "0", "child"], {
+      signal: parent.signal,
+      invoke: async () => {
+        if (cancelled) parent.abort(parentFailure);
+        throw childFailure;
+      },
+    });
+    await assert.rejects(async () => createTimeoutCommand().execute(capture.context),
+      error => error === (cancelled ? parentFailure : childFailure));
+  }
+});

@@ -111,14 +111,14 @@ for (const lines of [64, 128, 256, 512]) test(`inline balancing charges linear c
   } finally { await session.close(); }
 });
 
-test("inline balancing uses the existing shared step budget", async () => {
+test("inline balancing reports syntax beyond the former shared step ceiling", async () => {
   const session = createYqQuerySession({ signal: new AbortController().signal });
   const ledger = new YqLedger();
   try {
     await session.ownedWork.charge(997_000);
     await assert.rejects(async () => {
       for await (const unused of parseYamlDocuments("[" + "x".repeat(1500), session.ownedWork, ledger)) void unused;
-    }, error => error instanceof JqLimitError && error.message.includes("maxSteps"));
+    }, error => error instanceof YqError && error.code === "INPUT_YAML_SYNTAX");
     assert.equal(ledger.documentNodes, 0);
   } finally { await session.close(); }
 });
@@ -198,7 +198,7 @@ for (const { name, input } of depthCases) {
     assert.equal(result.status, 0, result.stderr);
     assert.notEqual(result.stdout.length, 0);
   });
-  test(`parse depth rejects before the over-depth child: ${name}`, async () => {
+  test(`parse depth admits the child above the former ceiling: ${name}`, async () => {
     const session = createYqQuerySession({ signal: new AbortController().signal });
     let leafAdmissions = 0;
     const ledger = new class extends YqLedger {
@@ -208,10 +208,13 @@ for (const { name, input } of depthCases) {
       }
     }();
     try {
-      await assert.rejects(async () => {
-        for await (const unused of parseYamlDocuments(input(129), session.ownedWork, ledger)) void unused;
-      }, error => error instanceof YqError && error.code === "LIMIT_MAX_DEPTH");
-      assert.equal(leafAdmissions, 0);
+      let documents = 0;
+      for await (const value of parseYamlDocuments(input(129), session.ownedWork, ledger)) {
+        documents++;
+        await session.ownedWork.measure(value);
+      }
+      assert.equal(documents, 1);
+      assert.ok(leafAdmissions > 0);
     } finally { await session.close(); }
   });
 }
@@ -223,15 +226,17 @@ test("parse depth admits empty collections at the exact boundary", async () => {
   }
 });
 
-test("parse depth admits only 128 collection nodes and wins before deep malformed syntax", async () => {
+test("parse depth above the former ceiling preserves unsupported tag diagnostics", async () => {
   for (const leaf of ["", "!unsupported x"]) {
     const session = createYqQuerySession({ signal: new AbortController().signal });
     const ledger = new YqLedger();
     try {
-      await assert.rejects(async () => {
+      const parse = async () => {
         for await (const unused of parseYamlDocuments("[".repeat(256) + leaf + "]".repeat(256), session.ownedWork, ledger)) void unused;
-      }, error => error instanceof YqError && error.code === "LIMIT_MAX_DEPTH");
-      assert.equal(ledger.documentNodes, 128);
+      };
+      if (leaf) await assert.rejects(parse, error => error instanceof YqError && error.code === "SCHEMA_UNSUPPORTED_TAG");
+      else await parse();
+      assert.equal(ledger.documentNodes, 256);
     } finally { await session.close(); }
   }
 });
@@ -268,14 +273,13 @@ test("parse depth retains final measurement of alias-expanded collection depth",
       let documents = 0;
       for await (const value of parseYamlDocuments(input, session.ownedWork, new YqLedger())) {
         documents++;
-        if (wrappers === 126) await session.ownedWork.measure(value);
-        else await assert.rejects(session.ownedWork.measure(value), error => error instanceof JqLimitError && error.message.includes("maxDepth"));
+        await session.ownedWork.measure(value);
       }
       assert.equal(documents, 1);
     } finally { await session.close(); }
     const result = await run(["-o", "json", "-c", "."], input);
-    assert.equal(result.status, wrappers === 126 ? 0 : 5, result.stderr);
-    if (wrappers === 127) assert.match(result.stderr, /LIMIT_MAX_DEPTH/u);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout).a, []);
   }
 });
 
@@ -650,7 +654,7 @@ for (const quote of ["", "'", '"']) test(`supplementary Unicode charges code poi
   } finally { await session.close(); }
 });
 
-test("supplementary Unicode uses the shared step ceiling including checkpoint overhead", async () => {
+test("supplementary Unicode remains valid across the former shared step ceiling", async () => {
   for (const available of [10, 9]) {
     const session = createYqQuerySession({ signal: new AbortController().signal });
     const ledger = new YqLedger();
@@ -661,8 +665,7 @@ test("supplementary Unicode uses the shared step ceiling including checkpoint ov
         for await (const value of parseYamlDocuments("😀😀", session.ownedWork, ledger)) values.push(value);
         return values;
       };
-      if (available === 10) assert.deepEqual(await parse(), ["😀😀"]);
-      else await assert.rejects(parse, error => error instanceof JqLimitError && error.message === "maxSteps limit exceeded");
+      assert.deepEqual(await parse(), ["😀😀"]);
     } finally { await session.close(); }
   }
 });
@@ -764,11 +767,11 @@ test("prepaid reservation consumes threshold credit once and close expires idle 
   await session.close();
 });
 
-test("carried owned work reaches the exact one-Budget ceiling", async () => {
+test("carried owned work crosses the former one-Budget ceiling", async () => {
   const session = createYqQuerySession({ signal: new AbortController().signal });
   await session.ownedWork.charge(1023);
   await session.ownedWork.charge(998001);
-  await assert.rejects(session.ownedWork.charge(1), /maxSteps/u);
+  await session.ownedWork.charge(1);
   await session.close();
 });
 

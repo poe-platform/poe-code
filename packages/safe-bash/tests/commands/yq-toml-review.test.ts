@@ -75,11 +75,13 @@ test("TOML prototype-looking keys remain owned data", async () => {
   assert.equal(Object.hasOwn(Object.prototype, "polluted"), false);
 });
 
-for (const input of [Array.from({ length: 140 }, () => "a").join(".") + "=1", "a=" + "[".repeat(140) + "1" + "]".repeat(140)]) test("TOML implicit paths and arrays enforce parse-time depth", async () => {
+for (const input of [Array.from({ length: 140 }, () => "a").join(".") + "=1", "a=" + "[".repeat(140) + "1" + "]".repeat(140)]) test("TOML implicit paths and arrays exceed the former parse-time depth ceiling", async () => {
   const result = await run(input);
-  assert.equal(result.status, 5, result.stderr);
-  assert.ok(result.stderr.includes("LIMIT_MAX_DEPTH"), result.stderr);
-  assert.equal(result.stdout, "");
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  let value = JSON.parse(result.stdout);
+  while (typeof value === "object") value = Array.isArray(value) ? value[0] : value.a;
+  assert.equal(value, 1);
 });
 
 for (const reason of [false, Object.freeze({ cancelled: "TOML long token" })]) test(`TOML parsing preserves live ${typeof reason} abort identity`, async () => {

@@ -1,8 +1,46 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js";
+
+for (const option of ["-u 0", "-u0", "-u +00", "-p SYNTHETIC_PROMPT", "-pSYNTHETIC_PROMPT", "-p ''", "-s", "-rsu0", "-n9 -s -p prompt -u0"]) {
+  test(`default read nonterminal option consumes one record: ${option}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`read ${option} first; code=$?; read -r rest; args "$first" "$rest"; exit "$code"`, { stdin: "abcd\nTAIL\n" });
+      assert.equal(result.stdout, '["abcd","TAIL"]');
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `read ${option} first; code=$?; read -r rest; printf '["%s","%s"]' "$first" "$rest"; exit "$code"`], { input: "abcd\nTAIL\n", encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, timeout: 1000 });
+      assert.equal(native.error, undefined);
+      assert.equal(result.stdout, native.stdout);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.exitCode, native.status);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("default read nonterminal options assign partial input and report EOF", async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec('read -su0 -p prompt value; args "$?" "$value"', { stdin: "partial" });
+    assert.equal(result.stdout, '["1","partial"]');
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("default read nonterminal options preserve input on malformed or unsupported options", async () => {
+  for (const option of ["-u", "-p", "-u1", "-unope", "-u0 -Z"]) {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`value=old; read ${option}; args "$?" "$value"; pass`, { stdin: "untouched" });
+      assert.equal(result.stdout, '["2","old"]untouched', option);
+      assert.equal(result.stderr, "read: invalid variable name or unsupported option\n", option);
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("agentCommands default read assigns array fields in a VFS script", async () => {
   const fs = createMemoryFileSystem();

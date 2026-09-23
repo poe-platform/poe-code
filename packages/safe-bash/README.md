@@ -79,6 +79,9 @@ Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`
 filesystem while preserving `PATH`; registered commands remain available.
 Combine it with `-v` or `-V` for discovery, including `command -pV printf`.
 `read -a NAME` replaces an indexed array with the record's IFS-separated fields.
+The default `read` accepts `-u 0` to select supplied stdin, plus `-p PROMPT`
+and `-s` for nonterminal input; prompts are suppressed and silent mode has no
+terminal effect. Other `-u` descriptors require the optional read extension.
 `export -n NAME` removes a variable's export attribute while keeping its value;
 `export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
 stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists

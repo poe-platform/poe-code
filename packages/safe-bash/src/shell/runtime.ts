@@ -6620,10 +6620,19 @@ export class Runtime {
         for (let index = 1; index < option.length; index++) {
           const flag = option[index];
           if (flag === "r") { raw = true; continue; }
-          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a") { invalid = true; break; }
+          // Input is nonterminal: silent has no effect and prompts are not emitted.
+          if (flag === "s") continue;
+          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a" && flag !== "p" && flag !== "u") { invalid = true; break; }
           if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
+          else if (flag === "p") { /* Consume the prompt without terminal output. */ }
+          else if (flag === "u") {
+            // The default builtin only selects the supplied standard input.
+            const descriptor = value.trim();
+            const digits = descriptor.startsWith("+") || descriptor.startsWith("-") ? descriptor.slice(1) : descriptor;
+            if (!digits.length || [...digits].some(character => character !== "0")) invalid = true;
+          }
           else if (flag === "a") array = value;
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
           else {

@@ -25,7 +25,7 @@ export function copyOptions(context: CommandContext) {
   const parsed = options(args, "arRfnvPLbB:S:t:T", {
     archive: "a",
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
-    backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T",
+    backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
   });
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");

@@ -146,11 +146,12 @@ async function copy(
   const link = await context.fs.lstat(source, { signal: context.signal });
   const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
-  const targetStat = await maybeStat(context, target, !preserveLink);
+  const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";
+  const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination);
   const physicalSource = preserveLink
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
-  const physicalTarget = preserveLink
+  const physicalTarget = preserveLink || removeDestination
     ? joinPath(preflight ? await canonicalMissing(context, dirname(target), "preflight")
       : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
     : await canonicalMissing(context, target, preflight ? "preflight" : "copy");
@@ -197,15 +198,24 @@ async function copy(
     }
     if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else {
-    const replace = flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
+    const replace = removeDestination || flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
     await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (removeDestination && targetStat) {
+      const identity = targetStat.type === "symlink" ? compareCopyIdentity(sourceStat, targetStat)
+        : await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
+      if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+      if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "copy unlink lacks authoritative distinctness" });
+    }
     if (backup && await maybeStat(context, target, false)) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
     if (preflight) return;
-    try { await context.fs.copyFile(source, target, { signal: context.signal }); }
+    try {
+      if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
+      await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
+    }
     catch (error) {
       context.signal.throwIfAborted();
-      if (!replace || codeOf(error) !== "EACCES") throw error;
+      if (removeDestination || !replace || codeOf(error) !== "EACCES") throw error;
       const existing = await maybeStat(context, target, false);
       if (existing) {
         const sourceEntry = await context.fs.lstat(source, { signal: context.signal });

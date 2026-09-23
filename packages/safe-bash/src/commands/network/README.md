@@ -164,6 +164,15 @@ signal reason to the shell instead of masquerading as an ordinary HTTP result.
 
 ## Author evidence and independent review boundary
 
+Wget supports `--spider` (HEAD without saving a file), `-c/--continue`
+(Range requests, appending validated 206 responses or replacing on 200),
+`-nc/--no-clobber`, `-P/--directory-prefix`, and `--content-disposition`
+(safe basenames from the `filename` parameter). `-i/--input-file` reads a
+UTF-8 URL list from the VFS; `-` reads stdin. Lists and positional URLs share
+the host URL ceiling, and each transfer retains authorization and deadlines.
+`-T` and `-t` alias `--timeout` and `--tries`. Recursive and HTML input modes
+remain unsupported.
+
 `node --unhandled-rejections=strict --import tsx --test tests/commands/network/*.test.ts`
 passes the first 80 author checks on Node 22.22.2, including live local HTTP(S),
 native `/usr/bin/curl` 8.7.1, memory/real VFS, actual shell pipelines, multipart,

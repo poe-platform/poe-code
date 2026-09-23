@@ -10,6 +10,7 @@ export interface CurlArguments {
   agent?: string;
   retryTransport?: boolean;
   directoryIndex?: string;
+  download?: { spider: boolean; resume: boolean; noClobber: boolean; contentDisposition: boolean };
   urls: string[];
   data: DataArgument[];
   headers: [string, string | null][];

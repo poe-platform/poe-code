@@ -1,4 +1,5 @@
 import { normalizePath, posixPath as posix } from "../../contracts/path.js";
+import { FsError } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
@@ -74,6 +75,15 @@ function remoteFilename(url: URL): string {
   return name;
 }
 
+async function existingSize(context: CommandContext, output: string, signal: AbortSignal): Promise<number | undefined> {
+  try { return (await context.fs.stat(pathOf(context, output), { signal })).size; }
+  catch (error) {
+    signal.throwIfAborted();
+    if (error instanceof FsError && error.code === "ENOENT") return undefined;
+    throw new CurlError(23, "Failed inspecting virtual output file");
+  }
+}
+
 interface TransferProfile {
   readonly name: string;
   readonly help: string;
@@ -115,7 +125,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           throw new CurlError(2, "Transport cannot enforce connection timeout");
         }
         for (const url of args.urls) parseUrl(url, args.globoff);
-        if (args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
+        if (!args.download && args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
           throw new CurlError(2, "Multiple URLs with file/header outputs are unsupported");
         }
       } catch (error) {
@@ -138,7 +148,8 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           }
           return { exitCode: profile.status(failure.exitCode) };
         }
-        exitCode = await transfer(context, args, url, limits, transport, authorize, started, profile.status);
+        const code = await transfer(context, args, url, limits, transport, authorize, started, profile.status);
+        exitCode = args.download ? code || exitCode : code;
       }
       return { exitCode };
     },
@@ -195,18 +206,24 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       body = undefined;
     }
     let output = args.remoteName ? args.directoryIndex && initial.pathname.endsWith("/") ? args.directoryIndex : remoteFilename(initial) : args.output;
-    if (args.outputDirectory !== undefined && output !== undefined && output !== "-") {
+    if (args.outputDirectory !== undefined && output !== undefined && output !== "-" && (!args.download || args.remoteName)) {
       output = `${args.outputDirectory}/${output}`;
     }
     values.filename_effective = output && output !== "-" ? output : "";
+    let resumeOffset = 0;
+    if (args.download && !args.download.spider && output && output !== "-") {
+      if (args.download.noClobber && !args.download.contentDisposition && await existingSize(context, output, signal) !== undefined) return 0;
+      if (args.download.resume) resumeOffset = await existingSize(context, output, signal) ?? 0;
+    }
     if (output && output !== "-" && args.dumpHeader && args.dumpHeader !== "-" &&
       normalizePath(pathOf(context, output)) === normalizePath(pathOf(context, args.dumpHeader))) {
       throw new CurlError(23, "Body and header output files must differ");
     }
-    const initialRequestMethod = args.head ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET";
+    const initialRequestMethod = args.head || args.download?.spider ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET";
     const initialMethod = args.method ?? initialRequestMethod;
     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
     attempts: for (let attempt = 0; attempt <= args.retries; attempt++) {
+      if (attempt && args.download?.resume && output && output !== "-") resumeOffset = await existingSize(context, output, signal) ?? 0;
       values.num_retries = String(attempt);
       downloaded = 0;
       failure = undefined;
@@ -236,14 +253,14 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (policy.denyPrivateNetworks && transport.supportsPrivateNetworkDeny !== true) {
           throw new CurlError(7, "Transport cannot enforce private network policy");
         }
-        const headers = requestHeaders(args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
+        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes);
         if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
         const upload: ByteSource | undefined = currentBody && (async function* () {
           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
         })();
         try {
         response = await operation.acquire(async () => {
-          const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head ? "omit" : args.fail ? "omit-on-http-error" : "read",
+          const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
             ...(args.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: args.connectTimeoutMs }) });
           let cleanup: Promise<void> | undefined;
@@ -296,10 +313,31 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         break;
       }
       if (!response) throw new CurlError(56, "No HTTP response");
+      if (args.download?.contentDisposition && args.remoteName) {
+        const disposition = header(response.headers, "content-disposition");
+        const parameter = disposition?.split(";").map(part => part.trim()).find(part => part.slice(0, part.indexOf("=")).toLowerCase() === "filename");
+        if (parameter) {
+          let filename = parameter.slice(parameter.indexOf("=") + 1).trim();
+          if (filename.startsWith('"') && filename.endsWith('"')) filename = filename.slice(1, -1);
+          filename = posix.basename(filename.split("\\").join("/"));
+          if (filename && filename !== "." && filename !== ".." && !filename.includes("\0")) output = args.outputDirectory === undefined ? filename : `${args.outputDirectory}/${filename}`;
+        }
+      }
+      if (args.download?.noClobber && output && output !== "-" && await existingSize(context, output, signal) !== undefined) return 0;
+      let append = false;
+      if (resumeOffset && response.status === 206) {
+        const range = header(response.headers, "content-range") ?? "";
+        if (!range.startsWith(`bytes ${resumeOffset}-`)) throw new CurlError(56, "Invalid resume Content-Range");
+        append = true;
+      }
+      if (resumeOffset && response.status === 416) {
+        if (header(response.headers, "content-range") === `bytes */${resumeOffset}`) return 0;
+      }
       if (response.status >= 400 && (args.fail || args.failWithBody)) failure = new CurlError(22, `HTTP response status ${response.status}`);
       const suppressBody = args.fail && failure !== undefined;
       let published = 0;
-      if (!suppressBody || included.length) {
+      if (!args.download?.spider && (!suppressBody || included.length)) {
+        if (args.download && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });
         const length = header(response.headers, "content-length");
         if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
         const final = response;
@@ -338,7 +376,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             }
           }
         })();
-        try { await writeOutput(writing ? { ...context, stdout: writing.output } : context, output, source, bodySignal); }
+        try { await writeOutput(writing ? { ...context, stdout: writing.output } : context, output, source, bodySignal, append); }
         catch (error) {
           context.signal.throwIfAborted();
           if (!pipeClosed(error)) throw error;
@@ -354,7 +392,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
           if (Number.isFinite(parsed)) wait = Math.max(wait, parsed);
         }
         await stop(response, signal); response = undefined;
-        if (published && output !== undefined && output !== "-") await writeOutput(context, output, toByteSource(""), signal);
+        if (published && output !== undefined && output !== "-" && !args.download?.resume) await writeOutput(context, output, toByteSource(""), signal);
         await delay(Math.min(wait, limits.maxTimeMs), signal);
         continue;
       }

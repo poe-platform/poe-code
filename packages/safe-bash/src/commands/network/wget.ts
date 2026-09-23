@@ -1,4 +1,5 @@
-import { getCommandArguments, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { collectBytes, getCommandArguments, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { pathOf } from "../internal.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { validateRequestHeader, type CurlArguments } from "./args.js";
@@ -43,6 +44,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     retries: Math.min(19, limits.maxRetries), retryDelayMs: 0,
     maxTimeMs: limits.maxTimeMs, maxRedirects: limits.maxRedirects, maxFileSize: limits.maxDownloadBytes,
     agent: "virtual-bash-wget/0.0", retryTransport: true, directoryIndex: "index.html",
+    download: { spider: false, resume: false, noClobber: false, contentDisposition: false },
   };
   const number = (value: string, integral: boolean): number => {
     if (!(integral ? /^\d+$/u : /^\d+(?:\.\d+)?$/u).test(value)) throw new CurlError(2, "Invalid numeric option");
@@ -55,6 +57,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
   let agent: string | undefined;
   let referer: string | undefined;
   let ended = false;
+  let inputFile: string | undefined;
   for (let index = 0; index < context.args.length; index++) {
     if (index % 128 === 0) await yieldTurn(context.signal);
     const argument = context.args[index]!;
@@ -65,13 +68,19 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
         if (position % 1024 === 0) await yieldTurn(context.signal);
         const flag = argument[position];
         if (flag === "q") result.silent = true;
+        else if (flag === "c") result.download!.resume = true;
+        else if (flag === "n" && argument[position + 1] === "c") { result.download!.noClobber = true; position++; }
         else if (flag === "n" && argument[position + 1] === "v") position++;
         else if (flag === "h") result.help = true;
         else if (flag === "r") throw new CurlError(2, "Recursive mirroring is unsupported");
-        else if (flag === "O") {
+        else if (["O", "P", "i", "T", "t"].includes(flag!)) {
           const output = position + 1 < argument.length ? argument.slice(position + 1) : context.args[++index];
-          if (!output) throw new CurlError(2, "-O requires a nonempty output filename");
-          result.output = output; result.remoteName = false;
+          if (!output) throw new CurlError(2, `-${flag} requires a nonempty argument`);
+          if (flag === "O") { result.output = output; result.remoteName = false; }
+          else if (flag === "P") result.outputDirectory = output;
+          else if (flag === "i") inputFile = output;
+          else if (flag === "T") { const seconds = number(output, false); result.maxTimeMs = seconds === 0 ? limits.maxTimeMs : Math.min(seconds * 1000, limits.maxTimeMs); }
+          else { const tries = number(output, true); result.retries = tries === 0 ? limits.maxRetries : Math.min(tries - 1, limits.maxRetries); }
           break;
         } else throw new CurlError(2, `Unsupported option: -${flag}`);
       }
@@ -81,15 +90,21 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     if (argument === "--no-verbose") continue;
     if (argument === "--help") { result.help = true; continue; }
     if (argument === "--version") { result.version = true; continue; }
+    if (argument === "--spider") { result.download!.spider = true; continue; }
+    if (argument === "--continue") { result.download!.resume = true; continue; }
+    if (argument === "--no-clobber") { result.download!.noClobber = true; continue; }
+    if (argument === "--content-disposition") { result.download!.contentDisposition = true; continue; }
     if (argument === "--recursive") throw new CurlError(2, "Recursive mirroring is unsupported");
     const equal = argument.indexOf("=");
     const flag = equal < 0 ? argument : argument.slice(0, equal);
     let operand: string | undefined;
-    if (["--output-document", "--timeout", "--tries", "--method", "--post-data", "--post-file", "--body-data", "--body-file", "--header", "--user-agent", "--referer"].includes(flag)) {
+    if (["--directory-prefix", "--input-file", "--output-document", "--timeout", "--tries", "--method", "--post-data", "--post-file", "--body-data", "--body-file", "--header", "--user-agent", "--referer"].includes(flag)) {
       operand = equal < 0 ? context.args[++index] : argument.slice(equal + 1);
     } else throw new CurlError(2, `Unsupported option: ${argument}`);
     if (operand === undefined) throw new CurlError(2, `${flag} requires an argument`);
     if (flag === "--output-document") { if (!operand) throw new CurlError(2, "Output filename must not be empty"); result.output = operand; result.remoteName = false; }
+    else if (flag === "--directory-prefix") result.outputDirectory = operand;
+    else if (flag === "--input-file") inputFile = operand;
     else if (flag === "--timeout") { const seconds = number(operand, false); result.maxTimeMs = seconds === 0 ? limits.maxTimeMs : Math.min(seconds * 1000, limits.maxTimeMs); }
     else if (flag === "--tries") { const tries = number(operand, true); result.retries = tries === 0 ? limits.maxRetries : Math.min(tries - 1, limits.maxRetries); }
     else if (flag === "--header") {
@@ -133,14 +148,33 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
   if (data !== undefined) result.data.push({ kind: "raw", value: data });
   // Wget reads '-' as a filename, while curl's binary data mode treats it as stdin.
   else if (file !== undefined) result.data.push({ kind: "binary", value: `@${file === "-" ? "./-" : file}` });
-  if (!result.help && !result.version && result.urls.length !== 1) throw new CurlError(2, "Exactly one HTTP(S) URL is required");
+  if (!result.help && !result.version) {
+    if (inputFile !== undefined) {
+      let bytes: Uint8Array;
+      try { bytes = inputFile === "-" ? await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxBufferBytes }) : await context.fs.readFile(pathOf(context, inputFile), { signal: context.signal, maxBytes: limits.maxBufferBytes }); }
+      catch { context.signal.throwIfAborted(); throw new CurlError(26, "Failed reading virtual URL input file"); }
+      let text: string;
+      try { text = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
+      catch { throw new CurlError(2, "URL input must be valid UTF-8"); }
+      for (const line of text.split("\n")) {
+        await yieldTurn(context.signal);
+        const url = line.trim();
+        if (url) result.urls.push(url);
+        if (result.urls.length > limits.maxUrls) throw new CurlError(2, "URL count exceeds host limit");
+      }
+    }
+    if (!result.urls.length) throw new CurlError(2, "An HTTP(S) URL is required");
+    if (result.urls.length > limits.maxUrls) throw new CurlError(2, "URL count exceeds host limit");
+    if (result.download!.resume && result.download!.noClobber) throw new CurlError(2, "Continue and no-clobber are incompatible");
+    if (result.output === "-" && (result.download!.resume || result.download!.noClobber)) throw new CurlError(2, "Download controls require a file output");
+  }
   return result;
 }
 
 export function createWgetCommand(options: NetworkCommandsOptions): CommandDefinition {
   return createTransferCommand(options, {
     name: "wget", parse: parseWget,
-    help: "Usage: wget [-O FILE|-] [-q|-nv] [--timeout SECONDS] [--tries COUNT] URL\nRequest headers: --header 'NAME: VALUE' | --user-agent AGENT | --referer URL\nRequest bodies: --post-data DATA | --post-file FILE | --method METHOD [--body-data DATA | --body-file FILE]\nBody files are read from the VFS. Downloads require explicit host authorization. Recursive mirroring is unsupported.\nTimeout is aggregate and host-capped; --tries=0 remains host-capped.\n",
+    help: "Usage: wget [-O FILE|-] [-q|-nv] [-T SECONDS] [-t COUNT] [URL ...]\nDownloads: --spider | -c/--continue | -nc/--no-clobber | -P/--directory-prefix DIR | --content-disposition\nInput: -i/--input-file FILE (VFS URL list; '-' reads stdin)\nRequest headers: --header 'NAME: VALUE' | --user-agent AGENT | --referer URL\nRequest bodies: --post-data DATA | --post-file FILE | --method METHOD [--body-data DATA | --body-file FILE]\nBody files are read from the VFS. Downloads require explicit host authorization. Recursive mirroring is unsupported.\nTimeout (--timeout) is aggregate and host-capped; --tries=0 remains host-capped.\n",
     version: "virtual-bash wget 0.0 (bounded HTTP HTTPS)\n",
     status: code => code === 0 ? 0 : [1, 2, 3].includes(code) ? 2 : [23, 26].includes(code) ? 3 : code === 60 ? 5 : code === 22 ? 8 : 4,
   });

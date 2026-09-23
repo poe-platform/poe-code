@@ -18,6 +18,91 @@ async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   return { shell, fs, requests };
 }
 
+for (const flag of ['--spider', '--continue', '--no-clobber', '--directory-prefix=sub', '--input-file=urls.txt', '--content-disposition', '-T2 -t1']) {
+  test(`wget download controls: ${flag}`, async () => {
+    const { shell, fs, requests } = await fixture();
+    await fs.writeFile('/work/urls.txt', new TextEncoder().encode('https://example.test/file.bin\n'));
+    try {
+      const result = await shell.exec(`wget -q ${flag} ${flag.includes('input-file') ? '' : 'https://example.test/file.bin'}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(requests.length, 1);
+      if (flag === '--spider') await assert.rejects(fs.stat('/work/file.bin'), { code: 'ENOENT' });
+      else assert.deepEqual([...await fs.readFile(flag.includes('directory') ? '/work/sub/file.bin' : '/work/file.bin')], [0, 255, 97]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test('wget no-clobber skips existing files without network access', async () => {
+  const { shell, fs, requests } = await fixture();
+  await fs.writeFile('/work/file.bin', Uint8Array.of(7));
+  try {
+    assert.equal((await shell.exec('wget -nc https://example.test/file.bin')).exitCode, 0);
+    assert.deepEqual([...await fs.readFile('/work/file.bin')], [7]);
+    assert.equal(requests.length, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const partial of [true, false]) test(`wget resumes with server range support=${partial}`, async () => {
+  const { shell, fs } = await fixture({ transport: async request => {
+    assert.ok(request.headers.some(([name, value]) => name === 'Range' && value === 'bytes=2-'));
+    return { status: partial ? 206 : 200, statusText: 'OK', headers: partial ? [['Content-Range', 'bytes 2-3/4']] : [],
+      body: toByteSource(partial ? 'cd' : 'abcd'), async dispose() {} };
+  } });
+  await fs.writeFile('/work/file', new TextEncoder().encode('ab'));
+  try {
+    assert.equal((await shell.exec('wget -c https://example.test/file')).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile('/work/file')), 'abcd');
+  } finally { await shell.dispose(); }
+});
+
+test('wget input lists download multiple URLs with safe content-disposition names', async () => {
+  const { shell, fs } = await fixture({ transport: async request => ({ status: 200, statusText: 'OK',
+    headers: [['Content-Disposition', `attachment; filename="../${new URL(request.url).pathname.slice(1)}.txt"`]],
+    body: toByteSource('ok'), async dispose() {} }) });
+  await fs.writeFile('/work/urls', new TextEncoder().encode('https://example.test/a\nhttps://example.test/b\n'));
+  try {
+    const result = await shell.exec('wget -i urls -P sub --content-disposition');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile('/work/sub/a.txt')), 'ok');
+    assert.equal(new TextDecoder().decode(await fs.readFile('/work/sub/b.txt')), 'ok');
+  } finally { await shell.dispose(); }
+});
+
+test('wget refuses incorrect resume ranges without changing the existing file', async () => {
+  const { shell, fs } = await fixture({ transport: async () => ({ status: 206, statusText: 'OK',
+    headers: [['Content-Range', 'bytes 1-3/4']], body: toByteSource('bcd'), async dispose() {} }) });
+  await fs.writeFile('/work/file', new TextEncoder().encode('ab'));
+  try {
+    assert.equal((await shell.exec('wget -c https://example.test/file')).exitCode, 4);
+    assert.equal(new TextDecoder().decode(await fs.readFile('/work/file')), 'ab');
+  } finally { await shell.dispose(); }
+});
+
+test('wget input lists enforce URL and buffer limits before transferring', async () => {
+  const { shell, fs, requests } = await fixture({ limits: { maxUrls: 1, maxBufferBytes: 128 } });
+  await fs.writeFile('/work/urls', new TextEncoder().encode('https://example.test/a\nhttps://example.test/b\n'));
+  await fs.writeFile('/work/large', new Uint8Array(129));
+  try {
+    assert.equal((await shell.exec('wget -i urls')).exitCode, 2);
+    assert.equal((await shell.exec('wget -i large')).exitCode, 3);
+    assert.equal((await shell.exec('wget -i missing')).exitCode, 3);
+    assert.equal(requests.length, 0);
+  } finally { await shell.dispose(); }
+});
+
+test('wget reads URL lists from stdin and checks spider HTTP failures without output', async () => {
+  const { shell } = await fixture({ transport: async request => {
+    assert.equal(request.method, 'HEAD');
+    assert.equal(request.responseBodyMode, 'omit');
+    return { status: 404, statusText: 'Not Found', headers: [], body: toByteSource('discard'), async dispose() {} };
+  } });
+  try {
+    const result = await shell.exec("wget --spider -i -", { stdin: 'https://example.test/a\n' });
+    assert.equal(result.exitCode, 8);
+    assert.equal(result.stdout, '');
+  } finally { await shell.dispose(); }
+});
+
 for (const [options, expected] of [
   ['--header="X-Test: hello"', { 'x-test': 'hello' }],
   ["--header 'X-Test: hello' --header 'X-Other: world'", { 'x-test': 'hello', 'x-other': 'world' }],

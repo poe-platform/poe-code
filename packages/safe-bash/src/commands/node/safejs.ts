@@ -3,6 +3,7 @@ import type { VirtualShellPlugin } from "../../contracts/plugin.js";
 import { onlyKeys, record } from "../../integrations/safejs/values.js";
 import { UsageError } from "../internal.js";
 import { bufferBindings, bufferSource } from "./buffer.js";
+import { timerBindings, timerSource } from "./timers.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
 import type { Invocation } from "../safejs/options.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
@@ -67,7 +68,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
     help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nNative modules, synchronous fs and local module loading are not supported.\n",
     invocation,
-    prepare(source, selected, modules) {
+    prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
       const stdio = modules.stdio!;
       const fs = modules.fs!;
@@ -83,9 +84,10 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       modules.fs = { ...fs, default: fs };
       const requiredModules = new Map([["fs/promises", fs], ["node:fs/promises", fs]]);
       return {
-        source: bufferSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;__safeBashSetExitCode(process.exitCode);",
+        source: bufferSource + timerSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
         bindings: {
           __safeBashBuffer: bufferBindings(options),
+          __safeBashTimers: timerBindings(options, lifecycle.signal, lifecycle.fail),
           process: processModule, __safeBashSetExitCode: command.setExitCode,
           require: options.runtime.declareHostOperation((name: unknown) => {
             const module = typeof name === "string" ? requiredModules.get(name) : undefined;

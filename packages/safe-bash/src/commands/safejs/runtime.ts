@@ -13,7 +13,10 @@ export interface SafeJsCommandDialect {
   readonly description: string;
   readonly help: string;
   readonly invocation: (args: readonly string[]) => Invocation;
-  readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>) => {
+  readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>, lifecycle: {
+    readonly signal: AbortSignal;
+    readonly fail: (error: unknown) => void;
+  }) => {
     readonly source: string;
     readonly bindings: SafeJsModule;
   };
@@ -121,7 +124,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
         maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
       const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
-      const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules);
+      const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail });
       const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
         budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings } : {}),
         sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },

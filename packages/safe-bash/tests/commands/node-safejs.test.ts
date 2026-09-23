@@ -16,6 +16,102 @@ function quote(source: string): string {
   return "'" + source.replaceAll("'", "'\\''") + "'";
 }
 
+test("node runs ordinary timeout callbacks before completing", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec(`node -e 'setTimeout(()=>console.log("done"),1)' a b`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "done\n");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("node timers run during top-level awaits, preserve arguments, and support cancellation", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec("node -e " + quote(`
+      const cancelled = setTimeout(() => console.log("cancelled"), 1000);
+      clearTimeout(cancelled);
+      clearTimeout(undefined);
+      const value = {};
+      setTimeout(arg => {
+        console.log(arg === value);
+        setTimeout(() => { console.log("nested"); process.exitCode = 7; }, 1);
+      }, 1, value);
+      await new Promise(resolve => setTimeout(resolve, 1));
+      console.log("awaited");
+    `));
+    assert.equal(result.exitCode, 7, result.stderr);
+    assert.equal(result.stdout, "true\nawaited\nnested\n");
+    assert.equal(result.stderr, "");
+    assert.equal((await shell.exec("node -e 'console.log(process.exitCode)'")).stdout, "0\n");
+  } finally { await shell.dispose(); }
+});
+
+test("node bounds timer admission and waiting", async () => {
+  for (const [limits, source] of [
+    [{ timeoutMs: 30 }, 'setTimeout(() => console.log("late"), 1000)'],
+    [{ arrayLength: 1 }, 'setTimeout(() => {}, 1000); try { setTimeout(() => {}, 1000); } catch (error) {}'],
+  ] as const) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime, limits }));
+    try {
+      const result = await shell.exec("node -e " + quote(source));
+      assert.equal(result.exitCode, 124, result.stderr);
+      assert.equal(result.stdout, "");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("node cancels pending timers with the caller's original reason", async () => {
+  const controller = new AbortController();
+  const reason = new Error("cancel timer");
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime: {
+    ...runtime,
+    run(source, options) {
+      const timers = options.bindings!.__safeBashTimers as Record<string, unknown>;
+      const schedule = timers.schedule as (...args: unknown[]) => unknown;
+      timers.schedule = declareHostOperation((...args: unknown[]) => {
+        const id = schedule(...args);
+        controller.abort(reason);
+        return id;
+      }, "read-side-effect");
+      return run(source, options);
+    },
+  } }));
+  try {
+    await assert.rejects(shell.exec(`node -e 'setTimeout(()=>console.log("late"),1000)'`, { signal: controller.signal }), error => error === reason);
+  } finally { await shell.dispose(); }
+});
+
+test("node reports callback failures and bounds callback work and output", async () => {
+  for (const [limits, source, status] of [
+    [{}, 'setTimeout(() => { throw new Error("timer failure"); }, 1); setTimeout(() => console.log("late"), 1000)', 1],
+    [{ maxOutputBytes: 2 }, 'setTimeout(() => console.log("large"), 1)', 124],
+    [{ maxSteps: 1000 }, 'setTimeout(() => { while (true) {} }, 1)', 124],
+  ] as const) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime, limits }));
+    try {
+      const result = await shell.exec("node -e " + quote(source));
+      assert.equal(result.exitCode, status, result.stderr);
+      assert.equal(result.stdout, "");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("node normalizes timeout delays and validates callbacks", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec("node -e " + quote(`
+      for (const delay of [undefined, -1, NaN, Infinity, 2147483648, "1", 1.9]) {
+        await new Promise(resolve => setTimeout(() => { console.log("tick"); resolve(); }, delay));
+      }
+      try { setTimeout("console.log(1)", 1); } catch (error) { console.log(error.name); }
+    `));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "tick\n".repeat(7) + "TypeError\n");
+  } finally { await shell.dispose(); }
+});
+
 test("node accepts the injected public SafeJS runtime through every registration API", async () => {
   for (const register of [
     (shell: Shell) => shell.use(nodeCommands({ runtime })),

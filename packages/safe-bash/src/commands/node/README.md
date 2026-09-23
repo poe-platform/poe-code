@@ -54,6 +54,13 @@ try {
 - `process.stdin.readText()` and `readBytes(size?)` read bounded input;
   `process.stdout.write(text)` and `process.stderr.write(text)` are async writes.
   Await I/O; these helpers do not implement Node's event-driven stream API.
+- `setTimeout(callback, delay?, ...args)` schedules guest callbacks, including
+  during top-level `await`; `clearTimeout(id)` cancels them. The command waits for
+  pending callbacks and nested timers before applying `process.exitCode`.
+  Delays use Node's integer millisecond normalization. Timers use numeric IDs;
+  Node's `Timeout` methods, intervals, and immediates are not supplied. Pending
+  timer work is bounded by `arrayLength`, and all waits and callbacks share the
+  command deadline, cancellation signal, output limit, and interpreter budget.
 - Async VFS access supports `import { readFile, writeFile } from "fs"`,
   `import fs from "fs"`, and `require("fs/promises")` or
   `require("node:fs/promises")`. `require` only resolves those two explicit names.

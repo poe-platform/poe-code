@@ -232,6 +232,9 @@ Programs get `console`, virtual `process.argv`, `process.env`, `process.cwd()`,
 views, and shell streams. Await `process.stdout.write(text)` and
 `process.stderr.write(text)`; read input with `process.stdin.readText()` or
 `readBytes(size?)`. These are bounded async helpers, not native Node streams.
+`setTimeout(callback, delay?, ...args)` and `clearTimeout(id)` support cancellable
+guest timers, including during top-level `await`. Pending callbacks finish before
+the command exits and share its deadline and interpreter budgets.
 
 Import async filesystem functions from `"fs"`, or use
 `const fs = require("node:fs/promises")`. SafeJS imports use bare module names:

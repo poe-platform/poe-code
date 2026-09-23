@@ -451,6 +451,31 @@ for (const args of [["-d", "invalid"], ["-t", "202402300304"], ["-t", "202401020
   });
 }
 
+test("touch ignores historical -f through Shell, including combined options", async () => {
+  const fs = await fixture({ source: "keep", reference: "reference" });
+  await fs.utimes("/work/source", 100, 200);
+  await fs.utimes("/work/reference", 123, 456);
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    for (const command of ["touch -f source created", "touch -fc missing", "touch -famr reference source created"]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+    }
+    await assert.rejects(fs.stat("/work/missing"), { code: "ENOENT" });
+    for (const path of ["source", "created"]) {
+      const stat = await fs.stat(`/work/${path}`);
+      assert.equal(stat.atimeMs, 123);
+      assert.equal(stat.mtimeMs, 456);
+    }
+    assert.equal(Buffer.from(await fs.readFile("/work/source")).toString(), "keep");
+    assert.deepEqual(await fs.readFile("/work/created"), new Uint8Array());
+  } finally {
+    await shell.dispose();
+  }
+});
+
 test("touch creates without truncation, honors no-create and reference access/modify times", async () => {
   const fs = await fixture({ source: "keep", reference: "ref" });
   await fs.utimes("/work/reference", 123, 456);

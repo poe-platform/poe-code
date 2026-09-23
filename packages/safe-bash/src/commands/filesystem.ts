@@ -399,7 +399,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
-      const parsed = options(context.args, "cahmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d" });
+      const parsed = options(context.args, "cafhmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d" });
       requireOperands(parsed.operands);
       const follow = !parsed.flags.has("h");
       const inspectTarget = async (path: string) => {

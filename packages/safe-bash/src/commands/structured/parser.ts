@@ -64,6 +64,9 @@ function tokenize(source: string): Token[] {
     if (source.startsWith("..", offset)) {
       tokens.push({ text: "..", offset, kind: "symbol" }); offset += 2; continue;
     }
+    if (source.startsWith("::", offset)) {
+      tokens.push({ text: "::", offset, kind: "symbol" }); offset += 2; continue;
+    }
     const symbol = /^(?:\/\/=|\|=|\+=|-=|\*=|\/=|%=|==|!=|<=|>=|\/\/|[.\[\]{}(),:;?$|+*/%<>=-])/u.exec(source.slice(offset));
     if (!symbol) throw new JqError(`unexpected character at offset ${offset}`, 3);
     tokens.push({ text: symbol[0], offset, kind: "symbol" }); offset += symbol[0].length;
@@ -82,12 +85,37 @@ function isPath(ast: Ast): boolean {
   }
   return true;
 }
-export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget): Ast {
+export function moduleProgram(source: string, budget: Budget): { source: string; imports: { name: string; alias?: string }[] } {
+  if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
+  const tokens = tokenize(source);
+  const imports: { name: string; alias?: string }[] = [];
+  let position = 0;
+  while (tokens[position]!.text === "include" || tokens[position]!.text === "import") {
+    budget.step();
+    const directive = tokens[position++]!.text;
+    const name = tokens[position++];
+    if (name?.kind !== "string") throw new JqError("module directive requires a string path", 3);
+    const entry: { name: string; alias?: string } = { name: JSON.parse(name.text) as string };
+    if (directive === "import") {
+      if (tokens[position++]?.text !== "as") throw new JqError("import requires a namespace", 3);
+      const alias = tokens[position++];
+      if (alias?.kind !== "name") throw new JqError("import requires a namespace", 3);
+      entry.alias = alias.text;
+    }
+    if (tokens[position++]?.text !== ";") throw new JqError("module directive requires ';'", 3);
+    imports.push(entry);
+    budget.collection(imports.length);
+  }
+  return { source: source.slice(tokens[position]!.offset), imports };
+}
+
+export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget, definitions?: Map<string, Ast>, module = false): Ast {
   const limits = budget.limits;
   if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
   const tokens = tokenize(source);
   let position = 0;
   let nesting = 0;
+  let defining = false;
   const unresolved = new Map<Ast, Token>();
   const bindings = new Map<string, number>();
   const peek = (): Token => tokens[Math.min(position, tokens.length - 1)]!;
@@ -182,7 +210,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     } else if (token.text === "$") {
       const name = take(); if (name.kind !== "name") fail("expected variable name");
       if (!bindings.has(name.text) && !variables.has(name.text)) fail(`undefined variable $${name.text}`);
-      result = { kind: "variable", name: name.text };
+      result = defining && !bindings.has(name.text) ? literal(variables.get(name.text)!) : { kind: "variable", name: name.text };
     } else if (token.text === "-") result = { kind: "unary", operand: expression(10) };
     else if (token.text === "if") result = guardedConditional();
     else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
@@ -190,11 +218,21 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       result = literal(decimalNumber(token.text, budget));
     } else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as Json);
     else if (token.kind === "name") {
+      let name = token.text;
+      if (accept("::")) {
+        const member = take();
+        if (member.kind !== "name") fail("expected namespace member");
+        name += `::${member.text}`;
+      }
       const args: Ast[] = [];
       if (accept("(")) { if (peek().text !== ")") do { args.push(expression()); } while (accept(";")); expect(")"); }
       if (token.text === "split" && args.length === 2) fail("unsupported function split/2");
-      result = { kind: "call", name: token.text, args };
-      if (!Object.hasOwn(functions, token.text) || !functions[token.text]!.includes(args.length)) unresolved.set(result, token);
+      const definition = definitions?.get(name);
+      if (definition && !args.length) result = definition;
+      else {
+        result = { kind: "call", name, args };
+        if (!Object.hasOwn(functions, name) || !functions[name]!.includes(args.length)) unresolved.set(result, token);
+      }
     } else syntaxError(token, nesting === 1);
     while (true) {
       if (accept("?")) result = { kind: "optional", operand: result! };
@@ -214,12 +252,28 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     }
     return result!;
   };
-  const ast = expression();
+  const bodies: Ast[] = [];
+  while (definitions && accept("def")) {
+    budget.step();
+    const name = take();
+    if (name.kind !== "name") fail("expected function name");
+    expect(":");
+    defining = true;
+    let body: Ast;
+    try { body = expression(); } finally { defining = false; }
+    expect(";");
+    definitions.set(name.text, body);
+    budget.collection(definitions.size);
+    bodies.push(body);
+  }
+  if (module && peek().kind !== "end") fail("module must contain only imports and definitions");
+  const ast = module ? { kind: "identity" as const } : expression();
   if (peek().kind !== "end") syntaxError(peek(), true);
-  const pending: { node: Ast; depth: number }[] = [{ node: ast, depth: 1 }];
+  const pending: { node: Ast; depth: number }[] = [ast, ...bodies].map(node => ({ node, depth: 1 }));
   const errors: string[] = [];
   let errorBytes = 0;
   while (pending.length) {
+    budget.step();
     const { node, depth } = pending.pop()!;
     if (depth > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     const token = unresolved.get(node);

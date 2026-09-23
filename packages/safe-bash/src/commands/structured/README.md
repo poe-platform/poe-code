@@ -65,6 +65,7 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `--arg NAME TEXT` | Bind a string variable. |
 | `--argjson NAME JSON` | Bind exactly one parsed JSON value. |
 | `-f`, `--from-file` | Read the following operand as a virtual program file. |
+| `-L DIRECTORY`, `-LDIRECTORY` | Search explicit virtual directories for `.jq` modules, in option order. |
 | `--` | End option parsing, including for a negative numeric filter. |
 
 Streaming and sequence modes use the same byte, depth, collection, work, and
@@ -82,6 +83,17 @@ the tested native build. `$ARGS.named` exposes named bindings and
 An explicit `--arg ARGS ...` is retained in `$ARGS.named.ARGS`; it does not
 replace the automatic `$ARGS` object. Its insertion order is `positional`, then
 `named`, matching the captured native build.
+
+With `-L`, filters can use `include "audit"; audit` or
+`import "audit" as check; check::audit`. An `audit.jq` module can contain
+`def audit: 42;`. Transitive imports use the same explicit search directories.
+There are no default or ambient host library directories. Module paths must be
+relative and cannot contain empty, `.` or `..` components. Reads use the supplied
+filesystem and signal; filter and all loaded modules share `maxSourceBytes`,
+and dependency depth and compiler work retain the AST and step budgets.
+Definitions are lexical, nonrecursive and zero-argument; parameterized functions,
+module metadata, data imports and import search metadata remain unsupported.
+Modules contain imports followed by definitions, with no executable filter body.
 
 Every output value ends in LF unless `-j` is set. Embedded newlines in raw strings are preserved.
 Ordinary successful execution returns 0. With `-e`, no emitted result returns 4,

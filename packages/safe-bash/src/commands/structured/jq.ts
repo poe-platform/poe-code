@@ -1,10 +1,11 @@
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
+import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
 import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
 import { Interpreter } from "./interpreter.js";
-import { parse } from "./parser.js";
+import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
 
 interface Options {
@@ -22,6 +23,7 @@ interface Options {
   source: string | undefined;
   programFile: string | undefined;
   files: string[];
+  moduleDirectories: string[];
   variables: Map<string, Json>;
 }
 function argumentsFor(args: readonly string[], budget: Budget): Options {
@@ -31,7 +33,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     argumentBytes += Buffer.byteLength(argument);
     if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
   }
-  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], variables: new Map() };
+  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], moduleDirectories: [], variables: new Map() };
   const named = object();
   let ended = false;
   let variableBytes = 0;
@@ -39,6 +41,10 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     const argument = args[index]!;
     const operand = (): string => { const value = args[++index]; if (value === undefined) throw new JqError(`${argument} requires an operand`, 2); return value; };
     if (!ended && argument === "--") { ended = true; continue; }
+    if (!ended && argument.startsWith("-L")) {
+      options.moduleDirectories.push(argument === "-L" ? operand() : argument.slice(2));
+      continue;
+    }
     if (!ended && (argument === "--arg" || argument === "--argjson")) {
       const name = operand(); const text = operand();
       budget.text(name); budget.text(text);
@@ -106,6 +112,48 @@ async function readProgram(context: CommandContext, path: string, limits: JqLimi
   catch { throw new JqError("program file is not valid UTF-8", 3); }
 }
 export type FilterInput = (source: ByteSource) => Promise<ByteSource>;
+
+async function compileProgram(context: CommandContext, options: Options, source: string, budget: Budget): Promise<Ast> {
+  if (!options.moduleDirectories.length) return parse(source, options.variables, budget);
+  let sourceBytes = Buffer.byteLength(source);
+  const active = new Set<string>();
+  const compile = async (text: string, depth: number, module: boolean): Promise<{ ast: Ast; definitions: Map<string, Ast> }> => {
+    await budget.tick();
+    if (sourceBytes > budget.limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
+    if (depth > budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+    const program = moduleProgram(text, budget);
+    const definitions = new Map<string, Ast>();
+    for (const entry of program.imports) {
+      const parts = entry.name.split("/");
+      if (parts.some(part => !part || part === "." || part === ".." || part.includes("\0"))) throw new JqError("invalid module path", 3);
+      let loaded: { ast: Ast; definitions: Map<string, Ast> } | undefined;
+      for (const directory of options.moduleDirectories) {
+        await budget.tick();
+        const path = pathOf(context, joinPath(directory, `${entry.name}.jq`));
+        if (active.has(path)) throw new JqError(`module dependency cycle: ${entry.name}`, 3);
+        let contents: string;
+        try { contents = await readProgram(context, path, { ...budget.limits, maxSourceBytes: budget.limits.maxSourceBytes - sourceBytes }); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (error instanceof FsError && (error.code === "ENOENT" || error.code === "ENOTDIR")) continue;
+          throw error;
+        }
+        sourceBytes += Buffer.byteLength(contents);
+        active.add(path);
+        try { loaded = await compile(contents, depth + 1, true); }
+        finally { active.delete(path); }
+        break;
+      }
+      if (!loaded) throw new JqError(`module not found: ${entry.name}`, 3);
+      for (const [name, body] of loaded.definitions) {
+        definitions.set(entry.alias === undefined ? name : `${entry.alias}::${name}`, body);
+        budget.collection(definitions.size);
+      }
+    }
+    return { ast: parse(program.source, options.variables, budget, definitions, module), definitions };
+  };
+  return (await compile(source, 1, false)).ast;
+}
 
 async function* inputSources(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<ByteSource> {
   const files = options.files.length ? options.files : ["-"];
@@ -175,7 +223,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
   try {
     const options = argumentsFor(context.args, budget);
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
-    const ast = parse(source, options.variables, budget);
+    const ast = await compileProgram(context, options, source, budget);
     const interpreter = new Interpreter(budget, options.variables);
     let last: Json | undefined;
     let status = 0;

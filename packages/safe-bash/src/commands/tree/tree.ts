@@ -48,6 +48,7 @@ function serialized(value: Readonly<Record<string, string | number>>, budget: Wa
 }
 
 class Walker {
+  private readonly observedDirectories: Entry[] = [];
   private directories = 0;
   private files = 0;
   private failed = false;
@@ -82,15 +83,17 @@ class Walker {
   async children(entry: Entry, ancestors: readonly Entry[], depth: number): Promise<Entry[]> {
     const { context, limits } = this.budget;
     if (entry.error || !directory(entry) || (entry.stat?.type === "symlink" && !this.args.follow)) return [];
-    if (depth === this.args.level) return [];
-    this.budget.check(depth + 1, limits.maxDepth, "depth");
     let listing;
     try {
-      for (const ancestor of ancestors) {
+      const observed = entry.stat?.type === "symlink" ? this.observedDirectories : ancestors;
+      for (const ancestor of observed) {
         const same = await this.budget.fs(() => compareObservedEntries(context.fs, entry.path, (entry.followed ?? entry.stat)!,
           context.fs, ancestor.path, (ancestor.followed ?? ancestor.stat)!, { signal: context.signal }));
         if (same === "same") { entry.cycle = true; return []; }
       }
+      if (this.args.follow) this.observedDirectories.push(entry);
+      if (depth === this.args.level) return [];
+      this.budget.check(depth + 1, limits.maxDepth, "depth");
       listing = await this.budget.fs(() => context.fs.readdir(entry.path, { signal: context.signal }));
     } catch (error) {
       context.signal.throwIfAborted();
@@ -152,8 +155,9 @@ class Walker {
     const annotation = entry.error ?? (entry.cycle ? "recursive, not followed" : undefined);
     if (this.args.json) {
       const fields = { type: entry.stat?.type === "symlink" ? "link" : entry.stat?.type ?? "unknown", name,
-        ...(entry.target === undefined ? {} : { target: entry.target }), ...(annotation === undefined ? {} : { error: annotation }) };
+        ...(entry.target === undefined ? {} : { target: entry.target }), ...(entry.error === undefined ? {} : { error: entry.error }) };
       await this.write(`${this.padding(depth + 1)}${serialized(fields, this.budget).slice(0, -1)}`);
+      if (entry.cycle) await this.write(`,"contents":[${serialized({ error: "recursive, not followed" }, this.budget)}]`);
       if (entry.limited) await this.write(`,"contents":[${serialized({ error: entry.limited }, this.budget)}]`);
       if (children.length) {
         await this.write(`,"contents":[${this.newline()}`);
@@ -189,6 +193,7 @@ class Walker {
       this.budget.entry();
       if (this.args.json && index) await this.write(`,${this.newline()}`);
       const entry = await this.inspect(pathOf(this.budget.context, operand), operand, operand);
+      this.observedDirectories.length = 0;
       await this.visit(entry, [], "", true, 0);
     }
     if (this.args.report) {

@@ -36,7 +36,8 @@ explicit responsibility. This is not a filesystem sandbox or a snapshot.
   follows links to classify their targets even without `-l`; no content is read.
 - `-J`: JSON array of `directory`, `file`, or `link` nodes; links have `target`.
   Nonempty traversed nodes have `contents`. Failed metadata has `type: unknown`;
-  errors/cycles have an `error` field. Unicode names round-trip as JSON strings;
+  metadata errors have an `error` field; skipped cycles have an error object in
+  `contents`. Unicode names round-trip as JSON strings;
   terminal controls, formatting characters and line separators are escaped.
 - `-r`, `--dirsfirst`, `--noreport`, `--charset=ASCII|US-ASCII|UTF-8|UTF8`, `-n`, `--`,
   `--help`, `--version`. Short flags can be combined and `-L/-P/-I` take
@@ -105,11 +106,14 @@ unchanged and is not made passing by charset selection.
 
 ## Identity, errors and cancellation
 
-Ancestor-only cycle detection uses complete `identityScope/dev/ino` identities
+Cycle detection uses complete `identityScope/dev/ino` identities
 or the current optional `compareEntry` contract through the existing shared
 comparison helper. It does not equate bare device/inode pairs, serialize opaque
-scopes, infer provider identity from clients, or globally suppress sibling
-aliases. Unknown remains unknown: safety budgets stop unprovable recursion,
+scopes or infer provider identity from clients. With `-l`, directory symlinks
+whose targets match an earlier observed directory in the same operand are
+annotated and skipped, even at `-L`'s depth limit. Ordinary directories still
+traverse when an earlier symlink visited their target; reversed ordering can
+therefore display the same subtree twice. Unknown remains unknown: safety budgets stop unprovable recursion,
 without labeling it a proven cycle. `realpath` strings are deliberately **not**
 treated as backing-entry authority; no lexical path check is presented as a
 security boundary. Calls preserve virtual operand paths and backend routing.
@@ -226,10 +230,11 @@ explicitly overridden: **not evidence for GNU/Linux or arbitrary locales**.
 
 The original cohort has 24 exact-byte/status/stderr comparisons and four parsed
 JSON comparisons. Six original divergent native rows are preserved separately:
-sibling-link global suppression, explicit root-link traversal, file-root text,
+later sibling-link suppression, explicit root-link traversal, file-root text,
 missing-root text/status, malformed missing-root JSON and file-root JSON.
-These are not counted as compatibility passes. The virtual profile intentionally
-uses ancestor-only detection, explicit link following, useful file leaves,
+These historical rows remain unchanged. Later sibling links now use observed
+directory identity suppression, covered by current text/JSON and depth/order
+regressions. The virtual profile uses explicit link following, useful file leaves,
 status-1 FS errors and valid error JSON instead. No broad parity or superiority
 claim follows from this bounded cohort.
 

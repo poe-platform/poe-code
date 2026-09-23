@@ -125,18 +125,54 @@ test("Unicode, newline, terminal controls and link targets round-trip without co
     { type: "directory", name: "dev", contents: [{ type: "character", name: "null" }] });
 });
 
-test("default nofollow includes operands; -l skips ancestors but traverses sibling aliases", async () => {
+test("default nofollow includes operands; -l skips ancestors and later symlink aliases", async () => {
   const fs = createMemoryFileSystem();
   await seed(fs);
   assert.equal((await shellRun(fs, ["--noreport", "link"])).stdout, "link -> dir\n");
   const result = await shellRun(fs, ["-li", "--noreport"]);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout.match(/c\.md\n/gu)?.length, 2);
+  assert.equal(result.stdout.match(/c\.md\n/gu)?.length, 1);
   assert.equal(result.stdout.match(/recursive, not followed/gu)?.length, 2);
-  assert.doesNotMatch(result.stdout, /link -> dir {2}\[recursive/u);
+  assert.match(result.stdout, /link -> dir {2}\[recursive/u);
   const json = JSON.parse((await shellRun(fs, ["-Jli", "--noreport", "link"])).stdout);
   assert.equal(json[0].type, "link");
   assert.equal(json[0].contents[0].name, "sub");
+});
+
+test("followed aliases use visit order, including at the depth limit, in text and JSON", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/data/a", { recursive: true });
+  await fs.writeFile("/data/a/x", new Uint8Array());
+  await fs.symlink!("a", "/data/b");
+  for (const args of [["-li"], ["-li", "-L1"]]) {
+    const result = await shellRun(fs, [...args, "--noreport", "data"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `data\na\n${args.length === 1 ? "x\n" : ""}b -> a  [recursive, not followed]\n`);
+  }
+  const json = await shellRun(fs, ["-lJi", "--noreport", "data"]);
+  assert.equal(json.exitCode, 0, json.stderr);
+  assert.deepEqual(JSON.parse(json.stdout), [{ type: "directory", name: "data", contents: [
+    { type: "directory", name: "a", contents: [{ type: "file", name: "x" }] },
+    { type: "link", name: "b", target: "a", contents: [{ error: "recursive, not followed" }] },
+  ] }]);
+  const reversed = await shellRun(fs, ["-lri", "--noreport", "data"]);
+  assert.equal(reversed.stdout, "data\nb -> a\nx\na\nx\n");
+  const unknown = wrapped(fs, {
+    async lstat(path, options) {
+      const stat = { ...await fs.lstat(path, options) };
+      delete stat.identityScope;
+      return stat;
+    },
+    async stat(path, options) {
+      const stat = { ...await fs.stat(path, options) };
+      delete stat.identityScope;
+      return stat;
+    },
+    compareEntry: undefined,
+  });
+  assert.equal((await shellRun(unknown, ["-li", "--noreport", "data"])).stdout,
+    "data\na\nx\nb -> a\nx\n");
 });
 
 test("broken links remain entries, while denied stat/readlink/readdir remain failures", async () => {

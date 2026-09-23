@@ -245,7 +245,7 @@ function definition(configuration: Settings): CommandDefinition {
       if (verbose && deadline.expired) {
         await writeBytes(context.stderr, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), context.signal);
       }
-      if (deadline.expired && killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && signalNumber !== 9) {
+      if (!returned && deadline.expired && killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && signalNumber !== 9) {
         return status(context, records.killAfter, 125);
       }
       if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };

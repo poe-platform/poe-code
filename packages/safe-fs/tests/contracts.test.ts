@@ -137,7 +137,8 @@ describe.each(adapters)("shared contract: $name", ({ create, overlayAppend }) =>
       for (const path of ["/existing", "/missing"]) {
         await expect(overlay.appendFile(path, suffix)).rejects.toMatchObject({ code: "ENOTSUP" });
       }
-      expect(await overlay.readFile("/existing")).toEqual(initial);
+      if (writable.capabilities.retainedRead === true) expect(await overlay.readFile("/existing")).toEqual(initial);
+      else await expect(overlay.readFile("/existing")).rejects.toMatchObject({ code: "ENOTSUP" });
       expect(await writable.readFile("/existing")).toEqual(initial);
       await expect(overlay.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });
       await expect(writable.stat("/missing")).rejects.toMatchObject({ code: "ENOENT" });

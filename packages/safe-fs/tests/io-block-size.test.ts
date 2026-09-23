@@ -7,20 +7,19 @@ import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
 import { withFileSystemQuota } from "../src/fs/quota/index.js";
 import { bridgeStats } from "../src/bridge/stats.js";
 
-class GeometryFileSystem extends MemoryFileSystem {
-  constructor(readonly preferredSize?: number) { super(); }
-
-  override async stat(path: string, options?: FsOptions): Promise<FileStat> {
-    const metadata = { ...await super.stat(path, options) };
-    delete metadata.ioBlockSize;
-    return this.preferredSize === undefined ? metadata : { ...metadata, ioBlockSize: this.preferredSize };
-  }
-
-  override async lstat(path: string, options?: FsOptions): Promise<FileStat> {
-    const metadata = { ...await super.lstat(path, options) };
-    delete metadata.ioBlockSize;
-    return this.preferredSize === undefined ? metadata : { ...metadata, ioBlockSize: this.preferredSize };
-  }
+function geometryFileSystem(preferredSize?: number): FileSystem {
+  const backing = new MemoryFileSystem();
+  return new Proxy(backing, {
+    get(target, property) {
+      const value = Reflect.get(target, property);
+      if (property === "stat" || property === "lstat") return async (path: string, options?: FsOptions): Promise<FileStat> => {
+        const metadata = { ...await target[property](path, options) };
+        delete metadata.ioBlockSize;
+        return preferredSize === undefined ? metadata : { ...metadata, ioBlockSize: preferredSize };
+      };
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
 }
 
 it("memory metadata declares its existing virtual stream preference, not physical allocation", async () => {
@@ -53,7 +52,7 @@ const wrappers: Record<string, (backend: FileSystem) => FileSystem> = {
 
 describe.each(Object.entries(wrappers))("%s preferred I/O metadata", (name, wrap) => {
   it.each([undefined, 1, 16384, Number.MAX_SAFE_INTEGER])("preserves known geometry or absence: %s", async preferredSize => {
-    const backend = new GeometryFileSystem(preferredSize);
+    const backend = geometryFileSystem(preferredSize);
     await backend.writeFile("/file", new Uint8Array(3));
     await backend.symlink("/file", "/link");
     const fs = wrap(backend);
@@ -70,8 +69,8 @@ describe.each(Object.entries(wrappers))("%s preferred I/O metadata", (name, wrap
 });
 
 it.each([undefined, 32768])("overlay copy-up reports the selected upper geometry: %s", async upperSize => {
-  const lower = new GeometryFileSystem(8192);
-  const upper = new GeometryFileSystem(upperSize);
+  const lower = geometryFileSystem(8192);
+  const upper = geometryFileSystem(upperSize);
   await lower.writeFile("/file", new Uint8Array([1, 2]));
   const fs = new OverlayFileSystem({ lower, upper });
   expect((await fs.stat("/file")).ioBlockSize).toBe(8192);
@@ -85,12 +84,12 @@ it.each([undefined, 32768])("overlay copy-up reports the selected upper geometry
 });
 
 it("mount synthetic ancestors do not acquire backing geometry", async () => {
-  const fs = new MountFileSystem({ root: new GeometryFileSystem(), mounts: { "/virtual/nested": new GeometryFileSystem(8192) } });
+  const fs = new MountFileSystem({ root: geometryFileSystem(), mounts: { "/virtual/nested": geometryFileSystem(8192) } });
   expect(Object.hasOwn(await fs.stat("/virtual"), "ioBlockSize")).toBe(false);
 });
 
 it.each([1, 16384, 65536, Number.MAX_SAFE_INTEGER])("bridge exposes known preferred I/O size %s", async ioBlockSize => {
-  const fs = new GeometryFileSystem(ioBlockSize);
+  const fs = geometryFileSystem(ioBlockSize);
   await fs.writeFile("/file", new Uint8Array(7));
   const metadata = await fs.stat("/file");
   expect(bridgeStats(metadata).blksize).toBe(ioBlockSize);
@@ -98,7 +97,7 @@ it.each([1, 16384, 65536, Number.MAX_SAFE_INTEGER])("bridge exposes known prefer
 });
 
 it("bridge legacy fallback does not populate absent canonical metadata", async () => {
-  const fs = new GeometryFileSystem();
+  const fs = geometryFileSystem();
   const metadata = await fs.stat("/");
   expect(bridgeStats(metadata).blksize).toBe(4096);
   expect(Object.hasOwn(metadata, "ioBlockSize")).toBe(false);

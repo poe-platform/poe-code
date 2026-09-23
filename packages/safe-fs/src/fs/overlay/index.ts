@@ -12,7 +12,7 @@ import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admissi
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
-  FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
+  FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
 } from "../../contracts/filesystem.js";
 
@@ -135,12 +135,10 @@ export class OverlayFileSystem implements FileSystem {
     if (options.maxBufferBytes !== undefined) integer(options.maxBufferBytes, "/");
     const writable = !this.#upper.capabilities.readOnly && this.#upper.capabilities.atomicRename === true;
     const readable = [this.#upper, this.#lower].map((backend) =>
-      typeof backend.readStream === "function" ? backend.capabilities.streamingRead : false);
+      retainedReadCapabilities(backend).retainedRead);
     const streamingRead = readable.every((capability) => capability === true) ? true
       : readable.every((capability) => capability === false) ? false : undefined;
-    const retained = [this.#upper, this.#lower].map((backend) => retainedReadCapabilities(backend).retainedRead);
-    const retainedRead = retained.every((capability) => capability === true) ? true
-      : retained.every((capability) => capability === false) ? false : undefined;
+    const retainedRead = streamingRead;
     const streamingWrite = writable && this.#upper.capabilities.streamingWrite === true
       && this.#upper.capabilities.streamingRead === true
       && typeof this.#upper.writeStream === "function" && typeof this.#upper.readStream === "function"
@@ -154,7 +152,7 @@ export class OverlayFileSystem implements FileSystem {
     const effectiveStreamingWrite = requireCapabilities(streamingWrite, mutation);
     const semantics = Object.fromEntries([
       ...["read", "stat", "readdir", "realpath", "access"].map(capability => [capability,
-        requireCapabilities(upper[capability], this.#lower.capabilities[capability])]),
+        requireCapabilities(upper[capability], this.#lower.capabilities[capability], ...(capability === "read" ? readable : []))]),
       ["write", requireCapabilities(mutation, upper.write)],
       ["exclusiveCreate", requireCapabilities(mutation, upper.exclusiveCreate)],
       ["mkdir", requireCapabilities(mutation, upper.mkdir)],
@@ -240,8 +238,52 @@ export class OverlayFileSystem implements FileSystem {
         if (entry.stat.type !== "directory" || !allowDirectory) fail("EISDIR", path);
       }
       this.permission(entry, 4);
-      return openRetainedReadFile(entry.backend, entry.path, options);
+      return this.pinRead(entry, options);
     }, false);
+  }
+
+  private async pinRead(entry: Entry, options: OpenReadFileOptions): Promise<FileReadHandle> {
+    // A retained object, not the resolved pathname, carries read authority.
+    if (compareIdentity(entry.stat, entry.stat) !== "same") fail("ENOTSUP", entry.path, "overlay reads require stable backend identity");
+    const ancestors: Entry[] = [];
+    let parent = dirname(entry.path);
+    while (true) {
+      const stat = await entry.backend.lstat(parent, options);
+      if (stat.type !== "directory" || compareIdentity(stat, stat) !== "same") fail("ENOTSUP", entry.path, "overlay reads require stable directory ancestry");
+      ancestors.push({ backend: entry.backend, path: parent, stat });
+      if (parent === "/") break;
+      parent = dirname(parent);
+    }
+    const handle = await openRetainedReadFile(entry.backend, entry.path, options);
+    try {
+      if (compareIdentity(entry.stat, await handle.stat(options)) !== "same") fail("ENOTSUP", entry.path, "backend read object changed during admission");
+      for (const ancestor of ancestors) {
+        const stat = await entry.backend.lstat(ancestor.path, options);
+        if (stat.type !== "directory" || compareIdentity(ancestor.stat, stat) !== "same") fail("ENOTSUP", entry.path, "backend read ancestry changed during admission");
+      }
+      const current = await this.required(entry.path, options);
+      if (current.backend !== entry.backend || compareIdentity(entry.stat, current.stat) !== "same") fail("ENOTSUP", entry.path, "overlay read layer changed during admission");
+      options.signal?.throwIfAborted();
+      return handle;
+    } catch (error) {
+      await finishCleanup(() => handle.close(), true);
+      throw error;
+    }
+  }
+
+  private async *handleBytes(handle: FileReadHandle, options: ReadStreamOptions): ByteSource {
+    let position = options.start ?? 0;
+    const end = options.endExclusive ?? Number.MAX_SAFE_INTEGER;
+    const chunkSize = options.chunkSize ?? 64 * 1024;
+    while (position < end) {
+      const size = Math.min(chunkSize, end - position);
+      const chunk = await handle.read(position, size, options);
+      options.signal?.throwIfAborted();
+      if (!(chunk instanceof Uint8Array) || chunk.byteLength > size) fail("EIO", "", "backend returned invalid retained bytes");
+      if (!chunk.byteLength) break;
+      position += chunk.byteLength;
+      yield new Uint8Array(chunk);
+    }
   }
 
   private writable(path: string): void {
@@ -444,11 +486,13 @@ export class OverlayFileSystem implements FileSystem {
     if (options.maxBytes !== undefined) integer(options.maxBytes, entry.path);
     const limit = Math.min(options.maxBytes ?? this.maxBufferBytes, this.maxBufferBytes);
     if (entry.stat.size > limit) fail("EFBIG", entry.path);
-    const result = await entry.backend.readFile(entry.path, { ...options, ...(limit === Infinity ? {} : { maxBytes: limit }) });
-    options.signal?.throwIfAborted();
-    if (!(result instanceof Uint8Array)) fail("EIO", entry.path, "backend returned non-byte data");
-    if (result.byteLength > limit) fail("EFBIG", entry.path);
-    return new Uint8Array(result);
+    const handle = await this.pinRead(entry, options);
+    let failed = true;
+    try {
+      const result = await collectBytes(this.handleBytes(handle, options), { ...options, ...(limit === Infinity ? {} : { maxBytes: limit }) });
+      failed = false;
+      return result;
+    } finally { await finishCleanup(() => handle.close(), failed); }
   }
 
   private async cleanGarbage(strict: boolean): Promise<void> {
@@ -501,8 +545,13 @@ export class OverlayFileSystem implements FileSystem {
     else if (streaming && entry.backend.readStream && entry.backend.capabilities.streamingRead !== false && this.#upper.writeStream) {
       this.permission(entry, 4);
       if (entry.stat.size > this.maxBufferBytes) fail("EFBIG", entry.path);
-      const source = this.bounded(entry.backend.readStream(entry.path, options), entry.path, options);
-      await this.streamToUpper(destination, source, { ...options, mode: 0o600, flag: "wx" });
+      const handle = await this.pinRead(entry, options);
+      let failed = true;
+      try {
+        const source = this.bounded(this.handleBytes(handle, options), entry.path, options);
+        await this.streamToUpper(destination, source, { ...options, mode: 0o600, flag: "wx" });
+        failed = false;
+      } finally { await finishCleanup(() => handle.close(), failed); }
     } else await this.#upper.writeFile(destination, await this.bytes(entry, options), { ...options, mode: 0o600, flag: "wx" });
     await this.preserve(destination, entry.stat, options);
   }
@@ -885,26 +934,17 @@ export class OverlayFileSystem implements FileSystem {
       integer(options.endExclusive, path);
       if (options.endExclusive < start) fail("EINVAL", path);
     }
-    const entry = await this.run(options, async () => {
+    const handle = await this.run(options, async () => {
       const entry = await this.required(path, options);
       if (entry.stat.type !== "file") fail("EISDIR", path);
       this.permission(entry, 4);
-      return entry;
+      return this.pinRead(entry, options);
     });
-    if (entry.backend.readStream && entry.backend.capabilities.streamingRead !== false) {
-      for await (const chunk of readBytes(entry.backend.readStream(entry.path, options), options.signal)) {
-        yield new Uint8Array(chunk);
-      }
-      options.signal?.throwIfAborted();
-      return;
-    }
-    const bytes = await this.bytes(entry, options);
-    const end = Math.min(bytes.byteLength, options.endExclusive ?? bytes.byteLength);
-    for (let offset = start; offset < end; offset += chunkSize) {
-      options.signal?.throwIfAborted();
-      yield bytes.slice(offset, Math.min(end, offset + chunkSize));
-    }
-    options.signal?.throwIfAborted();
+    let failed = true;
+    try {
+      yield* this.handleBytes(handle, options);
+      failed = false;
+    } finally { await finishCleanup(() => handle.close(), failed); }
   }
 
   private async *bounded(source: ByteSource, path: string, options: FsOptions): AsyncGenerator<Uint8Array> {

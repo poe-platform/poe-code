@@ -212,8 +212,11 @@ test("overlay comparison observes selected backing without copy-up, then changes
   assert.equal(await overlay.compareEntry("/source", state.right, "/target"), "distinct");
   assert.deepEqual(await upper.readdir("/"), []);
   assert.equal((await resolveEntryView(overlay, "/source")).filesystem, state.left);
-  await overlay.appendFile("/source", new Uint8Array([33]));
-  assert.equal((await resolveEntryView(overlay, "/source")).filesystem, upper);
+  await assert.rejects(overlay.appendFile("/source", new Uint8Array([33])), { code: "ENOTSUP" });
+  assert.deepEqual(await upper.readdir("/"), []);
+  const readableOverlay = createOverlayFileSystem({ upper, lower: state.leftStore });
+  await readableOverlay.appendFile("/source", new Uint8Array([33]));
+  assert.equal((await resolveEntryView(readableOverlay, "/source")).filesystem, upper);
   assert.deepEqual(await state.leftStore.readFile("/source"), bytes);
 });
 

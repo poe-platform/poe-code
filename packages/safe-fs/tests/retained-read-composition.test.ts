@@ -248,7 +248,7 @@ describe.each(wrappers)("%s retained-read composition", (_name, wrap) => {
     await closing;
   });
 
-  it("forwards unknown opened identity without inventing wrapper authority", async () => {
+  it("preserves unknown identity only where the wrapper does not require admission proof", async () => {
     const memory = new MemoryFileSystem();
     await memory.writeFile("/file", encode("data"));
     const original = await memory.openReadFile("/file");
@@ -260,6 +260,11 @@ describe.each(wrappers)("%s retained-read composition", (_name, wrap) => {
       },
     };
     const filesystem = wrap(view(memory, { openReadFile: async () => unknown }));
+    if (_name === "overlay") {
+      await expect(filesystem.openReadFile!("/file")).rejects.toMatchObject({ code: "ENOTSUP" });
+      await expect(original.stat()).rejects.toMatchObject({ code: "EBADF" });
+      return;
+    }
     const handle = await filesystem.openReadFile!("/file");
     expect(handle).toBe(unknown);
     expect((await handle.stat()).identityScope).toBeUndefined();
@@ -327,7 +332,7 @@ describe("retained routing and wrapper masks", () => {
     await handle.close();
   });
 
-  it("does not reroute an overlay acquisition when a new upper entry appears", async () => {
+  it("rejects an overlay acquisition when a new upper entry appears", async () => {
     const lower = new MemoryFileSystem();
     const upper = new MemoryFileSystem();
     await lower.writeFile("/file", encode("lower"));
@@ -343,12 +348,10 @@ describe("retained routing and wrapper masks", () => {
     await selected.promise;
     await upper.writeFile("/file", encode("upper"));
     acquire.resolve();
-    const handle = await opening;
-    expect(decode(await handle.read(0, 5))).toBe("lower");
+    await expect(opening).rejects.toMatchObject({ code: "ENOTSUP" });
     const next = await filesystem.openReadFile("/file");
     expect(decode(await next.read(0, 5))).toBe("upper");
     expect(open).toHaveBeenCalledTimes(1);
-    await handle.close();
     await next.close();
   });
 

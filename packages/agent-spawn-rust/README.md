@@ -57,7 +57,7 @@ const result = await autonomous(spawnOnce, {
 });
 ```
 
-Autonomous runs consume events concurrently with the result. Only `ActivityTimeoutError` failures retry; aborts and other failures retain their original identity. Despite its name, `maxTimeoutRetries` counts total attempts, matching the original API. The default is three attempts with ten minutes of inactivity per attempt. A failed attempt can retry while its consumer is still pending; late rejections remain observed. Your consumer owns its rendering and cleanup. This factory does not yet provide the original terminal-backed `spawnAutonomous` export. The retry policy lives in the Rust core; Node still owns async tasks and subprocess I/O.
+Autonomous runs consume events concurrently with the result. Only `ActivityTimeoutError` failures retry; cancellation and other failures retain their original identity. Despite its name, `maxTimeoutRetries` counts total attempts, matching the original API. Attempts and activity duration are unlimited unless `maxTimeoutRetries` or `activityTimeoutMs` is supplied. A failed attempt can retry while its consumer is still pending; late rejections remain observed. Your consumer owns its rendering and cleanup. This factory does not yet provide the original terminal-backed `spawnAutonomous` export. The retry policy lives in the Rust core; Node still owns async tasks and subprocess I/O.
 
 ```typescript
 import { createSpawnParallel } from '@poe-code/agent-spawn-rust';
@@ -69,7 +69,7 @@ const results = await parallel([
 ], { maxConcurrent: 2 });
 ```
 
-Parallel results follow input order and event streams are drained. By default, the first failing result aborts active peers and prevents queued work from starting. Set `failFast: false` to collect results including nonzero exit codes, or combine it with `check: true` to throw after collection. `SpawnParallelError` carries the failed index, result and collected results; rejected calls are collected as an `AggregateError` when fail-fast is disabled.
+Parallel results follow input order and event streams are drained. All calls may start concurrently unless `maxConcurrent` is supplied. By default, the first failing result aborts active peers and prevents queued work from starting. Set `failFast: false` to collect results including nonzero exit codes, or combine it with `check: true` to throw after collection. `SpawnParallelError` carries the failed index, result and collected results; rejected calls are collected as an `AggregateError` when fail-fast is disabled.
 
 ```typescript
 import { runCommand } from '@poe-code/agent-spawn-rust';

@@ -5,12 +5,11 @@ export function createSpawnAutonomous(consumeEvents) {
   return async (streamSpawn, options) => {
     const {
       service,
-      maxTimeoutRetries = 3,
-      activityTimeoutMs = 600000,
+      maxTimeoutRetries,
       ...rest
     } = options;
     const state = new native.NativeSpawnAutonomous(maxTimeoutRetries);
-    const spawnOptions = { ...rest, activityTimeoutMs };
+    const spawnOptions = rest;
     while (true) {
       let result;
       try {
@@ -23,7 +22,7 @@ export function createSpawnAutonomous(consumeEvents) {
         return value;
       } catch (error) {
         result?.catch(() => {});
-        if (!state.retry(isActivityTimeoutError(error))) throw error;
+        if (options.signal?.aborted || !state.retry(isActivityTimeoutError(error))) throw error;
       }
     }
   };

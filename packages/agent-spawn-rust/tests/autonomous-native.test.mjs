@@ -28,7 +28,7 @@ test("autonomous drains events and returns the original result with default opti
   assert.equal(await run((service, options) => {
     calls++;
     assert.equal(service, "codex");
-    assert.deepEqual(options, { prompt: "hi", marker, activityTimeoutMs: 600000 });
+    assert.deepEqual(options, { prompt: "hi", marker });
     assert.equal(options.marker, marker);
     return { events: events(), result: Promise.resolve(value) };
   }, { service: "codex", prompt: "hi", marker }), value);
@@ -50,7 +50,7 @@ test("exhausted and non-timeout errors retain their identity", async () => {
   for (const [failure, expectedCalls] of [[timeout(), 3], [new Error("failed"), 1]]) {
     let calls = 0;
     const run = createSpawnAutonomous(async () => {});
-    await assert.rejects(run(() => { calls++; throw failure; }, { service: "codex" }), (error) => error === failure);
+    await assert.rejects(run(() => { calls++; throw failure; }, { service: "codex", maxTimeoutRetries: 3 }), (error) => error === failure);
     assert.equal(calls, expectedCalls);
   }
 });

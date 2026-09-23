@@ -57,7 +57,7 @@ export function createSpawnParallel(spawnOnce) {
       requested = Object.hasOwn(options, "check") ? options.check : undefined,
       state = new native.NativeSpawnParallel(
         calls.length,
-        options.maxConcurrent ?? 4,
+        options.maxConcurrent === undefined ? Math.max(calls.length, 1) : options.maxConcurrent,
         requested === undefined ? failFast : requested,
         Boolean(failFast)
       );

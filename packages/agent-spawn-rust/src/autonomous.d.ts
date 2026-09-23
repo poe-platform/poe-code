@@ -15,11 +15,11 @@ export type AutonomousOptions<TOptions> = TOptions & {
 };
 
 /** Consume events concurrently with the result, retrying only activity timeouts.
- * maxTimeoutRetries is the total attempt budget, including the initial attempt.
+ * An explicit maxTimeoutRetries is the total attempt budget, including the initial attempt.
  */
 export declare function createSpawnAutonomous(
   consumeEvents: (events: AsyncIterable<AcpEvent>) => void | Promise<void>
-): <TOptions extends { activityTimeoutMs?: number }, TResult>(
+): <TOptions extends { activityTimeoutMs?: number; signal?: AbortSignal }, TResult>(
   streamSpawn: StreamingSpawnFn<TOptions, TResult>,
   options: AutonomousOptions<TOptions>
 ) => Promise<TResult>;

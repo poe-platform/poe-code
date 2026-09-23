@@ -242,8 +242,13 @@ pub struct NativeSpawnAutonomous {
 impl NativeSpawnAutonomous {
     #[napi(constructor)]
     pub fn new(max: Unknown<'_>) -> Result<Self> {
-        let mut state = agent_spawn_rust::autonomous::Autonomous::new(number(max)?)
-            .map_err(Error::from_reason)?;
+        let max = if max.get_type()? == napi::ValueType::Undefined {
+            None
+        } else {
+            Some(number(max)?)
+        };
+        let mut state =
+            agent_spawn_rust::autonomous::Autonomous::new(max).map_err(Error::from_reason)?;
         state.begin().map_err(Error::from_reason)?;
         Ok(Self { state })
     }

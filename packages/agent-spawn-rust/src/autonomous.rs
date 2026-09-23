@@ -10,14 +10,14 @@ enum Phase {
 }
 
 pub struct Autonomous {
-    max: f64,
+    max: Option<f64>,
     attempt: f64,
     phase: Phase,
 }
 
 impl Autonomous {
-    pub fn new(max: f64) -> Result<Self, String> {
-        if !max.is_finite() || max.fract() != 0.0 || max < 1.0 {
+    pub fn new(max: Option<f64>) -> Result<Self, String> {
+        if max.is_some_and(|max| !max.is_finite() || max.fract() != 0.0 || max < 1.0) {
             return Err(
                 "spawnAutonomous maxTimeoutRetries must be an integer greater than or equal to 1."
                     .into(),
@@ -51,7 +51,7 @@ impl Autonomous {
         if self.phase != Phase::Running {
             return Err("Autonomous spawn has no active attempt.".into());
         }
-        let retry = activity_timeout && self.attempt < self.max;
+        let retry = activity_timeout && self.max.is_none_or(|max| self.attempt < max);
         self.phase = if retry { Phase::Ready } else { Phase::Done };
         Ok(retry)
     }

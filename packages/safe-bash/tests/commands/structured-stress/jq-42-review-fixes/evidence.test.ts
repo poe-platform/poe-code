@@ -287,12 +287,30 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   const bindingMigrated = new Set<string>();
   const depthMigrated = new Set<string>();
   const hazardStartupMigrated = new Set<string>();
+  const optionalHazardLimitsMigrated = new Set<string>();
   const numericAsyncMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
     let current = path === resourceDepthMigration.path ? archivedHazardStartupSource()
       : path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
       : path === "tests/commands/structured/streaming.test.ts" ? archivedStreamingSource() : readFileSync(path);
+    if (path === "tests/commands/structured/hazard-worker.ts") {
+      // fe7a41a945 made these four former default limits explicit. Reconstruct
+      // and authenticate the sealed source without altering historical evidence.
+      assert.equal(digest(current), "3d85a35e79c0dbac8e6bcc8156dfdd95a5757938acacb981d4b8804e91a65fb7");
+      let original = current.toString("utf8");
+      for (const [addition, count] of [
+        [', "", { limits: { maxAstDepth: 64 } }', 2],
+        [', { limits: { maxDepth: 128 } }', 1],
+        [', "", { limits: { maxValueBytes: 8 * 1024 * 1024, maxCollectionSize: 100000 } }', 1],
+      ] as const) {
+        assert.equal(original.split(addition).length - 1, count);
+        original = original.split(addition).join("");
+      }
+      current = Buffer.from(original);
+      assert.equal(digest(current), expected);
+      optionalHazardLimitsMigrated.add(path);
+    }
     if (path === numericAsyncMigration.path) {
       current = assertNumericAsyncMigration({ path, expected, current, ...(snapshot ? { snapshot } : {}) });
       numericAsyncMigrated.add(path);
@@ -340,10 +358,11 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
   assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
   assert.deepEqual([...hazardStartupMigrated], [hazardStartupMigration.path], "only the reviewed hazard-startup migration");
+  assert.deepEqual([...optionalHazardLimitsMigrated], ["tests/commands/structured/hazard-worker.ts"], "only the explicit hazard-limit migration");
   assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
-  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size;
-  assert.equal(unchangedComparisons, 133, "132 byte-unchanged current comparisons and one archived streaming image");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 3, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
+  const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size - optionalHazardLimitsMigrated.size;
+  assert.equal(unchangedComparisons, 132, "131 byte-unchanged current comparisons and one archived streaming image");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 3, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, optionalHazardLimitsMigrations: optionalHazardLimitsMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };

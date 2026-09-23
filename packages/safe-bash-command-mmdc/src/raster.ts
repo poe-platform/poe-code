@@ -484,9 +484,9 @@ function drawMarker4x4(
       rgba,
       frameW,
       frameH,
-      [xform(-7, -3.5), xform(-1, 3.5)],
+      [xform(-9, -4), xform(-1, 4)],
       strokeColor,
-      1.5 * scale,
+      1.75 * scale,
       false,
       scale
     );
@@ -494,9 +494,9 @@ function drawMarker4x4(
       rgba,
       frameW,
       frameH,
-      [xform(-7, 3.5), xform(-1, -3.5)],
+      [xform(-9, 4), xform(-1, -4)],
       strokeColor,
-      1.5 * scale,
+      1.75 * scale,
       false,
       scale
     );
@@ -984,6 +984,23 @@ export function rasterizeScene(
   const effectiveScale = Math.min(sx, sy);
   const shadowColor = parseCssColor(scene.theme.shadowColor);
 
+  // 2. Lifelines
+  for (const life of scene.lifelines) {
+    drawPolyline4x4(
+      rgba,
+      width,
+      height,
+      [
+        { x: life.x * effectiveScale, y: life.y1 * effectiveScale },
+        { x: life.x * effectiveScale, y: life.y2 * effectiveScale }
+      ],
+      parseCssColor(life.stroke),
+      1.25 * effectiveScale,
+      true,
+      effectiveScale
+    );
+  }
+
   // 1. Groups
   for (const group of scene.groups) {
     options?.budget?.chargeWork(32);
@@ -1039,27 +1056,30 @@ export function rasterizeScene(
           effectiveScale
         );
         if (div.label) {
+          const padX = 6;
+          const pillW = Math.ceil(div.label.width + padX * 2);
+          drawRoundedShape(
+            rgba,
+            width,
+            height,
+            div.label.x - padX,
+            div.y + 3,
+            pillW,
+            17,
+            4,
+            false,
+            parseCssColor(scene.theme.surface),
+            undefined,
+            undefined,
+            parseCssColor(scene.theme.border),
+            0.75,
+            false,
+            effectiveScale
+          );
           drawTextLine4x4(rgba, width, height, div.label, effectiveScale);
         }
       }
     }
-  }
-
-  // 2. Lifelines
-  for (const life of scene.lifelines) {
-    drawPolyline4x4(
-      rgba,
-      width,
-      height,
-      [
-        { x: life.x * effectiveScale, y: life.y1 * effectiveScale },
-        { x: life.x * effectiveScale, y: life.y2 * effectiveScale }
-      ],
-      parseCssColor(life.stroke),
-      1.25 * effectiveScale,
-      true,
-      effectiveScale
-    );
   }
 
   // 3. Activations

@@ -78,7 +78,7 @@ function renderMarker(marker: SceneMarker | undefined): string {
     case "openArrow":
       return `<g transform="${transform}"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="${escapeXml(marker.stroke)}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>`;
     case "cross":
-      return `<g transform="${transform}"><path d="M -7 -3.5 L -1 3.5 M -7 3.5 L -1 -3.5" fill="none" stroke="${escapeXml(marker.stroke)}" stroke-width="1.6" stroke-linecap="round"/></g>`;
+      return `<g transform="${transform}"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="${escapeXml(marker.stroke)}" stroke-width="1.75" stroke-linecap="round"/></g>`;
     case "umlHollowTriangle":
       return `<g transform="${transform}"><polygon points="-10,-4 0,0 -10,4" fill="${escapeXml(marker.fill)}" stroke="${escapeXml(marker.stroke)}" stroke-width="1.5" stroke-linejoin="round"/></g>`;
     case "umlComposition":
@@ -205,6 +205,13 @@ export function serializeSceneToSvg(
     );
   }
 
+  // Lifelines
+  for (const life of scene.lifelines) {
+    parts.push(
+      `<line x1="${life.x}" y1="${life.y1}" x2="${life.x}" y2="${life.y2}" stroke="${escapeXml(life.stroke)}" stroke-width="1.25" stroke-dasharray="5 5"/>`
+    );
+  }
+
   // Groups
   scene.groups.forEach((group, idx) => {
     const clipId = `mmdc-group-clip-${idx}`;
@@ -224,19 +231,15 @@ export function serializeSceneToSvg(
           `<line x1="${group.x}" y1="${div.y}" x2="${group.x + group.width}" y2="${div.y}" stroke="${escapeXml(group.stroke)}" stroke-width="1" stroke-dasharray="5 4"/>`
         );
         if (div.label) {
+          const padX = 6;
+          const pillW = Math.ceil(div.label.width + padX * 2);
+          parts.push(`<rect x="${div.label.x - padX}" y="${div.y + 3}" width="${pillW}" height="17" rx="4" fill="${escapeXml(theme.surface)}" stroke="${escapeXml(theme.border)}" stroke-width="0.75"/>`);
           parts.push(renderTextLine(div.label, theme.fontFamily, theme.monospaceFontFamily));
         }
       }
     }
     parts.push(`</g>`);
   });
-
-  // Lifelines
-  for (const life of scene.lifelines) {
-    parts.push(
-      `<line x1="${life.x}" y1="${life.y1}" x2="${life.x}" y2="${life.y2}" stroke="${escapeXml(life.stroke)}" stroke-width="1.25" stroke-dasharray="5 5"/>`
-    );
-  }
 
   // Activations
   for (const act of scene.activations) {

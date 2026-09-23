@@ -272,3 +272,43 @@ test('drop rejects missing or malformed data and oversized transport before touc
   const request = f.request('drop', ['#target'], { data: 'text/plain=' + 'x'.repeat(50) });
   await assert.rejects(playwrightStandardAbilities.drop!.execute({ ...request, limits: { maxCommandBytes: 10, maxArtifactBytes: 10 } }), PlaywrightResourceLimitError);
 });
+
+test('WebMCP rejects compact graphs before parsing and bounds aggregate frame metadata', async () => {
+  const f = fixture();
+  const request = f.request('webmcp-list');
+  const parse = JSON.parse;
+  const cases = [
+    '[{"name":"attack","description":"","inputSchema":[' + '{},'.repeat(1750000) + '{}]}]',
+    JSON.stringify([{ name: 'attack', description: '', inputSchema: Array(5000).fill({}) }]),
+    JSON.stringify([{ name: 'attack', description: '', inputSchema: { properties: Object.fromEntries(Array.from({ length: 2100 }, (_, index) => [String(index), {}])) } }]),
+    '[{"name":"attack","description":"","inputSchema":' + '['.repeat(40) + '0' + ']'.repeat(40) + '}]',
+    JSON.stringify([{ name: 'attack', description: 'x'.repeat(140000) }]),
+  ];
+  for (const serialized of cases) {
+    const page = { ...f.page, evaluate: async () => serialized } as unknown as PlaywrightPage;
+    let parsed = false;
+    JSON.parse = (...args: Parameters<typeof JSON.parse>) => { parsed = true; return parse(...args); };
+    try {
+      await assert.rejects(playwrightStandardAbilities['webmcp-list']!.execute({ ...request, limits: { maxCommandBytes: 16 * 1024 * 1024, maxArtifactBytes: 16 * 1024 * 1024 }, browserSession: { ...request.browserSession!, page } }), PlaywrightResourceLimitError);
+      assert.equal(parsed, false);
+    } finally { JSON.parse = parse; }
+  }
+  const serialized = JSON.stringify([{ name: 'tool', description: '', inputSchema: { enum: Array(2000).fill(0) } }]);
+  const frame = { ...f.page, evaluate: async () => serialized } as unknown as PlaywrightPage;
+  const page = { ...frame, frames: () => [frame, frame, frame] };
+  await assert.rejects(playwrightStandardAbilities['webmcp-list']!.execute({ ...request, browserSession: { ...request.browserSession!, page } }), PlaywrightResourceLimitError);
+});
+
+test('WebMCP checks schema shape and preserves ordinary schemas with escaped punctuation', async () => {
+  const f = fixture();
+  for (const inputSchema of [null, [], 42, 'schema']) {
+    const page = { ...f.page, evaluate: async () => JSON.stringify([{ name: 'tool', description: '', inputSchema }]) } as unknown as PlaywrightPage;
+    const request = f.request('webmcp-list');
+    await assert.rejects(playwrightStandardAbilities['webmcp-list']!.execute({ ...request, browserSession: { ...request.browserSession!, page } }), /Invalid WebMCP/);
+  }
+  const inputSchema = { type: 'object', properties: { value: { type: 'string', description: '\\"[{,:'.repeat(1000) } } };
+  const page = { ...f.page, evaluate: async () => JSON.stringify([{ name: 'tool', description: 'normal', inputSchema }]) } as unknown as PlaywrightPage;
+  const request = f.request('webmcp-list');
+  const result = await playwrightStandardAbilities['webmcp-list']!.execute({ ...request, browserSession: { ...request.browserSession!, page } });
+  assert.ok(JSON.stringify(result).includes('inputSchema'));
+});

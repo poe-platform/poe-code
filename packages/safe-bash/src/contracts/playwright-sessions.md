@@ -14,6 +14,14 @@ Listing saved profiles does not verify live connectivity; an explicitly selected
 command may still fail while the provider is unavailable. Hosts supplying an
 authenticated `attach` ability retain their attachment command.
 
+WebMCP discovery for `webmcp-list` and `webmcp-call` treats page tool metadata as
+untrusted. Across all visited frames, metadata is capped at 128 KiB (or the
+smaller command byte limit), 32 container levels, and 4096 structural markers
+(container openings, property colons, and element separators). These limits
+are checked before host JSON parsing and schema rendering. Input schemas must
+be JSON objects or booleans; annotations must contain boolean values. Pages
+exceeding the budgets fail with a resource-limit error.
+
 The host must isolate each controller and its persistence callbacks by trusted
 owner identity. Never use an untrusted alias to select another owner's browser,
 filesystem, or storage namespace. Browser networking follows the selected native

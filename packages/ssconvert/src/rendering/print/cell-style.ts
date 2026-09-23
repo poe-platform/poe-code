@@ -1,14 +1,16 @@
 import {SsconvertError} from "../../contracts.js";
 import type {ImportedValue} from "../../workbook.js";
 
+const alignments = {GNM_HALIGN_GENERAL: "general", GNM_HALIGN_LEFT: "left", GNM_HALIGN_RIGHT: "right", GNM_HALIGN_CENTER: "center"} as const;
 const styleDefaults: Readonly<Record<string, string | readonly string[]>> = {
-  HAlign: "GNM_HALIGN_GENERAL", VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
+  HAlign: Object.keys(alignments), VAlign: "GNM_VALIGN_BOTTOM", WrapText: "0", ShrinkToFit: "0",
   Rotation: "0", Shade: ["0", "1"], Indent: "0", Locked: "1", Hidden: "0", Fore: ["0:0:0", "FFFF:0:0"],
   Back: ["FFFF:FFFF:FFFF", "FFFF:FFFF:0"], PatternColor: "0:0:0", Format: "General"
 };
 const fontDefaults: Readonly<Record<string, string | readonly string[]>> = {Unit: ["8", "10", "14"], Bold: ["0", "1"], Italic: "0", Underline: "0", StrikeThrough: "0", Script: "0"};
 
 export interface CellPrintStyle {
+  readonly alignment: "general" | "left" | "right" | "center";
   readonly bold: boolean;
   readonly size: number;
   readonly foreground: readonly [number, number, number];
@@ -47,7 +49,7 @@ export function cellPrintStyle(style: Readonly<Record<string, ImportedValue>>, t
   const font = record((node.children as readonly ImportedValue[])[0]);
   if (font.name !== "Font" || font.namespace !== "http://www.gnumeric.org/v10.dtd" || font.text !== "Sans" || !Array.isArray(font.children) || font.children.length) fail();
   const selected = attributes(font, fontDefaults);
-  return {bold: selected.Bold === "1", size: Number(selected.Unit),
+  return {alignment: alignments[effects.HAlign as keyof typeof alignments], bold: selected.Bold === "1", size: Number(selected.Unit),
     foreground: effects.Fore === "FFFF:0:0" ? [1, 0, 0] : [0, 0, 0],
     ...(effects.Shade === "1" ? {background: effects.Back === "FFFF:FFFF:0" ? [1, 1, 0] as const : [1, 1, 1] as const} : {})};
 }

@@ -29,15 +29,12 @@ it("requires explicit fonts for materialized Sans styles", async () => {
   const {fonts: ignoredFonts, ...withoutFonts} = context;
   await expect(writePdf(await fixture(), [], withoutFonts)).rejects.toThrow("styled or merged cells");
 });
-it.each([['WrapText="0"', 'WrapText="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_RIGHT"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
+it.each([['WrapText="0"', 'WrapText="1"'], ['HAlign="GNM_HALIGN_GENERAL"', 'HAlign="GNM_HALIGN_FILL"']])("retains refusal for unsupported materialized style %s", async (before, after) => {
   await expect(writePdf(await fixture("h", attributes.replace(before, after)), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses unknown font effects and borders without publishing a style approximation", async () => {
   for (const child of [font+'<g:StyleBorder/>', font.replace('>Sans<', '>Serif<')])
     await expect(writePdf(await fixture("h", attributes, child), [], context)).rejects.toThrow("styled or merged cells");
-});
-it("keeps unsupported general numeric layout refused", async () => {
-  await expect(writePdf(await fixture("h", attributes, font, "12", "40"), [], context)).rejects.toThrow("styled or merged cells");
 });
 it("refuses styled multiline text and horizontal overflow", async () => {
   for (const value of ["line&#10;next", "an original long text exceeding one cell"])

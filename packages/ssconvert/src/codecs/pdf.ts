@@ -2,6 +2,7 @@ import { PDFDocument, rgb, pushGraphicsState, popGraphicsState, concatTransforma
 import fontkit from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
+import { createFormattingCapability } from "../formatting.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import { getCellsExtent, type Workbook, type Sheet, type AxisMetadata } from "../workbook.js";
@@ -71,6 +72,7 @@ export async function pdfExportOptions(options: readonly string[], context: Capa
 export async function writePdf(book: Workbook, options: readonly string[], context: CapabilityContext,
   selection?: { readonly sheets: readonly string[] }): Promise<Uint8Array> {
   const settings = optionsFor(book, options, context);
+  const formatting = context.formatting ?? createFormattingCapability();
   let work = 0;
   const tick = (amount = 1) => {
     context.signal.throwIfAborted();
@@ -127,7 +129,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const width = font.widthOfTextAtSize(value, size);
       if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
-      x += 2 + 0.5 + 3 * printDisplayScale;
+      x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : font.widthOfTextAtSize(value, size) / (alignment === "center" ? 2 : 1)), y: baseline, size, font, ...(cellBox ? {color: rgb(...cellBox.style.foreground)} : {}) });
@@ -225,7 +227,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       if (sheet.merges?.length || sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
       for (const cell of sheet.cells) if (cell.style) {
         tick();
-        if (!context.fonts || cell.value.kind !== "string" && cell.value.kind !== "blank") unsupported("styled or merged cells");
+        if (!context.fonts) unsupported("styled or merged cells");
         cellPrintStyle(cell.style, tick);
       }
       const storedPaper = print.paper === undefined ? undefined : papers[paperName(print.paper)];
@@ -279,7 +281,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         for (const cell of sheet.cells) {
           tick();
           if (cell.row < geometry.area.startRow || cell.row > geometry.area.endRow || cell.column < geometry.area.startColumn || cell.column > geometry.area.endColumn || sheet.rows?.some(row => row.index === cell.row && row.hidden) || sheet.columns?.some(column => column.index === cell.column && column.hidden)) continue;
-          const value = context.formatting ? await context.formatting.format(cell.value, cell.format ?? "General", context) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value));
+          const value = cell.style || context.formatting ? await formatting.format(cell.value, cell.format ?? "General", context, {unicodeMinus: cell.value.kind === "number"}) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value));
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
@@ -287,7 +289,9 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           if (style?.background) page.drawRectangle({x: x + 2, y: page.getHeight() - y - height - 0.2,
             width: width + 0.2, height: height + 0.2, color: rgb(...style.background)});
-          await text(page, value, x, y, style ? style.size * printDisplayScale : 10, "left",
+          const alignment = style?.alignment === "general" ? cell.value.kind === "number" ? "right" :
+            cell.value.kind === "boolean" || cell.value.kind === "error" ? "center" : "left" : style?.alignment ?? "left";
+          await text(page, value, x, y, style ? style.size * printDisplayScale : 10, alignment,
             style ? {width, height, style} : undefined);
         }
         for (const { object, rectangle } of objects) {

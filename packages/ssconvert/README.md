@@ -45,7 +45,8 @@ TrueType font bytes, which the engine copies. The default request is Sans, regul
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. Font bytes and character-map work are bounded before parsing. With explicit fonts,
 PDF export also admits fully materialized Gnumeric Sans styles for blank cells
-and single-line text that fits the selected font and cell: regular or bold, sizes
+and single-line values that fit the selected font and cell: General or explicit
+left/right/center alignment, regular or bold, sizes
 8/10/14, black or red text, and solid white or yellow backgrounds. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
 scale and print insets, so size 10 paints at 7.5 points. Other styles,

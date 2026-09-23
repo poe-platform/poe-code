@@ -237,5 +237,14 @@
     "Actual native qualification covers the three authenticated name-identity XML files and one missing-sheet string replay; other declaration-order tests are source-backed memory controls.",
     "Does not claim complete malformed-expression side-effect, array, cross-sheet shared-formula or workbook-name mutation equivalence.",
     "All19 original families and containing root publication remain open."
-  ]
+  ],
+  "delivery": {
+    "commit": "f973d661533f2267cf0210597795cbe1e6248f9a",
+    "exactRemoteMainVerified": true,
+    "recordedBindingsUnchangedAfterRebase": true
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34"
+  }
 }

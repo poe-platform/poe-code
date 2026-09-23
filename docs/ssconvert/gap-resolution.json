@@ -245,7 +245,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. Native run35918106503 now independently qualifies all9original NameX inputs:27commands exit0,import and XML replay give six#REF!/three6;18publicSDK/compiledShell nativeXML replays agree with zero diagnostics/link access. Native external-reference,UNKNOWN-name and missing-XF warnings remain explicitly different;49module entries resolve to48files. Wider identity/writer/legacy/flagged declarations and publication remain open. BIFF7/8 and dual-stream exports now resolve explicit sheet names with the existing Unicode case fold, preserving local-name scope and avoiding internal-ID collisions. Twenty-one original failures are repaired; 119 focused, 22740 package and 60 independent controls pass, with compiled SDK/Shell roundtrips. A neighboring six-case regression now preserves case-distinct defined names and internal scope IDs: 118 focused, 22746 package and 57 independent controls pass; all three public export profiles retain exact values. Authenticated native35925225030 confirms direct BIFF7/8/dual-stream values with empty stderr. Its own XML replay changes first two scoped-name results to global11/13; compiled SDK/Shell retain2/3 on the same XML. Preserve six replay mismatches. Original missing-sheet XML importer mismatch is now repaired: ordinary cells recover native string formulas and warning messages instead of resolving global11. Final22765package tests,19focused cases,lint/types,selectedbuild and10compiledSDK/Shell/XML/BIFFreplays pass; remote delivery63f4fb8d2 is verified. The separate native XML name load-order divergence, programmatic model binding and broader closure remain open.",
+      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. Native run35918106503 now independently qualifies all9original NameX inputs:27commands exit0,import and XML replay give six#REF!/three6;18publicSDK/compiledShell nativeXML replays agree with zero diagnostics/link access. Native external-reference,UNKNOWN-name and missing-XF warnings remain explicitly different;49module entries resolve to48files. Wider identity/writer/legacy/flagged declarations and publication remain open. BIFF7/8 and dual-stream exports now resolve explicit sheet names with the existing Unicode case fold, preserving local-name scope and avoiding internal-ID collisions. Twenty-one original failures are repaired; 119 focused, 22740 package and 60 independent controls pass, with compiled SDK/Shell roundtrips. A neighboring six-case regression now preserves case-distinct defined names and internal scope IDs: 118 focused, 22746 package and 57 independent controls pass; all three public export profiles retain exact values. Authenticated native35925225030 confirms direct BIFF7/8/dual-stream values with empty stderr. Its own XML replay changes first two scoped-name results to global11/13; compiled SDK/Shell retain2/3 on the same XML. Preserve six replay mismatches. Original missing-sheet XML importer mismatch is now repaired: ordinary cells recover native string formulas and warning messages instead of resolving global11. Final22765package tests,19focused cases,lint/types,selectedbuild and10compiledSDK/Shell/XML/BIFFreplays pass; remote delivery63f4fb8d2 is verified. The six captured XML name load-order mismatches are now repaired: declaration-order binding and placeholders preserve native replay11/13 while direct BIFF remains2/3. Four original failures,85focused/22772package tests,maintained lint/types,selected4-build closure and14compiledSDK/Shell conversions qualify the fix; remote deliveryf973d6615 is verified. Historical mismatch receipts remain unchanged. Broader malformed/array/shared-copy/name-mutation behavior, programmatic model binding and family closure remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -366,6 +366,16 @@
           "outcome": "Native captured input and source-backed ordinary-cell recovery; original8red,final19focused/22765package tests and10public conversions qualified.",
           "delivery": {
             "commit": "63f4fb8d2b804ce5cdec537b34416085281a1049",
+            "exactRemoteMainVerified": true,
+            "publication": "pending"
+          }
+        },
+        {
+          "kind": "Gnumeric-XML-declaration-order-name-binding",
+          "path": "docs/ssconvert/gnumeric-name-order-gap-proof.json",
+          "outcome": "Four original failures;85focused/22772package tests and14compiledSDK/Shell conversions match captured native direct/replay values, with zero diagnostics/link access and unchanged inputs/namespace.",
+          "delivery": {
+            "commit": "f973d661533f2267cf0210597795cbe1e6248f9a",
             "exactRemoteMainVerified": true,
             "publication": "pending"
           }
@@ -1774,7 +1784,7 @@
     "originalActualTextValues": 180,
     "nativeMatchingOutlineRows": 102,
     "maximumMatchingOutlineDx": 0.004702086000037298,
-    "maximumMatchingOutlineDy": 7.464062480266875e-05,
+    "maximumMatchingOutlineDy": 0.00007464062480266875,
     "status": "offset rounding qualified locally; delivery pending; exact rendering and all19families remain open"
   }
 }

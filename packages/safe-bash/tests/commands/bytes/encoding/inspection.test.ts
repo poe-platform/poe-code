@@ -5,6 +5,49 @@ import { Shell } from "../../../../src/shell/index.js";
 import { agentCommands } from "../../../../src/plugins/index.js";
 import { allBytes, run, sliced } from "./helpers.js";
 
+for (const [flag, type, input, value, width, end] of [
+  ["a", "a", Uint8Array.of(65, 10), "  A  nl", 0, "0000002"],
+  ["f", "f4", Uint8Array.of(0, 0, 128, 63), "1", 15, "0000004"],
+  ["i", "d4", Uint8Array.of(1, 0, 0, 0), "1", 11, "0000004"],
+  ["l", "d8", Uint8Array.of(1, 0, 0, 0, 0, 0, 0, 0), "1", 20, "0000010"],
+] as const) test(`od: issue 310 -${flag} alias and explicit type through Shell`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", input);
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    for (const option of [`-${flag}`, `-t${type}`]) {
+      const actual = await shell.exec(`od ${option} input`);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stderr, "");
+      assert.equal(actual.stdout, `0000000 ${value.padStart(width)}\n${end}\n`);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("od: named characters mask parity bits and name ASCII controls", async () => {
+  const actual = await run("od", ["-An", "-a"], sliced(Uint8Array.of(0, 7, 9, 10, 13, 32, 127, 128, 193, 255)));
+  assert.equal(actual.exitCode, 0, actual.stderr);
+  assert.equal(actual.stdout, " nul bel  ht  nl  cr  sp del nul   A del\n");
+});
+
+test("od: floating point endian, partial groups and special values", async () => {
+  const actual = await run("od", ["-An", "-tf4", "--endian=big"], sliced(Uint8Array.of(63, 192, 0, 0, 128, 0, 0, 0, 127, 128, 0, 0, 127, 192, 0, 0)));
+  assert.equal(actual.exitCode, 0, actual.stderr);
+  assert.equal(actual.stdout, [1.5, "-0", "inf", "nan"].map(value => ` ${String(value).padStart(15)}`).join("") + "\n");
+  assert.equal((await run("od", ["-An", "-tf8", "--endian=big"], Uint8Array.of(63, 240))).stdout, ` ${"1".padStart(24)}\n`);
+  for (const [flag, size, width] of [["i", 4, 11], ["l", 8, 20]] as const) {
+    assert.equal((await run("od", ["-An", `-${flag}`], new Uint8Array(size).fill(255))).stdout, ` ${"-1".padStart(width)}\n`);
+  }
+});
+
+test("od: GNU float formatting keeps fixed notation below its significant-digit threshold", async () => {
+  const bytes = new Uint8Array(16);
+  const view = new DataView(bytes.buffer);
+  [1000, 100000, 1000000, 1 / 3].forEach((value, index) => view.setFloat32(index * 4, value, true));
+  const actual = await run("od", ["-An", "-f"], sliced(bytes));
+  assert.equal(actual.stdout, ["1000", "100000", "1e+06", "0.33333334"].map(value => ` ${value.padStart(15)}`).join("") + "\n");
+});
+
 test("od: issue 228 NUL-terminated strings from a file", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("abc\0def\0"));
@@ -193,7 +236,7 @@ test("od: concatenate files, skip/count and suppress duplicates", async () => {
 test("od: multiple types preserve order and reject unknown encodings", async () => {
   assert.equal((await run("od", ["-An", "-tx1u1"], Uint8Array.of(15))).stdout, " 0f\n  15\n");
   assert.equal((await run("od", ["-An", "-b", "-tx1"], Uint8Array.of(15))).stdout, " 017\n 0f\n");
-  for (const args of [["-tf8"], ["-ta"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["--type="], ["-j9007199254740992"]]) {
+  for (const args of [["-tf2"], ["-ta2"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["--type="], ["-j9007199254740992"]]) {
     assert.equal((await run("od", args)).exitCode, 2, args.join(" "));
   }
 });

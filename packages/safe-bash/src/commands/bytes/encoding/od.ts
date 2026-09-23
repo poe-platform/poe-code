@@ -7,20 +7,62 @@ interface Format { readonly kind: string; readonly size: number }
 function formats(text: string): Format[] {
   const result: Format[] = [];
   for (let offset = 0; offset < text.length;) {
-    const match = /^(c|[doux](?:1|2|4|8))/u.exec(text.slice(offset));
-    if (!match) throw new UsageError(`unsupported type '${text}': use c or d/o/u/x with size 1, 2, 4, or 8`);
-    result.push({ kind: match[0][0]!, size: match[0] === "c" ? 1 : Number(match[0][1]) });
-    offset += match[0].length;
+    const kind = text[offset++]!;
+    let size = 1;
+    if (kind !== "a" && kind !== "c") {
+      size = Number(text[offset++]);
+      if ((!"doux".includes(kind) && kind !== "f") || !(kind === "f" ? [4, 8] : [1, 2, 4, 8]).includes(size)) {
+        throw new UsageError(`unsupported type '${text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8`);
+      }
+    }
+    result.push({ kind, size });
     if (result.length > 16) throw new UsageError("at most 16 output types are supported");
   }
   if (!result.length) throw new UsageError("empty output type");
   return result;
 }
 
+function floating(value: number, size: number): string {
+  if (Number.isNaN(value)) return "nan";
+  if (!Number.isFinite(value)) return value < 0 ? "-inf" : "inf";
+  if (Object.is(value, -0)) return "-0";
+  // GNU starts normal values at FLT_DIG/DBL_DIG, increasing until they round back.
+  const minimumNormal = size === 4 ? 2 ** -126 : 2 ** -1022;
+  let precision = Math.abs(value) < minimumNormal ? 1 : size === 4 ? 6 : 15;
+  const maximum = size === 4 ? 9 : 17;
+  while (precision < maximum) {
+    const parsed = Number(value.toPrecision(precision));
+    if (Object.is(size === 4 ? Math.fround(parsed) : parsed, value)) break;
+    precision++;
+  }
+  const rounded = Number(value.toPrecision(precision));
+  const exponent = rounded === 0 ? 0 : Math.floor(Math.log10(Math.abs(rounded)));
+  if (exponent < -4 || exponent >= precision) {
+    const [mantissa, power] = rounded.toExponential().split("e");
+    const numericPower = Number(power);
+    return `${mantissa}e${numericPower < 0 ? "-" : "+"}${String(Math.abs(numericPower)).padStart(2, "0")}`;
+  }
+  return String(rounded);
+}
+
 function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string {
   let text = "";
   const escapes: Record<number, string> = { 0: "\\0", 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
+  const names = ["nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "nl", "vt", "ff", "cr", "so", "si", "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em", "sub", "esc", "fs", "gs", "rs", "us", "sp"];
   for (let offset = 0; offset < row.length; offset += format.size) {
+    if (format.kind === "a") {
+      const byte = row[offset]! & 127;
+      text += ` ${(names[byte] ?? (byte === 127 ? "del" : String.fromCharCode(byte))).padStart(3)}`;
+      continue;
+    }
+    if (format.kind === "f") {
+      const bytes = new Uint8Array(format.size);
+      bytes.set(row.subarray(offset, offset + format.size));
+      const view = new DataView(bytes.buffer);
+      const value = format.size === 4 ? view.getFloat32(0, !bigEndian) : view.getFloat64(0, !bigEndian);
+      text += ` ${floating(value, format.size).padStart(format.size === 4 ? 15 : 24)}`;
+      continue;
+    }
     if (format.kind === "c") {
       const byte = row[offset]!;
       const character = escapes[byte] ?? (byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : byte.toString(8).padStart(3, "0"));
@@ -45,7 +87,7 @@ function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string 
 
 export function createOdCommand(maxInputBytes: number): CommandDefinition {
   return define("od", async context => {
-    const aliases: Record<string, string> = { b: "o1", c: "c", d: "u2", o: "o2", s: "d2", x: "x2" };
+    const aliases: Record<string, string> = { a: "a", b: "o1", c: "c", d: "u2", f: "f4", i: "d4", l: "d8", o: "o2", s: "d2", x: "x2" };
     const rewritten: string[] = [];
     let ended = false;
     for (let index = 0; index < context.args.length; index++) {

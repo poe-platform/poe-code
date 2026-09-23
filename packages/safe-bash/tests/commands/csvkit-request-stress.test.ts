@@ -54,6 +54,21 @@ for (const [index, capture] of reference.cases.entries()) {
   });
 }
 
+test("request stress: csvformat frozen case 9 preserves native numeric float serialization through Shell", async () => {
+  const capture = reference.cases[9]!;
+  assert.equal(capture.command, "csvformat");
+  assert.deepEqual(capture.argv, ["-u", "2"]);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(bindings));
+  try {
+    const result = await shell.exec("csvformat -u 2", { stdin: capture.stdin });
+    assert.deepEqual({ status: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+      status: capture.status, stdout: capture.stdout, stderr: capture.stderr
+    });
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(capture.stdout));
+    assert.deepEqual(result.stderrBytes, new TextEncoder().encode(capture.stderr));
+  } finally { await shell.dispose(); }
+});
+
 test("request stress: string-only typed quoting modes execute from immutable VFS scripts", async () => {
   for (const mode of [2, 4, 5]) {
     const fs = new MemoryFileSystem();

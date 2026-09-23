@@ -98,6 +98,17 @@ for (const item of cases) test(`csvkit independent composition: ${item.name}`, a
   } finally { await shell.dispose(); }
 });
 
+for (const [quoting, stdout] of [[2, "a,b\n1.0,\n"], [4, "a,b\n1.0,\n"], [5, "a,b\n1,\n"]] as const)
+  test(`csvkit independent csvcut preserves numeric/null cells for quoting ${quoting}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
+    try {
+      const result = await shell.exec(`csvcut -u ${quoting}`, { stdin: '"a","b"\n1,\n' });
+      assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, { stdout, stderr: "", status: 0 });
+      assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(stdout));
+      assert.deepEqual(result.stderrBytes, new Uint8Array());
+    } finally { await shell.dispose(); }
+  });
+
 // These assertions verify honest refusals. They do not qualify csvkit parity.
 for (const [command, stdout] of [["csvgrep -c 1 -m 1", "a,b\n"], ["csvsort -y 0", ""], ["csvstack", "a,b\n"]] as const)
   for (const quoting of [2, 4, 5]) test(`csvkit independent explicit BLOCKER: ${command} quoting ${quoting}`, async () => {

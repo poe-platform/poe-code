@@ -106,8 +106,8 @@ sole argument (extension suffixes are removed; aliases are preserved). Await `st
 exit status after runtime cleanup. Output is copied and charged against the shared
 input/retained-byte budgets, then decoded and validated before the next filter or
 writer runs. Invalid JSON, nonzero status, cancellation, and limit failures prevent
-publication. This adapter uses the existing JSON profile: document-level resources,
-language, and direction fields cannot be serialized. Source documents with relative
+publication. Document-level resources, language, and direction stay outside the
+JSON protocol and are preserved across filters. Source documents with relative
 image targets are rejected because their source-directory information cannot survive
 arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
 and resource policies. Lua and citeproc require their

@@ -23,7 +23,10 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
     supports: request => request.kind === "json",
     async apply(document, request, context) {
       if (request.kind !== "json") throw new PandocError("E_CAPABILITY", "convert", "This runtime supports JSON filters only");
-      const serialized = await jsonWriter.write(document, context);
+      // Resources and document sidecars stay SDK-owned; Pandoc's wire AST
+      // contains only blocks and metadata.
+      const wireDocument = {blocks: document.blocks, metadata: document.metadata, resources: []};
+      const serialized = await jsonWriter.write(wireDocument, context);
       if (serialized.kind !== "text") throw new PandocError("E_INTERNAL", "convert", "Expected Pandoc JSON text");
       // JSON cannot carry parser-owned image origins through arbitrary reordering
       // or replacement by a filter. Refuse ambiguous targets instead of reading
@@ -38,7 +41,7 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
         }
         for (const child of Object.values(value)) await checkImages(child);
       };
-      await checkImages(document);
+      await checkImages(wireDocument);
       context.charge("retainedBytes", serialized.text.length * 2);
       let length = 0;
       for (const character of serialized.text) {
@@ -78,7 +81,8 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
       if (failed) throw outputFailure;
       if (exitCode !== 0) throw new PandocError("E_IO", "convert", Number.isInteger(exitCode) ? `JSON filter ${request.path} exited with status ${exitCode}` : "JSON filter returned an invalid exit status");
       const text = await context.decodeUtf8(chunks);
-      return jsonReader.read({bytes: new Uint8Array(), text}, context);
+      const parsed = await jsonReader.read({bytes: new Uint8Array(), text}, context);
+      return {...document, blocks: parsed.blocks, metadata: parsed.metadata};
     }
   };
 }

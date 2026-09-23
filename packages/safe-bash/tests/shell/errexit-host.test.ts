@@ -259,6 +259,6 @@ test("set named option failure retains preceding options and does not replace po
   } finally { await shell.dispose(); }
 });
 
-for (const command of ["bash -u -c true", "bash +c true"]) test(`unimplemented switch stays rejected ${command}`, async () => {
+for (const command of ["bash -x -c true", "bash +c true"]) test(`unimplemented switch stays rejected ${command}`, async () => {
   const { shell } = setup(); const result = await shell.exec(command); assert.equal(result.exitCode, 2); assert.match(result.stderr, /unsupported/u);
 });

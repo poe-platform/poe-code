@@ -4732,18 +4732,20 @@ export class Runtime {
     let errexit = false;
     let braceexpand = true;
     let noexec = false;
-    while (args.length && /^[+-]/u.test(args[0]!)) {
+    let nounset = false;
+    while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
-      if ((option === "-o" || option === "+o") && (args[0] === "braceexpand" || args[0] === "noexec")) {
+      if ((option === "-o" || option === "+o") && (args[0] === "braceexpand" || args[0] === "noexec" || args[0] === "nounset")) {
         if (args[0] === "noexec") noexec = option === "-o";
+        else if (args[0] === "nounset") nounset = option === "-o";
         else braceexpand = option === "-o";
         args.shift();
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "csenB" : "enB").includes(flag))) {
-        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-e, +/-n, +/-B and +/-o braceexpand or noexec\n`);
+      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "csenuB" : "enuB").includes(flag))) {
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-e, +/-u, +/-n, +/-B and +/-o braceexpand, noexec or nounset\n`);
         return 2;
       }
       commandString ||= option.includes("c");
@@ -4751,8 +4753,9 @@ export class Runtime {
       if (option.includes("e")) errexit = option.startsWith("-");
       if (option.includes("B")) braceexpand = option.startsWith("-");
       if (option.includes("n")) noexec = option.startsWith("-");
+      if (option.includes("u")) nounset = option.startsWith("-");
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand, noexec);
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand, noexec, nounset);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
@@ -4764,6 +4767,7 @@ export class Runtime {
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     child.noexec = noexec;
+    child.nounset = nounset;
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
@@ -5062,7 +5066,7 @@ export class Runtime {
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false, nounset = false): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = pathOf(state, target);
@@ -5151,6 +5155,7 @@ export class Runtime {
     child.errexit = errexit;
     child.braceexpand = braceexpand;
     child.noexec = noexec;
+    child.nounset = nounset;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);

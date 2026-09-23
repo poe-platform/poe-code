@@ -7359,6 +7359,7 @@ export class Runtime {
     }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@"));
+    const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
@@ -7488,7 +7489,7 @@ export class Runtime {
       const { splitText, io: partIO } = parts[index]!;
       part = await this.resolveArrayElement(part, state, partIO);
       quoteGroup = prefixNameQuoteGroups.get(part);
-      const quotedPresence = part.quoted && !((arrayOwned || prefixOwned) && isQuoteMarker(part));
+      const quotedPresence = part.quoted && !((arrayOwned || prefixOwned || positionalOwned) && isQuoteMarker(part));
       const selector = getArraySelector(part);
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         let value: ShellValue | undefined = this.variable(state, part.name);
@@ -7548,7 +7549,6 @@ export class Runtime {
           if (position > 0) addField();
           append(members[position]!, false, true);
         }
-        if (members.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);

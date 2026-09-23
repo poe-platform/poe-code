@@ -13,6 +13,7 @@ export interface SafeJsCommandDialect {
   readonly description: string;
   readonly help: string;
   readonly invocation: (args: readonly string[]) => Invocation;
+  readonly transformSource?: (source: string, selected: Invocation) => string;
   readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>, lifecycle: {
     readonly signal: AbortSignal;
     readonly fail: (error: unknown) => void;
@@ -108,6 +109,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       } else if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
       const sourceBytes = Buffer.byteLength(source);
       if (source.startsWith("\uFEFF")) source = source.slice(1);
+      source = dialect.transformSource?.(source, { ...parsed, file: filename }) ?? source;
       if (parsed.check) {
         const parse = runtime.parseSourceModule;
         if (!parse) throw new UsageError("syntax checking requires an injected runtime.parseSourceModule");

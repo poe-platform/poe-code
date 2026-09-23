@@ -41,7 +41,7 @@ function invocation(args: readonly string[]): Invocation {
   let check = false;
   let sourceMaps = false;
   const preloads: string[] = [];
-  let inputType: "module" | undefined;
+  let inputType: "module" | "commonjs" | undefined;
   let index = 0;
   for (; index < args.length; index++) {
     const argument = args[index]!;
@@ -57,7 +57,7 @@ function invocation(args: readonly string[]): Invocation {
     }
     if (argument === "--input-type" || argument.startsWith("--input-type=")) {
       const value = argument === "--input-type" ? args[++index] : argument.slice(13);
-      if (value !== "module") throw new UsageError("SafeJS node supports only --input-type=module");
+      if (value !== "module" && value !== "commonjs") throw new UsageError("SafeJS node supports --input-type=module or --input-type=commonjs");
       inputType = value;
       continue;
     }
@@ -81,6 +81,7 @@ function invocation(args: readonly string[]): Invocation {
     break;
   }
   if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
+  if (inputType === "commonjs" && args[index] !== undefined && args[index] !== "-") throw new UsageError("--input-type can only be used with eval, print or stdin source");
   return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
 }
 
@@ -93,8 +94,23 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
+    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
     invocation,
+    transformSource(source, selected) {
+      if (selected.inputType !== "commonjs") return source;
+      if (source.startsWith("#!")) {
+        const newline = source.indexOf("\n");
+        source = newline < 0 ? "" : source.slice(newline);
+      }
+      const filename = selected.source === undefined ? "[stdin]" : "[eval]";
+      const body = selected.print ? `console.log((\n${source}\n));` : source;
+      return `
+const __safeBashCommonJs = { exports: {} };
+(function(exports, require, module, __filename, __dirname) {
+${selected.check ? body : `eval(${JSON.stringify(body)});`}
+}).call(globalThis, __safeBashCommonJs.exports, require, __safeBashCommonJs, ${JSON.stringify(filename)}, ".");
+`;
+    },
     async prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
       const directory = selected.inputType === "module" || selected.source === undefined && selected.file.endsWith(".mjs")
@@ -129,7 +145,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       const prefix = bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + nodeRequireSource;
       let remainingSourceBytes = limits.maxSourceBytes - lifecycle.sourceBytes;
-      const printing = selected.print;
+      const printing = selected.print && selected.inputType !== "commonjs";
       const sourceLocation = selected.sourceMaps
         ? await nodeSourceLocation(source, selected.file, command.cwd as string, prefix + (printing ? "console.log((\n" : ""), lifecycle.readSource, lifecycle.signal,
           limits) : undefined;

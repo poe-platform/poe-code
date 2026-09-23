@@ -52,12 +52,18 @@ try {
   `sourceLocation` diagnostic callback, as the SafeJS implementation does.
 - `node --check FILE` / `node -c FILE` checks the complete source without running
   statements or resolving imports. Omit `FILE` or use `-` to check stdin;
-  `--input-type=module` and `--` remain available. Inject `parseSourceModule` as
+  `--input-type=module`, `--input-type=commonjs`, and `--` remain available. Inject `parseSourceModule` as
   shown above. Valid syntax returns 0 with no output; invalid syntax returns 1
   with a diagnostic. Check mode cannot be combined with eval or print.
 - `node FILE` reads a virtual file, including `.js` files. `node -` and bare
   `node` read source from stdin once, leaving no guest input. File and inline
   programs retain stdin for data. `--` ends command-option parsing.
+- `node --input-type=commonjs` runs eval, print, or stdin source as an interpreted
+  Script with invocation-local `module` and `exports`, the virtual `require`
+  helpers below, `__filename` (`[eval]` or `[stdin]`), and `__dirname` (`.`).
+  Reassigning `module.exports` leaves the original `exports` reference intact.
+  Static imports, exports, and top-level `await` fail before guest statements run;
+  async functions and callbacks remain available. The flag cannot select a file.
 - `process.argv` starts with `/virtual/bin/node`, then the absolute filename or
   `-` for file/stdin programs, then supplied arguments. Eval/print omit a filename.
 - `process.cwd()` and `process.env` expose virtual state, never host state.
@@ -126,7 +132,7 @@ try {
 
 SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
 imports, and the explicit filesystem promise and path import names above.
-`--input-type=module` is accepted; CommonJS input mode, other synchronous fs,
+`--input-type=module` and `--input-type=commonjs` are accepted; other synchronous fs,
 native modules, package loading, `process.exit`, and the native Node
 event loop are not supplied. Other `node:` and slash-containing import specifiers
 remain rejected. Runtime hooks and filesystem adapters are trusted host code.
@@ -153,9 +159,9 @@ filename, and console sink. Use SafeJS's public factories as shown, or provide a
 implementation that honors that contract, including
 `declareHostOperation(operation, policy, { awaitResult: true })`: finish the
 host operation and copy its result or throw its error at the guest call site,
-without exposing a guest Promise. Virtual CommonJS modules use the interpreter's
-guest `eval` capability inside a wrapper. It never uses native eval. SafeJS syntax and value limits still apply.
-There are no runtime environment switches.
+without exposing a guest Promise. Virtual CommonJS modules and CommonJS input use
+the interpreter's guest `eval` capability inside a wrapper. It never uses native
+eval. SafeJS syntax and value limits still apply. There are no runtime environment switches.
 
 | `limits` option | Default |
 | --- | --- |

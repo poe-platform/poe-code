@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-js";
 import { createNodeCommand, createNodeCommands, nodeCommands, NODE_PROFILE } from "../../src/commands/node/index.js";
@@ -15,6 +16,75 @@ const runtime: SafeJsRuntime<Budget> = {
 function quote(source: string): string {
   return "'" + source.replaceAll("'", "'\\''") + "'";
 }
+
+for (const flag of ["--input-type=commonjs", "--input-type commonjs"]) {
+  for (const selector of ["--eval", "--print", "stdin"]) {
+    test(`node ${flag} runs ${selector} with CommonJS bindings`, async () => {
+      const source = selector === "--print" ? "module.exports === exports"
+        : 'console.log(3); console.log(module.exports === exports, this === exports); exports.n = 4; console.log(module.exports.n); console.log(__filename, __dirname); console.log(require("path").basename("/work/file"));';
+      const args = [...flag.split(" "), ...(selector === "stdin" ? ["-"] : [selector, source])];
+      const native = spawnSync(process.execPath, args, { input: source, encoding: "utf8" });
+      assert.equal(native.status, 0, native.stderr);
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+      try {
+        const result = await shell.exec("node " + args.map(quote).join(" "), { stdin: source });
+        assert.equal(result.exitCode, native.status, result.stderr);
+        assert.equal(result.stdout, native.stdout);
+        assert.equal(result.stderr, native.stderr);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("node CommonJS mode rejects module syntax before executing statements", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    for (const source of ['console.log("effect"); await Promise.resolve();', 'console.log("effect"); import fs from "fs";', 'console.log("effect"); export const n = 3;']) {
+      const native = spawnSync(process.execPath, ["--input-type=commonjs", "-e", source], { encoding: "utf8" });
+      assert.equal(native.status, 1);
+      const result = await shell.exec("node --input-type=commonjs -e " + quote(source));
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.stdout, native.stdout);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("node CommonJS mode shares VFS require, timers, argv and exit status", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/data.json", Buffer.from('{"n":3}'));
+  const shell = new Shell({ fs, cwd: "/work" }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec("node --input-type=commonjs -e " + quote(`
+      const data = require("./data.json");
+      module.exports = data;
+      console.log(module.exports.n, exports === module.exports);
+      console.log(require("fs").readFileSync("data.json", "utf8"));
+      console.log(process.argv.slice(1).join("|"));
+      setTimeout(() => { console.log("done"); process.exitCode = 7; }, 1);
+    `) + " -- 'two words' --flag");
+    assert.equal(result.exitCode, 7, result.stderr);
+    assert.equal(result.stdout, '3 false\n{"n":3}\ntwo words|--flag\ndone\n');
+    assert.equal(result.stderr, "");
+    assert.equal((await shell.exec("node --input-type=commonjs -p 'Object.keys(exports).length'")).stdout, "0\n");
+    const denied = await shell.exec("node --input-type=commonjs -e 'require(\"node:child_process\")'");
+    assert.equal(denied.exitCode, 1);
+  } finally { await shell.dispose(); }
+});
+
+test("node CommonJS evaluation retains source, output and execution budgets", async () => {
+  for (const [limits, source] of [
+    [{ maxSourceBytes: 2 }, 'console.log(3)'],
+    [{ maxOutputBytes: 2 }, 'console.log(123)'],
+    [{ maxSteps: 1000 }, 'while (true) {}'],
+  ] as const) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime, limits }));
+    try {
+      const result = await shell.exec("node --input-type=commonjs -e " + quote(source));
+      assert.equal(result.exitCode, 124, result.stderr);
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("node runs ordinary timeout callbacks before completing", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
@@ -210,7 +280,7 @@ test("node validates options without running the injected interpreter", async ()
     ...runtime, run: async () => { assert.fail("invalid/help invocation must not run"); },
   } }));
   try {
-    for (const command of ["node -e", "node -p", "node --inspect", "node --input-type=commonjs -e '1'"]) {
+    for (const command of ["node -e", "node -p", "node --inspect", "node --input-type=invalid -e '1'", "node --input-type", "node --input-type=commonjs script.js"]) {
       assert.equal((await shell.exec(command)).exitCode, 2, command);
     }
     const help = await shell.exec("node --help");

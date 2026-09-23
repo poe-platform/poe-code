@@ -43,6 +43,18 @@ test("node syntax checking rejects trailing invalid syntax with status 1", async
   } finally { await shell.dispose(); }
 });
 
+test("node checks CommonJS stdin grammar without executing or resolving require", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    for (const source of ['module.exports.n = 3; require("./missing.js"); console.log("effect");', 'console.log("effect"); await Promise.resolve();', 'import fs from "fs";', 'export const n = 3;']) {
+      const native = spawnSync(process.execPath, ["--input-type=commonjs", "--check", "-"], { input: source, encoding: "utf8" });
+      const result = await shell.exec("node --input-type=commonjs --check -", { stdin: source });
+      assert.equal(result.exitCode, native.status, result.stderr);
+      assert.equal(result.stdout, native.stdout);
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("node syntax checking parses modules without resolving imports", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/script.mjs", Buffer.from('\uFEFF#!/usr/bin/env node\nimport missing from "./missing.mjs"; import native from "node:child_process"; await missing();'));

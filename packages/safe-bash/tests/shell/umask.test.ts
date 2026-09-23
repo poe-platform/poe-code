@@ -4,6 +4,52 @@ import { Shell } from "../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
+import { creationFileSystem } from "../../src/shell/umask.js";
+
+for (const pathOverride of [false, true]) {
+  test(`umask omits implicit modes for permissionless adapters: path override=${pathOverride}`, async () => {
+    const backing = createMemoryFileSystem();
+    const modes: unknown[] = [];
+    const fs = new Proxy(backing, {
+      get(target, key) {
+        if (key === "capabilities") return { ...target.capabilities, permissions: pathOverride };
+        if (key === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions: false });
+        const member: unknown = Reflect.get(target, key, target);
+        if (typeof member !== "function") return member;
+        if (["writeFile", "appendFile", "mkdir", "open"].includes(String(key))) return (...args: unknown[]) => {
+          const index = key === "writeFile" || key === "appendFile" ? 2 : 1;
+          const options = args[index] as { mode?: number } | undefined;
+          modes.push(options?.mode);
+          assert.equal(options?.mode, undefined, `${String(key)} must not imply permissions`);
+          return Reflect.apply(member, target, args);
+        };
+        return member.bind(target);
+      },
+    });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec("umask 077; touch file; mkdir dir; echo hi >redirect; echo hi >>append");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await backing.readFile("/redirect")), "hi\n");
+      assert.ok(modes.length >= 4);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("umask preserves explicit creation modes on permissionless adapters", async () => {
+  const backing = createMemoryFileSystem();
+  const fs = new Proxy(backing, {
+    get(target, key) {
+      if (key === "capabilities") return { ...target.capabilities, permissions: false };
+      if (key === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions: false });
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  await creationFileSystem(fs, 0o077).mkdir("/explicit", { mode: 0o755 });
+  assert.equal((await backing.stat("/explicit")).mode & 0o777, 0o755);
+});
 
 test("umask masks new files, directories and redirects without changing existing modes", async () => {
   const fs = createMemoryFileSystem();

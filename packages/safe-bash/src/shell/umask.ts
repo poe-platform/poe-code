@@ -1,4 +1,4 @@
-import type { FileSystem, FsOptions } from "../contracts/index.js";
+import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
@@ -10,10 +10,24 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       if (!creation) return method.bind(target);
       return async (...args: unknown[]) => {
         const index = key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-        const options = (args[index] ?? {}) as FsOptions & { mode?: number };
-        const capabilities = await (target.capabilitiesFor?.(args[0] as string, options) ?? target.capabilities);
-        if (capabilities.permissions !== false || options.mode !== undefined) {
-          args[index] = { ...options, mode: options.mode ?? ((key === "mkdir" ? 0o777 : 0o666) & ~mask) };
+        const options = (args[index] ?? {}) as FsOptions & { mode?: number; recursive?: boolean };
+        options.signal?.throwIfAborted();
+        if (options.mode === undefined) {
+          let path = args[0] as string;
+          let capabilities = target.capabilities;
+          while (target.capabilitiesFor) {
+            try {
+              capabilities = await target.capabilitiesFor(path, { ...options, create: true });
+              break;
+            } catch (error) {
+              options.signal?.throwIfAborted();
+              const parent = dirname(path);
+              if (key !== "mkdir" || options.recursive !== true || !(error instanceof FsError) || error.code !== "ENOENT" || parent === path) throw error;
+              path = parent;
+            }
+          }
+          options.signal?.throwIfAborted();
+          if (capabilities.permissions !== false) args[index] = { ...options, mode: (key === "mkdir" ? 0o777 : 0o666) & ~mask };
         }
         return Reflect.apply(method, target, args);
       };

@@ -25,7 +25,7 @@ export function prettyAwk(program: AwkProgram, budget: Budget): string {
       case "unary": emit("("); if (!node.postfix) emit(node.operator); expression(node.operand); if (node.postfix) emit(node.operator); emit(")"); return;
       case "binary": emit("("); expression(node.left); emit(` ${node.operator} `); expression(node.right); emit(")"); return;
       case "conditional": emit("("); expression(node.condition); emit(" ? "); expression(node.yes); emit(" : "); expression(node.no); emit(")"); return;
-      case "getline": emit("(getline "); if (node.target) { expression(node.target); emit(" "); } emit("< "); expression(node.file); emit(")"); return;
+      case "getline": emit("(getline "); if (node.target) { expression(node.target); emit(" "); } if (node.file) { emit("< "); expression(node.file); } emit(")"); return;
       case "call": emit(`${node.name}(`); list(node.args); emit(")"); return;
     }
   };

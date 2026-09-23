@@ -370,7 +370,6 @@ for (const [name, program] of [
 test("awk rejects unsupported syntax and unknown calls before input and output effects", async () => {
   for (const program of [
     'BEGIN { print "bad" > "created"; system("never execute") }',
-    'BEGIN { print "bad"; getline value }',
     'BEGIN { print "bad" | "never execute" }',
     'BEGIN { print "bad"; missing_function() }',
     'BEGIN { print "bad"; break }',
@@ -409,3 +408,16 @@ test("awk streams one-byte records and composes with sed and existing virtual to
   assert.equal(result.stdout, "apple:3\npear:6\n");
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/totals")), result.stdout);
 });
+
+for (const [name, program, stdin, args, files, expected] of [
+  ["plain main input", '/^HEADER$/ { getline; print NR, FNR, $0, NF, $1 }', "HEADER\nvalue1\nother\nHEADER\nvalue2\n", [], {}, "2 2 value1 1 value1\n5 5 value2 1 value2\n"],
+  ["variable and EOF", '{ r = (getline nextline); print r, NR, FNR, $0, NF, "->", nextline }', "line1\nline2\nline3\n", [], {}, "1 2 2 line1 1 -> line2\n0 3 3 line3 1 -> line2\n"],
+  ["BEGIN shares input", 'BEGIN { getline; print NR, FNR, $0 } { print NR, FNR, $0 } END { print getline, NR, FNR, $0 }', "a\nb\n", [], {}, "1 1 a\n2 2 b\n0 2 2 b\n"],
+  ["crosses files", '{ r = getline value; print r, NR, FNR, FILENAME, $0, value }', "", ["first", "empty", "last"], { first: "a\n", empty: "", last: "b\nc\n" }, "1 2 1 last a b\n0 3 2 last c b\n"],
+  ["assignable field", '{ r = getline $2; print r, NR, NF, $0 }', "a x\nb y\n", [], {}, "1 2 2 a b y\n"],
+] as const) {
+  test(`awk unredirected getline ${name}`, async () => {
+    const result = await runVirtual("awk", { args: [program, ...args], stdin, files });
+    assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, expected, ""]);
+  });
+}

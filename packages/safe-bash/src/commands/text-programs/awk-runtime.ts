@@ -32,6 +32,9 @@ export class AwkRuntime {
   private readonly outputs = new Set<string>();
   private readonly inputs = new Map<string, Reader>();
   private mainReader: Reader | undefined;
+  private argument = 1;
+  private sawFile = false;
+  private defaultUsed = false;
   private fields: Scalar[] = [];
   private fieldBytes = 0;
   private record = "";
@@ -314,6 +317,13 @@ export class AwkRuntime {
 
   private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
     const target = expression.target ? await this.reference(expression.target) : undefined;
+    if (!expression.file) {
+      const record = await this.readMainRecord();
+      if (record === undefined) return numeric(0);
+      if (target) await target.set(inputValue(record));
+      else await this.setRecord(record);
+      return numeric(1);
+    }
     const file = Buffer.from(this.asText(await this.scalarExpression(expression.file)), "latin1").toString("utf8");
     if (!file) throw new ProgramError("getline requires a nonempty filename");
     let path: string;
@@ -572,38 +582,42 @@ export class AwkRuntime {
     return status;
   }
 
+  private async readMainRecord(): Promise<string | undefined> {
+    while (true) {
+      this.budget.step();
+      if (!this.mainReader) {
+        let file: string | undefined;
+        while (this.argument < number(this.getScalar("ARGC"))) {
+          this.budget.step();
+          if (this.argument > (this.budget.options.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
+          const next = this.asText(this.array("ARGV").entries.get(String(this.argument++)) ?? unset);
+          if (!next) continue;
+          if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }
+          file = next; this.sawFile = true; break;
+        }
+        if (file === undefined && !this.sawFile && !this.defaultUsed) { file = "-"; this.defaultUsed = true; }
+        if (file === undefined) return undefined;
+        this.set("FILENAME", string(file)); this.set("FNR", numeric(0));
+        this.mainReader = new Reader(input(this.context, Buffer.from(file, "latin1").toString("utf8")), this.budget, this.retention);
+      }
+      const record = await this.mainReader.read(this.varText("RS"));
+      if (record === undefined) { await this.mainReader.close(); this.mainReader = undefined; continue; }
+      this.set("NR", numeric(number(this.getScalar("NR")) + 1));
+      this.set("FNR", numeric(number(this.getScalar("FNR")) + 1));
+      return record;
+    }
+  }
+
   private async runProgram(): Promise<number> {
     let stopped = false;
     try { for (const statement of this.program.begin) await this.execute(statement); }
     catch (error) { if (error instanceof Flow && error.kind === "exit") { this.exit(error); stopped = true; } else throw error; }
     this.phase = "record";
-    let reader: Reader | undefined;
-    let argument = 1;
-    let sawFile = false;
-    let defaultUsed = false;
     const ranges = new Set<number>();
     if (!stopped && (this.program.rules.length || this.program.end.length)) while (true) {
       this.budget.step();
-      if (!reader) {
-        let file: string | undefined;
-        while (argument < number(this.getScalar("ARGC"))) {
-          this.budget.step();
-          if (argument > (this.budget.options.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
-          const next = this.asText(this.array("ARGV").entries.get(String(argument++)) ?? unset);
-          if (!next) continue;
-          if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }
-          file = next; sawFile = true; break;
-        }
-        if (file === undefined && !sawFile && !defaultUsed) { file = "-"; defaultUsed = true; }
-        if (file === undefined) break;
-        this.set("FILENAME", string(file)); this.set("FNR", numeric(0));
-        reader = new Reader(input(this.context, Buffer.from(file, "latin1").toString("utf8")), this.budget, this.retention);
-        this.mainReader = reader;
-      }
-      const record = await reader.read(this.varText("RS"));
-      if (record === undefined) { await reader.close(); reader = undefined; this.mainReader = undefined; continue; }
-      this.set("NR", numeric(number(this.getScalar("NR")) + 1));
-      this.set("FNR", numeric(number(this.getScalar("FNR")) + 1));
+      const record = await this.readMainRecord();
+      if (record === undefined) break;
       await this.setRecord(record);
       try {
         for (let index = 0; index < this.program.rules.length; index++) {
@@ -619,13 +633,12 @@ export class AwkRuntime {
       } catch (error) {
         if (!(error instanceof Flow)) throw error;
         if (error.kind === "exit") { this.exit(error); break; }
-        if (error.kind === "nextfile") { await reader.close(); reader = undefined; this.mainReader = undefined; }
+        if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; }
         else if (error.kind !== "next") throw error;
       }
     }
-    // Free the terminal main blocks before END, but do not wait ahead of named
-    // readers that END may still use. The invocation barrier retains this close.
-    if (reader) void reader.close().catch(() => undefined);
+    // Free terminal main blocks before END without waiting ahead of named readers.
+    if (this.mainReader) void this.mainReader.close().catch(() => undefined);
     this.phase = "END";
     try { for (const statement of this.program.end) await this.execute(statement); }
     catch (error) { if (error instanceof Flow && error.kind === "exit") this.exit(error); else throw error; }

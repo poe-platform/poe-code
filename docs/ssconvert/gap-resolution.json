@@ -1037,5 +1037,16 @@
     "retainedScopeDifferences": 2,
     "guardedLintSubjects": 16407,
     "publication": "unverified"
+  },
+  "umaskNoncreatingOpenFollowup": {
+    "proof": "docs/ssconvert/umask-noncreating-open-gap-proof.json",
+    "implementationCommit": "3be4592d195b4a714a266e66177963f4eac8da1f",
+    "remoteMainVerified": true,
+    "focusedControls": 219,
+    "guardedLintSubjects": 16407,
+    "publicRedirectAccessChecks": 2,
+    "remainingDescriptorEofDocxFailures": 10,
+    "remainingGlobFailures": 1,
+    "publication": "unverified"
   }
 }

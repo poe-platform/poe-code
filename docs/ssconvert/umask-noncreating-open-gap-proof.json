@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "scope": "Noncreating open must not trigger creation-mode capability queries or inject new-file modes",
+  "authority": {
+    "openCreationDefault": "never",
+    "contractBinding": {
+      "path": "packages/safe-fs/src/contracts/filesystem.md",
+      "bytes": 83687,
+      "sha256": "88706891fe2ffccb9349484685bb50eaa97c5689daee6e1fd7b8825fa64e7959"
+    },
+    "contractLines": "OpeningandAuthority22;CapabilityQueryOptions.create659 selects writablefile-open resolution; omissiongeneric,falseexisting,truecreation."
+  },
+  "originalScratchObservation": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/umask-noncreating-open-current-observation.json",
+    "bytes": 2861,
+    "sha256": "be89f91d27db4efecf24831f64b1d2d515e6854a721e699718de32bde0af9a1c"
+  },
+  "scratchTDD": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-controls-red.log",
+    "bytes": 4224,
+    "sha256": "db80bf0fab445f3c5656538ee3eb31b7b9455ea0889387af40f2144d560a44a6",
+    "counts": {
+      "tests": 7,
+      "pass": 3,
+      "fail": 4,
+      "skipped": 0
+    }
+  },
+  "maintainedTDD": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-maintained-red.log",
+    "bytes": 7611,
+    "sha256": "a6ee8b54076049d1efb86bab3b79d4bfc62c3dd28cfc6dd12a9f72baa04a4c05",
+    "counts": {
+      "tests": 24,
+      "pass": 20,
+      "fail": 4,
+      "skipped": 0
+    }
+  },
+  "peerBudgetAdapters": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-peer-budget-green.log",
+    "bytes": 125202,
+    "sha256": "48fefc701c41abc4c567125eaf4e7347be29a8a79debad6c10bdfe9816bc2884",
+    "counts": {
+      "tests": 219,
+      "pass": 219,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "residualBefore": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/current-second-release-residual-red.log",
+    "bytes": 32526,
+    "sha256": "e9b5ddb27a22c8d5b97a8ac724061d7bd3ccfb75f78654a5b232c967bc93a99e",
+    "counts": {
+      "tests": 116,
+      "pass": 105,
+      "fail": 11,
+      "skipped": 0
+    }
+  },
+  "residualAfter": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-residual-after.log",
+    "bytes": 31939,
+    "sha256": "f5bdf44f89ec221ee509b097ada81ff41d4636910f6666ffcaf359c5eb80c0e1",
+    "counts": {
+      "tests": 116,
+      "pass": 106,
+      "fail": 10,
+      "skipped": 0
+    }
+  },
+  "globBefore": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/current-glob-budget-residual-red.log",
+    "bytes": 13866,
+    "sha256": "96bd365cb72e27246381fe575659bd181e03e7a62454f72587f0faffa66e0fc8",
+    "counts": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+  "globAfter": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-glob-after.log",
+    "bytes": 13859,
+    "sha256": "f81a0391fd7fab0bb654481b1836d647183cdda5bae1ed1325493519b8948224",
+    "counts": {
+      "tests": 11,
+      "pass": 10,
+      "fail": 1,
+      "skipped": 0
+    }
+  },
+  "sourceBindings": [
+    {
+      "path": "packages/safe-bash/src/shell/umask.ts",
+      "bytes": 4486,
+      "sha256": "1b1fa79de46aab78e09423763027927f3c657e2413e5ad4f078af4dabe3100ae"
+    },
+    {
+      "path": "packages/safe-bash/tests/shell/umask.test.ts",
+      "bytes": 15895,
+      "sha256": "f0765603d46b048709edd4402422e5bda0ac1b67fd1ad39d95ecea830df0f3a5"
+    }
+  ],
+  "implementation": "After caller abort check, open with omitted/never creation delegates originalargs/options immediately. ifMissing/exclusive retain existing per-path modequeries and maskednew-file mode. No DeviceFS/backend admission change.",
+  "newControls": [
+    "Four read/write/readwrite never/default opens:zero modequeries,originaloptions reference retained,existing modeunchanged.",
+    "Two actualcreating opens:capquerycreate:true,newmode0600undermask077.",
+    "Fivefalsey pre-abort reasons:null,false,0,emptystring,NaN preserveObject.is identity,noquery/noopen."
+  ],
+  "residualDisposition": [
+    "Resolvedone redirect accessdoublecall:original11fail/116now10fail/116.",
+    "Globrootstatcount remains1fail/11;no assertionweakened.",
+    "Two descriptortraffic andseven EOFlifecycle assertions remainfailures for creating/writecapqueries.",
+    "Docx mock has read/write backedbymemfsVolume/work butmetadata backedbyemptyMemoryFs; pathmodeadmission finds /workmissing. No productbugclassification orfixturechangeyet."
+  ],
+  "deviceQueryObservation": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/device-mode-query-operation-corrected-observation.json",
+    "bytes": 645,
+    "sha256": "2f4e3ca7663cb84320610134c5e0fdf9f722da74ca7c07ad34f1b8ddde796414"
+  },
+  "sourceSeparation": "Currentumask diff against peerheadc13beforethisopenfix wasonly10lines under recursive-mkdir condition. Non-mkdir residuals predate newexistingdirectory probe.",
+  "limits": [
+    "Peer/budgetcohort overlaps maintained controls;do not sum.",
+    "Originalresidual command supplied nonexistent glob-budget.test.ts; Nodeignoredthatoperand(actual116tests fromfourexistingpaths). Directglob cases11-run qualifiedseparately.",
+    "Allother tracked files frozen;noDeviceauthoritychange,sealedcapture rewrite orfixtureweakening."
+  ],
+  "canonicalTypeAdjustment": {
+    "trigger": "Maintained normal root build failed with TS2724:SafeBash contracts index does not export OpenFileOptions. Root owns failed build receipt.",
+    "fix": "Source imports existing canonical type beside registerEntryView from @poe-code/safe-fs/core; test imports it beside scopeFileSystem. No new public re-export or runtime semantics change.",
+    "finalBindings": [
+      {
+        "path": "packages/safe-bash/src/shell/umask.ts",
+        "bytes": 4486,
+        "sha256": "c674b0f5ecd707f5c7835338f85d3e164202dbf994aee0588322b5324d330fec"
+      },
+      {
+        "path": "packages/safe-bash/tests/shell/umask.test.ts",
+        "bytes": 15895,
+        "sha256": "b5cb3ae92554962b75368d216f2a8d2254fcf318b061dde781747afaeec4d3bd"
+      }
+    ],
+    "focusedRerun": {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-canonical-type-green.log",
+      "bytes": 125225,
+      "sha256": "226dcf57f3aa6a24f5550ac8e0ac4089ea9962c6c8c27951124539e2932ae361",
+      "tests": 219,
+      "pass": 219,
+      "fail": 0,
+      "skipped": 0
+    },
+    "maintainedTypecheck": {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/noncreating-open-types.log",
+      "bytes": 2203,
+      "sha256": "93fa493acf2891b3bbc55bc7879e393771e3c21da692650836326d62aeccbf6b",
+      "command": "npm run typecheck",
+      "cwd": "packages/safe-bash",
+      "exitCode": 0,
+      "sourceAndTests": 0,
+      "historicalConsumer": 0,
+      "sourceConsumerGroups": 6,
+      "artifactConsumerGroups": 26,
+      "expectedNegativeCases": 3,
+      "builds": 0,
+      "runtimeExecutions": 0
+    }
+  },
+  "integratedRootGate": {
+    "normalBuildExitCode": 0,
+    "guardedLint": {
+      "complete": true,
+      "exitCode": 0,
+      "subjects": 16407,
+      "errors": 0,
+      "warnings": 0,
+      "types": "passed",
+      "workflows": "passed"
+    },
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-root-build.log",
+        "bytes": 7073,
+        "sha256": "ccd8f1db2e65a2aa0de96d2054b4ede61e024b5222e318c0600f1384ec959075"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-root-build-canonical.log",
+        "bytes": 22255,
+        "sha256": "bce0835003aeb0d6e01dd70e009c1da5f7dfb9e4df0f7658ecf19c7f59389e69"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-stable-root-lint.log",
+        "bytes": 1747,
+        "sha256": "31fb83cbeddfee6e3a7d4acc0694058d5ab24bea357a88a77dbc99acdb463142"
+      }
+    ],
+    "historicalBuildFailure": "Original TS2724 canonical-type import failure retained; existing safe-fs/core type import corrected before successful rebuild.",
+    "qualification": "Owned source and tests frozen at full gate on44ab2f209; later incoming changes preserved by rebase, requiring containing CI."
+  },
+  "publicShellQualification": {
+    "command": ": 3<input 3<input",
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "accessChecks": 2,
+    "thirdRedirect": "ShellLimitError maxRedirects, zero backing accesses",
+    "screenshot": "Inspected readable terminal screenshot",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-visible-qa.mjs",
+        "bytes": 1107,
+        "sha256": "4cd0132d4851c00f410a0462c93720047356b469a89546f19ee3788c34fccf15"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-public.log",
+        "bytes": 913,
+        "sha256": "b48a2e502be3777f8d8b02b448ef5bb0b99f16d89513b6a406a51c8e446a956c"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-public-green.log",
+        "bytes": 230,
+        "sha256": "6a110343bcdfa3811d35c554d438ee11bf54a4a3742e522e3f8996047b9a6285"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-screenshot.log",
+        "bytes": 210,
+        "sha256": "43a24ff278e8002987d73c68b36ef80a0e0c26a7f583e0518f25ab6aabe417d6"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/noncreating-open-visible-qa.png",
+        "bytes": 113429,
+        "sha256": "7e25ecd967c4c3316352877a4bad762794662ade7f7df5bde28cf30b64ff53df"
+      }
+    ],
+    "fixtureCorrection": "Initial third-redirect control expected a returned nonzero result; public SDK correctly throws ShellLimitError. Original setup failure retained; corrected assert.rejects passes. Two-access reproduction passed in both attempts."
+  },
+  "delivery": {
+    "implementationCommit": "3be4592d195b4a714a266e66177963f4eac8da1f",
+    "remoteMainVerified": true,
+    "publication": "unverified"
+  }
+}

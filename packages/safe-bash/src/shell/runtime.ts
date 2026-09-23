@@ -6740,6 +6740,7 @@ export class Runtime {
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
+      if (!state.loopDepth) { await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`); return 0; }
       const offset = args[0] === "--" ? 1 : 0;
       const operand = args[offset];
       const count = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
@@ -6751,10 +6752,8 @@ export class Runtime {
       if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
-        if (state.loopDepth) throw completedExit(1, "break", state.loopDepth);
-        return 1;
+        throw completedExit(1, "break", state.loopDepth);
       }
-      if (!state.loopDepth) { await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`); return 0; }
       throw completedExit(0, command, Math.min(levels, state.loopDepth));
     }
     return undefined;

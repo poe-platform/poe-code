@@ -31,6 +31,26 @@ for (const command of ["exit", "return"]) {
 }
 
 for (const command of ["break", "continue"]) {
+  for (const args of ["", "1", "0", "-1", "''", "junk", "9223372036854775807", "9223372036854775808", "-9223372036854775809", "1 2", "--", "-- junk", "-- --"]) {
+    test(`${command} ignores arguments ${JSON.stringify(args)} outside loops`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${command} ${args}; say "AFTER:$?"`);
+      assert.equal(result.stdout, "AFTER:0\n");
+      assert.equal(result.stderr, `${command}: only meaningful in a loop\n`);
+      assert.equal(result.exitCode, 0);
+    });
+  }
+
+  test(`${command} outside loops does not trigger errexit for an invalid count`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`set -e; ${command} junk; say "AFTER:$?"`);
+    assert.equal(result.stdout, "AFTER:0\n");
+    assert.equal(result.stderr, `${command}: only meaningful in a loop\n`);
+    assert.equal(result.exitCode, 0);
+  });
+
   for (const count of ["2", "9007199254740992", "9223372036854775807", "+009223372036854775807", " \t9223372036854775807\n", "0".repeat(4096) + "9223372036854775807"]) {
     test(`${command} clamps valid decimal count ${count.length > 80 ? "with many leading zeroes" : JSON.stringify(count)}`, async () => {
       const { shell } = setup();

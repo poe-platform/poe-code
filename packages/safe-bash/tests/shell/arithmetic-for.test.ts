@@ -35,7 +35,8 @@ for (const control of ["break", "continue"]) {
       assert.equal(result.exitCode, 1);
       assert.equal(result.stderr, `${control}: invalid loop count\n`);
       const outside = await shell.exec(`${control} 0; say "OUTSIDE:$?"`);
-      assert.equal(outside.stdout, "OUTSIDE:1\n");
+      assert.equal(outside.stdout, "OUTSIDE:0\n");
+      assert.equal(outside.stderr, `${control}: only meaningful in a loop\n`);
       assert.equal(outside.exitCode, 0);
     } finally { await shell.dispose(); }
   });

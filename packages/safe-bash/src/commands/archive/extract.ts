@@ -3,6 +3,7 @@ import { applyPax, numberField, parseHeader, parsePax, type ReadEntry } from "./
 import { Budget, checkPath, display, fail, hasIdentity, maybeStat, operation, publish, sameIdentity, text, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
 import { Reader } from "./stream.js";
+import { TransformedNames } from "./transform.js";
 
 function relativeName(name: string, strip: number): string | undefined {
   if (name.includes("\0")) fail("NUL in member name");
@@ -115,6 +116,7 @@ function verbose(entry: ReadEntry): string {
 export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget): Promise<void> {
   const reader = new Reader(source, context.signal);
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
+  const transformedNames = new TransformedNames(context, options.transforms, budget.limits);
   const global = new Map<string, string>();
   let local = new Map<string, string>();
   let pending = false;
@@ -197,7 +199,12 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (options.mode === "t") {
-        await budget.output(options.verbose ? verbose(entry) : `${display(entry.name)}\n`);
+        const shown = options.showTransformedNames ? {
+          ...entry,
+          name: await transformedNames.apply(entry.name),
+          linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
+        } : entry;
+        await budget.output(options.verbose ? verbose(shown) : `${display(shown.name)}\n`);
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (entry.name.startsWith("/") && !warnedAbsolute) {

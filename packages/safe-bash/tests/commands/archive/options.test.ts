@@ -2,6 +2,70 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { archive, binary, fixture, member, record } from "./helpers.js";
 
+test("tar lists transformed names only when requested, selecting original names", async () => {
+  const { shell } = await fixture();
+  try {
+    const stdin = archive(member("dir/a.txt", binary), member("dir/b.bin", binary));
+    for (const [flags, expected] of [
+      ["--show-transformed-names --transform='s/dir/new/'", "new/a.txt\nnew/b.bin\n"],
+      ["--transform='s/dir/new/'", "dir/a.txt\ndir/b.bin\n"],
+      ["--show-transformed-names", "dir/a.txt\ndir/b.bin\n"],
+      ["--show-transformed-names --transform='s/dir/new/' dir/a.txt", "new/a.txt\n"],
+      ["--show-transformed-names --transform='s/dir/new/' --exclude='*.bin'", "new/a.txt\n"],
+      ["--show-transformed-names --transform='s/dir/new/' --transform='s/new/final/'", "final/a.txt\nfinal/b.bin\n"],
+    ]) {
+      const result = await shell.exec(`tar -tf - ${flags}`, { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("listing transforms support bounded BRE captures, flags, escaped delimiters and verbose links", async () => {
+  const { shell } = await fixture();
+  try {
+    const stdin = archive(member("dir/dir/a", binary), member("dir/link", new Uint8Array(), "2", "dir/dir/a"));
+    for (const [expression, expected] of [
+      ["s/dir/new/g", "new/new/a\nnew/link\n"],
+      ["s/DIR/new/i", "new/dir/a\nnew/link\n"],
+      ["s#dir/\\(.*\\)#new/\\1#", "new/dir/a\nnew/link\n"],
+      ["s#dir/(.*)#new/\\1#x", "new/dir/a\nnew/link\n"],
+      ["s/dir\\/dir/new/;s/link/&-copy/", "new/a\ndir/link-copy\n"],
+    ]) {
+      const result = await shell.exec(`tar -tf - --show-transformed-names --xform='${expression}'`, { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+    const result = await shell.exec("tar -tvf - --show-transformed-names --transform='s/dir/new/g'", { stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.includes("new/link -> new/new/a\n"));
+  } finally { await shell.dispose(); }
+});
+
+test("invalid or unsupported transforms fail without extraction effects", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    for (const expression of ["", "s/dir/new", "s/dir/new/e", "s/dir/\\1/", "s/dir/\\U&/", "s//new/", "s/[/new/"]) {
+      const result = await shell.exec(`tar -tf - --transform='${expression}'`, { stdin: archive(member("dir/a", binary)) });
+      assert.equal(result.exitCode, 2, expression);
+    }
+    const extracted = await shell.exec("tar -xf - -C /out --transform='s/dir/../'", { stdin: archive(member("dir/a", binary)) });
+    assert.equal(extracted.exitCode, 2);
+    assert.deepEqual(await fs.readdir("/out"), []);
+  } finally { await shell.dispose(); }
+});
+
+test("transformed listings enforce path and execution budgets", async () => {
+  for (const limits of [{ maxPathBytes: 16 }, { maxPatternSteps: 1 }]) {
+    const { shell } = await fixture({ limits });
+    try {
+      const result = await shell.exec("tar -tf - --show-transformed-names --transform='s/a/abcdefghijklmnopq/'", { stdin: archive(member("a", binary)) });
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("positional -C create and file-list directory changes affect subsequent operands", async () => {
   const { fs, shell } = await fixture();
   try {

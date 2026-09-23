@@ -44,6 +44,8 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --no-verbatim-files-from Enable supported file-list directory options
       --exclude=PATTERN   Exclude paths (place before source operands)
       --strip-components=NUM Remove leading components when reading archives
+      --transform=EXPR    Substitute member names when listing (s/old/new/[gix])
+      --show-transformed-names Display transformed names in archive listings
       --format=FORMAT     Create pax (default), posix or ustar archives
       --help              Display this help and exit
       --                  End options; remaining arguments are filenames

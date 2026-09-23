@@ -2495,6 +2495,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/grep-bre-literals.test.ts"));
   assert.ok(files.includes("tests/commands/grep-verification-guidance.test.ts"));
   assert.ok(files.includes("tests/commands/archive/permissions.test.ts"));
+  assert.ok(files.includes("tests/commands/archive/options.test.ts"));
   assert.ok(files.includes("tests/commands/find-printf.test.ts"));
   assert.ok(files.includes("tests/shell/filesystem-cleanup.test.ts"));
   assert.ok(files.includes("tests/commands/zip-codec.test.ts"));

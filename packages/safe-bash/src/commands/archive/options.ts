@@ -1,5 +1,6 @@
 import { collectBytes, type CommandContext } from "../../contracts/index.js";
 import { checkPath, fail, operation, smallFile, text, vfsPath, type ArchiveLimits } from "./internal.js";
+import { parseTransform, type NameTransform } from "./transform.js";
 
 export interface Operand { readonly name: string; readonly cwd: string }
 export interface TarOptions {
@@ -7,6 +8,8 @@ export interface TarOptions {
   archive: string;
   compression?: "gzip" | "bzip2" | "xz";
   verbose: boolean;
+  showTransformedNames: boolean;
+  transforms: NameTransform[];
   strip: number;
   format: "pax" | "ustar";
   cwd: string;
@@ -21,6 +24,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let compression: TarOptions["compression"];
   let autoCompress = false;
   let verbose = false;
+  let showTransformedNames = false;
+  const transforms: NameTransform[] = [];
   let strip = 0;
   let format: TarOptions["format"] = "pax";
   let cwd = context.cwd;
@@ -83,6 +88,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       compression = selected;
     } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
+    else if (flag === "show-transformed-names") showTransformedNames = true;
+    else if (flag === "transform") transforms.push(...parseTransform(value!));
     else if (flag === "f") { if (!value) fail("empty archive name"); archive = value; }
     else if (flag === "C") await directory(value!);
     else if (flag === "T") await names(value!);
@@ -99,8 +106,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "no-verbatim-files-from") verbatim = false;
     else fail(`unsupported option: ${flag}`);
   };
-  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T" };
-  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format"]);
+  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", xform: "transform" };
+  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format", "transform"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
@@ -131,6 +138,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     } else operand(argument);
   }
   if (!mode) fail("exactly one of -c, -t, -x is required");
+  if (mode !== "t" && transforms.length) fail("--transform is currently supported only when listing archives");
   if (mode !== "c" && archive === "-" && stdinUsed) fail("archive and file list cannot both use standard input");
   if (mode === "c" && strip !== 0) fail("--strip-components is only supported when reading archives");
   if (mode === "c" && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
@@ -141,7 +149,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, strip, format, cwd, operands, excludes };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

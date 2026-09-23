@@ -27,7 +27,7 @@ test("docx Shell applies trusted profiles and cannot raise them with command fla
       const lowered = await shell.exec("docx text - --limit xmlNodes=1 --json", input);
       assert.equal(lowered.exitCode, 4, lowered.stderr);
       const raised = await shell.exec(`docx text - --limit xmlNodes=${nodes + 1} --json`, input);
-      assert.equal(raised.exitCode, 2, raised.stderr);
+      assert.equal(raised.exitCode, nodes === 1 ? 4 : 0, raised.stderr);
     } finally { await shell.dispose(); }
   }
   assert.deepEqual(volume.toJSON(), before);

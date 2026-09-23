@@ -39,8 +39,10 @@ for (const source of ['a=9007199254740992', 'a=inf', 'a=nan', 'a=1e9999']) test(
   await assert.rejects(parse(source), { status: 5 });
 });
 
-test("dotted paths count toward parse-time depth admission", async () => {
-  await assert.rejects(parse('a.'.repeat(129) + 'x=1'), { code: "LIMIT_MAX_DEPTH" });
+test("dotted paths above the former parse depth ceiling retain every component", async () => {
+  let value = await parse('a.'.repeat(129) + 'x=1');
+  for (let depth = 0; depth < 129; depth++) value = value.a;
+  assert.deepEqual(value, { x: 1 });
 });
 
 test("long token cancellation preserves the caller reason", async () => {

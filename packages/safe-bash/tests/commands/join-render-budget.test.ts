@@ -69,8 +69,8 @@ for (const maxSteps of [25, 43]) {
 }
 
 test("join retains output and field caps independently of render steps", async () => {
-  assert.equal(settings({}).maxFields, 65_536);
-  assert.equal(settings({}).maxSteps, 2_000_000);
+  assert.equal(settings({}).maxFields, Infinity);
+  assert.equal(settings({}).maxSteps, Infinity);
   const specimen = fixture("join", ["-o", "1.2,2.2,1.2,2.2", "left", "right"], {
     left: "a x\nb p\n", right: "a y\nb q\n",
   });

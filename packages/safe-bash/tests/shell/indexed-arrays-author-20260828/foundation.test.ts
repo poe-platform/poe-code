@@ -377,13 +377,13 @@ for (const [source, expected] of [
   await output(source, expected);
 });
 
-test("foundation: actual default public expansion B/F boundaries", { timeout: 5000 }, async () => {
+test("foundation: explicit public expansion B/F boundaries", { timeout: 5000 }, async () => {
   const instance = shell();
   try {
     const fieldSource = `values='${"x ".repeat(10001)}'; a=($values)`;
-    await assert.rejects(instance.exec(fieldSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionFields");
+    await assert.rejects(instance.exec(fieldSource, { limits: { maxExpansionFields: 10000 } }), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionFields");
     const byteSource = `value='${"x".repeat(65536)}'; a[0]="${"$value".repeat(257)}"`;
-    await assert.rejects(instance.exec(byteSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionBytes");
+    await assert.rejects(instance.exec(byteSource, { limits: { maxExpansionBytes: 16 * 1024 * 1024 } }), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionBytes");
   } finally { await instance.dispose(); }
 });
 

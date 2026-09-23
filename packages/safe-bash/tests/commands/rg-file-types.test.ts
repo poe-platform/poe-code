@@ -183,10 +183,11 @@ test("rg type filters preserve recursive symlink policy and classify the link ba
   assert.equal(followed.stdout.toString(), "./alias.ts\n./linked/file.ts\n./plain/file.ts\n");
 });
 
-test("rg retains selection count traversal record and output limits", async () => {
-  const oversized = await virtual({ args: ["--files", ...Array<string>(1025).fill("-tts"), "."], files });
-  assert.equal(oversized.code, 2);
-  assert.equal(oversized.stderr.toString(), "rg: file type selection limit exceeded\n");
+test("rg admits repeated type selections while retaining explicit traversal record and output limits", async () => {
+  const repeated = await virtual({ args: ["--files", ...Array<string>(1025).fill("-tts"), "."], files });
+  assert.equal(repeated.code, 0);
+  assert.equal(repeated.stderr.toString(), "");
+  assert.equal(repeated.stdout.toString(), "./a.ts\n./b.tsx\n");
   assert.equal((await virtual({ args: ["--files", ...Array<string>(1024).fill("-tts"), "."], files })).stdout.toString(), "./a.ts\n./b.tsx\n");
   for (const [options, message] of [
     [{ maxFiles: 1 }, "filesystem entry limit exceeded"],

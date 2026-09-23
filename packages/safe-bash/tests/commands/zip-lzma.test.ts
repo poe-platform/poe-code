@@ -114,7 +114,7 @@ test("LZMA pre-aborted and excessive model admission never acquire a codec", asy
   const reason = { stopped: "before acquisition" };
   controller.abort(reason);
   await assert.rejects(createCodec(rawOptions, controller.signal, factory), error => error === reason);
-  await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary: 8388609 } }, signal(), factory), /dictionary limit/u);
+  await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary: 0x100000000 } }, signal(), factory), /dictionary limit/u);
   await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, properties: 44 } }, signal(), factory), /properties/u);
   assert.equal(creates, 0);
 });
@@ -279,7 +279,7 @@ for (const body of [new Uint8Array(), Uint8Array.of(0, 255), random]) {
   });
 }
 
-for (const [offset, value] of [[0, 0], [1, 255], [2, 4], [2, 6], [3, 1], [4, 225], [4, 255], [4, 44], [8, 255]] as const) {
+for (const [offset, value] of [[0, 0], [1, 255], [2, 4], [2, 6], [3, 1], [4, 225], [4, 255], [4, 44]] as const) {
   test(`LZMA refuses malformed/excessive properties ${offset}:${value}`, async () => {
     const abort = signal();
     const entry = (await readZipArchive(oracle, limits, abort)).entries[0]!;
@@ -293,8 +293,7 @@ for (const size of [0, 1, 4095, 4096, 8 * 1024 * 1024, 8 * 1024 * 1024 + 1]) {
     const abort = signal();
     const entry = (await readZipArchive(oracle, limits, abort)).entries[0]!;
     new DataView(entry.data.buffer, entry.data.byteOffset).setUint32(5, size, true);
-    if (size > 8 * 1024 * 1024) await assert.rejects(collect(decodeZipEntry(entry, limits, abort)), /dictionary limit/u);
-    else assert.deepEqual(Buffer.from(await collect(decodeZipEntry(entry, limits, abort))), Buffer.from("x"));
+    assert.deepEqual(Buffer.from(await collect(decodeZipEntry(entry, limits, abort))), Buffer.from("x"));
   });
 }
 

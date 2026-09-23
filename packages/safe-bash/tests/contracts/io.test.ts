@@ -33,9 +33,10 @@ test("collectors enforce explicit byte limits and close overflowing sources", as
   })();
   await assert.rejects(collectBytes(source, { maxBytes: 2 }), (error) => isFsError(error, "EFBIG"));
   assert.equal(finalized, true);
-  for (const maxBytes of [-1, 0.5, Infinity, NaN]) {
+  for (const maxBytes of [-1, 0.5, NaN]) {
     await assert.rejects(collectBytes(toByteSource(""), { maxBytes }), RangeError);
   }
+  assert.deepEqual(await collectBytes(toByteSource("abc"), { maxBytes: Infinity }), new TextEncoder().encode("abc"));
 });
 
 test("collectors copy reused buffers and decode UTF-8 split across chunks", async () => {

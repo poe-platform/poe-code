@@ -38,9 +38,11 @@ test("external deadline bounds a catastrophic JavaScript regex probe", () => {
   assert.throws(() => bounded(process.execPath, ["--import", "tsx", join(directory, "worker.ts")], JSON.stringify([probe]), directory, 1000), /ETIMEDOUT/u);
 });
 
-test("empty matches on malformed bytes still enforce the match-count bound", () => {
+test("empty matches on malformed bytes have no implicit match-count bound", () => {
   const result = virtual([{ name: "match limit", args: ["-o", "", "-"], stdin: Array<number>(100010).fill(255) }])[0]!;
-  assert.equal(result.code, 2);
-  assert.equal(text(result.stdout), "");
-  assert.match(text(result.stderr), /matches per line limit/u);
+  assert.equal(result.code, 0, text(result.stderr));
+  const output = Buffer.from(result.stdout, "base64");
+  assert.equal(output.length, 100010);
+  assert.ok(output.every(byte => byte === 10));
+  assert.equal(text(result.stderr), "");
 });

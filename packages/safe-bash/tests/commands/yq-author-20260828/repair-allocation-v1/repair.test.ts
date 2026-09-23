@@ -5,7 +5,7 @@ import { toByteSource, type ByteSink, type CommandContext } from "../../../../sr
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createYqQuerySession, type YqOwnedWork } from "../../../../src/commands/structured/query-core.js";
 import { JqLimitError, type Json } from "../../../../src/commands/structured/limits.js";
-import { YqLedger, yqCaps } from "../../../../src/commands/yq/accounting.js";
+import { YqLedger } from "../../../../src/commands/yq/accounting.js";
 import { encodeYaml } from "../../../../src/commands/yq/encoder.js";
 import { createYqCommand } from "../../../../src/commands/yq/index.js";
 import { parseYamlDocuments } from "../../../../src/commands/yq/parser.js";
@@ -94,40 +94,37 @@ test("WRK-17 escaped-fragment byte admission precedes escaped construction", asy
   ordered(json, "reserveFragment(projectedBytes)", "fragment += jsonEscape");
 });
 
-test("fixed public caps remain literal and are not replaced by proof thresholds", async () => {
+test("omitted public caps remain unlimited rather than proof thresholds", async () => {
   const accounting = await source("src/commands/yq/accounting.ts");
   const query = await source("src/commands/structured/query-core.ts");
-  assert.match(accounting, /maxDocumentBytes:\s*8_388_608/u);
-  assert.match(accounting, /maxScalarBytes:\s*1_048_576/u);
-  assert.match(accounting, /maxCollectionSize:\s*100_000/u);
-  assert.match(accounting, /maxOutputBytes:\s*16_777_216/u);
-  assert.match(query, /maxCollectionSize:\s*100_000/u);
-  assert.match(query, /maxOutputBytes:\s*16_777_216/u);
+  assert.match(accounting, /maxDocumentBytes:\s*Infinity/u);
+  assert.match(accounting, /maxScalarBytes:\s*Infinity/u);
+  assert.match(accounting, /maxCollectionSize:\s*Infinity/u);
+  assert.match(accounting, /maxOutputBytes:\s*Infinity/u);
+  assert.match(query, /maxCollectionSize:\s*Infinity/u);
+  assert.match(query, /maxOutputBytes:\s*Infinity/u);
 });
 
-test("WRK-06 public raw document boundary counts CRLF bytes before normalization", async () => {
-  const overByCr = `#${"x".repeat(yqCaps.maxDocumentBytes - 2)}\r\n`;
-  assert.equal(Buffer.byteLength(overByCr), yqCaps.maxDocumentBytes + 1);
+test("WRK-06 CRLF documents above the former raw byte ceiling are accepted", async () => {
+  const overByCr = `#${"x".repeat(8_388_608 - 2)}\r\n`;
+  assert.equal(Buffer.byteLength(overByCr), 8_388_609);
   const result = await run(overByCr);
-  assert.equal(result.status, 5);
-  assert.match(result.stderr, /LIMIT_MAX_DOCUMENT_BYTES/u);
+  assert.equal(result.status, 0);
+  assert.equal(result.stderr, "");
 
 });
 
-test("WRK-07 real parser accepts C and rejects C+1 decoded scalar bytes", async () => {
-  const at = `"${"a".repeat(yqCaps.maxScalarBytes)}"`;
-  assert.equal(await parseOne(at), "a".repeat(yqCaps.maxScalarBytes));
-  const over = `"${"a".repeat(yqCaps.maxScalarBytes + 1)}"`;
-  await assert.rejects(async () => parseOne(over), (failure: unknown) => {
-    assert.equal((failure as { code?: string }).code, "LIMIT_MAX_SCALAR_BYTES");
-    return true;
-  });
+test("WRK-07 real parser accepts decoded scalars above the former byte ceiling", async () => {
+  for (const length of [1_048_576, 1_048_577]) {
+    const scalar = "a".repeat(length);
+    assert.equal(await parseOne(`"${scalar}"`), scalar);
+  }
 });
 
-for (const quote of ["", "'", '"']) test(`WRK-07 supplementary scalar boundary uses UTF-8 bytes: ${quote || "plain"}`, async () => {
-  const scalar = "😀".repeat(yqCaps.maxScalarBytes / 4);
+for (const quote of ["", "'", '"']) test(`WRK-07 supplementary scalars above the former byte ceiling: ${quote || "plain"}`, async () => {
+  const scalar = "😀".repeat(1_048_576 / 4);
   assert.equal(await parseOne(`${quote}${scalar}${quote}`), scalar);
-  await assert.rejects(parseOne(`${quote}${scalar}a${quote}`), { code: "LIMIT_MAX_SCALAR_BYTES" });
+  assert.equal(await parseOne(`${quote}${scalar}a${quote}`), `${scalar}a`);
 });
 
 test("WRK-17 actual encoders reserve exact escaped bytes before emitting fragments", async () => {

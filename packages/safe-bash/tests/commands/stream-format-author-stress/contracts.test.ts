@@ -49,7 +49,8 @@ test("collision preflight does not partially register; replacement is intentiona
 });
 
 test("limits reject invalid typed values rather than treating them as unlimited", () => {
-  for (const maxInputBytes of [0, -1, NaN, Infinity, 1.5]) assert.throws(() => createStreamFormatCommands({ limits: { maxInputBytes } }), RangeError);
+  for (const maxInputBytes of [0, -1, NaN, 1.5]) assert.throws(() => createStreamFormatCommands({ limits: { maxInputBytes } }), RangeError);
+  assert.doesNotThrow(() => createStreamFormatCommands({ limits: { maxInputBytes: Infinity } }));
 });
 
 for (const name of ["seq", "nl", "rev", "unexpand"]) {

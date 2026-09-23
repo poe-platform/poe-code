@@ -214,19 +214,22 @@ export class Budget {
   }
 
   allocateString(value: string): string {
+    this.allocateStringLength(value.length);
+    return value;
+  }
+
+  allocateStringLength(length: number): void {
     if (
       this.accounting.allChecksSuspended === 0 &&
       this.accounting.limits.stringLength !== undefined &&
-      value.length > this.accounting.limits.stringLength
+      length > this.accounting.limits.stringLength
     ) {
       throw new SandboxError({
         budget: "stringLength",
-        current: value.length,
+        current: length,
         limit: this.accounting.limits.stringLength
       });
     }
-
-    return value;
   }
 
   allocateArrayLength(length: number): void {

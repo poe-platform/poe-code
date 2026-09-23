@@ -286,7 +286,7 @@ async function stringifyValue(
   }
 
   if (typeof value === "string") {
-    return quoteJsonString(value);
+    return quoteJsonString(value, state.budget);
   }
 
   if (typeof value === "number") {
@@ -373,7 +373,7 @@ async function stringifyObject(
     for (const key of keys) {
       const serialized = await stringifyProperty(key, value, state, nextIndent);
       if (serialized !== undefined) {
-        entries.push(`${quoteJsonString(key)}:${state.gap === "" ? "" : " "}${serialized}`);
+        entries.push(`${quoteJsonString(key, state.budget)}:${state.gap === "" ? "" : " "}${serialized}`);
       }
     }
 
@@ -437,8 +437,35 @@ function normalizeStringifyGap(indent: SandboxValue): string {
   return "";
 }
 
-function quoteJsonString(value: string): string {
-  return JSON.stringify(value);
+function quoteJsonString(value: string, budget: Budget): string {
+  let length = 2;
+  budget.allocateStringLength(length);
+  for (let index = 0; index < value.length; index++) {
+    budget.visitNode();
+    const code = value.charCodeAt(index);
+    if (code === 0x22 || code === 0x5c || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) {
+      length += 2;
+    } else if (code < 0x20) {
+      length += 6;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(index + 1);
+      if (next >= 0xdc00 && next <= 0xdfff) {
+        budget.visitNode();
+        index++;
+        length += 2;
+      } else length += 6;
+    } else if (code >= 0xdc00 && code <= 0xdfff) {
+      length += 6;
+    } else length++;
+    budget.allocateStringLength(length);
+  }
+  // Reserve the escaped output while native quoting allocates it.
+  const release = budget.provisionDataUsage(length);
+  try {
+    return JSON.stringify(value);
+  } finally {
+    release();
+  }
 }
 
 function isStringifyContainer(value: unknown): value is SandboxArray | SandboxObject {

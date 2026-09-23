@@ -261,6 +261,9 @@ export class Evaluator {
       }
       return [index < node.items.length ? this.child(node.items[index] as Node, base, node, index) : this.child(scalar(this.yaml, this.work, null), base)];
     }
+    if (this.yaml.isScalar(node) && node.value == null && (typeof key === "number" || typeof key === "bigint") && key < 0) {
+      throw new MikeError(`index [${String(key)}] out of range, array size is 0`);
+    }
     return !omitMissing && this.yaml.isScalar(node) && node.value == null ? [this.child(scalar(this.yaml, this.work, null), base)] : [];
   }
 

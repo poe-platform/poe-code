@@ -282,7 +282,7 @@ export function createObjectArrayGlobals(options: {
           sandbox: true,
           call: async ([prototype, descriptors], context) => {
             if (prototype !== null) objectProperties(prototype);
-            const value = Object.create(null) as SandboxObject;
+            const value = createIntrinsicObject();
             setSandboxPrototype(value, prototype as object | null, options.budget);
             if (descriptors !== undefined) {
               await definePropertiesFromObject(value, descriptors, options.budget, context);

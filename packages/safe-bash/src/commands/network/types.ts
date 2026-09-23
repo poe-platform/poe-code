@@ -5,6 +5,9 @@ export type HttpHeaders = readonly (readonly [string, string])[];
 export interface HttpRequest {
   /** Explicit VFS PEM trust for this request; replaces transport-default CAs. */
   readonly ca?: Uint8Array;
+  readonly httpVersion?: "1.0" | "1.1";
+  /** Read until EOF rather than using Content-Length; host transport must opt in. */
+  readonly ignoreContentLength?: true;
   readonly url: string;
   readonly method: string;
   readonly headers: HttpHeaders;
@@ -33,6 +36,8 @@ export interface HttpResponse {
 
 export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & {
   readonly supportsRequestCa?: true;
+  readonly supportedHttpVersions?: readonly ("1.0" | "1.1")[];
+  readonly supportsIgnoreContentLength?: true;
   readonly supportsPrivateNetworkDeny?: true;
   readonly supportsConnectTimeout?: true;
 };

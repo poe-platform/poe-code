@@ -4,7 +4,8 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { collectBytes, createOutputOperation, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
-import { parseArguments, type CurlArguments } from "./args.js";
+import type { CurlArguments } from "./args.js";
+import { parseCurlInput } from "./input.js";
 import { createBody, queryData } from "./body.js";
 import { decodeContent } from "./decode.js";
 import { dumpHeaders, responseHeaders, writeOutput, writeOutFormat } from "./output.js";
@@ -97,7 +98,7 @@ export function createCurlCommand(options: NetworkCommandsOptions): CommandDefin
     name: "curl",
     help: "Usage: curl [HTTP(S) URL] [-X METHOD] [-H HEADER] [-d DATA] [-L] [-o VFSFILE]\nExplicit host authorization is required. See network/README.md for supported flags and limits.\n",
     version: "virtual-bash curl 0.0 (HTTP HTTPS; Node streaming transport)\n",
-    parse: (context, limits) => parseArguments(context.args, limits),
+    parse: parseCurlInput,
     status: code => code,
   });
 }
@@ -126,6 +127,12 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
         }
         if (args.caFile !== undefined && transport.supportsRequestCa !== true) {
           throw new CurlError(2, "Transport cannot enforce request CA trust");
+        }
+        if (args.httpVersion !== undefined && !transport.supportedHttpVersions?.includes(args.httpVersion)) {
+          throw new CurlError(2, "Transport cannot enforce requested HTTP version");
+        }
+        if (args.ignoreContentLength && transport.supportsIgnoreContentLength !== true) {
+          throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
         }
         for (const url of args.urls) parseUrl(url, args.globoff);
         if (!args.download && args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
@@ -213,6 +220,22 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
     const parsed = parseUrl(input, args.globoff);
     const initial = parsed.url;
+    if (args.query?.length) {
+      const queryArgs = { ...args, data: args.query };
+      delete queryArgs.upload;
+      const queryBody = createBody({ ...context, stdin: borrowed }, queryArgs, limits)!;
+      const encoded = await queryData(queryBody, signal, limits);
+      let query = "";
+      for (let index = 0; index < encoded.length; index++) {
+        const character = encoded[index]!;
+        if (character.charCodeAt(0) < 33 || character.charCodeAt(0) > 126) throw new CurlError(3, "Query data must be URL encoded");
+        if (character === "%" && index + 2 < encoded.length &&
+            "0123456789abcdefABCDEF".includes(encoded[index + 1]!) && "0123456789abcdefABCDEF".includes(encoded[index + 2]!)) {
+          query += encoded.slice(index, index + 3).toLowerCase(); index += 2;
+        } else query += character;
+      }
+      initial.search += `${initial.search ? "&" : "?"}${query}`;
+    }
     let body = createBody({ ...context, stdin: borrowed }, args, limits);
     if (args.get && body) {
       const query = await queryData(body, signal, limits);
@@ -276,6 +299,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         try {
         response = await operation.acquire(async () => {
           const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
+            ...(args.httpVersion === undefined ? {} : { httpVersion: args.httpVersion }),
+            ...(args.ignoreContentLength ? { ignoreContentLength: true as const } : {}),
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
             ...(ca === undefined ? {} : { ca }),
             ...(args.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: args.connectTimeoutMs }) });
@@ -354,7 +379,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       let published = 0;
       if (!args.download?.spider && (!suppressBody || included.length)) {
         if (args.download && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });
-        const length = header(response.headers, "content-length");
+        const length = args.ignoreContentLength ? undefined : header(response.headers, "content-length");
         if (!args.head && !suppressBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
         const final = response;
         const encoding = header(final.headers, "content-encoding");

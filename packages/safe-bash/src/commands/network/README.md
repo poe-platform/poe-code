@@ -62,6 +62,30 @@ them again or compare decoded bytes with encoded Content-Length. Hosts that
 preserve encoded bytes can use `createFetchTransport({ contentDecoded: false })`.
 Custom transports that decode content must return `contentDecoded: true`.
 
+Curl accepts `--http1.0`/`--http1.1` only when the transport declares that version
+in `supportedHttpVersions`, and forwards `httpVersion` on every request. Node
+supports HTTP/1.1; Fetch cannot enforce a version. `--ignore-content-length`
+requires `supportsIgnoreContentLength: true` and forwards `ignoreContentLength`
+to the host, which must read until EOF. This skips length-based checks while
+retaining actual download byte limits. Node and Fetch do not offer that capability;
+unsupported requirements fail before authorization or network access.
+
+`--url-query` uses curl's data-urlencode syntax (including VFS `name@file`),
+appends to an existing query, and keeps the request method unchanged. A leading
+`+` supplies an already encoded literal query. Supported boolean options accept
+their `--no-` form, with the last occurrence determining their value.
+`-K/--config` reads an explicit VFS file or `-` for stdin, in argument order;
+line options support whitespace, `=`/`:` separators and double-quoted escapes.
+Nested config reads share the input byte limit and stop after 16 levels.
+`--variable name=value` and `name@file` define invocation-local variables;
+`%name` imports only that named shell environment value, with optional `=value`
+or `@file` fallback. `--expand-<value-option>` substitutes `{{name}}` and supports
+`trim`, `json`, `url` and `b64` functions. Undefined expansion variables are empty.
+File variables preserve bytes; binary values require `url` or `b64` before string
+expansion. Byte ranges and other expansion functions are unsupported. Input,
+transformations and expanded arguments stay within host buffer limits. No ambient
+host config or environment credentials are loaded.
+
 `createOriginAuthorizer(allowlist?)` accepts exact origins (scheme, host, and
 port) or hostnames. Its omitted/default allowlist is `"*"`, which deliberately
 allows every HTTP(S) destination. Use an explicit list whenever scripts can see

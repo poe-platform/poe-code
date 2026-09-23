@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { gzipSync, deflateSync } from "node:zlib";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { toByteSource } from "../../../src/contracts/index.js";
+import type { HttpTransport } from "../../../src/commands/network/index.js";
 import { createFetchTransport, networkCommands } from "../../../src/commands/network/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -10,6 +14,121 @@ let host: TestServer;
 let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
+
+test("curl negated flags restore GET, body and redirect behavior", async () => {
+  const result = await run(["-sS", "-fILG", "--no-fail", "--no-head", "--no-location", "--no-get", `${host.origin}/fail`]);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "teapot\n");
+});
+
+test("curl url-query encodes values and VFS bytes without making a POST", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/query", Buffer.from("a &b\n"));
+  const result = await run(["-sS", "--url-query", "name=a &b", "--url-query", "file@/query", "--url-query", "+raw=a%2Fb", `${host.origin}/echo?existing=1`], { fs });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(host.requests.at(-1)!.method, "GET");
+  const native = await promisify(execFile)("/usr/bin/curl", ["-q", "-sS", "--noproxy", "*", "--url-query", "name=a &b", "--url-query", "file=a &b\n", "--url-query", "+raw=a%2Fb", `${host.origin}/echo?existing=1`]);
+  assert.deepEqual(result.stdout, Buffer.from(native.stdout));
+});
+
+test("curl explicit config and variables expand in argument order through the VFS", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/config", Buffer.from('# owned virtual config\nuser-agent = "SYNTHETIC"\nvariable = "audit=first"\nexpand-data = "{{audit}}"\n'));
+  const result = await run(["-sS", "-K/config", "--variable", "audit=second", "--expand-data", "{{audit}}", `${host.origin}/echo`], { fs });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(host.requests.at(-1)!.body.toString(), "first&second");
+  assert.equal(host.requests.at(-1)!.headers["user-agent"], "SYNTHETIC");
+});
+
+test("curl http1.1 is enforced by the Node transport", async () => {
+  const result = await run(["-sS", "--http1.1", `${host.origin}/echo`]);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+});
+
+test("curl refuses transport requirements before authorization when the host lacks them", async () => {
+  for (const option of ["--http1.0", "--ignore-content-length"]) {
+    let authorized = false;
+    const result = await run(["-sS", option, `${host.origin}/echo`], { options: { authorize() { authorized = true; return true; } } });
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr.toString(), /Transport cannot enforce/);
+    assert.equal(authorized, false);
+  }
+});
+
+test("curl forwards HTTP version and EOF requirements to an explicitly capable host", async () => {
+  const transport: HttpTransport = Object.assign(async (request: Parameters<HttpTransport>[0]) => {
+    assert.equal(request.httpVersion, "1.0");
+    assert.equal(request.ignoreContentLength, true);
+    return { status: 200, statusText: "OK", headers: [["content-length", "999"]] as [string, string][], body: toByteSource("actual EOF"), async dispose() {} };
+  }, { supportedHttpVersions: ["1.0"] as const, supportsIgnoreContentLength: true as const });
+  const result = await run(["--http1.0", "--ignore-content-length", "--max-filesize", "20", host.origin], { options: { transport } });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "actual EOF");
+  const limited = await run(["--http1.0", "--ignore-content-length", "--max-filesize", "3", host.origin], { options: { transport } });
+  assert.equal(limited.exitCode, 63, "ignoring length must retain byte quotas");
+});
+
+test("curl variable transformations agree with native curl", async () => {
+  const args = ["-sS", "--variable", "audit= a &b ", "--expand-data", "{{audit:trim:url}}/{{audit:b64}}/{{missing}}", `${host.origin}/echo`];
+  const actual = await run(args);
+  const native = await promisify(execFile)("/usr/bin/curl", ["-q", "--noproxy", "*", ...args]);
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  assert.deepEqual(actual.stdout, Buffer.from(native.stdout));
+});
+
+test("curl variable files preserve binary bytes for base64 expansion", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/variable", Buffer.from([0, 255, 128, 65]));
+  const actual = await run(["--variable", "audit@/variable", "--expand-data", "{{audit:b64}}", `${host.origin}/echo`], { fs });
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  assert.equal(host.requests.at(-1)!.body.toString(), "AP+AQQ==");
+});
+
+test("curl nested config preserves ordering and consumes option-like data literally", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/outer", Buffer.from('config inner\nheader = "X-Test: outer"\n'));
+  await fs.writeFile("/work/inner", Buffer.from('header: "X-Test: inner"\ndata = "--config"\n'));
+  const actual = await run(["-sSK", "outer", `${host.origin}/echo`], { fs });
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  assert.equal(host.requests.at(-1)!.body.toString(), "--config");
+  assert.equal(host.requests.at(-1)!.headers["x-test"], "inner, outer");
+});
+
+test("curl reads explicit stdin config and imports only requested shell environment variables", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { AUDIT: "SYNTHETIC" } }).use(networkCommands({ authorize: () => true }));
+  try {
+    const actual = await shell.exec(`curl -sS --variable %AUDIT --expand-data '{{AUDIT}}' ${host.origin}/echo`);
+    assert.equal(actual.exitCode, 0, actual.stderr);
+    assert.equal(host.requests.at(-1)!.body.toString(), "SYNTHETIC");
+  } finally { await shell.dispose(); }
+  const config = await run(["-sS", "--config", "-", `${host.origin}/echo`], { stdin: 'data = "stdin\\nconfig"\n' });
+  assert.equal(config.exitCode, 0, config.stderr.toString());
+  assert.equal(host.requests.at(-1)!.body.toString(), "stdin\nconfig");
+});
+
+test("curl bounds recursive config, expansion and virtual input before network dispatch", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/loop", Buffer.from("config /loop\n"));
+  await fs.writeFile("/large", Buffer.alloc(1024, 65));
+  for (const args of [
+    ["--config", "/loop"], ["--config", "/large"], ["--variable", "x@/large"],
+    ["--variable", "x=abcdefghij", "--expand-data", "{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}{{x}}"],
+    ["--variable", "%UNDEFINED"], ["--variable", "bad-name=value"], ["--expand-data", "{{x:unsupported}}"],
+  ]) {
+    let authorized = false;
+    const actual = await run([...args, host.origin], { fs, options: { limits: { maxBufferBytes: 128 }, authorize() { authorized = true; return true; } } });
+    assert.notEqual(actual.exitCode, 0, args.join(" "));
+    assert.equal(authorized, false);
+  }
+});
+
+test("curl boolean option lookup rejects inherited object names", async () => {
+  for (const option of ["--constructor", "--toString", "--no-constructor"]) {
+    const actual = await run([option, `${host.origin}/echo`]);
+    assert.equal(actual.exitCode, 2, option);
+  }
+});
 
 for (const status of [301, 302, 303, 307, 308]) {
   for (const method of [undefined, "POST", "PUT", "PATCH"]) {

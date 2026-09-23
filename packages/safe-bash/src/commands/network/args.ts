@@ -8,6 +8,9 @@ export interface DataArgument {
 
 export interface CurlArguments {
   caFile?: string;
+  query?: DataArgument[];
+  httpVersion?: "1.0" | "1.1";
+  ignoreContentLength?: boolean;
   agent?: string;
   retryTransport?: boolean;
   directoryIndex?: string;
@@ -47,17 +50,24 @@ export interface CurlArguments {
   maxFileSize: number;
 }
 
-const values: Readonly<Record<string, string>> = {
+export const values: Readonly<Record<string, string>> = {
   X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
   o: "output", D: "dump-header", w: "write-out", T: "upload-file", m: "max-time", F: "form", r: "range",
 };
-const flags: Readonly<Record<string, string>> = {
+export const flags: Readonly<Record<string, string>> = {
   L: "location", I: "head", i: "include", f: "fail", s: "silent", S: "show-error",
   G: "get", O: "remote-name", v: "verbose", q: "disable", N: "no-buffer", g: "globoff",
   h: "help", V: "version",
 };
-const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode",
+export const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode", "url-query",
   "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir", "cacert"]);
+
+const booleans: Readonly<Record<string, keyof CurlArguments>> = {
+  location: "location", head: "head", include: "include", "show-headers": "include", get: "get",
+  "remote-name": "remoteName", fail: "fail", "fail-with-body": "failWithBody", silent: "silent",
+  "show-error": "showError", verbose: "verbose", globoff: "globoff", compressed: "compressed", raw: "raw",
+  "ignore-content-length": "ignoreContentLength",
+};
 
 function number(value: string, integral = false): number {
   if (!(integral ? /^\d+$/ : /^\d+(?:\.\d+)?$/).test(value)) throw new CurlError(2, "Invalid numeric option");
@@ -92,8 +102,18 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
     maxTimeMs: limits.maxTimeMs, maxRedirects: limits.maxRedirects, maxFileSize: limits.maxDownloadBytes,
   };
   const apply = (option: string, value?: string): void => {
+    const positive = option.startsWith("no-") ? option.slice(3) : option;
+    const property = Object.hasOwn(booleans, positive) ? booleans[positive] : undefined;
+    if (property) {
+      Object.assign(result, { [property]: !option.startsWith("no-") });
+      if (property === "remoteName" && result.remoteName) delete result.output;
+      return;
+    }
     switch (option) {
       case "cacert": result.caFile = value!; break;
+      case "http1.0": result.httpVersion = "1.0"; break;
+      case "http1.1": result.httpVersion = "1.1"; break;
+      case "url-query": (result.query ??= []).push({ kind: value!.startsWith("+") ? "raw" : "urlencode", value: value!.startsWith("+") ? value!.slice(1) : value! }); break;
       case "request":
         if (!value || !/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(value) || ["CONNECT", "TRACE"].includes(value.toUpperCase())) {
           throw new CurlError(2, "Invalid or unsupported HTTP method");
@@ -117,7 +137,6 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "json": case "form": case "form-string": result.data.push({ kind: option, value: value! }); break;
       case "output": result.output = value!; result.remoteName = false; break;
       case "output-dir": result.outputDirectory = value!; break;
-      case "remote-name": result.remoteName = true; delete result.output; break;
       case "dump-header": result.dumpHeader = value!; break;
       case "write-out": result.writeOut = value!; break;
       case "upload-file": result.upload = value!; break;
@@ -137,22 +156,8 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "max-redirs": result.maxRedirects = Math.min(number(value!, true), limits.maxRedirects); break;
       case "retry": result.retries = Math.min(number(value!, true), limits.maxRetries); break;
       case "retry-delay": result.retryDelayMs = Math.min(number(value!) * 1000, limits.maxTimeMs); break;
-      case "location": result.location = true; break;
-      case "head": result.head = true; break;
-      case "include": case "show-headers": result.include = true; break;
-      case "get": result.get = true; break;
-      case "fail": result.fail = true; break;
-      case "fail-with-body": result.failWithBody = true; break;
-      case "silent": result.silent = true; break;
-      case "show-error": result.showError = true; break;
-      case "verbose": result.verbose = true; break;
-      case "globoff": result.globoff = true; break;
       case "help": result.help = true; break;
       case "version": result.version = true; break;
-      case "compressed": result.compressed = true; break;
-      case "no-compressed": result.compressed = false; break;
-      case "raw": result.raw = true; break;
-      case "no-raw": result.raw = false; break;
       case "disable": case "no-buffer": case "no-progress-meter": case "basic": break;
       default: throw new CurlError(2, "Unsupported curl option");
     }

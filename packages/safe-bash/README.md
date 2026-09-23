@@ -532,6 +532,10 @@ honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
 `curl --cacert VFSFILE` reads a bounded PEM CA bundle from the virtual filesystem
 and scopes its trust to that transfer, retaining certificate and hostname
 verification. The Node transport supports it; Fetch rejects custom CA trust.
+Explicit `-K/--config` files come from the VFS. Curl also supports `--url-query`,
+negated boolean flags and `--variable`/`--expand-*` value options. HTTP version
+selection and ignored Content-Length require explicit transport capabilities;
+Node supports `--http1.1`. See the [network options](src/commands/network/README.md).
 Following curl 8.5/8.10, `--data-urlencode name@file` sends no field when the
 file is empty; use `--data-urlencode name=` to send an explicit empty value.
 Repeated curl data options use curl 8.10.1 joining semantics: `&` is added only

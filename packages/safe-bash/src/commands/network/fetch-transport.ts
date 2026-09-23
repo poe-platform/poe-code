@@ -29,6 +29,8 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
   return async input => {
     input.signal.throwIfAborted();
     if (input.ca !== undefined) throw new CurlError(2, "Fetch transport cannot enforce request CA trust");
+    if (input.httpVersion !== undefined) throw new CurlError(2, "Transport cannot enforce requested HTTP version");
+    if (input.ignoreContentLength) throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
     const url = new URL(input.url);
     if (url.protocol !== "http:" && url.protocol !== "https:") throw new CurlError(1, "Unsupported protocol");
     if (input.denyPrivateNetworks === true) throw new CurlError(7, "Fetch transport cannot enforce private-network denial");

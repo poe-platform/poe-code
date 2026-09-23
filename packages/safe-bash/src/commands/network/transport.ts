@@ -22,6 +22,8 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   const transport: HttpTransport = async input => {
     input.signal.throwIfAborted();
     const requestCa = input.ca === undefined ? ca : Buffer.from(input.ca);
+    if (input.httpVersion !== undefined && input.httpVersion !== "1.1") throw new CurlError(2, "Transport cannot enforce requested HTTP version");
+    if (input.ignoreContentLength) throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
     const url = new URL(input.url);
     if (!["http:", "https:"].includes(url.protocol)) throw new CurlError(1, "Unsupported protocol");
     const headers: Record<string, string[]> = Object.create(null) as Record<string, string[]>;
@@ -146,5 +148,6 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   Object.defineProperty(transport, "supportsPrivateNetworkDeny", { value: true });
   Object.defineProperty(transport, "supportsConnectTimeout", { value: true });
   Object.defineProperty(transport, "supportsRequestCa", { value: true });
+  Object.defineProperty(transport, "supportedHttpVersions", { value: Object.freeze(["1.1"]) });
   return transport;
 }

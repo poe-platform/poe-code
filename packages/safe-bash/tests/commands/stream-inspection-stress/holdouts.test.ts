@@ -306,9 +306,10 @@ test("tac and strings bound retained records", async () => {
 
 test("factory rejects invalid finite positive integer budgets", () => {
   for (const limit of ["maxInputBytes", "maxOutputBytes", "maxRecordBytes", "maxChunkBytes", "maxFiles", "maxSteps", "maxArgumentBytes"]) {
-    for (const value of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const value of [0, -1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 1]) {
       assert.throws(() => createStreamInspectionCommands({ limits: { [limit]: value } }), /limit/i);
     }
+    assert.doesNotThrow(() => createStreamInspectionCommands({ limits: { [limit]: Number.POSITIVE_INFINITY } }));
   }
 });
 

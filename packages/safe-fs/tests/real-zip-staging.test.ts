@@ -29,21 +29,24 @@ async function run(fs: FileSystem, command: CommandDefinition, args: string[]) {
   return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() };
 }
 
-it("creates and extracts ZIP bytes on a rooted real adapter without native commands", async () => {
+it("creates ZIP bytes on a rooted real adapter and refuses extraction without atomic ancestry", async () => {
   const fs = new RealFileSystem("/machine");
   expect(await run(fs, createZipCommand(), ["-q", "archive.zip", "input"])).toEqual({ exitCode: 0, stdout: "", stderr: "" });
   await fs.rm("/work/input");
-  expect(await run(fs, createUnzipCommand(), ["archive.zip"])).toEqual({ exitCode: 0, stdout: "Archive:  archive.zip\n extracting: input                   \n", stderr: "" });
-  expect(Buffer.from(await fs.readFile("/work/input")).toString()).toBe("abc\n");
-  expect((await fs.readdir("/work")).map(entry => entry.name).sort()).toEqual(["archive.zip", "input"]);
+  expect(await run(fs, createUnzipCommand(), ["-p", "archive.zip", "input"])).toEqual({ exitCode: 0, stdout: "abc\n", stderr: "" });
+  const archive = await fs.readFile("/work/archive.zip");
+  expect(await run(fs, createUnzipCommand(), ["archive.zip"])).toEqual({ exitCode: 2, stdout: "Archive:  archive.zip\n", stderr: "unzip: extraction requires atomic staging ancestry verification\n" });
+  expect(await fs.readFile("/work/archive.zip")).toEqual(archive);
+  expect((await fs.readdir("/work")).map(entry => entry.name)).toEqual(["archive.zip"]);
 });
 
-it("extracts the reported native ZIP fixture", async () => {
+it("reads the reported native ZIP fixture and preserves the real tree on extraction refusal", async () => {
   const fs = new RealFileSystem("/machine");
   await fs.rm("/work/input");
   await fs.writeFile("/work/archive.zip", Buffer.from("UEsDBBQAAAAAAAAAIVhOgYhHBAAAAAQAAAAFAAAAaW5wdXRhYmMKUEsBAhQDFAAAAAAAAAAhWE6BiEcEAAAABAAAAAUAAAAAAAAAAAAAAIABAAAAAGlucHV0UEsFBgAAAAABAAEAMwAAACcAAAAAAA==", "base64"));
-  expect(await run(fs, createUnzipCommand(), ["archive.zip"])).toEqual({ exitCode: 0, stdout: "Archive:  archive.zip\n extracting: input                   \n", stderr: "" });
-  expect(Buffer.from(await fs.readFile("/work/input")).toString()).toBe("abc\n");
+  expect(await run(fs, createUnzipCommand(), ["-p", "archive.zip", "input"])).toEqual({ exitCode: 0, stdout: "abc\n", stderr: "" });
+  expect(await run(fs, createUnzipCommand(), ["archive.zip"])).toEqual({ exitCode: 2, stdout: "Archive:  archive.zip\n", stderr: "unzip: extraction requires atomic staging ancestry verification\n" });
+  expect((await fs.readdir("/work")).map(entry => entry.name)).toEqual(["archive.zip"]);
 });
 
 async function staged() {
@@ -86,7 +89,7 @@ it("refuses an exchanged staging parent", async () => {
   expect(await fs.readdir("/work")).toEqual([]);
 });
 
-it("updates an existing archive and extracts nested directories", async () => {
+it("updates nested archive members and refuses unsupported real extraction", async () => {
   const fs = new RealFileSystem("/machine");
   await fs.mkdir("/work/tree");
   await fs.writeFile("/work/tree/child", Buffer.from("first"));
@@ -94,17 +97,21 @@ it("updates an existing archive and extracts nested directories", async () => {
   await fs.writeFile("/work/tree/child", Buffer.from("second"));
   expect(await run(fs, createZipCommand(), ["-qr", "archive.zip", "tree"])).toEqual({ exitCode: 0, stdout: "", stderr: "" });
   await fs.rm("/work/tree", { recursive: true });
-  expect((await run(fs, createUnzipCommand(), ["-q", "archive.zip"])).exitCode).toBe(0);
-  expect(Buffer.from(await fs.readFile("/work/tree/child")).toString()).toBe("second");
+  expect(await run(fs, createUnzipCommand(), ["-p", "archive.zip", "tree/child"])).toEqual({ exitCode: 0, stdout: "second", stderr: "" });
+  const archive = await fs.readFile("/work/archive.zip");
+  expect(await run(fs, createUnzipCommand(), ["-q", "archive.zip"])).toMatchObject({ exitCode: 2, stderr: "unzip: extraction requires atomic staging ancestry verification\n" });
+  await expect(fs.lstat("/work/tree/child")).rejects.toMatchObject({ code: "ENOENT" });
+  expect(await fs.readFile("/work/archive.zip")).toEqual(archive);
 });
 
-for (const wrapper of ["mount", "device", "scope"] as const) it(`preserves owned staging through ${wrapper} views`, async () => {
+for (const wrapper of ["mount", "device", "scope"] as const) it(`preserves ZIP creation and extraction refusal through ${wrapper} views`, async () => {
   const backing = new RealFileSystem("/machine");
   const fs = wrapper === "mount" ? createMountFileSystem({ root: backing }) : wrapper === "device" ? createDeviceFileSystem(backing) : scopeFileSystem(backing, () => {}, new AbortController().signal);
   expect(await run(fs, createZipCommand(), ["-q", "archive.zip", "input"])).toEqual({ exitCode: 0, stdout: "", stderr: "" });
   await fs.rm("/work/input");
-  expect((await run(fs, createUnzipCommand(), ["-q", "archive.zip"])).exitCode).toBe(0);
-  expect(Buffer.from(await fs.readFile("/work/input")).toString()).toBe("abc\n");
+  expect(await run(fs, createUnzipCommand(), ["-p", "archive.zip", "input"])).toEqual({ exitCode: 0, stdout: "abc\n", stderr: "" });
+  expect(await run(fs, createUnzipCommand(), ["-q", "archive.zip"])).toMatchObject({ exitCode: 2, stderr: "unzip: extraction requires atomic staging ancestry verification\n" });
+  expect((await backing.readdir("/work")).map(entry => entry.name)).toEqual(["archive.zip"]);
 });
 
 it("withholds trusted staging from read-only, quota, and incomplete views", async () => {

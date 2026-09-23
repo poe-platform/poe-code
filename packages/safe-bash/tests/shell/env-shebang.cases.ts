@@ -127,9 +127,9 @@ test("explicit interpreters ignore headers while direct interpreter guards remai
   assert.deepEqual(bodyEnvironments, ["retained", "retained"]);
 });
 
-test("bash/sh flags retain e, +e, --, combinations and invalid flag status", async () => {
+test("bash/sh flags retain e, +e, u, --, combinations and invalid flag status", async () => {
   const { shell, fs } = setup();
-  for (const [flags, status, stdout] of [["bash -ee", 1, ""], ["sh -e +e --", 0, "body\n"], ["bash -e --", 1, ""], ["bash -", 0, "body\n"], ["bash -ec 'false; say BAD'", 1, ""], ["sh -u", 2, ""], ["bash +c", 2, ""]] as const) {
+  for (const [flags, status, stdout] of [["bash -ee", 1, ""], ["sh -e +e --", 0, "body\n"], ["bash -e --", 1, ""], ["bash -", 0, "body\n"], ["bash -ec 'false; say BAD'", 1, ""], ["sh -u", 0, "body\n"], ["sh -Z", 2, ""], ["bash +c", 2, ""]] as const) {
     await fs.writeFile("/program", encode(`#!/usr/bin/env -S ${flags}\nfalse; say body`), { mode: 0o755 });
     const result = await shell.exec("/program");
     assert.equal(result.exitCode, status, flags);
@@ -138,6 +138,16 @@ test("bash/sh flags retain e, +e, --, combinations and invalid flag status", asy
     else assert.equal(result.stderr, "");
   }
   await shell.dispose();
+});
+
+test("env shebang sh -u stops on an unset variable", async context => {
+  const { shell, fs } = setup();
+  context.after(() => shell.dispose());
+  await fs.writeFile("/program", encode('#!/usr/bin/env -S sh -u\nunset SHEBANG_UNSET; say "$SHEBANG_UNSET"; say BAD'), { mode: 0o755 });
+  const result = await shell.exec("/program");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "/program: line 2: SHEBANG_UNSET: unbound variable\n");
 });
 
 test("env errors retain parser, usage and VFS status and ordering", async () => {

@@ -5,6 +5,10 @@ import { createMemoryFileSystem } from "poe-code/safe-fs";
 import * as core from "../../src/index.js";
 import { codeOf, output, pathOf } from "../../src/commands/internal.js";
 import { compareCopyIdentity, compareObservedEntries } from "../../src/commands/copy-identity.js";
+import { EreLedger } from "../../src/commands/regex-execution/ere/limits.js";
+import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "../../src/commands/regex-execution/ere/errors.js";
+import { compileEre } from "../../src/commands/regex-execution/ere/syntax.js";
+import { prepareUtf8EreSubject } from "../../src/commands/regex-execution/ere/matcher.js";
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import type * as Host from "../../src/optional-host.js";
@@ -42,14 +46,15 @@ for (const profile of [
   assert.equal(Object.hasOwn(manifest.exports, profile.key.replace("optional-host", "optional")), false);
 });
 
-test("optional host re-exports exactly five canonical helpers and twenty canonical types", async () => {
+test("optional host re-exports exactly eleven canonical helpers and twenty canonical types", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf };
+  const expected = { codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);
-    assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
   }
+  for (const name of ["codeOf", "compareCopyIdentity", "compareObservedEntries", "output", "pathOf", "prepareUtf8EreSubject"]) assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
+  for (const name of ["EreLedger", "EreSyntaxError", "EreUnsupportedError", "EreProfileLimitError", "compileEre"] as const) assert.equal(host[name], core[name]);
   const sameTypes: Same<HostTypes, CoreTypes> = true;
   assert.equal(sameTypes, true);
 });

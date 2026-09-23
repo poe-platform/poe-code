@@ -2,6 +2,10 @@ import type { Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import type { Expression } from "./expression.js";
 import { cloneNode, decodeDocuments, dereference, nodeTag, replace, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
 import { MikeError, type NativeWork } from "./native-work.js";
+import { EreLedger } from "../regex-execution/ere/limits.js";
+import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "../regex-execution/ere/errors.js";
+import { compileEre } from "../regex-execution/ere/syntax.js";
+import { prepareUtf8EreSubject } from "../regex-execution/ere/matcher.js";
 
 function value(node: Node, yaml: YamlModule): string | number | bigint | boolean | null {
   if (!yaml.isScalar(node)) throw new MikeError("expected a scalar value");
@@ -32,6 +36,7 @@ function scalarText(node: Node, yaml: YamlModule): string {
 
 export class Evaluator {
   #warnedMerge = false;
+  #regex: EreLedger | undefined;
   constructor(readonly yaml: YamlModule, readonly work: NativeWork, readonly mergeSpec = false) {}
 
   async match(first: string, pattern: string): Promise<boolean> {
@@ -530,11 +535,17 @@ export class Evaluator {
         }
         continue;
       }
-      if (name === "upcase") {
+      if (name === "upcase" || name === "downcase") {
         const text = value(base.node, yaml);
-        if (typeof text !== "string") throw new MikeError("upcase only supports strings");
+        if (typeof text !== "string") throw new MikeError(`${name} only supports strings`);
         await this.work.tick(text.length);
-        const upper = text.toUpperCase();
+        const characters: string[] = [];
+        for (const character of text) {
+          await this.work.tick(character.length);
+          const converted = name === "upcase" ? character.toUpperCase() : character === "İ" ? "i" : character.toLowerCase();
+          characters.push([...converted].length === 1 ? converted : character);
+        }
+        const upper = characters.join("");
         const node = await cloneNode(base.node, yaml, this.work);
         if (Buffer.byteLength(upper) > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
         if (yaml.isScalar(node)) { node.value = upper; node.source = upper; }
@@ -560,7 +571,53 @@ export class Evaluator {
         continue;
       }
       let result: unknown;
-      if (name === "tag" || name === "type") result = nodeTag(base.node, yaml);
+      if (name === "test" || name === "split") {
+        if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot ${name} ${nodeTag(base.node, yaml)}, can only ${name} strings`);
+        const text = String(value(base.node, yaml));
+        await this.work.tick(text.length);
+        {
+          for (const argument of await next(expression.args[0]!, [input], false)) {
+            if (nodeTag(argument.node, yaml) !== "!!str") throw new MikeError(`${name} requires a string argument`);
+            const pattern = String(value(argument.node, yaml));
+            await this.work.tick(pattern.length);
+            if (name === "split") {
+              const node = new yaml.YAMLSeq(); this.work.node();
+              if (!pattern) {
+                for (const part of text) { await this.work.tick(); node.items.push(scalar(yaml, this.work, part)); }
+              } else {
+                let start = 0;
+                while (true) {
+                  await this.work.tick();
+                  const end = text.indexOf(pattern, start);
+                  node.items.push(scalar(yaml, this.work, text.slice(start, end < 0 ? text.length : end)));
+                  if (end < 0) break;
+                  start = end + pattern.length;
+                }
+              }
+              output.push(this.child(node, input));
+            } else {
+              // The bounded grammar shares Go's ASCII ERE subset. Bracket
+              // escapes have different meanings in POSIX and Go; conservatively
+              // refuse patterns combining brackets and escapes.
+              if (pattern.includes("[") && pattern.includes("\\")) throw new MikeError("unsupported yq regex: brackets combined with escapes");
+              const ledger = this.#regex ??= new EreLedger({ maxExpansionBytes: this.work.limits.maxScalarBytes, maxExpansionFields: this.work.limits.maxNodes });
+              const before = ledger.usage.work;
+              try {
+                const program = await compileEre(pattern, ledger, this.work.signal);
+                const subject = await prepareUtf8EreSubject(Buffer.from(text), ledger, this.work.signal, true);
+                const matched = await subject(program)(0);
+                output.push(this.child(scalar(yaml, this.work, matched !== undefined), input));
+              } catch (error) {
+                this.work.assertOpen();
+                if (error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError) throw new MikeError(error.message);
+                throw error;
+              } finally { await this.work.tick(ledger.usage.work - before); }
+            }
+          }
+          continue;
+        }
+      }
+      else if (name === "tag" || name === "type") result = nodeTag(base.node, yaml);
       else if (name === "kind") result = yaml.isMap(base.node) ? "map" : yaml.isSeq(base.node) ? "seq" : "scalar";
       else if (name === "documentIndex" || name === "di") result = BigInt(input.document.documentIndex);
       else if (name === "fileIndex" || name === "fi") result = BigInt(input.document.fileIndex);

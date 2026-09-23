@@ -580,6 +580,7 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "optional yq scripting test is missing: " + path);
   for (const path of [
     "tests/commands/yq-native/behavior.test.ts",
+    "tests/commands/yq-native/strings.test.ts",
     "tests/commands/yq-native/parity.test.ts",
     "tests/commands/yq-native/lazy.test.ts",
     "tests/commands/yq-native/edge.test.ts",

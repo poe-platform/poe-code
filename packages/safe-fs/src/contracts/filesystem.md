@@ -621,8 +621,16 @@ the actual backing operation, or refuse it. The capability does not promise
 cross-device moves: `EXDEV` remains an error and must not trigger an overwriting
 rename or copy/delete fallback for this mode.
 
-The memory adapter supports the operation. The real adapter refuses it because
-its portable Node rename primitive does not expose atomic no-replace semantics.
+The memory adapter supports the operation. The real adapter refuses it by default
+because its portable Node rename primitive does not expose atomic no-replace semantics.
+Hosts can explicitly supply `RealFileSystemOptions.renameNoReplace`, backed by
+a qualified native primitive such as `renameat2(..., RENAME_NOREPLACE)`. The
+adapter then advertises support, resolves and checks both operands within its
+configured root, and calls the binding with absolute host paths and the optional
+signal. Native errors are translated to virtual operands without leaking host
+paths. `EEXIST`, `EXDEV`, and `ENOTSUP` never trigger a fallback. The host must
+qualify the primitive against its actual backing filesystem; supplying a
+callback does not authenticate its implementation or provide race-proof containment.
 An injected native filesystem may advertise support when its authoritative
 native operation implements the destination precondition atomically. This is a
 trusted provider assertion, not a guarantee inferred from an extra existence

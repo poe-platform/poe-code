@@ -27,6 +27,8 @@ Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw ad
 
 For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. ZIP creation, updates, and extraction can use this adapter's private owned staging in an isolated host tree. Its `trustedOwnedStaging` capability checks original entries before publication and cleanup, and preserves foreign staging children. It does not advertise atomic conditional mutations: keep external writers and other in-flight writes away from the tree during these operations. Read the safety boundary below before exposing it to untrusted code.
 
+To create new outputs with Safe Bash's `dos2unix`, `unix2dos`, or compression commands, host adapters need atomic no-replace publication. Supply `createRealFileSystem({ root, renameNoReplace })` only when that callback binds a qualified native primitive such as Linux `renameat2` with `RENAME_NOREPLACE`. It receives resolved absolute host paths and an optional signal in its third argument. Existing destinations must reject `EEXIST` atomically; existence checks followed by rename and copy/delete are insufficient. Without this binding the adapter explicitly refuses those operations. See the [no-replace contract](src/contracts/filesystem.md#atomic-no-replace-rename).
+
 ## Entry points and shared identity
 
 | Import | Use |

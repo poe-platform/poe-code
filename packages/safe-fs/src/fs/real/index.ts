@@ -21,6 +21,14 @@ import type {
 export interface RealFileSystemOptions {
   /** An existing, absolute host directory. It is never created implicitly. */
   readonly root: string;
+  /**
+   * Trusted host primitive for an atomic no-replace move (e.g. renameat2 with
+   * RENAME_NOREPLACE). Receives resolved absolute host paths. Must reject EEXIST
+   * for any existing entry, including dangling symlinks, without mutation.
+   * Never implement with an existence check, ordinary rename, or copy/delete.
+   * Unsupported filesystems must reject ENOTSUP; cross-device moves reject EXDEV.
+   */
+  readonly renameNoReplace?: (source: string, destination: string, options: FsOptions) => Promise<void>;
 }
 
 interface ResolutionOptions extends FsOptions {
@@ -131,6 +139,7 @@ export class RealFileSystem implements FileSystem {
   });
 
   private readonly configuredRoot: string;
+  private readonly renameNoReplace: RealFileSystemOptions["renameNoReplace"];
   private rootPromise: Promise<string> | undefined;
 
   constructor(options: RealFileSystemOptions | string) {
@@ -143,6 +152,11 @@ export class RealFileSystem implements FileSystem {
       throw new FsError("ENOTSUP", { syscall: "root", message: "this backend requires a POSIX host" });
     }
     this.configuredRoot = root;
+    this.renameNoReplace = typeof options === "string" ? undefined : options.renameNoReplace;
+    if (this.renameNoReplace !== undefined) {
+      if (typeof this.renameNoReplace !== "function") throw new FsError("EINVAL", { syscall: "root", message: "renameNoReplace must be a function" });
+      this.capabilities = Object.freeze({ ...this.capabilities, atomicRenameNoReplace: true });
+    }
   }
 
   private async root(options: FsOptions = {}): Promise<string> {
@@ -625,7 +639,7 @@ export class RealFileSystem implements FileSystem {
 
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.operation("rename", source, options, async () => {
-      if (options.noReplace) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });
+      if (options.noReplace && !this.renameNoReplace) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });
       const from = await this.path(source, { ...options, followFinal: false });
       const to = await this.path(destination, { ...options, followFinal: false, missing: "final" });
       this.protectTerminal(source);
@@ -634,7 +648,8 @@ export class RealFileSystem implements FileSystem {
       this.protectRoot(from, root);
       this.protectRoot(to, root);
       options.signal?.throwIfAborted();
-      await native.rename(from, to);
+      if (options.noReplace) await this.renameNoReplace!(from, to, options.signal ? { signal: options.signal } : {});
+      else await native.rename(from, to);
     }, destination);
   }
 

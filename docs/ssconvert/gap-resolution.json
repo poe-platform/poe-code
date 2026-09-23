@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:00:56.470197+00:00",
+  "recordedAt": "2026-09-23T10:04:10.141983+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1373,6 +1373,32 @@
     "headlessQueryClassification": "mandatory GTK fatal without display",
     "successfulNativeQueries": false,
     "sourceUnpatched": true,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxSupplementalNumericQualification": {
+    "evidence": "docs/ssconvert/linux-supplemental-numeric-native-capture.json",
+    "nativeRun": 35845785944,
+    "cases": 581,
+    "logicalFields": 1162,
+    "outputBytes": 23086,
+    "fieldCounts": {
+      "hex": 298,
+      "error": 11,
+      "raw": 272
+    },
+    "sourceCohorts": 7,
+    "sourceOrderDuplicatesPreserved": true,
+    "rawGeneralCases": 276,
+    "exactSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "dedicated worker"
+    ],
+    "nativeCandidateDifferences": 0,
+    "productCodeChangeRequired": false,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

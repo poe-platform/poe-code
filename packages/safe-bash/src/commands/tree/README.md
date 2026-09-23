@@ -25,8 +25,10 @@ explicit responsibility. This is not a filesystem sandbox or a snapshot.
 - `-I pattern`: exclude matching files/directories and their subtrees.
   Repeated patterns are ORed. Hidden exclusion happens first unless `-a`.
 - Patterns are basename-only, case-sensitive UTF-8 **byte** patterns: `*`, `?`,
-  bracket sets/ranges, `^`/`!` negation, `|` alternatives, backslash literals
-  outside bracket sets. `?` matches one byte, not a Unicode scalar. Slash,
+  bracket sets/ranges, leading `^` negation, `|` alternatives, backslash literals
+  outside bracket sets. `!` is a literal bracket member, including at the start:
+  `[!a]*` matches names starting with `!` or `a`, as in native `tree`.
+  `?` matches one byte, not a Unicode scalar. Slash,
   globstar, malformed brackets and descending ranges are rejected. Bracket
   backslash has no special escaping semantics. No regex backtracking is used.
 - `-f`: prefix descendants with the supplied operand path, not an implicit

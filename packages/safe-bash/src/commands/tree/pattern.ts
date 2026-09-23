@@ -21,7 +21,7 @@ export function compile(pattern: string, budget: WalkBudget): Pattern {
       tokens.push(bytes[index]!);
     } else if (byte === 91) {
       index++;
-      const negate = bytes[index] === 94 || bytes[index] === 33;
+      const negate = bytes[index] === 94;
       if (negate) index++;
       const ranges: [number, number][] = [];
       while (index < bytes.length && (bytes[index] !== 93 || ranges.length === 0)) {

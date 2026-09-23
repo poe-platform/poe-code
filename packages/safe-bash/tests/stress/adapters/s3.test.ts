@@ -218,8 +218,16 @@ for (const streamingRead of [true, false]) test(`s3: false body lengths reject e
   const mock = new MockS3Client({ buckets: [bucket] });
   await mock.putObject({ Bucket: bucket, Key: "file", Body: binary });
   const transport = createS3Transport(mock, { ...mock.capabilities, streamingRead });
-  transport.getObject = async (input, options) => ({ ...await mock.getObject(input, options), ContentLength: binary.length + 1 });
-  transport.getObjectStream = async (input, options) => ({ ...await mock.getObjectStream(input, options), ContentLength: binary.length + 1 });
+  let reads = 0;
+  transport.getObjectStream = async (input, options) => {
+    reads++;
+    return { ...await mock.getObjectStream(input, options), ContentLength: binary.length + 1 };
+  };
+  transport.getObject = async (input, options) => {
+    reads++;
+    return { ...await mock.getObject(input, options), ContentLength: binary.length + 1 };
+  };
   const fs = new S3FileSystem({ transport, bucket });
   await assert.rejects(fs.readFile("/file"), errno("EIO"));
+  assert.equal(reads, 1);
 });

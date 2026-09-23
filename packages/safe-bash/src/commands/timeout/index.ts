@@ -191,10 +191,16 @@ function definition(configuration: Settings): CommandDefinition {
       };
       if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0) {
         context.signal.throwIfAborted();
-        const result = await configuration.killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
-          durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
-          ...(foreground ? { foreground: true as const } : {}),
-        }));
+        let result: { readonly exitCode: number };
+        try {
+          result = await configuration.killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
+            durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
+            ...(foreground ? { foreground: true as const } : {}),
+          }));
+        } catch (error) {
+          context.signal.throwIfAborted();
+          throw error;
+        }
         context.signal.throwIfAborted();
         return result;
       }

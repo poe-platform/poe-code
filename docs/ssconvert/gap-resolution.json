@@ -1326,5 +1326,31 @@
     "sourceUnpatched": true,
     "publication": "unverified",
     "wholeGoalComplete": false
+  },
+  "linuxRetainedNumericQualification": {
+    "evidence": "docs/ssconvert/linux-numeric-native-capture.json",
+    "nativeRun": 35844224792,
+    "cases": 1172,
+    "numericHexFields": 1158,
+    "errorFields": 14,
+    "logicalFields": 2344,
+    "outputBytes": 37868,
+    "batches": 10,
+    "nativeCandidateDifferences": 0,
+    "sourceCohorts": 7,
+    "sourceOrderDuplicatesPreserved": true,
+    "exactSurfaces": [
+      "root-sdk",
+      "root-shell",
+      "xml-formula-replay",
+      "browser",
+      "dedicated-worker"
+    ],
+    "browserConsoleMessages": 0,
+    "screenshotInspected": true,
+    "productCodeChangeRequired": false,
+    "otherPrimitiveGammaAndWiderDomains": "open",
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

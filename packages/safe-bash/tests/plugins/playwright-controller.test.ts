@@ -39,6 +39,52 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+for (const retirement of ['close', 'dispose', 'cancel'] as const) test(`route removal finishes before context release during ${retirement}`, async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const owned = f.leases[0]!;
+  const removing = deferred<void>();
+  const finish = deferred<void>();
+  Object.assign(owned.lease.context, {
+    async route() {},
+    async unroute() {
+      removing.resolve();
+      await finish.promise;
+      if (owned.releases) throw new Error('browserContext.unroute: Target page, context or browser has been closed');
+    },
+  });
+  await f.run(['route', '**/next', '--body=SYNTHETIC_ROUTE']);
+  const abort = new AbortController();
+  const reason = new Error('cancel navigation');
+  if (retirement === 'cancel') Object.assign(owned.lease.context.pages()[0]!, {
+    goto: async () => { abort.abort(reason); throw reason; },
+  });
+  const completion = (retirement === 'dispose' ? f.controller.dispose() :
+    f.run(retirement === 'close' ? ['close'] : ['goto', 'https://example.test'], { signal: abort.signal }))
+    .then(() => undefined, error => error);
+  await removing.promise;
+  const prematureRelease = owned.releases;
+  finish.resolve();
+  const failure: unknown = await completion;
+  try {
+    assert.equal(prematureRelease, 0);
+    assert.equal(failure, retirement === 'cancel' ? reason : undefined);
+    assert.equal(owned.releases, 1);
+  } finally { await f.controller.dispose(); }
+});
+
+test('route retirement failure preserves its cause and still releases the context', async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const owned = f.leases[0]!;
+  const failure = new Error('route removal failed');
+  Object.assign(owned.lease.context, { async route() {}, async unroute() { throw failure; } });
+  await f.run(['route', '**/next']);
+  await assert.rejects(f.run(['close']), error => error === failure);
+  assert.equal(owned.releases, 1);
+  await assert.rejects(f.controller.dispose(), error => error instanceof AggregateError && error.errors[0] === failure);
+});
+
 for (const actionTimeout of [0, 1500]) test(`init-page and run-code keep action timeout ${actionTimeout} separate from the whole-program deadline`, async () => {
   const f = fixture();
   const actionTimeouts: number[] = [];

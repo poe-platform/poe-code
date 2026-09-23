@@ -36,6 +36,14 @@ interface Registry {
 const registries = new WeakMap<PlaywrightContext, Registry>();
 const MAX_ROUTES = 64;
 
+/** Retire owned native handlers before closing their context. */
+export async function preparePlaywrightRouteRelease(context: PlaywrightContext, cleanups: Set<() => Promise<void>>): Promise<void> {
+  const registry = registries.get(context);
+  // Policy backends and arbitrary cleanups may need context closure to drain.
+  if (!registry || registry.backend || !cleanups.delete(registry.cleanup)) return;
+  await registry.cleanup();
+}
+
 async function installRoute(context: PlaywrightRoutingContext, registry: Registry, entry: Entry, signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
   if (registry.closed) throw new Error('Browser context is closed');

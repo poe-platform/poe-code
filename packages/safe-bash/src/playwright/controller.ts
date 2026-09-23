@@ -16,7 +16,7 @@ import { getPlaywrightModal, observePlaywrightModals, onPlaywrightModal } from '
 import { findPlaywrightSnapshot } from './find.js';
 import { collectPlaywrightDownloads, observePlaywrightDownloads } from './download-capabilities.js';
 import { generatedPlaywrightLocator } from './generated-locator.js';
-import { capturePlaywrightRoutes } from './route-capabilities.js';
+import { capturePlaywrightRoutes, preparePlaywrightRouteRelease } from './route-capabilities.js';
 import { updatePlaywrightHighlight } from './highlight.js';
 import { parsePlaywrightContextOptions, resolvePlaywrightOpenOptions } from './open-options.js';
 import { playwrightLocatorSelector, setPlaywrightTestIdAttribute } from './locator-selector.js';
@@ -224,9 +224,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     clearTimeout(session.expiryTimer);
     session.releasing = Promise.resolve().then(async () => {
       try {
-        // Native tracing must flush while the context is still alive. Arbitrary
+        // Native tracing and routes must retire while the context is alive. Arbitrary
         // cleanup remains concurrent with lease closure to unblock browser work.
-        const traceResults = session.lease ? await Promise.allSettled([preparePlaywrightTraceRelease(session.lease.context)]) : [];
+        const preparationResults = session.lease ? await Promise.allSettled([
+          preparePlaywrightTraceRelease(session.lease.context),
+          preparePlaywrightRouteRelease(session.lease.context, session.cleanups),
+        ]) : [];
         const callbacks = [...session.cleanups];
         session.cleanups.clear();
         const custom = callbacks.map(cleanup => Promise.resolve().then(cleanup));
@@ -237,7 +240,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           ...[...session.pendingActions ?? []].map(action => action.catch(() => {})),
           ...[...session.pendingInitializations ?? []].map(action => action.catch(() => {})),
         ]);
-        const errors = [...traceResults, ...results].flatMap(result => result.status === 'rejected' ? [result.reason] : []);
+        const errors = [...preparationResults, ...results].flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         if (errors.length === 1) throw errors[0];
         if (errors.length > 1) throw new AggregateError(errors, 'Playwright session retirement failed');
       }

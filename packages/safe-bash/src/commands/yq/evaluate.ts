@@ -657,8 +657,8 @@ export class Evaluator {
       }
       else if (name === "tag" || name === "type") result = nodeTag(base.node, yaml);
       else if (name === "kind") result = yaml.isMap(base.node) ? "map" : yaml.isSeq(base.node) ? "seq" : "scalar";
-      else if (name === "documentIndex" || name === "di") result = BigInt(input.document.documentIndex);
-      else if (name === "fileIndex" || name === "fi") result = BigInt(input.document.fileIndex);
+      else if (name === "documentIndex" || name === "document_index" || name === "di") result = BigInt(input.document.documentIndex);
+      else if (name === "fileIndex" || name === "file_index" || name === "fi") result = BigInt(input.document.fileIndex);
       else if (name === "filename") result = input.document.filename;
       else if (name === "not") result = !truth(base.node, yaml);
       else if (name === "length") {

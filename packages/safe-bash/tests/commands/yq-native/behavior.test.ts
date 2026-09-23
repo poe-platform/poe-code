@@ -10,6 +10,39 @@ import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../..
 import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
 import { native, nativeOptions, run } from "./helpers.js";
 
+test("Mike yq issue 459 accepts snake-case document and file index aliases", async () => {
+  for (const expression of ["document_index", "file_index"]) {
+    assert.deepEqual(await run([expression], "changed: Independent\n"), {
+      status: 0, stdout: "0\n", stderr: "",
+    });
+  }
+});
+
+test("Mike yq issue 459 aliases preserve indices across documents and files", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/first.yaml", Buffer.from("name: first\n---\nname: second\n"));
+  await fs.writeFile("/second.yaml", Buffer.from("name: third\n"));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    for (const mode of ["eval", "eval-all"]) {
+      for (const [alias, canonical, expected] of [
+        ["document_index", "documentIndex", [0, 1, 0]],
+        ["file_index", "fileIndex", [0, 0, 1]],
+      ] as const) {
+        const result = await shell.exec(`yq ${mode} '${alias}' first.yaml second.yaml`);
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdout.split("\n").filter(line => line && line !== "---").map(Number), expected);
+        assert.deepEqual(result, await shell.exec(`yq ${mode} '${canonical}' first.yaml second.yaml`));
+      }
+    }
+    const combined = await shell.exec("yq '[document_index, file_index]' second.yaml");
+    assert.equal(combined.exitCode, 0);
+    assert.equal(combined.stdout, "- 0\n- 0\n");
+    assert.equal(combined.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 for (const [name, input, stdout] of [
   ["mapping", "owned: 1\nnested:\n  leaf: value\n", "owned: 1\nnested:\n  leaf: value\nowned\n1\nnested\nleaf: value\nleaf\nvalue\n"],
   ["sequence", "- owned\n- nested: value\n", "- owned\n- nested: value\nowned\nnested: value\nnested\nvalue\n"],

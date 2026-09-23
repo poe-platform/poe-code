@@ -50,6 +50,7 @@ function variableName(name: string): boolean {
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(character));
 }
 
+/** Resolve explicit config, variable and -H/--header @VFS-file or @- inputs in option order. */
 export async function parseCurlInput(context: CommandContext, limits: NetworkLimits): Promise<CurlArguments> {
   const variables = new Map<string, Buffer>();
   const output: string[] = [];
@@ -174,6 +175,16 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
         const resolved = expanded ? expand(value) : value;
         if (base === "config") await visit(configArguments((await read(resolved)).toString("utf8")), depth + 1);
         else if (base === "variable") await define(resolved);
+        else if (base === "header" && resolved.startsWith("@")) {
+          const text = (await read(resolved.slice(1))).toString("utf8");
+          for (const raw of text.split("\n")) {
+            context.signal.throwIfAborted();
+            const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+            if (!line || line.startsWith("#")) continue;
+            append("--header");
+            append(line);
+          }
+        }
         else { append(`--${base}`); append(resolved); }
       };
       if (argument.startsWith("--")) {

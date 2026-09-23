@@ -9,6 +9,7 @@ import type { HttpTransport } from "../../../src/commands/network/index.js";
 import { createFetchTransport, networkCommands } from "../../../src/commands/network/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { agentCommands } from "../../../src/plugins/index.js";
 import { run, server, type TestServer } from "./helpers.js";
 
 let host: TestServer;
@@ -70,6 +71,81 @@ test("curl multipart encoding spans stdin chunks and keeps form-string attribute
 let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
+
+test("curl loads LF, CRLF, comment and empty header files through every header spelling", async () => {
+  for (const content of ["X-Test: gamma delta\nX-Other: eta\n", "# comment\r\n\r\nX-Test: gamma delta\r\nX-Other: eta\r\n", ""]) {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/changed headers", Buffer.from(content));
+    for (const flags of [["-H", "@changed headers"], ["-H@changed headers"], ["--header", "@changed headers"], ["--header=@changed headers"]]) {
+      const actual = await run([...flags, `${host.origin}/echo`], { fs });
+      assert.equal(actual.exitCode, 0, actual.stderr.toString());
+      assert.equal(host.requests.at(-1)!.headers["x-test"], content ? "gamma delta" : undefined);
+      assert.equal(host.requests.at(-1)!.headers["x-other"], content ? "eta" : undefined);
+      assert.equal(Buffer.from(await fs.readFile("/work/changed headers")).toString(), content);
+    }
+  }
+});
+
+test("curl stdin header loading preserves ordering, suppression and empty values", async () => {
+  const actual = await run(["-H", "X-Test: before", "--header", "@-", "-H", "X-Test: after", `${host.origin}/echo`], {
+    stdin: "# comment\r\nX-Test: middle\r\nAccept:\r\nX-Empty;\r\n",
+  });
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  const received = host.requests.at(-1)!.headers;
+  assert.equal(received["x-test"], "before, middle, after");
+  assert.equal(received.accept, undefined);
+  assert.equal(received["x-empty"], "");
+});
+
+test("Shell curl header stdin matches native curl and writes named VFS responses", async () => {
+  const content = "# comment\r\nX-Test: gamma delta\r\nCookie: synthetic\r\n";
+  const args = ["-q", "-sS", "--noproxy", "*", "--header", "@-", `${host.origin}/echo`];
+  const native = await new Promise<Buffer>((resolve, reject) => {
+    const child = execFile("/usr/bin/curl", args, { encoding: "buffer" }, (error, stdout) => error ? reject(error) : resolve(stdout));
+    child.stdin!.end(content);
+  });
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/headers", Buffer.from(content));
+  const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  try {
+    for (const command of [`curl -sS --header @/headers ${host.origin}/echo -o /response`, `curl -sS -H@- ${host.origin}/echo -o /response < /headers`, `cat /headers | curl -sS -H@- ${host.origin}/echo -o /response`]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Buffer.from(await fs.readFile("/response")), native, command);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("curl config and variable expansion load header operands in place", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/headers", Buffer.from("X-Test: file\n"));
+  await fs.writeFile("/config", Buffer.from('header = "@/headers"\n'));
+  const actual = await run(["-H", "X-Test: before", "-K/config", "--variable", "path=/headers", "--expand-header", "@{{path}}", "-H", "X-Test: after", `${host.origin}/echo`], { fs });
+  assert.equal(actual.exitCode, 0, actual.stderr.toString());
+  assert.equal(host.requests.at(-1)!.headers["x-test"], "before, file, file, after");
+});
+
+test("curl cancels pending virtual header reads", async () => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new Error("owned header cancellation");
+  fs.readFile = async () => { controller.abort(reason); return new Promise<Uint8Array>(() => {}); };
+  await assert.rejects(run(["-H@/headers", `${host.origin}/echo`], { fs, signal: controller.signal }), error => error === reason);
+});
+
+test("curl header inputs retain read limits and transport header protections before requests", async () => {
+  for (const [operand, stdin, limits, code] of [
+    ["@missing", "", {}, 26],
+    ["@-", "Host: forbidden\n", {}, 2],
+    ["@-", "X-Test: " + "a".repeat(256), { maxBufferBytes: 128 }, 26],
+  ] as const) {
+    const count = host.requests.length;
+    const actual = await run(["--header", operand, `${host.origin}/echo`], { stdin, options: { limits } });
+    assert.equal(actual.exitCode, code, actual.stderr.toString());
+    assert.equal(host.requests.length, count);
+  }
+});
 
 test("curl negated flags restore GET, body and redirect behavior", async () => {
   const result = await run(["-sS", "-fILG", "--no-fail", "--no-head", "--no-location", "--no-get", `${host.origin}/fail`]);

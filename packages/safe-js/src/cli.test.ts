@@ -628,6 +628,14 @@ describe("SafeJS CLI", () => {
     });
   });
 
+  it.each([{ flags: [] }, { flags: ["--max-steps", "1000000"] }])("leaves omitted regex budgets unlimited with %j", async ({ flags }) => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync("/repo/script.ajs", 'return new RegExp("a".repeat(5000)).source.length + Number(/a+/.test("a".repeat(3000)));');
+    expect(await runCli([...flags, "script.ajs"], { cwd: "/repo", stdout, stderr })).toBe(0);
+    expect(stderr.output()).toBe("");
+  });
+
   it("enforces --max-steps and exits with the budget message when exceeded", async () => {
     const stdout = createSink();
     const stderr = createSink();

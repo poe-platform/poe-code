@@ -11,9 +11,9 @@ export interface RegexExecutionOptions {
 }
 
 export const defaults: Required<RegexExecutionOptions> = Object.freeze({
-  requestTimeoutMs: 1000, startupTimeoutMs: 3000, maxWorkers: 2,
-  maxQueuedRequests: 64, maxQueuedBytes: 128 * 1024 * 1024,
-  idleTimeoutMs: 100, workerOldGenerationMb: 128, workerStackMb: 4,
+  requestTimeoutMs: Infinity, startupTimeoutMs: Infinity, maxWorkers: Infinity,
+  maxQueuedRequests: Infinity, maxQueuedBytes: Infinity,
+  idleTimeoutMs: Infinity, workerOldGenerationMb: Infinity, workerStackMb: Infinity,
 });
 
 export type RegexErrorCode = "QUEUE_EXHAUSTED" | "REQUEST_TIMEOUT" | "STARTUP_TIMEOUT" | "WORKER_EXIT" | "WORKER_ERROR" | "PROTOCOL" | "CLOSED" | "MATCH";
@@ -54,7 +54,7 @@ export interface GlobDescriptor {
 export type Descriptor = GrepDescriptor | SearchDescriptor | GlobDescriptor;
 export interface Row { readonly bytes: Uint8Array; readonly all: boolean; readonly terminated: boolean; readonly directory?: boolean; readonly ancestors?: boolean }
 export interface Match { readonly start: number; readonly end: number }
-export const matchRangeLimits = Object.freeze({ perRow: 100_000, perReply: 100_000 });
+export const matchRangeLimits = Object.freeze({ perRow: Infinity, perReply: Infinity });
 export interface Request { readonly id: number; readonly descriptor: Descriptor; readonly rows: readonly Row[] }
 export type Reply = { readonly id: number; readonly results: readonly Float64Array[] } | { readonly id: number; readonly error: string };
 
@@ -68,8 +68,8 @@ export interface ExprMatchLimits {
   readonly maxAllocatedUnits: number;
 }
 export const exprMatchCeilings: ExprMatchLimits = Object.freeze({
-  maxPatternBytes: 65_536, maxSubjectBytes: 1_048_576, maxNodes: 8192,
-  maxDepth: 128, maxSteps: 50_000_000, maxStates: 65_536, maxAllocatedUnits: 4_000_000,
+  maxPatternBytes: Infinity, maxSubjectBytes: Infinity, maxNodes: Infinity,
+  maxDepth: Infinity, maxSteps: Infinity, maxStates: Infinity, maxAllocatedUnits: Infinity,
 });
 export interface ExprMatchDescriptor {
   readonly kind: "expr-match";
@@ -140,7 +140,7 @@ export function validateExprInput(descriptor: ExprMatchDescriptor, rows: readonl
   const keys = Object.keys(exprMatchCeilings) as (keyof ExprMatchLimits)[];
   if (!exactObject(descriptor.limits, keys)) invalid();
   for (const key of keys) {
-    if (!Number.isSafeInteger(descriptor.limits[key]) || descriptor.limits[key] < 1 || descriptor.limits[key] > exprMatchCeilings[key]) invalid();
+    if (descriptor.limits[key] !== Infinity && (!Number.isSafeInteger(descriptor.limits[key]) || descriptor.limits[key] < 1)) invalid();
   }
   if (!Array.isArray(rows) || rows.length !== 1) invalid();
   const row = rows[0]!;
@@ -249,10 +249,11 @@ export function policy(options: RegexExecutionOptions): Required<RegexExecutionO
   const result = { ...defaults, ...options };
   for (const key of Object.keys(defaults) as (keyof RegexExecutionOptions)[]) {
     const minimum = key === "maxQueuedRequests" || key === "maxQueuedBytes" ? 0 : 1;
+    if (!Object.hasOwn(options, key)) continue;
     if (!Number.isSafeInteger(result[key]) || result[key] < minimum) throw new RangeError(`regex ${key} must be a safe integer >= ${minimum}`);
   }
   for (const key of ["requestTimeoutMs", "startupTimeoutMs", "idleTimeoutMs"] as const) {
-    if (result[key] > 2147483647) throw new RangeError(`regex ${key} exceeds the Node timer range`);
+    if (result[key] !== Infinity && result[key] > 2147483647) throw new RangeError(`regex ${key} exceeds the Node timer range`);
   }
   return Object.freeze(result);
 }

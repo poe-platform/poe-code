@@ -67,7 +67,7 @@ function clean(from: number): void {
 }
 
 test("defaults are active-request policy, not prototype cumulative caps", () => {
-  assert.deepEqual(defaults, { requestTimeoutMs: 1000, startupTimeoutMs: 3000, maxWorkers: 2, maxQueuedRequests: 64, maxQueuedBytes: 128 * 1024 * 1024, idleTimeoutMs: 100, workerOldGenerationMb: 128, workerStackMb: 4 });
+  assert.ok(Object.values(defaults).every(value => value === Infinity));
   for (const options of [{ requestTimeoutMs: 0 }, { startupTimeoutMs: 2147483648 }, { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: Infinity }]) assert.throws(() => new RegexExecutor(options), RangeError);
 });
 

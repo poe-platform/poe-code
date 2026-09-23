@@ -83,3 +83,20 @@ test("injected reply ranges are bounded before materializing match objects", { t
   await rejected;
   await session.close();
 });
+
+test("omitted deadlines do not schedule timers or reject pending work", async context => {
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  const transport = new Transport(false, false);
+  const executor = new RegexExecutor({ createWorker: () => transport }, { maxWorkers: 1 });
+  const session = executor.open(new AbortController().signal);
+  const pending = session.run(descriptor, rows);
+  context.mock.timers.tick(10000);
+  assert.equal(transport.stopped, 0);
+  transport.emit("message", { ready: true });
+  await transport.submitted;
+  context.mock.timers.tick(10000);
+  assert.equal(transport.stopped, 0);
+  transport.emit("message", { id: transport.messages[0]!.id, results: [new Float64Array([0, 1])] });
+  assert.deepEqual(await pending, [[{ start: 0, end: 1 }]]);
+  await session.close();
+});

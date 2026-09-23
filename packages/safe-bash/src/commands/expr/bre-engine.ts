@@ -480,7 +480,6 @@ class Parser {
     if (escaped === undefined) syntax("Trailing backslash");
     if (escaped === "(") {
       const group = ++this.groups;
-      if (group > 32) throw new ExprMatchError("limit", "regex capture groups limit exceeded");
       const child = yield* this.parse(depth + 1);
       if (!this.escaped(")")) syntax("Unmatched ( or \\(");
       this.position += 2;

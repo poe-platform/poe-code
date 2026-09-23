@@ -1,6 +1,6 @@
 import { EreProfileLimitError } from "../errors.js";
 import type { EreExpansionBounds, EreLimits, EreUsage } from "../types.js";
-import { EngineAccounting, StorageReservation, TransportAccounting, assertBootstrapStorage, metadataUnits, multiply, workerValidationPrepayment } from "./accounting.js";
+import { EngineAccounting, StorageReservation, TransportAccounting, metadataUnits, multiply, workerValidationPrepayment } from "./accounting.js";
 import { EreWorkerOwner } from "./owner.js";
 import { EreTransportError, EreTransportProfileLimitError, EreTransportSemanticError, operation, profile } from "./protocol.js";
 import type { EreCleanupRegistration, EreTransportInput, EreTransportRequest, EreTransportResult, EreTransportSession } from "./protocol.js";
@@ -44,7 +44,6 @@ export class EreTransportRoot {
   #sessions: Map<number, StorageReservation>;
 
   constructor(bounds: EreExpansionBounds, registerCleanup: EreCleanupRegistration) {
-    assertBootstrapStorage(bounds, metadataUnits.root);
     this.#engine = new EngineAccounting(bounds);
     this.#transport = new TransportAccounting(this.#engine.limits);
     this.#metadata = this.#transport.owned(metadataUnits.root);

@@ -185,9 +185,9 @@ test("actual Shell pipeline composes public grep/rg options", { timeout: 5000 },
   assert.equal(result.stderr, "");
 });
 
-test("available batching preserves output preceding the existing rg match limit", { timeout: 5000 }, async () => {
-  const result = await run(command("rg"), ["-o", "a", "-"], `a\n${"a".repeat(100001)}\n`);
-  assert.equal(result.code, 2);
-  assert.equal(result.stdout.toString(), "a\n");
-  assert.equal(result.stderr.toString(), "rg: matches per line limit exceeded\n");
+test("available batching emits all matching records", { timeout: 5000 }, async () => {
+  const result = await run(command("rg"), ["-o", "a", "-"], "a\naa\n");
+  assert.equal(result.code, 0);
+  assert.equal(result.stdout.toString(), "a\n".repeat(3));
+  assert.equal(result.stderr.toString(), "");
 });

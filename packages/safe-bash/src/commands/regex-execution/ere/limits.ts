@@ -10,26 +10,13 @@ function integer(value: number): void {
   if (!Number.isSafeInteger(value) || value < 0) throw new TypeError("ERE bounds must be nonnegative safe integers");
 }
 
-function multiply(value: number, factor: number, ceiling: number): number {
-  if (value === Infinity) return Infinity;
-  return value > Math.floor(ceiling / factor) ? ceiling : value * factor;
-}
-
 export function deriveEreLimits(bounds: EreExpansionBounds): EreLimits {
   if (bounds.maxExpansionBytes !== Infinity) integer(bounds.maxExpansionBytes);
   if (bounds.maxExpansionFields !== Infinity) integer(bounds.maxExpansionFields);
-  const bytes = bounds.maxExpansionBytes;
-  const fields = bounds.maxExpansionFields;
-  const byteUnits = multiply(bytes, 8, 4_000_000);
-  const fieldUnits = multiply(fields, 128, 4_000_000);
   return Object.freeze({
-    patternBytes: bytes === Infinity ? Infinity : Math.min(bytes, 65_536),
-    subjectBytes: bytes === Infinity ? Infinity : Math.min(bytes, 1_048_576),
-    work: multiply(bytes, 32, 50_000_000),
-    states: multiply(fields, 8, 65_536),
-    allocationUnits: byteUnits === Infinity || fieldUnits === Infinity ? Infinity : byteUnits >= 4_000_000 - fieldUnits ? 4_000_000 : byteUnits + fieldUnits,
-    captureBytes: bytes,
-    captureSlots: fields,
+    patternBytes: Infinity, subjectBytes: Infinity, work: Infinity,
+    states: Infinity, allocationUnits: Infinity, captureBytes: bounds.maxExpansionBytes,
+    captureSlots: bounds.maxExpansionFields,
   });
 }
 
@@ -41,15 +28,14 @@ export class EreLedger {
   #poison: EreUsageUnknownError | undefined;
   #lastYield = 0;
 
-  constructor(bounds: EreExpansionBounds, lowering: Partial<EreLimits> = {}) {
+  constructor(bounds: EreExpansionBounds, overrides: Partial<EreLimits> = {}) {
     const limits = { ...deriveEreLimits(bounds) };
-    for (const resource of Object.keys(lowering)) {
+    for (const resource of Object.keys(overrides)) {
       if (!resources.includes(resource as EreResource)) throw new TypeError("unknown ERE limit");
       const key = resource as EreResource;
-      const value = lowering[key];
+      const value = overrides[key];
       if (value === undefined) throw new TypeError("undefined ERE limit");
-      integer(value);
-      if (value > limits[key]) throw new RangeError("ERE limits may only be lowered");
+      if (value !== Infinity) integer(value);
       limits[key] = value;
     }
     this.limits = Object.freeze(limits);

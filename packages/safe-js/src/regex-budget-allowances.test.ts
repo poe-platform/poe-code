@@ -10,15 +10,14 @@ async function evaluate(budget: Budget, source: string) {
   }
 }
 
-it("keeps default regex-source admission bounded independently of the general string limit", async () => {
+it("leaves omitted regex-source limits unlimited", async () => {
   expect(
     await evaluate(
       new Budget({ stringLength: 16384 }),
       'return new RegExp("a".repeat(4097)).source.length;'
     )
   ).toMatchObject({
-    ok: false,
-    error: { code: "budgetExceeded", budget: "stringLength", limit: 4096 }
+    ok: true, returnValue: 4097
   });
 });
 
@@ -35,15 +34,14 @@ it("admits larger regexes only within explicitly selected source and allocation 
   expect(Object.isFrozen(budget.limits)).toBe(true);
 });
 
-it("retains the default compilation-allocation quota when only source admission is enlarged", async () => {
+it("leaves omitted compilation-allocation limits unlimited", async () => {
   expect(
     await evaluate(
       new Budget({ stringLength: 16384, regexSourceLength: 8192 }),
       'return new RegExp("a".repeat(4097)).source.length;'
     )
   ).toMatchObject({
-    ok: false,
-    error: { code: "budgetExceeded", budget: "dataSize", limit: 16384 }
+    ok: true, returnValue: 4097
   });
 });
 
@@ -95,8 +93,7 @@ it.each(["regexSourceLength", "regexCompileAllocations"] as const)(
       1.5,
       NaN,
       Infinity,
-      "8192",
-      name === "regexSourceLength" ? 16385 : 65537
+      "8192"
     ])
       expect(() => new Budget({ [name]: value } as never)).toThrow(RangeError);
   }

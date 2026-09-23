@@ -49,7 +49,7 @@ async function fragments(source: string, literalUnclosedClass: boolean, ledger: 
         add("[" + contents + "]"); offset = end;
       }
     } else if (character === "{") {
-      if (++braces > 8) invalid("glob nesting limit exceeded");
+      braces++;
       add("(");
     } else if (character === "}") {
       if (braces-- === 0) invalid("unmatched glob brace");
@@ -72,7 +72,7 @@ export async function executeBoundedGlobs(input: {
   const programs = [];
   for (let index = 0; index < descriptor.patterns.length; index++) {
     const source = descriptor.patterns[index]!;
-    if (!source || source.length > 8192) invalid("empty or excessive glob");
+    if (!source) invalid("empty or excessive glob");
     const option = descriptor.globOptions[index]!;
     programs.push(await compileEre(await fragments(source, option.literalUnclosedClass, ledger, signal), ledger, signal, option.insensitive));
   }

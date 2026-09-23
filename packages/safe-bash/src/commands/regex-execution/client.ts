@@ -11,8 +11,8 @@ export function createNodeRegexProvider(): BoundedRegexProvider {
     createWorker(policy) {
       return new Worker(new URL(import.meta.url.endsWith(".ts") ? "../../../dist/commands/regex-execution/worker.js" : "./worker.js", import.meta.url), {
         execArgv: [], resourceLimits: {
-          maxOldGenerationSizeMb: policy.workerOldGenerationMb,
-          stackSizeMb: policy.workerStackMb,
+          ...(policy.workerOldGenerationMb === Infinity ? {} : { maxOldGenerationSizeMb: policy.workerOldGenerationMb }),
+          ...(policy.workerStackMb === Infinity ? {} : { stackSizeMb: policy.workerStackMb }),
         },
       });
     },

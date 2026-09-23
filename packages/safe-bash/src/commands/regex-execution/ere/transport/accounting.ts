@@ -35,16 +35,6 @@ export const metadataUnits = Object.freeze({
   usage: 3 + 8 + 5,
 });
 
-export function assertBootstrapStorage(bounds: EreExpansionBounds, units: number): void {
-  integer(bounds.maxExpansionBytes); integer(bounds.maxExpansionFields); integer(units);
-  const byteUnits = bounds.maxExpansionBytes > 500_000 ? 4_000_000 : bounds.maxExpansionBytes * 8;
-  const fieldUnits = bounds.maxExpansionFields > 31_250 ? 4_000_000 : bounds.maxExpansionFields * 128;
-  const limit = Math.min(4_000_000, byteUnits + fieldUnits);
-  if (add(units, 5) > limit) throw new EreTransportProfileLimitError("transportStorage", limit);
-  const work = bounds.maxExpansionBytes > 1_562_500 ? 50_000_000 : bounds.maxExpansionBytes * 32;
-  if (add(units, 5) > work) throw new EreTransportProfileLimitError("transportWork", work);
-}
-
 function zero(): Record<EreResource, number> {
   return { patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0 };
 }

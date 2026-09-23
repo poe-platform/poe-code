@@ -22,9 +22,9 @@ for (const [limits, subject, pattern, diagnostic] of [
   assert.ok(actual.stderr.includes(diagnostic), actual.stderr);
 });
 
-test("regex policy ceilings are validated at factory creation", () => {
+test("malformed regex policy limits are rejected at factory creation", () => {
   for (const key of ["maxRegexPatternBytes", "maxRegexNodes", "maxRegexDepth", "maxRegexStates", "maxRegexAllocatedUnits"] as const) {
-    for (const value of [0, -1, NaN, Infinity, Number.MAX_SAFE_INTEGER]) {
+    for (const value of [0, -1, NaN, Infinity]) {
       assert.throws(() => createExprCommand({ limits: { [key]: value } as Partial<ExprLimits> }), RangeError);
     }
   }

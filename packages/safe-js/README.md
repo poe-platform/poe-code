@@ -438,8 +438,8 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | `deadline` | Absolute epoch milliseconds or a `Date`, not a duration. |
 | `maxCallDepth` | Nested interpreter calls. |
 | `stringLength`, `arrayLength` | Individual string and array lengths. |
-| `regexSourceLength` | Regex source cap, default 4,096; explicit integer from 1 to 16,384. The general `stringLength` limit also applies. |
-| `regexCompileAllocations` | Per-regex compilation allocation cap, default 16,384; explicit integer from 1 to 65,536. Compilation still charges work and retained data against the shared budget. |
+| `regexSourceLength` | Optional regex source cap; positive safe integer, unlimited when omitted. The general `stringLength` limit also applies. |
+| `regexCompileAllocations` | Optional per-regex compilation allocation cap; positive safe integer, unlimited when omitted. Compilation still charges work and retained data against the shared budget. |
 | `dataSize` | Retained sandbox data units, not bytes of process memory. |
 
 There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.

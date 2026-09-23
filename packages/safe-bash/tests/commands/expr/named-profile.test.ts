@@ -6,7 +6,7 @@ import threads, { type WorkerOptions } from "node:worker_threads";
 import { Budget, ExprError, screenMatch, settings } from "../../../src/commands/expr/internal.js";
 import { exprCommands, type ExprCommandsOptions } from "../../../src/commands/expr/index.js";
 import { RegexSession } from "../../../src/commands/regex-execution/client.js";
-import { exprMatchCeilings, type ExprMatchDescriptor } from "../../../src/commands/regex-execution/protocol.js";
+import { type ExprMatchDescriptor } from "../../../src/commands/regex-execution/protocol.js";
 import type { InvocationCleanup } from "../../../src/contracts/command.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
@@ -162,9 +162,9 @@ test("bracket byte caps precede screen and create no jobs", async context => {
   const jobs = observe(context);
   await both(["é", ":", "[é]"], named, [3, "", byteError], { limits: { maxRegexPatternBytes: 3 } });
   await both(["é", ":", "[é]"], named, [2, "", bracketError], { limits: { maxRegexPatternBytes: 4 } });
-  const subject = "a".repeat(exprMatchCeilings.maxSubjectBytes + 1);
-  await both([subject, ":", "["], named, [3, "", byteError], {
-    limits: { maxArgumentBytes: 2_000_000, maxStringBytes: 2_000_000, maxSteps: 50_000_000 },
+  const subject = "a".repeat(1_048_577);
+  await both([subject, ":", "["], named, [3, "", "expr: string allocation limit exceeded\n"], {
+    limits: { maxArgumentBytes: 2_000_000, maxStringBytes: 1_048_576, maxSteps: 50_000_000 },
   });
   assert.equal(jobs.length, 0);
 });
@@ -212,7 +212,7 @@ test("both byte caps precede reads and scan work even with exhausted budget", as
 
 test("worker gets remaining budget after full screen, not a reset", async context => {
   const jobs = observe(context);
-  for (const env of [{ LC_ALL: "C.UTF-8" }, named]) await both(["abc", ":", "a.c"], env, [0, "3\n", ""]);
+  for (const env of [{ LC_ALL: "C.UTF-8" }, named]) await both(["abc", ":", "a.c"], env, [0, "3\n", ""], { limits: { maxSteps: 100000 } });
   assert.equal(jobs.length, 4);
   for (let index = 0; index < 2; index++) assert.equal(jobs[index]!.limits.maxSteps - jobs[index + 2]!.limits.maxSteps, 3);
 });

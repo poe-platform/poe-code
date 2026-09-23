@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { run } from "../../run.js";
-import { SandboxError } from "../budget.js";
+import { Budget, SandboxError } from "../budget.js";
 import { matchRegex } from "./engine.js";
 import { parseRegex } from "./parse.js";
 import { decodeReplayData, encodeReplayData } from "../../snapshot/replay-data.js";
@@ -44,7 +44,7 @@ describe("independent edition-16 RegExp semantics and cost", () => {
 
   it.each(cases)("%s cannot escape the matcher ceiling in a failing alternative", (_name, source, flags) => {
     const pattern = parseRegex(`^(?:${source})$|^(a+)+Z$`, flags);
-    expect(() => matchRegex(pattern, "a".repeat(24) + "!")).toThrow(SandboxError);
+    expect(() => matchRegex(pattern, "a".repeat(24) + "!", 0, new Budget({ maxSteps: 2000 }))).toThrow(SandboxError);
   });
 
   it("does not delegate catastrophic guest matching to native RegExp", () => {
@@ -54,7 +54,7 @@ describe("independent edition-16 RegExp semantics and cost", () => {
     let failure: unknown;
     try {
       vi.stubGlobal("RegExp", native);
-      try { matchRegex(pattern, "a".repeat(24) + "!"); } catch (error) { failure = error; }
+      try { matchRegex(pattern, "a".repeat(24) + "!", 0, new Budget({ maxSteps: 2000 })); } catch (error) { failure = error; }
     } finally { vi.stubGlobal("RegExp", NativeRegExp); }
     expect(failure).toBeInstanceOf(SandboxError);
     expect(native).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe("independent edition-16 RegExp semantics and cost", () => {
       const argumentsSource = method === "replace" || method === "replaceAll" ? ", 'x'" : "";
       const source = `try { return [...'${"a".repeat(24)}!'.${method}(/^(a+)+Z$/g${argumentsSource})]; }
         catch (error) { return 'caught'; } finally { return 'finally'; }`;
-      await expect(run(source)).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+      await expect(run(source, { budget: new Budget({ maxSteps: 2000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
     }
   );
 

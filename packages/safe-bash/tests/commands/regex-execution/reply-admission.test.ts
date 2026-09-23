@@ -16,8 +16,8 @@ const signal = () => new AbortController().signal;
 const tiny: Row = { bytes: Uint8Array.of(97), all: true, terminated: true };
 const originalPush = Array.prototype.push;
 
-test("regex reply range policy has fixed frozen per-row and per-reply limits", () => {
-  assert.deepEqual(Reflect.get(protocol, "matchRangeLimits"), { perRow: 100_000, perReply: 100_000 });
+test("regex reply range policy has unlimited per-row and per-reply limits", () => {
+  assert.deepEqual(Reflect.get(protocol, "matchRangeLimits"), { perRow: Infinity, perReply: Infinity });
   assert.equal(Object.isFrozen(Reflect.get(protocol, "matchRangeLimits")), true);
 });
 
@@ -30,19 +30,19 @@ test("regex reply admission accepts zero, one and exactly 100000 raw ranges", ()
   }
 });
 
-test("regex reply admission rejects 100001 raw ranges in one otherwise-valid row", () => {
+test("regex reply admission accepts 100001 raw ranges in one otherwise-valid row", () => {
   const { row, ranges } = fixture(100_001);
-  assert.throws(() => protocol.validateReply({ id: 1, results: [ranges] }, 1, [row], signal()), { code: "PROTOCOL" });
+  assert.equal(protocol.validateReply({ id: 1, results: [ranges] }, 1, [row], signal())[0]!.length, 100_001);
 });
 
-test("regex reply admission accepts exact aggregate capacity and rejects one extra raw range", () => {
+test("regex reply admission accepts ranges above the former aggregate capacity", () => {
   const first = fixture(50_000), second = fixture(50_001);
   const exact = protocol.validateReply({ id: 1, results: [first.ranges, first.ranges] }, 1, [first.row, first.row], signal());
   assert.deepEqual(exact.map(row => row.length), [50_000, 50_000]);
-  assert.throws(() => protocol.validateReply({ id: 1, results: [first.ranges, second.ranges] }, 1, [first.row, second.row], signal()), { code: "PROTOCOL" });
+  assert.deepEqual(protocol.validateReply({ id: 1, results: [first.ranges, second.ranges] }, 1, [first.row, second.row], signal()).map(row => row.length), [50_000, 50_001]);
 });
 
-for (const kind of ["vector type", "odd vector", "input-relative bound", "first-match restriction", "row capacity", "aggregate capacity"]) {
+for (const kind of ["vector type", "odd vector", "input-relative bound", "first-match restriction"]) {
   test(`regex reply preflights later ${kind} before invoking any result map`, () => {
     const first = kind === "aggregate capacity" ? fixture(50_000) : fixture(1);
     const second = kind === "row capacity" ? fixture(100_001) : kind === "aggregate capacity" ? fixture(50_001) : { row: tiny, ranges: new Float64Array([0, 0]) };
@@ -82,8 +82,9 @@ for (const reason of [false, null, 0, ""]) {
   });
 }
 
-test("regex reply range refusal retires supported injected transport resources", async () => {
-  const { row, ranges } = fixture(100_001);
+test("malformed regex reply retires supported injected transport resources", async () => {
+  const { row, ranges } = fixture(1);
+  ranges[1] = row.bytes.length + 1;
   class Transport extends EventEmitter {
     stopped = 0;
     constructor() { super(); queueMicrotask(() => this.emit("message", { ready: true })); }
@@ -132,7 +133,8 @@ for (const growing of [false, true]) {
         });
         parentPort.postMessage({ ready: true });
       `, { eval: true, execArgv: [], workerData: { synchronization, growing }, resourceLimits: {
-        maxOldGenerationSizeMb: policy.workerOldGenerationMb, stackSizeMb: policy.workerStackMb,
+        ...(policy.workerOldGenerationMb === Infinity ? {} : { maxOldGenerationSizeMb: policy.workerOldGenerationMb }),
+        ...(policy.workerStackMb === Infinity ? {} : { stackSizeMb: policy.workerStackMb }),
       } });
       const listeners = new Map<unknown, (value: unknown) => void>();
       return {

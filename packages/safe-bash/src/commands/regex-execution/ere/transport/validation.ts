@@ -144,10 +144,16 @@ export function validateRequest(value: unknown, prepaidWork = 0, observed?: (uni
   if (frame.version !== 1 || frame.operation !== operation || frame.profile !== profile) return fail();
   integer(frame.id); integer(frame.grantId); if (frame.id === 0 || frame.grantId === 0) return fail();
   const bounds = record(frame.bounds, ["maxExpansionBytes", "maxExpansionFields"], visit);
-  integer(bounds.maxExpansionBytes); integer(bounds.maxExpansionFields);
+  if (bounds.maxExpansionBytes !== Infinity) integer(bounds.maxExpansionBytes);
+  if (bounds.maxExpansionFields !== Infinity) integer(bounds.maxExpansionFields);
   const limits = deriveEreLimits({ maxExpansionBytes: bounds.maxExpansionBytes, maxExpansionFields: bounds.maxExpansionFields });
   visit(resources.length);
-  const allowance = usage(frame.allowance, limits, visit);
+  const allowanceFields = record(frame.allowance, resources, visit);
+  for (const key of resources) {
+    if (allowanceFields[key] !== Infinity) integer(allowanceFields[key]);
+    if ((allowanceFields[key] as number) > limits[key]) return fail();
+  }
+  const allowance = allowanceFields as unknown as EreLimits;
   workLimit = allowance.work;
   if (work > workLimit) throw new EreProfileLimitError("work", workLimit);
   const fragments = array(frame.pattern, Math.floor(limits.allocationUnits / 8), visit);

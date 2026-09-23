@@ -41,16 +41,16 @@ definition across registries/shells shares its configured capacity, not signals.
 
 | Option | Default | Unit/scope |
 | --- | --- | --- |
-| `requestTimeoutMs` | 1000 | Active dispatch through reply validation, per request; excludes queue/startup/I/O waits. |
-| `startupTimeoutMs` | 3000 | Per newly created worker, until its ready reply. |
-| `maxWorkers` | 2 | Live or terminating workers per executor. |
-| `maxQueuedRequests` | 64 | FIFO waiting requests; zero permits immediate admission only. |
+| `requestTimeoutMs` | Unlimited | Active dispatch through reply validation, per request; excludes queue/startup/I/O waits. |
+| `startupTimeoutMs` | Unlimited | Per newly created worker, until its ready reply. |
+| `maxWorkers` | Unlimited | Live or terminating workers per executor. |
+| `maxQueuedRequests` | Unlimited | FIFO waiting requests; zero permits immediate admission only. |
 | `maxQueuedBytes` | 128 MiB | Accounted waiting descriptor/row storage; zero permits immediate admission only. |
-| `idleTimeoutMs` | 100 | Retirement delay for an unused cached worker. |
-| `workerOldGenerationMb` | 128 | Requested V8 old-generation resource limit. |
-| `workerStackMb` | 4 | Requested V8 stack resource limit. |
+| `idleTimeoutMs` | Unlimited | Retirement delay for an unused cached worker. |
+| `workerOldGenerationMb` | Unlimited | Requested V8 old-generation resource limit. |
+| `workerStackMb` | Unlimited | Requested V8 stack resource limit. |
 
-Values are positive safe integers except the two queue limits may be zero;
+Limits are optional and independent; omitted limits are unlimited. Explicit values are positive safe integers except the two queue limits may be zero;
 timer values cannot exceed 2,147,483,647ms. Queue accounting includes 128 bytes
 per descriptor, 16 bytes plus two bytes per UTF-16 code unit per pattern, and
 32 bytes plus payload byte length per row. This accounts logical retained data,
@@ -76,7 +76,7 @@ No prototype 16-pattern, 256KiB UTF-16, 4096-hit, 64KiB-result, 8MiB-input,
 4MiB-output or 1024-call cap is inherited. Grep retains its 32MiB record/pattern-
 file collection and 65,536-code-unit translated nonfixed-pattern limit; it has
 no new pattern-count/hit-count cap. Rg retains 1024 patterns, 8192 UTF-8 bytes per
-pattern, 100,000 matches per line and its configured line/file/output limits.
+pattern and its configured line/file/output limits.
 Worker memory exhaustion remains a resource failure rather than semantic success.
 
 `worker_threads.resourceLimits` constrain selected JS-engine resources, not

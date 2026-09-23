@@ -27,14 +27,9 @@ export interface BoundedRegexProviderOptions {
 }
 
 const defaults: Required<BoundedRegexProviderOptions> = Object.freeze({
-  maxWorkers: 2, maxPatterns: 32, maxPatternBytes: 8192, maxRows: 128,
-  maxInputBytes: 65_536, maxResultBytes: 2048, maxWork: 2_000_000,
-  maxAllocationUnits: 1_000_000, maxStates: 65_536, maxMatchesPerLine: 128, maxTotalMatches: 128,
-});
-const ceilings: Required<BoundedRegexProviderOptions> = Object.freeze({
-  maxWorkers: 32, maxPatterns: 128, maxPatternBytes: 65_532, maxRows: 4096,
-  maxInputBytes: 1_048_576, maxResultBytes: 65_536, maxWork: 33_554_432,
-  maxAllocationUnits: 4_000_000, maxStates: 65_536, maxMatchesPerLine: 100_000, maxTotalMatches: 100_000,
+  maxWorkers: Infinity, maxPatterns: Infinity, maxPatternBytes: Infinity, maxRows: Infinity,
+  maxInputBytes: Infinity, maxResultBytes: Infinity, maxWork: Infinity,
+  maxAllocationUnits: Infinity, maxStates: Infinity, maxMatchesPerLine: Infinity, maxTotalMatches: Infinity,
 });
 
 type SelectionDescriptor = GrepDescriptor | SearchDescriptor;
@@ -94,7 +89,7 @@ function options(input: BoundedRegexProviderOptions): Required<BoundedRegexProvi
   for (const key of keys) {
     if (!Object.hasOwn(input, key)) continue;
     const value = input[key];
-    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1 || value > ceilings[key]) throw new RangeError(`bounded regex option ${key} is outside its limit`);
+    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) throw new RangeError(`bounded regex option ${key} is outside its limit`);
     result[key] = value;
   }
   return Object.freeze(result);
@@ -198,7 +193,7 @@ function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProvi
   record(selected.limits, keys);
   for (const key of keys) {
     const value = selected.limits[key];
-    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1 || value > exprMatchCeilings[key]) fail("protocol", "invalid expr limits");
+    if (typeof value !== "number" || value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) fail("protocol", "invalid expr limits");
   }
   array(input.rows, 1, "expr row");
   if (input.rows.length !== 1) fail("protocol", "expr requires exactly one subject");

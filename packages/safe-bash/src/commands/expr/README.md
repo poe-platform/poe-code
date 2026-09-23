@@ -155,23 +155,23 @@ or Apple expr profile is certified by these observations.
 
 ## Limits and lifecycle
 
-All options are positive safe integers; `maxDepth` additionally cannot exceed
-256. Defaults are invocation-local, not a replacement for shared Shell budgets.
+Limits are optional and independent, and omitted limits are unlimited. Explicit
+values are positive safe integers. They apply per invocation alongside Shell budgets.
 
 | Limit | Default | Enforcement |
 | --- | ---: | --- |
-| `maxArgumentBytes` | 65,536 | Sum of UTF-8 argv bytes, preflight before encoding; count also limited to `4 * maxNodes` |
-| `maxNumericDigits` | 1,024 | Raw decimal digits excluding minus before BigInt conversion; arithmetic and generated numeric result digits |
-| `maxNodes` | 4,096 | Logical expression nodes, including inactive syntax |
-| `maxDepth` | 128 | Parser recursion and carried expression depth; flat binary chains also have depth |
-| `maxSteps` | 8,000,000 | Shared parse/evaluation work and logical allocation charges for this invocation |
-| `maxStringBytes` | 65,536 | Per-value byte allocation and conservative arithmetic render bound |
-| `maxOutputBytes` | 65,537 | Normal stdout and diagnostic bytes including LF, checked before output encoding/allocation/write |
-| `maxRegexPatternBytes` | 8,192 | Pre-admission pattern bytes (hard ceiling 65,536) |
-| `maxRegexNodes` | 4,096 | Combined BRE AST and compiled instructions (ceiling 8,192) |
-| `maxRegexDepth` | 64 | BRE group nesting (ceiling 128) |
-| `maxRegexStates` | 16,384 | Cumulative search states, including alternatives (ceiling 65,536) |
-| `maxRegexAllocatedUnits` | 1,000,000 | Cumulative logical worker allocation units (ceiling 4,000,000) |
+| `maxArgumentBytes` | Unlimited | Sum of UTF-8 argv bytes, preflight before encoding; count also limited to `4 * maxNodes` |
+| `maxNumericDigits` | Unlimited | Raw decimal digits excluding minus before BigInt conversion; arithmetic and generated numeric result digits |
+| `maxNodes` | Unlimited | Logical expression nodes, including inactive syntax |
+| `maxDepth` | Unlimited | Parser recursion and carried expression depth; flat binary chains also have depth |
+| `maxSteps` | Unlimited | Shared parse/evaluation work and logical allocation charges for this invocation |
+| `maxStringBytes` | Unlimited | Per-value byte allocation and conservative arithmetic render bound |
+| `maxOutputBytes` | Unlimited | Normal stdout and diagnostic bytes including LF, checked before output encoding/allocation/write |
+| `maxRegexPatternBytes` | Unlimited | Pre-admission pattern bytes |
+| `maxRegexNodes` | Unlimited | Combined BRE AST and compiled instructions |
+| `maxRegexDepth` | Unlimited | BRE group nesting |
+| `maxRegexStates` | Unlimited | Cumulative search states, including alternatives |
+| `maxRegexAllocatedUnits` | Unlimited | Cumulative logical worker allocation units |
 
 Every normal diagnostic obeys `maxOutputBytes`, including argument, arithmetic,
 worker, resource and unknown-execution errors. Failed output admission emits
@@ -181,12 +181,11 @@ tokens or command name. This is not an absolute combined stdout/stderr byte cap.
 Diagnostic sizing precedes interpolation and UTF-8 encoding; reporting an
 exhausted work/string budget does not require spending that exhausted budget.
 
-Regex requests receive the remaining invocation `maxSteps`, capped at 50,000,000
-per request; successful worker work is charged back to the invocation. Subject
-bytes are capped by `maxStringBytes` and a hard 1,048,576-byte worker ceiling.
+Regex requests receive the remaining invocation `maxSteps`; successful worker work is charged back to the invocation. Subject
+bytes are capped only when `maxStringBytes` is explicitly configured.
 Logical allocation units bound arrays, compiler nodes, capture-state copies and
 search-path history; they are not heap bytes or an RSS promise. Worker resource
-limits and distinct startup/active deadlines remain an additional guard. Limits
+limits and startup/active deadlines apply only when explicitly configured. Limits
 can reject valid native patterns or inputs; no partial match is returned on a cap.
 
 Numeric literals used only as strings need not fit `maxNumericDigits`. Numeric

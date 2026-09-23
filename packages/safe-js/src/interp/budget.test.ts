@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { allocateRegexSteps, Budget, REGEX_STEP_LIMIT, SandboxError } from "./budget.js";
+import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createSandboxRegex, isSandboxClosure, measureSandboxData } from "./values.js";
 import { interpret } from "./interpreter.js";
@@ -482,16 +482,5 @@ describe("Budget", () => {
 
     expect(budget.currentCallDepth).toBe(0);
     expect(() => budget.enterCall()).not.toThrow();
-  });
-});
-
-describe("allocateRegexSteps", () => {
-  it("enforces the hard regex step limit", () => {
-    expect(() => allocateRegexSteps(REGEX_STEP_LIMIT)).not.toThrow();
-    expectSandboxError(() => allocateRegexSteps(REGEX_STEP_LIMIT + 1), {
-      budget: "steps",
-      current: REGEX_STEP_LIMIT + 1,
-      limit: REGEX_STEP_LIMIT
-    });
   });
 });

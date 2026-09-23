@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createStandardCommands, MemoryFileSystem, toByteSource, type CommandContext } from "../../../src/index.js";
 import { RegexExecutor as NodeRegexExecutor } from "../../../src/commands/regex-execution/client.js";
-import { RegexExecutionError, exprMatchCeilings, type GrepDescriptor, type SearchDescriptor } from "../../../src/commands/regex-execution/protocol.js";
+import { exprMatchCeilings, type GrepDescriptor, type SearchDescriptor } from "../../../src/commands/regex-execution/protocol.js";
 
 const grep: GrepDescriptor = { kind: "grep", patterns: ["a"], fixed: false, extended: true, insensitive: false, whole: false, word: false };
 const rg: SearchDescriptor = { kind: "rg", patterns: ["a"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false };
@@ -22,11 +22,10 @@ test("actual regex worker admits exactly 100000 ranges in one row", async () => 
   } finally { await session.close(); }
 });
 
-test("actual regex worker refuses 100001 row ranges through the MATCH error route", async () => {
+test("actual regex worker admits 100001 row ranges", async () => {
   const session = new NodeRegexExecutor().open(new AbortController().signal);
   try {
-    await assert.rejects(session.run(grep, [{ bytes: Buffer.alloc(100_001, 97), all: true, terminated: true }]),
-      error => error instanceof RegexExecutionError && error.code === "MATCH" && /matches.*limit exceeded/u.test(error.message));
+    assert.equal((await session.run(grep, [{ bytes: Buffer.alloc(100_001, 97), all: true, terminated: true }]))[0]!.length, 100_001);
   } finally { await session.close(); }
 });
 
@@ -39,11 +38,10 @@ test("actual regex worker admits exactly 100000 reply ranges across two rows", a
   } finally { await session.close(); }
 });
 
-test("actual regex worker refuses cumulative 50001 plus 50001 ranges without truncation", async () => {
+test("actual regex worker admits cumulative 50001 plus 50001 ranges without truncation", async () => {
   const session = new NodeRegexExecutor().open(new AbortController().signal);
   try {
-    await assert.rejects(session.run(rg, [50_001, 50_001].map(length => ({ bytes: Buffer.alloc(length, 97), all: true, terminated: true }))),
-      error => error instanceof RegexExecutionError && error.code === "MATCH" && /matches per reply limit exceeded/u.test(error.message));
+    assert.deepEqual((await session.run(rg, [50_001, 50_001].map(length => ({ bytes: Buffer.alloc(length, 97), all: true, terminated: true })))).map(matches => matches.length), [50_001, 50_001]);
     assert.deepEqual(await session.run(rg, [{ bytes: Buffer.from("a"), all: true, terminated: true }]), [[{ start: 0, end: 1 }]]);
   } finally { await session.close(); }
 });
@@ -61,9 +59,9 @@ test("actual regex worker preserves empty, non-all and unrelated expr requests",
 });
 
 for (const [flag, length] of [["-o", 100_000], ["-o", 100_001], ["-oc", 100_001]] as const) {
-  test(`public standard grep ${flag} ${flag === "-o" ? "applies the worker range cap" : "selects without enumerating"} at ${length}`, async () => {
+  test(`public standard grep ${flag} ${flag === "-o" ? "enumerates every match" : "selects without enumerating"} at ${length}`, async () => {
     const command = createStandardCommands({ regexExecutor: createNodeRegexProvider() }).find(definition => definition.name === "grep")!;
-    const refused = flag === "-o" && length > 100_000;
+    const refused = false;
     const expectedBytes = refused ? 0 : flag === "-oc" ? 2 : length * 2;
     let stdoutBytes = 0, stderr = "";
     const context: CommandContext = {

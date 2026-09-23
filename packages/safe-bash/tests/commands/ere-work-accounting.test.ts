@@ -140,7 +140,8 @@ interface ReferenceCase {
 
 for (const filename of ["cases-v2.json", "native-visible.json"]) {
   const fixtures = JSON.parse(await readFile(new URL(`../compatibility/bash-ere-engine-author-20260829/r01-v1/${filename}`, import.meta.url), "utf8")) as readonly ReferenceCase[];
-  for (const fixture of fixtures) {
+  // R10 records the removed 255-count quota; the optional-limit suite covers its new behavior.
+  for (const fixture of fixtures.filter(fixture => !(filename === "cases-v2.json" && fixture.id === "R10"))) {
     test(`ERE existing ${filename} reference ${fixture.id}`, async () => {
       const ledger = new EreLedger(bounds);
       if (fixture.error || fixture.status === 2) {

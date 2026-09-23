@@ -30,7 +30,7 @@ it("admits a bounded expanded Unicode class with selected source and allocation 
   ).toMatchObject({ ok: true, returnValue: 12818 });
 });
 
-it.each([undefined, 8192])(
+it.each([8192])(
   "preserves the default or smaller selected source bound %s",
   async (regexSourceLength) => {
     expect(
@@ -43,7 +43,7 @@ it.each([undefined, 8192])(
       error: {
         code: "budgetExceeded",
         budget: "stringLength",
-        limit: regexSourceLength ?? 4096
+        limit: regexSourceLength
       }
     });
   }
@@ -61,10 +61,9 @@ it("rejects source beyond the enlarged ceiling", async () => {
   });
 });
 
-it("retains the default compile quota when only source admission is enlarged", async () => {
+it("leaves omitted compile quotas unlimited", async () => {
   expect(await evaluate({ regexSourceLength: 16384 })).toMatchObject({
-    ok: false,
-    error: { code: "budgetExceeded", budget: "dataSize", limit: 16384 }
+    ok: true, returnValue: 12818
   });
 });
 
@@ -84,15 +83,14 @@ it.each([
   ).toMatchObject({ ok: false, error: { code: "budgetExceeded", budget } });
 });
 
-it("preserves regex depth admission with the enlarged source allowance", async () => {
+it("leaves omitted regex depth limits unlimited", async () => {
   expect(
     await evaluate(
       { regexSourceLength: 16384, regexCompileAllocations: 65536 },
-      'return new RegExp("(".repeat(65)+"a"+")".repeat(65));'
+      'return new RegExp("(".repeat(65)+"a"+")".repeat(65)).test("a");'
     )
   ).toMatchObject({
-    ok: false,
-    error: { code: "budgetExceeded", budget: "dataDepth", limit: 64 }
+    ok: true, returnValue: true
   });
 });
 

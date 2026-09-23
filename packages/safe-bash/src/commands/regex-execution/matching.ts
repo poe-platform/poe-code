@@ -40,11 +40,9 @@ class SearchMatcher {
   private readonly fragments = new Map<number, RegExp>();
   constructor(patterns: readonly string[], args: SearchDescriptor) {
     this.byteEmpty = patterns.length === 1 && patterns[0] === "" && !args.word && !args.whole;
-    if (patterns.length > 1024) throw new SearchError("pattern count limit exceeded");
     if (!patterns.length) return;
     const insensitive = args.case === "insensitive" || args.case === "smart" && !patterns.some(pattern => /\p{Lu}/u.test(pattern));
     const sources = patterns.map(pattern => {
-      if (Buffer.byteLength(pattern) > 8192) throw new SearchError("pattern byte limit exceeded");
       if (pattern.includes("\n") && !args.nullData) throw new SearchError("multiline matching is not supported");
       if (args.fixed) return escaped(pattern);
       if (/\\[1-9]|\(\?(?:[=!]|<[=!]|P[<=])/u.test(pattern)) throw new SearchError("backreferences and look-around are not supported");
@@ -119,7 +117,6 @@ function expression(pattern: string, extended: boolean): string {
     if (!classes[name]) throw new UsageError(`unsupported character class '${name}'`);
     return classes[name]!;
   });
-  if (source.length > 65536) throw new UsageError("pattern is too large");
   if (!extended) {
     let translated = "";
     let bracket = false;
@@ -203,7 +200,7 @@ function globSource(source: string, literalUnclosedClass: boolean): string {
       }
       output += `[${contents}]`;
     } else if (character === "{") {
-      if (++braces > 8) throw new SearchError("glob nesting limit exceeded");
+      braces++;
       output += "(?:";
     } else if (character === "}") {
       if (!braces--) throw new SearchError("unmatched glob brace");
@@ -216,7 +213,7 @@ function globSource(source: string, literalUnclosedClass: boolean): string {
 }
 
 function globMatcher(source: string, insensitive: boolean, literalUnclosedClass: boolean): (row: Row) => Match[] {
-  if (!source || source.length > 8192) throw new SearchError("empty or excessive glob");
+  if (!source) throw new SearchError("empty or excessive glob");
   const directory = source.endsWith("/");
   if (directory) source = source.slice(0, -1);
   const anchored = source.startsWith("/") || source.includes("/");

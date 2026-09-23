@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "../../contracts/command.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { defaults, inputBytes, policy, RegexExecutionError, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inputBytes, policy, RegexExecutionError, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -96,7 +96,7 @@ class Slot {
         this.failure = undefined;
         if (rejected) reject(value); else resolve(value);
       };
-      const timer = setTimeout(() => finish(true, new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
+      const timer = timeout === Infinity ? undefined : setTimeout(() => finish(true, new RegexExecutionError(startup ? "STARTUP_TIMEOUT" : "REQUEST_TIMEOUT", `${startup ? "startup" : "active request"} exceeded ${timeout}ms`)), timeout);
       this.receiver = value => finish(false, value);
       this.failure = error => finish(true, error);
       try { signal.throwIfAborted(); send?.(); } catch (error) { finish(true, error); }
@@ -130,7 +130,7 @@ export class RegexExecutor {
   private sessions = 0;
   private sequence = 0;
   private disposed = false;
-  constructor(readonly provider: BoundedRegexProvider, options: RegexExecutionOptions = defaults) {
+  constructor(readonly provider: BoundedRegexProvider, options: RegexExecutionOptions = {}) {
     if (!provider || typeof provider.createWorker !== "function") throw new TypeError("a bounded regex provider is required");
     this.options = policy(options);
   }
@@ -253,8 +253,8 @@ export class RegexExecutor {
       if (slot.retired) this.retired(slot);
       else {
         slot.worker.unref?.();
-        slot.idleTimer = setTimeout(() => { if (!slot.busy) void slot.retire(); }, this.options.idleTimeoutMs);
-        slot.idleTimer.unref?.();
+        slot.idleTimer = this.options.idleTimeoutMs === Infinity ? undefined : setTimeout(() => { if (!slot.busy) void slot.retire(); }, this.options.idleTimeoutMs);
+        slot.idleTimer?.unref?.();
       }
       this.pump();
     }

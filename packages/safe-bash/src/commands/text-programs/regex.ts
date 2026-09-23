@@ -78,7 +78,6 @@ export class Pattern {
     let offset = 0;
     let groups = 0;
     const closedGroups = new Set<number>();
-    let depth = 0;
     const characterNode = (character: string): Node => ({ type: "character", accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character });
     const escaped = (): string => {
       const character = source[offset++];
@@ -118,12 +117,10 @@ export class Pattern {
     const atom = (): Node => {
       const token = source[offset++];
       if (token === "(") {
-        if (++depth > 64) throw new ProgramError("regular expression nesting limit exceeded");
         const index = ++groups;
         const node = alternate();
         if (source[offset++] !== ")") throw new ProgramError("unmatched '(' in regular expression");
         closedGroups.add(index);
-        depth--;
         return { type: "group", index, node };
       }
       if (token === "[") return bracket();
@@ -154,7 +151,7 @@ export class Pattern {
         if (!match) throw new ProgramError("invalid repetition interval");
         const minimum = Number(match[1]);
         const maximum = match[2] === undefined ? minimum : match[2] === "" ? Infinity : Number(match[2]);
-        if (minimum > 1000 || maximum !== Infinity && maximum > 1000 || maximum < minimum) throw new ProgramError("invalid or excessive repetition interval");
+        if (!Number.isSafeInteger(minimum) || maximum !== Infinity && !Number.isSafeInteger(maximum) || maximum < minimum) throw new ProgramError("invalid or excessive repetition interval");
         offset += match[0].length;
         node = { type: "repeat", node, minimum, maximum };
       }
@@ -176,7 +173,6 @@ export class Pattern {
     this.groupCount = groups;
     this.anchored = root.type === "sequence" && root.nodes[0]?.type === "begin";
     const emit = (instruction: Instruction): number => {
-      if (this.code.length >= 16384) throw new ProgramError("compiled regular expression is too large");
       return this.code.push(instruction) - 1;
     };
     const compile = (node: Node): void => {

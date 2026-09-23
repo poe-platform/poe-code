@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SandboxError } from "../budget.js";
+import { Budget, SandboxError } from "../budget.js";
 import { matchRegex } from "./engine.js";
 import { parseRegex } from "./parse.js";
 
@@ -96,17 +96,17 @@ describe("matchRegex", () => {
     expect(matchRegex(parseRegex("a"), "ba", 2)).toEqual({ index: 1, text: "a", captures: [] });
   });
 
-  it("fails catastrophic backtracking within the regex step cap", () => {
+  it("fails catastrophic backtracking within the explicit caller step cap", () => {
     const startedAt = performance.now();
 
-    expect(() => matchRegex(parseRegex("(a+)+b"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaX")).toThrow(
+    expect(() => matchRegex(parseRegex("(a+)+b"), "aaaaaaaaaaaaaaaaaaaaaaaaaaaX", 0, new Budget({ maxSteps: 2000 }))).toThrow(
       SandboxError
     );
     expect(performance.now() - startedAt).toBeLessThan(100);
   });
 
   it("reports budget exhaustion instead of overflowing the host stack", () => {
-    expect(() => matchRegex(parseRegex("a*"), "a".repeat(20_000))).toThrow(SandboxError);
+    expect(() => matchRegex(parseRegex("a*"), "a".repeat(20_000), 0, new Budget({ maxSteps: 2000 }))).toThrow(SandboxError);
   });
 
   it.each([

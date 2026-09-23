@@ -21,12 +21,11 @@ export type BudgetOptions = {
   dataSize?: number;
 };
 
-export const REGEX_STEP_LIMIT = 2_000;
 export const REGEX_COMPILE_LIMITS = Object.freeze({
-  sourceLength: 4_096,
-  flagsLength: 8,
-  depth: 64,
-  allocations: 16_384
+  sourceLength: Infinity,
+  flagsLength: Infinity,
+  depth: Infinity,
+  allocations: Infinity
 });
 const DEADLINE_CHECK_INTERVAL = 1_024;
 
@@ -128,10 +127,10 @@ class BudgetAccounting {
       maxCallDepth: normalizeLimit("maxCallDepth", options.maxCallDepth),
       stringLength: normalizeLimit("stringLength", options.stringLength),
       ...(options.regexSourceLength === undefined ? {} : {
-        regexSourceLength: normalizeRegexLimit("regexSourceLength", options.regexSourceLength, 16384)
+        regexSourceLength: normalizeRegexLimit("regexSourceLength", options.regexSourceLength)
       }),
       ...(options.regexCompileAllocations === undefined ? {} : {
-        regexCompileAllocations: normalizeRegexLimit("regexCompileAllocations", options.regexCompileAllocations, 65536)
+        regexCompileAllocations: normalizeRegexLimit("regexCompileAllocations", options.regexCompileAllocations)
       }),
       arrayLength: normalizeLimit("arrayLength", options.arrayLength),
       dataSize: normalizeLimit("dataSize", options.dataSize)
@@ -633,15 +632,6 @@ export class Budget {
   }
 }
 
-export function allocateRegexSteps(steps: number): void {
-  if (!Number.isInteger(steps) || steps < 0) {
-    throw new Error("steps must be a non-negative integer.");
-  }
-  if (steps > REGEX_STEP_LIMIT) {
-    throw new SandboxError({ budget: "steps", current: steps, limit: REGEX_STEP_LIMIT });
-  }
-}
-
 function normalizeDeadline(deadline: BudgetOptions["deadline"]): number | undefined {
   if (deadline === undefined) {
     return undefined;
@@ -662,9 +652,9 @@ function normalizeLimit(name: keyof BudgetLimits, value: number | undefined): nu
   return value;
 }
 
-function normalizeRegexLimit(name: string, value: number | undefined, maximum: number): number | undefined {
+function normalizeRegexLimit(name: string, value: number | undefined): number | undefined {
   if (value === undefined) return undefined;
-  if (!Number.isSafeInteger(value) || value < 1 || value > maximum)
-    throw new RangeError(`${name} must be an integer from 1 to ${maximum}.`);
+  if (!Number.isSafeInteger(value) || value < 1)
+    throw new RangeError(`${name} must be a positive safe integer.`);
   return value;
 }

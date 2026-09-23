@@ -39,7 +39,7 @@ test("expr request shape, limits and admission validation are bounded", () => {
   const invalid: unknown[] = [null, {}, { ...descriptor, extra: 1 }, { ...descriptor, kind: "grep" },
     { ...descriptor, pattern: "x" }, { ...descriptor, profile: "UTF16" }, { ...descriptor, limits: {} },
     { ...descriptor, limits: { ...exprMatchCeilings, extra: 1 } },
-    ...[0, -1, NaN, Infinity, 0.5, exprMatchCeilings.maxDepth + 1].map(maxDepth => ({ ...descriptor, limits: { ...exprMatchCeilings, maxDepth } }))];
+    ...[0, -1, NaN, 0.5, Number.MAX_SAFE_INTEGER + 1].map(maxDepth => ({ ...descriptor, limits: { ...exprMatchCeilings, maxDepth } }))];
   for (const bad of invalid) assert.throws(() => validateExprInput(bad as ExprMatchDescriptor, rows, signal()), protocol);
   for (const bad of [undefined, [], [rows[0], rows[0]], [{ ...rows[0], all: true }], [{ ...rows[0], directory: false }], [{ ...rows[0], bytes: "x" }]]) {
     assert.throws(() => validateExprRequest({ id: 1, descriptor, rows: bad }), protocol);

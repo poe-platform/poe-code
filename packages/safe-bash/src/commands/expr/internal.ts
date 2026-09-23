@@ -32,20 +32,14 @@ export class ExprError extends Error {
 
 export function settings(options: ExprCommandsOptions): ExprLimits {
   const limits = {
-    maxArgumentBytes: 65_536, maxNumericDigits: 1024, maxNodes: 4096,
-    maxDepth: 128, maxSteps: 8_000_000, maxStringBytes: 65_536,
-    maxOutputBytes: 65_537, maxRegexPatternBytes: 8192, maxRegexNodes: 4096,
-    maxRegexDepth: 64, maxRegexStates: 16_384, maxRegexAllocatedUnits: 1_000_000, ...options.limits,
+    maxArgumentBytes: Infinity, maxNumericDigits: Infinity, maxNodes: Infinity,
+    maxDepth: Infinity, maxSteps: Infinity, maxStringBytes: Infinity,
+    maxOutputBytes: Infinity, maxRegexPatternBytes: Infinity, maxRegexNodes: Infinity,
+    maxRegexDepth: Infinity, maxRegexStates: Infinity, maxRegexAllocatedUnits: Infinity, ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid expr limit: ${name}`);
+    if (Object.hasOwn(options.limits ?? {}, name) && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid expr limit: ${name}`);
   }
-  if (limits.maxDepth > 256) throw new RangeError("expr maxDepth must not exceed 256");
-  for (const [key, maximum] of [
-    ["maxRegexPatternBytes", exprMatchCeilings.maxPatternBytes], ["maxRegexNodes", exprMatchCeilings.maxNodes],
-    ["maxRegexDepth", exprMatchCeilings.maxDepth], ["maxRegexStates", exprMatchCeilings.maxStates],
-    ["maxRegexAllocatedUnits", exprMatchCeilings.maxAllocatedUnits],
-  ] as const) if (limits[key] > maximum) throw new RangeError(`expr ${key} exceeds worker ceiling ${maximum}`);
   return Object.freeze(limits);
 }
 

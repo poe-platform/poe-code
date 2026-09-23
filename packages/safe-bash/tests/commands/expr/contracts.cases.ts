@@ -74,10 +74,10 @@ test("factory limit validation and long input preflight", async () => {
   for (const value of [0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createExprCommand({ limits: { maxSteps: value } }), RangeError);
   }
-  assert.throws(() => createExprCommand({ limits: { maxDepth: 257 } }), RangeError);
+  assert.doesNotThrow(() => createExprCommand({ limits: { maxDepth: 257 } }));
   assert.throws(() => createExprCommand({ regex: { requestTimeoutMs: 0 } }), RangeError);
-  assert.equal((await run(["9".repeat(100_000), "+", "1"])).exitCode, 3);
-  assert.equal((await run(Array.from({ length: 20_000 }, () => ""))).exitCode, 3);
+  assert.equal((await run(["9".repeat(100_000), "+", "1"], { limits: { maxArgumentBytes: 65536 } })).exitCode, 3);
+  assert.equal((await run(Array.from({ length: 20_000 }, () => ""), { limits: { maxNodes: 4096 } })).exitCode, 3);
   const text = "a".repeat(65_536);
   assert.equal((await run([text])).stdout, `${text}\n`);
   assert.equal((await run(["9".repeat(2000), "<", "z"])).stdout, "1\n");

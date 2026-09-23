@@ -71,24 +71,20 @@ async function flatten(input: string | readonly EreFragment[], ledger: EreLedger
 class Parser {
   offset = 0;
   groups = 0;
-  nodes = 0;
   constructor(readonly pattern: string, readonly quoted: readonly boolean[] | null, readonly ledger: EreLedger, readonly signal: AbortSignal | undefined, readonly insensitive: boolean) {}
 
   at(character: string, offset = this.offset): boolean { return !this.quoted?.[offset] && this.pattern[offset] === character; }
 
   node(create: () => EreNode): EreNode {
-    if (this.nodes >= 4096) throw new EreUnsupportedError("4096-node grammar ceiling", this.offset);
     this.ledger.charge("allocationUnits", 8, this.signal);
-    this.nodes++;
     return Object.freeze(create());
   }
 
-  async expression(depth: number): Promise<EreNode> {
-    if (depth > 64) throw new EreUnsupportedError("64-level grammar ceiling", this.offset);
+  async expression(): Promise<EreNode> {
     this.ledger.charge("allocationUnits", 1, this.signal);
     const alternatives: EreNode[] = [];
     while (true) {
-      const child = await this.sequence(depth);
+      const child = await this.sequence();
       this.ledger.charge("allocationUnits", 1, this.signal);
       alternatives.push(child);
       if (!this.at("|")) break;
@@ -100,13 +96,13 @@ class Parser {
     return this.node(() => ({ kind: "alternative", children: Object.freeze(alternatives), nullable: alternatives.some(value => value.nullable), captured: alternatives.some(value => value.captured) }));
   }
 
-  async sequence(depth: number): Promise<EreNode> {
+  async sequence(): Promise<EreNode> {
     this.ledger.charge("allocationUnits", 1, this.signal);
     const children: EreNode[] = [];
     while (this.offset < this.pattern.length && !this.at("|") && !this.at(")")) {
       this.ledger.charge("work", 1, this.signal);
       await this.ledger.checkpoint(this.signal);
-      let child = await this.atom(depth);
+      let child = await this.atom();
       const operator = this.quoted?.[this.offset] ? undefined : this.pattern[this.offset];
       if (operator === "*" || operator === "+" || operator === "?" || operator === "{") {
         const begin = this.offset++;
@@ -146,21 +142,20 @@ class Parser {
       this.ledger.charge("work", 1, this.signal);
       await this.ledger.checkpoint(this.signal);
       value = value * 10 + this.pattern.charCodeAt(this.offset++) - 48;
-      if (value > 255) throw new EreUnsupportedError("interval counts exceed 255", begin);
+      if (!Number.isSafeInteger(value)) throw new EreUnsupportedError("interval count is not a safe integer", begin);
     }
     if (begin === this.offset) throw new EreSyntaxError("missing interval count", begin);
     return value;
   }
 
-  async atom(depth: number): Promise<EreNode> {
+  async atom(): Promise<EreNode> {
     const begin = this.offset;
     const character = this.pattern[this.offset++]!;
     if (this.quoted?.[begin]) return this.node(() => ({ kind: "literal", code: character.charCodeAt(0), insensitive: this.insensitive, nullable: false, captured: false }));
     if (character === "(") {
       if (this.at("?")) throw new EreUnsupportedError("extended group syntax", begin);
-      if (this.groups >= 32) throw new EreUnsupportedError("32-group grammar ceiling", begin);
       const index = ++this.groups;
-      const child = await this.expression(depth + 1);
+      const child = await this.expression();
       if (!this.at(")")) throw new EreSyntaxError("unclosed group", begin);
       this.offset++;
       return this.node(() => ({ kind: "group", index, child, nullable: child.nullable, captured: true }));
@@ -248,7 +243,7 @@ export async function compileEre(input: string | readonly EreFragment[], ledger:
   if (typeof asciiInsensitive !== "boolean") throw new TypeError("ASCII case mode must be boolean");
   const { pattern, quoted } = await flatten(input, ledger, signal);
   const parser = new Parser(pattern, quoted, ledger, signal, asciiInsensitive);
-  const root = await parser.expression(0);
+  const root = await parser.expression();
   if (parser.offset !== pattern.length) throw new EreSyntaxError("unmatched closing group", parser.offset);
   ledger.charge("allocationUnits", 3, signal);
   const program = Object.freeze({ pattern, groups: parser.groups });

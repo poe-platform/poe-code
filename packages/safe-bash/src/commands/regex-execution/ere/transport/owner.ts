@@ -8,7 +8,6 @@ import { record } from "./validation.js";
 interface Pending {
   readonly resolve: (value: unknown) => void;
   readonly reject: (reason: unknown) => void;
-  readonly timer: ReturnType<typeof setTimeout>;
 }
 
 export class EreWorkerOwner {
@@ -18,7 +17,6 @@ export class EreWorkerOwner {
   #ready: Promise<void> | undefined;
   #readyResolve: (() => void) | undefined;
   #readyReject: ((reason: unknown) => void) | undefined;
-  #startupTimer: ReturnType<typeof setTimeout> | undefined;
   #pending: Pending | undefined;
   #request: Promise<unknown> | undefined;
   #stdout: Promise<void> | undefined;
@@ -53,11 +51,10 @@ export class EreWorkerOwner {
   }
 
   #settle(reason: unknown): void {
-    clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
     this.#readyReject?.(reason);
     this.#readyReject = undefined; this.#readyResolve = undefined;
     const pending = this.#pending; this.#pending = undefined;
-    if (pending) { clearTimeout(pending.timer); pending.reject(reason); }
+    if (pending) pending.reject(reason);
   }
 
   #fail(reason: unknown): void {
@@ -93,7 +90,6 @@ export class EreWorkerOwner {
       try {
         const worker = new Worker(new URL("./worker-entry.js", import.meta.url), {
           workerData: { operation, version: 1 }, env: {}, execArgv: [], stdout: true, stderr: true,
-          resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 },
         });
         this.#worker = worker; this.#retirementState = "PENDING";
         let setupFailed = false;
@@ -120,15 +116,14 @@ export class EreWorkerOwner {
               const ready = record(message, ["version", "operation", "kind"], units => this.transport.visit(units), this.transport);
               if (ready.version !== 1 || ready.operation !== operation || ready.kind !== "ready") throw new EreTransportError("PROTOCOL", "invalid ERE startup frame");
               this.transport.visit(14);
-              this.#readySeen = true; clearTimeout(this.#startupTimer); this.#startupTimer = undefined;
+              this.#readySeen = true;
               this.#readyResolve?.(); this.#readyResolve = undefined; this.#readyReject = undefined; return;
             }
             const pending = this.#pending;
             if (!pending) throw new EreTransportError("PROTOCOL", "unsolicited ERE frame");
-            this.#pending = undefined; clearTimeout(pending.timer); pending.resolve(message);
+            this.#pending = undefined; pending.resolve(message);
           } catch (reason) { this.#fail(reason); }
         });
-        this.#startupTimer = setTimeout(() => this.#fail(new EreTransportError("STARTUP_TIMEOUT", "ERE startup timeout")), 3000);
       } catch (reason) {
         if (!this.#worker) this.#exitResolve?.();
         this.#fail(reason);
@@ -141,8 +136,7 @@ export class EreWorkerOwner {
     if (this.#failed) return Promise.reject(this.#failure);
     if (!this.#worker || !this.#readySeen || this.#pending || this.#closing) return Promise.reject(new EreTransportError("CLOSED", "ERE Worker request unavailable"));
     const pending = new Promise<unknown>((resolve, reject) => {
-      const timer = setTimeout(() => this.#fail(new EreTransportError("REQUEST_TIMEOUT", "ERE request timeout")), 1000);
-      this.#pending = { resolve, reject, timer };
+      this.#pending = { resolve, reject };
     });
     this.#request = pending;
     void pending.catch(() => {});

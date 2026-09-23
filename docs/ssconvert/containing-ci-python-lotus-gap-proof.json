@@ -1,0 +1,582 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Reduce original release feedback and focused fixes; not release publication or full ssconvert gap completion evidence",
+  "capturedAt": "2026-09-23T02:58:02.800072+00:00",
+  "candidate": {
+    "head": "3162331671e762fe586fafaaaf14e442ba9ad510",
+    "workingFiles": [
+      {
+        "path": "packages/safe-bash/src/commands/node/safejs.ts",
+        "sha256": "c0c707cea1a4a82680cb2093f984a35ab1797077dcf982e6d26a3b3961d3474e"
+      },
+      {
+        "path": "packages/safe-bash/tests/plugins/safejs-exports.test.ts",
+        "sha256": "ed81ad2f975962fc19eecb68f4b7965ff4e55cd25035908f11eba855160b3b50"
+      },
+      {
+        "path": "packages/safe-bash/tests/shell/virtual-null-device.test.ts",
+        "sha256": "e58ab6eb2c71eb0c21a5c49cd82ef15a0e5ae5bd95a209986a2a6e99b1bcf040"
+      },
+      {
+        "path": "packages/safe-bash/tests/fs/readonly/readonly.test.ts",
+        "sha256": "9c630869f173c6d40a151df8bee9ea184fc3d33d142d867891e4bce4e3a4c805"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diagnostic-display.test.ts",
+        "sha256": "a2c176213d6684000caf829e3802c5714d43ed5626ffce52aad4f9ec05f7c6b9"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/realpath-missing-admission.test.ts",
+        "sha256": "1b28b8a1c1d7d670306de5973c7e88f322f2caa73d6380a2495a4ae597925ede"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/streams.ts",
+        "sha256": "efe5f7cd44e5e4f411eaf2ce1dec647584a457805bd001e0747de9bb1a500c06"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/streams.test.ts",
+        "sha256": "f264753f67b0db55308a04c8ea65598a0cb921d756fc1d5a43b44618d7b8024e"
+      }
+    ],
+    "dirtySourceCaveat": "Hashes bind current working source, including owned wc changes; Git ownership and publication remain root responsibility"
+  },
+  "releaseFeedback": {
+    "runId": 35809183777,
+    "runHead": "d727a7588caf8b046f53af687844768ff61a3982",
+    "blockingFailureCount": 11,
+    "jobs": [
+      {
+        "jobId": 107020136856,
+        "conclusion": "failure",
+        "blockingFailures": 5,
+        "log": {
+          "scratchFile": "bash1.log",
+          "sha256": "ec3dd5ba0d497c7ecb20576790bf57768394065a4358807c4162df354f04103b",
+          "bytes": 176672
+        }
+      },
+      {
+        "jobId": 107020136863,
+        "conclusion": "failure",
+        "blockingFailures": 2,
+        "log": {
+          "scratchFile": "bash2.log",
+          "sha256": "5ee7e0d811d1362c079a53f7921822fb8a7299c20bc723f8c66baa060d1fc7fd",
+          "bytes": 233032
+        }
+      },
+      {
+        "jobId": 107020136933,
+        "conclusion": "failure",
+        "blockingFailures": 2,
+        "log": {
+          "scratchFile": "bash3.log",
+          "sha256": "a22571069a9a17fc7f9bae71fd83c835231be3e91a6b02d6399bcf55f995a336",
+          "bytes": 230870
+        }
+      },
+      {
+        "jobId": 107020136870,
+        "conclusion": "failure",
+        "blockingFailures": 2,
+        "log": {
+          "scratchFile": "bash4.log",
+          "sha256": "2b0b035759670aedd6424c19969f4d08ed4189e2dac63ea2a02fb46b7c3f32e9",
+          "bytes": 504850
+        }
+      }
+    ]
+  },
+  "failureGroups": [
+    {
+      "jobId": 107020136856,
+      "group": "wc C native vector replay",
+      "count": 4,
+      "cases": [
+        "wc/C/unicode-spaces/-w",
+        "wc/C/unicode-spaces/-lwmc",
+        "wc/C/invalid/-w",
+        "wc/C/invalid/-lwmc"
+      ],
+      "fix": "Nonspace bytes constitute words; retain measured GNU Darwin default byte0xA0 whitespace and POSIXLY_CORRECT override"
+    },
+    {
+      "jobId": 107020136856,
+      "group": "readonly capability exact inventory",
+      "count": 1,
+      "commit": "25d3666b6",
+      "fix": "Explicit false trustedOwnedStaging expectation and true backing input prove conservative removal"
+    },
+    {
+      "jobId": 107020136863,
+      "group": "SafeJS exports delegation",
+      "count": 1,
+      "fix": "Do not bind absent injected readFile; runtime.run receives opaque source with maintained Node preload/timer footer"
+    },
+    {
+      "jobId": 107020136863,
+      "group": "Node absent optional reader fallback",
+      "count": 1,
+      "fix": "Same callable-readFile admission; bounded ordinary source reader coverage retained"
+    },
+    {
+      "jobId": 107020136933,
+      "group": "verbose mv filename diagnostic",
+      "count": 1,
+      "commit": "708548fc5",
+      "fix": "Exact native renamed prefix while preserving escaped filename and payload effects"
+    },
+    {
+      "jobId": 107020136933,
+      "group": "readlink -m admission",
+      "count": 1,
+      "commit": "316233167",
+      "fix": "Assert supported exact stdout/status/stderr while preserving absence of realpath missing-hook admission"
+    },
+    {
+      "jobId": 107020136870,
+      "group": "SafeJS explicit guest diagnostic",
+      "count": 1,
+      "fix": "Reach injected runtime rather than premature absent readFile TypeError; preserve guest ParseError status2"
+    },
+    {
+      "jobId": 107020136870,
+      "group": "SafeJS host thrown reason identity",
+      "count": 1,
+      "fix": "Reach injected runtime and preserve original falsey/error reason identity"
+    }
+  ],
+  "safeJsFixCommit": "472173faa",
+  "focusedReceipts": [
+    {
+      "scratchFile": "current-red.log",
+      "sha256": "f7b2258d5844d8cbd813e295d32bfc3fa504e0feb30bf9b62e43ae585a1babaa",
+      "bytes": 71616,
+      "tests": 320,
+      "suites": 0,
+      "pass": 312,
+      "fail": 7,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "scratchFile": "safejs-node-green.log",
+      "sha256": "d43d6dd8398ae1e21082bbe1d4a07f4024f1259b1326f6aa8d344d0c7ec61c63",
+      "bytes": 75732,
+      "tests": 303,
+      "suites": 0,
+      "pass": 303,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "scratchFile": "current-assertions-green.log",
+      "sha256": "d9dd23a7327e35bb263bd814ce0f41670b56e3fd687e9b3e1fcb82da7eb3007b",
+      "bytes": 28068,
+      "tests": 146,
+      "suites": 0,
+      "pass": 145,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "scratchFile": "readonly-capability-green.log",
+      "sha256": "dcb8fb2af48ed3f9b4c7548b593e6826be4b7d8594e078f79c3c17b26d19ebdc",
+      "bytes": 14847,
+      "tests": 77,
+      "suites": 0,
+      "pass": 77,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "scratchFile": "wc-maintained-red.log",
+      "sha256": "e6ec9990b0c0018c4d0910ead6b9f91e8e2630206405ea86c95fc61617831a48",
+      "bytes": 25695,
+      "tests": 124,
+      "suites": 0,
+      "pass": 118,
+      "fail": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "scratchFile": "wc-maintained-green.log",
+      "sha256": "cb8dc0088df378408c532ea195864eca9704f3ce16bf4d94bffb2acdf0468d93",
+      "bytes": 26583,
+      "tests": 149,
+      "suites": 0,
+      "pass": 149,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "scratchFile": "wc-profile-red.log",
+      "sha256": "83db773a379e1359ed6eb20d6a4ee2f12ee808a83f534f0c61b1af2af80b7376",
+      "bytes": 12602,
+      "tests": 20,
+      "suites": 0,
+      "pass": 6,
+      "fail": 14,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "scratchFile": "wc-profile-green.log",
+      "sha256": "180656472a2811bb3fe6c3051021a04524d48a6720ebf0d3e320e56b6854eac4",
+      "bytes": 3311,
+      "tests": 20,
+      "suites": 0,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "wcNativeQualification": {
+    "historicalReceipt": {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/native.json",
+      "sha256": "a6dd7d352291bdce5a022d5528a9bc3b56d6b21c8f11e741345a8c0b14ca7bbc"
+    },
+    "historicalTool": {
+      "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/wc",
+      "version": "wc (GNU coreutils) 9.7",
+      "sha256": "0e5f97838353293c4e4272cccf4a37de800539ad9d6b1094f4d9695501da7060"
+    },
+    "historical77Vectors": "All exact native replay expectations and vector hashes retained; included unchanged in149 maintained green tests",
+    "currentNativeReceipt": {
+      "scratchFile": "wc-current-case-native.json",
+      "sha256": "2ec785b154126764e02ca957d787d5b6fd404d4a1148fe7fde41f050402e2cb4",
+      "observations": 40,
+      "actualVersion": "wc (GNU coreutils) 9.11",
+      "tool": "/opt/homebrew/Cellar/coreutils/9.11/bin/gwc",
+      "toolSha256": "6d7bb328b97d7b83188656f9102149ef42c3fe59efa48304d976e0f3c5755606",
+      "host": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+    },
+    "labelCorrection": "Current receipt profile label incorrectly says9.7; actual authenticated current executable/version field is Homebrew GNU9.11 Darwin. Original receipt remains unchanged. Historical native.json really is GNU9.7 Darwin.40 fresh controls corroborate semantics, not a fresh9.7 execution",
+    "sourceAnalysis": {
+      "url": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/wc.c",
+      "scratchFile": "gnu-wc-9.7.c",
+      "sha256": "04ff5479a3b399362b8f460a1ac8f2932e32146b79102d2397dd42fadbf69fe6",
+      "findings": "iswnbspace recognizesA0/2007/202F/2060 unless POSIXLY_CORRECT present; byte wc_isspace uses isspace(i)||iswnbspace(btoc32(i)); words start at every nonspace byte, not printable-only spans"
+    },
+    "darwinLinuxCaveat": "btoc32 and wide-character classification depend on libc/profile. No Linux execution was available; do not claim defaultA0 byte behavior universally matches Linux/glibc. Maintain measured GNU Darwin profile explicitly. POSIXLY_CORRECT presence includes empty string",
+    "otherNativeObservations": {
+      "scratchFile": "wc-native-profile-observations.json",
+      "sha256": "1d64384229757facd23013786254b9fe62b2c76cf5b108fe6ead8b658eabffb4",
+      "observations": 64,
+      "versionsCaveat": "This original64-row probe omitted exact executable version binding; current40-row receipt provides authenticated GNU9.11 binding. Apple wc observations only corroborate nonspace-control behavior, not GNU NBSP policy"
+    },
+    "regressionProbe": {
+      "scratchFile": "wc-profile-red.test.ts",
+      "sha256": "bd1da9805941bb1d8b892ad8fc2a9596adaba7d7dc1979ea76cad173883ff605",
+      "tests": 20,
+      "widths": [
+        1,
+        2,
+        17
+      ],
+      "profiles": [
+        "C",
+        "POSIX"
+      ],
+      "POSIXLY_CORRECT": [
+        "absent",
+        "present empty"
+      ],
+      "inputs": "control-only, invalid byte, embedded NUL, byteA0, all256bytes",
+      "filesystem": "MemoryFileSystem only; tests create no host files"
+    }
+  },
+  "preservedHistoricalSources": [
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/native.json",
+      "sha256": "a6dd7d352291bdce5a022d5528a9bc3b56d6b21c8f11e741345a8c0b14ca7bbc",
+      "baselineCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+      "baselineSha256": "a6dd7d352291bdce5a022d5528a9bc3b56d6b21c8f11e741345a8c0b14ca7bbc",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/native.test.ts",
+      "sha256": "c05d58d086a6b3f781084d176478fdd518188204fdb36edaf4110af30ee6dc0b",
+      "baselineCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+      "baselineSha256": "c05d58d086a6b3f781084d176478fdd518188204fdb36edaf4110af30ee6dc0b",
+      "unchangedFromBaseline": true
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/core-regression-stress/vectors.ts",
+      "sha256": "146836e761b1205e6a98bbe4ea0359ae204852b62287b0510d08a5b9a8c7d003",
+      "baselineCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+      "baselineSha256": "146836e761b1205e6a98bbe4ea0359ae204852b62287b0510d08a5b9a8c7d003",
+      "unchangedFromBaseline": true
+    }
+  ],
+  "nonblockingTodos": [
+    {
+      "jobId": 107020136863,
+      "case": "requested XLSX named shell descriptor path /dev/fd/3",
+      "state": "Existing TODO failed assertion, excluded from blocking fail count; unresolved requirement retained"
+    },
+    {
+      "jobId": 107020136870,
+      "case": "csvformat frozen numeric/null operation cell serialization with recycled Buffer",
+      "state": "Existing TODO failed assertion, excluded from blocking fail count; unresolved requirement retained"
+    }
+  ],
+  "countCorrections": [
+    "Initial current-red cohort is320tests:312pass,7fail,1native realpath skip; prior327 statement wrong",
+    "Strengthened readonly rerun77/77; prior80 statement wrong"
+  ],
+  "limits": [
+    "Focused maintained gates are not full repository/runtime/packed/export qualification",
+    "Guarded root lint/build and expanded postrebase SafeJS dependency refresh receipts remain root-owned",
+    "Local fixes/commits are not verified remote-main delivery or successful release publication"
+  ],
+  "runtimePrerequisiteFeedback": {
+    "classification": "comparator prerequisite omissions; no validated source or export defect",
+    "codeChanges": [],
+    "priorObservation": {
+      "tests": 267,
+      "pass": 208,
+      "fail": 54,
+      "cancelled": 5,
+      "log": "out/ssconvert-gap-resolution/bash-release-feedback/safejs-rebuilt.log"
+    },
+    "sourceUnitControl": {
+      "files": 1,
+      "passed": 3,
+      "skipped": 45,
+      "scope": "explicit awaited host operations"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/safe-js --no-cache",
+      "terminalStatus": 0,
+      "workspaces": 127,
+      "builds": 23
+    },
+    "rerun": {
+      "command": "node --import tsx --test --test-concurrency=1 'packages/safe-bash/tests/commands/node-*.test.ts' packages/safe-bash/tests/plugins/safejs-exports.test.ts packages/safe-bash/tests/shell/opaque-errors.test.ts packages/safe-bash/tests/shell/virtual-null-device.test.ts",
+      "terminalStatus": 1,
+      "tests": 267,
+      "pass": 266,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 27770.495667
+    },
+    "remainingFailure": {
+      "file": "packages/safe-bash/tests/shell/virtual-null-device.test.ts",
+      "specifier": "poe-code/safe-fs/core",
+      "error": "ERR_MODULE_NOT_FOUND",
+      "target": "packages/safe-js/dist/safe-fs-core.js",
+      "owner": "root package/export integration",
+      "classification": "normal root bundle suffix not restored after individual SafeJS build cleared dist",
+      "correctivePrerequisite": "npm run build",
+      "mapping": "scripts/bundle.mjs imports resolveCanonicalFsBuilds from scripts/bundle-fs.mjs; canonicalFsRoutes node core route emits safe-fs/src/core.ts to safe-js/dist/safe-fs-core.js"
+    },
+    "hashes": [
+      {
+        "path": "packages/safe-js/src/interp/host-bridge.ts",
+        "beforeSha256": "09589efb163a26b9428e51e176c1a642332f429fadbd1473922cdd46e7a5a793",
+        "afterSha256": "09589efb163a26b9428e51e176c1a642332f429fadbd1473922cdd46e7a5a793"
+      },
+      {
+        "path": "packages/safe-js/dist/interp/host-bridge.js",
+        "beforeSha256": "fd0549064a17c206242b8bd16ceb5c35158d89230db41de752409a3b6e5492f6",
+        "afterSha256": "34358a47750416c24ed48722ff5569e78c5c3c695722de55c4b9c685b766e870"
+      },
+      {
+        "path": "packages/safe-js/src/interp/interpreter.ts",
+        "beforeSha256": "dc3b0ece2d3d22a3768fd91142f751f231b35ebaaef789749cce7f2e02c0fc05",
+        "afterSha256": "dc3b0ece2d3d22a3768fd91142f751f231b35ebaaef789749cce7f2e02c0fc05"
+      },
+      {
+        "path": "packages/safe-js/dist/interp/interpreter.js",
+        "beforeSha256": "fd52181cf34314f141426ac5d82a838e9efd86337425e2e79b6a6ff5dc633100",
+        "afterSha256": "7cd4f4fbbe63feabb48b5bad0c93f4f171cacb968c82c16d9a98b79130304f5e"
+      },
+      {
+        "path": "packages/safe-js/src/run.ts",
+        "beforeSha256": "fd632c3279b13c44ced85dff57befccb0cbb012a00fc68baae0ece575bd462f4",
+        "afterSha256": "fd632c3279b13c44ced85dff57befccb0cbb012a00fc68baae0ece575bd462f4"
+      },
+      {
+        "path": "packages/safe-js/dist/run.js",
+        "beforeSha256": "33eb5f1bc3339090283b0a276f768fe8ea9ce41d1d6b5cf7556d5001113f4399",
+        "afterSha256": "096267bc2a65d567bfcced6cd499fe4594a3966a80d691ee156fe6bc6a7d641d"
+      },
+      {
+        "path": "packages/safe-js/src/interp/globals.ts",
+        "beforeSha256": "3642e9e53c9731ee80bc3bbedc2c232be34d24b8fa1ed2eda4f3d0b31441fa1c",
+        "afterSha256": "3642e9e53c9731ee80bc3bbedc2c232be34d24b8fa1ed2eda4f3d0b31441fa1c"
+      },
+      {
+        "path": "packages/safe-js/dist/interp/globals.js",
+        "beforeSha256": "8d1d0a4a8ef710ced9af6377cf1bf6aa3d2e7c7565b11c9b219e87533e39dee7",
+        "afterSha256": "3f4ac735cc2d7c65600c6b59522e99303f9621574e6eeb01269fc9974a378c74"
+      }
+    ],
+    "logs": [
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/runtime-build.log",
+        "sha256": "1b97a68e8af2d4e722a13e5f96a7f6677b14fb55270d41a7c58c1f6b9c59ea42"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/engine-red.log",
+        "sha256": "2bfe4cba5e0be428c66a367ff84b661091c8e26482cc8302060d07d28b4fc1ac"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/expanded-green.log",
+        "sha256": "bd12e45965aa6175d3c985fb30bda2c4708492acb8a56e54224504b41c1bcd2b"
+      }
+    ],
+    "correctionHistory": [
+      {
+        "originalInference": "public-export migration mismatch",
+        "resolution": "root identified intentional root bundle facade; independently verified maintained bundle mapping and test. Failure is missing root build suffix prerequisite."
+      }
+    ],
+    "normalRootBuildFollowup": {
+      "expandedSuite": {
+        "tests": 314,
+        "pass": 312,
+        "fail": 2,
+        "log": "out/ssconvert-gap-resolution/bash-release-feedback/safejs-root-bundled.log"
+      },
+      "rootCause": "source/workspace unit fixtures mixed with root canonical bundled FsError graph; nominal identity differs, so ENOENT cannot be recognized across graph",
+      "failures": [
+        {
+          "file": "packages/safe-bash/tests/commands/node-safejs.test.ts",
+          "line": 157,
+          "error": "bundled bridge treats workspace memory ENOENT lstat /work/output.txt as foreign error"
+        },
+        {
+          "file": "packages/safe-bash/tests/shell/virtual-null-device.test.ts",
+          "line": 307,
+          "error": "workspace device layer treats canonical bundled Mount ENOENT lstat /destination/directory as foreign error"
+        }
+      ],
+      "identityControl": {
+        "publicFsErrorEqualsWorkspaceFsError": false,
+        "publicLstatError": {
+          "publicInstance": true,
+          "workspaceInstance": false
+        },
+        "workspaceLstatError": {
+          "publicInstance": false,
+          "workspaceInstance": true
+        }
+      },
+      "controls": [
+        {
+          "path": "out/ssconvert-gap-resolution/node-rebase-feedback/public-coherent-controls.json",
+          "terminalStatus": 0,
+          "sha256": "6e5cb41b1721a388db8801c4a5055a7f270eb72a2bb9a1e08ebfb7ddfd0936d6",
+          "result": {
+            "node": {
+              "exitCode": 7,
+              "stdout": "/work virtual /work/main.js\ninput:literal arg",
+              "stderr": "notice",
+              "saved": "input:literal arg"
+            },
+            "mv": {
+              "exitCode": 0,
+              "stdout": "",
+              "stderr": "",
+              "mode": 489,
+              "mtimeMs": 456000
+            },
+            "errors": []
+          }
+        },
+        {
+          "path": "out/ssconvert-gap-resolution/node-rebase-feedback/source-coherent-controls.json",
+          "terminalStatus": 0,
+          "sha256": "6e5cb41b1721a388db8801c4a5055a7f270eb72a2bb9a1e08ebfb7ddfd0936d6",
+          "result": {
+            "node": {
+              "exitCode": 7,
+              "stdout": "/work virtual /work/main.js\ninput:literal arg",
+              "stderr": "notice",
+              "saved": "input:literal arg"
+            },
+            "mv": {
+              "exitCode": 0,
+              "stdout": "",
+              "stderr": "",
+              "mode": 489,
+              "mtimeMs": 456000
+            },
+            "errors": []
+          }
+        }
+      ],
+      "correctContract": "source units compose source runtime and workspace filesystem; canonical public consumers compose public root APIs and canonical filesystem",
+      "productEdits": []
+    },
+    "proposedCoherenceCorrection": {
+      "classification": "scratch-only fixture qualification; tracked source remains unchanged",
+      "patch": "out/ssconvert-gap-resolution/node-rebase-feedback/coherence.patch",
+      "paths": [
+        "packages/safe-bash/tests/commands/node-buffer.test.ts",
+        "packages/safe-bash/tests/commands/node-check.test.ts",
+        "packages/safe-bash/tests/commands/node-fs-callback.test.ts",
+        "packages/safe-bash/tests/commands/node-fs-promises.test.ts",
+        "packages/safe-bash/tests/commands/node-json.test.ts",
+        "packages/safe-bash/tests/commands/node-path.test.ts",
+        "packages/safe-bash/tests/commands/node-preload.test.ts",
+        "packages/safe-bash/tests/commands/node-safejs.test.ts",
+        "packages/safe-bash/tests/commands/node-source-maps.test.ts",
+        "packages/safe-bash/tests/commands/node-text-encoder.test.ts",
+        "packages/safe-bash/tests/shell/virtual-null-device.test.ts"
+      ],
+      "substitutions": 11,
+      "typeModel": "safe-bash tsconfig maps original package specifiers to same source entrypoints; import substitution preserves compile-time symbols",
+      "scratchQualifier": {
+        "terminalStatus": 0,
+        "tests": 306,
+        "pass": 306,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 25336.913,
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/transformed-coherence.log",
+        "sha256": "dacc11aed8a7561aceb491655479f0136ed961853a72fc998653c470ac2fdff6",
+        "excludedComparedWithMaintained314": "8 unmodified node-export-boundary tests, retained unchanged in maintained suite"
+      },
+      "requiredAfterApply": "run maintained314 suite and appropriate type/style gate; no assertion or registration changes"
+    }
+  },
+  "rootVerification": {
+    "normalBuild": "passed:126 declared workspace builds plus root suffix bundle; one no-declared-build workspace is not a pass",
+    "guardedLint": {
+      "configured": 16382,
+      "linted": 16382,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0,
+      "failedConcurrentRunRetained": true
+    },
+    "expandedNode": "Root-bundled314tests initially312pass/2fail from mixed FsError identities. Coherent source and public routes both pass exact Node7/output/save and mv0/mode/timestamp workflows. Source unit import correction pending maintained314rerun.",
+    "ssconvert": "352files/13289tests,lint/types/selected build passed",
+    "publication": "Not yet verified; registry remains17.0.34 historicalgitHead"
+  },
+  "screenshot": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/wc-visual.png",
+    "sha256": "ca2352d3d39e5c8fe21ad8ec1e93162163b76a57095bd4d1df821166820c2cf5",
+    "inspected": true,
+    "observation": "Actual public Shell wc reports2controlwords perfile,total4; nativeprofile NBSP default2 and POSIX override1."
+  }
+}

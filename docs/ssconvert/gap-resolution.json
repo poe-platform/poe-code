@@ -631,7 +631,7 @@
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Frozen Unicode16 and native scalar split exceptions delivered.153scalar controls match activated Python3.12/3.14;10488Unicode16 contexts and3arrays match SDK/Shell/browser/worker/replay. Native byte bridge,versioned wide profiles and exact optional Linux closure remain open.",
+      "currentFinding": "Unicode 16 capitalization, native typed split exceptions and NUL boundaries are implemented. 153 scalar controls match activated Python 3.12/3.14; 10,488 Unicode 16 contexts and three arrays match all public surfaces. Five original NUL/malformed-host failures are repaired; native invalid UTF-8 loader SIGSEGVs remain behind a portable refusal. Unicode 15 has 139 wide differences; all 14 exact optional Linux profiles and wider native diagnostics remain open.",
       "proof": [
         {
           "kind": "red-public-calculation",
@@ -661,6 +661,11 @@
           "path": "docs/ssconvert/capwords-native-loader-gap-proof.json",
           "kind": "activated-native-loader-and-public-surfaces",
           "outcome": "7original red,17focused,13284maintained tests;153on2native profiles,10488Unicode16 and12array fields exact;lint/types/build and inspected screenshot. Original invalid-array and browser-sink fixture failures preserved."
+        },
+        {
+          "path": "docs/ssconvert/capwords-cstring-gap-proof.json",
+          "kind": "native-byte-acquisition-and-safe-host-boundaries",
+          "outcome": "Five original failures; 22 focused and 13,289 maintained tests; package lint/types/build and 16,382 guarded root lint subjects pass. SDK/Shell/browser/worker NUL outputs match the private CPython source harness; invalid host text and bytes refuse with zero output and unchanged targets. Both activated invalid UTF-8 profiles crash; 139 Unicode 15 differences are retained."
         }
       ],
       "delivery": {

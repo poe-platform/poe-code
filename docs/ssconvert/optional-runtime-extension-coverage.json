@@ -2389,16 +2389,17 @@
       "sdkShellBrowserWorkerReplay": "exact"
     },
     "unverified": [
-      "Native byte-string PyUnicode_FromString acquisition, embedded NUL and malformed host UTF16/result boundaries",
-      "Wide Python3.12/Unicode15 differences and versioned compatibility policy",
-      "Exact14 optional Linux profiles with complete plugin/runtime/environment closure",
-      "Remaining optional functions, services, all ledger families and final frozen/packed/installed/registry publication qualification"
+      "All 14 exact optional Linux profiles and complete environment/plugin/runtime closure",
+      "Wider native workbook byte/result acquisition and diagnostic profiles",
+      "Versioned Unicode profiles: 139 wide Unicode 15 differences retained",
+      "Remaining optional functions/services, other ledger families, final frozen/packed/installed/registry qualification and publication"
     ],
     "delivery": {
       "localCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
       "remoteMain": "commit ancestry verified on origin/main",
       "publication": "Not yet verified;35811017099 cancelled, older containing35809183777 has failed Bash shards; registry17.0.34 historical gitHead ec51e54b9"
-    }
+    },
+    "cstringProof": "docs/ssconvert/capwords-cstring-gap-proof.json"
   },
   "capwordsVerificationHistory": [
     {

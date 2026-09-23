@@ -47,5 +47,10 @@
       ],
       "productParity": "unqualified"
     }
-  ]
+  ],
+  "artifactPackaging": {
+    "policy": "Store installed prefix inside SHA256-bound tar.gz to preserve executable modes and symlinks across upload-artifact ZIP normalization.",
+    "captureStatus": "rerun-required",
+    "scope": "native oracle provisioning, no product parity claim"
+  }
 }

@@ -21,7 +21,8 @@ try {
   if (result.exitCode !== 0 || result.stdout !== "" || result.stderr !== "") {
     throw new Error(`Existing implicit mkdir changed command output: ${JSON.stringify(result)}`);
   }
-  if (calls.length !== 1 || calls[0].path !== "/existing" || calls[0].options.recursive !== true || calls[0].options.mode !== undefined) {
+  // The shell's filesystem wrapper forwards the existing mode to the backend.
+  if (calls.length !== 1 || calls[0].path !== "/existing" || calls[0].options.recursive !== true || calls[0].options.mode !== 0o755) {
     throw new Error("Existing implicit mkdir did not delegate exactly once without changing the mode");
   }
   if (((await backing.stat("/existing")).mode & 0o777) !== 0o755) throw new Error("Existing mkdir changed permissions");

@@ -1,0 +1,35 @@
+{
+  "scope": "Authenticated source contract for native Python reference objects",
+  "wholeGoalComplete": false,
+  "nativeLoaderExecutionQualified": false,
+  "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "path": "plugins/python-loader/py-gnumeric.c",
+  "sha256": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856",
+  "rangeRef": {
+    "get_tuple": "Active zero-argument method returning two new CellRef wrapper objects, not a tuple of scalar coordinates.",
+    "attributes": [
+      "start",
+      "end"
+    ],
+    "returnConversion": "Accepted only for actual native RangeRef object type; retains raw GnmRangeRef endpoints."
+  },
+  "cellRef": {
+    "attributes": [
+      "col",
+      "row",
+      "sheet",
+      "col_relative",
+      "row_relative"
+    ],
+    "sheet": "Actual referenced sheet object or Python None for an implicit current sheet.",
+    "get_tuple": "Not implemented: method entry is commented out in released source.",
+    "returnConversion": "No CellRef branch in py_obj_to_gnm_value; standalone CellRef is not an accepted range result."
+  },
+  "portableFinding": "Current cooperative runtime references are normalized invocation-owned sheet/coordinate ranges. They omit native raw signed offsets, endpoint relativity and wrapper semantics. This is an open source-language port boundary, not a request to add nonexistent CellRef.get_tuple parity.",
+  "remaining": [
+    "Actual native loader invocation with original raw absolute/relative/implicit-sheet/cross-sheet probes.",
+    "Appropriate explicit port of raw RangeRef/CellRef attributes and normalization without inventing source-disabled methods.",
+    "Sheet GObject operations and source-language conversion under explicit host authority."
+  ],
+  "publication": "unverified"
+}

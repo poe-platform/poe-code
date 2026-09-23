@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T12:12:49.390Z",
+  "recordedAt": "2026-09-23T12:13:21.510978+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -627,7 +627,7 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7. Eighteen precision-bounded RangeRef formats now match both native profiles and builtSDK/Shell/checkpoint/browser/worker bytes exactly; precision<=22 excludes every address digit. Address-bearing RangeRef representation and wider-profile qualification remain unresolved. Generic cooperative runtime results now support bounded owned rectangular matrices and invocation-owned normalized references,including in-memory dynamic dependencies and formula replay across five public interfaces.82focused/22508package tests,lint/types and maintained root build pass. Raw Python RangeRef/CellRef tuple/relative-axis/sheet behavior and actual source-language result conversion remain open;new host cohort is source-contract evidence,not native module execution.",
+      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7. Eighteen precision-bounded RangeRef formats now match both native profiles and builtSDK/Shell/checkpoint/browser/worker bytes exactly; precision<=22 excludes every address digit. Address-bearing RangeRef representation and wider-profile qualification remain unresolved. Generic cooperative runtime results now support bounded owned rectangular matrices and invocation-owned normalized references,including in-memory dynamic dependencies and formula replay across five public interfaces.82focused/22508package tests,lint/types and maintained root build pass. Raw Python RangeRef/CellRef tuple/relative-axis/sheet behavior and actual source-language result conversion remain open;new host cohort is source-contract evidence,not native module execution. Authenticated released reference API distinguishes active RangeRef.get_tuple returning two CellRef wrappers from commented-out CellRef.get_tuple;raw CellRef exposes col,row,sheet,col_relative,row_relative. Standalone CellRef has no native range-return conversion. Raw RangeRef endpoints,relative offsets,sheet operations and actual native loader invocation remain open.",
       "proof": [
         {
           "path": "docs/ssconvert/python-printf-gap-proof.json",
@@ -639,7 +639,8 @@
           "kind": "executed-native-stable-prefix-and-public-replay",
           "outcome": "18 original memory regressions repaired;861focused and13311maintained tests,lint/types/build;18nativecases exact on both activated profiles andSDK/Shell/replay/browser/worker. Address digits remain explicitly refused."
         },
-        "docs/ssconvert/runtime-array-reference-result-gap-proof.json"
+        "docs/ssconvert/runtime-array-reference-result-gap-proof.json",
+        "docs/ssconvert/python-reference-api-source-contract.json"
       ],
       "delivery": {
         "localCommit": "b4bc4acc667e42b2ac8adf2dc30c5b7da266024b",

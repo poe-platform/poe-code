@@ -6677,11 +6677,20 @@ export class Runtime {
     if (command === "exit" || command === "return") {
       if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: not in a function\n"); return 1; }
       if (args.length > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
-      if (args[0] !== undefined && !/^[+-]?\d+$/u.test(args[0])) {
+      let argument = args[0];
+      if (argument !== undefined) {
+        // Bash 5.3 admits ASCII whitespace around decimal statuses.
+        let start = 0, end = argument.length;
+        while (start < end && " \t\n\v\f\r".includes(argument[start]!)) start++;
+        while (end > start && " \t\n\v\f\r".includes(argument[end - 1]!)) end--;
+        argument = argument.slice(start, end);
+      }
+      const digits = argument?.startsWith("+") || argument?.startsWith("-") ? argument.slice(1) : argument;
+      if (digits !== undefined && (!digits.length || [...digits].some(character => character < "0" || character > "9"))) {
         await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
         throw completedExit(2, command);
       }
-      const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);
+      const status = argument === undefined ? state.status : Number((BigInt(argument) % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {

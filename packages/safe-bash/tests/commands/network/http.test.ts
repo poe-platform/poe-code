@@ -671,7 +671,7 @@ test("curl automatic Referer validates raw operands and each hop header budget",
   const result = await run(["-L", "--referer", ";auto", `${host.origin}/redirect/307`], {
     options: { limits: { maxHeaderBytes: 65 }, transport: async () => {
       requests++;
-      return { status: 307, headers: [["Location", "/echo"]], body: toByteSource(""), async dispose() {} };
+      return { status: 307, statusText: "Temporary Redirect", headers: [["Location", "/echo"]], body: toByteSource(""), async dispose() {} };
     } },
   });
   assert.equal(result.exitCode, 63);

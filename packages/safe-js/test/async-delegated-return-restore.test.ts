@@ -18,43 +18,39 @@ const source = `let finish;let reads=0;
 it("restores a pending absent-delegate-return Await without repeating its getter", async () => {
   const AsyncFunction = Object.getPrototypeOf(async () => undefined).constructor;
   expect(await (await new AsyncFunction(source)())()).toEqual([7, 2]);
-  for (const restorePending of [false, true]) {
-    const result = await run(source);
-    assert(result.ok && isSandboxClosure(result.returnValue));
-    const budget = new Budget();
-    let read = result.returnValue;
-    if (restorePending) {
-      const snapshot = serialize({
-        source,
-        currentAstNodeId: 1,
-        scopeChain: [{ id: "module", bindings: { read: read as RuntimeSnapshotValue } }],
-        callStack: [],
-        pendingPromises: [],
-        moduleBindings: {}
-      });
-      const frame = Object.values(snapshot.heap!).find(
-        (node) =>
-          node.kind === "guest-generator" &&
-          Object.values(node.expressionStates ?? {}).some(
-            (expression) => expression.kind === "yield-delegate" && expression.phase === "return"
-          )
-      );
-      expect(frame).toBeDefined();
-      const binding = restore(JSON.parse(JSON.stringify(snapshot)), {
-        source,
-        budget
-      }).currentScope.lookup("read");
-      assert(binding.found && isSandboxClosure(binding.value));
-      read = binding.value;
-    }
-    expect(
-      await awaitSandboxValue(
-        await invokeBuiltinClosure(read, [], budget, undefined, undefined),
-        undefined,
-        budget
+  const control = await run(`const continuation = await (async () => { ${source} })(); return await continuation();`);
+  expect(control).toMatchObject({ ok: true, returnValue: [7, 2] });
+  const result = await run(source);
+  assert(result.ok && isSandboxClosure(result.returnValue));
+  const budget = new Budget();
+  const snapshot = serialize({
+    source,
+    currentAstNodeId: 1,
+    scopeChain: [{ id: "module", bindings: { read: result.returnValue as RuntimeSnapshotValue } }],
+    callStack: [],
+    pendingPromises: [],
+    moduleBindings: {}
+  });
+  const frame = Object.values(snapshot.heap!).find(
+    (node) =>
+      node.kind === "guest-generator" &&
+      Object.values(node.expressionStates ?? {}).some(
+        (expression) => expression.kind === "yield-delegate" && expression.phase === "return"
       )
-    ).toEqual([7, 2]);
-  }
+  );
+  expect(frame).toBeDefined();
+  const binding = restore(JSON.parse(JSON.stringify(snapshot)), {
+    source,
+    budget
+  }).currentScope.lookup("read");
+  assert(binding.found && isSandboxClosure(binding.value));
+  expect(
+    await awaitSandboxValue(
+      await invokeBuiltinClosure(binding.value, [], budget, undefined, undefined),
+      undefined,
+      budget
+    )
+  ).toEqual([7, 2]);
 });
 
 it.each(["wrong-completion", "iterator-await-state"])(

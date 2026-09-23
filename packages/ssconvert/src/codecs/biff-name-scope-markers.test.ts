@@ -49,8 +49,14 @@ it("never grants local-name authority to true external books or invalid first-sh
   for (const [first, last, local] of [[0xffff, 0xffff, false], [0xfffe, 0xfffe, false], [2, 2, true]] as const) {
     const diagnostics: string[] = [];
     const book = await readBiff(workbook(first, last, 0x39, true, local), { ...context, async diagnostic(value) { diagnostics.push(value.message); } });
-    expect(book.sheets[0]!.cells[0]!.formula).toBeUndefined();
-    expect(diagnostics.some(message => message.includes("external BIFF workbook reference"))).toBe(true);
+    if (local) {
+      expect(book.sheets[0]!.cells[0]!.formula).toBeUndefined();
+      expect(diagnostics.some(message => message.includes("external BIFF workbook reference"))).toBe(true);
+    } else {
+      expect(book.sheets[0]!.cells[0]!.formula).toBe("=#REF!");
+      expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#REF!" });
+      expect(diagnostics.some(message => message.includes("external BIFF workbook reference"))).toBe(false);
+    }
   }
 });
 it("keeps modern name-only self markers out of ordinary 3D cell references", async () => {

@@ -1,0 +1,949 @@
+{
+  "scope": "BIFF8 ordinary external SUPBOOK NameX declaration resolution; source-derived qualification, not a new native execution capture.",
+  "baseline": "0b2a72a6605d74eb248137e284c9af2572736089",
+  "status": "implemented and locally qualified; remote delivery and publication pending",
+  "source": {
+    "archive": {
+      "version": "1.12.61",
+      "url": "https://download.gnome.org/sources/gnumeric/1.12/gnumeric-1.12.61.tar.xz",
+      "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+    },
+    "bytes": 17921384,
+    "files": [
+      {
+        "path": "plugins/excel/ms-excel-read.c",
+        "bytes": 220972,
+        "sha256": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216"
+      },
+      {
+        "path": "plugins/excel/ms-formula-read.c",
+        "bytes": 64291,
+        "sha256": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
+      },
+      {
+        "path": "plugins/excel/ms-excel-write.c",
+        "bytes": 199648,
+        "sha256": "771526dcbc11e619594b2174603887b0557f849e6154e7905177bd25432d276a"
+      }
+    ]
+  },
+  "sourceLocations": [
+    "ms-formula-read.c:1710-1793 selects each external SUPBOOK name table and yields #REF! for missing names",
+    "ms-excel-read.c:3855-3930 reads declarations and assigns them to the last SUPBOOK"
+  ],
+  "candidateBindings": [
+    {
+      "path": "packages/ssconvert/src/codecs/biff.ts",
+      "sha256": "7761d69ed7df683001ccab3929fe0d639ae8e87a7e11fafc7e68ea554374a538"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-formulas.ts",
+      "sha256": "87d9bdf8c4e2a7ffff874ba723ea5ecb36b1736f9252bf6c37e7c9f66a9cbdaa"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-external-names.test.ts",
+      "sha256": "bc7c5cfdc28c708f96198839d3cf7b6fb44571161cb66f5ab3ea6683f226a946"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/biff-name-scope-markers.test.ts",
+      "sha256": "82fe5d7bb8488008337c11d3e2c54efd2bd4ebabe5f75e0ba48a54709a325712"
+    }
+  ],
+  "original": [
+    {
+      "mode": "missing",
+      "raw": 57,
+      "inputSha256": "052a3e1e433aba60121a42a6e6404d2fccfe267301e9f0bb3d1da17d3fd22297",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwA5AAABAAAAHgEAAwoAAAA=",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "missing",
+      "raw": 89,
+      "inputSha256": "dcf003c92d8ed708b9cf54f39e1176156495933c63db549f2a4520ff7b9bf3d1",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwBZAAABAAAAHgEAAwoAAAA=",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "missing",
+      "raw": 121,
+      "inputSha256": "89427220ba6c7bf832d353b5b2ac366075172a6a8d9f1c4fce9631e0459384cf",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwB5AAABAAAAHgEAAwoAAAA=",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 57,
+      "inputSha256": "6ba4040e29e5560304c64fbf93c55ffddabf670766f0b9c035f4495ba0a6c084",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAOQAAAQAAAB4BAAMKAAAA",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 89,
+      "inputSha256": "57c43670d6f574b0d141180b3c11ad2cd2075e56c9710e5816474c07f6650fbd",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAWQAAAQAAAB4BAAMKAAAA",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 121,
+      "inputSha256": "3bec8f2b2a3b3b132125d67ebfee62310c842d473c77dbdbaa8412fa358a683b",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAeQAAAQAAAB4BAAMKAAAA",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 57,
+      "inputSha256": "4a2e08c7504073f64eaa77b281ef4f598d57a4d54bf29742fd94edc89938dab9",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALADkAAAEAAAAeAQADCgAAAA==",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 89,
+      "inputSha256": "8035d4e24591a2cee4aa044cea7984fae6a9a758dd52c5bd8073c43819db206a",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALAFkAAAEAAAAeAQADCgAAAA==",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 121,
+      "inputSha256": "fcfea59581dab58aedb9a4e863895fa2595c287560282ae5c9050540ccfed446",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALAHkAAAEAAAAeAQADCgAAAA==",
+      "formula": null,
+      "value": {
+        "kind": "number",
+        "value": 999
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation",
+        "Unsupported ssconvert feature: external BIFF workbook reference"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "mode": "missing",
+      "raw": 57,
+      "inputSha256": "052a3e1e433aba60121a42a6e6404d2fccfe267301e9f0bb3d1da17d3fd22297",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwA5AAABAAAAHgEAAwoAAAA=",
+      "formula": "=#REF!+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "missing",
+      "raw": 89,
+      "inputSha256": "dcf003c92d8ed708b9cf54f39e1176156495933c63db549f2a4520ff7b9bf3d1",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwBZAAABAAAAHgEAAwoAAAA=",
+      "formula": "=#REF!+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "missing",
+      "raw": 121,
+      "inputSha256": "89427220ba6c7bf832d353b5b2ac366075172a6a8d9f1c4fce9631e0459384cf",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAcAAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAFwAIAAEAAAAAAAAACgAAAAkIEAAABhAAuw3NBwAAAAAAAAAABgAhAAAAAAAAAAAAAAAAOI9AAAAAAAAACwB5AAABAAAAHgEAAwoAAAA=",
+      "formula": "=#REF!+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 57,
+      "inputSha256": "6ba4040e29e5560304c64fbf93c55ffddabf670766f0b9c035f4495ba0a6c084",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAOQAAAQAAAB4BAAMKAAAA",
+      "formula": "=(#REF!)+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 89,
+      "inputSha256": "57c43670d6f574b0d141180b3c11ad2cd2075e56c9710e5816474c07f6650fbd",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAWQAAAQAAAB4BAAMKAAAA",
+      "formula": "=(#REF!)+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "inactive",
+      "raw": 121,
+      "inputSha256": "3bec8f2b2a3b3b132125d67ebfee62310c842d473c77dbdbaa8412fa358a683b",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAiQAAAAAABABIZXJlrgE4AAEAEwABAQBvAHcAbgBlAGQALQBlAHgAdABlAHIAbgBhAGwALgB4AGwAcwAFAAFPAHQAaABlAHIAIwAVAAAAAAAAAAQAUmF0ZQcAHgIAHgMAAxcACAABAAAAAAAAAAoAAAAJCBAAAAYQALsNzQcAAAAAAAAAAAYAIQAAAAAAAAAAAAAAADiPQAAAAAAAAAsAeQAAAQAAAB4BAAMKAAAA",
+      "formula": "=(#REF!)+1",
+      "value": {
+        "kind": "error",
+        "value": "#REF!"
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "error",
+        "value": "#REF!"
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 57,
+      "inputSha256": "4a2e08c7504073f64eaa77b281ef4f598d57a4d54bf29742fd94edc89938dab9",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALADkAAAEAAAAeAQADCgAAAA==",
+      "formula": "=(Rate)+1",
+      "value": {
+        "kind": "number",
+        "value": 6
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 89,
+      "inputSha256": "8035d4e24591a2cee4aa044cea7984fae6a9a758dd52c5bd8073c43819db206a",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALAFkAAAEAAAAeAQADCgAAAA==",
+      "formula": "=(Rate)+1",
+      "value": {
+        "kind": "number",
+        "value": 6
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    },
+    {
+      "mode": "active",
+      "raw": 121,
+      "inputSha256": "fcfea59581dab58aedb9a4e863895fa2595c287560282ae5c9050540ccfed446",
+      "inputBase64": "CQgQAAAGBQC7Dc0HAAAAAAAAAACFAAwAogAAAAAABABIZXJlGAAVAAAAAAQCAAAAAAAAAAAAAFJhdGUcHa4BOAABABMAAQEAbwB3AG4AZQBkAC0AZQB4AHQAZQByAG4AYQBsAC4AeABsAHMABQABTwB0AGgAZQByACMAFQAAAAAAAAAEAFJhdGUHAB4CAB4DAAMXAAgAAQAAAAAAAAAKAAAACQgQAAAGEAC7Dc0HAAAAAAAAAAAGACEAAAAAAAAAAAAAAAA4j0AAAAAAAAALAHkAAAEAAAAeAQADCgAAAA==",
+      "formula": "=(Rate)+1",
+      "value": {
+        "kind": "number",
+        "value": 6
+      },
+      "resolutions": 0,
+      "diagnostics": [
+        "BIFF SUPBOOK retained without semantic interpretation",
+        "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+      ],
+      "sourceExpected": {
+        "kind": "number",
+        "value": 6
+      }
+    }
+  ],
+  "checks": {
+    "originalUnit": "7 failing test groups; three mode groups stop at their first token-class assertion. Separate original reproduction executes all9 inputs.",
+    "focused": {
+      "tests": 43,
+      "files": 4,
+      "status": "passed"
+    },
+    "fullPackage": {
+      "tests": 22713,
+      "files": 376,
+      "artifactVerifier": 7,
+      "status": "passed"
+    },
+    "testTypeCorrection": "Explicit Uint8Array parameter annotation resolves inferred ArrayBuffer-only default; no runtime bytes changed. Seven affected tests rerun and pass.",
+    "lintSourceTestConsumerTypes": "passed after test annotation correction",
+    "maintainedBuild": {
+      "builds": 4,
+      "layers": 11,
+      "cacheHits": 2,
+      "status": "passed"
+    },
+    "publicCsvChecks": 54,
+    "browserConsole": {
+      "messages": 0,
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "publicNode": {
+    "config": {
+      "codecs": [],
+      "environment": {
+        "env": {},
+        "locale": "C",
+        "timezone": "UTC"
+      },
+      "limits": {
+        "inputBytes": 100000,
+        "outputBytes": 2000000,
+        "cells": 1000,
+        "sheets": 8,
+        "operations": 10000,
+        "workbookWork": 100000
+      }
+    },
+    "results": [
+      {
+        "id": "missing-57",
+        "inputSha256": "052a3e1e433aba60121a42a6e6404d2fccfe267301e9f0bb3d1da17d3fd22297",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "0dca7a9005f200db7928d516abef9cbb9dbc66661f7e6042c4d4155787ed4ad6",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "328713d4c051d4ef1db35dad5458be817990402be7ed6c0e0c5a822907488ac4",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "missing-89",
+        "inputSha256": "dcf003c92d8ed708b9cf54f39e1176156495933c63db549f2a4520ff7b9bf3d1",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "0dca7a9005f200db7928d516abef9cbb9dbc66661f7e6042c4d4155787ed4ad6",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "328713d4c051d4ef1db35dad5458be817990402be7ed6c0e0c5a822907488ac4",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "missing-121",
+        "inputSha256": "89427220ba6c7bf832d353b5b2ac366075172a6a8d9f1c4fce9631e0459384cf",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "0dca7a9005f200db7928d516abef9cbb9dbc66661f7e6042c4d4155787ed4ad6",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "328713d4c051d4ef1db35dad5458be817990402be7ed6c0e0c5a822907488ac4",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "inactive-57",
+        "inputSha256": "6ba4040e29e5560304c64fbf93c55ffddabf670766f0b9c035f4495ba0a6c084",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "f6c4e23abc5b14969101ece8ce991996477c74a579f62b27a97e6ef5ab1972a0",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "accd58cee3cc10c66a633210034cf21b5dc89a9083fc407d2ba1345b0d7cc852",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "inactive-89",
+        "inputSha256": "57c43670d6f574b0d141180b3c11ad2cd2075e56c9710e5816474c07f6650fbd",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "f6c4e23abc5b14969101ece8ce991996477c74a579f62b27a97e6ef5ab1972a0",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "accd58cee3cc10c66a633210034cf21b5dc89a9083fc407d2ba1345b0d7cc852",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "inactive-121",
+        "inputSha256": "3bec8f2b2a3b3b132125d67ebfee62310c842d473c77dbdbaa8412fa358a683b",
+        "csv": "#REF!\n",
+        "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "f6c4e23abc5b14969101ece8ce991996477c74a579f62b27a97e6ef5ab1972a0",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "accd58cee3cc10c66a633210034cf21b5dc89a9083fc407d2ba1345b0d7cc852",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "error",
+          "value": "#REF!"
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "active-57",
+        "inputSha256": "4a2e08c7504073f64eaa77b281ef4f598d57a4d54bf29742fd94edc89938dab9",
+        "csv": "6\n",
+        "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "fc5a833a770dce660557822a926bc19b4ee176c8c47eda5a9aac5a1d656ccae5",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "20d730a05d86b59145f8edfa6966cbddeb174a9d99cafbc39f3e6b1201c22fc6",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "number",
+          "value": 6
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "active-89",
+        "inputSha256": "8035d4e24591a2cee4aa044cea7984fae6a9a758dd52c5bd8073c43819db206a",
+        "csv": "6\n",
+        "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "fc5a833a770dce660557822a926bc19b4ee176c8c47eda5a9aac5a1d656ccae5",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "20d730a05d86b59145f8edfa6966cbddeb174a9d99cafbc39f3e6b1201c22fc6",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "number",
+          "value": 6
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      },
+      {
+        "id": "active-121",
+        "inputSha256": "fcfea59581dab58aedb9a4e863895fa2595c287560282ae5c9050540ccfed446",
+        "csv": "6\n",
+        "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+        "warnings": [
+          "BIFF SUPBOOK retained without semantic interpretation",
+          "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+        ],
+        "replays": [
+          {
+            "type": "Gnumeric_XmlIO:sax:0",
+            "checkpointSha256": "fc5a833a770dce660557822a926bc19b4ee176c8c47eda5a9aac5a1d656ccae5",
+            "csvExact": true
+          },
+          {
+            "type": "Gnumeric_Excel:xlsx",
+            "checkpointSha256": "20d730a05d86b59145f8edfa6966cbddeb174a9d99cafbc39f3e6b1201c22fc6",
+            "csvExact": true
+          }
+        ],
+        "sourceExpected": {
+          "kind": "number",
+          "value": 6
+        },
+        "resolutions": 0,
+        "inputImmutable": true
+      }
+    ]
+  },
+  "publicBrowser": {
+    "done": true,
+    "qualification": {
+      "browser": [
+        {
+          "id": "missing-57",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "missing-89",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "missing-121",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-57",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-89",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-121",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-57",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-89",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-121",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        }
+      ],
+      "worker": [
+        {
+          "id": "missing-57",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "missing-89",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "missing-121",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-57",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-89",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "inactive-121",
+          "csv": "#REF!\n",
+          "csvSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-57",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-89",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        },
+        {
+          "id": "active-121",
+          "csv": "6\n",
+          "csvSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "warnings": [
+            "BIFF SUPBOOK retained without semantic interpretation",
+            "BIFF EXTERNNAME_v0 retained without semantic interpretation"
+          ],
+          "resolutions": 0,
+          "inputImmutable": true
+        }
+      ]
+    }
+  },
+  "screenshots": [
+    {
+      "path": "browser.png",
+      "sha256": "f84f624e26a0ca0b43d2108cf3b1630232f955028b664613dc41c0493f6a1370",
+      "review": "Readable, all9 rows visible; no clipping or overlap."
+    },
+    {
+      "path": "terminal.png",
+      "sha256": "e9247a11b2422b2d0817e7b324d76304e9ff24c6c8a58d9b75bbeac8ce6c19d7",
+      "review": "Readable, all9 rows visible; no clipping or overlap."
+    }
+  ],
+  "logSha256": {
+    "unit-red.log": "426b5975d3606c9c93aedb8f4aa7963fab8caf3eeb9ae8d52ce36f32d248c078",
+    "unit-green.log": "dece1671128227c0a918ed3c141e1275f954f8baa68f91304338c871ed55ea26",
+    "unit-focused-final.log": "97acb10d4b063652445ca4a95aa32bef7d9a3e61259c532e159bc0135dda557a",
+    "unit-types-final.log": "d88a4056319b1021ace8064dcc25762576ca6beddf1c6c68b4814aafbfb01772",
+    "package-tests.log": "98c7e29f1f41dd6fe3a670a0722770015c4b611123db0694a73eeb0ece93a9d5",
+    "package-lint.log": "20efd6bc1c332acf33d793191c800d50d6601d6e625be6f588552ec1e9388a66",
+    "package-lint-final.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c",
+    "maintained-build.log": "44382e73968a4f2500755508aa1c26fb662bd014883ff94f2ec6158e28041709",
+    "public-node.log": "8a53cf634802f3bb53ae66246f7102a976c4232b90ae9ec7d4921ba125f2e35e",
+    "browser-build.log": "fab441587937d326dc87830044a5cd918a2a9e89a605f73ec2b29196d98a3759",
+    "browser-console.log": "d0e5634bb0c1271965327ad2ac18107af18fa7da6d2c9ce13e03eeda6cb603db"
+  },
+  "limits": [
+    "All19 original ssconvert families remain open.",
+    "No new native execution or universal external-name compatibility claim; input expectations derive from authenticated released native source and previously qualified declaration handling.",
+    "External workbook filename/binding/writer,legacy namespaces,flagged DDE/OLE declarations and wider name ordering/profiles remain separate.",
+    "Raw SUPBOOK/EXTERNNAME records and existing retention warnings persist. Linked workbooks are never fetched.",
+    "Full package tests preceded only a test parameter annotation; final focused tests and maintained complete lint/type route cover the final source."
+  ]
+}

@@ -408,14 +408,14 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
-  const addinTables = [
-    ...supbooks.filter(book => book.kind === "addin").map(book => book.names),
+  const externalTables = [
+    ...supbooks.filter(book => book.kind !== "local").map(book => book.names),
     ...(legacyAddinSheets.size ? [legacyExternalNames] : []),
     ...sheets.filter(sheet => sheet.legacyAddinSheets.size > 0).map(sheet => sheet.legacyExternalNames)
   ];
   const globals = new Map(names.filter(name => name.sheetIndex === 0).map(name => [name.name, name]));
   const locals = new Set(names.filter(name => name.sheetIndex !== 0).map(name => name.name));
-  for (const table of addinTables) {
+  for (const table of externalTables) {
     const entries: ({ name: string; expression?: string } | undefined)[] = [];
     for (const name of table) {
       if (!name.supported) { entries.push({ name: name.name }); continue; }
@@ -435,7 +435,10 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     }
     externalNameTables.set(table, entries);
   }
-  const modernExternalNames = externalReferences.map(ref => supbooks[ref.book]?.kind === "addin" ? externalNameTables.get(supbooks[ref.book]!.names) : undefined);
+  const modernExternalNames = externalReferences.map(ref => {
+    const book = supbooks[ref.book];
+    return book ? externalNameTables.get(book.names) : undefined;
+  });
   const legacyNameBindings = new Map<PendingSheet | undefined, NonNullable<BiffFormulaContext["externalNames"]>>();
   for (const owner of [undefined, ...sheets]) {
     const namespaces = owner?.legacyAddinSheets ?? legacyAddinSheets;

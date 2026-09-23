@@ -57,7 +57,10 @@ scale and print insets, so size 10 paints at 7.5 points. Cell alignment, fit and
 use shaped advances and offsets. Exact native rendering remains unqualified. Other styles,
 merges and text layouts retain explicit refusals. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
-and linked workbooks are never fetched. Safe Bash provides a separate,
+and linked workbooks are never fetched. External names use supported on-file
+declarations during recalculation; missing or inactive names produce `#REF!`,
+while a declaration can supply the expression for a linked workbook name placeholder.
+Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
 The optional `datasource` binding enables `ATL_LAST(tag)` through an owned host
 transport. Each operation opens a separate session; successful default solver

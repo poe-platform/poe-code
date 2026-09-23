@@ -18,7 +18,7 @@ export interface BiffFormulaContext {
   readonly externalSheets: readonly (string | readonly [string, string] | null | undefined)[];
   /** NameX uses the first display sheet; null is its deleted/self scope marker. */
   readonly externalNameSheets?: readonly (string | null | undefined)[];
-  /** Associated add-in names; undefined denotes an unbound/unsupported namespace. */
+  /** Associated external/add-in names; undefined denotes an unbound/unsupported namespace. */
   readonly externalNames?: readonly (readonly ({ readonly name: string; readonly expression?: string } | undefined)[] | undefined)[];
   /** Deleted local link endpoints. */
   readonly deletedExternalSheets?: readonly boolean[];

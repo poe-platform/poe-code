@@ -17,10 +17,12 @@ export interface HexdumpLimits {
 
 export interface HexdumpCommandsOptions {
   readonly replace?: boolean;
+  readonly dialect?: "bsd" | "util-linux";
   readonly limits?: Partial<HexdumpLimits>;
 }
 
 export function settings(options: HexdumpCommandsOptions): HexdumpLimits {
+  if (options.dialect !== undefined && options.dialect !== "bsd" && options.dialect !== "util-linux") throw new RangeError("Invalid hexdump dialect");
   const limits: HexdumpLimits = {
     maxArguments: 4096, maxArgumentBytes: 65_536, maxInputBytes: 33_554_432,
     maxBufferedBytes: 8_388_608, maxOutputBytes: 134_217_728,

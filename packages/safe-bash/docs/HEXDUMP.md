@@ -4,6 +4,8 @@
 `createHdCommand(options)` constructs `hd` with canonical output enabled.
 `createHexdumpCommands(options)` returns both definitions;
 `hexdumpCommands(options)` installs both, with collision preflight.
+All factories default to `dialect: "bsd"`; the behavior below describes that
+profile unless stated otherwise.
 
 ## Supported interface
 
@@ -57,6 +59,17 @@ options and locale-dependent byte classification are also outside this subset.
 Unsupported options fail before opening inputs; they never call a host utility.
 
 ## Host options and bounds
+
+`options.dialect: "util-linux"` selects base-0 conversion for both counts and
+skips, with complete numeric arguments required. `b` multiplies by 512;
+`K` (also `k`), `M`, `G`, `T`, `P`, `E`, `Z`, `Y` use powers of 1024,
+optionally followed by `iB`. A trailing `B` instead selects powers of 1000.
+Negative values and unsafe integer results fail before input acquisition.
+Only complete repeated blocks squeeze in this profile; a partial final row
+always displays. Other supported options, formatting and lifecycle behavior
+remain as described above; this is not a claim of complete util-linux parity.
+The aggregate forwards this choice via
+`agentCommands({ hexdump: { dialect: "util-linux" } })`.
 
 `options.replace` defaults to `false`; `true` permits replacing both registered
 names. `options.limits` accepts partial overrides of the following positive

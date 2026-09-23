@@ -111,6 +111,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
   const factorLimits = options.factor?.limits;
   const getoptLimits = options.getopt?.limits;
   const hexdumpLimits = options.hexdump?.limits;
+  const hexdumpDialect = options.hexdump?.dialect;
   const iconvLimits = options.iconv?.limits;
   const lineEndingLimits = options.lineEndings?.limits;
   const whichLimits = options.which?.limits;
@@ -151,7 +152,7 @@ export function composeAgentCommands(options: AgentCommandsOptions, executors: A
     ...createTsortCommands(tsortLimits === undefined ? {} : { limits: tsortLimits }),
     ...createFactorCommands(factorLimits === undefined ? {} : { limits: factorLimits }),
     ...createGetoptCommands(getoptLimits === undefined ? {} : { limits: getoptLimits }),
-    ...createHexdumpCommands(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }),
+    ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
   );

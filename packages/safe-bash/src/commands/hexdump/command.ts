@@ -14,7 +14,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
   let address = 0, used = 0, skip = options.skip, count = options.count;
   let hasPrevious = false, squeezed = false, exitCode = 0;
   const emit = async (): Promise<void> => {
-    let same = hasPrevious;
+    let same = hasPrevious && (options.dialect !== "util-linux" || used === 16);
     for (let index = 0; same && index < used; index++) if (block[index] !== previous[index]) same = false;
     budget.charge(used);
     if (!options.verbose && same) {
@@ -70,7 +70,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
   return exitCode;
 }
 
-async function execute(context: CommandContext, name: string, limits: HexdumpLimits): Promise<{ exitCode: number }> {
+async function execute(context: CommandContext, name: string, limits: HexdumpLimits, dialect: HexdumpCommandsOptions["dialect"]): Promise<{ exitCode: number }> {
   let lifecycle: Lifecycle | undefined;
   const caller = context.signal;
   caller.throwIfAborted();
@@ -110,7 +110,7 @@ async function execute(context: CommandContext, name: string, limits: HexdumpLim
   let exitCode = 0;
   try {
     lifecycle = new Lifecycle(budget, output, captured, caller);
-    exitCode = await dump(parse(budget, name), lifecycle, name);
+    exitCode = await dump(parse(budget, name, dialect), lifecycle, name);
   } catch (error) {
     primary = { reason: error };
     if (error instanceof HexdumpError && !output.signal.aborted && lifecycle) {
@@ -133,14 +133,16 @@ async function execute(context: CommandContext, name: string, limits: HexdumpLim
 
 export function createHexdumpCommand(options: HexdumpCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
+  const dialect = options.dialect;
   return { name: "hexdump", description: "Display bytes as hexadecimal words or canonical hex and ASCII",
-    execute: context => execute(context, "hexdump", limits),
+    execute: context => execute(context, "hexdump", limits, dialect),
   };
 }
 
 export function createHdCommand(options: HexdumpCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
+  const dialect = options.dialect;
   return { name: "hd", description: "Display canonical hexadecimal and ASCII bytes",
-    execute: context => execute(context, "hd", limits),
+    execute: context => execute(context, "hd", limits, dialect),
   };
 }

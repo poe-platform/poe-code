@@ -2,6 +2,58 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../src/index.js";
 
+for (const command of ["hexdump -C", "hd"]) {
+  test(`${command} offers util-linux counts and preserves partial rows across files`, async () => {
+    const fs = entry.createMemoryFileSystem();
+    await fs.writeFile("/one", new TextEncoder().encode("abcdefghijklmnop"));
+    await fs.writeFile("/two", new TextEncoder().encode("abc"));
+    const shell = new entry.Shell({ fs }).use(entry.agentCommands({ hexdump: { dialect: "util-linux" } }));
+    try {
+      const full = "00000000  61 62 63 64 65 66 67 68  69 6a 6b 6c 6d 6e 6f 70  |abcdefghijklmnop|\n";
+      const partial = "00000010  61 62 63                                          |abc|\n00000013\n";
+      for (const count of ["1KiB", "1KB", "0x13", "023"]) {
+        const result = await shell.exec(`${command} -n ${count} /one /two`);
+        assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, full + partial, ""]);
+      }
+      const hex = await shell.exec(`${command} -n0x1 /one`);
+      assert.deepEqual([hex.exitCode, hex.stdout, hex.stderr], [0, "00000000  61                                                |a|\n00000001\n", ""]);
+      const skip = await shell.exec(`${command} -s1KiB /one /two`);
+      assert.deepEqual([skip.exitCode, skip.stdout, skip.stderr], [0, "00000013\n", ""]);
+      const repeat = await shell.exec(`printf '%s' abcdefghijklmnopabcdefghijklmnopabc | ${command}`);
+      assert.equal(repeat.stdout, full + "*\n00000020  61 62 63                                          |abc|\n00000023\n");
+      for (const value of ["1junk", "1m", "0x", "-1", "9007199254740992", "9007199254740991KiB"]) {
+        assert.equal((await shell.exec(`${command} -n ${value} /one`)).exitCode, 1);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("hexdump dialect selection preserves the default BSD profile", async () => {
+  for (const options of [{}, { dialect: "bsd" as const }]) {
+    const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.hexdumpCommands(options));
+    try {
+      assert.equal((await shell.exec("hexdump -C -n0x1", { stdin: "abc" })).stdout, "");
+      const result = await shell.exec("hd", { stdin: "abcdefghijklmnopabc" });
+      assert.equal(result.stdout, "00000000  61 62 63 64 65 66 67 68  69 6a 6b 6c 6d 6e 6f 70  |abcdefghijklmnop|\n*\n00000013\n");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("the standalone util-linux plugin distinguishes decimal and binary size suffixes", async () => {
+  const fs = entry.createMemoryFileSystem();
+  await fs.writeFile("/input", new Uint8Array(1100));
+  const shell = new entry.Shell({ fs }).use(entry.hexdumpCommands({ dialect: "util-linux" }));
+  try {
+    for (const [suffix, address] of [["KB", "000003e8"], ["KiB", "00000400"], ["K", "00000400"], ["k", "00000400"], ["b", "00000200"]]) {
+      const result = await shell.exec(`hd -s1${suffix} -n1 /input`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0,
+        `${address}  00                                                |.|\n${(Number.parseInt(address!, 16) + 1).toString(16).padStart(8, "0")}\n`, ""]);
+    }
+    assert.equal((await shell.exec("hd -n0 /input")).stdout, "");
+  } finally { await shell.dispose(); }
+  assert.throws(() => entry.createHexdumpCommands({ dialect: "invalid" as "bsd" }), /Invalid hexdump dialect/);
+});
+
 test("the default preset appends hexdump and hd and exposes their public factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
   assert.equal(names.length, 110);

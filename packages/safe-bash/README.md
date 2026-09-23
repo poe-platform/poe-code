@@ -109,6 +109,13 @@ integer, nameref, and indexed attributes are unsupported.
 `agentCommands()` registers all **79 commands** below. They operate on the supplied
 filesystem and byte streams, not host executables.
 
+`hexdump` and `hd` default to the BSD numeric and repeated-row profile.
+Use `agentCommands({ hexdump: { dialect: "util-linux" } })` or
+`hexdumpCommands({ dialect: "util-linux" })` for hexadecimal/octal counts,
+binary size suffixes such as `1KiB`, decimal suffixes such as `1KB`, and
+unsqueezed partial final rows. This selects those semantics; custom formats
+and other unsupported options remain unavailable.
+
 | Purpose | Commands |
 | --- | --- |
 | Browse | `pwd`, `ls` (including `-Q`/`--quote-name` and `--indicator-style=none/slash/file-type/classify`), `tree`, `find` (including `-H` to follow argument symlinks while keeping descendant links physical, and `-D tree` for virtual expression diagnostics; other debug modes are unsupported), `du`, `file`, `basename`, `dirname`, `realpath` (including lexical `-s`/`--strip`/`--no-symlinks`), `readlink` (including `-m`/`--canonicalize-missing`), `which` |

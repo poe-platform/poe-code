@@ -3,6 +3,54 @@ import test from "node:test";
 import { FsError, type FileSystem } from "../../src/contracts/index.js";
 import { fixture, run } from "./helpers.js";
 
+for (const option of ["-h", "--no-dereference"]) {
+  test(`touch ${option} accepts ordinary files and preserves selected timestamps`, async () => {
+    const fs = await fixture({ source: "keep", reference: "reference" });
+    await fs.utimes("/work/source", 100, 200);
+    await fs.utimes("/work/reference", 123, 456);
+    const result = await run("touch", [option, "-m", "-r", "reference", "source", "created"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal((await run("touch", [option, "plain"], { fs })).exitCode, 0);
+    assert.deepEqual(await fs.readFile("/work/plain"), new Uint8Array());
+    const source = await fs.stat("/work/source");
+    assert.equal(source.atimeMs, 100);
+    assert.equal(source.mtimeMs, 456);
+    assert.equal((await fs.stat("/work/created")).mtimeMs, 456);
+    assert.equal(Buffer.from(await fs.readFile("/work/source")).toString(), "keep");
+    assert.equal((await run("touch", [option, "-c", "missing"], { fs })).exitCode, 0);
+    await assert.rejects(fs.stat("/work/missing"), { code: "ENOENT" });
+  });
+
+  test(`touch ${option} refuses unsupported symlink timestamps without following the link`, async () => {
+    const fs = await fixture({ source: "keep" });
+    await fs.utimes("/work/source", 100, 200);
+    await fs.symlink("source", "/work/link");
+    await fs.symlink("missing", "/work/dangling");
+    for (const name of ["link", "dangling"]) {
+      const result = await run("touch", [option, "created", name], { fs });
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ENOTSUP/u);
+    }
+    assert.equal((await fs.stat("/work/source")).mtimeMs, 200);
+    await assert.rejects(fs.stat("/work/created"), { code: "ENOENT" });
+    await assert.rejects(fs.stat("/work/missing"), { code: "ENOENT" });
+  });
+
+  test(`touch ${option} reads reference symlink metadata`, async () => {
+    const fs = await fixture({ source: "keep" });
+    await fs.utimes("/work/source", 100, 200);
+    await fs.symlink("source", "/work/reference");
+    const reference = await fs.lstat("/work/reference");
+    const result = await run("touch", [option, "-r", "reference", "created"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const created = await fs.stat("/work/created");
+    assert.equal(created.atimeMs, reference.atimeMs);
+    assert.equal(created.mtimeMs, reference.mtimeMs);
+  });
+}
+
 function withoutTimestamps(backing: FileSystem, present: boolean) {
   let calls = 0;
   const fs = new Proxy(backing, {

@@ -384,8 +384,16 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       return eachOperand(context, parsed.operands, operand => createDirectory(operand, false));
     }),
     define("touch", async context => {
-      const parsed = options(context.args, "camr:d:t:", { "no-create": "c", reference: "r", date: "d" });
+      const parsed = options(context.args, "cahmr:d:t:", { "no-create": "c", "no-dereference": "h", reference: "r", date: "d" });
       requireOperands(parsed.operands);
+      const follow = !parsed.flags.has("h");
+      const inspectTarget = async (path: string) => {
+        const stat = await maybeStat(context, path, follow);
+        if (!follow && stat?.type === "symlink") {
+          throw new FsError("ENOTSUP", { syscall: "touch", path, message: "symlink timestamps are unavailable" });
+        }
+        return stat;
+      };
       const reference = value(parsed, "r");
       const date = value(parsed, "d"), timestamp = value(parsed, "t");
       if (timestamp !== undefined && (date !== undefined || reference !== undefined)) {
@@ -394,19 +402,19 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       const now = Date.now();
       const explicit = reference !== undefined || date !== undefined || timestamp !== undefined;
       const base = reference === undefined ? { atimeMs: now, mtimeMs: now }
-        : await context.fs.stat(pathOf(context, reference), { signal: context.signal });
+        : await context.fs[follow ? "stat" : "lstat"](pathOf(context, reference), { signal: context.signal });
       const times = date === undefined && timestamp === undefined ? base
         : touchTimes(date, timestamp, context.env.TZ ?? "UTC", base);
       await preflightOperands(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
-        const existing = await maybeStat(context, path);
+        const existing = await inspectTarget(path);
         const modes = existing ? ["existing"] : parsed.flags.has("c") ? ["no-create"]
           : explicit ? ["create", "existing"] : ["create"];
         await admitFilesystemModes(context, "touch", modes, [path]);
       });
       return eachOperand(context, parsed.operands, async operand => {
         const path = pathOf(context, operand);
-        let existing = await maybeStat(context, path);
+        let existing = await inspectTarget(path);
         if (!existing) {
           if (parsed.flags.has("c")) return;
           await admitFilesystemModes(context, "touch", explicit ? ["create", "existing"] : ["create"], [path]);

@@ -6547,25 +6547,37 @@ export class Runtime {
       return status;
     }
     if (command === "unset") {
-      let status = 0;
-      let offset = 0;
+      let variables = false;
       let functions = false;
-      while (args[offset]?.startsWith("-")) {
+      let offset = 0;
+      let scanned = 0;
+      while (args[offset]?.startsWith("-") && args[offset] !== "-") {
         const option = args[offset++]!;
         if (option === "--") break;
-        for (const flag of option.slice(1)) {
-          if (flag === "f") functions = true;
-          else if (flag === "v") functions = false;
-          else { await this.diagnostic(context, `unset: -${flag}: invalid option`); return 2; }
+        for (let index = 1; index < option.length; index++) {
+          if (++scanned % 1024 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
+          const flag = option[index]!;
+          if (flag === "v") variables = true;
+          else if (flag === "f") functions = true;
+          else { await writeDiagnostic(stderr, `unset: -${flag}: invalid option\n`); return 2; }
         }
       }
+      if (variables && functions) {
+        await writeDiagnostic(stderr, "unset: cannot simultaneously unset a function and a variable\n");
+        return 1;
+      }
+      let status = 0;
       for (let argument = offset; argument < args.length; argument++) {
+        if ((argument - offset) % 128 === 0) { this.budget.cpuCheckpoint(); await yieldTurn(this.signal); }
         const name = args[argument]!;
         if (functions) {
           if (state.readonlyFunctions?.has(name)) {
             await this.diagnostic(context, `unset: ${name}: cannot unset: readonly function`);
             status = 1;
-          } else state.functions.delete(name);
+          } else {
+            state.functions.delete(name);
+            state.exportedFunctions?.delete(name);
+          }
           continue;
         }
         const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);

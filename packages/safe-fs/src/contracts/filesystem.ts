@@ -101,6 +101,7 @@ export interface OpenReadFileOptions extends FsOptions {
 
 export interface CapabilityQueryOptions extends OpenReadFileOptions {
   readonly create?: boolean;
+  readonly creation?: OpenFileOptions["creation"];
 }
 
 export interface FileReadHandle {

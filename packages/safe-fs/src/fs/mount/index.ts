@@ -187,6 +187,7 @@ export class MountFileSystem implements FileSystem {
     return this.operation("capabilitiesFor", path, options, async () => {
       const location = await this.resolve(path, options, {
         allowMissing: options.create ?? true,
+        followFinal: options.create !== undefined || options.creation !== "exclusive",
         ...(options.create === undefined ? {} : { resizeCreate: options.create }),
       });
       const observed = ownedMutationCapabilities(location.mount.backend, await location.mount.backend.capabilitiesFor?.(location.local, options)

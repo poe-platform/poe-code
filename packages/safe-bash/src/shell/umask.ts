@@ -3,7 +3,7 @@ import { writeText } from "../contracts/io.js";
 import { writeDiagnostic } from "../escaping.js";
 
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
-import { registerEntryView, type OpenFileOptions } from "@poe-code/safe-fs/core";
+import { registerEntryView, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
@@ -15,7 +15,7 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
       if (!creation) return method.bind(target);
       return async (...args: unknown[]) => {
         const index = key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-        const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions> & { recursive?: boolean };
+        const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
         options.signal?.throwIfAborted();
         if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
         if (options.mode === undefined) {
@@ -33,7 +33,8 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
           let capabilities = target.capabilities;
           while (target.capabilitiesFor) {
             try {
-              capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true } : options);
+              capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true }
+                : (key === "writeFile" || key === "writeStream") && (options.flag === "wx" || options.flag === "ax") ? { ...options, creation: "exclusive" } : options);
               break;
             } catch (error) {
               options.signal?.throwIfAborted();

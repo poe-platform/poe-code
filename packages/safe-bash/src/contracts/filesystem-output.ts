@@ -97,7 +97,7 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     context.registerCleanup?.(cleanup);
     context.signal.addEventListener("abort", interrupted, { once: true });
     check();
-    const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
+    const capabilities = await context.fs.capabilitiesFor?.(path, { signal, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? context.fs.capabilities;
     check();
     if (!accepting) throw new FsError("EBADF", { path, syscall: "open" });
     if (capabilities.readOnly === true) throw new FsError("EROFS", { path, syscall: "open" });
@@ -268,7 +268,7 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       const { fs } = context;
       const signal = operation.signal;
       signal.throwIfAborted();
-      const capabilities = await fs.capabilitiesFor?.(path, { signal }) ?? fs.capabilities;
+      const capabilities = await fs.capabilitiesFor?.(path, { signal, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? fs.capabilities;
       if (capabilities.readOnly === true) throw new FsError("EROFS", { path, syscall: "write" });
       if (incremental && (flag === "wx" || mode !== undefined)) throw new FsError("ENOTSUP", { path, syscall: "write", message: "incremental callback cannot honor exclusive creation or initial mode" });
       if (flag === "wx") {

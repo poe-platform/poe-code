@@ -666,6 +666,21 @@ always supplies this intent, including `false` for its default no-create mode.
 This query never creates anything or grants authority from a parent directory.
 Actual acquisition still requires the selected target's affirmative capability.
 
+Generic capability queries may also carry `creation` from `OpenFileOptions`.
+With `creation: "exclusive"`, resolution follows parent components but preserves
+the final entry without following its symlink, matching exclusive acquisition.
+Omitted, `"never"` and `"ifMissing"` creation retain generic following resolution.
+An explicit `create` value retains the writable-file-open profile above, including
+its existing following and traversal rules; it takes precedence over `creation`.
+
+Exclusive intent selects the actual entry's backend declarations without creating
+anything or inferring authority from parent permissions. It does not replace
+atomic backend acquisition with a metadata existence check. Output admission and
+creation-mode hints carry this intent before an exclusive open or `wx`/`ax` write,
+so a final self-referencing symlink reaches the backend's existing-entry refusal.
+Prefix symlinks still resolve normally, including loop and namespace-confinement
+errors. Default and nonexclusive output continue following the final target.
+
 For creation-enabled resolution, a terminal separator requires parent traversal
 and search checks, then fails EISDIR before following the final component. For
 no-create resolution, the final target must be a directory but the separator

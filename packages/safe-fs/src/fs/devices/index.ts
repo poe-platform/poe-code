@@ -107,7 +107,13 @@ export class DeviceFileSystem implements FileSystem {
   }
 
   async #writeTarget(path: string, options: WriteFileOptions): Promise<boolean> {
-    const resolved = await this.#resolve(path, options);
+    let resolved: string;
+    try { resolved = await this.#resolve(path, options); }
+    catch (error) {
+      options.signal?.throwIfAborted();
+      if ((options.flag === "wx" || options.flag === "ax") && isFsError(error, "ELOOP")) return false;
+      throw error;
+    }
     if (resolved === nullPath) {
       if (options.flag === "wx" || options.flag === "ax") throw new FsError("EEXIST", { path });
       if (options.flag !== undefined && options.flag !== "w" && options.flag !== "a") throw new FsError("EINVAL", { path });
@@ -126,7 +132,7 @@ export class DeviceFileSystem implements FileSystem {
   async capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
     let resolved: string;
     let selected: FileSystemCapabilities | undefined;
-    try { resolved = await this.#resolve(path, options, true, options.create); }
+    try { resolved = await this.#resolve(path, options, options.create !== undefined || options.creation !== "exclusive", options.create); }
     catch (error) {
       options.signal?.throwIfAborted();
       if (options.create !== true || !isFsError(error, "ENOENT")) throw error;

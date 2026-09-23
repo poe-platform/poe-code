@@ -221,7 +221,7 @@ export class OverlayFileSystem implements FileSystem {
 
   capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
     return this.run(options, async () => {
-      const location = await this.resolve(path, options, true, true);
+      const location = await this.resolve(path, options, options.create !== undefined || options.creation !== "exclusive", true);
       const backend = location.entry?.backend ?? this.#upper;
       const capabilities = await backend.capabilitiesFor?.(location.path, options) ?? backend.capabilities;
       options.signal?.throwIfAborted();

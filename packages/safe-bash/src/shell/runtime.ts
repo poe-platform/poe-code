@@ -3896,7 +3896,7 @@ export class Runtime {
         } else {
           const append = redirect.operator === ">>";
           const flag = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
-          const capabilities = await this.fs.capabilitiesFor?.(path, options) ?? this.fs.capabilities;
+          const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;
           const canonical = capabilities.open === true;
           const random = capabilities.randomAccessWrite === true;
           const key = resolvePath(state.cwd, path);

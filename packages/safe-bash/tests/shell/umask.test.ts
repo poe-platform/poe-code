@@ -5,7 +5,7 @@ import { createMemoryFileSystem, MemoryFileSystem } from "../../src/fs/memory/in
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
-import { createDeviceFileSystem, createMountFileSystem, createReadOnlyFileSystem, scopeFileSystem, type FileSystem, type FileSystemCapabilities, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
+import { createDeviceFileSystem, createMountFileSystem, createReadOnlyFileSystem, scopeFileSystem, type CapabilityQueryOptions, type FileSystem, type FileSystemCapabilities, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 
 const legacyWrites = [
@@ -95,6 +95,37 @@ for (const operation of legacyWrites) {
         assert.fail("expected query failure");
       } catch (error) { assert.ok(Object.is(error, reason)); }
       await assert.rejects(backing.stat("/new"), { code: "ENOENT" });
+    }
+  });
+}
+
+for (const operation of legacyWrites.filter(operation => operation.name !== "appendFile")) for (const flag of ["wx", "ax"] as const) {
+  test(`exclusive legacy mode hints carry acquisition intent: ${operation.name}/${flag}`, async () => {
+    for (const permissions of [false, undefined]) {
+      const backing = createMemoryFileSystem();
+      const options: WriteFileOptions = { flag };
+      let forwarded: WriteFileOptions | undefined;
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor") return async (path: string, query: CapabilityQueryOptions) => {
+          assert.equal(path, "/new");
+          assert.equal(query.creation, "exclusive");
+          assert.equal(Object.hasOwn(query, "create"), false);
+          assert.notEqual(query, options);
+          const capabilities: FileSystemCapabilities = Object.fromEntries(Object.entries(target.capabilities).filter(([name]) => name !== "permissions"));
+          return permissions === undefined ? capabilities : { ...capabilities, permissions };
+        };
+        const member: unknown = Reflect.get(target, key, target);
+        if (key === operation.name) return (...args: unknown[]) => {
+          forwarded = args[2] as WriteFileOptions;
+          return Reflect.apply(member as (...args: unknown[]) => unknown, target, args);
+        };
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      await operation.write(creationFileSystem(fs, 0o077), "/new", options);
+      assert.equal(forwarded?.mode, permissions === false ? undefined : 0o600);
+      assert.equal(forwarded === options, permissions === false);
+      assert.deepEqual(options, { flag });
+      assert.deepEqual(await backing.readFile("/new"), new Uint8Array([1]));
     }
   });
 }

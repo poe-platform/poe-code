@@ -169,9 +169,9 @@ export async function withFixture(
         mounts: { "/work": await realFixture(cleanups), "/objects": objects.fs },
       });
     } else if (name === "overlay") {
-      const objects = s3Fixture();
-      lower = objects.fs;
-      s3 = objects.s3;
+      // Overlay reads require retained file and ancestor identities on both layers.
+      // S3 remains a separate adapter profile; it cannot supply those identities.
+      lower = new MemoryFileSystem();
       await seed(lower, controller.signal);
       fs = new OverlayFileSystem({ lower, upper: new MemoryFileSystem(), maxBufferBytes: 1024 * 1024 });
     } else fs = new MemoryFileSystem();

@@ -337,7 +337,7 @@ test("mount: cross-backend pipeline and copy use real mount plus S3", options, a
   });
 });
 
-test("overlay: edit and remove lower files without changing S3 lower", options, async () => {
+test("overlay: edit and remove lower files without changing the lower layer", options, async () => {
   await withFixture("overlay", async ({ exec, fs, lower }) => {
     success(await exec("sed -i 's/beta/BETA/' target.txt && rm old.txt && diff -q target.txt new.txt && test ! -e old.txt"), "");
     assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), revised);

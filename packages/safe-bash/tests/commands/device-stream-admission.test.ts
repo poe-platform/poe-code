@@ -86,13 +86,23 @@ for (const mode of ["disabled", "absent"] as const) {
     });
   }
 
-  test(`${mode}: tar reads and publishes ordinary files without disabled streams`, async () => {
+  test(`${mode}: tar requires retained creation reads but extracts with buffered I/O`, async () => {
     for (const maxBufferedFileBytes of [undefined, 1024 * 1024]) {
       const state = await fixture(mode);
       try {
         if (maxBufferedFileBytes !== undefined)
           state.shell.use(archiveCommands({ replace: true, limits: { maxBufferedFileBytes } }));
-        for (const command of ["tar -cf /bundle.tar /input.txt", "tar -tf /bundle.tar", "tar -xf /bundle.tar -C /out"]) {
+        const refused = await state.shell.exec("tar -cf /denied.tar /input.txt");
+        assert.equal(refused.exitCode, 2);
+        assert.ok(refused.stderr.includes("openReadFile"), refused.stderr);
+        assert.equal(new TextDecoder().decode(await state.memory.readFile("/input.txt")), "first\nsecond\n");
+        assert.deepEqual(state.reads, []);
+        const producer = new Shell({ fs: state.memory }).use(archiveCommands());
+        try {
+          const created = await producer.exec("tar -cf /bundle.tar /input.txt");
+          assert.equal(created.exitCode, 0, created.stderr);
+        } finally { await producer.dispose(); }
+        for (const command of ["tar -tf /bundle.tar", "tar -xf /bundle.tar -C /out"]) {
           const result = await state.shell.exec(command);
           assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
         }
@@ -109,7 +119,7 @@ for (const mode of ["disabled", "absent"] as const) {
   test(`${mode}: null workflows bypass disabled backing streams and retain the masked row`, async () => {
     const state = await fixture(mode);
     try {
-      for (const command of ["jq -R . /dev/null", "yq -o json . /dev/null", "tac /dev/null", "nl /dev/null", 'awk \'BEGIN { print (getline line < "/dev/null") }\'', "file -b --mime-type /dev/null", "tar -cf - /input.txt > /dev/null"]) {
+      for (const command of ["jq -R . /dev/null", "yq -o json . /dev/null", "tac /dev/null", "nl /dev/null", 'awk \'BEGIN { print (getline line < "/dev/null") }\'', "file -b --mime-type /dev/null", "tar -cf - /out > /dev/null"]) {
         const result = await state.shell.exec(command);
         assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
         assert.equal(result.stdout, command.startsWith("awk") ? "0\n" : command.startsWith("file") ? "inode/chardevice\n" : "");
@@ -124,10 +134,10 @@ for (const mode of ["disabled", "absent"] as const) {
   test(`${mode}: ordinary read-only writes still fail while null output drains`, async () => {
     const state = await fixture(mode, true);
     try {
-      const refused = await state.shell.exec("tar -cf /bundle.tar /input.txt");
+      const refused = await state.shell.exec("tar -cf /bundle.tar /out");
       assert.notEqual(refused.exitCode, 0);
       await assert.rejects(state.memory.stat("/bundle.tar"), { code: "ENOENT" });
-      const discarded = await state.shell.exec("tar -cf - /input.txt > /dev/null");
+      const discarded = await state.shell.exec("tar -cf - /out > /dev/null");
       assert.equal(discarded.exitCode, 0, discarded.stderr);
       assert.deepEqual(state.traps, []);
     } finally { await state.shell.dispose(); }

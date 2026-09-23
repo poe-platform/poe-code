@@ -709,6 +709,8 @@ export function textCommands(): CommandDefinition[] {
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");
       const mode = modes[0]!;
+      const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
+      const byteSelection = mode === "b" || (mode === "c" && (locale === "C" || locale === "POSIX"));
       if (mode !== "f" && (parsed.flags.has("d") || parsed.flags.has("s"))) throw new UsageError("delimiter options require field mode");
       const work = new SortWork(context.signal);
       const ranges = await cutRanges(value(parsed, mode)!, work);
@@ -752,7 +754,7 @@ export function textCommands(): CommandDefinition[] {
                   boundary = await cutFieldBoundary(record, separator, start, work);
                 }
               }
-            } else if (mode === "b") {
+            } else if (byteSelection) {
               let emitted = false;
               let previousIncluded = false;
               for (let offset = 0; offset < line.bytes.length; offset += 4096) {

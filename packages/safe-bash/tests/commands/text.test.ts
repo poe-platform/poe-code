@@ -198,6 +198,30 @@ test("cut supports overlapping/open ranges, complement, literal fields and UTF-8
   assert.equal((await run("cut", ["-f", "0"])).exitCode, 2);
 });
 
+test("cut character selection preserves raw bytes in C and POSIX locales", async () => {
+  const stdin = Uint8Array.of(255, 10, 195, 169, 10);
+  for (const env of [{ LC_ALL: "C" }, { LC_ALL: "POSIX" }, { LC_CTYPE: "C" }, { LANG: "C" }, { LC_ALL: "", LC_CTYPE: "", LANG: "POSIX" }]) {
+    for (const args of [["-c", "1"], ["--characters=1"]]) {
+      const result = await run("cut", args, { stdin: chunks(stdin), env });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Buffer.from([255, 10, 195, 10]));
+    }
+    const fs = await fixture({ input: stdin });
+    assert.deepEqual((await run("cut", ["-c", "1", "input"], { fs, env })).stdoutBytes, Buffer.from([255, 10, 195, 10]));
+  }
+});
+
+test("cut character locale precedence selects bytes or Unicode characters", async () => {
+  for (const env of [{ LC_ALL: "C", LC_CTYPE: "en_US.UTF-8", LANG: "en_US.UTF-8" }, { LC_ALL: "", LC_CTYPE: "POSIX", LANG: "en_US.UTF-8" }]) {
+    assert.deepEqual((await run("cut", ["-c", "1"], { stdin: "é\n", env })).stdoutBytes, Buffer.from([195, 10]));
+  }
+  for (const env of [{}, { LC_ALL: "en_US.UTF-8", LC_CTYPE: "C", LANG: "C" }, { LC_CTYPE: "en_US.UTF-8", LANG: "C" }]) {
+    assert.equal((await run("cut", ["-c", "1"], { stdin: "é\n", env })).stdout, "é\n");
+  }
+  assert.deepEqual((await run("cut", ["-zc", "2", "--complement", "--output-delimiter=|"], { stdin: Uint8Array.of(255, 195, 169, 0), env: { LC_ALL: "C" } })).stdoutBytes, Buffer.from([255, 124, 169, 0]));
+});
+
 function cutProbe(args: readonly string[], stdin: CommandContext["stdin"], signal: AbortSignal, fs: FileSystem) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];

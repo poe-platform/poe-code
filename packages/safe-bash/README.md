@@ -141,6 +141,8 @@ before repeating the action. A configured regex executor may support more syntax
 
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 
+`cut -c` preserves and selects individual bytes in C/POSIX locales, using the first nonempty value of `LC_ALL`, `LC_CTYPE`, and `LANG`. Other locales and an unset locale retain UTF-8 character selection.
+
 Use `strings -s ':'` or `--output-separator=:` to separate extracted strings with custom text, including after the final string. An empty separator joins the strings.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.

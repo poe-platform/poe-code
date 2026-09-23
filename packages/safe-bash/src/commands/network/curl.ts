@@ -472,7 +472,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
               if (!final.contentDecoded && length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
             })();
             const decoded = args.compressed && !args.raw && !final.contentDecoded && encoding
-              ? decodeContent(encoded, encoding, bodySignal) : encoded;
+              ? decodeContent(encoded, encoding, bodySignal, args.maxFileSize) : encoded;
             let outputBytes = 0;
             try {
               for await (const chunk of decoded) {

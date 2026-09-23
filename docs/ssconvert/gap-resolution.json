@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T12:15:14.494387+00:00",
+  "recordedAt": "2026-09-23T12:19:05.302521+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -640,7 +640,12 @@
           "outcome": "18 original memory regressions repaired;861focused and13311maintained tests,lint/types/build;18nativecases exact on both activated profiles andSDK/Shell/replay/browser/worker. Address digits remain explicitly refused."
         },
         "docs/ssconvert/runtime-array-reference-result-gap-proof.json",
-        "docs/ssconvert/python-reference-api-source-contract.json"
+        "docs/ssconvert/python-reference-api-source-contract.json",
+        {
+          "kind": "pending-original-native-python-reference-fixture",
+          "path": "docs/ssconvert/linux-python-reference-native-probes.json",
+          "outcome": "Three original owned module probes prepared for column-oriented arrays,returned RangeRef and raw endpoint flags/offsets. Explicit separate child activation through GNUMERIC_PLUGIN_PATH; no native execution observations claimed yet."
+        }
       ],
       "delivery": {
         "localCommit": "b4bc4acc667e42b2ac8adf2dc30c5b7da266024b",

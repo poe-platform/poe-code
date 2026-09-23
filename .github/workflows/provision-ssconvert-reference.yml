@@ -175,7 +175,7 @@ jobs:
               (root / (label + '.stderr')).write_bytes(result.stderr)
               record = dict(label=label, expectedExitCodes=list(expected_exit_codes), argv=command,
                   exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(),
-                  supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD', 'HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME'] if key in capture_env})
+                  supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD', 'HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'GNUMERIC_PLUGIN_PATH'] if key in capture_env})
               if fifo_receipt is not None:
                   record['fifoLifecycle'] = fifo_receipt
               metadata.append(record)
@@ -233,6 +233,36 @@ jobs:
               assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
               capture(fixture['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'])
               language_inputs.append(dict(label=fixture['label'], inputSha256=fixture['inputSha256'], caseCount=fixture['caseCount'], logicalFields=fixture['logicalFields']))
+          # Execute original custom Python probes only in a separate explicit child
+          # activation; keep the preceding frozen sample/native closure untouched.
+          python_reference_fixture_path = pathlib.Path('docs/ssconvert/linux-python-reference-native-probes.json')
+          python_reference_fixture = json.loads(python_reference_fixture_path.read_text())
+          python_reference_inputs = []
+          python_reference_module_files = []
+          if profile['id'] == python_reference_fixture['profileId']:
+              plugin_root = root / 'python-reference-plugins'
+              plugin_dir = plugin_root / 'original-reference'
+              plugin_dir.mkdir(parents=True, mode=0o700)
+              plugin_root.chmod(0o700)
+              for item in python_reference_fixture['files']:
+                  assert item['name'] in ['plugin.xml', 'raw_reference_probe.py']
+                  data = item['content'].encode('utf-8')
+                  assert hashlib.sha256(data).hexdigest() == item['sha256']
+                  path = plugin_dir / item['name']
+                  path.write_bytes(data)
+                  path.chmod(0o600)
+                  python_reference_module_files.append(dict(path=str(path), sha256=item['sha256']))
+              probe_env = dict(env, GNUMERIC_PLUGIN_PATH=str(plugin_root.resolve()))
+              capture('python-reference-functions', [str(activation_binary.resolve())], probe_env, expected_exit_codes=(0, 1))
+              names = {line.split('\t')[0] for line in (root / 'python-reference-functions.stdout').read_text().splitlines()}
+              assert set(python_reference_fixture['functions']).issubset(names)
+              for item in python_reference_fixture['inputs']:
+                  path = root / (item['label'] + '.gnumeric')
+                  data = bytes.fromhex(item['inputHex'])
+                  assert hashlib.sha256(data).hexdigest() == item['inputSha256']
+                  path.write_bytes(data)
+                  capture(item['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], probe_env, expected_exit_codes=(0, 1))
+                  python_reference_inputs.append(dict(label=item['label'], inputSha256=item['inputSha256'], logicalFields=item['logicalFields']))
           clock_control = None
           control = json.loads(language_fixture_path.read_text())['frozenDateControl']
           if control['profileId'] == profile['id']:
@@ -339,7 +369,8 @@ jobs:
               scalarOracle=scalar_oracle, externalPrograms=external_programs,
               serviceFixtureSha256=hashlib.sha256(service_path.read_bytes()).hexdigest(), serviceInputs=service_inputs,
               dependencyBuilds=json.loads((root / 'dependency-builds.json').read_text()),
-              languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs, frozenDateControl=clock_control,
+              languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs,
+              pythonReferenceFixtureSha256=hashlib.sha256(python_reference_fixture_path.read_bytes()).hexdigest(), pythonReferenceInputs=python_reference_inputs, pythonReferenceModuleFiles=python_reference_module_files, frozenDateControl=clock_control,
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
               optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
               binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),

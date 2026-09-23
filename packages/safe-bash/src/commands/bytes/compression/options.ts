@@ -49,6 +49,15 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (argument === "--") { ended = true; continue; }
+    if (profile.format === "zstd" && (argument === "--fast" || argument.startsWith("--fast="))) {
+      const acceleration = argument === "--fast" ? "1" : argument.slice("--fast=".length);
+      if (!acceleration || ![...acceleration].every(character => character >= "0" && character <= "9")
+        || !Number.isSafeInteger(Number(acceleration)) || Number(acceleration) < 1) {
+        throw new UsageError(`invalid fast acceleration '${acceleration}'`);
+      }
+      result.level = -Number(acceleration);
+      continue;
+    }
     if (profile.format === "xz") {
       if (argument === "--compress") { result.decompress = false; result.test = false; continue; }
       if (argument === "--extreme") { result.extreme = true; continue; }
@@ -69,6 +78,14 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     if (!flags) throw new UsageError(`unrecognized option '${argument}'`);
     for (let offset = 0; offset < flags.length; offset++) {
       const flag = flags[offset]!;
+      if (profile.format === "zstd" && flag >= "0" && flag <= "9") {
+        let end = offset + 1;
+        while (end < flags.length && flags[end]! >= "0" && flags[end]! <= "9") end++;
+        result.level = Number(flags.slice(offset, end));
+        if (result.level === 0) throw new UsageError("invalid option -- '0'");
+        offset = end - 1;
+        continue;
+      }
       switch (flag) {
         case "e":
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
@@ -119,6 +136,9 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           else throw new UsageError(`invalid option -- '${flag}'`);
       }
     }
+  }
+  if (profile.format === "zstd" && (!Number.isSafeInteger(result.level) || result.level < 1 || result.level > 9)) {
+    throw new UsageError(`unsupported compression level ${result.level}; the bounded Zstandard codec supports only levels 1 through 9 (fast mode is unsupported)`);
   }
   if (result.suffix === "" && !result.decompress) throw new UsageError("invalid suffix ''");
   if (result.small && !result.decompress) result.level = Math.min(result.level, 2);

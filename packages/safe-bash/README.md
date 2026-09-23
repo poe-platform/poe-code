@@ -151,6 +151,9 @@ terse output. Filesystem terse output (`-ft`) remains unsupported.
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.
+Zstandard presets are parsed as whole numbers; the bounded codec supports levels
+1–9. Higher presets and `--fast[=NUM]` fail explicitly instead of selecting a
+different level. Codec allocations remain capped at 64 MiB.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
 Use `grep -r` to search directories, with `--include`, `--exclude`, `--exclude-from` and `--exclude-dir` to filter basenames. `-R` follows nested symlinks; recursion is bounded to 128 levels and detects ancestor loops. `-b` prints byte offsets, `-Z` uses NUL after filenames, and `--no-group-separator` hides context separators. These options also work with `egrep` and `fgrep`.
 The default bounded `grep` matcher rejects BRE groups, intervals, backreferences

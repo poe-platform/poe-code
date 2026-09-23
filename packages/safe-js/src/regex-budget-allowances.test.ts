@@ -98,3 +98,22 @@ it.each(["regexSourceLength", "regexCompileAllocations"] as const)(
       expect(() => new Budget({ [name]: value } as never)).toThrow(RangeError);
   }
 );
+
+it("compiles a regex using allowances above both former ceilings", async () => {
+  expect(await evaluate(
+    new Budget({ regexSourceLength: 20000, regexCompileAllocations: 200000 }),
+    'return new RegExp("a".repeat(17000)).source.length;'
+  )).toMatchObject({ ok: true, returnValue: 17000 });
+});
+
+it.each(["regexSourceLength", "regexCompileAllocations"] as const)(
+  "honors %s above the former profile ceiling without enabling other limits",
+  (name) => {
+    const value = name === "regexSourceLength" ? 100000 : 1000000;
+    const budget = new Budget({ [name]: value });
+    expect(budget.limits[name]).toBe(value);
+    const other = name === "regexSourceLength" ? "regexCompileAllocations" : "regexSourceLength";
+    expect(budget.limits[other]).toBeUndefined();
+    expect(budget.forkRealm().limits).toBe(budget.limits);
+  }
+);

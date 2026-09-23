@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import test from "node:test";
+import { llmCommands } from "../../../src/commands/llm/command.js";
+import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
 import { createOpenAiProvider, type OpenAiModel } from "../../../src/commands/llm/openai.js";
 import { openAiChat } from "../../../src/commands/llm/openai-sse.js";
 import type { LlmRequest } from "../../../src/commands/llm/types.js";
@@ -14,6 +17,47 @@ const models: readonly OpenAiModel[] = [
   { id: "custom-image", endpoint: "images", attachmentTypes: ["image/*"], outputType: "image/png" },
   { id: "custom-video", endpoint: "videos", attachmentTypes: ["image/*"], outputType: "video/mp4" },
 ];
+
+test("OpenAI admits aggregate image bytes before decoding and uses bounded decode slabs", async () => {
+  const original = globalThis.atob;
+  let largest = 0;
+  globalThis.atob = value => { largest = Math.max(largest, value.length); return original(value); };
+  try {
+    const payload = Buffer.alloc(512 * 1024, 123);
+    const reply = response({ data: [{ b64_json: payload.toString("base64") }] });
+    const chunks = await collect(provider(fake(reply).transport).complete(request({ model: "custom-image" })));
+    assert.deepEqual(Buffer.concat(chunks as Uint8Array[]), payload);
+    assert.ok(largest <= 8192, `pre-output decode allocation: ${largest} base64 characters`);
+    assert.ok(chunks.every(chunk => chunk.length <= 6144));
+    const fs = new MemoryFileSystem();
+    const shell = new Shell({ fs, limits: cloudflareWorkerLimits }).use(llmCommands({ providers: [provider(fake(response({ data: [{ b64_json: payload.toString("base64") }] })).transport)] }));
+    assert.equal((await shell.exec("llm -m custom-image x > /image.png")).exitCode, 0);
+    assert.deepEqual(Buffer.from(await fs.readFile("/image.png")), payload);
+    assert.ok(largest <= 8192, `Worker shell decode allocation: ${largest}`);
+    largest = 0;
+    const tooLarge = response({ data: [{ b64_json: Buffer.alloc(3 * 1024 * 1024).toString("base64") }, { b64_json: Buffer.alloc(1024 * 1024 + 1).toString("base64") }] });
+    await assert.rejects(collect(provider(fake(tooLarge).transport).complete(request({ model: "custom-image" }))), /limit/);
+    assert.equal(largest, 0);
+    assert.equal(tooLarge.disposed, 1);
+  } finally { globalThis.atob = original; }
+});
+
+test("OpenAI stops oversized image JSON before decoding and validates later slabs before output", async () => {
+  let reads = 0;
+  const reply = response("");
+  reply.body = (async function* () {
+    for (let index = 0; index < 200; index++) { reads++; yield new Uint8Array(64 * 1024).fill(32); }
+  })();
+  await assert.rejects(collect(provider(fake(reply).transport).complete(request({ model: "custom-image" }))), /limit/);
+  assert.equal(reads, 97);
+  assert.equal(reply.disposed, 1);
+  for (const invalid of ["AAAA".repeat(2048) + "AB==", "AA==" + "AAAA".repeat(2048)]) {
+    const malformed = response({ data: [{ b64_json: invalid }] });
+    const iterator = provider(fake(malformed).transport).complete(request({ model: "custom-image" }))[Symbol.asyncIterator]();
+    await assert.rejects(iterator.next(), /base64/);
+    assert.equal(malformed.disposed, 1);
+  }
+});
 
 function request(overrides: Partial<LlmRequest> = {}): LlmRequest {
   return { model: "custom-chat", prompt: "describe", attachments: [], options: {}, signal: new AbortController().signal, ...overrides };

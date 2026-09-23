@@ -239,8 +239,11 @@ Both factories accept `limits: Partial<LlmProviderLimits>`:
 | `pollIntervalMs` | 1,000 | Delay in milliseconds between video status polls |
 
 Limits must be safe integers. Byte limits must be positive; polling count and
-interval may be zero. JSON image responses require bounded buffering before
-base64 decoding; audio and video content stream directly. Deterministic fake
+interval may be zero. OpenAI image JSON is additionally capped at 6 MiB and
+aggregate decoded images at 4 MiB, including when `maxResponseBytes` is larger.
+Smaller `maxResponseBytes` limits apply to both. Images are admitted and
+canonical base64 is checked before output, using at most 8,192 encoded
+characters per decoding slab; audio and video content stream directly. Deterministic fake
 transports exercise unit and packed-consumer checks, not live service requests.
 
 With matching models/aliases configured, ordinary shell composition works:

@@ -53,13 +53,33 @@ function base64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
-function imageBytes(value: unknown): Uint8Array {
+// Keep image JSON and decoded output within a Worker-sized budget even when
+// the general provider response allowance is larger (e.g. video downloads).
+const maxImageBytes = 4 * 1024 * 1024;
+const maxImageResponseBytes = 6 * 1024 * 1024;
+
+function imageSize(value: unknown): number {
   if (typeof value !== "string" || value.length === 0) throw new Error("OpenAI image response has no b64_json");
+  if (value.length % 4 !== 0) throw new Error("OpenAI image response contains non-canonical base64");
+  return value.length / 4 * 3 - (value.endsWith("==") ? 2 : value.endsWith("=") ? 1 : 0);
+}
+
+function imageSlab(value: string): string {
   let decoded: string;
   try { decoded = atob(value); }
   catch { throw new Error("OpenAI image response contains invalid base64"); }
   if (btoa(decoded) !== value) throw new Error("OpenAI image response contains non-canonical base64");
-  return Uint8Array.from(decoded, character => character.charCodeAt(0));
+  return decoded;
+}
+
+function* imageBytes(value: string, signal: AbortSignal): Iterable<Uint8Array> {
+  for (let offset = 0; offset < value.length; offset += 8192) {
+    signal.throwIfAborted();
+    const decoded = imageSlab(value.slice(offset, offset + 8192));
+    const bytes = new Uint8Array(decoded.length);
+    for (let index = 0; index < decoded.length; index++) bytes[index] = decoded.charCodeAt(index);
+    yield bytes;
+  }
 }
 
 function waitForPoll(signal: AbortSignal, interval: number): Promise<void> {
@@ -147,14 +167,29 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
         const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {
-          const value = await openAiJson(response, request.signal, limits.maxResponseBytes);
+          const value = await openAiJson(response, request.signal, Math.min(limits.maxResponseBytes, maxImageResponseBytes));
           if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "image generation failed"}`);
           if (!Array.isArray(value.data) || value.data.length === 0) throw new Error("OpenAI image response has no images");
+          let size = 0;
+          const images: string[] = [];
           for (const item of value.data) {
             request.signal.throwIfAborted();
             if (!openAiRecord(item)) throw new Error("OpenAI image response contains a malformed image");
-            yield imageBytes(item.b64_json);
+            size += imageSize(item.b64_json);
+            if (size > Math.min(maxImageBytes, limits.maxResponseBytes)) throw new RangeError("Provider image byte limit exceeded");
+            images.push(item.b64_json as string);
           }
+          // Validate every slab before publishing any output, including padding
+          // in the middle of an image or a malformed later image.
+          for (const image of images) {
+            for (let offset = 0; offset < image.length; offset += 8192) {
+              request.signal.throwIfAborted();
+              const slab = image.slice(offset, offset + 8192);
+              if (offset + 8192 < image.length && slab.includes("=")) throw new Error("OpenAI image response contains non-canonical base64");
+              imageSlab(slab);
+            }
+          }
+          for (const image of images) yield* imageBytes(image, request.signal);
         }
       } else {
         let current: { id: string; status: string } | undefined;

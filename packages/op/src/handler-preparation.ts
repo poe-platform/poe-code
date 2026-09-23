@@ -163,7 +163,7 @@ export function createHandlerPreparation(
     },
     ...(context.writeFile ? { async writeFile(path: string, bytes: Uint8Array, options?: OpFileWriteOptions) {
       if (!allowed("file").some(effect => effect.path === path && effect.options?.mode === options?.mode && effect.options?.overwrite === options?.overwrite)) throw new Error("Unplanned file output");
-      await acquire(signal, () => context.writeFile!(path, Uint8Array.from(bytes), options ? { ...options } : undefined));
+      return acquire(signal, () => context.writeFile!(path, Uint8Array.from(bytes), options ? { ...options } : undefined));
     } } : {}),
     ...(context.invoke ? { async invoke(command: string, args: readonly string[], options: Parameters<NonNullable<OpCommandContext["invoke"]>>[2]) {
       if (!allowed("invoke").some(effect => effect.command === command && same(effect.args ?? [], args) && namesMatch(effect.environmentNames, options.env))) throw new Error("Unplanned child invocation");

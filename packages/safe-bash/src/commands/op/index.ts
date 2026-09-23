@@ -65,6 +65,7 @@ export function createOpCommand(options: OpCommandsOptions): CommandDefinition {
             await fs.writeFile(resolved, data, { signal, mode, flag: "w" });
           }
           signal.throwIfAborted();
+          return resolved;
         },
         ...(context.invoke === undefined ? {} : {
           async invoke(name, args, settings) {

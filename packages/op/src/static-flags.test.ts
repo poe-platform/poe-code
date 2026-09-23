@@ -75,7 +75,7 @@ test("public read forwards parsed file modes to its host without changing backen
       args: ["read", "op://synthetic/item/password", "--out-file=synthetic", `--file-mode=${value}`],
       env: {}, signal: new AbortController().signal,
       stdin: { async *[Symbol.asyncIterator]() { yield new Uint8Array(); } },
-      stdout: { async write() { assert.fail("file output must not use stdout"); } },
+      stdout: { async write(bytes) { assert.equal(Buffer.from(bytes).toString(), "synthetic\n"); } },
       stderr: { async write(data) { error += Buffer.from(data); } },
       async writeFile(path, bytes, options) {
         written = true;

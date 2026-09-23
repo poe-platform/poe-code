@@ -8,6 +8,30 @@ import { createObjectBackend, opCommands } from "./index.js";
 const encode = (value: string) => new TextEncoder().encode(value);
 const seed = () => createObjectBackend({ vaults: [{ id: "vault", name: "Team" }], items: [{ id: "item", title: "Login", vault: { id: "vault" }, fields: [{ id: "password", type: "CONCEALED", value: "secret" }] }] });
 
+test("read and inject confirm normalized virtual destinations after publishing exact bytes and modes", async () => {
+  for (const command of ["read op://Team/Login/password", "inject --in-file template"]) {
+    for (const destination of ["result", "nested/../nested/result", "/work/nested/result"]) {
+      for (const overwrite of [false, true]) {
+        const fs = createMemoryFileSystem();
+        await fs.mkdir("/work/nested", { recursive: true });
+        await fs.writeFile("/work/template", encode("{{ op://Team/Login/password }}"));
+        const expected = destination === "result" ? "/work/result" : "/work/nested/result";
+        if (overwrite) await fs.writeFile(expected, encode("old content"));
+        const shell = new Shell({ fs, cwd: "/work" });
+        shell.use(opCommands({ backend: seed(), authorize: () => "ask", authorizeResolution: () => true, approveResolved: () => true }));
+        const result = await shell.exec(`op ${command} --out-file ${destination}${overwrite ? " --force --file-mode 0640" : ""}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, expected + "\n");
+        assert.deepEqual(await fs.readFile(expected), encode("secret"));
+        assert.equal((await fs.stat(expected)).mode & 0o777, overwrite ? 0o640 : 0o600);
+        const failed = await shell.exec(`op ${command} --out-file ${destination}`);
+        assert.equal(failed.exitCode, 1);
+        assert.equal(failed.stdout, "");
+      }
+    }
+  }
+});
+
 test("op is explicit, shares pipelines, and preserves environment expansion", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { REF: "op://Team/Login/password" } });
   shell.use(standardCommands());

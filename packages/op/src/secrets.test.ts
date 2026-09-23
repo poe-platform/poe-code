@@ -150,10 +150,11 @@ describe("secret handlers", () => {
     test.context.writeFile = writeFile;
     const pending = test.call("read", [reference], { "out-file": "key", force: true });
     await writing;
+    assert.equal(test.output(), "");
     assert.deepEqual(writeFile.mock.calls[0]?.arguments, ["key", encoder.encode("secret"), { mode: 0o600, overwrite: true }]);
     release();
     await pending;
-    assert.equal(test.output(), "");
+    assert.equal(test.output(), "key\n");
   });
   it("refuses to overwrite an existing file without force", async () => {
     const test = fixture();
@@ -175,7 +176,7 @@ describe("secret handlers", () => {
           run.context.writeFile = async (...args) => { writes.push(args); };
           await run.call(resource, resource === "read" ? [reference] : [], { "out-file": "output", ...(mode === undefined ? {} : { "file-mode": mode }), ...(force === undefined ? {} : { force }) });
           assert.deepEqual(writes, [["output", encoder.encode("secret"), { mode: expected, overwrite: force === true }]]);
-          assert.equal(run.output(), "");
+          assert.equal(run.output(), "output\n");
         }
       }
     }
@@ -212,6 +213,26 @@ describe("secret handlers", () => {
       const failure = new Error("write denied");
       run.context.writeFile = async () => { throw failure; };
       await assert.rejects(run.call(resource, resource === "read" ? [reference] : [], { "out-file": "output", force: true }), error => error === failure);
+      assert.equal(run.output(), "");
+    }
+  });
+  it("confirms the host-declared destination only after publication for read and inject", async () => {
+    for (const resource of ["read", "inject"]) {
+      const run = fixture("{{ " + reference + " }}");
+      run.context.writeFile = async () => {
+        assert.equal(run.output(), "");
+        return "/work/result";
+      };
+      await run.call(resource, resource === "read" ? [reference] : [], { "out-file": "result" });
+      assert.equal(run.output(), "/work/result\n");
+    }
+  });
+  it("does not confirm a publication cancelled before the writer returns", async () => {
+    for (const resource of ["read", "inject"]) {
+      const run = fixture("{{ " + reference + " }}");
+      const reason = new Error("cancelled publication");
+      run.context.writeFile = async () => { run.controller.abort(reason); };
+      await assert.rejects(run.call(resource, resource === "read" ? [reference] : [], { "out-file": "result" }), error => error === reason);
       assert.equal(run.output(), "");
     }
   });

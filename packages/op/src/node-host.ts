@@ -241,6 +241,7 @@ export async function runOpCli(args: readonly string[], dependencies: NodeHostDe
         } finally {
           await handle.close();
         }
+        return destination;
       },
       invoke(command, childArgs, options) {
         signal.throwIfAborted();

@@ -63,7 +63,7 @@ for (const command of [
     const result = run.fs.readFileSync("/work/output.bin");
     if (command[0] === "item") assert.deepEqual(JSON.parse(result.toString()), template);
     else assert.deepEqual(Uint8Array.from(result as Uint8Array), command[0] === "inject" ? new TextEncoder().encode("new") : payload);
-    assert.equal(run.output.length, 0);
+    assert.equal(Buffer.concat(run.output).toString(), command[0] === "read" || command[0] === "inject" ? "/work/output.bin\n" : "");
   });
 }
 
@@ -160,7 +160,7 @@ for (const command of [["document", "get", "document-id"], ["read", "op://Privat
     assert.equal(await runOpCli([...command, "--out-file", "output.bin"], run.dependencies), 0, run.errors());
     assert.deepEqual(Uint8Array.from(run.fs.readFileSync("/work/output.bin") as Uint8Array), payload);
     assert.equal(run.fs.statSync("/work/output.bin").mode & 0o777, 0o600);
-    assert.equal(run.output.length, 0);
+    assert.equal(Buffer.concat(run.output).toString(), command[0] === "read" ? "/work/output.bin\n" : "");
   });
 
   test(`${command[0]} file host retains nonempty content and mode without force`, async () => {
@@ -178,7 +178,7 @@ for (const command of [["document", "get", "document-id"], ["read", "op://Privat
       assert.equal(await runOpCli([...command, "--out-file", "output.bin", "--file-mode", "0640", ...(existing === undefined ? [] : ["--force"])], run.dependencies), 0, run.errors());
       assert.deepEqual(Uint8Array.from(run.fs.readFileSync("/work/output.bin") as Uint8Array), payload);
       assert.equal(run.fs.statSync("/work/output.bin").mode & 0o777, 0o640);
-      assert.equal(run.output.length, 0);
+      assert.equal(Buffer.concat(run.output).toString(), command[0] === "read" ? "/work/output.bin\n" : "");
     }
   });
 }

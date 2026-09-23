@@ -268,7 +268,10 @@ export function createSecretHandlers(backend: OpBackend): Record<string, SecretH
         if (typeof value !== "string" && !(typeof value === "number" && Number.isSafeInteger(value) && value >= 0)) throw new Error("Backend read must resolve to text, bytes, or a nonnegative safe integer");
         bytes = createOpTextCodec(request.flags.encoding).encode(String(value) + (output || request.flags["no-newline"] === true ? "" : "\n"));
       }
-      await cancellable(context.signal, () => output ? context.writeFile!(output.path, bytes, output.options) : context.stdout.write(bytes));
+      if (output) {
+        const destination = await cancellable(context.signal, () => context.writeFile!(output.path, bytes, output.options));
+        await cancellable(context.signal, () => context.stdout.write(new TextEncoder().encode((destination ?? output.path) + "\n")));
+      } else await cancellable(context.signal, () => context.stdout.write(bytes));
       return { exitCode: 0 };
     },
     async inject(request, context) {
@@ -292,7 +295,10 @@ export function createSecretHandlers(backend: OpBackend): Record<string, SecretH
       }
       const value = await template(source, context.env, resolver(request, context));
       const bytes = createOpTextCodec(request.flags.encoding).encode(value);
-      await cancellable(context.signal, () => output ? context.writeFile!(output.path, bytes, output.options) : context.stdout.write(bytes));
+      if (output) {
+        const destination = await cancellable(context.signal, () => context.writeFile!(output.path, bytes, output.options));
+        await cancellable(context.signal, () => context.stdout.write(new TextEncoder().encode((destination ?? output.path) + "\n")));
+      } else await cancellable(context.signal, () => context.stdout.write(bytes));
       return { exitCode: 0 };
     },
     async run(request, context) {
@@ -401,7 +407,7 @@ export function createSecretHandlers(backend: OpBackend): Record<string, SecretH
           });
         }
         const output = outputFile(request, source.context);
-        return createHandlerPreparation(requests, source.context, [output ? { kind: "file", ...output } : { kind: "stdout" }]);
+        return createHandlerPreparation(requests, source.context, output ? [{ kind: "file", ...output }, { kind: "stdout" }] : [{ kind: "stdout" }]);
       },
     });
   }

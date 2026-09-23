@@ -39,7 +39,8 @@ export interface OpCommandContext {
     stderr?: OpOutputSink;
   }) => Promise<{ exitCode: number }>;
   readFile?: (path: string) => Promise<Uint8Array>;
-  writeFile?: (path: string, data: Uint8Array, options?: OpFileWriteOptions) => Promise<void>;
+  /** Publishes bytes and optionally returns the destination in the host's declared path namespace. */
+  writeFile?: (path: string, data: Uint8Array, options?: OpFileWriteOptions) => Promise<void | string>;
 }
 
 export interface OpCommandOptions {

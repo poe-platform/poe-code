@@ -40,7 +40,7 @@ test("public read writes exact attachment content bytes without text encoding or
       assert.deepEqual(await createOp({ backend: run.backend }).execute(run.context), { exitCode: 0 }, run.errors());
       assert.deepEqual(Uint8Array.from(await run.fs.promises.readFile("/work/output") as Uint8Array), binary);
       assert.deepEqual(run.writes[0]?.options, { mode: 0o600, overwrite: false });
-      assert.equal(run.output().byteLength, 0);
+      assert.equal(Buffer.from(run.output()).toString(), "/work/output\n");
     }
   }
 });

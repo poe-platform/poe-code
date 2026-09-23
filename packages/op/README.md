@@ -71,6 +71,8 @@ bounded to 16 MiB. Writes require write, permissions and exclusive-create
 capabilities, default to mode `0600`, and initially use exclusive creation.
 Explicit overwrite additionally requires stat/chmod and a regular file; this
 adapter supplies no automatic overwrite prompt or OS identity/atomicity promise.
+After successful `op read` or `op inject` file output, stdout contains the absolute
+virtual destination followed by a newline; the secret content stays in the file.
 
 `op run` and child snapshot restoration use the shell's nested invocation
 capability, preserving cwd, stdin, cancellation, replacement environment and
@@ -144,6 +146,8 @@ the lower-level dispatcher; it does not compose all those handlers for you.
 `OpCommandContext` requires `args`, `env`, `signal`, `stdin`, `stdout`, `stderr`.
 Optional capabilities/configuration are `authentication`, `pluginScope`,
 `confirmPluginClear`, `selectPlugin`, `readFile`, `writeFile` and `invoke`.
+`writeFile` may return the published destination in its declared path namespace;
+read/inject confirmations use that path, or the requested path for void-returning hosts.
 The `binding` slot is internal; the public command discards caller-supplied
 handles. `EnvironmentCommandContext` additionally accepts `restoreEnvironment`.
 

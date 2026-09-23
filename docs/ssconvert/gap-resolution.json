@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T17:48:17.473949+00:00",
+  "recordedAt": "2026-09-23T18:01:11.413572+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1733,6 +1733,16 @@
       "browser",
       "dedicated worker"
     ],
-    "status": "bounded composition implemented and locally qualified; six CGJ sequences and exact rendering remain open; delivery pending"
+    "status": "bounded composition qualified and verified on remote main atb5641ac4b9; CGJ and full rendering remain open"
+  },
+  "pdfRoundedGlyphOffsets": {
+    "proof": "docs/ssconvert/pdf-rounded-glyph-offset-gap-proof.json",
+    "tests": 22620,
+    "publicControls": 10,
+    "originalActualTextValues": 180,
+    "nativeMatchingOutlineRows": 102,
+    "maximumMatchingOutlineDx": 0.004702086000037298,
+    "maximumMatchingOutlineDy": 7.464062480266875e-05,
+    "status": "offset rounding qualified locally; delivery pending; exact rendering and all19families remain open"
   }
 }

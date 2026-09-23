@@ -20,19 +20,24 @@ it.each([[8, [76.75, 80.5, 84.25]], [14, [76.75, 82.75, 88.75]]] as const)("pain
   expect(runs[0]!.glyphs.map(glyph => glyph.x)).toEqual(xs);
   expect(book).toEqual(original);
 });
-it("paints the shaped horizontal and vertical offsets without changing Unicode mappings", async () => {
+it.each([
+  [100, 200, [77.5, 79], 3],
+  [49, 49, [76.75, 79.75], 0],
+  [50, 50, [77.5, 79.75], 0.75],
+  [153, 249, [78.25, 78.25], 3],
+] as const)("rounds shaped offsets %s/%s in display coordinates without changing Unicode mappings", async (xOffset, yOffset, xs, yDistance) => {
   const parsed = fontkit.create(suppliedDefaultFont().bytes), original = parsed.layout.bind(parsed);
   const layout = vi.spyOn(parsed, "layout").mockImplementation((value, features) => {
     const run = original(value, features);
     return {...run, positions: run.positions.map((position, i) => ({...position,
-      xAdvance: i === 0 ? 400 : 600, xOffset: i === 0 ? 100 : -100, yOffset: i === 0 ? 200 : -200}))};
+      xAdvance: i === 0 ? 400 : 600, xOffset: i === 0 ? xOffset : -xOffset, yOffset: i === 0 ? yOffset : -yOffset}))};
   });
   const create = vi.spyOn(fontkit, "create").mockReturnValue(parsed);
   try {
     const {runs} = await pdfText(await writePdf(await fixture("AB", 10), [], context));
     expect(runs.map(run => run.text)).toEqual(["AB"]);
-    expect(runs[0]!.glyphs.map(glyph => glyph.x)).toEqual([77.5, 79]);
-    expect(runs[0]!.glyphs[0]!.y - runs[0]!.glyphs[1]!.y).toBe(3);
+    expect(runs[0]!.glyphs.map(glyph => glyph.x)).toEqual(xs);
+    expect(runs[0]!.glyphs[0]!.y - runs[0]!.glyphs[1]!.y).toBe(yDistance);
   } finally {layout.mockRestore();create.mockRestore();}
 });
 

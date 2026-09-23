@@ -8658,8 +8658,15 @@
     "All19 original gap families and successful containing publication remain open."
   ],
   "delivery": {
-    "localCommit": "pending atomic commit",
-    "remoteMain": "pending push verification",
-    "release": "not yet verified"
+    "localCommit": "b5641ac4b96837f162624fcc40b2cbb9615e1344",
+    "remoteMain": "verified ancestor and exact origin/main head after push",
+    "release": "containing publication pending"
+  },
+  "postRebaseIntegration": {
+    "upstream": "7b9e7e32e8877d54d1f772c89be0f98e0e231d3e",
+    "build": "selected four-build closure passed after upstream safe-fs changes",
+    "public": "SDK/Shell/XML replay passed; same PDF bytes",
+    "buildLogSha256": "c541e60ba0947a3adf1b2695c482bc3bfecfcafdf98fea43f65111381a44daab",
+    "publicLogSha256": "3c92d907cf20d2f5e18b6c63c2f75388ad273de2d53bf0b1f72b1c6fd7a42921"
   }
 }

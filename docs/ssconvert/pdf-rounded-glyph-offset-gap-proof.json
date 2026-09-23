@@ -1,0 +1,3333 @@
+{
+  "version": 1,
+  "recordedAt": "2026-09-23T18:01:11.413572+00:00",
+  "scope": "Round positioned PDF glyph offsets in the qualified unhinted native96DPI profile, including downward-coordinate half ties. All19 original families remain open.",
+  "sources": [
+    {
+      "path": "packages/ssconvert/src/codecs/pdf.ts",
+      "sha256": "9ca262fcaa25136cd1ff2d9115ea39268e632442fd2b0237a0de1d2c3bd5ab3c"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/pdf-glyph-positions.test.ts",
+      "sha256": "9d53c7d72408e39caf028f6bdb4be9c537a119592ca958974b9c727c732eb200"
+    }
+  ],
+  "reference": {
+    "compositionProof": "docs/ssconvert/pdf-canonical-composition-diagnosis.json",
+    "compositionProofSha256": "f6288e4528200981be38bae50e62cbc9af31399f56a53432034fc089d5307754",
+    "previousCandidateProof": "docs/ssconvert/pdf-font-composition-gap-proof.json",
+    "previousCandidatePdfSha256": "c33d2b415357c16774f9bcb0b8640504822ef0b86fd42e2ac77c36ad040c83e0",
+    "pangoArchiveUrl": "https://download.gnome.org/sources/pango/1.56/pango-1.56.3.tar.xz",
+    "pangoArchiveSha256": "2606252bc25cd8d24e1b7f7e92c3a272b37acd6734347b73b47a482834ba2491",
+    "pangoSources": [
+      {
+        "file": "shape.c",
+        "sha256": "fd299375c7cbffb826013c51e3ccc1a87fb12dd62814b2ba2aa59881fc8c51f8",
+        "excerpts": [
+          {
+            "linesInclusive": [
+              531,
+              553
+            ],
+            "text": "      hb_glyph++;\n      last_cluster = glyphs->log_clusters[i];\n    }\n\n  hb_position = hb_buffer_get_glyph_positions (hb_buffer, NULL);\n  if (PANGO_GRAVITY_IS_VERTICAL (analysis->gravity))\n    for (i = 0; i < num_glyphs; i++)\n      {\n        /* 90 degrees rotation counter-clockwise. */\n        infos[i].geometry.width    = - hb_position->y_advance;\n        infos[i].geometry.x_offset = - hb_position->y_offset;\n        infos[i].geometry.y_offset = - hb_position->x_offset;\n        hb_position++;\n      }\n  else /* horizontal */\n    for (i = 0; i < num_glyphs; i++)\n      {\n        infos[i].geometry.width    =   hb_position->x_advance;\n        infos[i].geometry.x_offset =   hb_position->x_offset;\n        infos[i].geometry.y_offset = - hb_position->y_offset;\n        hb_position++;\n      }\n"
+          },
+          {
+            "linesInclusive": [
+              728,
+              788
+            ],
+            "text": "\n  if (flags & PANGO_SHAPE_ROUND_POSITIONS)\n    {\n      if (analysis->font && pango_font_is_hinted (analysis->font))\n        {\n          double x_scale_inv, y_scale_inv;\n          double x_scale, y_scale;\n\n          pango_font_get_scale_factors (analysis->font, &x_scale_inv, &y_scale_inv);\n\n          if (PANGO_GRAVITY_IS_IMPROPER (analysis->gravity))\n            {\n              x_scale_inv = -x_scale_inv;\n              y_scale_inv = -y_scale_inv;\n            }\n\n          x_scale = 1.0 / x_scale_inv;\n          y_scale = 1.0 / y_scale_inv;\n\n          if (x_scale == 1.0 && y_scale == 1.0)\n            {\n              for (i = 0; i < glyphs->num_glyphs; i++)\n                glyphs->glyphs[i].geometry.width = PANGO_UNITS_ROUND (glyphs->glyphs[i].geometry.width);\n            }\n          else\n            {\n    #if 0\n                  if (PANGO_GRAVITY_IS_VERTICAL (analysis->gravity))\n                    {\n                      /* XXX */\n                      double tmp = x_scale;\n                      x_scale = y_scale;\n                      y_scale = -tmp;\n                    }\n    #endif\n    #define HINT(value, scale_inv, scale) (PANGO_UNITS_ROUND ((int) ((value) * scale)) * scale_inv)\n    #define HINT_X(value) HINT ((value), x_scale, x_scale_inv)\n    #define HINT_Y(value) HINT ((value), y_scale, y_scale_inv)\n              for (i = 0; i < glyphs->num_glyphs; i++)\n                {\n                  glyphs->glyphs[i].geometry.width    = HINT_X (glyphs->glyphs[i].geometry.width);\n                  glyphs->glyphs[i].geometry.x_offset = HINT_X (glyphs->glyphs[i].geometry.x_offset);\n                  glyphs->glyphs[i].geometry.y_offset = HINT_Y (glyphs->glyphs[i].geometry.y_offset);\n                }\n    #undef HINT_Y\n    #undef HINT_X\n    #undef HINT\n            }\n        }\n      else\n        {\n          for (i = 0; i < glyphs->num_glyphs; i++)\n            {\n              glyphs->glyphs[i].geometry.width =\n                PANGO_UNITS_ROUND (glyphs->glyphs[i].geometry.width);\n              glyphs->glyphs[i].geometry.x_offset =\n                PANGO_UNITS_ROUND (glyphs->glyphs[i].geometry.x_offset);\n              glyphs->glyphs[i].geometry.y_offset =\n                PANGO_UNITS_ROUND (glyphs->glyphs[i].geometry.y_offset);\n            }\n        }"
+          }
+        ]
+      },
+      {
+        "file": "pango-types.h",
+        "sha256": "411c230b883ad744ca8f5471a5e528e68c3e6540007b8511ba4f020da5558d98",
+        "excerpts": [
+          {
+            "linesInclusive": [
+              136,
+              146
+            ],
+            "text": " * PANGO_UNITS_ROUND:\n * @d: a dimension in Pango units.\n *\n * Rounds a dimension to whole device units, but does not\n * convert it to device units.\n *\n * Return value: rounded dimension in Pango units.\n * Since: 1.18\n */\n#define PANGO_UNITS_ROUND(d)\t\t\t\t\\\n  (((d) + (PANGO_SCALE >> 1)) & ~(PANGO_SCALE - 1))"
+          }
+        ]
+      }
+    ],
+    "bindingLimit": "OfficialPango1.56.3 released source matches native linked-library version. Exact native system-library reproducible build and other hinting/backend profiles are not claimed."
+  },
+  "validation": {
+    "initialFailingTests": 3,
+    "initialPassingControls": 12,
+    "focusedFinal": 15,
+    "packageTests": 22620,
+    "packageFiles": 373,
+    "lint": "ESLint and source/test/public consumer TypeScript passed",
+    "build": "selected maintained four-build/11-layer ssconvert closure passed; two cache hits",
+    "checks": [
+      {
+        "path": "out/ssconvert-cgj-diagnosis/offset-focused-red.log",
+        "sha256": "2ee641d69e3a9e68c2ea7a6e9a1f227e53958773df2e27e529f1d1d00df7cab9"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/offset-focused-green.log",
+        "sha256": "835ee4f04690ca2cd44815d2bd2c98f7a292276232f960b491c9a8e2ed351a18"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/offset-package-tests.log",
+        "sha256": "1221e7b89ae3c4d6330aea9435d86da6bf11aa34b8298bcda880d9a944b5ab45"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/offset-package-lint.log",
+        "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/offset-package-build.log",
+        "sha256": "ca42b41c7712773bcab3f5eec4988a7126bdcb68afaad96900e3be5b4e88182d"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/public-node.log",
+        "sha256": "c2c88f8b8e80e0a55ad962ab52cb54e6728638224891a43f08d21302130a6c26"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/public-metric-node.log",
+        "sha256": "8e59fd94b6bec224728f8d24c71afb540ece37fd6f98e4f5756f676edf9e1794"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/browser-build.log",
+        "sha256": "a56a16dffb3345c6314186f292d9467414008bf481a5dfeee30fbf8e57e42c14"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/browser-console.log",
+        "sha256": "d0e5634bb0c1271965327ad2ac18107af18fa7da6d2c9ce13e03eeda6cb603db"
+      }
+    ],
+    "setupFailure": "Initial npm test filter appended to package-wide positional filter, selecting the full suite. Terminated only owned process group97271 before edits; retained interrupted log. Focused maintained Vitest file replay then produced the3red/12green observation."
+  },
+  "publicNode": [
+    {
+      "inputSha256": "b07a3aab99b1eafc4f8067919d63a97ee130cef206741120b97e0081b67867f0",
+      "pdfBytes": 24973,
+      "pdfSha256": "a65af13073e7029119b52c8e8ef3602d723c408f761a03a4569c21a5988289b9",
+      "requests": [
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        }
+      ],
+      "sdkShellReplayBytesExact": true,
+      "inputImmutable": true,
+      "fontsImmutable": true,
+      "diagnostics": [],
+      "runtimeEntrySha256": "a63b0cd563d19a426a7e9ba4b6a69a810a251f61f8e73225d14e05a0e5705dd6",
+      "codecSourceSha256": "9ca262fcaa25136cd1ff2d9115ea39268e632442fd2b0237a0de1d2c3bd5ab3c",
+      "status": "public candidate control, not native parity"
+    },
+    {
+      "inputSha256": "c6855816573ab43782d4eaf7a35a2114847a11fae1bb24640350a2d8fceb42f5",
+      "pdfBytes": 27555,
+      "pdfSha256": "f888a4bcb20775559f097f7ae7ec8bc6fb29509114512566f3ab4cea1042cbbf",
+      "requests": [
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        },
+        {
+          "family": "Sans",
+          "bold": false,
+          "italic": false,
+          "maxBytes": 4000000
+        },
+        {
+          "family": "Sans",
+          "bold": true,
+          "italic": false,
+          "maxBytes": 3240280
+        }
+      ],
+      "sdkShellReplayBytesExact": true,
+      "inputImmutable": true,
+      "fontsImmutable": true,
+      "diagnostics": [],
+      "runtimeEntrySha256": "a63b0cd563d19a426a7e9ba4b6a69a810a251f61f8e73225d14e05a0e5705dd6",
+      "codecSourceSha256": "9ca262fcaa25136cd1ff2d9115ea39268e632442fd2b0237a0de1d2c3bd5ab3c",
+      "status": "public candidate control, not native parity"
+    }
+  ],
+  "publicBrowserAndWorker": {
+    "done": true,
+    "qualification": {
+      "browser": [
+        {
+          "id": "print-font-composition-holdouts",
+          "pdfBytes": 24973,
+          "pdfSha256": "a65af13073e7029119b52c8e8ef3602d723c408f761a03a4569c21a5988289b9",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        },
+        {
+          "id": "print-font-metric-holdouts",
+          "pdfBytes": 27555,
+          "pdfSha256": "f888a4bcb20775559f097f7ae7ec8bc6fb29509114512566f3ab4cea1042cbbf",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        }
+      ],
+      "worker": [
+        {
+          "id": "print-font-composition-holdouts",
+          "pdfBytes": 24973,
+          "pdfSha256": "a65af13073e7029119b52c8e8ef3602d723c408f761a03a4569c21a5988289b9",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        },
+        {
+          "id": "print-font-metric-holdouts",
+          "pdfBytes": 27555,
+          "pdfSha256": "f888a4bcb20775559f097f7ae7ec8bc6fb29509114512566f3ab4cea1042cbbf",
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 4000000
+            },
+            {
+              "family": "Sans",
+              "bold": true,
+              "italic": false,
+              "maxBytes": 3240280
+            }
+          ],
+          "inputImmutable": true,
+          "fontsImmutable": true,
+          "diagnostics": []
+        }
+      ]
+    }
+  },
+  "console": {
+    "messages": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "extraction": [
+    {
+      "model": "composition",
+      "pages": 5,
+      "actualTextOriginalScalars": 108,
+      "popplerExactScalarRows": 108,
+      "popplerRTLPresentationRows": [],
+      "extractionSha256": "3acc919ad26152f006a9c8d587ea70227c3ea97ece948f9674eafdff41d5eea5"
+    },
+    {
+      "model": "-metric",
+      "pages": 3,
+      "actualTextOriginalScalars": 72,
+      "popplerExactScalarRows": 66,
+      "popplerRTLPresentationRows": [
+        {
+          "row": 11,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        },
+        {
+          "row": 23,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        },
+        {
+          "row": 35,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        },
+        {
+          "row": 47,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        },
+        {
+          "row": 59,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        },
+        {
+          "row": 71,
+          "extracted": "‫ابحرم‬",
+          "original": "مرحبا"
+        }
+      ],
+      "extractionSha256": "98cfd4ffcf13de437d3aed5312bc168f73e1f016e456ffe368ce26b511d9bd68"
+    }
+  ],
+  "nativeComparison": {
+    "summary": {
+      "rows": 108,
+      "pages": 5,
+      "matchingNativeOutlineSequences": 102,
+      "differentRows": [
+        11,
+        29,
+        47,
+        65,
+        83,
+        101
+      ],
+      "canonicalPairs": 42,
+      "matchingCanonicalPairs": 42,
+      "originalActualTextValues": 108
+    },
+    "candidatePdfSha256": "a65af13073e7029119b52c8e8ef3602d723c408f761a03a4569c21a5988289b9",
+    "nativeReferenceSha256": "f6288e4528200981be38bae50e62cbc9af31399f56a53432034fc089d5307754",
+    "scope": "138glyph records in102 matching-outline rows. Candidate top-origin y minus24pt per preceding page row is compared to native row-relative text matrices. Native page transforms and all exact differences are retained separately. No tolerance pass.",
+    "maximumAbsoluteDx": 0.004702086000037298,
+    "maximumAbsoluteDy": 7.464062480266875e-05,
+    "exactFullCoordinateRecords": 0,
+    "glyphCoordinates": [
+      {
+        "row": 0,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 94.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250000694763003e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 1,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 118.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250000694763003e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 2,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 142.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.249999273677531e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 3,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 166.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.249999273677531e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 4,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 190.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.249999273677531e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 5,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 214.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.249999273677531e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 6,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 238.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.249999273677531e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 7,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 262.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 8,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 286.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 9,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 310.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 9,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 309.5849609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 10,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 334.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 10,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 334.3349609375,
+        "size": 6.0,
+        "dx": 0.001242185999984713,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 12,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 382.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 12,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 381.5849609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 13,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 406.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 14,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 430.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 15,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 454.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 16,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 478.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 17,
+        "glyph": 0,
+        "candidateX": 175.25,
+        "candidateYFromTop": 502.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 17,
+        "glyph": 1,
+        "candidateX": 179.0,
+        "candidateYFromTop": 502.3349609375,
+        "size": 6.0,
+        "dx": 0.0011015640000096028,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 17,
+        "glyph": 2,
+        "candidateX": 185.0,
+        "candidateYFromTop": 502.3349609375,
+        "size": 6.0,
+        "dx": 0.0023203140000020994,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 17,
+        "glyph": 3,
+        "candidateX": 188.0,
+        "candidateYFromTop": 502.3349609375,
+        "size": 6.0,
+        "dx": -0.0025078139999834548,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 18,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 526.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 19,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 550.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 20,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 574.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 21,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 598.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 22,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 622.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 23,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 646.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 24,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 670.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 25,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 694.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 26,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 94.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250000694763003e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 27,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 118.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250000694763003e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 27,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 117.5849609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250000694763003e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 28,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 142.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 28,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 142.3349609375,
+        "size": 6.0,
+        "dx": 0.0011718720000146732,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 30,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 190.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 30,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 189.5849609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 31,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 214.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 32,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 238.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 33,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 262.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 34,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 286.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 35,
+        "glyph": 0,
+        "candidateX": 173.75,
+        "candidateYFromTop": 310.3349609375,
+        "size": 6.0,
+        "dx": 0.0,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 35,
+        "glyph": 1,
+        "candidateX": 177.5,
+        "candidateYFromTop": 310.3349609375,
+        "size": 6.0,
+        "dx": -7.031399999846144e-05,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 35,
+        "glyph": 2,
+        "candidateX": 184.25,
+        "candidateYFromTop": 310.3349609375,
+        "size": 6.0,
+        "dx": -0.0014765640000007352,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 35,
+        "glyph": 3,
+        "candidateX": 188.0,
+        "candidateYFromTop": 310.3349609375,
+        "size": 6.0,
+        "dx": -0.00011719200000470664,
+        "dy": -6.250002115848474e-08,
+        "dsize": 0.0
+      },
+      {
+        "row": 36,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 333.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 37,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 357.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 38,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 381.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 39,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 405.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 40,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 429.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 41,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 453.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 42,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 477.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 43,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 501.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 44,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 525.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 45,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 549.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 45,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 548.481201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 46,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 573.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 46,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 573.981201171875,
+        "size": 7.5,
+        "dx": 0.0015527324999879966,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 48,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 621.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 48,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 620.481201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 49,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 645.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 50,
+        "glyph": 0,
+        "candidateX": 189.5,
+        "candidateYFromTop": 669.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 51,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 693.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 52,
+        "glyph": 0,
+        "candidateX": 187.25,
+        "candidateYFromTop": 93.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 53,
+        "glyph": 0,
+        "candidateX": 171.5,
+        "candidateYFromTop": 117.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 53,
+        "glyph": 1,
+        "candidateX": 176.0,
+        "candidateYFromTop": 117.981201171875,
+        "size": 7.5,
+        "dx": 0.0013769550000120034,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 53,
+        "glyph": 2,
+        "candidateX": 183.5,
+        "candidateYFromTop": 117.981201171875,
+        "size": 7.5,
+        "dx": 0.0029003925000097297,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 53,
+        "glyph": 3,
+        "candidateX": 187.25,
+        "candidateYFromTop": 117.981201171875,
+        "size": 7.5,
+        "dx": -0.003134767499972213,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 54,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 141.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 55,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 165.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 56,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 189.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 57,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 213.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 58,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 237.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 59,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 261.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 60,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 285.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 61,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 309.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 62,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 333.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 63,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 357.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 63,
+        "glyph": 1,
+        "candidateX": 190.25,
+        "candidateYFromTop": 356.481201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 64,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 381.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 64,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 381.981201171875,
+        "size": 7.5,
+        "dx": 0.001464840000011236,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 66,
+        "glyph": 0,
+        "candidateX": 185.75,
+        "candidateYFromTop": 429.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 66,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 428.481201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 67,
+        "glyph": 0,
+        "candidateX": 188.75,
+        "candidateYFromTop": 453.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 68,
+        "glyph": 0,
+        "candidateX": 188.75,
+        "candidateYFromTop": 477.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 69,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 501.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187500134241418e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 70,
+        "glyph": 0,
+        "candidateX": 186.5,
+        "candidateYFromTop": 525.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 71,
+        "glyph": 0,
+        "candidateX": 168.5,
+        "candidateYFromTop": 549.981201171875,
+        "size": 7.5,
+        "dx": 0.0,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 71,
+        "glyph": 1,
+        "candidateX": 173.75,
+        "candidateYFromTop": 549.981201171875,
+        "size": 7.5,
+        "dx": -8.789250000518223e-05,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 71,
+        "glyph": 2,
+        "candidateX": 182.0,
+        "candidateYFromTop": 549.981201171875,
+        "size": 7.5,
+        "dx": -0.0018457049999938135,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 71,
+        "glyph": 3,
+        "candidateX": 186.5,
+        "candidateYFromTop": 549.981201171875,
+        "size": 7.5,
+        "dx": -0.00014648999999167245,
+        "dy": 1.7187494449899532e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 72,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 573.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": -3.5937500797444955e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 73,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 597.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 2.6406249844512786e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 74,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 621.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 5.640624976877007e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 75,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 645.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 8.640624969302735e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 76,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 669.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 1.1640624961728463e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 77,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 693.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 1.4640624954154191e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 78,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 93.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": -3.5937499376359483e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 79,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 117.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 2.640625012872988e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 80,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 141.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 5.640625005298716e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 81,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 165.273681640625,
+        "size": 10.5,
+        "dx": -1.499999996212864e-06,
+        "dy": 8.640624997724444e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 81,
+        "glyph": 1,
+        "candidateX": 190.25,
+        "candidateYFromTop": 163.023681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 1.1640624990150172e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 82,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 189.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": 1.1640624990150172e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 82,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 189.273681640625,
+        "size": 10.5,
+        "dx": 0.0006738255000016125,
+        "dy": 1.1640624990150172e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 84,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 237.273681640625,
+        "size": 10.5,
+        "dx": 3.000000106112566e-07,
+        "dy": 1.764062497500163e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 84,
+        "glyph": 1,
+        "candidateX": 191.0,
+        "candidateYFromTop": 235.023681640625,
+        "size": 10.5,
+        "dx": 1.8000000068241206e-06,
+        "dy": 2.0640624967427357e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 85,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 261.273681640625,
+        "size": 10.5,
+        "dx": -1.1999999856016075e-06,
+        "dy": 2.0640624939005647e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 86,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 285.273681640625,
+        "size": 10.5,
+        "dx": -1.1999999856016075e-06,
+        "dy": 2.3640624931431375e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 87,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 309.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 2.6640624923857104e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 88,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 333.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 2.964062491628283e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 89,
+        "glyph": 0,
+        "candidateX": 161.75,
+        "candidateYFromTop": 357.273681640625,
+        "size": 10.5,
+        "dx": -1.1999999856016075e-06,
+        "dy": 3.264062490870856e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 89,
+        "glyph": 1,
+        "candidateX": 168.5,
+        "candidateYFromTop": 357.273681640625,
+        "size": 10.5,
+        "dx": 0.0004265370000098301,
+        "dy": 3.264062490870856e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 89,
+        "glyph": 2,
+        "candidateX": 179.0,
+        "candidateYFromTop": 357.273681640625,
+        "size": 10.5,
+        "dx": 0.0025593495000180155,
+        "dy": 3.264062490870856e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 89,
+        "glyph": 3,
+        "candidateX": 185.0,
+        "candidateYFromTop": 357.273681640625,
+        "size": 10.5,
+        "dx": -0.00138987449997785,
+        "dy": 3.264062490870856e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 90,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 381.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 3.564062490113429e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 91,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 405.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 3.8640624893560016e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 92,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 429.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 4.1640624885985744e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 93,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 453.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 4.464062487841147e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 94,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 477.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 4.76406248708372e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 95,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 501.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 5.064062486326293e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 96,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 525.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 5.364062485568866e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 97,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 549.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 5.6640624848114385e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 98,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 573.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 5.964062484054011e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 99,
+        "glyph": 0,
+        "candidateX": 182.75,
+        "candidateYFromTop": 597.273681640625,
+        "size": 10.5,
+        "dx": -1.1999999856016075e-06,
+        "dy": 6.264062483296584e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 99,
+        "glyph": 1,
+        "candidateX": 190.25,
+        "candidateYFromTop": 595.023681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 6.564062482539157e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 100,
+        "glyph": 0,
+        "candidateX": 185.0,
+        "candidateYFromTop": 621.273681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 6.564062482539157e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 100,
+        "glyph": 1,
+        "candidateX": 191.75,
+        "candidateYFromTop": 621.273681640625,
+        "size": 10.5,
+        "dx": 0.000546576000033383,
+        "dy": 6.564062482539157e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 102,
+        "glyph": 0,
+        "candidateX": 183.5,
+        "candidateYFromTop": 669.273681640625,
+        "size": 10.5,
+        "dx": -5.6999999742402e-06,
+        "dy": 7.164062481024303e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 102,
+        "glyph": 1,
+        "candidateX": 190.25,
+        "candidateYFromTop": 667.023681640625,
+        "size": 10.5,
+        "dx": -4.199999978027336e-06,
+        "dy": 7.464062480266875e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 103,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 693.273681640625,
+        "size": 10.5,
+        "dx": -1.1999999856016075e-06,
+        "dy": 7.464062480266875e-05,
+        "dsize": 0.0
+      },
+      {
+        "row": 104,
+        "glyph": 0,
+        "candidateX": 188.0,
+        "candidateYFromTop": 93.273681640625,
+        "size": 10.5,
+        "dx": 0.0,
+        "dy": -3.5937499376359483e-07,
+        "dsize": 0.0
+      },
+      {
+        "row": 105,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 117.273681640625,
+        "size": 10.5,
+        "dx": 1.499999996212864e-06,
+        "dy": 2.640625012872988e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 106,
+        "glyph": 0,
+        "candidateX": 184.25,
+        "candidateYFromTop": 141.273681640625,
+        "size": 10.5,
+        "dx": 1.499999996212864e-06,
+        "dy": 5.640625005298716e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 107,
+        "glyph": 0,
+        "candidateX": 159.5,
+        "candidateYFromTop": 165.273681640625,
+        "size": 10.5,
+        "dx": 2.999999992425728e-06,
+        "dy": 8.640624997724444e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 107,
+        "glyph": 1,
+        "candidateX": 167.0,
+        "candidateYFromTop": 165.273681640625,
+        "size": 10.5,
+        "dx": 0.0028799504999881265,
+        "dy": 8.640624997724444e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 107,
+        "glyph": 2,
+        "candidateX": 179.0,
+        "candidateYFromTop": 165.273681640625,
+        "size": 10.5,
+        "dx": -0.0010809870000230148,
+        "dy": 8.640624997724444e-06,
+        "dsize": 0.0
+      },
+      {
+        "row": 107,
+        "glyph": 3,
+        "candidateX": 185.0,
+        "candidateYFromTop": 165.273681640625,
+        "size": 10.5,
+        "dx": -0.004702086000037298,
+        "dy": 8.640624997724444e-06,
+        "dsize": 0.0
+      }
+    ]
+  },
+  "cgjDiagnosis": {
+    "scope": "Diagnosis only; preserve CGJ normalization blocking and logical text. No runtime removal or fontkit modification.",
+    "fontkitVersion": "1.1.1",
+    "fontkitObservations": [
+      {
+        "bold": false,
+        "text": "a͏́",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1255,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": false,
+        "text": "á",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1255,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": -157,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": false,
+        "text": "a͏",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1255,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": false,
+        "text": "a",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1255,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": false,
+        "text": "Q͏́",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 52,
+            "codePoints": [
+              81
+            ],
+            "xAdvance": 1612,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": false,
+        "text": "Q́",
+        "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e",
+        "glyphs": [
+          {
+            "id": 52,
+            "codePoints": [
+              81
+            ],
+            "xAdvance": 1612,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 5923,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": -293,
+            "yOffset": 373
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "a͏́",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1382,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "á",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1382,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": -172,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "a͏",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1382,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "a",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 68,
+            "codePoints": [
+              97
+            ],
+            "xAdvance": 1382,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "Q͏́",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 52,
+            "codePoints": [
+              81
+            ],
+            "xAdvance": 1741,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 3,
+            "codePoints": [
+              32
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 690,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          }
+        ]
+      },
+      {
+        "bold": true,
+        "text": "Q́",
+        "fontSha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890",
+        "glyphs": [
+          {
+            "id": 52,
+            "codePoints": [
+              81
+            ],
+            "xAdvance": 1741,
+            "yAdvance": 0,
+            "xOffset": 0,
+            "yOffset": 0
+          },
+          {
+            "id": 5903,
+            "codePoints": [
+              769
+            ],
+            "xAdvance": 0,
+            "yAdvance": 0,
+            "xOffset": -357,
+            "yOffset": 373
+          }
+        ]
+      }
+    ],
+    "supplementaryHarfBuzz": {
+      "version": "14.5.0",
+      "platform": "Darwin arm64",
+      "binarySha256": "4309a47c58fe24a2201e310614aa3521530d3382a0529453de29e2089e15c90e",
+      "observations": [
+        {
+          "bold": false,
+          "text": "a͏́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1255,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -157,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5020,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -628,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6275,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -785,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8785,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -1099,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "á",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1255,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "á",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5020,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "á",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6275,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "á",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8785,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1255,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5020,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6275,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a͏",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8785,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1255,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5020,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6275,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "a",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8785,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q͏́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1612,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -293,
+              "dy": 373,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q͏́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6448,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -1172,
+              "dy": 1492,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q͏́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8060,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -1465,
+              "dy": 1865,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q͏́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 11284,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -2051,
+              "dy": 2611,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1612,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -293,
+              "dy": 373,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6448,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -1172,
+              "dy": 1492,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8060,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -1465,
+              "dy": 1865,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": false,
+          "text": "Q́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 11284,
+              "ay": 0
+            },
+            {
+              "g": 5923,
+              "cl": 0,
+              "dx": -2051,
+              "dy": 2611,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1382,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -172,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5528,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -688,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6910,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -860,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 9674,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 690,
+              "cl": 0,
+              "dx": -1204,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "á",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1382,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "á",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5528,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "á",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6910,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "á",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 163,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 9674,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1382,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5528,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6910,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a͏",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 9674,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1382,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 5528,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6910,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "a",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 68,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 9674,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q͏́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1741,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -357,
+              "dy": 373,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q͏́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6964,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -1428,
+              "dy": 1492,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q͏́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8705,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -1785,
+              "dy": 1865,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q͏́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 12187,
+              "ay": 0
+            },
+            {
+              "g": 3,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 0,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -2499,
+              "dy": 2611,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q́",
+          "fontSize": "upem",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 1741,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -357,
+              "dy": 373,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q́",
+          "fontSize": "8192",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 6964,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -1428,
+              "dy": 1492,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q́",
+          "fontSize": "10240",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 8705,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -1785,
+              "dy": 1865,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        },
+        {
+          "bold": true,
+          "text": "Q́",
+          "fontSize": "14336",
+          "glyphs": [
+            {
+              "g": 52,
+              "cl": 0,
+              "dx": 0,
+              "dy": 0,
+              "ax": 12187,
+              "ay": 0
+            },
+            {
+              "g": 5903,
+              "cl": 0,
+              "dx": -2499,
+              "dy": 2611,
+              "ax": 0,
+              "ay": 0
+            }
+          ]
+        }
+      ]
+    },
+    "sources": [
+      {
+        "path": "node_modules/@pdf-lib/fontkit/dist/fontkit.es.js",
+        "sha256": "62ad9c769e6a7a9028b0c711504908f0a231955b39619aaabd56dd4eabe800be",
+        "linesInclusive": [
+          29461,
+          29483
+        ],
+        "text": "              next.xOffset -= d;\n              break;\n\n            case 'rtl':\n              d = exit.x + cur.xOffset;\n              cur.xAdvance -= d;\n              cur.xOffset -= d;\n              next.xAdvance = entry.x + next.xOffset;\n              break;\n          }\n\n          if (this.glyphIterator.flags.rightToLeft) {\n            this.glyphIterator.cur.cursiveAttachment = nextIndex;\n            cur.yOffset = entry.y - exit.y;\n          } else {\n            _nextGlyph.cursiveAttachment = this.glyphIterator.index;\n            cur.yOffset = exit.y - entry.y;\n          }\n\n          return true;\n        }\n\n      case 4:"
+      },
+      {
+        "path": "node_modules/@pdf-lib/fontkit/dist/fontkit.es.js",
+        "sha256": "62ad9c769e6a7a9028b0c711504908f0a231955b39619aaabd56dd4eabe800be",
+        "linesInclusive": [
+          29914,
+          29924
+        ],
+        "text": "    } // if there is no GPOS table, use unicode properties to position marks.\n\n\n    if (!positioned && (!this.engine || this.engine.fallbackPosition)) {\n      if (!this.unicodeLayoutEngine) {\n        this.unicodeLayoutEngine = new UnicodeLayoutEngine(this.font);\n      }\n\n      this.unicodeLayoutEngine.positionGlyphs(glyphRun.glyphs, glyphRun.positions);\n    } // if kerning is not supported by GPOS, do kerning with the TrueType/AAT kern table\n"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/hb-ot-layout-gsubgpos.hh",
+        "sha256": "b0f272b897d7a020bdb478d66b7f8e43368d9855a7fac902d15ba37b154fef98",
+        "linesInclusive": [
+          440,
+          463
+        ],
+        "text": "    enum may_skip_t {\n      SKIP_NO,\n      SKIP_YES,\n      SKIP_MAYBE\n    };\n\n#ifndef HB_OPTIMIZE_SIZE\n    HB_ALWAYS_INLINE\n#endif\n    may_skip_t may_skip (const hb_ot_apply_context_t *c,\n\t\t\t const hb_glyph_info_t       &info) const\n    {\n      if (!c->check_glyph_property (&info, lookup_props))\n\treturn SKIP_YES;\n\n      if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&\n\t\t    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&\n\t\t    (ignore_zwj || !_hb_glyph_info_is_zwj (&info)) &&\n\t\t    (ignore_hidden || !_hb_glyph_info_is_hidden (&info))))\n\treturn SKIP_MAYBE;\n\n      return SKIP_NO;\n    }\n"
+      },
+      {
+        "path": "out/ssconvert-cgj-diagnosis/MarkBasePosFormat1.hh",
+        "sha256": "ca9a8d6357fb1dc49b6bff293c7461e81baf7d35fa6daeabc570e2ef72b14867",
+        "linesInclusive": [
+          112,
+          167
+        ],
+        "text": "  bool apply (hb_ot_apply_context_t *c) const\n  {\n    TRACE_APPLY (this);\n    hb_buffer_t *buffer = c->buffer;\n    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);\n    if (likely (mark_index == NOT_COVERED)) return_trace (false);\n\n    /* Now we search backwards for a non-mark glyph.\n     * We don't use skippy_iter.prev() to avoid O(n^2) behavior. */\n\n    hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;\n    skippy_iter.set_lookup_props (LookupFlag::IgnoreMarks);\n\n    if (c->last_base_until > buffer->idx)\n    {\n      c->last_base_until = 0;\n      c->last_base = -1;\n    }\n    unsigned j;\n    for (j = buffer->idx; j > c->last_base_until; j--)\n    {\n      auto match = skippy_iter.match (buffer->info[j - 1]);\n      if (match == skippy_iter.MATCH)\n      {\n        // https://github.com/harfbuzz/harfbuzz/issues/4124\n\tif (!accept (buffer, j - 1) &&\n\t    NOT_COVERED == (this+baseCoverage).get_coverage  (buffer->info[j - 1].codepoint))\n\t  match = skippy_iter.SKIP;\n      }\n      if (match == skippy_iter.MATCH)\n      {\n\tc->last_base = (signed) j - 1;\n\tbreak;\n      }\n    }\n    c->last_base_until = buffer->idx;\n    if (c->last_base == -1)\n    {\n      buffer->unsafe_to_concat_from_outbuffer (0, buffer->idx + 1);\n      return_trace (false);\n    }\n\n    unsigned idx = (unsigned) c->last_base;\n\n    /* Checking that matched glyph is actually a base glyph by GDEF is too strong; disabled */\n    //if (!_hb_glyph_info_is_base_glyph (&buffer->info[idx])) { return_trace (false); }\n\n    unsigned int base_index = (this+baseCoverage).get_coverage  (buffer->info[idx].codepoint);\n    if (base_index == NOT_COVERED)\n    {\n      buffer->unsafe_to_concat_from_outbuffer (idx, buffer->idx + 1);\n      return_trace (false);\n    }\n\n    return_trace ((this+markArray).apply (c, mark_index, base_index, this+baseArray, classCount, idx));\n  }"
+      }
+    ],
+    "sourceBinding": "HarfBuzz10.2 commit7b27c8edd46c674e01dd226fa9e1aa7549f5c436; same pinned commit as composition rules. Local source files downloaded without modifications.",
+    "findings": [
+      "For a+CGJ+acute, fontkit emits a, empty space and acute with zero accent xOffset. Local HarfBuzz emits the same three glyph IDs with xOffset-157/-172 in regular/bold font units.",
+      "For Q+CGJ+acute, fontkit retains acute glyph690 with zero offsets; local HarfBuzz substitutes the same high accent glyph and offsets as Q+acute. Invisible-character effects therefore reach GSUB as well as GPOS.",
+      "Fontkit mark-to-base backtracking stops at a non-mark and hides default ignorables only after positioning. HarfBuzz lookup matching has an explicit default-ignorable skip path.",
+      "Native Linux PDF six a+CGJ+acute cases paint two nonempty outlines and retain an accent x shift; the extra empty glyph alone is not the complete discrepancy.",
+      "Do not strip CGJ before normalization or assume unconditional removal matches font-specific lookups. Preserve explicit-lookup matching, normalization blockers and original ActualText. Wider actual native cases and TDD repair remain required."
+    ]
+  },
+  "visualInspection": {
+    "dpi": 96,
+    "pages": [
+      {
+        "file": "candidate-page-1.png",
+        "sha256": "8e8eb7e82e7f5d7adb033c9d642df52d23ed7433262bf17069294c9400fc68e9",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-page-2.png",
+        "sha256": "c6f355d8e3dba82b9def8b64def930fcb02e6fa9f31c890a51bc3bf4747f4264",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-page-3.png",
+        "sha256": "3e6967cee80fa4dd404bc95061b7b2323dd9edc58c433e53f6145da7d59610c9",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-page-4.png",
+        "sha256": "b4c8581b04df30ce2892b1eb300bb3023246c85bd5798c6c38c83b52fd32e1a8",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-page-5.png",
+        "sha256": "6e87dab02210562667e8581ad412cb268a9dd77c4acd2287baffe8b81639dad5",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-metric-page-1.png",
+        "sha256": "072fbe2991a12db08484d96a0c892f947ea650bcf7b2e2560a121140fcca1f41",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-metric-page-2.png",
+        "sha256": "b762095ef1cde041e3a2ea6106b39fa6827d31fd43e7fd8abde6a108f60b8fb8",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      },
+      {
+        "file": "candidate-metric-page-3.png",
+        "sha256": "8f60ae7ea1d2fd6685ec6fe8c83e5bc83bebb3d0bc2c64727d04a59471c702a0",
+        "result": "inspected; readable disjoint rows, no clipping or overlap"
+      }
+    ],
+    "dashboard": {
+      "sha256": "b7ba42581e72d3b3a0e4152df9be06eb2d7a5a395192aadad06fff2b945f3372",
+      "result": "inspected; four browser/worker controls visibly passed"
+    }
+  },
+  "limitations": [
+    "Six CGJ outline-sequence and accent-position differences remain; no unconditional invisible-character removal.",
+    "Exact coordinates, page transforms, font-scaler fixed-point boundary behavior, hinting profiles, clipping and pixels are not fully qualified.",
+    "All180 PDF ActualText values retain original scalars. Poppler emits174 rows with exact scalar order and six Arabic rows with explicit RTL wrappers and visual scalar order, recorded without claiming raw equality.",
+    "All19 original families and successful containing publication remain open."
+  ],
+  "delivery": {
+    "localCommit": "pending",
+    "remoteMain": "pending",
+    "release": "not verified"
+  }
+}

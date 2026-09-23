@@ -130,12 +130,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     if (cellBox) {
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const glyphs: {x: number; y: number}[] = [];
-      // Pango rounds shaped advances in display pixels before print scaling.
+      // Pango's unhinted print profile rounds advances and offsets in display pixels.
       for (const position of metrics.layout(shapedValue).positions) {
         tick();
         const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
         if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
-        glyphs.push({x: width + position.xOffset * size / metrics.unitsPerEm, y: position.yOffset * size / metrics.unitsPerEm});
+        glyphs.push({x: width + Math.round(position.xOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale,
+          // Pango rounds its downward y offset before the PDF coordinate inversion.
+          y: -Math.round(-position.yOffset * cellBox.style.size / metrics.unitsPerEm) * printDisplayScale});
         width += Math.round(advance) * printDisplayScale;
       }
       if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");

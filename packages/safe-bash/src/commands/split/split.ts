@@ -14,7 +14,7 @@ async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Ui
     let count = args.mode === "bytes" ? Math.min(remaining, bytes.length) : bytes.length;
     if (args.mode === "lines") {
       for (let offset = 0; offset < bytes.length; offset++) {
-        if (bytes[offset] === 10 && --remaining === 0) { count = offset + 1; break; }
+        if (bytes[offset] === args.separator && --remaining === 0) { count = offset + 1; break; }
       }
     } else remaining -= count;
     await cursor.budget.step(count);
@@ -25,7 +25,7 @@ async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Ui
 class LineBytes {
   private readonly buffer: Uint8Array;
   private used = 0;
-  constructor(private readonly cursor: Cursor, private readonly size: number) { this.buffer = new Uint8Array(size); }
+  constructor(private readonly cursor: Cursor, private readonly size: number, private readonly separator: number) { this.buffer = new Uint8Array(size); }
   async next(): Promise<Uint8Array> {
     while (this.used < this.size) {
       const bytes = await this.cursor.peek();
@@ -38,7 +38,7 @@ class LineBytes {
     let count = this.used;
     if (this.used === this.size) {
       for (let offset = this.used - 1; offset >= 0; offset--) {
-        if (this.buffer[offset] === 10) { count = offset + 1; break; }
+        if (this.buffer[offset] === this.separator) { count = offset + 1; break; }
       }
     }
     const result = this.buffer.slice(0, count);
@@ -70,22 +70,47 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       }
     }
     cursor = new Cursor(context, args.input, budget);
-    const window = args.mode === "line-bytes" ? new LineBytes(cursor, args.size) : undefined;
+    const window = args.mode === "line-bytes" ? new LineBytes(cursor, args.size, args.separator) : undefined;
+    let chunkInput: Uint8Array | undefined;
+    if (args.mode === "chunks") {
+      const source = (async function* (): ByteSource {
+        while (true) {
+          const bytes = await cursor!.peek();
+          if (!bytes.length) break;
+          await budget.step(bytes.length);
+          yield cursor!.take(bytes.length);
+        }
+      })();
+      chunkInput = await collectBytes(source, { signal, maxBytes: limits.maxBufferBytes });
+    }
     let files = 0;
+    let chunkOffset = 0;
+    const chunkSize = chunkInput ? Math.floor(chunkInput.length / args.size) : 0;
     while (true) {
-      const chunks = window ? (async function* (): AsyncGenerator<Uint8Array> {
+      if (chunkInput && files === args.size) break;
+      const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
+        const end = chunkOffset + chunkSize + (files < chunkInput.length % args.size ? 1 : 0);
+        while (chunkOffset < end) {
+          const next = Math.min(end, chunkOffset + limits.maxChunkBytes);
+          yield chunkInput.slice(chunkOffset, next);
+          chunkOffset = next;
+        }
+      })() : window ? (async function* (): AsyncGenerator<Uint8Array> {
         const bytes = await window.next();
         for (let offset = 0; offset < bytes.length; offset += limits.maxChunkBytes) yield bytes.slice(offset, offset + limits.maxChunkBytes);
       })() : segment(cursor, args);
       const first = await chunks.next();
-      if (first.done) break;
+      if (first.done && !chunkInput) break;
       budget.check(++files, limits.maxFiles, "file");
       if (files > 1) name = names.next();
+      if (first.done && args.elideEmpty) continue;
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;
       const destination = files === 1 && initial ? initial : await outputs.prepare(name);
       const source = (async function* (): ByteSource {
-        budget.output(first.value.length);
-        yield first.value;
+        if (!first.done) {
+          budget.output(first.value.length);
+          yield first.value;
+        }
         for await (const chunk of chunks) {
           budget.output(chunk.length);
           yield chunk;

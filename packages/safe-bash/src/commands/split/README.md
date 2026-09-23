@@ -46,6 +46,13 @@ credentials are used.
   accepted only with the long `=FROM` spelling. A start disables automatic
   widening; select a sufficient `-a` width. Leading zeroes are ignored.
 - `--additional-suffix=TEXT`: append TEXT after the counter; no `/` or NUL.
+- `-x`, `--hex-suffixes[=FROM]`: lowercase hexadecimal counters; FROM is decimal.
+- `-t BYTE`, `--separator=BYTE`: use a single byte instead of LF for `-l`/`-C`;
+  `\\0` selects NUL.
+- `-n COUNT`, `--number=COUNT`: divide input into COUNT byte chunks, assigning
+  remainder bytes to the first chunks. Input collection is bounded by
+  `maxBufferBytes`; other GNU number-mode forms are unsupported.
+- `-e`, `--elide-empty-files`: skip empty output files in number mode.
 - Attached short arguments, combined short options, options following operands
   and `--` are supported. Long option names must be spelled in full.
 
@@ -60,8 +67,7 @@ integer bound is rejected before effects, even if the native utility accepts it.
 Counts allow the native leading whitespace/plus spelling; decimal suffix starts
 use digits only. Zero sizes and multiple splitting-mode options are errors.
 
-Not implemented: `-n`/`--number`, `--filter`, custom separators, hexadecimal
-suffixes, `--elide-empty-files`, `--unbuffered`, `--verbose`, `--help`,
+Not implemented: `--filter`, `--unbuffered`, `--verbose`, `--help`,
 `--version`, obsolete `-NUMBER`, abbreviated long names, BSD `-c`/`-p`/`-n`.
 There is no native-process fallback for these flags.
 
@@ -75,7 +81,7 @@ There is no native-process fallback for these flags.
 | `maxInputBytes` | 256 MiB | Total yielded input bytes |
 | `maxOutputBytes` | 256 MiB | Total offered VFS output payload |
 | `maxFiles` | 4096 | Number of output files attempted |
-| `maxBufferBytes` | 8 MiB | `-C` window and each fallback read/file collection |
+| `maxBufferBytes` | 8 MiB | `-C` window, `-n` input and each fallback collection |
 | `maxChunkBytes` | 64 KiB | Output slice size / requested VFS read chunk |
 | `maxArgumentBytes` | 64 KiB | Total UTF-8 bytes of argv |
 | `maxSuffixLength` | 128 | Counter plus auto-extension characters |

@@ -11,6 +11,24 @@ import { agentCommands, createAgentCommands } from "../../../src/plugins/index.j
 import { splitCommands } from "../../../src/commands/split/index.js";
 import { files, run } from "./helpers.js";
 
+for (const [command, input, expected] of [
+  ["split --hex-suffixes -l1 input part", "a\nb\n", { part00: "610a", part01: "620a" }],
+  ["split --separator=: -l1 input part", "a:b:c:", { partaa: "613a", partab: "623a", partac: "633a" }],
+  ["split --elide-empty-files -n3 input part", "a", { partaa: "61" }],
+  ["split -n3 input part", "a", { partaa: "61", partab: "", partac: "" }],
+] as const) test(`default Shell registry: ${command}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from(input));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await files(fs), { input: Buffer.from(input).toString("hex"), ...expected });
+  } finally { await shell.dispose(); }
+});
+
 for (const backend of ["memory", "explicit-root-real"]) test(`${backend}: opt-in Shell byte pipeline and existing-file workflow`, async () => {
   const directory = backend === "explicit-root-real" ? await mkdtemp(fileURLToPath(new URL(".native-real-", import.meta.url))) : undefined;
   const fs = directory ? await createRealFileSystem({ root: directory }) : createMemoryFileSystem();

@@ -10,7 +10,7 @@ export class Names {
     this.digits = Array.from({ length: args.suffixLength }, () => 0);
     if (args.alphabet[0] === "0") {
       const start = args.numericStart.padStart(args.suffixLength, "0");
-      this.digits = Array.from(start, digit => Number(digit));
+      this.digits = Array.from(start, digit => args.alphabet.indexOf(digit));
     }
   }
 

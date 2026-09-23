@@ -29,7 +29,7 @@ export function settings(options: SplitCommandsOptions): SplitLimits {
 }
 
 export interface SplitArguments {
-  readonly mode: "lines" | "bytes" | "line-bytes";
+  readonly mode: "lines" | "bytes" | "line-bytes" | "chunks";
   readonly size: number;
   readonly input: string;
   readonly prefix: string;
@@ -38,6 +38,8 @@ export interface SplitArguments {
   readonly automatic: boolean;
   readonly numericStart: string;
   readonly additionalSuffix: string;
+  readonly separator: number;
+  readonly elideEmpty: boolean;
 }
 
 function number(text: string, label: string, units = false, zero = false): number {
@@ -67,31 +69,40 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   let mode: SplitArguments["mode"] | undefined;
   let size = 1000;
   let suffixLength = 0;
-  let numeric = false;
+  let alphabet = "abcdefghijklmnopqrstuvwxyz";
   let numericStart: string | undefined;
   let additionalSuffix = "";
+  let separator = 10;
+  let elideEmpty = false;
   const operands: string[] = [];
   let ended = false;
   const apply = (option: string, value?: string): void => {
-    if (option === "d") {
-      numeric = true;
+    if (option === "d" || option === "x") {
+      alphabet = option === "d" ? "0123456789" : "0123456789abcdef";
       if (value !== undefined) {
-        if (!/^[0-9]*$/u.test(value)) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
-        numericStart = value.replace(/^0+(?=\d)/u, "") || "0";
+        if ([...value].some(digit => digit < "0" || digit > "9")) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
+        numericStart = BigInt(value || "0").toString(alphabet.length);
       }
     } else if (option === "a") suffixLength = number(value!, "suffix length", false, true);
+    else if (option === "e") elideEmpty = true;
+    else if (option === "t") {
+      const bytes = Buffer.from(value === "\\0" ? "\0" : value!);
+      if (bytes.length !== 1) throw new PublicDiagnostic("separator must be exactly one byte");
+      separator = bytes[0]!;
+    }
     else if (option === "additional-suffix") {
       if (value!.includes("/") || value!.includes("\0")) throw new PublicDiagnostic("invalid additional suffix: contains directory separator or NUL");
       additionalSuffix = value!;
     } else {
       if (mode) throw new PublicDiagnostic("cannot split in more than one way");
-      mode = option === "l" ? "lines" : option === "b" ? "bytes" : "line-bytes";
-      size = number(value!, option === "l" ? "number of lines" : "number of bytes", option !== "l");
+      mode = option === "l" ? "lines" : option === "b" ? "bytes" : option === "n" ? "chunks" : "line-bytes";
+      size = number(value!, option === "l" ? "number of lines" : option === "n" ? "number of chunks" : "number of bytes", option === "b" || option === "C");
     }
   };
   const long: Readonly<Record<string, string>> = {
     lines: "l", bytes: "b", "line-bytes": "C", "suffix-length": "a",
     "numeric-suffixes": "d", "additional-suffix": "additional-suffix",
+    "hex-suffixes": "x", separator: "t", "elide-empty-files": "e", number: "n",
   };
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -102,14 +113,16 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const option = long[name];
       if (!option) throw new PublicDiagnostic(`unrecognized option '${argument}'`);
-      const value = equals < 0 ? (option === "d" ? undefined : args[++index]) : argument.slice(equals + 1);
-      if (option !== "d" && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
+      if (option === "e" && equals >= 0) throw new PublicDiagnostic(`option '--${name}' doesn't allow an argument`);
+      const optional = option === "d" || option === "x" || option === "e";
+      const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
+      if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
       apply(option, value);
     } else {
       for (let offset = 1; offset < argument.length; offset++) {
         const option = argument[offset]!;
-        if (!"lbaCd".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
-        if (option === "d") apply(option);
+        if (!"lbaCdxetn".includes(option)) throw new PublicDiagnostic(`invalid option -- '${option}'`);
+        if (option === "d" || option === "x" || option === "e") apply(option);
         else {
           const value = argument.slice(offset + 1) || args[++index];
           if (value === undefined) throw new PublicDiagnostic(`option requires an argument -- '${option}'`);
@@ -123,10 +136,11 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   if ((suffixLength || 2) > limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");
   if (numericStart !== undefined && numericStart.length > (suffixLength || 2)) throw new PublicDiagnostic("numerical suffix start value is too large for the suffix length");
   if (mode === "line-bytes" && size > limits.maxBufferBytes) throw new PublicDiagnostic("split line-bytes window exceeds buffer limit");
+  if (mode === "chunks" && size > limits.maxFiles) throw new PublicDiagnostic("split file limit exceeded");
   return {
     mode: mode ?? "lines", size, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
-    alphabet: numeric ? "0123456789" : "abcdefghijklmnopqrstuvwxyz",
+    alphabet,
     suffixLength: suffixLength || 2, automatic: suffixLength === 0 && numericStart === undefined,
-    numericStart: numericStart ?? "0", additionalSuffix,
+    numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty,
   };
 }

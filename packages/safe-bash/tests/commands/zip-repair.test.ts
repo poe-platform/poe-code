@@ -311,6 +311,8 @@ for (const wide of [false, true]) test(`FF validates unsigned descriptors ZIP64=
   const bytes = await local("a", Buffer.from("payload"), true, wide);
   const descriptor = bytes.length - (wide ? 24 : 16);
   const unsigned = Buffer.concat([bytes.subarray(0, descriptor), bytes.subarray(descriptor + 4)]);
+  assert.equal((await repairZip(unsigned, "FF", settings({ limits: { maxEntryBytes: 7 } }), signal)).archive.entries[0]!.size, 7);
+  await assert.rejects(repairZip(unsigned, "FF", settings({ limits: { maxEntryBytes: 6 } }), signal), /no verified members/);
   assert.equal((await repairZip(unsigned, "FF", settings({}), signal)).archive.entries[0]!.size, 7);
 });
 test("F recovers ZIP64 members after SFX EOCD loss", async () => {

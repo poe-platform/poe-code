@@ -1023,5 +1023,23 @@
       "bytes": 6071364,
       "sha256": "3274e172dc6ba2ba3bdd2de796cfcb1ffbb73ef266bd2097a2a6c14afd06b4b8"
     }
+  },
+  "byteCaseUnicodeExactTrimDelivery": {
+    "recordedAt": "2026-09-23T01:44:32.711902+00:00",
+    "remoteMainObserved": "e7b506e0e8db591b4e9103954d0a6986d1e28400",
+    "implementationCommits": [
+      "2bca3ad352781eaf7eb5434f14459cd378a3e87a",
+      "c9ca46c14463b62d83343772f6fd7e569b53f2fc",
+      "4219e811550f99be27886e2702259f2416042d05",
+      "8b5e13a3b324aa4f85cde20b6605a3e1b2312f23"
+    ],
+    "containingReleaseRun": 35807493296,
+    "status": "pending",
+    "publicationVerified": false,
+    "registry": {
+      "version": "17.0.34",
+      "gitHead": "ec51e54b9f8b27b13cee93b194c384dcea76efce"
+    },
+    "localVerification": "349files/13242maintainedssconvert tests,package lint/prod/test/consumer types and4selectedbuildtasks pass. Browser/worker26datasets exact,including14463case fields,152nativeUNICODE fields,5126EXACTfields and114TRIMfields. Wholegoal remainsactive."
   }
 }

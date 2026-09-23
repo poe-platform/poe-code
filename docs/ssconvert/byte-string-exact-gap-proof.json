@@ -9470,6 +9470,14 @@
     "Pinned/full native normalization and broader profile qualification",
     "Warnings/errors/otherbyte consumers and wider Perl grammar",
     "All remaining active plan families",
-    "Verified remote-main delivery and actual containing publication"
-  ]
+    "Actual successful containing publication and registry/installed artifact verification"
+  ],
+  "verifiedRemoteMainDelivery": {
+    "recordedAt": "2026-09-23T01:44:32.711902+00:00",
+    "implementationCommit": "4219e811550f99be27886e2702259f2416042d05",
+    "evidenceCommit": "4f0faaafd61e35249baee293ea4d3442fda433a7",
+    "remoteMainObserved": "e7b506e0e8db591b4e9103954d0a6986d1e28400",
+    "bothAncestryChecksPassed": true,
+    "actualPublication": "Not yet verified; release35807493296 pending,registry17.0.34 still oldec51e54b9 baseline."
+  }
 }

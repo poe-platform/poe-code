@@ -1320,6 +1320,14 @@
   "remaining": [
     "CLEAN/other byte consumers,warning/error parity and wider Perlgrammar",
     "Complete native profiles,localeactivation and all otheractiveplanfamilies",
-    "Verified remote-main delivery and actual containing publication"
-  ]
+    "Actual successful containing publication and registry/installed artifact verification"
+  ],
+  "verifiedRemoteMainDelivery": {
+    "recordedAt": "2026-09-23T01:44:32.711902+00:00",
+    "implementationCommit": "8b5e13a3b324aa4f85cde20b6605a3e1b2312f23",
+    "evidenceCommit": "e7b506e0e8db591b4e9103954d0a6986d1e28400",
+    "remoteMainObserved": "e7b506e0e8db591b4e9103954d0a6986d1e28400",
+    "bothAncestryChecksPassed": true,
+    "actualPublication": "Not yet verified; release35807493296 pending,registry17.0.34 still oldec51e54b9 baseline."
+  }
 }

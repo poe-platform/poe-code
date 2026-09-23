@@ -37,7 +37,7 @@ for (const destination of ['/input', '/alias']) test(`fmt redirect to source ${d
   } finally { await shell.dispose(); }
 });
 
-for (const destination of ['/input', '/alias']) test(`unsupported noclobber cannot authorize fmt publication through ${destination}`, async () => {
+for (const destination of ['/input', '/alias']) test(`noclobber refuses fmt publication through existing ${destination} before input acquisition`, async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile('/input', encode('original words'));
   await fs.symlink('/input', '/alias');
@@ -47,11 +47,13 @@ for (const destination of ['/input', '/alias']) test(`unsupported noclobber cann
   const shell = new Shell({ fs, commands: new CommandRegistry([fmtCommand()]) });
   try {
     const result = await shell.exec(`set -o noclobber && fmt /input > ${destination}`);
-    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, '');
-    assert.match(result.stderr, /unsupported shell option/);
+    assert.equal(result.stderr, `shell: line 1: ${destination}: cannot overwrite existing file\n`);
     assert.equal(acquired, 0);
     assert.deepEqual(await fs.readFile('/input'), encode('original words'));
+    assert.equal((await fs.lstat('/alias')).type, 'symlink');
+    assert.equal(await fs.readlink('/alias'), '/input');
   } finally { await shell.dispose(); }
 });
 

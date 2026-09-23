@@ -65,7 +65,13 @@
     },
     "lintReceiptCount": 25,
     "warningLocation": "unchanged packages/safe-bash/tests/commands/ls-inode.test.ts:42 (ino, identityScope)",
-    "checkoutOptionalPublicImport": "Unavailable @poe-platform/safe-fs peer; independent generated-package runtime check pending. Not claimed as runtime pass."
+    "checkoutOptionalPublicImport": "Unavailable @poe-platform/safe-fs peer; independent generated-package runtime check pending. Not claimed as runtime pass.",
+    "generatedPackageRuntime": {
+      "proof": "docs/ssconvert/release-optional-formats-packed-proof.json",
+      "boundaryControls": 6,
+      "result": "all pass with isolated installed sibling packages; no checkout/private-source fallback",
+      "numericLimits": "19 observations retained separately; native Mike yq unavailable, not broad numeric parity"
+    }
   },
   "logHashes": {
     "build.log": {
@@ -109,7 +115,15 @@
       "sha256": "6260343b1b40404f5b1e0301a454aae075fe1da86dfb7182853fc1c5d6e0b89a"
     }
   },
-  "remoteDelivery": "pending at record creation",
-  "publication": "pending",
+  "remoteDelivery": {
+    "commit": "9acb4c33a8",
+    "remoteMain": "verified ancestor after fetch",
+    "numfmtFixtureRepair": "70a32f6cbe (863 focused tests and maintained typecheck pass)"
+  },
+  "publication": {
+    "run": 35886838343,
+    "head": "777d035f6e2485cba6972df811f1def200041a20",
+    "status": "in_progress; build and audit passed; units/bash/checks still running"
+  },
   "wholeSsconvertGoalComplete": false
 }

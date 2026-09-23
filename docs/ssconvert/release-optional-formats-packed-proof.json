@@ -1,0 +1,168 @@
+{
+  "status": "independent isolated packaged boundary checks passed; numeric observations qualified separately",
+  "inputState": "Parent-declared d08d760139 plus frozen owned package formats exclusions and four optional-host exports; packaging before parent commit/rebase. This receipt binds generated tarballs/runtime inputs, not a complete source tree snapshot.",
+  "packaging": {
+    "command": "node scripts/package-safe.mjs --out-dir out/ssconvert-pwd-packed/artifacts --version 0.0.0-packed-yq-check",
+    "exitCode": 0,
+    "generated": [
+      "safe-fs",
+      "safe-js",
+      "safe-bash"
+    ],
+    "installed": [
+      "safe-fs",
+      "safe-bash"
+    ],
+    "npmPackExitCodes": [
+      0,
+      0
+    ],
+    "npmInstallExitCode": 0,
+    "normalDependencyPackagesInstalled": 22,
+    "installFlags": [
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--omit=optional",
+      "--workspaces=false",
+      "--package-lock=false"
+    ],
+    "version": "0.0.0-packed-yq-check",
+    "publication": false
+  },
+  "boundaryTests": {
+    "tests": 6,
+    "pass": 6,
+    "fail": 0,
+    "skip": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "exitCode": 0,
+    "scope": [
+      "public optional-host four required format helpers",
+      "canonical Decimal exact large text",
+      "optional TOML to JSON",
+      "optional JSON to TOML",
+      "optional YAML large integer JSON emission",
+      "optional TOML virtual file through Shell"
+    ]
+  },
+  "runtimeIsolation": "Loader rejects real file-module resolutions outside isolated consumer; generated sibling Safe FS installed via local tarball with ordinary dependencies. No repository alias edits or private-source fallback.",
+  "rewrittenBoundary": "Packaged optional formats imports parseTomlDocument, YqLedger, Decimal and numberText from @poe-platform/safe-bash/optional-host; parseXmlSteps from installed @poe-platform/safe-fs/core.",
+  "observations": {
+    "rawCases": 19,
+    "nativeMikeYqComparator": "Unavailable in PATH; no native parity/regression claim",
+    "optionalExplicitJsonUnsafeInteger": "9007199254740993 becomes9007199254740992 with status0",
+    "optionalYamlLargeFraction": "12345678901234567890.125 becomes12345678901234567000 with status0",
+    "optionalTomlUnsafeNumeric": "unsafe integer and huge fractional magnitude refuse status1 with SCHEMA_UNSAFE_INTEGER",
+    "restrictedUnsafeNumeric": "same unsafe numeric inputs refuse status5",
+    "exactCanonicalHostDecimal": "Public Decimal and numberText preserve12345678901234567890.125 exact text; this does not establish arbitrary command precision."
+  },
+  "limitations": [
+    "No browser/workerd/full export or native yq semantics certification.",
+    "No repository builds/source/config/alias edits; package-safe uses maintained packaging/bundling into isolated output.",
+    "No publish/commit/push; root owns delivery."
+  ],
+  "inputs": [
+    {
+      "path": "out/ssconvert-pwd-packed/package-safe.log",
+      "bytes": 605,
+      "sha256": "36600ff7cfc3201143f43319b414aeed18ce1f707d7de775bbef0207f539c806"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/pack-safe-fs.json",
+      "bytes": 19741,
+      "sha256": "21d5cf78b64ce4912c0821e4a227bc1440524f3bc5ccf7ae36df8fc8063c7327"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/pack-safe-bash.json",
+      "bytes": 392221,
+      "sha256": "ff158c0e49e9edd3722ba7803c701f1ac8b39968d41ddad601d081a68fb4283e"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/install.log",
+      "bytes": 25,
+      "sha256": "db12f23dfe42c42a72abfe41c784ea34e6f15b064fadad388a64084ac176e4d3"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/probe.json",
+      "bytes": 3261,
+      "sha256": "86e43c51db93b321006785243ce10a32ca96f96a3e920510a4b0b432582bc7ba"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/probe.stderr",
+      "bytes": 354,
+      "sha256": "690b240035e81d1a072ba657383229c82b878764f5cdff577db699bbd9d4ec7c"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/formats-probe.json",
+      "bytes": 1482,
+      "sha256": "0095f79f910a42f23be3adc3f531266d3dcebab7e1b624b2850b8c4b8605d9f5"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/formats-probe.stderr",
+      "bytes": 354,
+      "sha256": "b3edf204c407c75cd001a607c6c1ca7bac61a9a52e6100f9d2ae39bfb9e72d10"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/boundary-tests.log",
+      "bytes": 1403,
+      "sha256": "2cc418a8d3b6e87af08e386aabdba14c197c3224e69093c3d749ad14dafb5fed"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/closed-loader.mjs",
+      "bytes": 538,
+      "sha256": "ebcbddef4640e7db6a8b49a03e86a23bcc3fcfed29af615656d85b16dc52df9b"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/probe.mjs",
+      "bytes": 1327,
+      "sha256": "555cde6f27eaeee5bc962bf779bab8825adf2ebf96cd71807cbe17a16fa5ccdc"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/formats-probe.mjs",
+      "bytes": 1291,
+      "sha256": "8bb9f91d0c18c8b955c548557ef38a206f8064eae4857d6cd471fc2a5d43e6cd"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/boundary.test.mjs",
+      "bytes": 1790,
+      "sha256": "bd5b6480242f2318df0c371a933e4be1db8751cdada7418cd6637b4436b53b27"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/package.json",
+      "bytes": 303,
+      "sha256": "3b8756cb7d7fc48b0bb48b3a5ddc7eed449c695fa450260b71ddf65a8287c9a9"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/tarballs/poe-platform-safe-fs-0.0.0-packed-yq-check.tgz",
+      "bytes": 185410,
+      "sha256": "70ad70f8806a13585e34dfcc0a74d70da627e992f7dc05faf31ef9fd6dc0efd8"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/tarballs/poe-platform-safe-bash-0.0.0-packed-yq-check.tgz",
+      "bytes": 16857134,
+      "sha256": "b8befe38c6b0789289a2927ddf8891c9221ae9564e13afd50b95b2f89406d844"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/node_modules/@poe-platform/safe-bash/package.json",
+      "bytes": 18758,
+      "sha256": "e767c09fe984b1821c9fd301707585199a03e7bb8bdaa523a699f108617e7b96"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/node_modules/@poe-platform/safe-fs/package.json",
+      "bytes": 4611,
+      "sha256": "984a9580c560f22d58abcd67c3974281c5939836322982f0e521d018324f0eee"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/node_modules/@poe-platform/safe-bash/dist/safe-bash/opt-in/commands/yq/formats.js",
+      "bytes": 15929,
+      "sha256": "9d64002020b3a2730c5282a5eb23869900ec346c9430dfdf8ddf66a5ce22adbc"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/consumer/node_modules/@poe-platform/safe-bash/dist/safe-bash/optional-host.js",
+      "bytes": 726,
+      "sha256": "3c48627ef5c075559bdad358741d041f38d3ad0c4028c7716577ed77b352921a"
+    }
+  ]
+}

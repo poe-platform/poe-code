@@ -6,6 +6,7 @@ import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
 import { trimByteText } from "./byte-trim.js";
 import { properByteText } from "./byte-proper.js";
+import { replaceByteText } from "./byte-replaceb.js";
 import { substituteByteText } from "./byte-substitute.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
@@ -321,10 +322,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
       for (let index = 0; index < removed; index++) { host.tick(); to = readByteTextCharacter(source, to, host.tick).next; }
       return joinByteText([source.subarray(0, from), replacement, source.subarray(to)], new Uint8Array(), host.context.limits.outputBytes, host.tick);
     }
-    const source = textArg(args, 0, host), replacement = textArg(args, 3, host), chars = Array.from(source);
-    const offsets = byteOffsets(source, host), length = offsets.at(-1)!, from = Math.min(length, Math.trunc(start - 1)), end = Math.min(length, from + Math.trunc(count));
-    if (!offsets.includes(from) || !offsets.includes(end)) return error("#VALUE!");
-    return boundedText(chars.slice(0, offsets.indexOf(from)).join("") + replacement + chars.slice(offsets.indexOf(end)).join(""), host);
+    return replaceByteText(byteTextArg(args, 0, host), byteTextArg(args, 3, host), start, count, host.context.limits.outputBytes, host.tick);
   }) satisfies FunctionImplementation])),
   SUBSTITUTE: (args, host) => {
     const source = byteTextArg(args, 0, host), search = byteTextArg(args, 1, host), replacement = byteTextArg(args, 2, host);

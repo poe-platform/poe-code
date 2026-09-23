@@ -1,0 +1,874 @@
+import { expect, it } from "vitest";
+import { textFunctions } from "./text.js";
+import type { FunctionHost } from "./types.js";
+import { byteStringValue } from "../../encoding/byte-value.js";
+
+const host = { scalar(value: unknown) { return value; }, tick() {}, context: {
+  limits: { inputBytes: 1000000, outputBytes: 1000000 }, environment: { locale: "C", timezone: "UTC", env: {} }
+} } as unknown as FunctionHost;
+const bytes = (hex: string) => Uint8Array.from({ length: hex.length / 2 }, (_, index) => parseInt(hex.slice(index * 2, index * 2 + 2), 16));
+// Actual Gnumeric1.12.61 REPLACEB captures; original inputs/output/profile retained in docs/ssconvert.
+const native = [
+  {
+    "id": "expanded-9",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-119",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-141",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-152",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-174",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-196",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-240",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-273",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-284",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-317",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-328",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-493",
+    "sourceHex": "24315c6ec324315c6ea462c324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea462c324315c6ea924315c6e",
+      "58315c6ec324315c6ea462c324315c6ea924315c6e",
+      "24585c6ec324315c6ea462c324315c6ea924315c6e",
+      "24c3a96ec324315c6ea462c324315c6ea924315c6e",
+      "2431586ec324315c6ea462c324315c6ea924315c6e",
+      "24315c6ec324315c6ea462c324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea462c324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea462c324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "expanded-603",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "58315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24c3a96ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2431586ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e58",
+      "2431585c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "capture-71",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "capture-83",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "behind-220",
+    "sourceHex": "58c358a4586258",
+    "expectedHex": [
+      "5858c358a4586258",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "58c358a458625858",
+      "58c35858a4586258",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "named-119",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "named-134",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "atomic-251",
+    "sourceHex": "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "58315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24c3a96ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2431586ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e58",
+      "2431585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "atomic-269",
+    "sourceHex": "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "58315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24c3a96ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2431586ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e58",
+      "2431585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "atomic-323",
+    "sourceHex": "24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "58315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "24585c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "24c3a96ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "2431586ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e58",
+      "2431585c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "atomic-503",
+    "sourceHex": "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "58315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24c3a96ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2431586ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e58",
+      "2431585c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "atomic-521",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "variable-behind-527",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-15",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-32",
+    "sourceHex": "24315c6ea0",
+    "expectedHex": [
+      "5824315c6ea0",
+      "58315c6ea0",
+      "24585c6ea0",
+      "24c3a96ea0",
+      "2431586ea0",
+      "24315c6ea058",
+      "2431585c6ea0",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ea0",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-48",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-65",
+    "sourceHex": "24315c6e85",
+    "expectedHex": [
+      "5824315c6e85",
+      "58315c6e85",
+      "24585c6e85",
+      "24c3a96e85",
+      "2431586e85",
+      "24315c6e8558",
+      "2431585c6e85",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6e85",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-82",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-99",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-168",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-185",
+    "sourceHex": "24315c6ea0",
+    "expectedHex": [
+      "5824315c6ea0",
+      "58315c6ea0",
+      "24585c6ea0",
+      "24c3a96ea0",
+      "2431586ea0",
+      "24315c6ea058",
+      "2431585c6ea0",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ea0",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-201",
+    "sourceHex": "c224315c6e",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c258315c6e",
+      "c2c3a95c6e",
+      "c224585c6e",
+      "c224315c6e58",
+      "c22458315c6e",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-218",
+    "sourceHex": "24315c6e85",
+    "expectedHex": [
+      "5824315c6e85",
+      "58315c6e85",
+      "24585c6e85",
+      "24c3a96e85",
+      "2431586e85",
+      "24315c6e8558",
+      "2431585c6e85",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6e85",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-472",
+    "sourceHex": "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+    "expectedHex": [
+      "5824315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "58315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24c3a96ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2431586ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e58",
+      "2431585c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-473",
+    "sourceHex": "24315c6ec224315c6e8524315c6e",
+    "expectedHex": [
+      "5824315c6ec224315c6e8524315c6e",
+      "58315c6ec224315c6e8524315c6e",
+      "24585c6ec224315c6e8524315c6e",
+      "24c3a96ec224315c6e8524315c6e",
+      "2431586ec224315c6e8524315c6e",
+      "24315c6ec224315c6e8524315c6e58",
+      "2431585c6ec224315c6e8524315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec224315c6e8524315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-474",
+    "sourceHex": "24315c6ec224315c6e24315c6e24315c6e",
+    "expectedHex": [
+      "5824315c6ec224315c6e24315c6e24315c6e",
+      "58315c6ec224315c6e24315c6e24315c6e",
+      "24585c6ec224315c6e24315c6e24315c6e",
+      "24c3a96ec224315c6e24315c6e24315c6e",
+      "2431586ec224315c6e24315c6e24315c6e",
+      "24315c6ec224315c6e24315c6e24315c6e58",
+      "2431585c6ec224315c6e24315c6e24315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ec224315c6e24315c6e24315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "escape-475",
+    "sourceHex": "24315c6ee224315c6e8024315c6ea824315c6e",
+    "expectedHex": [
+      "5824315c6ee224315c6e8024315c6ea824315c6e",
+      "58315c6ee224315c6e8024315c6ea824315c6e",
+      "24585c6ee224315c6e8024315c6ea824315c6e",
+      "24c3a96ee224315c6e8024315c6ea824315c6e",
+      "2431586ee224315c6e8024315c6ea824315c6e",
+      "24315c6ee224315c6e8024315c6ea824315c6e58",
+      "2431585c6ee224315c6e8024315c6ea824315c6e",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e315c6ee224315c6e8024315c6ea824315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-38",
+    "sourceHex": "a9",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "a958",
+      "a9c3a9",
+      "a958",
+      "a958",
+      "a958",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-39",
+    "sourceHex": "c3",
+    "expectedHex": [
+      "58c3",
+      "2356414c554521",
+      "c358",
+      "c3c3a9",
+      "c358",
+      "c358",
+      "c358",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-40",
+    "sourceHex": "61c37a",
+    "expectedHex": [
+      "5861c37a",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "61c358",
+      "61c37a58",
+      "61c3587a",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-41",
+    "sourceHex": "a9617a",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "a9587a",
+      "a9c3a9",
+      "a96158",
+      "a9617a58",
+      "a961587a",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-42",
+    "sourceHex": "61c3",
+    "expectedHex": [
+      "5861c3",
+      "58c3",
+      "2356414c554521",
+      "2356414c554521",
+      "61c358",
+      "61c358",
+      "61c358",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6ec3",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-43",
+    "sourceHex": "c361c3",
+    "expectedHex": [
+      "2356414c554521",
+      "2356414c554521",
+      "c358c3",
+      "2356414c554521",
+      "2356414c554521",
+      "c361c358",
+      "c36158c3",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-44",
+    "sourceHex": "f09f98",
+    "expectedHex": [
+      "58f09f98",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "f09f9858",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-45",
+    "sourceHex": "61f09f807a",
+    "expectedHex": [
+      "5861f09f807a",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "61f09f807a58",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "byte-boundary-46",
+    "sourceHex": "61f09f98",
+    "expectedHex": [
+      "5861f09f98",
+      "58f09f98",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "61f09f9858",
+      "2356414c554521",
+      "2356414c554521",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6ef09f98",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "unicode-47",
+    "sourceHex": "",
+    "expectedHex": [
+      "58",
+      "58",
+      "58",
+      "c3a9",
+      "58",
+      "58",
+      "58",
+      "",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "unicode-48",
+    "sourceHex": "c3a462c3a9",
+    "expectedHex": [
+      "58c3a462c3a9",
+      "2356414c554521",
+      "2356414c554521",
+      "2356414c554521",
+      "c3a458c3a9",
+      "c3a462c3a958",
+      "c3a45862c3a9",
+      "",
+      "2356414c554521",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "unicode-49",
+    "sourceHex": "61c3a9f09f988a7a",
+    "expectedHex": [
+      "5861c3a9f09f988a7a",
+      "58c3a9f09f988a7a",
+      "2356414c554521",
+      "61c3a9f09f988a7a",
+      "2356414c554521",
+      "61c3a9f09f988a7a58",
+      "2356414c554521",
+      "",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6ec3a9f09f988a7a",
+      "2356414c554521"
+    ]
+  },
+  {
+    "id": "unicode-50",
+    "sourceHex": "616263",
+    "expectedHex": [
+      "58616263",
+      "586263",
+      "615863",
+      "61c3a9",
+      "616258",
+      "61626358",
+      "61625863",
+      "",
+      "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e6263",
+      "2356414c554521"
+    ]
+  }
+];
+const controls = [[1, 0, "58"], [1, 1, "58"], [2, 1, "58"], [2, 2, "c3a9"], [3.5, 1.5, "58"],
+  [1000, 1000, "58"], [3, 0, "58"], [1, 1000, ""], [1, 1, "source"], [0, 1, "58"]] as const;
+for (const [index, [start, count, replacement]] of controls.entries()) it.each(native)(`REPLACEB matches native $id variant ${index}`, ({ sourceHex, expectedHex }) => {
+  const source = byteStringValue(bytes(sourceHex), () => {}, 1000000);
+  const next = byteStringValue(bytes(replacement === "source" ? native[0]!.sourceHex : replacement), () => {}, 1000000);
+  const expected = expectedHex[index] === "2356414c554521" ? { kind: "error", value: "#VALUE!" } : byteStringValue(bytes(expectedHex[index]!), () => {}, 1000000);
+  expect(textFunctions.REPLACEB!([source, { kind: "number", value: start }, { kind: "number", value: count }, next], host)).toEqual(expected);
+});
+it("REPLACEB admits all retained raw bytes before copying output", () => {
+  const bounded = { ...host, context: { ...host.context, limits: { ...host.context.limits, outputBytes: 4 } } };
+  const source = { kind: "byte-string", value: "806162" } as const, replacement = { kind: "byte-string", value: "fdfcfb" } as const;
+  expect(() => textFunctions.REPLACEB!([source, { kind: "number", value: 2 }, { kind: "number", value: 0 }, replacement], bounded)).toThrow("calculation text limit exceeded");
+  expect(textFunctions.REPLACEB!([source, { kind: "number", value: 2 }, { kind: "number", value: 2 }, replacement], bounded)).toEqual({ kind: "byte-string", value: "80fdfcfb" });
+});
+it("REPLACEB cooperates during discarded text validation with exact falsey cancellation", () => {
+  for (const reason of [null, false, 0, "", Number.NaN]) {
+    let ticks = 0, observed: unknown = "not-cancelled";
+    const cancelled = { ...host, tick() { if (++ticks === 180) throw reason; } };
+    try { textFunctions.REPLACEB!([{ kind: "string", value: "a".repeat(100) }, { kind: "number", value: 1 }, { kind: "number", value: 100 }, { kind: "byte-string", value: "a9" }], cancelled); }
+    catch (error) { observed = error; }
+    expect(Object.is(observed, reason)).toBe(true);
+    expect(ticks).toBe(180);
+  }
+});
+it("REPLACEB clips C-string NUL and refuses visible malformed host UTF-16", () => {
+  expect(textFunctions.REPLACEB!([{ kind: "string", value: "ab\u0000tail" }, { kind: "number", value: 2 }, { kind: "number", value: 1 }, { kind: "string", value: "X\u0000hidden" }], host)).toEqual({ kind: "string", value: "aX" });
+  expect(() => textFunctions.REPLACEB!([{ kind: "string", value: "\ud800" }, { kind: "number", value: 1 }, { kind: "number", value: 1 }, { kind: "string", value: "" }], host)).toThrow();
+});
+it("REPLACEB rejects negative byte bounds and leaves its input owned", () => {
+  const source = { kind: "byte-string", value: "806162" } as const;
+  for (const [start, count] of [[0, 1], [1, -1]]) expect(textFunctions.REPLACEB!([source, { kind: "number", value: start! }, { kind: "number", value: count! }, { kind: "string", value: "X" }], host)).toEqual({ kind: "error", value: "#VALUE!" });
+  expect(source.value).toBe("806162");
+});
+it.each([1, 2])("REPLACEB rejects unparseable numeric argument %i", index => {
+  const args = [{ kind: "string", value: "abc" }, { kind: "number", value: 1 }, { kind: "number", value: 1 }, { kind: "string", value: "X" }] as import("./types.js").Value[];
+  args[index] = { kind: "string", value: "bad" };
+  expect(textFunctions.REPLACEB!(args, host)).toEqual({ kind: "error", value: "#VALUE!" });
+});
+// Executed installed GLib2.90.0 validated-character oracle; distinct from whole Gnumeric profile.
+const acceptedLeads = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 241, 242, 243, 244]);
+it.each(Array.from({ length: 256 }, (_, index) => index))("REPLACEB preserves native validated boundary for lead %i", lead => {
+  const source = Uint8Array.of(lead, 128, 128, 128, 128, 128);
+  const value = byteStringValue(source, () => {}, 1000000);
+  const result = textFunctions.REPLACEB!([value, { kind: "number", value: 1 }, { kind: "number", value: 0 }, { kind: "string", value: "X" }], host);
+  expect(result).toEqual(acceptedLeads.has(lead) ? byteStringValue(Uint8Array.of(88, ...source), () => {}, 1000000) : { kind: "error", value: "#VALUE!" });
+});

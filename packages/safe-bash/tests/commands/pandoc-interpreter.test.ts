@@ -87,7 +87,7 @@ test("closing Pandoc stdout cancels its filter interpreter", async () => {
   let interpreterCancelled = false;
   const write = async () => {};
   try {
-    await assert.rejects(createPandocCommand({jsonFilterCommand: "node"}).execute({
+    await assert.rejects(async () => createPandocCommand({jsonFilterCommand: "node"}).execute({
       command: "pandoc", args: ["-fcommonmark", "-thtml", "-Ffilter.cjs"],
       cwd: "/work", env: {}, fs, signal: new AbortController().signal,
       stdin: (async function* () {yield new TextEncoder().encode("Hello");})(),

@@ -414,12 +414,12 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4\u201356byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -670,7 +670,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         },
         {
           "path": "docs/ssconvert/capwords-native-loader-gap-proof.json",
@@ -714,7 +714,7 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73→74→120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
+      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73\u219274\u2192120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -743,7 +743,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         }
       ],
       "delivery": {
@@ -755,7 +755,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73→74→120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
+      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73\u219274\u2192120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -779,7 +779,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         }
       ],
       "delivery": {
@@ -839,12 +839,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {
@@ -1181,16 +1181,28 @@
   },
   "linuxNativeProvisioningFollowup": {
     "proof": "docs/ssconvert/linux-reference-provisioning-proof.json",
-    "status": "authenticated-goffice-built-gnumeric-parser-prerequisite-corrected-rerun-in-progress",
+    "status": "authenticated-linux-native-built-738-search-fields-public-exact-final-git-identity-setup-corrected-rerun-required",
     "prerequisiteCommit": "dc9bdd15abf5ca21772807c808e824601ad0e89c",
     "artifactPackagingCommit": "bda821d11a8412664155443e379061a3a6ccff75",
     "remoteMainVerified": true,
-    "nativeRun": 35837781945,
-    "nativeHead": "bda821d11a8412664155443e379061a3a6ccff75",
+    "nativeRun": 35839444498,
+    "nativeHead": "b1758b65169adac3269f9cc154ee447fc40df771",
     "activationProfiles": 8,
     "capabilityObligations": 14,
-    "productParity": "unqualified",
+    "productParity": "executed-738-search-capture-only-whole-profile-unqualified",
     "publication": "unverified",
-    "wholeGoalComplete": false
+    "wholeGoalComplete": false,
+    "baseCapture": "docs/ssconvert/linux-native-base-capture.json",
+    "actualNativeRun": 35838516785,
+    "fieldsEachSurface": 738,
+    "exactSurfaces": [
+      "root-sdk",
+      "root-shell",
+      "xml-formula-replay",
+      "browser",
+      "dedicated-worker"
+    ],
+    "gitIdentityFixCommit": "b1758b65169adac3269f9cc154ee447fc40df771",
+    "moduleCollectorCommit": "9f473ead9c"
   }
 }

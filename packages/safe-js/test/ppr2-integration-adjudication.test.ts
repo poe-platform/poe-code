@@ -76,7 +76,16 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
             throw Error("No pending boundary");
           })
         ]);
-        await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
+        await vi.waitFor(async () => {
+          expect(host.calls).toEqual(scenario.callsAtBoundary);
+          if (scenario.id.startsWith("retry")) {
+            // Starting the retry does not mean its guest finally block has run.
+            const snapshot = JSON.parse(await dump(execution, { mode: "replay" }));
+            const trace = snapshot.heap[snapshot.bindings.trace.id];
+            const properties = new Map<string, { value: unknown }>(trace.state.properties.properties);
+            expect(properties.get("length")).toMatchObject({ value: native.trace.length - 1 });
+          }
+        }, { interval: 1, timeout: 1000 });
         if (scenario.id.startsWith("retry")) await waitForRetryEffects(execution);
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         captures.push(await dump(execution, { mode: "replay" }));

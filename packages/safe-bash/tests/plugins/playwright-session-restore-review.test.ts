@@ -147,7 +147,7 @@ test('failed durable operation reservation prevents restoration and browser effe
 
 test('successful effect records completed with an automatically generated opaque identity', async () => {
   const host = browser();
-  const records: { operationId: string; status: string }[] = [];
+  const records: ReturnType<typeof parsePlaywrightOperationOutcome>[] = [];
   const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
     async recordOperation({ operation }) { records.push(operation); },
     async restore() { return undefined; }, async checkpoint() {}, async delete() {},

@@ -3,19 +3,18 @@ import { test } from 'node:test';
 import { createPlaywrightController } from '../../src/playwright/index.js';
 import type { PlaywrightOperationOutcome } from '../../src/playwright/recovery.js';
 
-for (const durable of [true, false]) test(`receipt eviction and expiry with ${durable ? 'authoritative persistence' : 'local fallback'}`, async () => {
+test('receipt eviction and expiry with authoritative persistence', async () => {
   let now = 0;
   let acquisitions = 0;
   const receipts = new Map<string, { operation: PlaywrightOperationOutcome; expiresAt: number }>();
   const controller = createPlaywrightController({
-    operationClock: () => now,
     adapter: { browsers: { chromium: { headed: false } }, async acquire() { acquisitions++; throw new Error('unexpected browser acquisition'); } },
     persistence: {
       async restore() { return undefined; }, async checkpoint() {}, async delete() {},
-      ...(durable ? { async inspectRecovery({ name }: { name: string }) {
+      async inspectRecovery({ name }: { name: string }) {
         const receipt = receipts.get(name);
         return { hasStorage: false, ...(receipt && receipt.expiresAt > now ? { operation: receipt.operation } : {}) };
-      } } : {}),
+      },
       async recordOperation({ name, operation }) {
         if (operation.status === 'running') {
           receipts.delete(name);
@@ -38,10 +37,8 @@ for (const durable of [true, false]) test(`receipt eviction and expiry with ${du
     for (let index = 0; index < 100; index++) await run('missing16', `repeat${index}`);
     assert.equal((await controller.inspectRecovery({ name: 'missing16' })).operation?.operationId, 'repeat99');
     assert.equal((await controller.inspectRecovery({ name: 'missing1' })).operation?.operationId, 'receipt1');
-    if (durable) {
-      receipts.delete('missing16');
-      assert.equal((await controller.inspectRecovery({ name: 'missing16' })).operation, undefined);
-    }
+    receipts.delete('missing16');
+    assert.equal((await controller.inspectRecovery({ name: 'missing16' })).operation, undefined);
     now += 24 * 60 * 60 * 1000 + 1;
     assert.equal((await controller.inspectRecovery({ name: 'missing1' })).operation, undefined);
     assert.equal((await controller.inspectRecovery({ name: 'missing16' })).operation, undefined);

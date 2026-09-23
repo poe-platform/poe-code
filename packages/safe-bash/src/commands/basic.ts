@@ -3,6 +3,7 @@ import { basename, dirname, getCommandArguments, type CommandContext, type Comma
 import { decoder, define, escapeBytes, options, output, requireOperands, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { pwdRequirements } from "./portable-requirements.js";
+import { printfHex } from "./printf-hex.js";
 
 export function basicCommands(): CommandDefinition[] {
   return [
@@ -93,17 +94,26 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
       }
       if (rawFormat ? rawFormat[offset + 1] === 37 : format[offset + 1] === "%") { await output(context, "%"); offset += 2; continue; }
       let tokenEnd = offset + 1;
-      if (rawFormat) while (tokenEnd < rawFormat.length && (rawFormat[tokenEnd]! >= 48 && rawFormat[tokenEnd]! <= 57 || [32, 35, 43, 45, 46].includes(rawFormat[tokenEnd]!))) tokenEnd++;
+      if (rawFormat) while (tokenEnd < rawFormat.length && (rawFormat[tokenEnd]! >= 48 && rawFormat[tokenEnd]! <= 57 || [32, 35, 42, 43, 45, 46, 104, 108, 76, 106, 122, 116].includes(rawFormat[tokenEnd]!))) tokenEnd++;
       const fragment = rawFormat ? decoder.decode(rawFormat.subarray(offset, tokenEnd + 1)) : format.slice(offset);
-      const match = /^%([-+ #0]*)(\d+)?(?:\.(\d+))?([sbqcdiouxXfFeEgG])/u.exec(fragment);
+      const match = /^%([-+ #0]*)(\d+|\*)?(?:\.(\d*|\*))?(?:hh|ll|[hlLjzt])?([sbqcdiouxXfFeEgGaA])/u.exec(fragment);
       if (!match) throw new UsageError(`invalid format near '${fragment}'`);
       offset += match[0].length;
-      const flags = match[1]!;
-      const width = Number(match[2] ?? 0);
-      const precision = match[3] === undefined ? undefined : Number(match[3]);
+      let flags = match[1]!;
+      const dynamic = (): number => {
+        const token = args[argument++] ?? "0";
+        const parsed = token.startsWith("'") || token.startsWith('"') ? token.codePointAt(1) ?? 0 : Number(token);
+        if (!Number.isSafeInteger(parsed)) throw new UsageError(`invalid width or precision '${token}'`);
+        return parsed;
+      };
+      const suppliedWidth = match[2] === "*" ? dynamic() : Number(match[2] ?? 0);
+      if (suppliedWidth < 0) flags += "-";
+      const width = Math.abs(suppliedWidth);
+      const suppliedPrecision = match[3] === "*" ? dynamic() : match[3] === undefined ? undefined : Number(match[3]);
+      const precision = suppliedPrecision !== undefined && suppliedPrecision < 0 ? undefined : suppliedPrecision;
       if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
       const specifier = match[4]!;
-      if (/[fFeEgG]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
+      if (/[fFeEgGaA]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
       const suppliedIndex = argument++;
       const supplied = args[suppliedIndex] ?? "";
       let text: string;
@@ -127,7 +137,7 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
         if (/^[+-]0[xX][0-9a-fA-F]+$/u.test(supplied.trim())) {
           number = Number(supplied.trim().slice(1)) * (supplied.trim().startsWith("-") ? -1 : 1);
         }
-        if (/^[+-]?0[0-9]+$/u.test(supplied) && !/[fFeEgG]/u.test(specifier)) {
+        if (/^[+-]?0[0-9]+$/u.test(supplied) && !/[fFeEgGaA]/u.test(specifier)) {
           if (/[89]/u.test(supplied)) number = NaN;
           else number = parseInt(supplied.replace(/^[+-]?0/u, ""), 8) * (supplied.startsWith("-") ? -1 : 1);
         }
@@ -135,7 +145,8 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }
-        if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
+        if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"));
+        else if (/[fF]/u.test(specifier)) text = number.toFixed(precision ?? 6);
         else if (/[eE]/u.test(specifier)) text = number.toExponential(precision ?? 6).replace(/e([+-])(\d)$/u, "e$10$2");
         else if (/[gG]/u.test(specifier)) text = Number(number.toPrecision(Math.max(1, precision ?? 6))).toString();
         else {
@@ -163,15 +174,15 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
             else if (radix === 8 && !text.startsWith("0")) text = "0" + text;
           }
         }
-        const negativeZero = Object.is(number, -0) && "fFeEgG".includes(specifier);
+        const negativeZero = Object.is(number, -0) && "fFeEgGaA".includes(specifier);
         if (negativeZero) text = "-" + text;
-        if (/[XFEG]/u.test(specifier)) text = text.toUpperCase();
-        if (number >= 0 && !negativeZero && /[difFeEgG]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
+        if (/[XFEGA]/u.test(specifier)) text = text.toUpperCase();
+        if (number >= 0 && !negativeZero && /[difFeEgGaA]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
       }
       if (flags.includes("-")) text = text.padEnd(width, " ");
-      else if (flags.includes("0") && /[diouxXfFeEgG]/u.test(specifier)
-        && (precision === undefined || /[fFeEgG]/u.test(specifier))) {
-        const prefix = /^[+ -]|^0[xX]/u.exec(text)?.[0] ?? "";
+      else if (flags.includes("0") && /[diouxXfFeEgGaA]/u.test(specifier)
+        && (precision === undefined || /[fFeEgGaA]/u.test(specifier))) {
+        const prefix = /^[+ -]?(?:0[xX])|^[+ -]/u.exec(text)?.[0] ?? "";
         text = prefix + text.slice(prefix.length).padStart(Math.max(0, width - prefix.length), "0");
       } else text = text.padStart(width, " ");
       await output(context, text);

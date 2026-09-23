@@ -374,3 +374,52 @@ test("true and false ignore arguments and cancellation propagates", async () => 
   const reason = new Error("cancelled");
   await assert.rejects(run("echo", ["not written"], { signal: AbortSignal.abort(reason) }), error => error === reason);
 });
+
+
+for (const [format, operands, expected] of [
+  ["%a|%A", ["3.25", "-2.5"], "0xdp-2|-0XAP-2"],
+  ["%ld|%lld|%llu|%Lf", ["17", "17", "17", "3.25"], "17|17|17|3.250000"],
+  ["%*s", ["9", "Changed"], "  Changed"],
+  ["%.*s", ["3", "Changed"], "Cha"],
+  ["%*.*f", ["9", "2", "3.25"], "     3.25"],
+  ["<%*.*s>", ["-5", "2", "abcd", "4", "1", "xyz"], "<ab   ><   x>"],
+  ["%.*s|%s", ["-1", "whole", "next"], "whole|next"],
+  ["%*.*f", [], "0"],
+  ["%.0a|%.1a|%#a|%a", ["3.875", "3.875", "0", "-0"], "0x1p+2|0xf.8p-2|0x0.p+0|-0x0p+0"],
+  ["%+012a|%.0a|%.0a|%.3A", ["3.25", "2.125", "2.375", "0"], "+0x00000dp-2|0x8p-2|0xap-2|0X0.000P+0"],
+  ["%a", ["5e-324"], "0x8p-1077"],
+] as const) test(`printf accepts ${format} with ${JSON.stringify(operands)}`, async () => {
+  const result = await run("printf", [format, ...operands]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+});
+
+test("printf dynamic string precision counts bytes", async () => {
+  const result = await run("printf", ["%*.*s", "3", "1", "é"]);
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdoutBytes, Buffer.from([32, 32, 195]));
+});
+
+test("printf dynamic directives preserve opaque format and operand bytes", async () => {
+  const result = await runByteArguments("printf", [
+    shellValueFromBytes(Uint8Array.of(255, ...Buffer.from("%*.*s|%lld"))),
+    "4", "2", shellValueFromBytes(Uint8Array.of(254, 253, 252)), "17",
+  ]);
+  assert.equal(result.exitCode, 0);
+  assert.deepEqual(result.stdout, Buffer.from([255, 32, 32, 254, 253, 124, 49, 55]));
+});
+
+test("printf extended directives flow through variables, pipes and virtual files", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const result = await shell.exec("printf -v value '%*.*Lf|%lld|%a' 6 2 3.25 17 3.25; printf '%s' \"$value\" | cat > /work/result; cat /work/result");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "  3.25|17|0xdp-2");
+  } finally { await shell.dispose(); }
+});
+
+for (const args of [["%*s", "1000001", "x"], ["%*s", "-1000001", "x"], ["%.*s", "1001", "x"], ["%.*a", "101", "1"], ["%*s", "oops", "x"]]) {
+  test(`printf bounds dynamic operands ${args.join(" ")}`, async () => {
+    assert.notEqual((await run("printf", args)).exitCode, 0);
+  });
+}

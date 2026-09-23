@@ -7,6 +7,31 @@ import { contents, filesystem, replacement, run } from "./helpers.js";
 
 const twoHunks = replacement + "@@ -3 +3 @@ function\n-tail\n+TAIL\n";
 
+for (const command of ["patch --batch target change.patch", "patch --batch -- target change.patch"]) {
+  test(`positional patch input through Shell: ${command}`, async () => {
+    const fs = await filesystem({ target: "old\n", "change.patch": replacement });
+    const result = await new Shell({ fs, cwd: "/work" }).use(diffPatchCommands()).exec(command, { stdin: "" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "patching file target\n");
+    assert.equal(result.stderr, "");
+    assert.equal(await contents(fs, "target"), "new\n");
+    assert.equal(await contents(fs, "change.patch"), replacement);
+    await assert.rejects(fs.stat("/work/target.orig"), error => isFsError(error, "ENOENT"));
+  });
+}
+
+test("positional dash reads patch input from stdin", async () => {
+  const result = await run("patch", ["--batch", "target", "-"], { files: { target: "old\n" }, input: replacement });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "new\n");
+});
+
+test("more than two patch operands fail without changing the target", async () => {
+  const result = await run("patch", ["target", "change.patch", "extra"], { files: { target: "old\n", "change.patch": replacement } });
+  assert.equal(result.exitCode, 2);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
+
 for (const atomic of [false, true]) for (const mode of [0o666, 0o640, 0o600]) for (const existing of [false, true]) {
   test(`mismatch backup preserves source permissions: ${atomic}/${mode.toString(8)}/${existing}`, async () => {
     const fs = await filesystem({ target: "prefix\nold\ntail\n", ...(existing ? { "target.orig": "stale\n" } : {}) });

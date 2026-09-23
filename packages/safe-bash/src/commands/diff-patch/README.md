@@ -114,8 +114,8 @@ periodically to observe cancellation.
   `-u` / `--unified`, `-n` / `--normal`, and `-c` / `--context` assert the
   format of every section; the last format selector wins. A later format
   mismatch can leave earlier sections published in default mode. Normal input
-  needs a positional target or a usable `Index:` filename. At most one positional
-  target is accepted; a second positional patch-input operand is not supported.
+  needs a positional target or a usable `Index:` filename. A second positional
+  operand selects the patch input file; `-` selects stdin.
   The target overrides each section's selection without bypassing header safety
   validation. `--` terminates options, and short flags may be grouped.
 - With **no `-p`**, automatic header selection uses basenames. Explicit `-p0`

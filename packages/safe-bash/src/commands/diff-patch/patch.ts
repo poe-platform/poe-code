@@ -68,8 +68,9 @@ function flags(args: readonly string[]): PatchFlags {
       } else throw new ToolError(`unsupported option: -${flag}`);
     }
   }
-  if (operands.length > 1) throw new ToolError("expected at most one target file; use -i for the patch input");
+  if (operands.length > 2) throw new ToolError("expected at most a target file and a patch input file");
   if (operands.length) result.target = operands[0]!;
+  if (operands.length === 2) result.input = operands[1]!;
   if (!result.input || result.input.includes("\0")) throw new ToolError("invalid patch input path");
   return result;
 }

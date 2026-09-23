@@ -525,6 +525,9 @@ nested command dispatch, and `regex` worker limits. Per-family options are
 Use the [typed options and linked family interfaces](src/plugins/index.ts) for
 their individual limits and hooks, including clocks and schedulers. Family budgets
 are separate from shell limits; `replace` applies across the entire bundle.
+Text, search, structured queries, directory inspection, and table/stream tools
+have unlimited resource budgets by default. Set individual family limits to opt
+in; setting one limit leaves the others unlimited, without an implicit ceiling.
 
 The package root exports `createBoundedRegexProvider`, `BoundedRegexProvider`,
 and `BoundedRegexProviderOptions`. `agentCommands()` uses this provider by default;

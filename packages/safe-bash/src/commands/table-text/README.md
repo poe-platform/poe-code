@@ -34,15 +34,15 @@ is rejected, even if it contains short records; tune the explicit limit or chunk
 upstream. readFile fallback receives maxBytes. Already emitted stdout is not
 rolled back on errors. Arbitrary noncooperative host promises cannot be stopped.
 
-Default limits (each command invocation owns its budget):
+Optional limits (each command invocation owns its budget; setting one leaves the others unlimited):
 
 | Option | Default |
 | --- | ---: |
-| maxInputBytes / maxOutputBytes | 256 MiB each |
-| maxRecordBytes / maxChunkBytes | 1 MiB each |
-| maxGroupBytes / maxGroupRecords | 8 MiB / 100,000 |
-| maxFields / maxFiles | 65,536 / 64 |
-| maxSteps / maxArgumentBytes | 2,000,000 / 65,536 |
+| maxInputBytes / maxOutputBytes | Unlimited |
+| maxRecordBytes / maxChunkBytes | Unlimited |
+| maxGroupBytes / maxGroupRecords | Unlimited |
+| maxFields / maxFiles | Unlimited |
+| maxSteps / maxArgumentBytes | Unlimited |
 
 Every override must be a positive safe integer. A limit failure is explicit and
 does not reset the invocation budget. Native differential checks assert exact

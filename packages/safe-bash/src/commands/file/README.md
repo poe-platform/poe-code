@@ -80,9 +80,9 @@ line-ending counts, BOM wording and executable permission claims.
 JSON requires a complete bounded object/array that successfully passes JSON.parse
 after text decoding. Scalars remain plain text. A syntactically complete JSON
 prefix is not proof of a complete document. Streaming input ending exactly at
-the sniff cap remains unproved, even if stat.size agrees. The default 256 KiB
-extent admits complete JSON below that bound, including 65536/65537-byte documents;
-hosts can configure `limits.maxSniffBytes` for another bounded extent. Whole readFile content
+an explicit sniff cap remains unproved, even if stat.size agrees. Sampling is
+unlimited by default; hosts can configure `limits.maxSniffBytes` for a bounded
+extent. Whole readFile content
 at the cap can be proved complete. Text classification generally describes only
 the sampled prefix, not unseen later bytes.
 
@@ -115,19 +115,19 @@ Unknown options fail explicitly; unsupported format bytes take the fallback.
 
 ## Bounded I/O and budgets
 
-Defaults (all positive safe integers; maxDurationMs <= 2147483647):
+All resource limits are optional and unlimited when omitted. Explicit limits must be positive safe integers; setting one leaves the others unlimited:
 
 | Limit | Default | Meaning |
 | --- | ---: | --- |
-| maxSniffBytes | 262144 | retained sample per operand |
-| maxReadFileBytes | 1048576 | maximum authorized whole-read fallback |
-| maxInputBytes | 8388608 | aggregate ByteIO and admitted metadata UTF-8 bytes |
-| maxOutputBytes | 1048576 | combined stdout and stderr bytes |
-| maxChunkBytes | 1048576 | maximum delivered input chunk/output chunk |
-| maxEntries | 1024 | operand count, preflighted |
-| maxSteps | 1048576 | iterations, sampled bytes, operands and text work units |
-| maxArgumentBytes | 65536 | UTF-8 arguments plus one separator each |
-| maxDurationMs | 10000 | active invocation deadline |
+| maxSniffBytes | Unlimited | retained sample per operand |
+| maxReadFileBytes | Unlimited | maximum authorized whole-read fallback |
+| maxInputBytes | Unlimited | aggregate ByteIO and admitted metadata UTF-8 bytes |
+| maxOutputBytes | Unlimited | combined stdout and stderr bytes |
+| maxChunkBytes | Unlimited | maximum delivered input chunk/output chunk |
+| maxEntries | Unlimited | operand count, preflighted |
+| maxSteps | Unlimited | iterations, sampled bytes, operands and text work units |
+| maxArgumentBytes | Unlimited | UTF-8 arguments plus one separator each |
+| maxDurationMs | Unlimited | active invocation deadline |
 
 Streaming requests start=0/endExclusive=maxSniffBytes and a bounded chunkSize,
 with the combined signal. Every delivered byte is charged, including oversized

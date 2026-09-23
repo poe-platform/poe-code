@@ -144,20 +144,20 @@ in the evidence; this does not establish full strings compatibility.
 
 | Limit | Default | Scope |
 | --- | ---: | --- |
-| maxInputBytes | 32MiB | All accepted input chunks across operands |
-| maxOutputBytes | 64MiB | stdout byte writes across operands |
-| maxRecordBytes | 8MiB | tac emitted record, fold pending buffer, strings run |
-| maxChunkBytes | 1MiB | Maximum single input chunk; readFile fallback maximum |
-| maxFiles | 64 | Operand count after default-stdin selection |
-| maxSteps | 268435456 | Chunk pulls, scanning/recomputation and output work |
-| maxArgumentBytes | 65536 | Sum of UTF8 argument byte lengths |
+| maxInputBytes | Unlimited | All accepted input chunks across operands |
+| maxOutputBytes | Unlimited | stdout byte writes across operands |
+| maxRecordBytes | Unlimited | tac emitted record, fold pending buffer, strings run |
+| maxChunkBytes | Unlimited | Maximum single input chunk; readFile fallback maximum |
+| maxFiles | Unlimited | Operand count after default-stdin selection |
+| maxSteps | Unlimited | Chunk pulls, scanning/recomputation and output work |
+| maxArgumentBytes | Unlimited | Sum of UTF8 argument byte lengths |
 
 These are per-invocation family limits, not a replacement for shell-wide shared
 command/output/depth budgets. stderr diagnostics still pass through the existing
 shell sink budget; the family stdout counter does not count diagnostic bytes.
 Each invocation validates arguments/files before opening data. Large legitimate
-files/records may need explicit limits; a denied limit is a failure, not an
-unsupported native pass. Input chunks are bounded even when supplied by the host.
+files/records are unlimited unless a host selects a budget; exceeding an explicit
+limit is a failure. Selected chunk limits also apply to chunks supplied by the host.
 For adapters without `readStream`, `readFile` receives the signal and a bounded
 `maxBytes`; a large whole-file fallback can be rejected even when total input
 budget is larger. It is not silently treated as a streaming read.

@@ -74,28 +74,31 @@ and reserialized. Header rows always serialize decoded cells.
 Ordinary zero/equal slice ranges retain the post-write stop behavior (remainder);
 `-L0` emits no data uniformly. `-n -L0` acquires no input iterator.
 
-## Logical limits (default / hard ceiling)
+## Logical limits
 
-| Name | Default | Ceiling |
-|---|---:|---:|
-| maxArgs | 128 | 4096 |
-| maxArgumentBytes | 65536 | 1048576 |
-| maxInputFiles | 16 | 256 |
-| maxInputBytes | 268435456 | 4294967296 |
-| maxChunks | 262144 | 4194304 |
-| maxChunkBytes | 8388608 | 67108864 |
-| maxRecordBytes | 8388608 | 67108864 |
-| maxCellBytes | 4194304 | 33554432 |
-| maxColumns | 16384 | 65536 |
-| maxRecords | 1000000 | 16000000 |
-| maxSelectorBytes | 16384 | 262144 |
-| maxSelectorNodes | 4096 | 65536 |
-| maxSelectorDepth | 2 | 2 |
-| maxSelectedColumns | 16384 | 65536 |
-| maxLastRows | 4096 | 65536 |
-| maxWork | 1000000000 | 16000000000 |
-| maxOutputBytes | 268435456 | 4294967296 |
-| maxRetainedBytes | 33554432 | 268435456 |
+Resource limits are unlimited when omitted. Each explicit limit must be a positive
+safe integer and leaves other limits unlimited; there is no implicit ceiling.
+
+| Name | Default |
+|---|---:|
+| maxArgs | Unlimited |
+| maxArgumentBytes | Unlimited |
+| maxInputFiles | Unlimited |
+| maxInputBytes | Unlimited |
+| maxChunks | Unlimited |
+| maxChunkBytes | Unlimited |
+| maxRecordBytes | Unlimited |
+| maxCellBytes | Unlimited |
+| maxColumns | Unlimited |
+| maxRecords | Unlimited |
+| maxSelectorBytes | Unlimited |
+| maxSelectorNodes | Unlimited |
+| maxSelectorDepth | Unlimited |
+| maxSelectedColumns | Unlimited |
+| maxLastRows | Unlimited |
+| maxWork | Unlimited |
+| maxOutputBytes | Unlimited |
+| maxRetainedBytes | Unlimited |
 
 These bound logical work/storage, not RSS, elapsed time or provider allocations.
 Input delivery accounting includes empty chunks and unread chunk tails. Output

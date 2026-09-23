@@ -5,7 +5,8 @@ import {
 	connect,
 	type Page,
 } from "@cloudflare/playwright";
-import type { PlaywrightSnapshotJSONNode } from "@poe-platform/safe-bash/playwright";
+import { createPlaywrightController } from "@poe-platform/safe-bash/playwright";
+import type { PlaywrightSnapshotJSONNode, PlaywrightLease } from "@poe-platform/safe-bash/playwright";
 import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
 import { collectRendererCoverage } from "./browser-native-coverage.worker";
 import { createCloudflarePlaywrightAdapter } from "../src/index";
@@ -45,7 +46,43 @@ export default {
 				await lease.release();
 			}
 		}
-		if (new URL(request.url).pathname === "/public-frames") {
+		const scenario = new URL(request.url).pathname;
+		if (scenario.startsWith("/recover-")) {
+			const adapter = createCloudflarePlaywrightAdapter(env.BROWSER);
+			let lease: PlaywrightLease | undefined;
+			let acquisitions = 0;
+			const controller = createPlaywrightController({
+				adapter: { ...adapter, async acquire(options) {
+					acquisitions++;
+					lease = await adapter.acquire(options);
+					return lease;
+				} },
+				...(scenario === "/recover-bytes" ? { limits: { maxSnapshotBytes: 512 } } : {}),
+			});
+			const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+			try {
+				await run(["open"]);
+				assert.ok(lease);
+				const page = lease.context.pages()[0]!;
+				await page.setContent(scenario === "/recover-nodes"
+					? "<button>Probe</button>".repeat(20001)
+					: scenario === "/recover-frames"
+						? '<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128)
+						: `<p>${"x".repeat(2048)}</p>`);
+				await assert.rejects(run(["snapshot", "--json"]), /snapshot.*limit exceeded/);
+				await run(["tab-list"]);
+				assert.equal(lease.context.pages()[0], page);
+				await page.setContent("<button>Recovered</button>");
+				await run(["snapshot", "--json"]);
+				assert.equal(acquisitions, 1);
+				return Response.json({ ok: true });
+			} catch (error) {
+				return Response.json({ error: String(error) }, { status: 500 });
+			} finally {
+				await controller.dispose();
+			}
+		}
+		if (["/public-frames", "/public-unlimited"].includes(new URL(request.url).pathname)) {
 			const lease = await createCloudflarePlaywrightAdapter(
 				env.BROWSER,
 			).acquire({
@@ -57,6 +94,18 @@ export default {
 			});
 			try {
 				const page = await lease.context.newPage();
+				if (new URL(request.url).pathname === "/public-unlimited") {
+					const text = "x".repeat(300 * 1024);
+					await page.setContent(`<p>${text}</p>`);
+					const tree = await lease.captureSnapshotJSON!(page, {
+						signal: new AbortController().signal,
+						timeoutMs: 15000,
+						maxBytes: Infinity,
+					});
+					assert.ok(JSON.stringify(tree).includes(text));
+					assert.equal(await page.evaluate(() => document.querySelector("p")?.textContent), text);
+					return Response.json({ ok: true });
+				}
 				await page.setContent(
 					'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 				);
@@ -153,7 +202,7 @@ export default {
 				case "/bounds":
 					await assert.rejects(
 						captureBrowserSnapshotJSON(page, { ...options, maxBytes: 128 }),
-						/snapshot JSON limit/,
+						/snapshot byte limit/,
 					);
 					assert.ok((await captureBrowserSnapshotJSON(page, options)).length);
 					break;

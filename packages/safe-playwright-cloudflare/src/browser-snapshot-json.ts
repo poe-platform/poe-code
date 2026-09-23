@@ -1,3 +1,4 @@
+import { PlaywrightSnapshotLimitError } from "@poe-platform/safe-bash/playwright";
 import type { PlaywrightSnapshotJSONCapture } from "@poe-platform/safe-bash/playwright";
 import {
 	type SnapshotNode,
@@ -77,6 +78,7 @@ async function capture(
 			maxBytes: remaining,
 			boxes: options.boxes ?? false,
 		});
+		if ("limit" in result) throw new PlaywrightSnapshotLimitError("Browser snapshot JSON limit exceeded");
 		if (Number.isFinite(remaining))
 			remaining -= encoder.encode(JSON.stringify(result.nodes)).byteLength;
 		for (const node of result.nodes) entry.target.push(node);
@@ -98,7 +100,7 @@ async function capture(
 		for (const child of children) if (child) pending.push(child);
 	}
 	if (Number.isFinite(options.maxBytes) && encoder.encode(JSON.stringify(forest)).byteLength > options.maxBytes)
-		throw new Error("Browser snapshot JSON limit exceeded");
+		throw new PlaywrightSnapshotLimitError("Browser snapshot JSON limit exceeded");
 	return forest;
 }
 

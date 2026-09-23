@@ -40,13 +40,13 @@ export function serializeNativeSnapshot(
 	const encoder = new TextEncoder();
 	const limited = Number.isFinite(options.maxBytes);
 	let bytes = 2;
-	if (bytes > options.maxBytes) throw new Error("Browser snapshot JSON limit exceeded");
+	if (bytes > options.maxBytes) return { limit: "byte" as const };
 	const account = (node: SnapshotNode | string, parent: (SnapshotNode | string)[]) => {
-		if (!limited) return;
+		if (!limited) return true;
 		// Empty child arrays are counted with their parent; descendants add only
 		// their own shallow encoding and the comma preceding each later sibling.
 		bytes += encoder.encode(JSON.stringify(node)).byteLength + Number(parent.length > 0);
-		if (bytes > options.maxBytes) throw new Error("Browser snapshot JSON limit exceeded");
+		return bytes <= options.maxBytes;
 	};
 	const rectangle = (node: NativeAriaNode) => {
 		const symbol = Object.getOwnPropertySymbols(node).find(
@@ -91,7 +91,7 @@ export function serializeNativeSnapshot(
 	for (const entry of pending) {
 		if (typeof entry.node === "string") {
 			const text = entry.parent === nodes ? { role: "text", text: entry.node } : entry.node;
-			account(text, entry.parent);
+			if (!account(text, entry.parent)) return { limit: "byte" as const };
 			entry.parent.push(text);
 			continue;
 		}
@@ -99,7 +99,7 @@ export function serializeNativeSnapshot(
 		if (entry.node.children.length === 1 && typeof entry.node.children[0] === "string")
 			result.text = entry.node.children[0];
 		if (entry.node.children.length && result.text === undefined) result.children = [];
-		account(result, entry.parent);
+		if (!account(result, entry.parent)) return { limit: "byte" as const };
 		entry.parent.push(result);
 		if (!result.children) continue;
 		for (const child of entry.node.children)

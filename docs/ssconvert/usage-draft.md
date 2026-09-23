@@ -69,7 +69,10 @@ remain placeholders; this does not load native plugins or grant host access.
 BIFF7/8 add-in name tables use their declared container or SUPBOOK. Function
 symbols call only the engine's configured functions; unlinked names used as
 values yield `#REF!`. Existing linked `#NAME?` placeholders retain their
-identity when a declaration supplies their expression. True external workbook,
+identity when a declaration supplies their expression. BIFF8 external cell and
+area links calculate to `#REF!` instead of substituting their imported cached
+values. The cache and raw SUPBOOK records remain retained; conversions never
+fetch linked workbooks. External workbook binding and export, external names,
 DDE/OLE and built-in EXTERNNAME records remain separately unsupported.
 
 ## Virtual command

@@ -89,6 +89,8 @@ export async function htmlq(
     snapshotFailure: { error: unknown } | undefined;
   try {
     const argumentKeys = [
+      "help",
+      "version",
       "selector",
       "filename",
       "output",
@@ -124,6 +126,8 @@ export async function htmlq(
         }
       }
       for (const [key, flag] of [
+        ["help", "--help"],
+        ["version", "--version"],
         ["detectBase", "--detect-base"],
         ["text", "--text"],
         ["ignoreWhitespace", "--ignore-whitespace"],
@@ -178,10 +182,15 @@ export async function htmlq(
     try {
       if (snapshotFailure) throw snapshotFailure.error;
       const args = parseHtmlqArguments(argv, options);
-      if (args.output === "-") {
+      if (args.output === "-" || args.help || args.version) {
         stdout!.signal.addEventListener("abort", consumerAbort, { once: true });
         if (stdout!.signal.aborted) consumerAbort();
         budget.check();
+      }
+      if (args.help || args.version) {
+        for await (const bytes of projectHtmlq(context.stdin, args, options))
+          await writeBytes(stdout!.output, bytes, options.signal);
+        return { exitCode: 0, accounting: budget.snapshot() };
       }
       let source: ByteSource = context.stdin;
       if (args.filename !== "-") {

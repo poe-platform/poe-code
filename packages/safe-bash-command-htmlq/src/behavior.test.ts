@@ -238,3 +238,20 @@ test("separate option values obey the same token ceiling as attached values", ()
     );
   assert.equal(parseHtmlqArguments(["-a", "x".repeat(16)], limited).attributes[0]?.length, 16);
 });
+
+test("informational byte SDK respects option boundaries and output limits", async () => {
+  const source = { [Symbol.asyncIterator]() { throw new Error("Must not read HTML"); } };
+  for (const argv of [["--help"], ["-th"], ["--version"], ["-V"], ["-f", "missing", "--help"]]) {
+    let text = "";
+    for await (const bytes of htmlqBytes(source, argv, options)) text += new TextDecoder().decode(bytes);
+    assert.ok(text.startsWith("Like jq") || text.startsWith("htmlq 0.5.0"));
+  }
+  assert.equal(parseHtmlqArguments(["--", "--help"], options).selector, "--help");
+  for (const argv of [["-f", "--help"], ["--help=yes"], ["--version=yes"]])
+    assert.throws(() => parseHtmlqArguments(argv, options), { code: "E_ARGUMENT" });
+  await assert.rejects(async () => {
+    for await (const bytes of htmlqBytes(source, ["--help"], {
+      ...options, limits: { ...options.limits, outputBytes: 1 }
+    })) void bytes;
+  }, { code: "E_LIMIT" });
+});

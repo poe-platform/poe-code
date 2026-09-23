@@ -547,3 +547,23 @@ test("byte-only VFS read cancellation drains admitted read work before cleanup s
   assert.equal(f.files.has("/vfs/out"), false);
   assert.equal(f.output.length, 0);
 });
+
+test("help and version flags return informational output without reading or writing files", async () => {
+  for (const flag of ["--help", "-h", "--version", "-V"]) {
+    const cli = fixture(["-f", "missing", "-o", "untouched", flag]);
+    const context = { ...cli.context, stdin: { [Symbol.asyncIterator]() { throw new Error("Must not read stdin"); } } };
+    const result = await createHtmlqCommand().execute(context);
+    assert.equal(result.exitCode, 0);
+    assert.deepEqual(cli.errors, []);
+    assert.equal(cli.files.has("/vfs/untouched"), false);
+    if (flag === "--help" || flag === "-h") {
+      assert.ok(cli.text().includes("Usage: htmlq [OPTIONS] [SELECTOR]"));
+      assert.ok(cli.text().includes("--version"));
+    } else {
+      assert.equal(cli.text(), "htmlq 0.5.0 (safe-bash virtual implementation)\n");
+    }
+    const sdk = fixture([]);
+    assert.equal((await htmlq(sdk.context, { [flag === "--help" || flag === "-h" ? "help" : "version"]: true })).exitCode, 0);
+    assert.equal(sdk.text(), cli.text());
+  }
+});

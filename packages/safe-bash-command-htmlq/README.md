@@ -87,11 +87,13 @@ htmlq div -r span -f /input.html -o /selected.html
 | `-p`, `--pretty` | Stateful pretty HTML projection |
 | `-a`, `--attributes` | Attribute name; repeatable |
 | `-r`, `--remove-nodes` | Removal selector; repeatable |
+| `-h`, `--help` | Print help without reading HTML or accessing VFS paths |
+| `-V`, `--version` | Print the compatibility version and virtual implementation identity |
 
 Short flags can be grouped (`-tip`); short value options accept attached values
 (`-aid`, `-a=id`). Long value options accept `=VALUE`.
 The optional selector defaults to `html`; input/output default to `-`.
-Unknown flags (including `--attribute`, `--help` and `--version`), abbreviations
+Unknown flags (including `--attribute`), abbreviations
 and extra positional operands fail. `--` ends option parsing.
 Only attributes and removal selectors are repeatable; repeating any other option
 fails with argument status 2, including mixed short/long spellings and grouped flags.
@@ -142,3 +144,6 @@ enumerated cases; none of those libraries is a product runtime dependency.
 
 This package is private and ships only through
 `@poe-platform/safe-bash/commands/htmlq`. It is never independently published.
+
+CLI informational flags are also available through SDK `help: true`, `version: true`,
+and `htmlqBytes` argv. They write to stdout regardless of `--output`.

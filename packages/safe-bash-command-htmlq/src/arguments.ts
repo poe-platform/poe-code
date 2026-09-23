@@ -1,5 +1,7 @@
 import { HtmlBudget, HtmlError, type HtmlOptions } from "./contracts.js";
 export interface HtmlqArguments {
+  readonly help?: boolean;
+  readonly version?: boolean;
   readonly selector: string;
   readonly filename: string;
   readonly output: string;
@@ -14,6 +16,8 @@ export interface HtmlqArguments {
 export function parseHtmlqArguments(argv: readonly string[], options: HtmlOptions): HtmlqArguments {
   const budget = new HtmlBudget(options);
   const result = {
+    help: false,
+    version: false,
     selector: "html",
     filename: "-",
     output: "-",
@@ -48,6 +52,14 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
       const option = arg;
       for (let offset = short ? 1 : 0; offset < option.length; offset++) {
         arg = short ? `-${option[offset]}` : option;
+        if (attached === undefined && ["-h", "--help", "-V", "--version"].includes(arg)) {
+          result[arg === "-h" || arg === "--help" ? "help" : "version"] = true;
+          return Object.freeze({
+            ...result,
+            attributes: Object.freeze(result.attributes),
+            removeNodes: Object.freeze(result.removeNodes)
+          });
+        }
         const key = (
           {
             "-f": "filename",

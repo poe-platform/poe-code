@@ -1,0 +1,78 @@
+{
+  "scope": "Supplemental direct installed Linux libm scalar oracles for retained private primitive controls; separate from Gnumeric/public formula output qualification",
+  "profileIds": [
+    "gnumeric-1.12.61-optional-none"
+  ],
+  "transport": "Raw big-endian binary64 bit strings; no decimal parsing, source mutation or Gnumeric interposition",
+  "groups": [
+    {
+      "id": "log1p-callsite",
+      "symbol": "log1p",
+      "source": {
+        "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
+        "sha256": "f3a9eaf781aa789c23cba95029739d993729cb5e432da5d45427afe8eb3d121c"
+      },
+      "casesPath": [
+        "callSiteQualification",
+        "cases"
+      ],
+      "inputFields": [
+        "inputBits"
+      ],
+      "historicalResultField": "nativeLog1pBits",
+      "cases": 3646
+    },
+    {
+      "id": "log1p-independent",
+      "symbol": "log1p",
+      "source": {
+        "path": "docs/ssconvert/bessel-log1p-native-gap-proof.json",
+        "sha256": "f3a9eaf781aa789c23cba95029739d993729cb5e432da5d45427afe8eb3d121c"
+      },
+      "casesPath": [
+        "independentQualification",
+        "cases"
+      ],
+      "inputFields": [
+        "inputBits"
+      ],
+      "historicalResultField": "nativeLog1pBits",
+      "cases": 256
+    },
+    {
+      "id": "acos",
+      "symbol": "acos",
+      "source": {
+        "path": "docs/ssconvert/bessel-acos-native-gap-proof.json",
+        "sha256": "2d309df6070798cf1a186933c5b394095bda6819fcaad235a9b65b37e7540238"
+      },
+      "casesPath": [
+        "controls",
+        "cases"
+      ],
+      "inputFields": [
+        "inputBits"
+      ],
+      "historicalResultField": "nativeAcosBits",
+      "cases": 2173
+    },
+    {
+      "id": "pow",
+      "symbol": "pow",
+      "source": {
+        "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
+        "sha256": "c86975d111d3aae1b1080b919590daf75611fff0842110e189862faa8c35502e"
+      },
+      "casesPath": [
+        "controls",
+        "cases"
+      ],
+      "inputFields": [
+        0,
+        1
+      ],
+      "historicalResultField": 2,
+      "cases": 7351
+    }
+  ]
+}

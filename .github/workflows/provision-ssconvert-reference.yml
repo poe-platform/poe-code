@@ -199,6 +199,38 @@ jobs:
                   if output.suffix in ['.xls', '.xlsx', '.po']:
                       outputs.append(dict(name=output.name, bytes=output.stat().st_size, sha256=hashlib.sha256(output.read_bytes()).hexdigest()))
               service_inputs.append(dict(id=fixture['id'], inputSha256=fixture['inputSha256'], scope=fixture['scope'], generatedOutputs=outputs))
+          scalar_path = pathlib.Path('docs/ssconvert/linux-scalar-native-probes.json')
+          scalar_spec = json.loads(scalar_path.read_text())
+          scalar_oracle = None
+          if profile['id'] in scalar_spec['profileIds']:
+              import ctypes, struct
+              libm_path = pathlib.Path(subprocess.check_output(['gcc', '-print-file-name=libm.so.6'], env=env, text=True).strip()).resolve(strict=True)
+              libm = ctypes.CDLL(str(libm_path))
+              scalar_groups = []
+              for group in scalar_spec['groups']:
+                  source_path = pathlib.Path(group['source']['path'])
+                  source_raw = source_path.read_bytes()
+                  assert hashlib.sha256(source_raw).hexdigest() == group['source']['sha256']
+                  rows = json.loads(source_raw)
+                  for key in group['casesPath']:
+                      rows = rows[key]
+                  assert len(rows) == group['cases']
+                  function = getattr(libm, group['symbol'])
+                  function.argtypes = [ctypes.c_double] * len(group['inputFields'])
+                  function.restype = ctypes.c_double
+                  results = []
+                  for index, row in enumerate(rows):
+                      inputs = [row[field] for field in group['inputFields']]
+                      assert all(len(bits) == 16 and all(c in '0123456789abcdef' for c in bits) for bits in inputs)
+                      values = [struct.unpack('>d', bytes.fromhex(bits))[0] for bits in inputs]
+                      ingress = [struct.pack('>d', value).hex() for value in values]
+                      assert ingress == inputs
+                      output = struct.pack('>d', function(*values)).hex()
+                      results.append(dict(sourceIndex=index, inputBits=inputs, outputBits=output))
+                  result_path = root / ('scalar-' + group['id'] + '.json')
+                  result_path.write_text(json.dumps(results, indent=2) + '\n')
+                  scalar_groups.append(dict(id=group['id'], symbol=group['symbol'], cases=len(results), sourceSha256=group['source']['sha256'], resultFile=result_path.name, resultSha256=hashlib.sha256(result_path.read_bytes()).hexdigest()))
+              scalar_oracle = dict(scope=scalar_spec['scope'], manifestSha256=hashlib.sha256(scalar_path.read_bytes()).hexdigest(), libraryPath=str(libm_path), librarySha256=hashlib.sha256(libm_path.read_bytes()).hexdigest(), libraryBytes=libm_path.stat().st_size, groups=scalar_groups)
           workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
           source_revision = subprocess.check_output(['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd()), 'rev-parse', 'HEAD'], text=True).strip()
           assert source_revision == os.environ['GITHUB_SHA']
@@ -208,6 +240,7 @@ jobs:
               sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
+              scalarOracle=scalar_oracle,
               serviceFixtureSha256=hashlib.sha256(service_path.read_bytes()).hexdigest(), serviceInputs=service_inputs,
               dependencyBuilds=json.loads((root / 'dependency-builds.json').read_text()),
               languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs, frozenDateControl=clock_control,

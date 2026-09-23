@@ -326,16 +326,16 @@ test("wc tracks words across chunks and distinguishes bytes, UTF-8 characters an
   assert.equal((await run("wc", ["-l", "first", "second"], { fs })).stdout, "1 first\n2 second\n3 total\n");
 });
 
-test("C and POSIX wc preserve the pinned GNU Darwin nonspace byte profile", async () => {
+test("C and POSIX wc ignore nonprinting spans like Linux GNU wc", async () => {
   const cases: [string | Uint8Array, number, number][] = [
-    [Uint8Array.of(0, 32, 0), 2, 2], [Uint8Array.of(1, 32, 2), 2, 2],
-    [Uint8Array.of(127, 32, 27), 2, 2], [Uint8Array.of(255, 32, 254, 10), 2, 2],
-    ["é 😀\n", 2, 2], [Uint8Array.of(0, 97, 32, 1), 2, 2],
-    [Uint8Array.of(97, 0, 98, 127, 99, 255, 100, 160, 101), 2, 1],
+    [Uint8Array.of(0, 32, 0), 0, 0], [Uint8Array.of(1, 32, 2), 0, 0],
+    [Uint8Array.of(127, 32, 27), 0, 0], [Uint8Array.of(255, 32, 254, 10), 0, 0],
+    ["é 😀\n", 0, 0], [Uint8Array.of(0, 97, 32, 1), 1, 1],
+    [Uint8Array.of(97, 0, 98, 127, 99, 255, 100, 160, 101), 1, 1],
     ["!\t~\nword\vnext\flast\rend", 6, 6],
-    [Uint8Array.from({ length: 256 }, (_, byte) => byte), 4, 3],
-    [Uint8Array.from({ length: 512 }, (_, index) => index % 2 ? 32 : index / 2), 249, 250],
-    [Uint8Array.of(97, 160, 98), 2, 1], [Uint8Array.of(97, 0, 98), 1, 1],
+    [Uint8Array.from({ length: 256 }, (_, byte) => byte), 1, 1],
+    [Uint8Array.from({ length: 512 }, (_, index) => index % 2 ? 32 : index / 2), 94, 94],
+    [Uint8Array.of(97, 160, 98), 1, 1], [Uint8Array.of(97, 0, 98), 1, 1],
   ];
   for (const locale of ["C", "POSIX"]) {
     for (const posix of [false, true]) {
@@ -354,14 +354,29 @@ test("C and POSIX wc preserve the pinned GNU Darwin nonspace byte profile", asyn
   assert.equal((await run("wc", ["-w"], { stdin: chunks("é 😀\n"), env: { LC_ALL: "C.UTF-8" } })).stdout, "2\n");
 });
 
-test("agent wc counts control-only words in files, redirections and pipelines", async () => {
+test("UTF-8 wc ignores controls and invalid bytes while preserving GNU extra spaces", async () => {
+  for (const posix of [false, true]) {
+    const env = { LC_ALL: "C.UTF-8", ...(posix ? { POSIXLY_CORRECT: "" } : {}) };
+    for (const width of [1, 2, 17]) {
+      for (const data of [Uint8Array.of(0, 32, 1), Uint8Array.of(255, 32, 254), "\u0080 \u009f"]) {
+        assert.equal((await run("wc", ["-w"], { stdin: chunks(data, width), env })).stdout, "0\n");
+      }
+      assert.equal((await run("wc", ["-w"], { stdin: chunks("a\u2060b", width), env })).stdout, `${posix ? 1 : 2}\n`);
+    }
+  }
+  for (const env of [{ LANG: "C" }, { LANG: "C.UTF-8", LC_CTYPE: "POSIX" }, { LANG: "C", LC_CTYPE: "C.UTF-8", LC_ALL: "C" }]) {
+    assert.equal((await run("wc", ["-w"], { stdin: chunks("é 😀"), env })).stdout, "0\n");
+  }
+});
+
+test("agent wc ignores control-only spans in files, redirections and pipelines", async () => {
   const fs = await fixture({ input: Uint8Array.of(0, 32, 0), ascii: Uint8Array.of(1, 32, 2) });
   const shell = new Shell({ fs, cwd: "/work", env: { LC_ALL: "C" } }).use(agentCommands());
   for (const [command, expected] of [
-    ["wc -w input", "2 input\n"],
-    ["wc -w < ascii", "2\n"],
-    ["cat input | wc -w", "2\n"],
-    ["wc -w input ascii", "2 input\n2 ascii\n4 total\n"],
+    ["wc -w input", "0 input\n"],
+    ["wc -w < ascii", "0\n"],
+    ["cat input | wc -w", "0\n"],
+    ["wc -w input ascii", "0 input\n0 ascii\n0 total\n"],
   ] as const) {
     const result = await shell.exec(command);
     assert.equal(result.stdout, expected);
@@ -399,7 +414,7 @@ test("wc GNU extra whitespace depends on POSIXLY_CORRECT presence", async () => 
       for (const separator of [Uint8Array.of(0xa0), new TextEncoder().encode("\u00a0"), Uint8Array.of(0x85), Uint8Array.of(32)]) {
         const data = Buffer.concat([Buffer.from("lemon"), separator, Buffer.from("lime berry\n")]);
         const env = { LC_ALL: locale, ...(posix === undefined ? {} : { POSIXLY_CORRECT: posix }) };
-        const count = separator[0] === 32 || posix === undefined && separator.includes(0xa0) ? 3 : 2;
+        const count = separator[0] === 32 ? 3 : 2;
         const result = await run("wc", ["-w"], { stdin: chunks(data, 1), env });
         assert.equal(result.exitCode, 0);
         assert.equal(result.stderr, "");

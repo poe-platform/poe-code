@@ -3,45 +3,61 @@ import { run } from "../run.js";
 import { Budget } from "./budget.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { awaitSandboxValue } from "./cancel.js";
-import { createSandboxClosure, getPromiseProperties, isSandboxClosure, isSandboxPromise, measureSandboxData } from "./values.js";
+import { createSandboxPromise, createSandboxClosure, getPromiseProperties, isSandboxClosure, isSandboxPromise, measureSandboxData } from "./values.js";
 import { attachPendingPromiseReaction, createPendingPromiseCapability } from "./promise.js";
 import { promiseContinuations, promiseReactionResults, promiseProducers, trackPromiseContinuation, promiseAdoptions, promiseAdoptionBridges, promiseAdoptionResolvers } from "./promise-continuations.js";
 
 it("records pending capabilities and their reaction links, then releases settled metadata", async () => {
-  const result = await run("const c=Promise.withResolvers();const handler=value=>value+1;return [c.promise,c.resolve,c.promise.then(handler),handler]");
-  assert(result.ok && Array.isArray(result.returnValue));
-  const [promise, resolve, chained, handler] = result.returnValue;
-  assert(isSandboxPromise(promise) && isSandboxPromise(chained) && isSandboxClosure(resolve));
-  expect(promiseContinuations.get(promise)).toMatchObject({kind: "capability", state: {promise, settled: false}});
-  expect(promiseContinuations.get(chained)).toMatchObject({kind: "reaction", source: promise, onFulfilled: handler});
-  expect(promiseReactionResults.get(promise)?.has(chained)).toBe(true);
   const budget = new Budget();
-  await invokeBuiltinClosure(resolve, [7], budget, undefined, undefined);
-  expect(await awaitSandboxValue(chained, undefined, budget)).toBe(8);
-  expect(promiseContinuations.has(promise)).toBe(false);
-  expect(promiseContinuations.has(chained)).toBe(false);
-  expect(promiseReactionResults.get(promise)?.size ?? 0).toBe(0);
+  // Keep the originating execution alive while inspecting and settling its promises.
+  const inspect = createSandboxClosure({
+    async: true,
+    call: ([values]) => createSandboxPromise((async () => {
+      assert(Array.isArray(values));
+      const [promise, resolve, chained, handler] = values;
+      assert(isSandboxPromise(promise) && isSandboxPromise(chained) && isSandboxClosure(resolve));
+      expect(promiseContinuations.get(promise)).toMatchObject({kind: "capability", state: {promise, settled: false}});
+      expect(promiseContinuations.get(chained)).toMatchObject({kind: "reaction", source: promise, onFulfilled: handler});
+      expect(promiseReactionResults.get(promise)?.has(chained)).toBe(true);
+      await invokeBuiltinClosure(resolve, [7], budget, undefined, undefined);
+      expect(await awaitSandboxValue(chained, undefined, budget)).toBe(8);
+      expect(promiseContinuations.has(promise)).toBe(false);
+      expect(promiseContinuations.has(chained)).toBe(false);
+      expect(promiseReactionResults.get(promise)?.size ?? 0).toBe(0);
+      return true;
+    })())
+  });
+  const result = await run("const c=Promise.withResolvers();const handler=value=>value+1;return await inspect([c.promise,c.resolve,c.promise.then(handler),handler])", { budget, bindings: { inspect } });
+  expect(result).toMatchObject({ ok: true, returnValue: true });
 });
 
 it("retains a subclass producer until its reaction runs even if its result settles early", async () => {
-  const result = await run("let settleResult;let calls=0;class P extends Promise{constructor(executor){super((resolve,reject)=>{settleResult=resolve;executor(resolve,reject)})}}const c=Promise.withResolvers();c.promise.constructor={[Symbol.species]:P};const chained=c.promise.then(()=>{calls++;return 7});return [c.promise,chained,c.resolve,settleResult,()=>calls]");
-  assert(result.ok && Array.isArray(result.returnValue));
-  const [source, promise, resolveSource, resolveResult, readCalls] = result.returnValue;
-  assert(isSandboxPromise(source) && isSandboxPromise(promise) && isSandboxClosure(resolveSource) && isSandboxClosure(resolveResult) && isSandboxClosure(readCalls));
-  const producers = promiseProducers.get(promise);
-  assert(producers !== undefined && producers.size === 1);
-  const producer = [...producers][0]!;
-  expect(promiseReactionResults.get(source)?.has(producer)).toBe(true);
-  expect(promiseContinuations.get(producer)).toMatchObject({kind: "reaction", source, capability: {promise, resolve: resolveResult}});
   const budget = new Budget();
-  await invokeBuiltinClosure(resolveResult, [99], budget, undefined, undefined);
-  expect(await promise.promise).toBe(99);
-  expect(promiseProducers.get(promise)?.has(producer)).toBe(true);
-  await invokeBuiltinClosure(resolveSource, [7], budget, undefined, undefined);
-  await producer.promise;
-  expect(await invokeBuiltinClosure(readCalls, [], budget, undefined, undefined)).toBe(1);
-  expect(promiseProducers.has(promise)).toBe(false);
-  expect(promiseReactionResults.has(source)).toBe(false);
+  // Keep the originating execution alive while inspecting and settling its promises.
+  const inspect = createSandboxClosure({
+    async: true,
+    call: ([values]) => createSandboxPromise((async () => {
+      assert(Array.isArray(values));
+      const [source, promise, resolveSource, resolveResult, readCalls] = values;
+      assert(isSandboxPromise(source) && isSandboxPromise(promise) && isSandboxClosure(resolveSource) && isSandboxClosure(resolveResult) && isSandboxClosure(readCalls));
+      const producers = promiseProducers.get(promise);
+      assert(producers !== undefined && producers.size === 1);
+      const producer = [...producers][0]!;
+      expect(promiseReactionResults.get(source)?.has(producer)).toBe(true);
+      expect(promiseContinuations.get(producer)).toMatchObject({kind: "reaction", source, capability: {promise, resolve: resolveResult}});
+      await invokeBuiltinClosure(resolveResult, [99], budget, undefined, undefined);
+      expect(await promise.promise).toBe(99);
+      expect(promiseProducers.get(promise)?.has(producer)).toBe(true);
+      await invokeBuiltinClosure(resolveSource, [7], budget, undefined, undefined);
+      await producer.promise;
+      expect(await invokeBuiltinClosure(readCalls, [], budget, undefined, undefined)).toBe(1);
+      expect(promiseProducers.has(promise)).toBe(false);
+      expect(promiseReactionResults.has(source)).toBe(false);
+      return true;
+    })())
+  });
+  const result = await run("let settleResult;let calls=0;class P extends Promise{constructor(executor){super((resolve,reject)=>{settleResult=resolve;executor(resolve,reject)})}}const c=Promise.withResolvers();c.promise.constructor={[Symbol.species]:P};const chained=c.promise.then(()=>{calls++;return 7});return await inspect([c.promise,chained,c.resolve,settleResult,()=>calls])", { budget, bindings: { inspect } });
+  expect(result).toMatchObject({ ok: true, returnValue: true });
 });
 
 it.each(["source", "result"])("accounts for a pending reaction handler from its %s", async root => {
@@ -94,26 +110,34 @@ it("accounts for the source retained by a locked adoption", async () => {
 });
 
 it("records the locked resolution input while adoption is pending", async () => {
-  const result = await run("const first=Promise.withResolvers();const second=Promise.withResolvers();first.resolve(second.promise);first.resolve(99);return [first.promise,second.promise,second.resolve]");
-  assert(result.ok && Array.isArray(result.returnValue));
-  const [first, second, resolve] = result.returnValue;
-  assert(isSandboxPromise(first) && isSandboxPromise(second) && isSandboxClosure(resolve));
-  expect(promiseContinuations.get(first)).toMatchObject({kind: "capability", state: {settled: true}, resolution: {status: "fulfilled", value: second}});
-  const token = promiseAdoptions.get(first);
-  assert(token !== undefined);
-  const bridge = promiseAdoptionBridges.get(token);
-  assert(bridge !== undefined);
-  expect(bridge.source).toBe(second);
-  expect(bridge.owner).toBe(first);
-  expect(bridge.settled).toBe(false);
-  expect(promiseAdoptionResolvers.get(bridge.resolve)).toEqual({bridge: token, action: "fulfilled"});
-  expect(promiseAdoptionResolvers.get(bridge.reject)).toEqual({bridge: token, action: "rejected"});
-  expect(Object.keys(token)).toEqual([]);
   const budget = new Budget();
-  await invokeBuiltinClosure(resolve, [7], budget, undefined, undefined);
-  expect(await awaitSandboxValue(first, undefined, budget)).toBe(7);
-  expect(promiseAdoptions.has(first)).toBe(false);
-  expect(promiseAdoptionBridges.has(token)).toBe(false);
-  expect(promiseAdoptionResolvers.has(bridge.resolve)).toBe(false);
-  expect(promiseAdoptionResolvers.has(bridge.reject)).toBe(false);
+  // Keep the originating execution alive while inspecting and settling its promises.
+  const inspect = createSandboxClosure({
+    async: true,
+    call: ([values]) => createSandboxPromise((async () => {
+      assert(Array.isArray(values));
+      const [first, second, resolve] = values;
+      assert(isSandboxPromise(first) && isSandboxPromise(second) && isSandboxClosure(resolve));
+      expect(promiseContinuations.get(first)).toMatchObject({kind: "capability", state: {settled: true}, resolution: {status: "fulfilled", value: second}});
+      const token = promiseAdoptions.get(first);
+      assert(token !== undefined);
+      const bridge = promiseAdoptionBridges.get(token);
+      assert(bridge !== undefined);
+      expect(bridge.source).toBe(second);
+      expect(bridge.owner).toBe(first);
+      expect(bridge.settled).toBe(false);
+      expect(promiseAdoptionResolvers.get(bridge.resolve)).toEqual({bridge: token, action: "fulfilled"});
+      expect(promiseAdoptionResolvers.get(bridge.reject)).toEqual({bridge: token, action: "rejected"});
+      expect(Object.keys(token)).toEqual([]);
+      await invokeBuiltinClosure(resolve, [7], budget, undefined, undefined);
+      expect(await awaitSandboxValue(first, undefined, budget)).toBe(7);
+      expect(promiseAdoptions.has(first)).toBe(false);
+      expect(promiseAdoptionBridges.has(token)).toBe(false);
+      expect(promiseAdoptionResolvers.has(bridge.resolve)).toBe(false);
+      expect(promiseAdoptionResolvers.has(bridge.reject)).toBe(false);
+      return true;
+    })())
+  });
+  const result = await run("const first=Promise.withResolvers();const second=Promise.withResolvers();first.resolve(second.promise);first.resolve(99);return await inspect([first.promise,second.promise,second.resolve])", { budget, bindings: { inspect } });
+  expect(result).toMatchObject({ ok: true, returnValue: true });
 });

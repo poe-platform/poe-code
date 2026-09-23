@@ -222,7 +222,7 @@ Unicode selection and extended regex syntax require a configured executor.
           };
           const walker = new Walker(context, args, limits, report, session);
           await walker.validate();
-          const matcher = new Matcher(args.mode === "files" ? [] : await patterns({ ...context, signal: session.requestSignal }, args, limits), args, session);
+          const matcher = new Matcher(args.mode === "files" ? [] : await patterns(context, args, limits), args, session);
           if (args.mode !== "files") await matcher.batch([]);
           if (args.mode !== "files" && args.maxCount === 0) return { exitCode: 1 };
           const printer = new Printer(args, limits);

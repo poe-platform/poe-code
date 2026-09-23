@@ -1,0 +1,1870 @@
+{
+  "schema": 1,
+  "qualification": "Controlled GNU patch2.8 Darwin mode evidence; current source backup fix and independently reconciled current assertions",
+  "native": {
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "officialSourceURL": "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz",
+    "sourceArchiveSha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3",
+    "profiles": [
+      {
+        "path": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+        "size": 237384,
+        "sha256": "f89ad6a21236c82e530c3edb31a2ac5d3c478100c0758931d36cb79bb1a53d8c",
+        "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n"
+      },
+      {
+        "path": "/usr/bin/patch",
+        "size": 220608,
+        "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+        "version": "patch 2.0-12u11-Apple\n"
+      }
+    ],
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/native-mode.json",
+      "bytes": 57828,
+      "sha256": "7073bf98ed7e4ab80e007b83b7f65737c1934f031c43d4b9d5da524cf97f7292"
+    },
+    "gnuRows": 36,
+    "appleRows": 36,
+    "gnuCases": [
+      "offset mismatch",
+      "repeated hunk conflict",
+      "explicit absolute creation",
+      "reverse deletion creation"
+    ],
+    "seedModes": [
+      "0666",
+      "0640",
+      "0600"
+    ],
+    "childUmasks": [
+      "022",
+      "077",
+      "000"
+    ],
+    "observed": "Existing source/backup permissions preserved independent of mask; new rejects and targets0666&~childmask. Apple reverse deletion/conflict differ and are retained independently.",
+    "sourceBindings": [
+      {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch.c",
+        "bytes": 55205,
+        "sha256": "ca20b87c33247159560d896283c7ac506f71304bdc3249d9826c8bfb92417106"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/util.c",
+        "bytes": 46294,
+        "sha256": "67ba718ceec6cf3004d2619cd0303f9cea5c2c962603bf7ebd7978519f10bfb2"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/inp.c",
+        "bytes": 6518,
+        "sha256": "5307644a4601524146a6b0edbbc03d58255a29a23c08a90a4bf43f0987b9ce27"
+      }
+    ],
+    "freshBinaryDifferentFromHistorical": true,
+    "historicalExecutableMissing": "/tmp/safe-bash-gnu-oracle.Yg2F0W/patch-2.8/src/patch",
+    "historicalBinarySha256": "c060444da0e547de6f17594baf0b5015a04f5b3277131ca12b1da27c621aee00",
+    "historicalSourcePatchAndUtilHashesMatchFresh": true,
+    "durableControlledRows": {
+      "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+      "sourceArchiveSha256": "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3",
+      "profiles": [
+        {
+          "path": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "size": 237384,
+          "sha256": "f89ad6a21236c82e530c3edb31a2ac5d3c478100c0758931d36cb79bb1a53d8c",
+          "version": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n"
+        },
+        {
+          "path": "/usr/bin/patch",
+          "size": 220608,
+          "sha256": "ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84",
+          "version": "patch 2.0-12u11-Apple\n"
+        }
+      ],
+      "rows": [
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o644",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-td1gm0rh/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-td1gm0rh/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-no3zkntv/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-no3zkntv/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o644",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-os0oympm/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-os0oympm/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-nvxv9ueg/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-nvxv9ueg/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o644",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-a6d4n6fc/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-a6d4n6fc/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_q8z0l7j/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_q8z0l7j/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o600",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-2euir451/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-2euir451/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-4ska295d/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-4ska295d/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o600",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-f7fcnsqh/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-f7fcnsqh/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-150i2ts0/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-150i2ts0/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o600",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-h6tk0pqg/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-h6tk0pqg/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_80rjw5m/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_80rjw5m/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o666",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-7f0tg6b6/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-7f0tg6b6/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-flmsenro/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-flmsenro/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o666",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-98o5pn4u/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-98o5pn4u/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-n3gjf781/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-n3gjf781/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\nHunk #1 succeeded at 2 (offset 1 line).\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 1,
+          "stdout": "patching file target\nmisordered hunks! output would be garbled\nHunk #2 FAILED at 1.\n1 out of 2 hunks FAILED -- saving rejects to file target.rej\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6e65770a6d6964646c650a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            },
+            "target.rej": {
+              "mode": "0o666",
+              "hex": "2d2d2d207461726765740a2b2b2b207461726765740a4040202d31202b312040400a2d6f6c640a2b6f746865720a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-kqjpmqks/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-kqjpmqks/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/patch-2.8/src/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-gx9c3s5b/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 0,
+          "stdout": "patching file /Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-gx9c3s5b/target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-2yjyr07m/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-2yjyr07m/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-t48s6p97/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-t48s6p97/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-26higf5v/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-26higf5v/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-0huhdo6r/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-0huhdo6r/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-p2t5w_9g/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-p2t5w_9g/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o644",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o22",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-nk0_g9ry/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-nk0_g9ry/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-yzqkox1y/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-yzqkox1y/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-5psyy96u/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-5psyy96u/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-90py13uh/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-90py13uh/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-ws4es6sf/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-ws4es6sf/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-szxncbx0/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-szxncbx0/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o77",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-q4e1op1f/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-q4e1op1f/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o666",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-rm7nzvrc/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-rm7nzvrc/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o666",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-aby0al16/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-aby0al16/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o640",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o640",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_b876j5n/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-_b876j5n/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o640",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-b9d829fz/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-b9d829fz/target'\n",
+          "after": {}
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-offset",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n",
+          "status": 0,
+          "stdout": "patching file target\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "7072656669780a6e65770a7461696c0a"
+            },
+            "target.orig": {
+              "mode": "0o600",
+              "hex": "7072656669780a6f6c640a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "backup-conflict",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch"
+          ],
+          "input": "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n@@ -1 +1 @@\n-old\n+other\n",
+          "status": 2,
+          "stdout": "patching file target\n",
+          "stderr": "patch: **** misordered hunks! output would be garbled\n",
+          "after": {
+            "target": {
+              "mode": "0o600",
+              "hex": "6f6c640a6d6964646c650a7461696c0a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "new-file",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-kc1o7o2b/target"
+          ],
+          "input": "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+created\n",
+          "status": 0,
+          "stdout": "patching file '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-kc1o7o2b/target'\n",
+          "stderr": "",
+          "after": {
+            "target": {
+              "mode": "0o666",
+              "hex": "637265617465640a"
+            }
+          }
+        },
+        {
+          "tool": "/usr/bin/patch",
+          "case": "reverse-deletion",
+          "umask": "0o0",
+          "seedMode": "0o600",
+          "argv": [
+            "/usr/bin/patch",
+            "--batch",
+            "-R",
+            "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-4glrtuvq/target"
+          ],
+          "input": "--- target\n+++ /dev/null\n@@ -1 +0,0 @@\n-created\n",
+          "status": 2,
+          "stdout": "",
+          "stderr": "patch: **** can't find '/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/bash-release-feedback/gnu-patch-mode/case-4glrtuvq/target'\n",
+          "after": {}
+        }
+      ]
+    }
+  },
+  "sealedInputs": [
+    {
+      "path": "packages/safe-bash/tests/commands/diff-patch-stress/evidence/fullgate-51282a9-followup/before-expanded.json",
+      "bytes": 446501,
+      "sha256": "509435faa8974b12a931bd91401d71a96e3af38db93002d86d0c060b456a93a2",
+      "unchangedAgainstCurrentHEAD": true
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/diff-patch-stress/absolute-target/evidence.json",
+      "bytes": 18912,
+      "sha256": "4612070c5f8580f81427d9b35ee915abe3e166cdf3512767bca33ba7cf248b99",
+      "unchangedAgainstCurrentHEAD": true
+    }
+  ],
+  "backupAtomicPaths": [
+    "packages/safe-bash/src/commands/diff-patch/patch.ts",
+    "packages/safe-bash/tests/commands/diff-patch/patch-gnu-publication.test.ts"
+  ],
+  "expectationAtomicPaths": [
+    "packages/safe-bash/tests/commands/diff-patch-stress/fuzz/repeated-match.test.ts",
+    "packages/safe-bash/tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts"
+  ],
+  "validation": [
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-backup-mode-red.log",
+      "bytes": 13449,
+      "sha256": "d417ceade13797c053112c1773c25ec7abf7b40f5567fbaa347b8251d4298fda",
+      "counts": {
+        "tests": 24,
+        "pass": 12,
+        "fail": 12,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-backup-mode-corrected-red.log",
+      "bytes": 11414,
+      "sha256": "4103f1a1a9f6e791a18cc86a92cc2e3c2367c9fadd50192e39d9b58d24cc6be9",
+      "counts": {
+        "tests": 24,
+        "pass": 14,
+        "fail": 10,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-backup-mode-green.log",
+      "bytes": 231757,
+      "sha256": "e2e86944d39786177e3f6cef186d63bcda68d42a608fa134ddd00f7b24343987",
+      "counts": {
+        "tests": 1137,
+        "pass": 1131,
+        "fail": 6,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-backup-author-green.log",
+      "bytes": 213952,
+      "sha256": "085987fbb44791c22d7855e9d064a377132c1b34b5825a98892b9c95d65d45b4",
+      "counts": {
+        "tests": 1117,
+        "pass": 1117,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-current-mode-expectations-green.log",
+      "bytes": 12512,
+      "sha256": "2619eb22fb157201f620393be9d38cb2fc3f73b0332e81d83775fbc04841f727",
+      "counts": {
+        "tests": 50,
+        "pass": 50,
+        "fail": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "validationNotes": [
+    "Original new-control red contains verifier errors: full stat typebits not masked,readonly old backup. Corrected red10fail/24retained.",
+    "Initial broadened1137cohort6fail were stale new reject mapper0644-vs0666;50current expectation cohort later0fail. Cohorts overlap; do not sum.",
+    "Author cohort1117 includes14new controls(12source/backup permutations and2permissionless contracts).",
+    "Package maintained typecheck still running at proof creation; no type or full lint clearance claimed. No raw ESLint bypass used for patch changes.",
+    "Historical absolute-target README remains historical; original default0666 expectation failure receipts preserved."
+  ],
+  "currentBindings": [
+    {
+      "path": "packages/safe-bash/src/commands/diff-patch/patch.ts",
+      "bytes": 19979,
+      "sha256": "02157fb206f323af4fcb9eeb2316dcae4e061cff2c778ef0eb20acf3d6e4716b"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/diff-patch/patch-gnu-publication.test.ts",
+      "bytes": 5048,
+      "sha256": "409eb8918bdca646c45ce61b7c776675bb483da3658216c7f78fc8766c820934"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/diff-patch-stress/fuzz/repeated-match.test.ts",
+      "bytes": 3129,
+      "sha256": "d996486bdbc49ee481c1d4cb7c8bafb0b1bf13ee8ab1378aadceca22e4ca2f59"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/diff-patch-stress/absolute-target/absolute-target.test.ts",
+      "bytes": 10004,
+      "sha256": "8dea2c17958f4966a82299ed235a63949969b78da6f03e1306fb1156f91a06b5"
+    }
+  ],
+  "typecheck": {
+    "command": "npm run typecheck",
+    "cwd": "packages/safe-bash",
+    "exitCode": 2,
+    "sourceAndTests": 0,
+    "historicalBuildFirstConsumer": 0,
+    "artifactConsumerPhase": "incomplete:poe-code-config/dist/core.d.ts missing during concurrent maintained root build",
+    "runtimeExecutions": 0,
+    "logSha256": "8c523af8e2c396a5a832480c0a499642ea0cd4949c2ac89490581dc8d26e8a2b"
+  },
+  "stableTypecheck": {
+    "command": "npm run typecheck",
+    "cwd": "packages/safe-bash",
+    "exitCode": 0,
+    "sourceAndTests": 0,
+    "historicalBuildFirstConsumer": 0,
+    "sourceConsumerGroups": 6,
+    "artifactConsumerGroups": 26,
+    "expectedNegativeCases": 3,
+    "builds": 0,
+    "runtimeExecutions": 0,
+    "logSha256": "93fa493acf2891b3bbc55bc7879e393771e3c21da692650836326d62aeccbf6b",
+    "scope": "types only; no runtime or full lint clearance"
+  },
+  "rootGates": {
+    "normalBuild": "passed",
+    "guardedLint": {
+      "complete": true,
+      "exitCode": 0,
+      "subjects": 16407,
+      "errors": 0,
+      "warnings": 0,
+      "types": "passed",
+      "workflows": "passed"
+    },
+    "publicShell": "poe-code/safe-bash source0666/backup0666 underumask077,originalbytes preserved,exit0,emptystderr",
+    "screenshot": "Inspected readable actual public patch output and modes",
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/byte-substitute-mkdir-root-build-stable.log",
+        "bytes": 22193,
+        "sha256": "327c50d48c3a5e086172a1d5128772fac3537f081f15ce35969a63ab97d3813c"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-substitute-patch-mkdir-stable-root-lint.log",
+        "bytes": 1747,
+        "sha256": "f7d809853ba7f7c30a66415af7f1fbb225d529343dc7a1765e7e9d626443da02"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/patch-backup-visible-qa.mjs",
+        "bytes": 1101,
+        "sha256": "e62fa2c400d53fea1b4f73fc3e6b37137b6a62f7c17715eedbeb0b96de2dcce3"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/patch-backup-visible-qa.log",
+        "bytes": 163,
+        "sha256": "e53c906af782bdd38d4a97310923b26d24913fa904e006fa81c32b3c87ad768b"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/patch-backup-visible-qa.png",
+        "bytes": 93006,
+        "sha256": "2c3b60ba19b4c3441f55812e136a30075966a517ed6281a06642aac200596ee6"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/patch-backup-screenshot.log",
+        "bytes": 202,
+        "sha256": "af5138641b6912ebae58ce9265a7e13ddcfb172c5a2d3e33a14952ed0abb7acf"
+      }
+    ]
+  },
+  "delivery": {
+    "backupCommit": "55815dc7e821322534388ec815d4f226f129ab65",
+    "expectationCommit": "945718626b4478d62a21f74d786af662b4212a57",
+    "remoteMainVerified": true,
+    "publication": "unverified",
+    "qualification": "Rootgates on combined ownedcandidate;4incomingarchive/awk commits preserved withoutchanging ownedfilehashes.ContainingCI remainsrequired."
+  },
+  "remaining": [
+    "11currentmetadata/trafficcases afterseparate noncreating-open fix(10/116plus1/11glob);not allclassified asproductdefects.",
+    "Actual containingpublication unverified;all originalssconvert planfamilies remainopen."
+  ]
+}

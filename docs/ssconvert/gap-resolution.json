@@ -1005,5 +1005,18 @@
     "publicFieldsEachSurface": 342,
     "guardedLintSubjects": 16407,
     "publication": "unverified"
+  },
+  "patchModeFeedbackFollowup": {
+    "proof": "docs/ssconvert/patch-backup-mode-gap-proof.json",
+    "backupCommit": "55815dc7e821322534388ec815d4f226f129ab65",
+    "expectationCommit": "945718626b4478d62a21f74d786af662b4212a57",
+    "remoteMainVerified": true,
+    "authorControls": 1117,
+    "currentExpectationControls": 50,
+    "cohortsOverlap": true,
+    "nativeGnuRows": 36,
+    "nativeAppleRows": 36,
+    "guardedLintSubjects": 16407,
+    "publication": "unverified"
   }
 }

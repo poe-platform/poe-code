@@ -4,14 +4,20 @@ import { Shell, agentCommands, createMemoryFileSystem } from "../../src/core.js"
 
 const gnuUtilities = "base32 base64 basename chmod cksum comm cp cut dirname env expand fold head join ln ls md5sum mkdir mktemp mv nl od paste readlink realpath rm rmdir seq sha1sum sha224sum sha256sum sha384sum sha512sum sort split stat tac tail tee touch tr unexpand uniq wc".split(" ");
 
-test("cat and du admit version information alongside their existing help", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+test("all 46 reported utilities preserve binary fixtures and stdin on version requests", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = Uint8Array.of(67, 254, 0, 10);
+  await fs.writeFile("/info-fixture", bytes);
+  const shell = new Shell({ fs }).use(agentCommands());
   try {
-    for (const command of ["cat", "du"]) {
-      const result = await shell.exec(`${command} --version -- /missing`);
+    for (const command of ["cat", "du", ...gnuUtilities]) {
+      const stdin = (async function* () { assert.fail("version must not read stdin"); yield bytes; })();
+      const result = await shell.exec(`${command} --version -- info-fixture /missing`, { stdin });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stderr, "");
-      assert.ok(result.stdout.includes("safe-bash"), result.stdout);
+      assert.equal(result.stdout, `${command} (safe-bash virtual implementation)\n`);
+      assert.deepEqual(await fs.readFile("/info-fixture"), bytes);
+      assert.deepEqual(await fs.readdir("/"), [{ name: "info-fixture", type: "file" }]);
     }
   } finally { await shell.dispose(); }
 });
@@ -79,8 +85,8 @@ test("GNU information requests require no filesystem operations or backend capab
   });
   const shell = new Shell({ fs: unavailable }).use(agentCommands());
   try {
-    for (const command of gnuUtilities) {
-      for (const flag of ["--help", "--version"]) {
+    for (const command of ["cat", "du", ...gnuUtilities]) {
+      for (const flag of command === "cat" || command === "du" ? ["--version"] : ["--help", "--version"]) {
         const result = await shell.exec(`${command} ${flag} -- /missing`);
         assert.equal(result.exitCode, 0, result.stderr);
       }

@@ -5219,7 +5219,25 @@
             "stderrHex": ""
           }
         ]
-      }
+      },
+      "preservedPrefixReceipt": {
+        "sha256": "74891c5dd1e46c0ed2ccd1f25b5d38189fc1d5deb58e23a2b14036ae83577b33",
+        "bytes": 32769712,
+        "receipt": "74891c5dd1e46c0ed2ccd1f25b5d38189fc1d5deb58e23a2b14036ae83577b33  out/ssconvert-linux/reference-prefix.tar.gz\n",
+        "binaryMember": "ssconvert-reference/bin/ssconvert",
+        "binaryMode": "0755",
+        "elfMachine": 183
+      },
+      "sourceArchiveReceipts": [
+        {
+          "name": "goffice.tar.xz",
+          "sha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+        },
+        {
+          "name": "gnumeric.tar.xz",
+          "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+        }
+      ]
     },
     {
       "run": 35840380188,
@@ -10442,7 +10460,25 @@
             "stderrHex": "0a2a2a20287373636f6e766572743a3632323333293a205741524e494e47202a2a3a2030393a30353a30382e3738303a20676e6d5f76616c75655f746f5f70795f6f626a3a20756e737570706f727465642076616c756520747970650a0a2a2a20287373636f6e766572743a3632323333293a205741524e494e47202a2a3a2030393a30353a30382e3738323a20676e6d5f76616c75655f746f5f70795f6f626a3a20756e737570706f727465642076616c756520747970650a"
           }
         ]
-      }
+      },
+      "preservedPrefixReceipt": {
+        "sha256": "b1ea1fdc8a88068704dc81214516dae1ca7567cf56459306ef98d70ba8cd0127",
+        "bytes": 32921912,
+        "receipt": "b1ea1fdc8a88068704dc81214516dae1ca7567cf56459306ef98d70ba8cd0127  out/ssconvert-linux/reference-prefix.tar.gz\n",
+        "binaryMember": "ssconvert-reference/bin/ssconvert",
+        "binaryMode": "0755",
+        "elfMachine": 183
+      },
+      "sourceArchiveReceipts": [
+        {
+          "name": "goffice.tar.xz",
+          "sha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+        },
+        {
+          "name": "gnumeric.tar.xz",
+          "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+        }
+      ]
     },
     {
       "run": 35840384941,
@@ -15604,7 +15640,25 @@
             "stderrHex": ""
           }
         ]
-      }
+      },
+      "preservedPrefixReceipt": {
+        "sha256": "31e6fbe6bbc69afe036dfc69350566bd466a3c8440b97e337ac27418ed0d5cb5",
+        "bytes": 32752205,
+        "receipt": "31e6fbe6bbc69afe036dfc69350566bd466a3c8440b97e337ac27418ed0d5cb5  out/ssconvert-linux/reference-prefix.tar.gz\n",
+        "binaryMember": "ssconvert-reference/bin/ssconvert",
+        "binaryMode": "0755",
+        "elfMachine": 183
+      },
+      "sourceArchiveReceipts": [
+        {
+          "name": "goffice.tar.xz",
+          "sha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+        },
+        {
+          "name": "gnumeric.tar.xz",
+          "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+        }
+      ]
     },
     {
       "run": 35841079134,
@@ -20939,7 +20993,25 @@
             }
           }
         ]
-      }
+      },
+      "preservedPrefixReceipt": {
+        "sha256": "c2b9793523dfc1aefe27b0195dccb0cf2d56c9c561eb598a3edfad3493c67f4d",
+        "bytes": 32760628,
+        "receipt": "c2b9793523dfc1aefe27b0195dccb0cf2d56c9c561eb598a3edfad3493c67f4d  out/ssconvert-linux/reference-prefix.tar.gz\n",
+        "binaryMember": "ssconvert-reference/bin/ssconvert",
+        "binaryMode": "0755",
+        "elfMachine": 183
+      },
+      "sourceArchiveReceipts": [
+        {
+          "name": "goffice.tar.xz",
+          "sha256": "558597fd9ca59b93ff562750218d1e7ea8ec3c8d0ed6a5cc096aa715ef909a15"
+        },
+        {
+          "name": "gnumeric.tar.xz",
+          "sha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12"
+        }
+      ]
     }
   ],
   "open": [

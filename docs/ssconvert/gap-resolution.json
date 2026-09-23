@@ -1250,5 +1250,34 @@
     "remainingActivationProfiles": 5,
     "publication": "unverified",
     "wholeGoalComplete": false
+  },
+  "linuxOptionalActivationBuilds": {
+    "evidence": "docs/ssconvert/linux-optional-native-build-proof.json",
+    "nativeBuilds": [
+      {
+        "run": 35841830391,
+        "profile": "python-glossary",
+        "plugins": 48
+      },
+      {
+        "run": 35841858644,
+        "profile": "sample-datasource",
+        "plugins": 47
+      },
+      {
+        "run": 35841928953,
+        "profile": "excel-formats",
+        "plugins": 46
+      }
+    ],
+    "allThreePluginIdsExactAndActive": true,
+    "serviceExecutionQualified": false,
+    "gdaMissingHeaderRun": 35842042259,
+    "gnomeDbMissingUiRun": 35842043972,
+    "gnomeDbMissingUiInAuthenticatedRelease": true,
+    "libgdaDependencyProvisionCommit": "63e1004a741175578d9962f1837777edd3419667",
+    "gdaDependencyRun": 35843092542,
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

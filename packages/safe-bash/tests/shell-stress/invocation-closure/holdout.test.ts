@@ -11,9 +11,12 @@ const native: Reference = JSON.parse(await readFile(`${owned}/native-preparation
 assert.equal(native.cohortHash, sha256(await readFile(`${owned}/cases.ts`)));
 assert.deepEqual(native.profiles.map(profile => profile.rows.map(row => row.id)), [cases.map(row => row.id), cases.map(row => row.id)]);
 
+// Current profile delivered by #386 (9cdb1c5): type -t uses Bash-compatible
+// builtin/file vocabulary. Registry dispatch remains kind "command", as the
+// exact human descriptions attest. Sealed native/historical captures stay unchanged.
 const safePluginTuples = new Map<string, { exitCode: number; stdoutHex: string; stderrHex: string }>([
   ["query-V-verbose", { exitCode: 0, stdoutHex: Buffer.from("printf is a registered command\nclosurefn is a function\nclosurefn () \n{ \n    :\n}\nclosuretool is /work/tools/closuretool\n").toString("hex"), stderrHex: "" }],
-  ["type-multiple-status", { exitCode: 0, stdoutHex: Buffer.from("command\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n").toString("hex"), stderrHex: "" }],
+  ["type-multiple-status", { exitCode: 0, stdoutHex: Buffer.from("builtin\nfunction\nfile\nmixed:1\nprintf is a registered command\nclosuretool is tools/closuretool\n").toString("hex"), stderrHex: "" }],
 ]);
 
 async function probe(id: string) {
@@ -40,7 +43,7 @@ for (const row of cases) test(`closure ${safePluginTuples.has(row.id) ? "safeplu
   assert.equal(actual.exitCode, expected.result.code);
   const coordinateMapped = Buffer.from(expected.result.stdoutHex, "hex").toString().replaceAll(expected.result.cwd, "/work");
   const policy = safePluginTuples.get(row.id);
-  if (policy) assert.deepEqual({ exitCode: actual.exitCode, stdoutHex: actual.stdoutHex, stderrHex: actual.stderrHex }, policy, "Declared safeplugin registry classification, not native builtin parity");
+  if (policy) assert.deepEqual({ exitCode: actual.exitCode, stdoutHex: actual.stdoutHex, stderrHex: actual.stderrHex }, policy, "Delivered #386 Bash-compatible type -t profile with exact registry descriptions");
   else assert.equal(actual.stdoutHex, Buffer.from(coordinateMapped).toString("hex"), "Primary exact stdout after declared native-cwd → VFS /work mapping; raw bytes remain separately compared");
   if (row.diagnostic) for (const fragment of row.diagnostic) assert.ok(actual.stderr.includes(fragment), `Diagnostic lacks ${fragment}: ${actual.stderr}`);
   else assert.equal(actual.stderrHex, expected.result.stderrHex);

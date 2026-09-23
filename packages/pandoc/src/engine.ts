@@ -59,18 +59,38 @@ class Session extends ExecutionContext {
   epub: WriteOptions["epub"];
   pdfFonts: readonly import("@poe-code/pdf").SuppliedFont[] | undefined;
   pdfFontInputs: WriteOptions["pdfFonts"];
+  wrap: WriteOptions["wrap"];
+  columns: number | undefined;
+  numberSections = false;
+  toc = false;
+  ascii = false;
+  stripComments = false;
+  shiftHeadingLevelBy = 0;
+  eol: WriteOptions["eol"];
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
-    if (this.operation !== "read") allowed.push("yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub");
+    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
-    if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
+    if ("wrap" in options && !["none", "auto", "preserve"].includes(options.wrap!)) this.fail("E_OPTION", "Invalid wrap policy");
+    if ("wrap" in options && options.wrap !== "none" && "to" in options && this.registry.resolve(options.to, "write").descriptor.name !== "plain") this.fail("E_OPTION", "This writer supports only wrap none");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {
+      for (const key of ["numberSections", "toc", "ascii", "stripComments"] as const) {
+        if (options[key] !== undefined && typeof options[key] !== "boolean") this.fail("E_OPTION", `${key} must be boolean`);
+        this[key] = options[key] === true;
+      }
+      if (options.columns !== undefined && (!Number.isSafeInteger(options.columns) || options.columns < 1)) this.fail("E_OPTION", "columns must be a positive integer");
+      if (options.shiftHeadingLevelBy !== undefined && (!Number.isInteger(options.shiftHeadingLevelBy) || Math.abs(options.shiftHeadingLevelBy) > 6)) this.fail("E_OPTION", "heading shift must be between -6 and 6");
+      if (options.eol !== undefined && !["lf", "crlf", "native"].includes(options.eol)) this.fail("E_OPTION", "Invalid eol policy");
+      this.wrap = options.wrap;
+      this.columns = options.columns;
+      this.shiftHeadingLevelBy = options.shiftHeadingLevelBy ?? 0;
+      this.eol = options.eol;
       this.media.configure(options);
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "yes", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key) && !(key === "standalone" && options.standalone === false)));
       if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
       this.yes = options.yes === true;
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
@@ -257,6 +277,38 @@ class Session extends ExecutionContext {
       await visit(document.blocks, "$.blocks");
       await visit(document.metadata, "$.metadata");
     }
+    if (this.shiftHeadingLevelBy || this.stripComments) {
+      const visit = async (value: unknown): Promise<void> => {
+        await this.cooperate();
+        if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
+        const node = value as {t?: string; c?: unknown[]};
+        if (node.t === "Header" && node.c) {
+          const level = Number(node.c[0]) + this.shiftHeadingLevelBy;
+          if (level < 1) {node.t = "Para"; node.c = node.c[2] as unknown[];}
+          else node.c[0] = Math.min(level, 6);
+        }
+        if (this.stripComments && ["RawInline", "RawBlock"].includes(node.t ?? "") && node.c?.[0] === "html") {
+          const source = String(node.c[1]); let text = ""; let offset = 0;
+          while (offset < source.length) {
+            this.checkpoint();
+            const start = source.indexOf("<!--", offset);
+            if (start < 0) {text += source.slice(offset); break;}
+            text += source.slice(offset, start);
+            const end = source.indexOf("-->", start + 4);
+            offset = end < 0 ? source.length : end + 3;
+          }
+          this.charge("retainedBytes", text.length * 2); node.c[1] = text;
+        }
+        if (Array.isArray(value)) {
+          for (let i = 0; i < value.length; i++) {
+            await visit(value[i]);
+            const child = value[i] as {t?: string; c?: unknown[]} | undefined;
+            if (this.stripComments && child && ["RawInline", "RawBlock"].includes(child.t ?? "") && child.c?.[0] === "html" && child.c[1] === "") value.splice(i--, 1);
+          }
+        } else for (const child of Object.values(value)) await visit(child);
+      };
+      await visit(document.blocks);
+    }
     return await this.media.prepare(document, this.lossy);
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
@@ -271,6 +323,17 @@ class Session extends ExecutionContext {
       "retainedBytes",
       serialized.kind === "binary" ? serialized.bytes.byteLength : serialized.text.length * 2
     );
+    if (serialized.kind === "text" && this.eol === "crlf") {
+      const parts: string[] = []; let length = 0;
+      for (const ch of serialized.text) {
+        await this.cooperate();
+        const part = ch === "\n" ? "\r\n" : ch;
+        length += part.length; this.bound("outputBytes", length);
+        this.charge("retainedBytes", part.length * 2); this.charge("references", 1); parts.push(part);
+      }
+      this.charge("retainedBytes", length * 2);
+      serialized = {...serialized, text: parts.join("")};
+    }
     const bytes =
       serialized.kind === "text"
         ? await this.encodeOutput(serialized.text)

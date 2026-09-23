@@ -28,7 +28,7 @@ class Plain {
       switch(node.t) {
         case "Str": parts.push(node.c); break;
         case "Space": parts.push(" "); break;
-        case "SoftBreak": parts.push(" "); break;
+        case "SoftBreak": parts.push(this.context.wrap === "preserve" ? "\n" : " "); break;
         case "LineBreak": parts.push("\n"); break;
         case "Code": parts.push(node.c[1]); break;
         case "Math": this.fail(p, "Plain cannot preserve math meaning"); break;
@@ -53,6 +53,25 @@ class Plain {
     this.context.charge("retainedBytes", (text.length + (text.length + 1) * Math.max(first.length, rest.length)) * 2);
     return this.join(text.split("\n").map((line, i) => line ? (i ? rest : first) + line : ""), "\n");
   }
+  wrap(text: string): string {
+    if (this.context.wrap === "none" || this.context.wrap === "preserve" || this.context.wrap === undefined && this.context.columns === undefined) return text;
+    const width = this.context.columns ?? 72;
+    this.context.charge("retainedBytes", text.length * 4);
+    this.context.charge("references", text.length + 1);
+    const lines: string[] = [];
+    for (const line of text.split("\n")) {
+      let out = ""; let word = ""; let outWidth = 0; let wordWidth = 0;
+      const append = () => {
+        if (!word) return;
+        if (out && outWidth + 1 + wordWidth > width) {lines.push(out); out = word; outWidth = wordWidth;}
+        else {outWidth += (out ? 1 : 0) + wordWidth; out += (out ? " " : "") + word;}
+        word = ""; wordWidth = 0;
+      };
+      for (const ch of line) {this.context.checkpoint(); if (ch === " " || ch === "\t") append(); else {word += ch; wordWidth++;}}
+      append(); lines.push(out);
+    }
+    return this.join(lines, "\n");
+  }
   async caption(caption: Caption, path: string): Promise<string> {
     return this.join([caption[0] ? await this.inline(caption[0], `${path}[0]`) : "", await this.blocks(caption[1], `${path}[1]`)].filter(Boolean), "\n\n");
   }
@@ -64,7 +83,7 @@ class Plain {
       const p = `${path}[${i}]`;
       let value = "";
       switch(node.t) {
-        case "Plain": case "Para": value = await this.inline(node.c, `${p}.c`); break;
+        case "Plain": case "Para": value = this.wrap(await this.inline(node.c, `${p}.c`)); break;
         case "Header": value = await this.inline(node.c[2], `${p}.c[2]`); break;
         case "HorizontalRule": value = "-".repeat(72); break;
         case "CodeBlock": if(node.c[1]) value = this.indent(node.c[1].endsWith("\n") ? node.c[1].slice(0, -1) : node.c[1], "    ", "    "); break;

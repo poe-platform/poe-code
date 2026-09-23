@@ -9,7 +9,10 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
   if (args[0] === "--help" || args[0] === "-h") {
     if (!args.every(arg => arg === "--help" || arg === "-h")) throw new PandocError("E_OPTION", "convert", "Use help flags alone");
     return "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n" +
-      "--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone/-s --wrap=none\n" +
+      "--from/-f --to/-t --output/-o PATH (use - for stdout) --yes --standalone[=true|false]/-s\n" +
+      "--wrap=none|auto|preserve (auto/preserve: plain) --columns N (plain)\n" +
+      "--number-sections/-N --toc (HTML standalone) --ascii (HTML)\n" +
+      "--shift-heading-level-by -6..6 --strip-comments --eol=lf|crlf|native\n" +
       "--metadata/-M KEY=VALUE --metadata-file FILE.json --lossy --fail-if-warnings\n" +
       "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n" +
       "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n" +

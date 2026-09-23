@@ -27,8 +27,16 @@ Bullet lists use the compact spacing of Pandoc 3.11.
 `ConversionOptions` requires `from` and `to`. Writer options are `yes` (explicit
 metadata defaults), `standalone`, `metadata`, `metadataJson` (ordered maps; null
 deletes keys), `metadataFiles` (explicit JSON inputs), `rawContent` (`reject`,
-`escape`, or `retain`), `lossy`, `wrap` (`none`, including HTML and JSON output),
-and `failIfWarnings`.
+`escape`, or `retain`), `lossy`, and `failIfWarnings`. Plain output accepts
+`wrap` (`none`, `auto`, or `preserve`) and positive `columns` (default 72 when
+wrapping is requested); other wrapping writers, including HTML and JSON, accept `none`. HTML accepts
+`numberSections`, `toc` (linked contents in standalone output, through level 3),
+and `ascii` (numeric entities). `shiftHeadingLevelBy` (−6 through 6) adjusts
+headings, `stripComments` removes raw HTML comments while preserving code, and
+`eol` (`lf`, `crlf`, or portable `native` = LF) selects text line endings.
+The command exposes the corresponding hyphenated flags and accepts
+`--standalone=false`. These options extend the bounded writers; they do not
+imply upstream template or complete writer equivalence.
 
 Resources use `resourcePath` (ordered VFS directories) and `extractMedia` (VFS
 output directory). No media is downloaded implicitly. PDF options are `pdf`

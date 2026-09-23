@@ -135,7 +135,14 @@ export interface WriteOptions {
   readonly metadataJson?: readonly MetadataObject[];
   /** Explicit JSON inputs only. No ambient files are loaded. */
   readonly metadataFiles?: readonly InputSource[];
-  readonly wrap?: "none";
+  readonly wrap?: "none" | "auto" | "preserve";
+  readonly columns?: number;
+  readonly numberSections?: boolean;
+  readonly toc?: boolean;
+  readonly stripComments?: boolean;
+  readonly shiftHeadingLevelBy?: number;
+  readonly eol?: "lf" | "crlf" | "native";
+  readonly ascii?: boolean;
   readonly to: string;
   readonly standalone?: boolean;
   readonly metadata?: Readonly<Record<string, MetaValue>>;
@@ -148,6 +155,11 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly wrap?: WriteOptions["wrap"] | undefined;
+  readonly columns?: number | undefined;
+  readonly numberSections?: boolean | undefined;
+  readonly toc?: boolean | undefined;
+  readonly ascii?: boolean | undefined;
   readonly yes?: boolean | undefined;
   readonly pdf?: PdfOptions | undefined;
   readonly epub?: EpubOptions | undefined;

@@ -12,7 +12,7 @@ export interface CommandInputs {
 
 /** Parsing creates lazy inputs. Only the validated converter may acquire them. */
 export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
-  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string; pdfPage?: NonNullable<WriteOptions["pdfPage"]>; pdf?: NonNullable<WriteOptions["pdf"]>; epub?: NonNullable<WriteOptions["epub"]>} = {};
+  const options: {-readonly [K in keyof ConversionOptions]?: ConversionOptions[K]} = {};
   const pdfFonts: InputSource[] = [];
   const metadataJson: MetadataObject[] = [];
   const metadataFiles: InputSource[] = [];
@@ -47,6 +47,16 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    const writerOption = new Map<string, string>([["--columns", "columns"], ["--shift-heading-level-by", "shiftHeadingLevelBy"], ["--eol", "eol"], ["--number-sections", "numberSections"], ["-N", "numberSections"], ["--toc", "toc"], ["--table-of-contents", "toc"], ["--strip-comments", "stripComments"], ["--ascii", "ascii"], ["--standalone", "standalone"]]).get(name);
+    if (writerOption) {
+      const boolean = ["numberSections", "toc", "stripComments", "ascii", "standalone"].includes(writerOption);
+      const value = equals < 0 ? boolean ? "true" : args[++i] : arg.slice(equals + 1);
+      if (value === undefined || value === "") fail(`Missing value: ${name}`);
+      if (boolean && value !== "true" && value !== "false") fail(`Invalid boolean: ${name}`);
+      if (Object.hasOwn(options, writerOption)) fail(`Repeated option: ${name}`);
+      Object.assign(options, {[writerOption]: boolean ? value === "true" : ["columns", "shiftHeadingLevelBy"].includes(writerOption) ? Number(value) : value});
+      continue;
+    }
     if (name === "--pdf-engine") fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");
     const publication = new Map<string, readonly ["pdf" | "epub", string]>([
       ["--pdf-page-size", ["pdf", "pageSize"]], ["--pdf-orientation", ["pdf", "orientation"]],
@@ -125,7 +135,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     if (options[key!] !== undefined) fail(`Repeated option: ${name}`);
     const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
     if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
-    if (key === "wrap") {if (value !== "none") fail("Only wrap none is supported"); options.wrap = "none";}
+    if (key === "wrap") {if (!["none", "auto", "preserve"].includes(value!)) fail("Invalid wrap policy"); options.wrap = value as NonNullable<WriteOptions["wrap"]>;}
     else if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
     else if (key === "from" || key === "to") options[key] = value!;
   }

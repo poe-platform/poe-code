@@ -14,6 +14,9 @@ class HtmlWriter {
   private readonly reserved = new Set<string>();
   private readonly headings = new Set<string>();
   private readonly notes: {blocks: readonly Block[]; id: string; ref: string; path: string}[] = [];
+  private readonly sections: {node: Extract<Block, {t: "Header"}>; id: string; number: string}[] = [];
+  private readonly sectionByNode = new WeakMap<object, {id: string; number: string}>();
+  private readonly counters = [0, 0, 0, 0, 0, 0];
   constructor(readonly context: AdapterContext) {}
   fail(message: string, path?: string, code: "E_CAPABILITY" | "E_OPTION" = "E_CAPABILITY"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "html5", path);
@@ -29,7 +32,7 @@ class HtmlWriter {
     let chunk = "";
     for(const ch of text) {
       if(ch === "\0") this.fail("NUL cannot be represented in HTML");
-      chunk += ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\r": "&#13;"}[ch] ?? (attribute && ch === '"' ? "&quot;" : ch));
+      chunk += this.context.ascii && ch.codePointAt(0)! > 127 ? `&#${ch.codePointAt(0)};` : ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\r": "&#13;"}[ch] ?? (attribute && ch === '"' ? "&quot;" : ch));
       if(chunk.length >= 256) {this.add(chunk); chunk = "";}
     }
     if(chunk) this.add(chunk);
@@ -180,11 +183,13 @@ class HtmlWriter {
         case "CodeBlock": this.add("<pre><code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code></pre>\n"); break;
         case "RawBlock": this.raw(node.c[0], node.c[1], p); this.add("\n"); break;
         case "Header": {
-          const text = this.plain(node.c[2]).toLowerCase(); let base = node.c[1][0];
-          if(!base) {for(const ch of text) {this.context.checkpoint(); if(ch === " " || ch === "\n") base += "-"; else if(!"!\"#$%&'()*+,./:;<=>?@[\\]^`{|}~".includes(ch)) base += ch;} if(!base) base = "section";}
-          const id = this.unique(base, node.c[1][0] ? this.headings : this.reserved), level = Math.min(node.c[0], 6);
-          this.headings.add(id);
-          this.add(`<h${level}`); this.attrs(node.c[1], id); this.add(">"); await this.inlines(node.c[2], `${p}.c[2]`); this.add(`</h${level}>\n`); break;
+          const section = this.sectionByNode.get(node) ?? this.section(node);
+          const id = section.id, level = Math.min(node.c[0], 6);
+          this.add(`<h${level}`); this.attrs(node.c[1], id);
+          if (this.context.numberSections && section.number) this.attribute("data-number", section.number);
+          this.add(">");
+          if (this.context.numberSections && section.number) {this.add('<span class="header-section-number">'); this.escape(section.number); this.add("</span> ");}
+          await this.inlines(node.c[2], `${p}.c[2]`); this.add(`</h${level}>\n`); break;
         }
         case "HorizontalRule": this.add("<hr>\n"); break;
         case "BlockQuote": case "Div": {
@@ -203,6 +208,42 @@ class HtmlWriter {
       }
     }
   }
+  section(node: Extract<Block, {t: "Header"}>): {id: string; number: string} {
+    const text = this.plain(node.c[2]).toLowerCase(); let base = node.c[1][0];
+    if (!base) {for (const ch of text) {this.context.checkpoint(); if (ch === " " || ch === "\n") base += "-"; else if (!"!\"#$%&'()*+,./:;<=>?@[\\]^`{|}~".includes(ch)) base += ch;} if (!base) base = "section";}
+    const id = this.unique(base, node.c[1][0] ? this.headings : this.reserved);
+    this.headings.add(id);
+    let number = "";
+    if (!node.c[1][1].includes("unnumbered")) {
+      const level = Math.min(node.c[0], 6);
+      this.counters[level - 1]!++;
+      this.counters.fill(0, level);
+      number = this.counters.slice(0, level).join(".");
+    }
+    return {id, number};
+  }
+  async contents(): Promise<void> {
+    this.add('<nav id="TOC" role="doc-toc">\n<ul>\n');
+    const levels: number[] = [];
+    for (const {node, id, number} of this.sections) {
+      if (node.c[0] > 3 || node.c[1][1].includes("unlisted")) continue;
+      await this.context.cooperate();
+      const level = node.c[0];
+      if (levels.length && level > levels[levels.length - 1]!) this.add("<ul>\n");
+      else if (levels.length) {
+        this.add("</li>\n");
+        while (levels.length > 1 && level < levels[levels.length - 1]!) {this.add("</ul>\n</li>\n"); levels.pop();}
+        levels.pop();
+      }
+      levels.push(level);
+      this.add('<li><a'); this.attribute("href", this.url(`#${id}`)); this.add(">");
+      if (this.context.numberSections && number) {this.add('<span class="toc-section-number">'); this.escape(number); this.add("</span> ");}
+      this.escape(this.plain(node.c[2])); this.add("</a>");
+    }
+    if (levels.length) this.add("</li>\n");
+    while (levels.length > 1) {this.add("</ul>\n</li>\n"); levels.pop();}
+    this.add("</ul>\n</nav>\n");
+  }
   meta(value: MetaValue | undefined, key: string): string | undefined {
     if(value === undefined) return undefined;
     if(value.t === "MetaString") return value.c;
@@ -211,6 +252,20 @@ class HtmlWriter {
   }
   async write(document: Document): Promise<SerializedDocument> {
     this.reserve(document.blocks);
+    if (this.context.toc) {
+      const visit = async (value: unknown): Promise<void> => {
+        await this.context.cooperate();
+        if (!value || typeof value !== "object") return;
+        if ("t" in value && value.t === "Header") {
+          const node = value as Extract<Block, {t: "Header"}>;
+          const section = this.section(node);
+          this.context.charge("references", 1); this.context.charge("retainedBytes", (section.id.length + section.number.length) * 2);
+          this.sections.push({node, ...section}); this.sectionByNode.set(node, section);
+        }
+        for (const child of Object.values(value)) await visit(child);
+      };
+      await visit(document.blocks);
+    }
     const title = this.meta(document.metadata.title, "title") ?? "";
     const lang = this.meta(document.metadata.lang, "lang") ?? document.language;
     const dir = this.meta(document.metadata.dir, "dir") ?? document.direction;
@@ -219,6 +274,7 @@ class HtmlWriter {
       this.add('<!DOCTYPE html>\n<html'); if(lang !== undefined) this.attribute("lang", lang); if(dir !== undefined) this.attribute("dir", dir);
       this.add('>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>'); this.escape(title); this.add("</title>\n</head>\n<body>\n");
     }
+    if (this.context.toc && this.context.standalone) await this.contents();
     await this.blocks(document.blocks, "$.blocks");
     if(this.notes.length) {
       this.add('<section class="footnotes" role="doc-endnotes">\n<ol>\n');

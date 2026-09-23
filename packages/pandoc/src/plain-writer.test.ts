@@ -58,11 +58,11 @@ it("shares CLI/SDK bytes, wrap rejection and limits for identical JSON AST/optio
     if(limits) {expect(result.exitCode).toBe(7); expect(stdout).not.toHaveBeenCalled(); await expect(writeDocument(document, {to: "plain", wrap: "none"}, {limits})).rejects.toMatchObject({code: "E_LIMIT"});}
     else {const sdk = await plain(document, {wrap: "none"}); expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(stdout.mock.calls[0]![0]); expect(result.exitCode).toBe(0);}
   }
-  for(const wrap of ["auto", "preserve"]) {
-    await expect(plain(document, {wrap} as Partial<WriteOptions>)).rejects.toMatchObject({code: "E_OPTION"});
+  for(const wrap of ["auto", "preserve"] as const) {
+    const sdk = await plain(document, {wrap});
     const write = vi.fn(async (_bytes: Uint8Array) => {});
-    expect(await createPandocCommand().execute({args: ["-f", "json", "-t", "plain", `--wrap=${wrap}`], stdin: (async function* () {yield input;})(), stdout: {write}, stderr: {write: vi.fn(async () => {})}, signal: new AbortController().signal})).toEqual({exitCode: 2});
-    expect(write).not.toHaveBeenCalled();
+    expect(await createPandocCommand().execute({args: ["-f", "json", "-t", "plain", `--wrap=${wrap}`], stdin: (async function* () {yield input;})(), stdout: {write}, stderr: {write: vi.fn(async () => {})}, signal: new AbortController().signal})).toEqual({exitCode: 0});
+    expect(sdk.kind === "text" && new TextEncoder().encode(sdk.text)).toEqual(write.mock.calls[0]![0]);
   }
 });
 it("preserves line blocks, inline code, definitions, figure content and alternative captions", async () => {
@@ -74,11 +74,11 @@ it("preserves line blocks, inline code, definitions, figure content and alternat
     {t: "BlockQuote", c: [p(s("quoted"))]}, {t: "HorizontalRule"}
   ))).toMatchObject({text: `one   a\tb   two\n三\n\nأربعة\n\nterm\n  first\n\n  second\n\nalt "image title"\n\nshort\n\ncaption\n\n  quoted\n\n${"-".repeat(72)}\n`, diagnostics: []});
 });
-it("preserves raw block source, bounds diagnostics, and rejects columns rather than accepting an unused policy", async () => {
+it("preserves raw block source, bounds diagnostics, and accepts a bounded columns policy", async () => {
   const document = d({t: "RawBlock", c: ["latex", "a\\quad b"]});
   expect(await plain(document, {rawContent: "escape"})).toMatchObject({text: "a\\quad b\n", diagnostics: [expect.objectContaining({code: "W_RAW_CONTENT"})]});
   await expect(writeDocument(document, {to: "plain", rawContent: "retain"}, {limits: {diagnostics: 0}})).rejects.toMatchObject({code: "E_LIMIT"});
-  await expect(plain(d(p(s("text"))), {columns: 20} as Partial<WriteOptions>)).rejects.toMatchObject({code: "E_OPTION"});
+  expect(await plain(d(p(s("text"))), {columns: 20})).toMatchObject({text: "text\n"});
   const bytes = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: document.blocks}));
   for(const diagnostics of [0, 1]) {
     const stdout = vi.fn(async (_bytes: Uint8Array) => {}), stderr = vi.fn(async (_bytes: Uint8Array) => {});

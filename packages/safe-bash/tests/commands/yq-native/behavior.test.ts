@@ -8,7 +8,7 @@ import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { Shell } from "../../../src/shell/index.js";
 import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../../../src/commands/yq/mike.js";
 import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
-import { run } from "./helpers.js";
+import { native, nativeOptions, run } from "./helpers.js";
 
 for (const flag of ["--security-disable-env-ops", "--security-disable-file-ops"]) {
   test(`Mike yq accepts ${flag} for ordinary input files`, async () => {
@@ -200,6 +200,51 @@ for (const input of ["", "a: 1\n", "---\n", "null\n"]) test(`filename metadata f
     assert.equal(result.stderr, "");
     assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), input);
   } finally { await shell.dispose(); }
+});
+
+const metadataCases = [
+  { name: "mapping head comment", query: "head_comment", input: "# head\na: 1\n", stdout: "head\n" },
+  { name: "node anchor", query: ".a | anchor", input: "a: &base 1\n", stdout: "base\n" },
+  { name: "node alias", query: ".b | alias", input: "a: &base 1\nb: *base\n", stdout: "base\n" },
+  { name: "alias has no anchor of its own", query: ".b | anchor", input: "a: &base 1\nb: *base\n", stdout: "\n" },
+  { name: "unannotated node", query: "head_comment, anchor", input: "a: 1\n", stdout: "\n\n" },
+  { name: "scalar alias query retains native lexical value", query: ".a | alias", input: "a: &base 0xF\n", stdout: "0xF\n" },
+  { name: "equal-valued anchors retain distinct names", query: "[.a, .b, .c, .d] | .[] | alias", input: "a: &first 1\nb: *first\nc: &second 1\nd: *second\n", stdout: "1\nfirst\n1\nsecond\n" },
+  { name: "recursive aliases do not dereference", query: ".. | alias", input: "&self\na: *self\n", stdout: "\nself\n" },
+  { name: "sequence header belongs to the root", query: "[.. | head_comment]", input: "# head\n- one\n# second\n- two\n", stdout: '- head\n- ""\n- second\n' },
+  { name: "root and first item comments stay separate", query: "[.. | head_comment]", input: "# head\n- # first\n  one\n", stdout: '- head\n- first\n' },
+  { name: "nested sequence header belongs to its first item", query: "[.. | head_comment]", input: "a:\n  # first\n  - one\n", stdout: '- ""\n- ""\n- first\n' },
+  { name: "mapping key comments do not become value comments", query: "[.. | head_comment]", input: "a:\n  # key\n  b: one\n", stdout: '- ""\n- ""\n- ""\n' },
+  { name: "scalar value head comment", query: ".a | head_comment", input: "a:\n  # value\n  one\n", stdout: "value\n" },
+  { name: "alias uses its own head comment", query: ".b | head_comment", input: "a:\n  # target\n  &base one\nb:\n  # reference\n  *base\n", stdout: "reference\n" },
+  { name: "document header preserves whitespace", query: "head_comment", input: "# before\n\n---\n\n# after\na: 1\n", stdout: "before\n\n\nafter\n" },
+  { name: "head comment spacing and empty comment lines", query: "head_comment", input: "# first\n#  indented  \n#\n# last\na: 1\n", stdout: "first\n indented  \n#\nlast\n" },
+  { name: "later mapping header stays on its key", query: "head_comment", input: "# first\na: 1\n---\n# second\nb: 2\n", stdout: "first\n\n" },
+  { name: "cloned sequence item retains its own annotation", query: "[.[0]] | .[] | head_comment", input: "# root\n- # first\n  one\n", stdout: "first\n" },
+  { name: "comment-only document", query: "head_comment", input: "# hi\n", stdout: "hi\n" },
+  { name: "CRLF header bytes", query: "head_comment", input: "#one\r\n#two\r\na: 1\r\n", stdout: "#one\r\n#two\r\n" },
+  { name: "inline document marker header", query: "head_comment", input: "--- # inline\n# root\na: 1\n", stdout: "inline# root\n" },
+  { name: "YAML directive in leading content", query: "head_comment", input: "%YAML 1.2\n# directive comment\n---\n# root\na: 1\n", stdout: "%YAML 1.2\ndirective comment\nroot\n" },
+  { name: "incoming nonempty head comment takes precedence", query: ".a = .b | .a | head_comment", input: "a:\n # old\n one\nb:\n # new\n two\n", stdout: "new\n" },
+  { name: "unannotated replacement retains previous head comment", query: '.a = "new" | .a | head_comment', input: "a:\n # old\n one\n", stdout: "old\n" },
+] as const;
+
+for (const entry of metadataCases) test(`YAML metadata query: ${entry.name}`, async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from(entry.input));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`yq '${entry.query}' /input.yaml`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, entry.stdout);
+  assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), entry.input);
+});
+
+test("YAML metadata expectations match native Mike yq", nativeOptions, async () => {
+  for (const entry of metadataCases) assert.deepEqual(await native([entry.query], entry.input), {
+    status: 0, stdout: entry.stdout, stderr: "",
+  }, entry.name);
 });
 
 test("recursive descent emits aliases without traversing their targets", async () => {

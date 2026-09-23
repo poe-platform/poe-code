@@ -13,7 +13,7 @@ export type Expression =
 
 interface Token { text: string; offset: number; kind: "symbol" | "string" | "number" | "name" | "end" }
 const priorities: Readonly<Record<string, number>> = { "|": 1, ",": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
-const functions = new Set(["select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "documentIndex", "di", "fileIndex", "fi", "filename", "env", "strenv", "del", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
+const functions = new Set(["select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "di", "fileIndex", "fi", "filename", "env", "strenv", "del", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
 
 export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean } = {}): Expression {
   if (Buffer.byteLength(source) > 8192) throw new MikeError("yq limit exceeded: expression bytes");

@@ -7,6 +7,18 @@ if (selected !== undefined && selected !== "1") throw new Error("SAFE_BASH_TEST_
 describe("compiled yq native-profile repairs", { skip: selected === undefined ? "Requires build:optional and SAFE_BASH_TEST_OPTIONAL_BUILD=1" : false }, () => {
   const cases = [
     {
+      name: "head comments are read from YAML annotations",
+      command: "yq head_comment", input: "# head\na: 1\n", stdout: "head\n",
+    },
+    {
+      name: "anchor queries retain node names",
+      command: "yq '.a | anchor'", input: "a: &base 1\n", stdout: "base\n",
+    },
+    {
+      name: "alias queries retain reference names",
+      command: "yq '.b | alias'", input: "a: &base 1\nb: *base\n", stdout: "base\n",
+    },
+    {
       name: "JSON preserves duplicate members and numeric-looking key order",
       command: "yq -p=json -o=json -I=0 .",
       input: '{"10":1,"2":2,"a":3,"a":4,"__proto__":5}',
@@ -59,9 +71,9 @@ describe("compiled yq native-profile repairs", { skip: selected === undefined ? 
   ];
   for (const fixture of cases) {
     test(fixture.name, async () => {
-      const published = await import("poe-code/safe-bash");
-      const { createMemoryFileSystem } = await import("poe-code/safe-fs");
-      const optional = await import(new URL("../../dist/optional.js", import.meta.url).href) as { yqCommands(): import("poe-code/safe-bash").VirtualShellPlugin };
+      const published = await import("@poe-platform/safe-bash");
+      const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+      const optional = await import(new URL("../../dist/optional.js", import.meta.url).href) as { yqCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin };
       const shell = new published.Shell({ fs: createMemoryFileSystem() }).use(optional.yqCommands());
       try {
         const result = await shell.exec(fixture.command, { stdin: fixture.input });
@@ -73,9 +85,9 @@ describe("compiled yq native-profile repairs", { skip: selected === undefined ? 
   }
 
   test("a later malformed JSON value retains earlier public stdout", async () => {
-    const published = await import("poe-code/safe-bash");
-    const { createMemoryFileSystem } = await import("poe-code/safe-fs");
-    const optional = await import(new URL("../../dist/optional.js", import.meta.url).href) as { yqCommands(): import("poe-code/safe-bash").VirtualShellPlugin };
+    const published = await import("@poe-platform/safe-bash");
+    const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+    const optional = await import(new URL("../../dist/optional.js", import.meta.url).href) as { yqCommands(): import("@poe-platform/safe-bash").VirtualShellPlugin };
     const shell = new published.Shell({ fs: createMemoryFileSystem() }).use(optional.yqCommands());
     try {
       const result = await shell.exec("yq -p=json -o=json -I=0 .", { stdin: '{"a":1}\n{"x":}' });

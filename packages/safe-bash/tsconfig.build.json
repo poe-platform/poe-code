@@ -40,6 +40,7 @@
     "src/commands/truncate/arguments.ts",
     "src/commands/truncate/index.ts",
     "src/commands/yq/arguments.ts",
+    "src/commands/yq/comments.ts",
     "src/commands/yq/evaluate.ts",
     "src/commands/yq/expression.ts",
     "src/commands/yq/inplace.ts",

@@ -1,5 +1,6 @@
 import type { Document, Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import { MikeError, type NativeWork } from "./native-work.js";
+import { recordHeadComments } from "./comments.js";
 
 export type YamlModule = typeof import("yaml");
 export interface NativeDocument {
@@ -93,6 +94,8 @@ export async function cloneNode(node: Node, yaml: YamlModule, work: NativeWork):
     const current = pending.pop()!;
     await work.tick();
     if (work.implicitTags.has(current.original)) work.implicitTags.add(current.cloned);
+    const head = work.headComments.get(current.original);
+    if (head !== undefined) work.headComments.set(current.cloned, head);
     if (yaml.isMap(current.original) && yaml.isMap(current.cloned)) for (let index = 0; index < current.original.items.length; index++) {
       const original = current.original.items[index]!;
       const copy = current.cloned.items[index]!;
@@ -111,6 +114,8 @@ export async function cloneNode(node: Node, yaml: YamlModule, work: NativeWork):
 export async function replace(candidate: Candidate, incoming: Node, yaml: YamlModule, work: NativeWork, clobber = false): Promise<void> {
   const node = await cloneNode(incoming, yaml, work);
   const previous = candidate.node;
+  const head = work.headComments.get(previous);
+  if (head !== undefined && !work.headComments.has(node)) work.headComments.set(node, head);
   if (previous.comment !== undefined) node.comment = previous.comment;
   if (previous.commentBefore !== undefined) node.commentBefore = previous.commentBefore;
   if (previous.spaceBefore !== undefined) node.spaceBefore = previous.spaceBefore;
@@ -337,6 +342,7 @@ async function adaptQuotedIndent(text: string, filename: string, yaml: YamlModul
 
 export async function decodeDocuments(text: string, filename: string, fileIndex: number, format: "yaml" | "json", yaml: YamlModule, work: NativeWork, onDocument?: (document: NativeDocument) => Promise<void>): Promise<NativeDocument[]> {
   const documents: NativeDocument[] = [];
+  const sources: { token: import("yaml").CST.Document; prefix: import("yaml").CST.Token[] }[] = [];
   const originalText = text;
   let insertions: { offset: number; length: number }[] = [];
   let quotedFailures = new Map<number, string>();
@@ -375,6 +381,8 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     work.document();
     if (!doc.contents) { const empty = new yaml.Scalar(null); empty.source = ""; work.node(); doc.contents = empty; }
     await inspectNode(doc.contents, yaml, work, true);
+    const source = sources.shift();
+    if (format === "yaml") await recordHeadComments(doc.contents, source ? [...source.prefix, ...source.token.start] : [], documents.length === 0 ? text : undefined, yaml, work);
     const anchors = new Set<string>();
     const pending: Node[] = [doc.contents];
     while (pending.length) {
@@ -448,9 +456,11 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
   const parser = new yaml.Parser();
   const composer = new yaml.Composer({ keepSourceTokens: true, intAsBigInt: true, uniqueKeys: false, merge: false, prettyErrors: false, logLevel: "silent" });
   let hasDocument = false;
+  let prefix: import("yaml").CST.Token[] = [];
   const token = async (item: import("yaml").CST.Token) => {
     await admitCst(item, work);
-    if (item.type === "document") hasDocument = true;
+    if (item.type === "document") { hasDocument = true; sources.push({ token: item, prefix }); prefix = []; }
+    else if (item.type === "comment" || item.type === "newline") prefix.push(item);
     for (const doc of composer.next(item)) await accept(doc as Document<Node>);
   };
   for (let offset = 0; offset <= text.length; offset += 4096) {

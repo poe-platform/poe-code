@@ -27,6 +27,7 @@ export function limitsFor(options: Partial<MikeLimits> = {}): MikeLimits {
 
 export class NativeWork {
   readonly implicitTags = new WeakSet<object>();
+  readonly headComments = new WeakMap<object, string>();
   readonly controller = new AbortController();
   readonly signal: AbortSignal = this.controller.signal;
   readonly #cleanup: InvocationCleanup[] = [];

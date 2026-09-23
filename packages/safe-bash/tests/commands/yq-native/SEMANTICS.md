@@ -111,9 +111,16 @@ The native executable is a test oracle only; tests never create host fixture fil
   negative bounds, iteration/recursive traversal, pipes, comma,
   literals, arrays and quoted-key maps, selection/map, basic comparisons,
   boolean/default operators, scalar arithmetic, map merge/sequence concatenation,
-  assignments and updates, tag/style operations, length/keys/has, document/file
+  assignments and updates, tag/style operations, `head_comment`, `anchor`, `alias`,
+  length/keys/has, document/file
   metadata, del, and supplied-context env/strenv operations. This is a private
   bounded evaluator, not the shared jq-oriented query-core.
+- Metadata queries read retained YAML annotations without resolving aliases.
+  Head comments preserve first-document leading content, including directives and
+  line endings, and stay attached through node copies. `alias` returns the literal
+  reference name or native scalar spelling; equal values do not imply alias identity.
+  Comment/anchor/alias assignment and the other comment operators remain outside
+  this query profile.
 - Assignments retain tested comments, quote styles, anchors and tags. YAML
   integers retain precision; tested int64 arithmetic wraps as native. Explicit
   JSON input follows the native float64 rounding behavior for tested unsafe ints.

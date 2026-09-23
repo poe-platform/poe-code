@@ -482,8 +482,16 @@ export class Evaluator {
     if (expression.kind !== "call") throw new MikeError("bad expression, please check expression syntax");
     const output: Candidate[] = [];
     for (const input of inputs) {
-      const base = dereference(input, yaml, this.work);
       const name = expression.name;
+      if (name === "head_comment" || name === "anchor" || name === "alias") {
+        const node = input.node;
+        const text = name === "head_comment" ? this.work.headComments.get(node) ?? ""
+          : name === "anchor" ? "anchor" in node ? node.anchor ?? "" : ""
+          : yaml.isAlias(node) ? node.source : yaml.isScalar(node) ? scalarText(node, yaml) : "";
+        output.push(this.child(scalar(yaml, this.work, text), input));
+        continue;
+      }
+      const base = dereference(input, yaml, this.work);
       if (name === "sort" || name === "sort_by") {
         output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth), input)); continue;
       }

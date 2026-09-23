@@ -92,7 +92,13 @@ for (const [name, factory] of Object.entries({ bz2, xz, zstd })) {
     assert.deepEqual(run(encoded, 1).bytes, Buffer.from(plain));
     const doubled = Buffer.concat([encoded, encoded]);
     assert.equal(run(doubled, 1).offset, encoded.length);
-    assert.equal(codec.bridge_create(1, 1, 1024, 23), -2);
+    if (name === 'xz') {
+      // Auto-detection defers decoder allocation until it sees the header.
+      assert.equal(codec.bridge_create(1, 1, 1024, 23), 0);
+      new Uint8Array(codec.memory.buffer, codec.bridge_input(), encoded.length).set(encoded);
+      assert.ok(codec.bridge_step(codec.bridge_input(), encoded.length, codec.bridge_output(), 257, 1) < 0);
+      codec.bridge_destroy();
+    } else assert.equal(codec.bridge_create(1, 1, 1024, 23), -2);
     assert.equal(codec.bridge_used(), 0);
     assert.equal(codec.bridge_create(1, 1, 64 * 1024 * 1024, 23), 0);
     assert.equal(codec.bridge_step(codec.bridge_input(), 65537, codec.bridge_output(), 1, 0), -1);

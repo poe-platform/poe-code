@@ -68,7 +68,7 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
  ok=(decode?BZ2_bzDecompressInit(&s,0,small):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
 #elif defined(XZ)
  s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;
- ok=(decode?lzma_stream_decoder(&s,memory_limit,0):lzma_easy_encoder(&s,level,LZMA_CHECK_CRC64))==LZMA_OK;
+ ok=(decode?lzma_auto_decoder(&s,memory_limit,0):lzma_easy_encoder(&s,level,LZMA_CHECK_CRC64))==LZMA_OK;
 #else
  ZSTD_customMem mem={allocate,release,NULL};
  if(decode){dec=ZSTD_createDCtx_advanced(mem);ok=dec&&!ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_windowLogMax,window_log));}

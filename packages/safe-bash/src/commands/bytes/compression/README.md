@@ -80,7 +80,9 @@ the `zstdcat` default. Last selection wins, and recognized frames still validate
 `.zip`, `.7z`, `.rar`, `.lz`, `.br` or `.cab` (case-sensitive),
 including stdout/force mode; stdin and decompression are unaffected.
 
-The XZ family (`xz`, `unxz`, `xzcat`) accepts `--compress` to select
+The XZ family (`xz`, `unxz`, `xzcat`) automatically decodes XZ containers and
+legacy LZMA-alone streams within the existing 64 MiB codec allocation cap.
+Compression produces XZ containers. It accepts `--compress` to select
 compression, including when invoked through a decompression alias. `-e` and
 `--extreme` enable liblzma's extreme preset with the selected level. `-T1`,
 `-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded

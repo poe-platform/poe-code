@@ -3,6 +3,7 @@ import type { Workbook } from "./workbook.js";
 import { recalculateWithDiagnostics } from "./formulas/diagnostics.js";
 import { byteTextArg } from "./formulas/functions/common.js";
 import { numericResult } from "./formulas/values.js";
+import { datasourceNumber } from "./datasource-number.js";
 import { snapshotRuntimeFunctions, type RuntimeFunctions } from "./formulas/runtime-functions.js";
 
 /** Trusted host transport. poll returns a finite batch available now, not a live
@@ -134,24 +135,8 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
               const key = hex(line.slice(0, colon));
               let text = "";
               for (let at = colon + 1; at < line.length; at++) { tick(); text += String.fromCharCode(line[at]!); }
-              let at = 0;
-              while (at < text.length && " \t\r\n\v\f".includes(text[at]!)) { tick(); at++; }
-              const start = at;
-              if (text[at] === "+" || text[at] === "-") at++;
-              const special = text.slice(at, at + 3).toLowerCase();
-              let digits = 0, nonzero = false;
-              const digit = (character: string | undefined) => character !== undefined && character >= "0" && character <= "9";
-              while (digit(text[at])) { tick(); nonzero ||= text[at] !== "0"; digits++; at++; }
-              if (text[at] === ".") {
-                at++;
-                while (digit(text[at])) { tick(); nonzero ||= text[at] !== "0"; digits++; at++; }
-              }
-              const value = special === "inf" ? text[start] === "-" ? -Infinity : Infinity : special === "nan" ? NaN :
-                digits ? Number.parseFloat(text.slice(start)) : undefined;
-              // go_strtod rejects C99 hex; the decimal zero prefix is still consumed.
-              // Overflow/underflow raises ERANGE; explicit inf/nan remains a valid feed.
-              if (value !== undefined && (special === "inf" || special === "nan" || Number.isFinite(value) &&
-                  (value === 0 ? !nonzero : Math.abs(value) >= 2 ** -1022))) {
+              const value = datasourceNumber(text, tick);
+              if (value !== undefined) {
                 if (!values.has(key) && values.size >= context.limits.cells) throw new SsconvertError("resource-limit", "ssconvert datasource tag limit exceeded");
                 values.set(key, value);
                 for (const cell of watchers.get(key) ?? []) { tick(); changed.add(cell); }

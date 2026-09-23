@@ -235,3 +235,12 @@ it("rejects a poll after invocation cleanup without reacquiring its transport", 
   for (const cleanup of cleanups) await cleanup();
   expect(closed).toBe(1); expect(polled).toBe(0);
 });
+
+it("preserves native ERANGE when a tiny decimal rounds up to the normal minimum", async () => {
+  const sourceInput = encode(new TextDecoder().decode(input).replace('=ATL_LAST("stock")', '=HEXREP(ATL_LAST("stock"))'));
+  const engine = createEngine({ ...config, datasource: { async open() { return {
+    async poll() { return [encode("stock:2.2250738585072012e-308\n")]; }, close() {}
+  }; } } });
+  try { expect((await convert(engine, true, new AbortController().signal, sourceInput)).csv).toBe("1,2,3,#N/A,#N/A\n"); }
+  finally { await engine.dispose(); }
+});

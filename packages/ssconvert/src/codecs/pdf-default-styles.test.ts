@@ -1,11 +1,11 @@
-import {expect, it, vi} from "vitest";
-import {PDFDocument, PDFPage} from "pdf-lib";
+import {expect, it} from "vitest";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
 import {cellPrintStyle} from "../rendering/print/cell-style.js";
 import type {ImportedValue} from "../workbook.js";
 import {writePdf} from "./pdf.js";
+import {pdfText} from "./pdf-text.test-support.js";
 const context: CapabilityContext = {signal: new AbortController().signal, own() {},
   environment: {env: {}, locale: "C", timezone: "UTC"}, fonts: {async resolve() {return suppliedDefaultFont().bytes;}},
   limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 4000000, cells: 10000, sheets: 4, operations: 100}};
@@ -17,13 +17,11 @@ async function fixture(axis: "h" | "v" = "h", style = attributes, child = font, 
 }
 it.each(["h", "v"] as const)("prints materialized default styles with %s breaks and supplied fonts", async axis => {
   const book = await fixture(axis);expect(book.sheets[0]!.cells[0]!.style).toBeDefined();
-  const before = structuredClone(book), draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    const pdf = await PDFDocument.load(await writePdf(book, [], context));
-    expect(pdf.getPageCount()).toBe(2);expect(pdf.getPages().map(p => p.getSize())).toEqual([{width: 612, height: 792}, {width: 612, height: 792}]);
-    expect(draw.mock.calls.filter(([value]) => value.startsWith("cell")).map(([value]) => value)).toEqual(["cell0", "cell1", "cell2", "cell3"]);
-    expect(book).toEqual(before);
-  } finally {draw.mockRestore();}
+  const before = structuredClone(book);
+  const {pdf, runs} = await pdfText(await writePdf(book, [], context));
+  expect(pdf.getPageCount()).toBe(2);expect(pdf.getPages().map(p => p.getSize())).toEqual([{width: 612, height: 792}, {width: 612, height: 792}]);
+  expect(runs.map(run => run.text)).toEqual(["cell0", "cell1", "cell2", "cell3"]);
+  expect(book).toEqual(before);
 });
 it("requires explicit fonts for materialized Sans styles", async () => {
   const {fonts: ignoredFonts, ...withoutFonts} = context;
@@ -63,18 +61,10 @@ it("refuses a cell shorter than the selected font metrics", async () => {
 });
 
 it("applies the native default96dpi scale to materialized cell fonts", async () => {
-  const draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    await writePdf(await fixture(), [], context);
-    const cells = draw.mock.calls.filter(([text]) => text.startsWith("cell"));
-    expect(cells.map(([, options]) => options?.size)).toEqual([7.5, 7.5, 7.5, 7.5]);
-  } finally {draw.mockRestore();}
+  const {runs} = await pdfText(await writePdf(await fixture(), [], context));
+  expect(runs.map(run => run.size)).toEqual([7.5, 7.5, 7.5, 7.5]);
 });
 it("retains the native print origin,leading grid and scaled text margin", async () => {
-  const draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    await writePdf(await fixture("v"), [], context);
-    const cells = draw.mock.calls.filter(([text]) => text.startsWith("cell"));
-    expect(cells.map(([, options]) => options?.x)).toEqual([76.75, 124.75, 76.75, 124.75]);
-  } finally {draw.mockRestore();}
+  const {runs} = await pdfText(await writePdf(await fixture("v"), [], context));
+  expect(runs.map(run => run.glyphs[0]!.x)).toEqual([76.75, 124.75, 76.75, 124.75]);
 });

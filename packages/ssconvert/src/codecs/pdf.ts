@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, type PDFPage, type PDFFont } from "pdf-lib";
+import { PDFDocument, PDFHexString, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
@@ -124,25 +124,35 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const supported = new Set(font.getCharacterSet());
     for (const scalar of value) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     let baseline = page.getHeight() - y - size;
-    let width = font.widthOfTextAtSize(value, size);
+    let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
     if (cellBox) {
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
-      const rawWidth = width;
-      width = 0;
+      const glyphs: {x: number; y: number}[] = [];
       // Pango rounds shaped advances in display pixels before print scaling.
-      // Glyph positions remain a separate painting obligation.
       for (const position of metrics.layout(value).positions) {
         tick();
         const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
-        if (!Number.isFinite(advance) || advance < 0) unsupported("supplied font advances");
+        if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
+        glyphs.push({x: width + position.xOffset * size / metrics.unitsPerEm, y: position.yOffset * size / metrics.unitsPerEm});
         width += Math.round(advance) * printDisplayScale;
       }
-      if (Math.max(rawWidth, width) > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
+      x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
+      const encoded = font.encodeText(value).asString();
+      if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
+      const resource = page.node.newFontDictionary(font.name, font.ref);
+      page.pushOperators(pushGraphicsState(), beginText(), setFontAndSize(resource, size), setFillingRgbColor(...cellBox.style.foreground));
+      for (const [index, glyph] of glyphs.entries()) {
+        tick();
+        page.pushOperators(setTextMatrix(1, 0, 0, 1, x + glyph.x, baseline + glyph.y), showText(PDFHexString.of(encoded.slice(index * 4, index * 4 + 4))));
+      }
+      page.pushOperators(endText(), popGraphicsState());
+      return;
     }
-    page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font, ...(cellBox ? {color: rgb(...cellBox.style.foreground)} : {}) });
+    page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
   };
   const metrics = (sheet: Sheet) => {
     const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {

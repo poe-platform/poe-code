@@ -1,9 +1,10 @@
 import {expect, it, vi} from "vitest";
-import {PDFDocument, PDFPage, rgb} from "pdf-lib";
+import {PDFPage, rgb} from "pdf-lib";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext, FontCapability} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
 import {writePdf} from "./pdf.js";
+import {pdfText} from "./pdf-text.test-support.js";
 const context: CapabilityContext = {signal: new AbortController().signal, own() {},
   environment: {env: {}, locale: "C", timezone: "UTC"},
   limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 6000000, cells: 10000, sheets: 4, operations: 100}};
@@ -19,21 +20,20 @@ it("paints selected bold fonts, native cell sizes, foreground and solid backgrou
     {text: "small", font: font.replace('Unit="10"', 'Unit="8"')}, {text: "large", font: font.replace('Unit="10"', 'Unit="14"')},
     {text: "red", attributes: attributes.replace('Fore="0:0:0"', 'Fore="FFFF:0:0"')},
     {text: "fill", attributes: attributes.replace('Back="FFFF:FFFF:FFFF"', 'Back="FFFF:FFFF:0"').replace('Shade="0"', 'Shade="1"')}]);
-  const before = structuredClone(book), text = vi.spyOn(PDFPage.prototype, "drawText"), rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
+  const before = structuredClone(book), rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");
   try {
-    const pdf = await PDFDocument.load(await writePdf(book, [], {...context, fonts: {resolve}}));
+    const {pdf, runs} = await pdfText(await writePdf(book, [], {...context, fonts: {resolve}}));
     expect(pdf.getPageCount()).toBe(1);
-    const calls = text.mock.calls.filter(([value]) => value !== "");
-    expect(calls.map(([value]) => value)).toEqual(["normal", "bold", "small", "large", "red", "fill"]);
-    expect(calls.map(([, options]) => options?.size)).toEqual([7.5, 7.5, 6, 10.5, 7.5, 7.5]);
-    expect(calls[4]![1]?.color).toEqual(rgb(1, 0, 0));
+    expect(runs.map(run => run.text)).toEqual(["normal", "bold", "small", "large", "red", "fill"]);
+    expect(runs.map(run => run.size)).toEqual([7.5, 7.5, 6, 10.5, 7.5, 7.5]);
+    expect(runs[4]!.color).toEqual([1, 0, 0]);
     expect(rectangle.mock.calls.map(([options]) => options)).toContainEqual(expect.objectContaining({x: 74, y: 599.8, width: 72.2, height: 20.2, color: rgb(1, 1, 0)}));
     expect(resolve.mock.calls).toHaveLength(2);
     expect(resolve.mock.calls.map(call => call[0])).toEqual([
       expect.objectContaining({family: "Sans", bold: false, italic: false, maxBytes: 1000000}),
       expect.objectContaining({family: "Sans", bold: true, italic: false, maxBytes: 1000000 - bytes.byteLength})]);
     expect(book).toEqual(before);
-  } finally {text.mockRestore();rectangle.mockRestore();}
+  } finally {rectangle.mockRestore();}
 });
 it("paints a blank solid background without requesting unused font bytes", async () => {
   const resolve = vi.fn<FontCapability["resolve"]>(async () => undefined), rectangle = vi.spyOn(PDFPage.prototype, "drawRectangle");

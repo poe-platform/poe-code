@@ -1,11 +1,11 @@
 import {expect, it, vi} from "vitest";
-import {PDFPage} from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import {suppliedDefaultFont} from "@poe-code/pdf";
 import type {CapabilityContext} from "../contracts.js";
 import {createFormattingCapability} from "../formatting.js";
 import {readGnumeric} from "./gnumeric.js";
 import {writePdf} from "./pdf.js";
+import {pdfText} from "./pdf-text.test-support.js";
 const context: CapabilityContext = {signal: new AbortController().signal, own() {},
   environment: {env: {}, locale: "C", timezone: "UTC"}, formatting: createFormattingCapability(),
   fonts: {async resolve() {return suppliedDefaultFont().bytes;}},
@@ -19,25 +19,19 @@ it.each([
   ["GNM_HALIGN_RIGHT", [121.25, 121.25, 125.75, 112.25]],
   ["GNM_HALIGN_CENTER", [99, 99, 101.25, 94.5]]
 ] as const)("prints four value kinds with native %s alignment and numeric minus", async (alignment, positions) => {
-  const book = await fixture(alignment), before = structuredClone(book), draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    await writePdf(book, [], context);
-    const cells = draw.mock.calls.filter(([text]) => text !== "");
-    expect(cells.map(([text]) => text)).toEqual(["alpha", "−12.5", "TRUE", "#DIV/0!"]);
-    // The supplied monospaced fixture has 600/1000em advances. Native cell
-    // layout excludes 5pt from width and adds its 4.75pt leading inset.
-    expect(cells.map(([, options]) => options?.x)).toEqual(positions);
-    expect(cells.map(([, options]) => options?.size)).toEqual([7.5, 7.5, 7.5, 7.5]);
-    expect(book).toEqual(before);
-  } finally {draw.mockRestore();}
+  const book = await fixture(alignment), before = structuredClone(book);
+  const {runs: cells} = await pdfText(await writePdf(book, [], context));
+  expect(cells.map(cell => cell.text)).toEqual(["alpha", "−12.5", "TRUE", "#DIV/0!"]);
+  // The supplied monospaced fixture has 600/1000em advances. Native cell
+  // layout excludes 5pt from width and adds its 4.75pt leading inset.
+  expect(cells.map(cell => cell.glyphs[0]!.x)).toEqual(positions);
+  expect(cells.map(cell => cell.size)).toEqual([7.5, 7.5, 7.5, 7.5]);
+  expect(book).toEqual(before);
 });
 
 it.each([[8, 125], [14, 113.75]] as const)("aligns Unit%s cells using rounded shaped advances", async (unit, x) => {
-  const draw = vi.spyOn(PDFPage.prototype, "drawText");
-  try {
-    await writePdf(await fixture("GNM_HALIGN_RIGHT", unit), [], context);
-    expect(draw.mock.calls.find(([text]) => text === "alpha")?.[1]?.x).toBe(x);
-  } finally {draw.mockRestore();}
+  const {runs} = await pdfText(await writePdf(await fixture("GNM_HALIGN_RIGHT", unit), [], context));
+  expect(runs.find(run => run.text === "alpha")?.glyphs[0]?.x).toBe(x);
 });
 it("refuses text whose rounded display width exceeds the printable cell", async () => {
   const book = await fixture("GNM_HALIGN_RIGHT", 8, 23.4);
@@ -53,9 +47,9 @@ it("uses shaped advance positions instead of nominal glyph widths", async () => 
     const run = original(value, features);
     return {...run, positions: run.positions.map(position => ({...position, xAdvance: position.xAdvance - 100}))};
   });
-  const create = vi.spyOn(fontkit, "create").mockReturnValue(parsed), draw = vi.spyOn(PDFPage.prototype, "drawText");
+  const create = vi.spyOn(fontkit, "create").mockReturnValue(parsed);
   try {
-    await writePdf(await fixture("GNM_HALIGN_RIGHT"), [], context);
-    expect(draw.mock.calls.find(([text]) => text === "alpha")?.[1]?.x).toBe(125);
-  } finally {layout.mockRestore();create.mockRestore();draw.mockRestore();}
+    const {runs} = await pdfText(await writePdf(await fixture("GNM_HALIGN_RIGHT"), [], context));
+    expect(runs.find(run => run.text === "alpha")?.glyphs[0]?.x).toBe(125);
+  } finally {layout.mockRestore();create.mockRestore();}
 });

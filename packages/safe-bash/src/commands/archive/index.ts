@@ -60,6 +60,9 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --atime-preserve[=replace] Restore source access times after creation
       --delay-directory-restore Restore directory metadata at archive end
       --no-delay-directory-restore Restore after leaving each directory subtree
+  -k, --keep-old-files     Keep existing files and report conflicts as errors
+      --skip-old-files    Skip existing files without reporting errors
+      --overwrite         Replace existing entries using safe extraction checks
       --help              Display this help and exit
       --                  End options; remaining arguments are filenames
 

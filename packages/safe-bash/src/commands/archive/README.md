@@ -85,6 +85,9 @@ required. Supported common options:
 | `--atime-preserve[=replace]` | Restore source file/directory access times after successful creation; requires timestamps. Does not promise unchanged ctime or restoration on cancellation. No-atime reads (`system`) are unsupported. |
 | `--delay-directory-restore`, `--no-delay-directory-restore` | Restore at archive end (default) or after leaving a directory subtree. |
 | `--format=pax`, `--format=posix`, `--format=ustar` | Creation format. Default PAX extends USTAR when needed. Strict USTAR rejects metadata that requires extensions and truncates fractional mtime to whole seconds. |
+| `-k`, `--keep-old-files` | Preserve existing non-directory entries, report conflicts, continue extracting other members, and return status 2. |
+| `--skip-old-files` | Preserve existing non-directory entries silently. |
+| `--overwrite` | Select the default safe replacement policy. Existing entries are removed before publication; input-archive identity, symlink-ancestor, and empty-directory replacement checks remain enforced. This does not implement GNU in-place writes through hard links or symlinks. |
 
 Modern short clusters, attached short-option values, traditional initial
 `tar czvf archive files`, long `--option=value`, and `--` are supported. In

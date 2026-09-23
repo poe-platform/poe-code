@@ -66,6 +66,74 @@ test("transformed listings enforce path and execution budgets", async () => {
   }
 });
 
+for (const policy of ["--keep-old-files", "-k", "--skip-old-files", "--overwrite"]) {
+  test(`extraction policy ${policy} admits new files and handles existing files`, async () => {
+    const { fs, shell } = await fixture();
+    try {
+      await fs.writeFile("/out/existing", Buffer.from("old"));
+      await fs.utimes!("/out/existing", 123000, 456000);
+      await fs.writeFile("/work/archive", archive(member("existing", binary), member("new", binary)));
+      const fresh = await shell.exec(`tar -xf archive -C /out ${policy} new`);
+      assert.equal(fresh.exitCode, 0, fresh.stderr);
+      await fs.rm("/out/new");
+      const result = await shell.exec(`tar -xf archive -C /out ${policy}`);
+      assert.equal(result.exitCode, policy === "--keep-old-files" || policy === "-k" ? 2 : 0, result.stderr);
+      assert.deepEqual(await fs.readFile("/out/new"), binary);
+      assert.deepEqual(await fs.readFile("/out/existing"), policy === "--overwrite" ? binary : new Uint8Array(Buffer.from("old")));
+      if (policy !== "--overwrite") assert.equal((await fs.stat("/out/existing")).mtimeMs, 456000);
+      if (policy === "--skip-old-files" || policy === "--overwrite") assert.equal(result.stderr, "");
+      else assert.match(result.stderr, /existing.*[Ff]ile exists/u);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const policy of ["--keep-old-files", "--skip-old-files"]) {
+  test(`${policy} preserves existing symlinks and nonempty directories and merges directory members`, async () => {
+    const { fs, shell } = await fixture();
+    try {
+      await fs.writeFile("/out/referent", Buffer.from("old"));
+      await fs.symlink!("referent", "/out/link");
+      await fs.mkdir("/out/dir");
+      await fs.writeFile("/out/dir/child", binary);
+      await fs.mkdir("/out/merge");
+      const bytes = archive(member("link", binary), member("dir", binary), member("merge/", undefined, "5"), member("merge/new", binary));
+      const result = await shell.exec(`tar -xf - -C /out ${policy}`, { stdin: bytes });
+      assert.equal(result.exitCode, policy === "--keep-old-files" ? 2 : 0, result.stderr);
+      assert.equal(await fs.readlink!("/out/link"), "referent");
+      assert.equal(Buffer.from(await fs.readFile("/out/referent")).toString(), "old");
+      assert.deepEqual(await fs.readFile("/out/dir/child"), binary);
+      assert.deepEqual(await fs.readFile("/out/merge/new"), binary);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("the last extraction policy wins and duplicate members follow the selected policy", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    const bytes = archive(member("file", Buffer.from("first")), member("file", Buffer.from("last")));
+    const skipped = await shell.exec("tar -xf - -C /out --overwrite --skip-old-files", { stdin: bytes });
+    assert.equal(skipped.exitCode, 0, skipped.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/out/file")).toString(), "first");
+    const overwritten = await shell.exec("tar -xf - -C /out --keep-old-files --overwrite", { stdin: bytes });
+    assert.equal(overwritten.exitCode, 0, overwritten.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/out/file")).toString(), "last");
+  } finally { await shell.dispose(); }
+});
+
+for (const policy of ["--keep-old-files", "--skip-old-files", "--overwrite"]) {
+  test(`${policy} preserves extraction safety checks`, async () => {
+    const { fs, shell } = await fixture();
+    try {
+      await fs.symlink!("/work", "/out/link");
+      for (const name of ["../escape", "link/file"]) {
+        const result = await shell.exec(`tar -xf - -C /out ${policy}`, { stdin: archive(member(name, binary)) });
+        assert.equal(result.exitCode, 2, result.stderr);
+        assert.match(result.stderr, /unsafe/u);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("positional -C create and file-list directory changes affect subsequent operands", async () => {
   const { fs, shell } = await fixture();
   try {

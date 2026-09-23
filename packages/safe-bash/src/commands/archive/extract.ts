@@ -126,6 +126,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
   let longName: string | undefined;
   let longLink: string | undefined;
   let warnedAbsolute = false;
+  let keptExisting = false;
   const matched = new Set<number>();
   const published = new Map<string, FileStat>();
   const directories = new Map<string, { root: string; entry: ReadEntry }>();
@@ -251,6 +252,14 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       }
       const existing = await maybeStat(context, path);
       if (archivePath && (path === archivePath || (existing && archiveStat && sameIdentity(existing, archiveStat)))) fail("entry would overwrite the input archive");
+      if (existing && !(entry.type === "5" && existing.type === "directory") && options.overwrite !== "replace") {
+        if (options.overwrite === "keep") {
+          await budget.output(`tar: ${display(entry.name)}: Cannot open: File exists\n`, true);
+          keptExisting = true;
+        }
+        await reader.discard(entry.size); await reader.padding(entry.size);
+        continue;
+      }
       if (existing?.type === "file" && archiveStat && (!hasIdentity(existing) || !hasIdentity(archiveStat))) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
       if (entry.type === "2") {
         await removeExisting(context, path, existing);
@@ -285,6 +294,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       if (stat.type !== "directory") fail("directory changed before metadata restoration");
       await metadata(context, path, value.entry, options);
     }
+    if (keptExisting) fail("Exiting with failure status due to previous errors");
   } finally {
     void reader.close().catch(() => {});
   }

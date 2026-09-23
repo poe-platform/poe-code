@@ -16,6 +16,7 @@ export interface TarOptions {
   operands: Operand[];
   excludes: string[];
   metadata: { mtime?: number; uid?: number; gid?: number; mode?: number; touch?: boolean; permissions?: boolean; fullTime?: boolean; delayDirectories?: boolean; preserveAtime?: boolean };
+  overwrite: "replace" | "keep" | "skip";
 }
 
 export async function parseOptions(context: CommandContext, limits: ArchiveLimits): Promise<TarOptions | "help"> {
@@ -27,6 +28,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let verbose = false;
   let showTransformedNames = false;
   const transforms: NameTransform[] = [];
+  let overwrite: TarOptions["overwrite"] = "replace";
   let strip = 0;
   let format: TarOptions["format"] = "pax";
   let cwd = context.cwd;
@@ -118,6 +120,9 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!value || value === "@" || !Number.isFinite(seconds) || Math.abs(seconds * 1000) > 8.64e15) fail(`invalid mtime: ${value}`);
       metadata.mtime = seconds;
     }
+    else if (flag === "k" || flag === "keep-old-files") overwrite = "keep";
+    else if (flag === "skip-old-files") overwrite = "skip";
+    else if (flag === "overwrite") overwrite = "replace";
     else if (flag === "f") { if (!value) fail("empty archive name"); archive = value; }
     else if (flag === "C") await directory(value!);
     else if (flag === "T") await names(value!);
@@ -151,7 +156,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTmp".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTmpk".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -178,7 +183,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, metadata };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, metadata, overwrite };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

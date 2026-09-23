@@ -180,7 +180,7 @@ async function block(value: Json, output: Fragments, depth: number): Promise<voi
 }
 
 export async function encodeYaml(value: Json, work: YqOwnedWork, maxBytes: number): Promise<string> {
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new RangeError("maxBytes must be a nonnegative safe integer");
+  if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new RangeError("maxBytes must be a nonnegative safe integer or Infinity");
   const output = new Fragments(work, maxBytes);
   if (nonemptyCollection(value)) await block(value, output, 0);
   else await inline(value, output);

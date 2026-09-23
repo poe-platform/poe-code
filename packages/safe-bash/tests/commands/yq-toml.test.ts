@@ -131,13 +131,14 @@ test("TOML cancels empty input chunks and drains the source with exact reason", 
   assert.ok(chunks < 10000);
 });
 
-test("TOML admits document bytes before copying or parsing", async () => {
+test("TOML admits input above the former document byte ceiling", async () => {
   const chunk = Buffer.from("x=1");
   Object.defineProperty(chunk, "byteLength", { value: 8_388_609 });
   let closed = false;
   const stdin = (async function* () { try { yield chunk; } finally { closed = true; } })();
   const result = await run(["-p", "toml"], "", {}, { stdin });
-  assert.equal(result.status, 5);
-  assert.match(result.stderr, /LIMIT_MAX_DOCUMENT_BYTES/);
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout, '"x": 1\n');
+  assert.equal(result.stderr, "");
   assert.equal(closed, true);
 });

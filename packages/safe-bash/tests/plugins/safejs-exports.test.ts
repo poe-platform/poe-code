@@ -29,7 +29,7 @@ test("root optional plugin delegates only to the explicit injected runtime", asy
   const calls: string[] = [];
   const runtime: SafeJsRuntime<SafeJsBudgetOptions> = {
     createBudget(options) { return options; },
-    makeFsModule() { return {}; },
+    makeFsModule() { return { readFile() { assert.fail("eval must not read guest files"); } }; },
     declareHostOperation(operation) { return operation; },
     async run(source, options) {
       calls.push(source);
@@ -48,6 +48,7 @@ test("root optional plugin delegates only to the explicit injected runtime", asy
     assert.equal(shell.commands.list().length, createAgentCommands().length + 1);
     assert.equal(calls.length, 1);
     assert.ok(calls[0]?.endsWith("opaque guest source\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
+    assert.ok(calls[0]!.includes("\nopaque guest source\n"), "the injected runtime receives the guest source");
     assert.equal(shell.commands.has("node"), true);
     assert.equal(shell.commands.has("safejs"), false);
     assert.equal(shell.commands.has("js"), false);

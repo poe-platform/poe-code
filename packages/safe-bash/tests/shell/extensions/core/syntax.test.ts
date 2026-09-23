@@ -101,7 +101,10 @@ test("opt-in special parameters use variable lookup metadata with quote, length 
     if (index === 2) assert.equal(part.length, true);
     if (index === 3) { assert.equal(part.operator, ":-"); assert.equal(part.alternate?.parts[0]?.kind, "text"); }
   }
-  assert.throws(() => parser.parseShell("printf ${!name}", 0, declarations), ShellSyntaxError);
+  const source = 'printf "${!name}"';
+  const indirect = simple(parser.parseShell(source, 0, declarations)).words[1]!.parts.find(part => part.kind === "variable")!;
+  assert.deepEqual(indirect, { kind: "variable", name: "name", quoted: true, line: 1, indirect: true });
+  assert.deepEqual(indirect, simple(parser.parseShell(source)).words[1]!.parts.find(part => part.kind === "variable")!);
 });
 
 test("literal ampersands and exclamation marks do not acquire execution or lookup metadata", () => {

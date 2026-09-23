@@ -257,7 +257,7 @@ for (const duplicate of ["name", "builtin"]) test(`key capability union preserve
   assert.equal(executed, 0);
 });
 
-for (const source of ["true &", "printf $!", "printf ${!a}", "printf ${!a[0]}", "printf ${!a[@]:1}", "printf ${!a[@]-x}"]) {
+for (const source of ["true &", "printf $!", "printf ${!a[0]}", "printf ${!a[@]:1}", "printf ${!a[@]-x}"]) {
   test(`key capability does not enable other grammar: ${source}`, async context => {
     const subject = setup(); context.after(() => subject.shell.dispose());
     const result = await subject.shell.exec(source);
@@ -265,6 +265,18 @@ for (const source of ["true &", "printf $!", "printf ${!a}", "printf ${!a[0]}", 
     assert.equal(result.stdout, "");
   });
 }
+
+test("key capability preserves scalar indirect lookup and invalid-reference failure", async context => {
+  const subject = setup(); context.after(() => subject.shell.dispose());
+  const valid = await subject.shell.exec("a=target; target=value; printf '%s' \"${!a}\"");
+  assert.equal(valid.exitCode, 0);
+  assert.equal(valid.stdout, "value");
+  assert.equal(valid.stderr, "");
+  const invalid = await subject.shell.exec('unset a; printf "${!a}"; printf unsafe');
+  assert.equal(invalid.exitCode, 1);
+  assert.equal(invalid.stdout, "");
+  assert.ok(invalid.stderr.includes("invalid variable name"));
+});
 
 test("captured parser capability is frozen and survives caller mutation", () => {
   const declaration = { arrayKeys: true } as { arrayKeys: true | false };

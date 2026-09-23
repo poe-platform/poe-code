@@ -57,8 +57,15 @@ for (const source of [
   assert.deepEqual(parser.parseShell(source, 0, declarations), parser.parseShell(source));
 });
 
-for (const source of ["first &>> out", "printf $$", "printf ${!name}", "printf ${![0]}", "first &&& second", "first &; second"]) test(`unsupported adjacent syntax remains rejected: ${source}`, () => {
+for (const source of ["first &>> out", "printf $$", "printf ${![0]}", "first &&& second", "first &; second"]) test(`unsupported adjacent syntax remains rejected: ${source}`, () => {
   assert.throws(() => parser.parseShell(source, 0, declarations), ShellSyntaxError);
+});
+
+test("scalar indirect lookup remains distinct from the opt-in special parameter", () => {
+  for (const syntax of [undefined, declarations]) {
+    const part = simple(parser.parseShell("printf ${!name}", 0, syntax)).words[1]!.parts[0]!;
+    assert.deepEqual(part, { kind: "variable", name: "name", quoted: false, line: 1, indirect: true });
+  }
 });
 
 test("several asynchronous lists retain AND/OR ownership and source offsets", () => {

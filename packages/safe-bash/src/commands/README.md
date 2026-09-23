@@ -81,7 +81,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `tr` | Byte ranges/classes/escapes, translation, `-d`, `-s`, `-c`/`-C`; squeeze state persists across chunks. |
 | `tee` | Incremental stdout and multiple file writes; append `-a`; continues remaining outputs after a file error. |
 | `grep` | Common basic/extended/fixed patterns `-E`/`-F`; `-i`, `-v`, `-n`, `-c`, `-l`, `-L`, `-q`, `-h`, `-H`, `-o`, `-w`, `-x`, repeated `-e`/`-f`, `-m`, `-s`, `-a`, `-z`; 0/1/2 statuses. |
-| `find` | Sorted traversal, `-P`/`-L`, depth bounds and `-depth`, name/path patterns, file/directory/link types, `-size`, `-empty`, boolean expressions, `-prune`, `-print`/`-print0`, literal `-exec ... ;` and batched `-exec ... {} +`. |
+| `find` | Sorted traversal, `-P`/`-L`/`-H` (argument symlinks only), `-D tree` (virtual expression evaluation order, without GNU optimizer diagnostics; other debug modes unsupported), depth bounds and `-depth`, name/path patterns, file/directory/link types, `-size`, `-empty`, boolean expressions, `-prune`, `-print`/`-print0`, literal `-exec ... ;` and batched `-exec ... {} +`. |
 | `xargs` | Incremental quoted/escaped word parsing; `-0`, `-d`, `-n`, `-s`, `-I`, `-r`, `-t`, `-E`, `-x`, sequential `-P 1`; child failure status mapping. |
 | `env` | Listing, clearing `-i`/`-`, unsetting `-u`, assignments, NUL listing `-0`, virtual directory override `-C`, direct command execution. |
 | `true`, `false` | Conventional status-only commands; arguments ignored. |

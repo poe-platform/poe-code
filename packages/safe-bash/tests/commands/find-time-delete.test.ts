@@ -8,6 +8,67 @@ import { fixture, run } from "./helpers.js";
 
 const now = 1_700_000_000_000;
 
+test("find -H follows argument links but keeps descendant links physical", async () => {
+  const fs = await fixture({ "tree/file": "", "other/child": "" });
+  await fs.symlink("tree", "/work/link");
+  await fs.symlink("../other", "/work/tree/nested-link");
+  await fs.symlink("file", "/work/tree/file-link");
+  for (const [options, expected] of [
+    [["-H"], "link/file\n"],
+    [["-L", "-H"], "link/file\n"],
+    [["-H", "-L"], "link/file\nlink/file-link\nlink/nested-link/child\n"],
+    [["-H", "-P"], ""],
+  ] as const) {
+    const result = await run("find", [...options, "link", "-type", "f", "-print"], { fs });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+  }
+});
+
+test("find -H follows reference links and falls back for dangling argument links", async () => {
+  const fs = await fixture({ candidate: "", reference: "" });
+  await fs.utimes("/work/reference", 0, 0);
+  await fs.symlink("reference", "/work/reference-link");
+  await fs.symlink("missing", "/work/dangling");
+  const newer = await run("find", ["-H", "candidate", "-newer", "reference-link"], { fs });
+  assert.equal(newer.exitCode, 0);
+  assert.equal(newer.stdout, "candidate\n");
+  const dangling = await run("find", ["-H", "dangling", "-type", "l"], { fs });
+  assert.equal(dangling.exitCode, 0);
+  assert.equal(dangling.stdout, "dangling\n");
+  await fs.symlink("cycle", "/work/cycle");
+  const cycle = await run("find", ["-H", "cycle"], { fs });
+  assert.equal(cycle.exitCode, 1);
+  assert.match(cycle.stderr, /ELOOP/u);
+});
+
+test("find -D tree emits a truthful virtual expression tree without changing stdout", async () => {
+  const fs = await fixture({ "tree/file": "", "tree/skip": "" });
+  const result = await run("find", ["-H", "-D", "tree", "tree", "(", "-name", "file", "-o", "-false", ")", "-print"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "tree/file\n");
+  assert.match(result.stderr, /find: virtual expression tree \(evaluation order; no optimizer\)/u);
+  assert.ok(result.stderr.includes('AND(OR(["-name","file"], ["-false"]), ["-print"])'));
+  const implicit = await run("find", ["-D", "tree", "tree", "!", "-name", "skip"], { fs });
+  assert.equal(implicit.exitCode, 0);
+  assert.equal(implicit.stdout, "tree\ntree/file\n");
+  assert.ok(implicit.stderr.includes('AND(NOT(["-name","skip"]), implicit -print)'));
+});
+
+test("find debug syntax fails before actions and option-like operands remain literal", async () => {
+  const fs = await fixture({ "-D": "", keep: "" });
+  for (const options of [["-D"], ["-D", "unknown"], ["-D", "stat"]]) {
+    const result = await run("find", [...options, "keep", "-delete"], { fs });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.ok(await fs.lstat("/work/keep"));
+  }
+  const literal = await run("find", [".", "-name", "-D"], { fs });
+  assert.equal(literal.exitCode, 0);
+  assert.equal(literal.stdout, "./-D\n");
+});
+
 for (const [predicate, unit] of [["-mtime", 86_400_000], ["-mmin", 60_000]] as const) {
   const cases: readonly [string, readonly string[]][] = predicate === "-mtime" ? [
     ["0", ["zero", "below-one"]], ["1", ["one", "below-two"]],

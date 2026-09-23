@@ -18,8 +18,18 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     const argumentValues = getCommandArguments(context);
     const args = [...argumentValues.args];
     const values = [...argumentValues.values];
-    let follow = false;
-    while (args[0] === "-P" || args[0] === "-L") { follow = args.shift() === "-L"; values.shift(); }
+    let follow = "-P";
+    let debugTree = false;
+    while (["-P", "-L", "-H", "-D"].includes(args[0] ?? "")) {
+      const option = args.shift()!;
+      values.shift();
+      if (option !== "-D") { follow = option; continue; }
+      const debug = args.shift();
+      values.shift();
+      if (debug === undefined) throw new UsageError("-D requires a debug option");
+      if (debug !== "tree") throw new UsageError(`unsupported debug option '${debug}' (supported: tree)`);
+      debugTree = true;
+    }
     const roots: string[] = [];
     while (args.length && !args[0]!.startsWith("-") && !["!", "("].includes(args[0]!)) { roots.push(args.shift()!); values.shift(); }
     if (!roots.length) roots.push(".");
@@ -51,10 +61,22 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     const flushes: (() => Promise<void>)[] = [];
     const formats: (() => Promise<void>)[] = [];
     const formatBudget = new FindFormatBudget(context);
+    const trees = new Map<Expression, string>();
     const primary = (): Expression => {
+      const start = offset;
+      const expression = parsePrimary();
+      if (debugTree && !trees.has(expression)) trees.set(expression, JSON.stringify(args.slice(start, offset)));
+      return expression;
+    };
+    const parsePrimary = (): Expression => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("missing expression");
-      if (token === "!" || token === "-not") { const inner = primary(); return async entry => !await inner(entry); }
+      if (token === "!" || token === "-not") {
+        const inner = primary();
+        const expression: Expression = async entry => !await inner(entry);
+        if (debugTree) trees.set(expression, `NOT(${trees.get(inner)})`);
+        return expression;
+      }
       if (token === "(") {
         const inner = disjunction();
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
@@ -181,6 +203,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         const left = predicate;
         const right = primary();
         predicate = async entry => await left(entry) && await right(entry);
+        if (debugTree) trees.set(predicate, `AND(${trees.get(left)}, ${trees.get(right)})`);
       }
       return predicate;
     };
@@ -191,6 +214,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         const left = predicate;
         const right = conjunction();
         predicate = async entry => await left(entry) || await right(entry);
+        if (debugTree) trees.set(predicate, `OR(${trees.get(left)}, ${trees.get(right)})`);
       }
       return predicate;
     };
@@ -198,14 +222,18 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     if (offset !== args.length) throw new UsageError(`unexpected expression '${args[offset]}'`);
     for (const prepare of formats) await prepare();
     if (deletes && prunes && !explicitDepth) throw new PublicDiagnostic("-delete implies -depth; -prune is ineffective unless -depth is explicitly supplied");
+    if (debugTree) {
+      const tree = trees.get(evaluate) ?? "true";
+      await context.stderr.write(new TextEncoder().encode(`find: virtual expression tree (evaluation order; no optimizer)\n${explicitAction ? tree : `AND(${tree}, implicit -print)`}\n`));
+    }
     for (const reference of references.keys()) {
       context.signal.throwIfAborted();
       const path = pathOf(context, reference);
       let stat: FileStat;
-      try { stat = await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
+      try { stat = await context.fs[follow !== "-P" ? "stat" : "lstat"](path, { signal: context.signal }); }
       catch (error) {
         context.signal.throwIfAborted();
-        if (!follow || codeOf(error) !== "ENOENT") throw error;
+        if (follow === "-P" || codeOf(error) !== "ENOENT") throw error;
         stat = await context.fs.lstat(path, { signal: context.signal });
       }
       context.signal.throwIfAborted();
@@ -218,7 +246,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         if (depth > 1024) throw new FsError("ELOOP", { path, message: "find depth limit exceeded (1024)" });
         let stat = await context.fs.lstat(path, { signal: context.signal });
         const symlink = stat.type === "symlink";
-        if (follow && stat.type === "symlink") {
+        if ((follow === "-L" || follow === "-H" && depth === 0) && stat.type === "symlink") {
           try { stat = await context.fs.stat(path, { signal: context.signal }); }
           catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
         }

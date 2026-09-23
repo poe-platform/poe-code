@@ -38,7 +38,10 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 `names.sorted.txt` stay in memory. Results contain `exitCode`, `stdout`, `stderr`,
 `stdoutBytes`, and `stderrBytes`; use the byte fields for binary output.
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
-filesystem changes persist in the supplied `fs`.
+filesystem changes persist in the supplied `fs`. The invocation-local `umask`
+starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
+Creation modes use the filesystem's capabilities; advisory modes do not enforce
+physical permissions, and the host process mask remains unchanged.
 
 ## Supported features and commands
 

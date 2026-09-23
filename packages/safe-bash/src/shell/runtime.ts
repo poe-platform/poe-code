@@ -1,4 +1,5 @@
 import type { InternalErrorHandler } from "../contracts/command.js";
+import { creationFileSystem, parseMask, symbolicMask } from "./umask.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
@@ -92,7 +93,7 @@ export const defaultLimits: Required<ShellLimits> = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "mapfile", "readarray",
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "mapfile", "readarray", "umask",
   "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
 ]);
 
@@ -450,6 +451,7 @@ const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; line
 const childIdentities = new WeakMap<Budget, number>();
 
 export interface State {
+  umask?: number;
   extensions?: ShellExtensionState | undefined;
   cwd: string;
   variables: Record<string, string>;
@@ -3653,7 +3655,7 @@ export class Runtime {
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
-    const resourceFs = scopeFileSystem(this.sourceFs, () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true });
+    const resourceFs = creationFileSystem(scopeFileSystem(this.sourceFs, () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true }), state.umask ?? 0o022);
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -3802,8 +3804,8 @@ export class Runtime {
           let offset = 0;
           const incremental = async (): Promise<ByteSink> => {
             await this.fileOperation(key, async () => {
-              if (append) await this.fs.appendFile(path, new Uint8Array(), options);
-              else await this.fs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
+              if (append) await resourceFs.appendFile(path, new Uint8Array(), options);
+              else await resourceFs.writeFile(path, new Uint8Array(), { ...options, flag: "w" });
               if (!append) file.data = new Uint8Array();
             });
             return { write: (chunk) => {
@@ -3824,13 +3826,13 @@ export class Runtime {
                 if (append || atEOF) {
                   // Preparing a larger view only touches the unpublished tail of current.
                   const bytes = current ? appendOutputBytes(current, copy) : undefined;
-                  await this.fs.appendFile(path, copy, options);
+                  await resourceFs.appendFile(path, copy, options);
                   file.data = bytes;
                 } else {
                   const bytes = new Uint8Array(Math.max(current?.length ?? 0, offset + copy.length));
                   if (current) bytes.set(current);
                   bytes.set(copy, offset);
-                  await this.fs.writeFile(path, bytes, options);
+                  await resourceFs.writeFile(path, bytes, options);
                   file.data = bytes;
                 }
                 if (!append) offset += copy.length;
@@ -4107,7 +4109,7 @@ export class Runtime {
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
+      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: creationFileSystem(this.fs, state.umask ?? 0o022), signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
       inputBudget: {
@@ -4544,7 +4546,7 @@ export class Runtime {
       dotglob: false,
       globstar: false,
       positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
-      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
+      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, umask: state.umask ?? 0o022,
       errexit: false,
     }, this.budget, io[invocationScope]);
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
@@ -5876,6 +5878,30 @@ export class Runtime {
   }
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
+    if (command === "umask") {
+      let symbolic = false;
+      let reusable = false;
+      let index = 0;
+      while (args[index]?.startsWith("-")) {
+        const option = args[index++]!;
+        if (option === "--") break;
+        for (const flag of option.slice(1)) {
+          if (flag === "S") symbolic = true;
+          else if (flag === "p") reusable = true;
+          else { await writeDiagnostic(stderr, `umask: ${option}: invalid option\n`); return 2; }
+        }
+      }
+      const value = args[index];
+      if (value !== undefined) {
+        const mask = parseMask(value, state.umask ?? 0o022);
+        if (mask === undefined) { await writeDiagnostic(stderr, `umask: ${value}: invalid mode\n`); return 1; }
+        state.umask = mask;
+      } else {
+        const mask = state.umask ?? 0o022;
+        await writeText(stdout, `${reusable ? `umask ${symbolic ? "-S " : ""}` : ""}${symbolic ? symbolicMask(mask) : mask.toString(8).padStart(4, "0")}\n`);
+      }
+      return 0;
+    }
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
     if (command === "shopt") return this.shoptBuiltin(context, state);

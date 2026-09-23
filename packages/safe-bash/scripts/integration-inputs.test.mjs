@@ -476,6 +476,7 @@ function assertSource7Discovery(files) {
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
+    "tests/shell/umask.test.ts",
     "tests/shell/byte-values.test.ts",
     "tests/shell/background-jobs.test.ts",
     "tests/shell/background-jobs-review.test.ts",

@@ -441,7 +441,7 @@ class Parser {
   private position = 0;
   groups = 0;
   private readonly closed = new Set<number>();
-  constructor(private readonly tokens: readonly string[], private readonly work: Work, private readonly search = false, private readonly unicode = false) {}
+  constructor(private readonly tokens: readonly string[], private readonly work: Work, private readonly search = false, private readonly unicode = false, private readonly emacs = false) {}
   private at(value: string): boolean { return this.tokens[this.position] === value; }
   private escaped(value: string): boolean { return this.at("\\") && this.tokens[this.position + 1] === value; }
   private tree<TreeNode extends Tree>(node: TreeNode): TreeNode { this.work.node(); return node; }
@@ -455,7 +455,7 @@ class Parser {
         this.work.charge();
         if (this.work.checkpoint()) yield;
         let child = yield* this.atom(depth, children.length === 0);
-        while ((this.at("*") || this.escaped("+") || this.escaped("?") || this.escaped("{"))
+        while ((this.at("*") || (this.emacs ? this.at("+") || this.at("?") : this.escaped("+") || this.escaped("?") || this.escaped("{")))
           && (!this.search || child.kind !== "start" && child.kind !== "end" && child.kind !== "assertion")) {
           const repetition = this.repetition();
           if (child.kind === "start" || child.kind === "end") unsupported("repeated anchor");
@@ -509,8 +509,8 @@ class Parser {
   }
   private repetition(): { minimum: number; maximum: number } {
     if (this.at("*")) { this.position++; return { minimum: 0, maximum: Infinity }; }
-    if (this.escaped("+")) { this.position += 2; return { minimum: 1, maximum: Infinity }; }
-    if (this.escaped("?")) { this.position += 2; return { minimum: 0, maximum: 1 }; }
+    if (this.emacs ? this.at("+") : this.escaped("+")) { this.position += this.emacs ? 1 : 2; return { minimum: 1, maximum: Infinity }; }
+    if (this.emacs ? this.at("?") : this.escaped("?")) { this.position += this.emacs ? 1 : 2; return { minimum: 0, maximum: 1 }; }
     this.position += 2;
     const number = (): number | undefined => {
       let value = 0, count = 0;
@@ -724,6 +724,28 @@ function member(value: number, name: string): boolean {
 
 export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8Array, options: { readonly ownedUnits?: number } = {}): Generator<void, BreSearchResult> {
   const work = new Work(descriptor.limits);
+  const program = yield* prepareSearch(descriptor, subject, work, options);
+  for (let candidate = 0; candidate <= program.input.values.length; candidate++) {
+    const end = yield* searchCandidate(program, candidate, work);
+    if (end !== undefined) return { offsetUnit: "byte", matched: true, overall: { start: program.input.boundaries[candidate]!, end: program.input.boundaries[end]! }, steps: work.steps };
+  }
+  return { offsetUnit: "byte", matched: false, overall: null, steps: work.steps };
+}
+
+export function* reverseEmacsSteps(descriptor: BreSearchDescriptor, subject: Uint8Array): Generator<void | { start: number; end: number }> {
+  const work = new Work(descriptor.limits);
+  const program = yield* prepareSearch(descriptor, subject, work, { emacs: true });
+  let maximum = program.input.values.length;
+  // Keep the full subject for anchors, but forbid overlap with consumed separators.
+  for (let candidate = maximum - 1; candidate >= 0; candidate--) {
+    const end = yield* searchCandidate(program, candidate, work, undefined, maximum);
+    if (end === undefined) continue;
+    yield { start: program.input.boundaries[candidate]!, end: program.input.boundaries[end]! };
+    maximum = candidate;
+  }
+}
+
+function* prepareSearch(descriptor: BreSearchDescriptor, subject: Uint8Array, work: Work, options: { readonly ownedUnits?: number; readonly emacs?: boolean }): Generator<void, SearchProgram> {
   if (descriptor.pattern.length > descriptor.limits.maxPatternBytes || subject.length > descriptor.limits.maxSubjectBytes) throw new ExprMatchError("limit", "regex input bytes limit exceeded");
   if (options.ownedUnits) work.allocate(options.ownedUnits);
   const unicode = descriptor.profile === "utf8-scalar";
@@ -734,7 +756,7 @@ export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8A
     tokens.push(String.fromCodePoint(pattern.values[index]!));
     if ((index + 1) % 256 === 0) yield;
   }
-  const parser = new Parser(tokens, work, true, unicode);
+  const parser = new Parser(tokens, work, true, unicode, options.emacs);
   const instructions = yield* compile(yield* parser.parse(), work, true);
   const input = yield* searchSymbols(subject, unicode, work);
   work.allocate(parser.groups * 2 + 4);
@@ -748,12 +770,7 @@ export function* searchBreSteps(descriptor: BreSearchDescriptor, subject: Uint8A
       closes[Math.floor(instruction.slot / 2)]!.push(index);
     }
   }
-  const program: SearchProgram = { instructions, input, groups: parser.groups, unicode, closes };
-  for (let candidate = 0; candidate <= input.values.length; candidate++) {
-    const end = yield* searchCandidate(program, candidate, work);
-    if (end !== undefined) return { offsetUnit: "byte", matched: true, overall: { start: input.boundaries[candidate]!, end: input.boundaries[end]! }, steps: work.steps };
-  }
-  return { offsetUnit: "byte", matched: false, overall: null, steps: work.steps };
+  return { instructions, input, groups: parser.groups, unicode, closes };
 }
 
 interface SearchProgram {
@@ -764,7 +781,7 @@ interface SearchProgram {
   readonly closes: readonly (readonly number[])[];
 }
 
-function* searchCandidate(program: SearchProgram, candidate: number, work: Work, target?: { readonly program: number; readonly position: number }): Generator<void, number | undefined> {
+function* searchCandidate(program: SearchProgram, candidate: number, work: Work, target?: { readonly program: number; readonly position: number }, maximum = program.input.values.length): Generator<void, number | undefined> {
   interface Visit { program: number; captures: readonly number[] }
   interface State { program: number; position: number; captures: number[]; visited: Visit[] }
   work.allocate(program.groups * 3 + 4);
@@ -775,6 +792,7 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
   while (stack.length) {
     const state = stack.pop()!;
     while (true) {
+      if (state.position > maximum) break;
       if (target && state.position > target.position) break;
       work.charge(state.visited.length * (state.captures.length + 1) + 1);
       if (work.checkpoint()) yield;
@@ -822,7 +840,7 @@ function* searchCandidate(program: SearchProgram, candidate: number, work: Work,
             let reachable = closingCache.get(key);
             if (reachable === undefined) {
               work.allocate(4);
-              reachable = (yield* searchCandidate(program, candidate, work, { program: earlier, position: finish })) !== undefined;
+              reachable = (yield* searchCandidate(program, candidate, work, { program: earlier, position: finish }, maximum)) !== undefined;
               closingCache.set(key, reachable);
             }
             if (reachable) { shadowed = true; break; }

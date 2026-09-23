@@ -37,15 +37,19 @@ Default LF-delimited records are reversed separately in each operand. The
 separator belongs to the preceding record; an unterminated final record moves
 to the front without gaining a delimiter. `-b`, `--before` attaches delimiters
 to the following record. `-s STRING`, `--separator=STRING` uses literal UTF8
-argument bytes, not regex or escape processing. An empty separator means one
+argument bytes by default. `-r`, `--regex` interprets the separator with GNU
+Emacs-style regex syntax: unescaped `+` and `?`, escaped groups and alternation,
+character classes and backreferences. Matching searches from right to left
+without overlap and preserves the original record bytes. An empty separator means one
 NUL byte, as verified with GNU9.7. Overlapping delimiters are found from right
 to left without overlap. `-` is stdin, and repeated stdin operands share one
 cursor rather than replaying the input.
 
 The entire operand is collected before reversal; there is no seek, disk spool,
 or constant-memory claim. Reverse matching uses a linear prefix-table scan,
-with cooperative cancellation/work checks. `-r`/`--regex` is not implemented;
-this is a remaining compatibility gap, not an unchanged full GNU profile.
+with cooperative cancellation/work checks. Regex matching uses the bounded
+byte-profile engine, with additional pattern, allocation, state and work limits;
+it does not establish complete GNU regex or locale parity.
 
 ### expand
 

@@ -9,6 +9,22 @@ import { Shell } from "../../../src/shell/index.js";
 import { ShellLimitError } from "../../../src/shell/types.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { createStreamInspectionCommands, streamInspectionCommands } from "../../../src/commands/stream-inspection/index.js";
+import { agentCommands } from "../../../src/plugins/index.js";
+
+test("agentCommands: tac regex reverses VFS files and piped stdin", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work", { recursive: true });
+  await fs.writeFile("/work/input", Buffer.from("a:b::c\n"));
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    for (const source of ["tac -r -s :+ input", "cat input | tac --regex --separator=:+"]) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "c\n:b:a:");
+    }
+  } finally { await shell.dispose(); }
+});
 
 test("opt-in plugin collision preflight and replacement use existing contracts", () => {
   assert.deepEqual(createStreamInspectionCommands().map(command => command.name), ["tac", "expand", "fold", "strings"]);

@@ -6,6 +6,38 @@ import { createStreamInspectionCommands } from "../../../src/commands/stream-ins
 import { deferred, fixture, runFixture, type Name } from "./helpers.js";
 
 const names: readonly Name[] = ["tac", "expand", "fold", "strings"];
+
+test("tac: regex separators search right to left and preserve record bytes", async () => {
+  for (const args of [["-r", "-s", ":+"], ["--regex", "--separator=:+"]]) {
+    const result = await runFixture(fixture("regex", "tac", args, "a:b::c\n"));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "c\n:b:a:");
+  }
+  const before = await runFixture(fixture("regex-before", "tac", ["-brs", ":+"], "a:b::c\n"));
+  assert.equal(before.exitCode, 0, before.stderr);
+  assert.equal(before.stdout, ":c\n::ba");
+  for (const [pattern, input, expected] of [
+    ["[,:]+", "a,b::c", "c:b:a,"],
+    ["\\(:\\|;\\)+", "a:b;;c", "c;b;a:"],
+    ["\\+", "a+b+c", "cb+a+"],
+    ["aba", "ababaX", "Xababa"],
+    [":", "abc", "abc"],
+  ]) {
+    const result = await runFixture(fixture("regex-syntax", "tac", ["-rs", pattern!], input!));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  const binary = await runFixture(fixture("regex-bytes", "tac", ["-rs", ":+"], Buffer.from([255, 58, 0, 58, 128])));
+  assert.equal(binary.exitCode, 0, binary.stderr);
+  assert.equal(binary.stdoutHex, "80003aff3a");
+  const invalid = await runFixture(fixture("regex-invalid", "tac", ["-rs", "["], "abc"));
+  assert.equal(invalid.exitCode, 1);
+  assert.equal(invalid.stdout, "");
+  assert.match(invalid.stderr, /regular expression|Unmatched/u);
+  const bounded = await runFixture(fixture("regex-limit", "tac", ["-rs", ":+"], "a:b::c"), { limits: { maxSteps: 20 } });
+  assert.equal(bounded.exitCode, 1);
+  assert.match(bounded.stderr, /limit/u);
+});
 function proxyFs(base: FileSystem, methods: Partial<FileSystem>): FileSystem {
   return new Proxy(base, { get(target, key) {
     const owner = key in methods ? methods : target;
@@ -96,7 +128,7 @@ for (const name of names) {
   });
 
   test(`${name}: invalid options and values are diagnosed before reading`, async () => {
-    const invalid = name === "tac" ? [["-r"], ["-s"], ["--before=yes"]]
+    const invalid = name === "tac" ? [["-z"], ["-s"], ["--before=yes"]]
       : name === "expand" ? [["-t0"], ["-t", "4,3"], ["-t", "+4,8"], ["-t", "4\n8"], ["--tabs"]]
       : name === "fold" ? [["-w0"], ["-w", "NaN"], ["--width"], ["-q"]]
       : [["-n0"], ["-tq"], ["--radix"], ["-d"]];

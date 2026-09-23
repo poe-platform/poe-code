@@ -38,9 +38,9 @@ it("capitalizes the first character even when a word begins with punctuation or 
 });
 
 it("keeps typed scalar values, error propagation, and arity distinct from missing namespace", () => {
-  expect(calculate({ kind: "number", value: 123 })).toEqual({ kind: "string", value: "123" });
-  expect(calculate({ kind: "boolean", value: true })).toEqual({ kind: "string", value: "True" });
-  expect(calculate({ kind: "blank" })).toEqual({ kind: "string", value: "" });
+  expect(calculate({ kind: "number", value: 123 })).toEqual({ kind: "error", value: "Python exception (<class 'AttributeError'>: 'float' object has no attribute 'split')" });
+  expect(calculate({ kind: "boolean", value: true })).toEqual({ kind: "error", value: "Python exception (<class 'AttributeError'>: 'bool' object has no attribute 'split')" });
+  expect(calculate({ kind: "blank" })).toEqual({ kind: "error", value: "Python exception (<class 'AttributeError'>: 'NoneType' object has no attribute 'split')" });
   expect(calculate({ kind: "error", value: "#REF!" })).toEqual({ kind: "error", value: "#REF!" });
   expect(calculate({ kind: "blank" }, {}, "=PY_CAPWORDS(A1,A1)"))
     .toEqual({ kind: "error", value: "#N/A" });

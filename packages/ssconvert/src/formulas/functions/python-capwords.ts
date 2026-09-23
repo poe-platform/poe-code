@@ -1,5 +1,6 @@
+import { rendered } from "../values.js";
 import { SsconvertError } from "../../contracts.js";
-import { boundedText, textArg } from "./common.js";
+import { boundedText, scalarArg } from "./common.js";
 import { simpleUnicodeCase } from "./unicode.js";
 import { cased, caseIgnorable, whitespace, titleDeltas, lowerDeltas } from "./python-capwords-profile.js";
 import type { FunctionHost, Value } from "./types.js";
@@ -18,7 +19,13 @@ function within(code: number, ranges: readonly (readonly [number, number])[]): b
 
 /** Python string.capwords: whitespace words, full initial titlecase and contextual lowercase. */
 export function pythonCapwords(args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
-  const source = textArg(args, 0, host), output: string[] = [];
+  const value = scalarArg(args, 0, host);
+  if (value.kind === "error") return value;
+  if (value.kind !== "string" && value.kind !== "byte-string") {
+    const type = value.kind === "boolean" ? "bool" : value.kind === "number" ? "float" : "NoneType";
+    return { kind: "error", value: `Python exception (<class 'AttributeError'>: '${type}' object has no attribute 'split')` };
+  }
+  const source = rendered(value), output: string[] = [];
   let word: number[] = [], bytes = 0;
   const emit = (text: string) => {
     for (const char of text) {

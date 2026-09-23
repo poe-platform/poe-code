@@ -878,19 +878,23 @@ function measureSandboxDataWithSeen(
     freeCaptures ??= nativeDataArraySetPrototype([], null) as Array<CaptureBuffer | undefined>;
     freeCaptures[freeCaptureCount++] = buffer;
   };
+  const appendCapture = (buffer: CaptureBuffer | undefined, value: SandboxValue): CaptureBuffer => {
+    if (buffer === undefined) {
+      if (freeCaptureCount > 0) {
+        buffer = freeCaptures![--freeCaptureCount]!;
+        freeCaptures![freeCaptureCount] = undefined;
+      } else buffer = { values: nativeDataArraySetPrototype([], null), length: 0 };
+    }
+    // Both vectors have null prototypes and are private: indexed writes cannot
+    // invoke inherited setters or replaced native array methods.
+    buffer.values[buffer.length++] = value;
+    return buffer;
+  };
   const appendNativeCapture = (value: SandboxValue): void => {
     // Omitting an already visited object is equivalent to visit's first check.
     // Primitive charges and all provider/metadata reads remain observable.
     if (value === undefined || (typeof value === "object" && value !== null && seen.has(value))) return;
-    if (captures === undefined) {
-      if (freeCaptureCount > 0) {
-        captures = freeCaptures![--freeCaptureCount]!;
-        freeCaptures![freeCaptureCount] = undefined;
-      } else captures = { values: nativeDataArraySetPrototype([], null), length: 0 };
-    }
-    // Both vectors have null prototypes and are private: indexed writes cannot
-    // invoke inherited setters or replaced native array methods.
-    captures.values[captures.length++] = value;
+    captures = appendCapture(captures, value);
   };
 
   const visit = (value: unknown, depth = 0): void => {
@@ -1020,15 +1024,14 @@ function measureSandboxDataWithSeen(
         const arrayLength = !knownClosure && Array.isArray(value) ? value.length : undefined;
         const managedArray = arrayLength !== undefined && hasManagedDescriptors(value);
         let arrayDescriptors: Array<readonly [string, PropertyDescriptor]> | undefined;
-        let arrayElements: unknown[] | undefined;
+        let arrayElements: CaptureBuffer | undefined;
         if (arrayLength !== undefined) {
           if (managedArray) arrayDescriptors = nativeDataArraySetPrototype([], null);
-          else arrayElements = nativeDataArraySetPrototype([], null);
           if (!managedArray && nodeTypes.isProxy(value)) {
             // ownKeys traps can omit indices that descriptor lookup still exposes.
             for (let index = 0; index < arrayLength; index += 1) {
               const descriptor = Object.getOwnPropertyDescriptor(value, index);
-              if (descriptor !== undefined && "value" in descriptor) nativeDataArrayAppend(arrayElements!, descriptor.value);
+              if (descriptor !== undefined && "value" in descriptor) arrayElements = appendCapture(arrayElements, descriptor.value);
             }
           } else {
             let keys = managedArray ? Object.getOwnPropertyNames(value) : Object.keys(value);
@@ -1049,7 +1052,7 @@ function measureSandboxDataWithSeen(
               const descriptor = Object.getOwnPropertyDescriptor(value, key);
               if (descriptor !== undefined) {
                 if (arrayDescriptors !== undefined) nativeDataArrayAppend(arrayDescriptors, [key, descriptor]);
-                else if ("value" in descriptor && typeof descriptor.value !== "number") nativeDataArrayAppend(arrayElements!, descriptor.value);
+                else if ("value" in descriptor && typeof descriptor.value !== "number") arrayElements = appendCapture(arrayElements, descriptor.value);
               }
             }
           }
@@ -1247,21 +1250,24 @@ function measureSandboxDataWithSeen(
         }
         if (arrayLength !== undefined) {
           usage += arrayLength;
-          const retained = arrayElements ?? nativeDataArraySetPrototype([], null);
+          let retained = arrayElements;
           if (arrayDescriptors !== undefined) {
             for (let index = 0; index < arrayDescriptors.length; index++) {
               const entry = arrayDescriptors[index]!;
               const key = entry[0], descriptor = entry[1];
               usage += key.length + 1;
-              if ("value" in descriptor) nativeDataArrayAppend(retained, descriptor.value);
-              else for (const closure of retainedAccessorClosures(descriptor)) nativeDataArrayAppend(retained, closure);
+              if ("value" in descriptor) retained = appendCapture(retained, descriptor.value);
+              else for (const closure of retainedAccessorClosures(descriptor)) retained = appendCapture(retained, closure);
             }
           }
-          // Descriptors/elements are captured before retained callbacks.
-          if (retained.length === 0) break entry;
+          // Early element snapshots remain exclusively owned while prototype,
+          // symbol and private-slot callbacks collect their own captures.
+          // Continuations release bounded buffers after the final array sibling.
+          if (retained === undefined || retained.length === 0) break entry;
+          value = retained.values[0];
           if (retained.length > 1)
-            appendContinuation(retained, depth + 1);
-          value = retained[0];
+            appendContinuation(retained.values, depth + 1, retained);
+          else releaseCaptures(retained);
           depth++;
           continue walk;
         }

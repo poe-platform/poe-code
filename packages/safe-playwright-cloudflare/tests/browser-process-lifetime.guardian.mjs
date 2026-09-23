@@ -41,7 +41,11 @@ async function cleanup(pid) {
     if (!candidates.length) break;
     let output;
     try { output = execFileSync('lsof', ['-n', '-P', '-a', '-p', candidates.join(','), '-d', 'cwd', '-F', 'pn'], { encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'pipe'] }); }
-    catch (error) { if (error.status !== 1) throw error; output = error.stdout; }
+    catch (error) {
+      if (error.code === 'ETIMEDOUT' && attempt < 49) { await delay(100); continue; }
+      if (error.status !== 1) throw error;
+      output = error.stdout;
+    }
     const helpers = [];
     let current;
     for (const field of output.trim().split('\n')) {

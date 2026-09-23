@@ -482,8 +482,8 @@ function cleanup(packageDir) {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [mode, packageDirArg, ...dependencyNames] = process.argv.slice(2);
 
-  if (mode !== "prepare" && mode !== "prepare-local" && mode !== "cleanup") {
-    throw new Error('Expected mode to be "prepare", "prepare-local", or "cleanup".');
+  if (!["prepare", "prepare-local", "cleanup", "cleanup-after-pack"].includes(mode)) {
+    throw new Error('Expected a prepare or cleanup mode.');
   }
 
   if (typeof packageDirArg !== "string") {
@@ -494,7 +494,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
 
   if (mode === "prepare" || mode === "prepare-local") {
     prepare(packageDir, dependencyNames, mode === "prepare-local");
-  } else {
+  } else if (mode !== "cleanup-after-pack" || process.env.npm_command !== "publish") {
+    // npm publish rereads package.json after postpack to build registry metadata.
     cleanup(packageDir);
   }
 }

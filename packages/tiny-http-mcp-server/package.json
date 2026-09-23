@@ -33,8 +33,9 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare-local . mcp-oauth auth-store tiny-mcp-client jose",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose",
-    "prepublishOnly": "tsc"
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup-after-pack . mcp-oauth auth-store tiny-mcp-client jose",
+    "prepublishOnly": "tsc",
+    "postpublish": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose"
   },
   "files": [
     "LICENSE",

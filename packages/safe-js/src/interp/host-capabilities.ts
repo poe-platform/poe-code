@@ -204,7 +204,12 @@ export function createLiveHostObject(
       (property.set !== undefined && typeof property.set !== "function")
     )
       throw new TypeError("Host property operations must be functions.");
-    properties.set(name, property as { get?: () => unknown; set?: (value: unknown) => void });
+    // Retain fixed slots instead of the validator's dictionary-backed record.
+    // Both slots are own fields, including absent operations.
+    properties.set(name, {
+      get: property.get as (() => unknown) | undefined,
+      set: property.set as ((value: unknown) => void) | undefined
+    });
   }
   const operations = readDataRecord(input.methods ?? {}, "Host methods");
   for (const [name, operation] of Object.entries(operations)) {

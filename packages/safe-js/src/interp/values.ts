@@ -890,10 +890,28 @@ function measureSandboxDataWithSeen(
     buffer.values[buffer.length++] = value;
     return buffer;
   };
+  // Native scope collectors repeatedly append the same small set of ancestor
+  // roots. Remember only confirmed positive membership in this walk; unvisited
+  // captures must keep their ordering and exclusive pending snapshots.
+  let firstSeenCapture: object | undefined;
+  let secondSeenCapture: object | undefined;
+  let thirdSeenCapture: object | undefined;
+  let fourthSeenCapture: object | undefined;
   const appendNativeCapture = (value: SandboxValue): void => {
     // Omitting an already visited object is equivalent to visit's first check.
     // Primitive charges and all provider/metadata reads remain observable.
-    if (value === undefined || (typeof value === "object" && value !== null && seen.has(value))) return;
+    if (value === undefined) return;
+    if (typeof value === "object" && value !== null) {
+      if (value === firstSeenCapture || value === secondSeenCapture ||
+          value === thirdSeenCapture || value === fourthSeenCapture) return;
+      if (seen.has(value)) {
+        fourthSeenCapture = thirdSeenCapture;
+        thirdSeenCapture = secondSeenCapture;
+        secondSeenCapture = firstSeenCapture;
+        firstSeenCapture = value;
+        return;
+      }
+    }
     captures = appendCapture(captures, value);
   };
 
@@ -1553,6 +1571,10 @@ function measureSandboxDataWithSeen(
     }
     return usage;
   } finally {
+    firstSeenCapture = undefined;
+    secondSeenCapture = undefined;
+    thirdSeenCapture = undefined;
+    fourthSeenCapture = undefined;
     while (pendingCount > 0) {
       const frame = pending![--pendingCount]!;
       if (frame.capture !== undefined) releaseCaptures(frame.capture);

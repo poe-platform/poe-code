@@ -112,7 +112,7 @@ test("sort keeps byte scope and key-local flag precedence", async () => {
   for (const locale of ["C", "tr_TR.UTF-8"]) {
     assert.equal((await run("sort", ["-f"], { stdin: "ı\ni\nİ\nI\n", env: { LC_ALL: locale } })).stdout, "I\ni\nİ\nı\n");
   }
-  for (const flag of ["-V", "--version-sort"]) assert.equal((await run("sort", [flag], { stdin: "v10\nv2\n" })).exitCode, 2);
+  for (const flag of ["-V", "--version-sort"]) assert.equal((await run("sort", [flag], { stdin: "v10\nv2\n" })).stdout, "v2\nv10\n");
 });
 
 test("sort uses byte ordering, numeric keys, reverse, stable and unique modes", async () => {

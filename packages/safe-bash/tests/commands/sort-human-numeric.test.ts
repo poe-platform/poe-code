@@ -5,6 +5,8 @@ import { SortRecordBudget } from "../../src/commands/sort-admission.js";
 import { toByteSource, type ByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
 import { chunks, fixture, run } from "./helpers.js";
+import { Shell } from "../../src/shell/shell.js";
+import { agentCommands } from "../../src/plugins/index.js";
 
 test("sort human numeric supports short and long options for mixed suffixes", async () => {
   for (const args of [["-h"], ["--human-numeric-sort"]]) {
@@ -97,8 +99,8 @@ test("sort rejects h plus n on effective flag sets but permits explicit key over
   }
 });
 
-test("sort human numeric does not add general numeric or locale profiles", async () => {
-  for (const args of [["-g"], ["-hg"], ["-gh"], ["-ng"], ["-h", "--general-numeric-sort"], ["-k1,1g"], ["-h", "-V"]]) {
+test("sort rejects incompatible ordering modes and retains its C numeric profile", async () => {
+  for (const args of [["-hg"], ["-gh"], ["-ng"], ["-h", "--general-numeric-sort"], ["-h", "-V"]]) {
     const result = await run("sort", args, { stdin: "2G\n1M\n" });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
@@ -109,6 +111,81 @@ test("sort human numeric does not add general numeric or locale profiles", async
     assert.equal(result.stdout, "1,5M\n2K\n");
   }
   assert.equal((await run("sort", ["-n"], { stdin: "2G\n11M\n" })).stdout, "2G\n11M\n");
+});
+
+test("sort supports reported ordering options and long aliases", async () => {
+  for (const [args, stdin, expected] of [
+    [["-V"], "v10\nv2\nv1\n", "v1\nv2\nv10\n"],
+    [["--sort=version"], "v10\nv2\n", "v2\nv10\n"],
+    [["--version-sort"], "v10\nv2\n", "v2\nv10\n"],
+    [["-g"], "1e2\n3\n-2e1\n", "-2e1\n3\n1e2\n"],
+    [["--general-numeric-sort"], "1e2\n3\n-2e1\n", "-2e1\n3\n1e2\n"],
+    [["-M"], "Dec\nFeb\nJan\n", "Jan\nFeb\nDec\n"],
+    [["--month-sort"], "dec\n FEB\nJan\nunknown\n", "unknown\nJan\n FEB\ndec\n"],
+    [["-d"], "a-b\naa\na!\n", "a!\naa\na-b\n"],
+    [["--dictionary-order"], "a-b\naa\na!\n", "a!\naa\na-b\n"],
+    [["-i"], "ab\na\u0001a\n", "a\u0001a\nab\n"],
+    [["--ignore-nonprinting"], "ab\na\u0001a\n", "a\u0001a\nab\n"],
+  ] as const) {
+    const result = await run("sort", args, { stdin: chunks(stdin) });
+    assert.equal(result.exitCode, 0, args.join(" "));
+    assert.equal(result.stdout, expected, args.join(" "));
+    assert.equal(result.stderr, "");
+  }
+});
+
+test("sort ordering modes apply to keys, stable ties, uniqueness, reverse and checks", async () => {
+  for (const [args, stdin, expected] of [
+    [["-t:", "-k2,2V"], "a:v10\nb:v2\n", "b:v2\na:v10\n"],
+    [["-t:", "-k2,2g", "-s"], "a:1e2\nb:3\nc:100\n", "b:3\na:1e2\nc:100\n"],
+    [["-t:", "-k2,2Mr"], "a:Jan\nb:Dec\n", "b:Dec\na:Jan\n"],
+    [["-du"], "a-b\nab\na!\n", "a!\na-b\n"],
+    [["-is"], "a\u0001b\nab\n", "a\u0001b\nab\n"],
+    [["--sort", "general-numeric", "-r"], "1e2\n3\n-2e1\n", "1e2\n3\n-2e1\n"],
+    [["-gs"], "1\nNaN\nword\n-inf\n+2.5e1x\ninf\n", "word\nNaN\n-inf\n1\n+2.5e1x\ninf\n"],
+    [["-g"], "0x10\n0x2\n0x1.8p2\n-0x1p3\n", "-0x1p3\n0x2\n0x1.8p2\n0x10\n"],
+    [["-Vs"], "v001\nv1\nv0002\nv2\n", "v001\nv1\nv0002\nv2\n"],
+    [["-V"], "a1\na~1\na\n.\n..\n.hidden\n", ".\n..\n.hidden\na~1\na\na1\n"],
+    [["-Vz"], "v10\u0000v2\u0000", "v2\u0000v10\u0000"],
+  ] as const) {
+    const result = await run("sort", args, { stdin });
+    assert.equal(result.exitCode, 0, args.join(" "));
+    assert.equal(result.stdout, expected, args.join(" "));
+  }
+  assert.equal((await run("sort", ["-Vc"], { stdin: "v2\nv10\n" })).exitCode, 0);
+  assert.equal((await run("sort", ["-gc"], { stdin: "1e2\n3\n" })).exitCode, 1);
+  assert.equal((await run("sort", ["--sort=unknown"], { stdin: "a\n" })).exitCode, 2);
+  assert.equal((await run("sort", ["-Sversion"], { stdin: "a\n" })).exitCode, 2);
+});
+
+test("reported sort options work through the public agent command shell", async () => {
+  const fs = await fixture({ versions: "v10\nv2\nv1\n", numbers: "1e2\n3\n-2e1\n", months: "Dec\nFeb\nJan\n", dictionary: "a-b\naa\na!\n", nonprinting: "ab\na\u0001a\n", input: "a\nc\n", second: "b\nd\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  for (const [command, expected] of [
+    ["sort -V versions", "v1\nv2\nv10\n"],
+    ["sort --sort=version versions", "v1\nv2\nv10\n"],
+    ["sort -g numbers", "-2e1\n3\n1e2\n"],
+    ["sort -M months", "Jan\nFeb\nDec\n"],
+    ["sort -d dictionary", "a!\naa\na-b\n"],
+    ["sort -i nonprinting", "a\u0001a\nab\n"],
+    ["sort -m input second", "a\nb\nc\nd\n"],
+  ] as const) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  }
+});
+
+test("sort merge combines runs without sorting within each file", async () => {
+  const fs = await fixture({ input: "a\nc\n", second: "b\nd\n", unsorted: "c\na\n", versions: "v2\nv10\n" });
+  for (const args of [["-m"], ["--merge"]]) {
+    assert.equal((await run("sort", [...args, "input", "second"], { fs })).stdout, "a\nb\nc\nd\n");
+    assert.equal((await run("sort", [...args, "unsorted", "second"], { fs })).stdout, "b\nc\na\nd\n");
+  }
+  assert.equal((await run("sort", ["-mVu", "versions", "-"], { fs, stdin: "v1\nv2\n" })).stdout, "v1\nv2\nv10\n");
+  assert.equal((await run("sort", ["-m", "-o", "input", "input", "second"], { fs })).exitCode, 0);
+  assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "a\nb\nc\nd\n");
 });
 
 test("sort human numeric checks order and duplicate keys without output", async () => {
@@ -166,7 +243,7 @@ test("sort human numeric retains record admission before retaining payloads", as
 });
 
 test("sort human numeric parsing paths preserve queued cancellation", async () => {
-  for (const args of [["-h"], ["-k1,1h"], ["-hf"], ["-bh"], ["-hc"]]) {
+  for (const args of [["-h"], ["-k1,1h"], ["-hf"], ["-bh"], ["-hc"], ["-g"], ["-V"], ["-d"], ["-i"], ["-M"]]) {
     for (const reason of [false, null]) {
       const controller = new AbortController();
       const fs = await fixture({ kept: "unchanged" });

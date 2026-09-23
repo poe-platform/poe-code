@@ -226,14 +226,170 @@ async function compareNumericValues(first: NumericValue, second: NumericValue, w
 interface SortKey { start: number; startCharacter: number; end?: number; endCharacter?: number; flags: Set<string> }
 
 function sortKey(specification: string): SortKey {
-  const match = /^([0-9]+)(?:\.([0-9]+))?([bfhnr]*)(?:,([0-9]+)(?:\.([0-9]+))?([bfhnr]*))?$/u.exec(specification);
-  if (!match) throw new UsageError(`invalid key '${specification}'`);
-  return {
-    start: integer(match[1]!, 1), startCharacter: integer(match[2] ?? "1", 1),
-    ...(match[4] === undefined ? {} : { end: integer(match[4], 1) }),
-    ...(match[5] === undefined ? {} : { endCharacter: integer(match[5], 1) }),
-    flags: new Set((match[3] ?? "") + (match[6] ?? "")),
+  let offset = 0;
+  const position = () => {
+    const begin = offset;
+    while (specification[offset] !== undefined && "0123456789".includes(specification[offset]!)) offset++;
+    if (offset === begin) throw new UsageError(`invalid key '${specification}'`);
+    return integer(specification.slice(begin, offset), 1);
   };
+  const flags = new Set<string>();
+  const endpoint = () => {
+    const field = position();
+    let character: number | undefined;
+    if (specification[offset] === ".") { offset++; character = position(); }
+    while (specification[offset] !== undefined && "bdfghiMnrV".includes(specification[offset]!)) flags.add(specification[offset++]!);
+    return { field, character };
+  };
+  const start = endpoint();
+  let end: ReturnType<typeof endpoint> | undefined;
+  if (specification[offset] === ",") { offset++; end = endpoint(); }
+  if (offset !== specification.length) throw new UsageError(`invalid key '${specification}'`);
+  return {
+    start: start.field, startCharacter: start.character ?? 1,
+    ...(end === undefined ? {} : { end: end.field }),
+    ...(end?.character === undefined ? {} : { endCharacter: end.character }), flags,
+  };
+}
+
+async function filterSortBytes(bytes: Uint8Array, dictionary: boolean, work: SortWork): Promise<Uint8Array> {
+  const filtered = new Uint8Array(bytes.length);
+  let size = 0;
+  for (let index = 0; index < bytes.length; index++) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    const byte = bytes[index]!;
+    if (dictionary ? byte === 9 || byte === 32 || byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 : byte >= 32 && byte <= 126) filtered[size++] = byte;
+  }
+  return filtered.subarray(0, size);
+}
+
+async function generalNumericValue(bytes: Uint8Array, work: SortWork): Promise<{ rank: number; value: number }> {
+  await work.charge(bytes.length);
+  let start = 0;
+  while (bytes[start] === 32 || bytes[start] !== undefined && bytes[start]! >= 9 && bytes[start]! <= 13) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    start++;
+  }
+  const text = Buffer.from(bytes.subarray(start)).toString("latin1");
+  const lower = text.toLowerCase();
+  const unsigned = lower[0] === "+" || lower[0] === "-" ? lower.slice(1) : lower;
+  if (unsigned.startsWith("nan")) return { rank: 1, value: 0 };
+  if (unsigned.startsWith("inf")) return { rank: 2, value: lower[0] === "-" ? -Infinity : Infinity };
+  if (unsigned.startsWith("0x")) {
+    let offset = 2, value = 0, scale = 1, fractional = false, digits = 0;
+    while (offset < unsigned.length) {
+      const checkpoint = work.charge();
+      if (checkpoint) await checkpoint;
+      const character = unsigned[offset]!;
+      if (character === "." && !fractional) { fractional = true; offset++; continue; }
+      const digit = "0123456789abcdef".indexOf(character);
+      if (digit < 0) break;
+      digits++;
+      if (fractional) { scale /= 16; value += digit * scale; }
+      else value = value * 16 + digit;
+      offset++;
+    }
+    if (digits) {
+      if (unsigned[offset] === "p") {
+        const exponent = Number.parseInt(unsigned.slice(offset + 1), 10);
+        if (!Number.isNaN(exponent) && value !== 0) value *= 2 ** exponent;
+      }
+      return { rank: 2, value: lower[0] === "-" ? -value : value };
+    }
+  }
+  const value = Number.parseFloat(text);
+  return { rank: Number.isNaN(value) ? 0 : 2, value: Number.isNaN(value) ? 0 : value };
+}
+
+async function monthValue(bytes: Uint8Array, work: SortWork): Promise<number> {
+  let offset = 0;
+  while (bytes[offset] === 9 || bytes[offset] === 32) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    offset++;
+  }
+  const name = Buffer.from(bytes.subarray(offset, offset + 3)).toString("latin1").toUpperCase();
+  return ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"].indexOf(name) + 1;
+}
+
+function versionOrder(byte: number | undefined): number {
+  if (byte === 126) return -1;
+  if (byte === undefined || byte >= 48 && byte <= 57) return 0;
+  return byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122 ? byte : byte + 256;
+}
+
+async function compareVersionParts(left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> {
+  let first = 0, second = 0;
+  const digit = (byte: number | undefined) => byte !== undefined && byte >= 48 && byte <= 57;
+  while (first < left.length || second < right.length) {
+    while (first < left.length && !digit(left[first]) || second < right.length && !digit(right[second])) {
+      const checkpoint = work.charge(2);
+      if (checkpoint) await checkpoint;
+      const result = versionOrder(left[first]) - versionOrder(right[second]);
+      if (result) return result;
+      if (first < left.length) first++;
+      if (second < right.length) second++;
+    }
+    while (left[first] === 48) { await work.charge(); first++; }
+    while (right[second] === 48) { await work.charge(); second++; }
+    let difference = 0;
+    while (digit(left[first]) && digit(right[second])) {
+      const checkpoint = work.charge(2);
+      if (checkpoint) await checkpoint;
+      difference ||= left[first]! - right[second]!;
+      first++; second++;
+    }
+    if (digit(left[first])) return 1;
+    if (digit(right[second])) return -1;
+    if (difference) return difference;
+  }
+  return 0;
+}
+
+async function versionPrefix(bytes: Uint8Array, work: SortWork): Promise<Uint8Array> {
+  let end = bytes.length;
+  let suffix = bytes.length;
+  for (let index = bytes.length - 1; index >= 0; index--) {
+    const checkpoint = work.charge();
+    if (checkpoint) await checkpoint;
+    const byte = bytes[index]!;
+    if (byte === 46 && index + 1 < suffix) {
+      const first = bytes[index + 1]!;
+      if (first === 126 || first >= 65 && first <= 90 || first >= 97 && first <= 122) { end = index; suffix = index; continue; }
+      break;
+    }
+    if (!(byte === 126 || byte >= 48 && byte <= 57 || byte >= 65 && byte <= 90 || byte >= 97 && byte <= 122)) break;
+  }
+  return bytes.subarray(0, end);
+}
+
+async function compareVersions(left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> {
+  const special = (bytes: Uint8Array) => !bytes.length ? 0 : bytes[0] !== 46 ? 4 : bytes.length === 1 ? 1 : bytes.length === 2 && bytes[1] === 46 ? 2 : 3;
+  const result = special(left) - special(right);
+  if (result) return result;
+  return await compareVersionParts(await versionPrefix(left, work), await versionPrefix(right, work), work) || await compareVersionParts(left, right, work);
+}
+
+async function mergeSortRuns(runs: Uint8Array[][], compare: (left: Uint8Array, right: Uint8Array) => Promise<number>, work: SortWork): Promise<Uint8Array[]> {
+  while (runs.length > 1) {
+    const next: Uint8Array[][] = [];
+    for (let index = 0; index < runs.length; index += 2) {
+      const left = runs[index]!, right = runs[index + 1] ?? [];
+      const merged: Uint8Array[] = [];
+      let first = 0, second = 0;
+      while (first < left.length || second < right.length) {
+        const checkpoint = work.charge();
+        if (checkpoint) await checkpoint;
+        if (first < left.length && (second === right.length || await compare(left[first]!, right[second]!) <= 0)) merged.push(left[first++]!);
+        else merged.push(right[second++]!);
+      }
+      next.push(merged);
+    }
+    runs = next;
+  }
+  return runs[0] ?? [];
 }
 
 async function keyBytes(line: Uint8Array, key: SortKey, separator: number | undefined, blanks: boolean, work: SortWork): Promise<Uint8Array> {
@@ -315,7 +471,15 @@ async function collectSortRecords(
 export function textCommands(): CommandDefinition[] {
   return [
     define("sort", async context => {
-      const parsed = options(context.args, "hnrfbuszt:k:o:c", { "human-numeric-sort": "h", "numeric-sort": "n", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" });
+      const parsed = options(context.args, "hngMVdimrfbuszt:k:o:cS:", { "human-numeric-sort": "h", "numeric-sort": "n", "general-numeric-sort": "g", "month-sort": "M", "version-sort": "V", "dictionary-order": "d", "ignore-nonprinting": "i", merge: "m", sort: "S", reverse: "r", "ignore-case": "f", "ignore-leading-blanks": "b", unique: "u", stable: "s", "zero-terminated": "z", "field-separator": "t", key: "k", output: "o", check: "c" }, false, undefined, (key, index) => {
+        // S is only an internal value slot for --sort, not a buffer-size option.
+        if (key === "S" && !context.args[index]!.startsWith("--sort=") && context.args[index - 1] !== "--sort") throw new UsageError("invalid option -- 'S'");
+      });
+      for (const mode of parsed.values.get("S") ?? []) {
+        const flag = new Map([["numeric", "n"], ["general-numeric", "g"], ["human-numeric", "h"], ["month", "M"], ["version", "V"]]).get(mode);
+        if (flag === undefined) throw new UsageError(`invalid sort argument '${mode}'`);
+        parsed.flags.add(flag);
+      }
       await assertInputRequirements(context, parsed.operands);
       if (!parsed.flags.has("c")) await admitTextOutput(context, value(parsed, "o"));
       const separatorText = value(parsed, "t");
@@ -324,13 +488,14 @@ export function textCommands(): CommandDefinition[] {
       const keys = (parsed.values.get("k") ?? []).map(sortKey);
       for (const key of keys.length ? keys : [undefined]) {
         const flags = key?.flags.size ? key.flags : parsed.flags;
-        if (flags.has("h") && flags.has("n")) throw new UsageError("options '-hn' are incompatible");
+        const modes = ["h", "n", "g", "M", "V"].filter(flag => flags.has(flag));
+        if (modes.length > 1) throw new UsageError(`options '-${modes.join("")}' are incompatible`);
       }
-      const simple = !keys.length && !["b", "f", "h", "n"].some(flag => parsed.flags.has(flag));
+      const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "V", "d", "i"].some(flag => parsed.flags.has(flag));
       const direction = parsed.flags.has("r") ? -1 : 1;
       const work = new SortWork(context.signal);
       let compareNumeric = async (left: Uint8Array, right: Uint8Array, human: boolean) => compareNumericValues(await parseNumeric(left, work, human), await parseNumeric(right, work, human), work);
-      if (!keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c"].some(flag => parsed.flags.has(flag))) {
+      if (!keys.length && (parsed.flags.has("n") || parsed.flags.has("h")) && !["b", "f", "c", "d", "i"].some(flag => parsed.flags.has(flag))) {
         const numericValues = new Map<Uint8Array, NumericValue>();
         let retainedBytes = 0;
         const numericValue = async (bytes: Uint8Array): Promise<NumericValue> => {
@@ -367,7 +532,14 @@ export function textCommands(): CommandDefinition[] {
             first = await trim(first); second = await trim(second);
           }
           if (flags.has("f")) { first = await foldSortBytes(first, work); second = await foldSortBytes(second, work); }
-          let result = flags.has("n") || flags.has("h") ? await compareNumeric(first, second, flags.has("h")) : await compareSortBytes(first, second, work);
+          if (flags.has("d") || flags.has("i")) { first = await filterSortBytes(first, flags.has("d"), work); second = await filterSortBytes(second, flags.has("d"), work); }
+          let result: number;
+          if (flags.has("g")) {
+            const a = await generalNumericValue(first, work), b = await generalNumericValue(second, work);
+            result = a.rank - b.rank || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0);
+          } else if (flags.has("M")) result = await monthValue(first, work) - await monthValue(second, work);
+          else if (flags.has("V")) result = await compareVersions(first, second, work);
+          else result = flags.has("n") || flags.has("h") ? await compareNumeric(first, second, flags.has("h")) : await compareSortBytes(first, second, work);
           if (flags.has("r")) result = -result;
           if (result) return result;
         }
@@ -375,7 +547,7 @@ export function textCommands(): CommandDefinition[] {
       };
       const numericKey = keys.length === 1 ? keys[0] : undefined;
       const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
-      if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
+      if (numericKey && (numericKeyFlags.has("n") || numericKeyFlags.has("h")) && !["b", "f", "d", "i"].some(flag => numericKeyFlags.has(flag)) && !parsed.flags.has("c")) {
         const keyedNumericValues = new Map<Uint8Array, NumericValue>();
         let retainedKeyBytes = 0;
         const keyedNumericValue = async (record: Uint8Array): Promise<NumericValue> => {
@@ -402,14 +574,17 @@ export function textCommands(): CommandDefinition[] {
         return result || (simple || parsed.flags.has("s") || parsed.flags.has("u") ? 0 : await compareSortBytes(left, right, work) * direction);
       };
       const records: Uint8Array[] = [];
+      const runs: Uint8Array[][] = [];
       const recordBudget = new SortRecordBudget();
       const exitCode: number = 0;
       const delimiter = parsed.flags.has("z") ? 0 : 10;
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
+        const run: Uint8Array[] = [];
+        if (parsed.flags.has("m")) runs.push(run);
         try {
           const complete = await collectSortRecords(input(context, name), delimiter, recordBudget, context.signal, bytes => {
             context.signal.throwIfAborted();
-            if (!parsed.flags.has("c")) { records.push(bytes); return; }
+            if (!parsed.flags.has("c")) { (parsed.flags.has("m") ? run : records).push(bytes); return; }
             return (async () => {
               if (records.length && (await compare(records.at(-1)!, bytes) > 0 || parsed.flags.has("u") && await keyCompare(records.at(-1)!, bytes) === 0)) {
                 await diagnostic(context, new PublicDiagnostic(`disorder at record ${records.length + 1}`));
@@ -422,7 +597,7 @@ export function textCommands(): CommandDefinition[] {
         } catch (error) { await diagnostic(context, error); return { exitCode: 2 }; }
       }
       if (parsed.flags.has("c")) return { exitCode };
-      const ordered = await sortRecords(records, compare, work);
+      const ordered = parsed.flags.has("m") ? await mergeSortRuns(runs, compare, work) : await sortRecords(records, compare, work);
       const sorted = (async function* (): ByteSource {
         let previous: Uint8Array | undefined;
         let buffer = new Uint8Array(64 * 1024);

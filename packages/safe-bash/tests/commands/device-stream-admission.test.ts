@@ -22,8 +22,9 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
   const traps: string[] = [];
   const writes: string[] = [];
   const capabilities = { ...backing.capabilities, streamingRead: true, streamingWrite: true, retainedRead: true };
-  const fs = new Proxy(backing, {
+  const wrap = (backing: FileSystem): FileSystem => new Proxy(backing, {
     get(target, property) {
+      if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => wrap(await target.confineExtraction!(...args));
       if (property === "capabilities") return capabilities;
       if (property === "capabilitiesFor") return async (path: string, options?: FsOptions) => {
         options?.signal?.throwIfAborted();
@@ -51,7 +52,7 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  const shell = new Shell({ fs }).use(agentCommands()).use(yqCommands());
+  const shell = new Shell({ fs: wrap(backing) }).use(agentCommands()).use(yqCommands());
   return { shell, memory, reads, queries, traps, writes };
 }
 
@@ -66,7 +67,7 @@ const ordinaryCases = [
 
 for (const mode of ["disabled", "absent"] as const) {
   for (const [name, command, stdout] of ordinaryCases) {
-    test(`${mode}: ${name} uses the existing capped ordinary-file fallback`, async () => {
+    test(`${mode}: ${name} uses an ordinary-file fallback without an implicit byte cap`, async () => {
       const state = await fixture(mode);
       try {
         const result = await state.shell.exec(command);
@@ -76,7 +77,7 @@ for (const mode of ["disabled", "absent"] as const) {
         assert.ok(state.reads.length > 0);
         for (const read of state.reads) {
           assert.ok(state.queries.includes(read.path), read.path);
-          assert.ok(Number.isSafeInteger(read.maxBytes) && read.maxBytes! > 0, read.path);
+          assert.equal(read.maxBytes, undefined, read.path);
         }
       } finally { await state.shell.dispose(); }
     });
@@ -93,7 +94,7 @@ for (const mode of ["disabled", "absent"] as const) {
       assert.deepEqual(state.traps, []);
       assert.ok(state.queries.includes("/out/input.txt"));
       assert.ok(state.writes.includes("/out/input.txt"));
-      assert.ok(state.reads.every(read => Number.isSafeInteger(read.maxBytes) && read.maxBytes! > 0));
+      assert.ok(state.reads.every(read => read.maxBytes === undefined));
     } finally { await state.shell.dispose(); }
   });
 

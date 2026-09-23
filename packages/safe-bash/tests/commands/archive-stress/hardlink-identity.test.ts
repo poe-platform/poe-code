@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gzipSync } from "node:zlib";
+import type { FileSystem } from "../../../src/contracts/index.js";
 import { archive, digest, member } from "./fixtures.js";
 import { absent, fixture, source, success, tar } from "./helpers.js";
 
@@ -54,14 +55,15 @@ test("H02 missing hardlink method or false capability explicitly rejects without
     const fs = await fixture();
     await fs.writeFile("/output/b", Buffer.from("keep"));
     let linkCalls = 0;
-    const wrapped = new Proxy(fs, { get(target, key) {
+    const restrict = (fs: FileSystem): FileSystem => new Proxy(fs, { get(target, key) {
+      if (key === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => restrict(await target.confineExtraction!(...args));
       if (key === "capabilities") return { ...target.capabilities, hardlinks: missingMethod };
       if (key === "link") return missingMethod ? undefined : async () => { linkCalls++; throw new Error("unsupported link must not be called"); };
       const value: unknown = Reflect.get(target, key);
       return typeof value === "function" ? value.bind(target) : value;
     } });
     const bytes = missingMethod ? chain : gzipSync(chain);
-    const result = await tar(wrapped, [missingMethod ? "-xf" : "-xzf", "-", "-C", "/output"], { stdin: source(bytes) }, { limits });
+    const result = await tar(restrict(fs), [missingMethod ? "-xf" : "-xzf", "-", "-C", "/output"], { stdin: source(bytes) }, { limits });
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /filesystem does not support hardlinks/);
     assert.equal(linkCalls, 0);

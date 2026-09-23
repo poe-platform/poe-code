@@ -75,6 +75,8 @@ export interface FileSystemCapabilities {
   /** Owned staging serialized within a trusted host; requires external tree isolation. */
   readonly trustedOwnedStaging?: boolean;
   readonly atomicFileStaging?: boolean;
+  /** Atomically verifies every supplied root-to-parent directory identity at publication. */
+  readonly atomicStagingAncestry?: boolean;
   readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;
   readonly atomicEntryRemoval?: boolean;
@@ -232,6 +234,7 @@ export interface CreateStagedFileOptions extends FsOptions {
 }
 
 export interface PublishStagedFileOptions extends FsOptions {
+  readonly ancestors?: readonly FileStagingEntry[];
   readonly parent: FileStat;
   readonly destination: FileStat | null;
 }

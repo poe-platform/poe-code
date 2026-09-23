@@ -701,3 +701,36 @@ for (const replacement of [false, true]) test(`unzip atomic acquisition abort: $
     assert.equal((await shell.exec("unzip -l sample.zip")).exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const replacement of ["symlink", "directory"] as const) test(`unzip rejects ancestor ${replacement} swap at atomic publication`, async () => {
+  const fs = await fixture([{ name: "sub/input", body: "attacker payload" }]);
+  await fs.mkdir("/work/out/sub", { recursive: true });
+  await fs.mkdir("/work/private");
+  const faulty = wrapped(fs, { async publishStagedFile(staging, destination, options) {
+    await fs.rename("/work/out", "/work/private/out");
+    if (replacement === "symlink") await fs.symlink!("private/out", "/work/out");
+    else {
+      await fs.mkdir("/work/out");
+      await fs.rename("/work/private/out/sub", "/work/out/sub");
+    }
+    return fs.publishStagedFile!(staging, destination, options);
+  } });
+  const result = await run(faulty, ["-o", "sample.zip", "-d", "out"]);
+  assert.notEqual(result.exitCode, 0);
+  await assert.rejects(fs.lstat("/work/private/out/sub/input"));
+  await assert.rejects(fs.lstat("/work/out/sub/input"));
+});
+
+test("unzip rejects a backend without atomic ancestry verification before staging", async () => {
+  const fs = await fixture([{ name: "input", body: "payload" }]);
+  let staged = false;
+  const unsupported = wrapped(fs, {
+    capabilities: { ...fs.capabilities, atomicStagingAncestry: false },
+    async createStagedFile(...args) { staged = true; return fs.createStagedFile!(...args); },
+  });
+  const result = await run(unsupported, ["sample.zip"]);
+  assert.equal(result.exitCode, 2);
+  assert.match(result.stderr, /atomic staging ancestry verification/u);
+  assert.equal(staged, false);
+  await assert.rejects(fs.lstat("/work/input"));
+});

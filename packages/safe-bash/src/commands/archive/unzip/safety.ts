@@ -1,4 +1,4 @@
-import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat, type FileStaging } from "../../../contracts/index.js";
+import { dirname, isPathWithin, readBytes, resolvePath, type ByteSource, type CommandContext, type FileStat, type FileStaging, type FileStagingEntry } from "../../../contracts/index.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { checkPath, display, fail, hasIdentity, sameIdentity, type ArchiveLimits } from "../internal.js";
 
@@ -69,10 +69,11 @@ export class Extraction {
       throw error;
     }
   }
-  async directory(raw: string, create: boolean): Promise<string> {
+  async directory(raw: string, create: boolean, ancestors?: FileStagingEntry[]): Promise<string> {
     checkPath(raw, this.limits);
     let current = "/";
     const { fs, signal } = this.context;
+    if (ancestors) ancestors.push({ path: current, stat: await this.operation(() => fs.lstat(current, { signal })) });
     for (const component of raw.split("/")) {
       if (!component || component === ".") continue;
       const parent = await this.operation(() => fs.lstat(current, { signal }));
@@ -80,6 +81,7 @@ export class Extraction {
       const stat = await this.stat(current);
       if (!stat && create) await this.createDirectory(current, parent);
       else if (!stat || stat.type !== "directory") fail(`unsafe non-directory or symlink ancestor: ${display(current)}`);
+      if (ancestors) ancestors.push({ path: current, stat: stat ?? await this.operation(() => fs.lstat(current, { signal })) });
     }
     return current;
   }
@@ -176,6 +178,8 @@ export class Extraction {
     const { fs, signal } = this.context;
     const capabilities = await this.operation(async () => await fs.capabilitiesFor?.(path, { signal, create: true }) ?? fs.capabilities);
     if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) fail("extraction requires atomic owned file staging");
+    if (capabilities.atomicStagingAncestry !== true) fail("extraction requires atomic staging ancestry verification");
+    const ancestors: FileStagingEntry[] = [];
     let staging: FileStaging | undefined;
     let failure: { reason: unknown } | undefined;
     const cleanup = retainFileSystemCleanup(fs, async view => {
@@ -185,7 +189,8 @@ export class Extraction {
       }
     }, { maxOperations: Math.min(4096, this.limits.maxDepth + 3) });
     try {
-      await this.parents(root, path, false);
+      if (!isPathWithin(root, path)) fail("extraction path escapes root");
+      await this.directory(dirname(path), false, ancestors);
       const content = target === undefined ? { type: "file" as const, data: Buffer.concat(chunks) } : { type: "symlink" as const, target };
       for (let attempt = 0; attempt < this.limits.maxMembers; attempt++) {
         const temporary = resolvePath(dirname(path), `.unzip-${++this.serial}`);
@@ -208,7 +213,7 @@ export class Extraction {
       }
       if (!staging) fail("temporary file attempt limit exceeded");
       await this.parents(root, path, false);
-      await this.operation(() => fs.publishStagedFile!(staging!, path, { signal, parent, destination: expected ?? null }));
+      await this.operation(() => fs.publishStagedFile!(staging!, path, { signal, parent, destination: expected ?? null, ancestors }));
     } catch (error) { failure = { reason: error }; }
     try { await cleanup(); }
     catch (error) {

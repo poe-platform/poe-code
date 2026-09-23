@@ -175,6 +175,7 @@ export class MountFileSystem implements FileSystem {
       readOnly: all("readOnly"),
       ...(append === undefined ? {} : { append }),
       ...semantics,
+      atomicStagingAncestry: false,
       atomicRename: mounts.length === 1 && all("atomicRename"),
       ...(streamingRead === undefined ? {} : { streamingRead }),
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
@@ -200,7 +201,7 @@ export class MountFileSystem implements FileSystem {
         ? { ...observed, descriptorWriteStream: false } : observed;
       const resize = declared.atomicResize === true && (typeof location.mount.backend.resizeFile !== "function" || declared.readOnly === true)
         ? { ...declared, atomicResize: false } : declared;
-      const withOpen = { ...resize, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const withOpen = { ...resize, atomicStagingAncestry: false, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);

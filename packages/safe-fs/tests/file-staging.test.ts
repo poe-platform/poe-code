@@ -241,3 +241,19 @@ test("retained cleanup refuses a backend that withholds atomic staging", async (
   await assert.rejects(close(), { code: "ENOTSUP" });
   assert.deepEqual(await fs.readFile(staged.file.path), new Uint8Array([1, 2, 3]));
 });
+
+test("staging ancestry requires the complete root-to-parent list", async () => {
+  const { fs, parent, staged } = await fixture();
+  const ancestors = [{ path: "/", stat: await fs.lstat("/") }, { path: "/work", stat: parent }];
+  await assert.rejects(fs.publishStagedFile(staged, "/work/output", { parent, destination: null, ancestors: ancestors.slice(1) }), { code: "EINVAL" });
+  await assert.rejects(fs.lstat("/work/output"));
+  await fs.publishStagedFile(staged, "/work/output", { parent, destination: null, ancestors });
+  await fs.removeStagedFile(staged);
+  assert.deepEqual(await fs.readFile("/work/output"), new Uint8Array([1, 2, 3]));
+});
+
+test("mount views withhold backend ancestry guarantees", async () => {
+  const fs = createMountFileSystem({ root: createMemoryFileSystem() });
+  assert.equal(fs.capabilities.atomicStagingAncestry, false);
+  assert.equal((await fs.capabilitiesFor("/output", { create: true })).atomicStagingAncestry, false);
+});

@@ -124,7 +124,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
+      atomicFileStaging: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -659,6 +659,22 @@ export class MemoryFileSystem implements FileSystem {
 
   async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
     options.signal?.throwIfAborted();
+    if (options.ancestors) {
+      let path = "/";
+      const parentPath = destination.slice(0, destination.lastIndexOf("/")) || "/";
+      const paths = ["/", ...parentPath.split("/").filter(Boolean).map(component => {
+        path = path === "/" ? `/${component}` : `${path}/${component}`;
+        return path;
+      })];
+      if (paths.length !== options.ancestors.length) this.fail("EINVAL", "publishStagedFile", destination);
+      for (let index = 0; index < paths.length; index++) {
+        const expected = options.ancestors[index]!;
+        if (expected.path !== paths[index]) this.fail("EINVAL", "publishStagedFile", destination);
+        const entry = this.entry(expected.path, "publishStagedFile");
+        if (entry.node?.type !== "directory") this.fail("EAGAIN", "publishStagedFile", destination);
+        this.expectEntry(entry.node, expected.stat, expected.path, false);
+      }
+    }
     const { directory, file } = this.stagingLocations(staging);
     this.expectEntry(file.node, staging.file.stat, staging.file.path);
     const target = this.entry(destination, "publishStagedFile", true);

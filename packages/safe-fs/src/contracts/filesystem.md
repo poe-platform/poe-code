@@ -1242,6 +1242,16 @@ each content write or explicit metadata mutation, including same-tick same-size
 writes. Access-time updates caused solely by reads need not change it.
 Unknown identity or revision cannot satisfy a conditional file mutation.
 
+`atomicStagingAncestry: true` additionally requires publication to verify the
+complete ordered `ancestors` receipt list from `/` through the destination parent
+in the same atomic operation as the rename. Every entry must remain a directory
+with its captured backing identity; symlinks, replacements, missing entries, and
+incomplete lists are rejected before publication. Directory child mutations do
+not invalidate these identity checks. Memory supports this guarantee; mount
+views withhold it because their namespace resolution is not atomic with backend
+publication. Backends must not silently ignore supplied ancestry conditions when
+advertising this capability.
+
 Cleanup atomically removes only the original staging file, if still present,
 and its empty original private directory. A replacement entry, changed source,
 or unexpected child must survive. An absent file after successful publication
@@ -1265,6 +1275,8 @@ paths; cross-mount publication is refused. Read-only, quota, and overlay views
 withhold unsupported owned staging rather than bypassing their policies.
 
 ZIP creation/update and unzip file extraction require `atomicFileStaging`.
+Unzip file extraction additionally requires `atomicStagingAncestry`; trusted host
+staging alone does not satisfy this requirement.
 Unzip directory creation and supported directory metadata restoration also
 require `atomicDirectoryMetadata`. The rooted real adapter instead exposes
 `trustedOwnedStaging`, a separate supported route for externally isolated,

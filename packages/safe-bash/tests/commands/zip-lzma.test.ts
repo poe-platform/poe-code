@@ -107,14 +107,16 @@ test("LZMA SDK creation default and CLI override use actual Shell", async () => 
 const rawOptions: BoundedCodecOptions = { format: "xz", decompress: true, level: 1, singleMember: true,
   lzma: { dictionary: 8 * 1024 * 1024, properties: 93, eos: true, size: 200000 } };
 
-test("LZMA pre-aborted and excessive model admission never acquire a codec", async () => {
+test("LZMA pre-aborted and invalid model admission never acquire a codec", async () => {
   let creates = 0;
   const factory = () => { creates++; throw new Error("must not acquire"); };
   const controller = new AbortController();
   const reason = { stopped: "before acquisition" };
   controller.abort(reason);
   await assert.rejects(createCodec(rawOptions, controller.signal, factory), error => error === reason);
-  await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary: 0x100000000 } }, signal(), factory), /dictionary limit/u);
+  for (const dictionary of [NaN, -1, 0.5, 0x100000000]) {
+    await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary } }, signal(), factory), /dictionary limit/u);
+  }
   await assert.rejects(createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, properties: 44 } }, signal(), factory), /properties/u);
   assert.equal(creates, 0);
 });
@@ -280,11 +282,53 @@ for (const body of [new Uint8Array(), Uint8Array.of(0, 255), random]) {
 }
 
 for (const [offset, value] of [[0, 0], [1, 255], [2, 4], [2, 6], [3, 1], [4, 225], [4, 255], [4, 44]] as const) {
-  test(`LZMA refuses malformed/excessive properties ${offset}:${value}`, async () => {
+  test(`LZMA refuses malformed properties ${offset}:${value}`, async () => {
     const abort = signal();
     const entry = (await readZipArchive(oracle, limits, abort)).entries[0]!;
     entry.data[offset] = value;
     await assert.rejects(collect(decodeZipEntry(entry, limits, abort)), /LZMA.*(?:version|properties|dictionary)/u);
+  });
+}
+
+test("LZMA valid uint32 dictionaries reach an injected codec without native allocation", async () => {
+  const entry = (await readZipArchive(oracle, limits, signal())).entries[0]!;
+  entry.data[8] = 255;
+  const wireDictionary = new DataView(entry.data.buffer, entry.data.byteOffset).getUint32(5, true);
+  assert.equal(wireDictionary, 0xff800000);
+  for (const dictionary of [0, 4096, 8388608, 8388609, wireDictionary, 0xffffffff]) {
+    let creates = 0, destroys = 0;
+    let parameters: number[] = [];
+    const module: RawCodecModule = {
+      memory: { buffer: new ArrayBuffer(131072) },
+      bridge_create() { throw new Error("wrong bridge"); },
+      bridge_create_lzma(...args: number[]) { parameters = args; return 0; },
+      bridge_step() { throw new Error("no payload expected"); },
+      bridge_destroy() { destroys++; },
+      bridge_input() { return 0; }, bridge_output() { return 65536; },
+      bridge_consumed() { return 0; }, bridge_produced() { return 0; },
+      bridge_used() { return 0; }, bridge_peak() { return 0; },
+    };
+    const codec = await createCodec({ ...rawOptions, lzma: { ...rawOptions.lzma!, dictionary } }, signal(), () => { creates++; return module; });
+    assert.equal(parameters[3], dictionary);
+    assert.equal(parameters[2], 0, "default memory allowance is unlimited");
+    codec.close(); codec.close();
+    assert.equal(creates, 1);
+    assert.equal(destroys, 1);
+  }
+});
+
+for (const dictionary of [8388609, 0xff800000]) {
+  test(`LZMA explicit memory budget refuses dictionary ${dictionary} and releases allocation`, async () => {
+    const modules: RawCodecModule[] = [];
+    await assert.rejects(createCodec({ ...rawOptions, xzDecompressMemory: 8388608,
+      lzma: { ...rawOptions.lzma!, dictionary } }, signal(), wasi => {
+      const module = xz(wasi);
+      modules.push(module);
+      return module;
+    }), /memory limit/u);
+    assert.equal(modules.length, 1);
+    assert.equal(modules[0]!.bridge_used(), 0);
+    assert.ok(modules[0]!.bridge_peak() <= 8388608);
   });
 }
 

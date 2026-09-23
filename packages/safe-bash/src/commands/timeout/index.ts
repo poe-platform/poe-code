@@ -248,7 +248,7 @@ function definition(configuration: Settings): CommandDefinition {
         await writeBytes(context.stderr, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), context.signal);
       }
       if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };
-      if (!returned && invocationFailure === deadline.timerFailureReason) return status(context, records.timerSetupFailed, 125);
+      if (deadline.signal.aborted && deadline.signal.reason === deadline.timerFailureReason) return status(context, records.timerSetupFailed, 125);
       if (deadline.expired && (!preserveStatus || signalNumber === 9)) return { exitCode: signalNumber === 9 ? 137 : 124 };
       return result!;
     },

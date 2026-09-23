@@ -53,7 +53,7 @@ export { loadSolverParameters } from "./solver/model.js";
 export type { SolverParameters, SolverConstraint, SolverRelation, SolverAddress, SolverModelType, SolverAlgorithm } from "./solver/model.js";
 export { solverAlgorithms, runSolverValidation as runSolver } from "./solver/run.js";
 
-export type { RuntimeFunction, RuntimeFunctions } from "./formulas/runtime-functions.js";
+export type { RuntimeFunction, RuntimeFunctions, RuntimeFunctionResult } from "./formulas/runtime-functions.js";
 export { perlSampleFunctions, pythonSampleFunctions } from "./formulas/optional-providers.js";
 export { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 

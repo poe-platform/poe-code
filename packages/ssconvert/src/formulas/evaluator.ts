@@ -327,7 +327,10 @@ export function recalculateWorkbook(input: Workbook, context: CapabilityContext,
       };
       if (activeCell && ["INDIRECT", "OFFSET", "INDEX", "CHOOSE"].includes(node.name)) dynamicCells.add(activeCell);
       const result = callFunction(node.name, node.args, host);
-      if (result) trackRange(result);
+      if (result) {
+        trackRange(result);
+        if (result.kind === "range" && activeCell) dynamicCells.add(activeCell);
+      }
       if (result !== undefined) {
         // Native function results retain explicit empty values; cell references become zero.
         if (result.kind === "blank") {

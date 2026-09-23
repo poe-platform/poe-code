@@ -1,14 +1,16 @@
 import type { CellValue } from "../workbook.js";
-import { snapshotWorkbook } from "../workbook.js";
-import type { FunctionImplementation } from "./functions/types.js";
+import type { FunctionImplementation, Matrix, Reference } from "./functions/types.js";
 import { functionDescriptors } from "./function-descriptors.js";
+import { snapshotRuntimeResult } from "./runtime-result.js";
+
+export type RuntimeFunctionResult = CellValue | Matrix | Reference;
 
 /** Trusted, cooperative JS ports, supplied by the invocation owner; never a module loader. */
 export interface RuntimeFunction {
   readonly signature: string;
   /** Repeated argument type after the fixed signature; ? retains non-scalar values. */
   readonly rest?: "f" | "s" | "b" | "E" | "r" | "A" | "?";
-  readonly implementation: (...args: Parameters<FunctionImplementation>) => CellValue;
+  readonly implementation: (...args: Parameters<FunctionImplementation>) => RuntimeFunctionResult;
 }
 export type RuntimeFunctions = Readonly<Record<string, RuntimeFunction>>;
 
@@ -42,9 +44,7 @@ export function snapshotRuntimeFunctions(functions: RuntimeFunctions): RuntimeFu
       host.tick();
       const result = implementation(args, host);
       host.tick();
-      return snapshotWorkbook({ sheets: [{ id: "runtime", name: "Runtime", cells: [
-        { row: 0, column: 0, value: result }
-      ] }] }, host.context.limits).sheets[0]!.cells[0]!.value;
+      return snapshotRuntimeResult(result, host);
     } });
   }
   return Object.freeze(owned);

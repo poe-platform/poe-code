@@ -35,3 +35,16 @@ const request: ConversionRequest = { input: { kind: "stream", source: [bytes] },
 const engine = createEngine(config);
 try { if ((await engine.convert(request, context)).exitCode !== 0) throw new Error("Public engine consumer failed"); }
 finally { await engine.dispose(); }
+
+// Non-scalar cooperative port results remain typed at the public boundary.
+const nonScalarPorts: NonNullable<EngineConfig["runtimeFunctions"]> = {
+  HOST_ARRAY: { signature: "", implementation() {
+    return { kind: "matrix", rows: [[{ kind: "number", value: 2 }, { kind: "blank" }]] };
+  } },
+  HOST_REFERENCE: { signature: "r", implementation(args) {
+    const result = args[0];
+    return result?.kind === "range" ? result : { kind: "error", value: "#REF!" };
+  } }
+};
+const arrayResult: import("@poe-code/ssconvert").RuntimeFunctionResult = { kind: "matrix", rows: [[{ kind: "number", value: 2 }]] };
+if (!nonScalarPorts.HOST_ARRAY || arrayResult.kind !== "matrix") throw new Error("Invalid public non-scalar consumer");

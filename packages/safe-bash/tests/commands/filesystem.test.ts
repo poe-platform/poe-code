@@ -511,6 +511,67 @@ test("ln supports hardlinks and literal relative symbolic targets, replacement a
   assert.equal((await fs.stat("/work/source")).size, 4);
 });
 
+test("ln numbered backups preserve replaced bytes and select the next number", async () => {
+  const fs = await fixture({ input: "new\n", output: "old\n", "output.~2~": "older" });
+  const result = await run("ln", ["-f", "--backup=numbered", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "new\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output.~3~")), "old\n");
+  assert.equal((await fs.stat("/work/input")).ino, (await fs.stat("/work/output")).ino);
+});
+
+test("ln short backup aliases and suffix options replace without force", async () => {
+  for (const args of [["-b"], ["-b", "-S", ".audit"], ["--backup", "--suffix=.audit"]]) {
+    const fs = await fixture({ source: "new", dest: "old" });
+    const result = await run("ln", [...args, "source", "dest"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile(`/work/dest${args.length === 1 ? "~" : ".audit"}`)), "old");
+  }
+});
+
+test("ln backs up symbolic entries and restores the destination after a failed link", async () => {
+  const fs = await fixture({ source: "new", dest: "old" });
+  const failed = await run("ln", ["-b", "missing", "dest"], { fs });
+  assert.equal(failed.exitCode, 1);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest")), "old");
+  await fs.symlink("missing", "/work/link");
+  const result = await run("ln", ["-sb", "source", "link"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await fs.readlink("/work/link~"), "missing");
+  assert.equal(await fs.readlink("/work/link"), "source");
+});
+
+test("ln honors backup environment controls and existing numbered backups", async () => {
+  const fs = await fixture({ source: "new", dest: "old", "dest.~4~": "older" });
+  assert.equal((await run("ln", ["-b", "source", "dest"], { fs })).exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest.~5~")), "old");
+  await fs.writeFile("/work/other", new TextEncoder().encode("previous"));
+  const result = await run("ln", ["--backup", "source", "other"], { fs, env: { VERSION_CONTROL: "simple", SIMPLE_BACKUP_SUFFIX: ".saved" } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/other.saved")), "previous");
+});
+
+test("ln disabled backups preserve existing destinations and invalid controls are usage errors", async () => {
+  const fs = await fixture({ source: "new", dest: "old" });
+  for (const args of [["--backup=none"], ["--suffix=.saved"]]) {
+    assert.equal((await run("ln", [...args, "source", "dest"], { fs })).exitCode, 1);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest")), "old");
+  }
+  assert.equal((await run("ln", ["--backup=invalid", "source", "dest"], { fs })).exitCode, 2);
+});
+
+test("ln restores a backup if hardlink creation fails after the rename", async () => {
+  const backing = await fixture({ source: "new", dest: "old" });
+  const fs: FileSystem = new Proxy(backing, { get(target, property) {
+    if (property === "link") return async () => { throw new FsError("EIO"); };
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  assert.equal((await run("ln", ["-b", "source", "dest"], { fs })).exitCode, 1);
+  assert.equal(new TextDecoder().decode(await backing.readFile("/work/dest")), "old");
+  await assert.rejects(backing.stat("/work/dest~"), { code: "ENOENT" });
+});
+
 test("readlink and realpath distinguish literal targets, existing and missing paths", async () => {
   const fs = await fixture({ file: "x" });
   await fs.symlink("file", "/work/link");

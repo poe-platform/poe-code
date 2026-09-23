@@ -470,7 +470,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("ln", async context => {
-      const parsed = options(context.args, "sfnT", { symbolic: "s", force: "f", "no-dereference": "n", "no-target-directory": "T" });
+      let ended = false;
+      let suffixValue = false;
+      const args = context.args.map(argument => {
+        if (suffixValue) { suffixValue = false; return argument; }
+        if (argument === "--") ended = true;
+        if (!ended && (argument === "-S" || argument === "--suffix")) suffixValue = true;
+        return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
+      });
+      const parsed = options(args, "sfnTbB:S:", { symbolic: "s", force: "f", "no-dereference": "n", "no-target-directory": "T", backup: "B", suffix: "S" });
+      const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
+      const backupMode = Object.hasOwn(modes, control) ? modes[control]! : undefined;
+      if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
+      const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
       requireOperands(parsed.operands);
       if (parsed.flags.has("T")) requireOperands(parsed.operands, 2, 2);
       const operands = parsed.operands.length === 1 ? [...parsed.operands, "."] : parsed.operands;
@@ -481,15 +494,16 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       needCapability(context, symbolic ? "symlink" : "link");
       await preflightOperands(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
-        const replacing = parsed.flags.has("f") && await maybeStat(context, destination, false);
-        await admitFilesystemModes(context, "ln", [symbolic ? "symbolic" : "hard", ...replacing ? ["replace"] : []], [destination]);
+        const replacing = (parsed.flags.has("f") || backupMode !== "none") && await maybeStat(context, destination, false);
+        await admitFilesystemModes(context, "ln", [symbolic ? "symbolic" : "hard", ...replacing ? [backupMode !== "none" ? "backup" : "replace"] : []], [destination]);
       });
       return eachOperand(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
         const source = pathOf(context, operand);
         if (!symbolic && source === destination) throw new FsError("EEXIST", { path: destination });
         const existing = await maybeStat(context, destination, false);
-        if (existing && parsed.flags.has("f")) {
+        let backup: string | undefined;
+        if (existing && (parsed.flags.has("f") || backupMode !== "none")) {
           if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
           if (!symbolic) {
             await context.fs.stat(source, { signal: context.signal });
@@ -497,10 +511,36 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
             if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
           }
-          await context.fs.rm(destination, { signal: context.signal });
+          if (backupMode !== "none") {
+            let largest = 0n;
+            if (backupMode !== "simple") {
+              const prefix = basename(destination) + ".~";
+              for (const entry of await readDirectory(context, dirname(destination))) {
+                if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
+                const digits = entry.name.slice(prefix.length, -1);
+                if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
+                const number = BigInt(digits);
+                if (number > largest) largest = number;
+              }
+            }
+            backup = backupMode === "numbered" || largest > 0n ? `${destination}.~${largest + 1n}~` : destination + backupSuffix;
+            if (backup === source || backup === destination) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
+            const backupStat = await maybeStat(context, backup, false);
+            if (!symbolic && backupStat) {
+              const sourceStat = await context.fs.stat(source, { signal: context.signal });
+              if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
+            }
+            await admitFilesystemModes(context, "ln", ["backup"], [destination, backup]);
+            await context.fs.rename(destination, backup, { signal: context.signal });
+          } else await context.fs.rm(destination, { signal: context.signal });
         }
-        if (symbolic) await context.fs.symlink!(operand, destination, { signal: context.signal });
-        else await context.fs.link!(source, destination, { signal: context.signal });
+        try {
+          if (symbolic) await context.fs.symlink!(operand, destination, { signal: context.signal });
+          else await context.fs.link!(source, destination, { signal: context.signal });
+        } catch (error) {
+          if (backup) await context.fs.rename(backup, destination, { signal: context.signal });
+          throw error;
+        }
       });
     }),
     define("readlink", async context => {

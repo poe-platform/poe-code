@@ -44,6 +44,7 @@ export const filesystemCommandRequirements = {
     { id: "hard", description: "Create hard links", capabilities: ["stat", "hardlinks"], mutates: true },
     { id: "symbolic", description: "Create symbolic links (-s)", capabilities: ["stat", "symlinks"], mutates: true },
     { id: "replace", description: "Remove existing destinations (-f)", capabilities: ["remove"], mutates: true },
+    { id: "backup", description: "Rename existing destinations to backups", capabilities: ["rename"], mutates: true },
   ],
   readlink: [
     { id: "link", description: "Read symbolic link targets", capabilities: ["readlink"] },

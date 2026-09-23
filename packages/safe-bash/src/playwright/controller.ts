@@ -669,8 +669,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         const consoleLink = await flushPlaywrightConsole(session.lease!.context, page, { ...(session.configuration ? { configuration: session.configuration } : {}), writeArtifact });
         if (consoleLink) sections.push({ title: 'Events', content: `- New console entries: ${consoleLink}` });
       }
-      const title = await page.title?.();
-      sections.push({ title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
+      if (parsed.command !== 'snapshot' || !parsed.json) {
+        const title = await page.title?.();
+        sections.push({ title: 'Page', content: `- Page URL: ${page.url()}${title === undefined ? '' : `\n- Page Title: ${title}`}` });
+      }
       if (snapshot !== 'none' && (page.frames || page.ariaSnapshot || page._snapshotForAI || page.ariaSnapshotJSON || session.lease?.captureSnapshotJSON)) {
         const snapshotOptions: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number } = { timeout: sessionActionTimeout(session), ...(session.configuration?.snapshot?.boxes === undefined ? {} : { boxes: session.configuration.snapshot.boxes }) };
         if (parsed.command === 'snapshot') {

@@ -402,7 +402,7 @@ test('separate shell calls retain refs across snapshot, find, actions and screen
     assert.equal(f.events.filter(event => event.startsWith('fill:')).length, 2);
     const raw = await f.shell.exec('playwright-cli --json snapshot --filename=current.yml');
     assert.equal(raw.exitCode, 0, raw.stderr);
-    assert.deepEqual(JSON.parse(raw.stdout).snapshot, { file: 'current.yml' });
+    assert.deepEqual(JSON.parse(raw.stdout), { snapshot: { file: 'current.yml' } });
     assert.match(new TextDecoder().decode(await f.fs.readFile('/work/current.yml')), /ref=e1/);
   } finally { await f.shell.dispose(); }
 });

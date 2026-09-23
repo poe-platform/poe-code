@@ -76,6 +76,24 @@ function fixture(persistence?: PlaywrightSessionPersistence) {
   return { controller, run, events, files, lease, navigationTimeouts, get context() { return active; }, get clicks() { return clicks; } };
 }
 
+for (const args of [[], ['#save'], ['--depth=1']]) test(`JSON snapshot omits page metadata with ${args.join(' ') || 'full capture'}`, async () => {
+  const f = fixture();
+  try {
+    await f.run('open', 'https://example.com');
+    f.context.pages()[0]!.ariaSnapshot = async () => '- button "Save"';
+    f.context.pages()[0]!.ariaSnapshotJSON = async () => [{ role: 'button', name: 'Save' }];
+    assert.deepEqual(JSON.parse(await f.run('--json', 'snapshot', ...args, '--filename=snap.yml')), { snapshot: { file: 'snap.yml' } });
+    assert.ok(f.files.has('snap.yml'));
+    const inline = JSON.parse(await f.run('--json', 'snapshot', ...args));
+    assert.deepEqual(Object.keys(inline), ['snapshot']);
+    const text = await f.run('snapshot', ...args, '--filename=snap.yml');
+    assert.match(text, /### Page\n- Page URL: https:\/\/example.com\n- Page Title: Title/);
+    assert.match(text, /### Snapshot\n- \[Snapshot\]\(snap.yml\)/);
+    const navigated = JSON.parse(await f.run('--json', 'goto', 'https://example.org'));
+    assert.equal(navigated.page, '- Page URL: https://example.org\n- Page Title: Title');
+  } finally { await f.controller.dispose(); }
+});
+
 test('default action and navigation use standard CLI timeouts across built-in and ability commands', async () => {
   const f = fixture();
   try {

@@ -1069,7 +1069,7 @@ function measureSandboxDataWithSeen(
         }
         if (knownClosure || !isGuestHostObject(value)) {
           const ownedSymbols: readonly symbol[] | undefined = closureData?.symbols ?? trackedPropertySymbols(value);
-          let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
+          let descriptors: RetainedSymbolDescriptor[] | undefined;
           // Capture before visiting: retained callbacks can mutate later properties.
           if (ownedSymbols !== undefined) {
             for (let index = 0; index < ownedSymbols.length; index++)
@@ -1078,7 +1078,8 @@ function measureSandboxDataWithSeen(
             const symbols = isNumericTypedArray(value) ? typedArraySymbolKeys(value) : Object.getOwnPropertySymbols(value);
             for (const key of symbols) descriptors = captureRetainedSymbolProperty(value, key, descriptors);
           }
-          if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
+          if (descriptors !== undefined) for (let index = 0; index < descriptors.length; index++) {
+            const { key, descriptor } = descriptors[index]!;
             usage += 1;
             visit(key, depth + 1);
             if ("value" in descriptor) visit(descriptor.value, depth + 1);
@@ -1599,13 +1600,23 @@ export function reconcileCompiledValues(
   if (compilation !== undefined && parent !== undefined) compilation.forward(included, parent);
 }
 
+interface RetainedSymbolDescriptor {
+  readonly key: symbol;
+  readonly descriptor: PropertyDescriptor;
+}
+
 function captureRetainedSymbolProperty(
   value: object, key: symbol,
-  descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined
-): Array<readonly [symbol, PropertyDescriptor]> | undefined {
+  descriptors: RetainedSymbolDescriptor[] | undefined
+): RetainedSymbolDescriptor[] | undefined {
   if (internalSymbols.has(key)) return descriptors;
   const descriptor = Object.getOwnPropertyDescriptor(value, key);
-  if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
+  // Neither native push/index hooks nor iterators may observe the private
+  // snapshot vector or its entries. Descriptor/provider reads stay active.
+  if (descriptor !== undefined) {
+    descriptors ??= nativeDataArraySetPrototype([], null);
+    nativeDataArrayAppend(descriptors, { __proto__: null, key, descriptor });
+  }
   return descriptors;
 }
 

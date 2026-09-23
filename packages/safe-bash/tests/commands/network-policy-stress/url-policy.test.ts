@@ -8,7 +8,6 @@ const canonicalCases = [
   { name: "decimal IPv4 is canonical before policy", input: "http://2130706433/", expected: "http://127.0.0.1/" },
   { name: "hexadecimal IPv4 is canonical before policy", input: "http://0x7f000001/", expected: "http://127.0.0.1/" },
   { name: "percent-encoded hostname is canonical before policy", input: "http://%31%32%37.0.0.1/", expected: "http://127.0.0.1/" },
-  { name: "backslash authority boundary agrees between policy and transport", input: "http://allowed.invalid\\@127.0.0.1/", expected: "http://allowed.invalid/@127.0.0.1/" },
   { name: "IPv6 brackets reach policy without path glob rejection", input: "http://[::1]:80/", expected: "http://[::1]/" },
   { name: "scheme case default port and fragment normalize before policy", input: "HTTP://ALLOWED.INVALID:80/path#private", expected: "http://allowed.invalid/path" },
 ] as const;
@@ -33,6 +32,7 @@ for (const fixture of canonicalCases) {
 }
 
 for (const fixture of [
+  { name: "ambiguous backslash authority rejected before policy", input: "http://allowed.invalid\\@127.0.0.1/", code: 3 },
   { name: "non-HTTP protocol rejected before policy", input: "file:///etc/passwd", code: 1 },
   { name: "malformed percent-encoded userinfo rejected before policy", input: "http://user:%zz@allowed.invalid/", code: 3 },
   { name: "out-of-range port rejected before policy", input: "http://allowed.invalid:99999/", code: 3 },

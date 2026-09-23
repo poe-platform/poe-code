@@ -1,0 +1,183 @@
+{
+  "head": "44c916c0a113505bac2dc275fa68c780d87cca8d",
+  "status": "Validated stale test expectation corrected; focused checks pass; local guarded lint incomplete; required CI pending",
+  "ownedFile": "packages/safe-bash/tests/commands/network-policy-stress/url-policy.test.ts",
+  "inputs": [
+    {
+      "path": "packages/safe-bash/tests/commands/network-policy-stress/url-policy.test.ts",
+      "bytes": 5257,
+      "sha256": "a53c9f654c236efefa8c6f7b6fe328f9d5bcda7b3e0b2555a63be82a939b868f"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/network/url.ts",
+      "bytes": 1119,
+      "sha256": "dccd6348f26be5c2432ca6b6c4b4a2167a45f63255c77c93183e414eba33923d"
+    },
+    {
+      "path": "packages/safe-bash/src/commands/network/curl.ts",
+      "bytes": 29342,
+      "sha256": "6f6f22505af6bbc2a9720963e69e936acc6618aac6c8c0075540a993870cd05a"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/network-policy-stress/README.md",
+      "bytes": 4689,
+      "sha256": "fd40bde004643e87cfde84e5d2b8f7a3c5b10c02a8432edae1c55235b94ddee8"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/network-stress/finalization/policy-22.json",
+      "bytes": 57113,
+      "sha256": "01ae6df481e6fbda6704395389648f2261d5f49443ac911069b3d58cafde7a2f"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-current-red.log",
+      "bytes": 3058,
+      "sha256": "29effafdfee1ecf71f0643ff3b89373c97d281d875e86d364027b30bbdf4599d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-focused-green.log",
+      "bytes": 7725,
+      "sha256": "63c9b7cc1e2be1104000563050f2d8b5505d17fc7c7d9e5e1725a48f15f8d3b8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-native.json",
+      "bytes": 2166,
+      "sha256": "7f50fde8e737ef2df1193a192f0d904e1711ba15c6b1722c8350bb68dc07802b"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-guarded-lint.log",
+      "bytes": 92,
+      "sha256": "38e6e4bca1e3d4aae0c3d5f0252d1c302f2ea38d9a5e07ee479c4c3a95d5b6c5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-guarded-lint-sample.txt",
+      "bytes": 71342,
+      "sha256": "ae216b1f72b4b2cf50464bf8d611336acb81f542315907f124d5c618f0d7420e"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/url-policy-guarded-lint-supervision.json",
+      "bytes": 239,
+      "sha256": "19a5d2ea8c4d4c77e3a97c7950a9ebb1ebe0bf0e9180e51c659acc7856424e0c"
+    }
+  ],
+  "reproduced": {
+    "tests": 13,
+    "pass": 12,
+    "fail": 1,
+    "exitCode": 1,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "focusedGreen": {
+    "command": "node --import tsx --conditions=poe-code-source --test --test-concurrency=1 tests/commands/network-policy-stress/url-policy.test.ts tests/commands/network-policy-stress/authorization.test.ts tests/commands/network-policy-stress/late-policy.test.ts tests/commands/network/literal-path.test.ts tests/commands/network/literal-path-http.test.ts",
+    "cwd": "packages/safe-bash",
+    "tests": 41,
+    "pass": 41,
+    "fail": 0,
+    "exitCode": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "change": "Move same authority-backslash input from success/canonicalization expectations to existing rejection table: exit3 and zero policy/transport calls. Keep test count13.",
+  "sourceRationale": "7ad206b4aa explicit authority-backslash refusal in curlRequestTarget precedes policy/transport; path backslashes remain literal. No product source changed.",
+  "nativeDifference": "Darwin system curl8.7.1 accepts exact userinfo-shaped input and sends Host127.0.0.1 path/ with allowed.invalid-backslash userinfo. Old test expected allowed.invalid host and /@127.0.0.1/ path, which is not native behavior. Current rejection is deliberately stricter and not native parity. Native nonuserinfo authority-backslash rejects3; native path-backslash succeeds with literal path.",
+  "preservation": "Historical policy-22 capture and README unchanged; no baseline rewrite.",
+  "gates": {
+    "gitDiffCheck": 0,
+    "build": "Not needed for test-expectation-only edit; no source/export/type surface changed.",
+    "lint": {
+      "command": "npm run lint:eslint",
+      "exitCode": 143,
+      "outcome": "INCOMPLETE: 600s supervision limit, SIGTERM observed elapsed10:04; no lint diagnostics or pass claim",
+      "observation": "Owned process86701 sampled while U; all886main-thread samples in node::fs::Rename -> uv_fs_rename -> kernel rename/__rename. Later resumed R but did not complete within bound.",
+      "sessions": "owned lint and sample terminal; unrelated processes untouched"
+    },
+    "delivery": "No child commit/push/rebase."
+  },
+  "nativeControls": {
+    "oracle": "/usr/bin/curl",
+    "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226",
+    "version": "curl 8.7.1 (x86_64-apple-darwin25.0) libcurl/8.7.1 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.12 nghttp2/1.68.0\nRelease-Date: 2024-03-27\nProtocols: dict file ftp ftps gopher gophers http https imap imaps ipfs ipns ldap ldaps mqtt pop3 pop3s rtsp smb smbs smtp smtps telnet tftp\nFeatures: alt-svc AsynchDNS GSS-API HSTS HTTP2 HTTPS-proxy IPv6 Kerberos Largefile libz MultiSSL NTLM SPNEGO SSL threadsafe UnixSockets\n",
+    "profile": "Darwin system curl; all connections redirected to own loopback fixture, no DNS/public requests",
+    "cases": [
+      {
+        "url": "http://allowed.invalid\\@127.0.0.1/",
+        "argv": [
+          "/usr/bin/curl",
+          "-q",
+          "-sS",
+          "-g",
+          "--noproxy",
+          "*",
+          "--connect-to",
+          "::127.0.0.1:61385",
+          "--max-time",
+          "2",
+          "http://allowed.invalid\\@127.0.0.1/"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "requests": [
+          {
+            "path": "/",
+            "host": "127.0.0.1",
+            "authorization": "Basic YWxsb3dlZC5pbnZhbGlkXDo="
+          }
+        ]
+      },
+      {
+        "url": "http://allowed.invalid\\tail/",
+        "argv": [
+          "/usr/bin/curl",
+          "-q",
+          "-sS",
+          "-g",
+          "--noproxy",
+          "*",
+          "--connect-to",
+          "::127.0.0.1:61385",
+          "--max-time",
+          "2",
+          "http://allowed.invalid\\tail/"
+        ],
+        "status": 3,
+        "stdout": "",
+        "stderr": "curl: (3) URL rejected: Bad hostname\n",
+        "requests": []
+      },
+      {
+        "url": "http://127.0.0.1/path\\tail",
+        "argv": [
+          "/usr/bin/curl",
+          "-q",
+          "-sS",
+          "-g",
+          "--noproxy",
+          "*",
+          "--connect-to",
+          "::127.0.0.1:61385",
+          "--max-time",
+          "2",
+          "http://127.0.0.1/path\\tail"
+        ],
+        "status": 0,
+        "stdout": "",
+        "stderr": "",
+        "requests": [
+          {
+            "path": "/path\\tail",
+            "host": "127.0.0.1",
+            "authorization": null
+          }
+        ]
+      }
+    ]
+  },
+  "releaseFailure": {
+    "run": 35874192525,
+    "job": 107231540283,
+    "head": "52130d733e7ad510af2dbddd051f3a163a56a55c"
+  }
+}

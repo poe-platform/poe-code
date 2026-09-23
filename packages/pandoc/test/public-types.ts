@@ -16,7 +16,7 @@ void pandocCommands({filters: luaFilters});
 // @ts-expect-error Native engine configuration is not a public conversion option.
 void convert([], {from: "commonmark", to: "plain", nativeEngine: "pandoc"}, {});
 
-import {createLuaFilterCapability} from "@poe-code/pandoc/lua-filters";
-const luaFilters = createLuaFilterCapability({readFile: async (_path, _signal) => new Uint8Array()});
-void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: luaFilters});
-void pandocCommands({filters: luaFilters});
+import {createLuaFilterCapability as createReaderLuaFilterCapability} from "@poe-code/pandoc/lua-filters";
+const readerLuaFilters = createReaderLuaFilterCapability({readFile: async (_path, _signal) => new Uint8Array()});
+void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: readerLuaFilters});
+void pandocCommands({filters: readerLuaFilters});

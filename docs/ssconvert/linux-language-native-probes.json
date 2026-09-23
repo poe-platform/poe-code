@@ -12205,5 +12205,22 @@
         }
       ]
     }
-  ]
+  ],
+  "frozenDateControl": {
+    "profileId": "gnumeric-1.12.61-optional-perl-samples",
+    "clockUnixSeconds": 1709166600,
+    "inputSha256": "61561994630cb410c551fc955c2e6f352598237439631dc5f9bda8e0648d2b1b",
+    "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230223e3d5045524c5f4441544528293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231223e3d5045524c5f41444445522831372c3232293c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2232223e3d5045524c5f5345442822616263222c2262222c226422293c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e0a",
+    "supplementalEnvironments": [
+      {
+        "timezone": "UTC",
+        "expectedHex": "32303234303232392c33392c6164630a"
+      },
+      {
+        "timezone": "America/Los_Angeles",
+        "expectedHex": "32303234303232382c33392c6164630a"
+      }
+    ],
+    "policy": "QA-only Linux time() interposition for this additional capture; native source/sample/Perl library unchanged. Bind hook source/binary and timezone file identities; the overridden env is a supplemental control, not the exact baseline profile."
+  }
 }

@@ -38,7 +38,7 @@ jobs:
             build-essential bison ca-certificates curl git pkg-config intltool itstool libxml2-utils gettext \
             libgtk-3-dev libgsf-1-dev libxml2-dev libxslt1-dev librsvg2-dev libglib2.0-dev libbz2-dev zlib1g-dev \
             pxlib-dev libglpk-dev liblpsolve55-dev glpk-utils lp-solve \
-            fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-dev python-gi-dev python3-gi libperl-dev python3-yaml file \
+            tzdata fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-dev python-gi-dev python3-gi libperl-dev python3-yaml file \
             >> /out/ssconvert-bootstrap.log 2>&1
       - uses: actions/checkout@v7.0.1
         with:
@@ -89,11 +89,11 @@ jobs:
           with (root / 'function-activation-compile.log').open('wb') as log:
               subprocess.run(['cc', str(activation_source), '-o', str(activation_binary), *flags], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
           metadata = []
-          def capture(label, command):
-              result = subprocess.run(command, env=env, capture_output=True, timeout=120)
+          def capture(label, command, capture_env=None):
+              result = subprocess.run(command, env=env if capture_env is None else capture_env, capture_output=True, timeout=120)
               (root / (label + '.stdout')).write_bytes(result.stdout)
               (root / (label + '.stderr')).write_bytes(result.stderr)
-              metadata.append(dict(label=label, argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex()))
+              metadata.append(dict(label=label, argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(), supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD'] if key in capture_env}))
               if result.returncode != 0:
                   raise RuntimeError('Native capture failed: ' + label)
           for label, command in [
@@ -148,15 +148,33 @@ jobs:
               assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
               capture(fixture['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'])
               language_inputs.append(dict(label=fixture['label'], inputSha256=fixture['inputSha256'], caseCount=fixture['caseCount'], logicalFields=fixture['logicalFields']))
+          clock_control = None
+          control = json.loads(language_fixture_path.read_text())['frozenDateControl']
+          if control['profileId'] == profile['id']:
+              assert type(control['clockUnixSeconds']) is int and -(1 << 63) < control['clockUnixSeconds'] < (1 << 63)
+              hook_source = root / 'frozen-time.c'
+              hook_binary = root / 'frozen-time.so'
+              hook_source.write_text("#include <time.h>\ntime_t time(time_t *target) {\n  const time_t frozen = 1709166600;\n  if (target) *target = frozen;\n  return frozen;\n}\n".replace('1709166600', str(control['clockUnixSeconds'])))
+              with (root / 'frozen-time-compile.log').open('wb') as log:
+                  subprocess.run(['cc', '-shared', '-fPIC', str(hook_source), '-o', str(hook_binary)], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+              path = root / 'frozen-date.gnumeric'
+              path.write_bytes(bytes.fromhex(control['inputHex']))
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == control['inputSha256']
+              zones = []
+              for index, zone in enumerate(control['supplementalEnvironments']):
+                  zone_file = pathlib.Path('/usr/share/zoneinfo') / zone['timezone']
+                  zones.append(dict(timezone=zone['timezone'], fileSha256=hashlib.sha256(zone_file.read_bytes()).hexdigest()))
+                  capture('frozen-date-' + str(index), [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=zone['timezone'], LD_PRELOAD=str(hook_binary.resolve())))
+              clock_control = dict(clockUnixSeconds=control['clockUnixSeconds'], inputSha256=control['inputSha256'], hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones, policy=control['policy'])
           workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
           source_revision = subprocess.check_output(['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd()), 'rev-parse', 'HEAD'], text=True).strip()
           assert source_revision == os.environ['GITHUB_SHA']
           identity = dict(
-              status='native-base-collected-product-parity-unqualified',
+              status='native-activation-collected-product-parity-unqualified',
               sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
-              languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs,
+              languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs, frozenDateControl=clock_control,
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
               optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
               binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),

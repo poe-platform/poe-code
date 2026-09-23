@@ -11,7 +11,7 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["standalone", "metadata", "rawContent"]
+    write: ["wrap", "standalone", "metadata", "rawContent"]
   },
   aliases: {
     write: ["html"]

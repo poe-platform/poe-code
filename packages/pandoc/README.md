@@ -24,7 +24,8 @@ compatibility. Office engines load when their formats are selected.
 `ConversionOptions` requires `from` and `to`. Writer options are `yes` (explicit
 metadata defaults), `standalone`, `metadata`, `metadataJson` (ordered maps; null
 deletes keys), `metadataFiles` (explicit JSON inputs), `rawContent` (`reject`,
-`escape`, or `retain`), `lossy`, `wrap` (`none`), and `failIfWarnings`.
+`escape`, or `retain`), `lossy`, `wrap` (`none`, including HTML and JSON output),
+and `failIfWarnings`.
 
 Resources use `resourcePath` (ordered VFS directories) and `extractMedia` (VFS
 output directory). No media is downloaded implicitly. PDF options are `pdf`

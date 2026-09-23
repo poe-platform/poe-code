@@ -88,6 +88,25 @@ it("shares Markdown wrap none validation with the SDK", async () => {
     expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
   }
 });
+it.each(["html", "html5", "json"])("accepts wrap none for %s file conversion with matching SDK bytes", async to => {
+  const input = "Hello world.\n";
+  const volume = Volume.fromJSON({"/input.md": input});
+  const expected = to === "json"
+    ? JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "Hello"}, {t: "Space"}, {t: "Str", c: "world."}]}]}) + "\n"
+    : "<p>Hello world.</p>\n";
+  const ctx = {...context(["-f", "commonmark", "-t", to, "--wrap=none", "/input.md"]),
+    readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe(expected);
+  expect(text(ctx.stderr)).toBe("");
+  expect(await convert([{bytes: encode(input)}], {from: "commonmark", to, wrap: "none"}, {})).toMatchObject({kind: "text", text: expected});
+  for (const wrap of ["auto", "preserve", "invalid"]) {
+    const rejected = context(["-f", "commonmark", "-t", to, `--wrap=${wrap}`], input);
+    expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2});
+    expect(text(rejected.stdout)).toBe("");
+    await expect(convert([{bytes: encode(input)}], {from: "commonmark", to, wrap} as import("./types.js").ConversionOptions, {})).rejects.toMatchObject({code: "E_OPTION"});
+  }
+});
 it("reads explicit JSON metadata files in order, with repeated metadata overriding files", async () => {
   const fs = Volume.fromJSON({"/one.json": '{"config":{"a":true,"list":[1]},"title":"file"}', "/two.json": '{"config":{"b":false,"list":[],"a":null}}', "/input.md": "hello"});
   const readFile = vi.fn(async (path: string) => new Uint8Array(fs.readFileSync(path) as Buffer));

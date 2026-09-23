@@ -30,6 +30,10 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
       validateHeaderValue(name, value);
       (headers[name.toLowerCase()] ??= []).push(value);
     }
+    // Node does not implicitly frame streamed bodies for every HTTP method.
+    if (input.body && !headers["content-length"] && !headers["transfer-encoding"]) {
+      headers["transfer-encoding"] = ["chunked"];
+    }
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
     let connectTimer: ReturnType<typeof setTimeout> | undefined;

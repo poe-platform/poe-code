@@ -48,6 +48,40 @@ for (const status of [301, 302, 303, 307, 308]) {
   });
 }
 
+for (const method of ["DELETE", "GET", "OPTIONS", "POST"]) {
+  test(`Shell curl frames ${method} request bodies and redirect replays`, async () => {
+    const fs = new MemoryFileSystem();
+    const binary = Buffer.from([0, 255, 120, 121]);
+    await fs.writeFile("/input", binary);
+    const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+    try {
+      for (const [option, expected] of [
+        ["--data x", Buffer.from("x")],
+        ["--data-binary @/input", binary],
+        ["--upload-file /input", binary],
+        ["--data ''", Buffer.alloc(0)],
+        ["", Buffer.alloc(0)],
+      ] as const) {
+        for (const path of ["/echo", "/redirect/307", "/redirect/308"]) {
+          const start = host.requests.length;
+          const result = await shell.exec(`curl -sS -L -X ${method} ${option} ${host.origin}${path}`);
+          assert.equal(result.exitCode, 0, `${option} ${path}: ${result.stderr}`);
+          const requests = host.requests.slice(start);
+          assert.equal(requests.length, path === "/echo" ? 1 : 2);
+          for (const request of requests) {
+            assert.equal(request.method, method);
+            assert.deepEqual(request.body, expected, `${option} ${path}`);
+            if (expected.length) {
+              assert.ok(request.headers["content-length"] !== undefined || request.headers["transfer-encoding"] === "chunked");
+            }
+            if (!option) assert.equal(request.headers["transfer-encoding"], undefined);
+          }
+        }
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("Shell curl matches curl 8.5/8.10 empty-file URL encoding for POST and GET", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/empty", new Uint8Array());

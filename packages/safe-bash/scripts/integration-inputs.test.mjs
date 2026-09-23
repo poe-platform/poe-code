@@ -897,6 +897,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/shuf.test.ts"));
   assert.ok(files.includes("tests/plugins/shuf-registration.test.ts"));
   assert.ok(files.includes("tests/commands/numfmt.test.ts"));
+  assert.ok(files.includes("tests/commands/numfmt-large-prefixes.test.ts"));
   assert.ok(files.includes("tests/commands/numfmt-field-buffer.test.ts"));
   assert.ok(files.includes("tests/plugins/numfmt-registration.test.ts"));
   assert.ok(files.includes("tests/plugins/truncate-registration.test.ts"));

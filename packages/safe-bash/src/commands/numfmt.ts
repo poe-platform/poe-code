@@ -6,6 +6,8 @@ import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { bufferLimit, encoder } from "./internal.js";
 import { RecordBuffer } from "./record-buffer.js";
 
+const unitPrefixes = "KMGTPEZYRQ";
+
 const glibc231PrintableRanges = [
   0x20, 0x7e, 0xa0, 0x377, 0x37a, 0x37f, 0x384, 0x38a, 0x38c, 0x38c, 0x38e, 0x3a1, 0x3a3, 0x52f, 0x531, 0x556,
   0x559, 0x55f, 0x561, 0x587, 0x589, 0x58a, 0x58d, 0x58f, 0x591, 0x5c7, 0x5d0, 0x5ea, 0x5f0, 0x5f4, 0x600, 0x61c,
@@ -483,10 +485,10 @@ function unit(text: string, unicode: boolean): bigint {
   const parsed = decimal(text);
   let value = parsed.value;
   let tail = text.slice(parsed.end);
-  if (!parsed.found && "KMGTPEZY".includes(text[0] ?? "\0")) { value = 1n; tail = text; }
+  if (!parsed.found && unitPrefixes.includes(text[0] ?? "\0")) { value = 1n; tail = text; }
   let valid = parsed.found || value === 1n;
   if (tail) {
-    const power = "KMGTPEZY".indexOf(tail[0]!) + 1;
+    const power = unitPrefixes.indexOf(tail[0]!) + 1;
     valid &&= power > 0 && (tail.length === 1 || tail.length === 2 && tail[1] === "i");
     if (valid) value *= BigInt(tail.length === 2 ? 1024 : 1000) ** BigInt(power);
   }
@@ -671,7 +673,7 @@ class Converter {
       while (digit(text[offset])) {
         if (value.coefficient || text[offset] !== "0") digits++;
         if (digits > 18) loss = true;
-        if (digits > 27) { error = "overflow"; break; }
+        if (digits > 33) { error = "overflow"; break; }
         value = add(multiply(value, binary(10n)), binary(BigInt(text.charCodeAt(offset) - 48)));
         offset++;
         await this.tick();
@@ -699,16 +701,18 @@ class Converter {
     if (offset < text.length) {
       if (settings.unitSeparator !== undefined && text.startsWith(settings.unitSeparator, offset)) offset += settings.unitSeparator.length;
       else while (blank(text[offset])) offset++;
-      const suffix = text[offset] === "k" ? "K" : text[offset];
-      if (suffix !== undefined && !"KMGTPEZY".includes(suffix)) return this.failure(`invalid suffix in input: ${quoted}`);
-      if (settings.from === "none") return this.failure(`rejecting suffix in input: ${quoted} (consider using --from)`);
-      exponent = suffix === undefined ? 0 : "KMGTPEZY".indexOf(suffix) + 1;
-      offset++;
-      if (settings.from === "auto" && backing[start + offset] === 105) {
-        base = 1024; offset++;
-        if (settings.developer) await this.output.emit("  Auto-scaling, found 'i', switching to base 1024\n", true);
+      if (offset < text.length || settings.unitSeparator === undefined) {
+        const suffix = text[offset] === "k" ? "K" : text[offset];
+        if (suffix !== undefined && !unitPrefixes.includes(suffix)) return this.failure(`invalid suffix in input: ${quoted}`);
+        if (settings.from === "none") return this.failure(`rejecting suffix in input: ${quoted} (consider using --from)`);
+        exponent = suffix === undefined ? 0 : unitPrefixes.indexOf(suffix) + 1;
+        offset++;
+        if (settings.from === "auto" && backing[start + offset] === 105) {
+          base = 1024; offset++;
+          if (settings.developer) await this.output.emit("  Auto-scaling, found 'i', switching to base 1024\n", true);
+        }
+        precision = 0;
       }
-      precision = 0;
     }
     if (settings.from === "iec-i") {
       if (backing[start + offset] !== 105) return this.failure(`missing 'i' suffix in input: ${quoted} (e.g Ki/Mi/Gi)`);
@@ -742,7 +746,7 @@ class Converter {
     let reduced = absolute(value);
     while (compare(reduced, binary(10n)) >= 0) { reduced = divide(reduced, binary(10n)); decimalPower++; }
     if (settings.to === "none" && BigInt(decimalPower) + precision > 18n) return this.failure(precision ? `value/precision too large to be printed: '${general(value)}/${precision}' (consider using --to)` : `value too large to be printed: '${general(value)}' (consider using --to)`);
-    if (decimalPower > 26) return this.failure(`value too large to be printed: '${general(value)}' (cannot handle values > 999Y)`);
+    if (decimalPower > 32) return this.failure(`value too large to be printed: '${general(value)}' (cannot handle values > 999Q)`);
     if (settings.developer) await this.output.emit("double_to_human:\n", true);
     let rendered: string;
     let powerIndex = 0;
@@ -772,7 +776,7 @@ class Converter {
       rendered = (negative ? "-" : "") + (negative ? rendered.slice(1) : rendered).padStart(Number(settings.zeroPadding) - Number(negative), "0");
     }
     if (settings.to !== "none" && powerIndex) {
-      rendered += (settings.unitSeparator ?? "") + ((settings.to === "si" ? "kMGTPEZY" : "KMGTPEZY")[powerIndex - 1] ?? "(error)");
+      rendered += (settings.unitSeparator ?? "") + (settings.to === "si" && powerIndex === 1 ? "k" : unitPrefixes[powerIndex - 1] ?? "(error)");
     }
     if (rendered.length >= (settings.to === "none" ? 128 : 127)) throw new NumfmtDiagnostic(`failed to prepare value '${fixed(printedValue, 6)}' for printing`);
     if (settings.to === "iec-i" && powerIndex) rendered += "i";

@@ -115,7 +115,10 @@ for (const entry of native) {
   const stdout = Buffer.from(entry.stdoutHex, "hex").toString();
   if (stdout.startsWith("Usage: numfmt")) entry.stdoutHex = Buffer.from(stdout.replace("      --to=UNIT", "      --unit-separator=SEP  insert SEP between number and unit on output,\n                         and accept optional SEP in input numbers\n      --to=UNIT")).toString("hex");
 }
-for (const entry of native) test(`numfmt native ${entry.name}`, async () => {
+const current = new Map((JSON.parse(readFileSync(new URL("./numfmt-coreutils910.snapshot.json", import.meta.url), "utf8")) as { cases: Pick<NativeCase, "name" | "stdoutHex" | "stderrHex" | "exitCode">[] }).cases.map(entry => [entry.name, entry]));
+const compatibility = new Map((JSON.parse(readFileSync(new URL("./numfmt-compatibility.snapshot.json", import.meta.url), "utf8")) as { cases: (Partial<NativeCase> & { name: string })[] }).cases.map(entry => [entry.name, entry]));
+for (const entry of native) Object.assign(entry, current.get(entry.name), compatibility.get(entry.name));
+for (const entry of native) test(`numfmt ${compatibility.has(entry.name) ? "compatibility" : "native"} ${entry.name}`, async () => {
   const result = await format(entry.args, Buffer.from(entry.stdinHex, "hex"), { env: { LC_ALL: entry.locale, ...entry.extraEnv } });
   assert.deepEqual(result, { stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex, exitCode: entry.exitCode });
 });

@@ -8,14 +8,16 @@ it.each([
   {rejects:false,beforeAwait:true},{rejects:true,beforeAwait:true}
 ])("preserves shared write visibility around an async host outcome %j", async ({rejects,beforeAwait}) => {
   const source=`const b=new SharedArrayBuffer(4);const a=new Uint8Array(b);
-    const pending=mutate(b);const before=a[0];let result;
+    const pending=mutate(b);const before=a[0];observed();let result;
     try{result=await pending}catch(error){result=error.message}
     return [before,a[0],result]`;
   let calls=0;
-  const bindings={mutate:async(buffer:SharedArrayBuffer)=>{
+  let release!:()=>void;
+  const read=new Promise<void>(resolve=>{release=resolve;});
+  const bindings={observed:()=>release(),mutate:async(buffer:SharedArrayBuffer)=>{
     calls++;
     if (beforeAwait) new Uint8Array(buffer)[0]=7;
-    await new Promise<void>(resolve=>setImmediate(resolve));
+    await read;
     if (!beforeAwait) new Uint8Array(buffer)[0]=7;
     if (rejects) throw new Error("changed");
     return 17;

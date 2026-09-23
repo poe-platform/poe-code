@@ -128,8 +128,12 @@ NUL text is rejected. SDK Unicode strings do not establish native encoding or
 numeric equivalence.
 
 The parser's information and batch modes record settings without doing I/O.
-The adapter supplies static help/version output, rejecting other information
-actions, and executes bounded batch jobs using fresh settings for each line.
+The adapter supplies help/version, manpage, HTML documentation, readme, its own
+MIT license and an adapter-authored default TOC XSL stylesheet without input I/O
+or renderer acquisition. The stylesheet uses the wkhtmltopdf outline vocabulary
+and default structure/styles; it is not a byte copy of the native bundled asset
+or a claim of Qt qualification. All exports honor the output byte bound before
+writing. The adapter executes bounded batch jobs using fresh settings for each line.
 Batch conversion stops at the first failure with status 1. See the
 [remaining engine gates](../../docs/plans/safe-bash-wkhtmltopdf-parser-progress.md).
 

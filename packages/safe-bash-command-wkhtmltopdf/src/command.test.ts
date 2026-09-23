@@ -33,6 +33,40 @@ function renderer(open: StaticRenderer["open"]): StaticRenderer {
 }
 const output = () => ({ success: true, errorCode: 0, chunks: [encoder.encode("%PDF-test")], async close() {} });
 
+for (const action of ["dump-default-toc-xsl", "manpage", "htmldoc", "readme", "license"]) {
+  test(`${action} exports information without input or renderer acquisition`, async () => {
+    const f = fixture([`--${action}`]);
+    f.context.stdin = { [Symbol.asyncIterator]() { throw new Error("stdin forbidden"); } };
+    f.context.fs.openReadFile = async () => { throw new Error("input forbidden"); };
+    const result = await runWkhtmltopdf(f.context, { limits, renderer: renderer(async () => {
+      throw new Error("renderer forbidden");
+    }) });
+    assert.deepEqual(result, { kind: "information", exitCode: 0 });
+    assert.equal(f.stderr.length, 0);
+    const text = new TextDecoder().decode(f.stdout[0]);
+    if (action === "dump-default-toc-xsl") {
+      assert.ok(text.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
+      for (const value of ['http://wkhtmltopdf.org/outline', 'outline:item/outline:item', '@backLink', '@page', 'QtXmlPatterns']) assert.ok(text.includes(value));
+    } else if (action === "license") {
+      assert.ok(text.includes("MIT License"));
+      assert.ok(text.includes("Copyright (c) 2026 Poe Platform"));
+      assert.ok(text.includes('THE SOFTWARE IS PROVIDED "AS IS"'));
+    } else {
+      assert.ok(text.includes("safe static adapter"));
+      assert.ok(text.includes("No renderer is included"));
+      assert.ok(text.includes("--dump-default-toc-xsl"));
+      if (action === "manpage") assert.ok(text.startsWith('.TH WKHTMLTOPDF 1'));
+      if (action === "htmldoc") assert.ok(text.startsWith("<!DOCTYPE html>"));
+    }
+  });
+  test(`${action} honors the output byte bound before writing`, async () => {
+    const f = fixture([`--${action}`]);
+    const result = await runWkhtmltopdf(f.context, { limits: { ...limits, maxOutputBytes: 1 } });
+    assert.deepEqual(result, { kind: "rejected", exitCode: 1, code: "LIMIT_EXCEEDED" });
+    assert.equal(f.stdout.length, 0);
+  });
+}
+
 test("same-file and symlink output aliases preserve the input before renderer acquisition", async () => {
   for (const destination of ["input.html", "alias.pdf"]) {
     const f = fixture(["input.html", destination]);

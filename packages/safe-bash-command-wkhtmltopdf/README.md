@@ -42,6 +42,11 @@ Information commands work without a renderer:
 wkhtmltopdf --help
 wkhtmltopdf --extended-help
 wkhtmltopdf --version
+wkhtmltopdf --dump-default-toc-xsl
+wkhtmltopdf --manpage
+wkhtmltopdf --htmldoc
+wkhtmltopdf --readme
+wkhtmltopdf --license
 ```
 
 With an approved renderer binding registered, conversion forms include:
@@ -53,7 +58,7 @@ wkhtmltopdf --disable-javascript - -
 ```
 
 Paths refer only to the configured VFS; `-` selects stdin/stdout. Output is
-renderer-produced PDF bytes, UTF-8 help/version text, or stderr diagnostics.
+renderer-produced PDF bytes, UTF-8 information exports, or stderr diagnostics.
 The SDK additionally returns a typed result and conversion resource usage.
 Single-job loader outcomes preserve HTTP 404 → 2, HTTP 401 → 3, other failures
 → 1; batch jobs stop on the first failure with status 1. No renderer fidelity,
@@ -62,8 +67,11 @@ PDF validity or WebKit compatibility is established by adapter tests.
 [Exact supported flags](FLAGS.md) lists all 122 source switches, short aliases,
 scopes, operand counts and rejections. Admitted settings require renderer support;
 resource/harness/excluded flags reject even with a binding. TOC conversion and
-batch HTML stdin reject. Help, extended-help and version execute; other information
-actions reject. Long flags require separate operands; `--key=value` and attached
+batch HTML stdin reject. All information actions execute without input I/O or a
+renderer. Documentation and licensing describe this adapter; the default TOC XSL
+is adapter-authored for the wkhtmltopdf outline vocabulary, with equivalent
+structure and styling rather than native bundled bytes. Its export does not
+enable TOC conversion. Long flags require separate operands; `--key=value` and attached
 short numeric operands reject. The adapter deliberately accepts conventional `--`.
 
 | Default bound | Value |

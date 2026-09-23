@@ -11,6 +11,7 @@ import { ParseBudget, type ParseLimits } from "./limits.js";
 import { conversionOutcome, type ConversionCompletion, type ConversionOutcome } from "./outcome.js";
 import { parseInvocation, tokenizeBatchLine, type ParsedInvocation } from "./parser.js";
 import { withResources, type ResourceLimits, type ResourceUsage } from "./resources.js";
+import { informationText } from "./information.js";
 
 export interface WkhtmltopdfLimits {
   readonly parse: ParseLimits;
@@ -138,12 +139,7 @@ export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: Wkhtm
     const parse = (args: readonly string[], batchJob = false) => parseInvocation(args, { limits: limits.parse, signal, endOfOptions: true, batchJob });
     const initial = parse(argv);
     if (initial.mode === "information") {
-      let text: string;
-      if (initial.global.action === "help" || initial.global.action === "extended-help") {
-        text = "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nStatic first-party renderer requires an explicit binding. Input/output '-' use stdin/stdout.\n";
-      } else if (initial.global.action === "version") {
-        text = "wkhtmltopdf safe static adapter (source 024b2b2bb459dd904d15b911d04c6df4ff2c9031; Qt compatibility unqualified)\n";
-      } else throw new WkhtmltopdfError("UNSUPPORTED_CAPABILITY", "Information action is unavailable in the static profile", initial.global.action);
+      const text = informationText(initial.global.action);
       if (shellValueByteLength(text) > limits.maxOutputBytes) {
         throw new WkhtmltopdfError("LIMIT_EXCEEDED", "Information output byte limit exceeded");
       }

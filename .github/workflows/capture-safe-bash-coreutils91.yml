@@ -1,0 +1,89 @@
+name: Capture Safe Bash GNU 9.1 native controls
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    container:
+      image: node:22-bookworm
+    defaults:
+      run:
+        shell: bash
+    env:
+      WC_CAPTURE_ROOT: out/wc-linux-${{ github.run_id }}-${{ github.run_attempt }}
+      CORE_GNU_BIN: /usr/bin
+      LC_ALL: C
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Bind original controls and install the native locale
+        run: |
+          mkdir -p "$WC_CAPTURE_ROOT/inputs"
+          source_root=packages/safe-bash/tests/commands/core-regression-stress
+          sha256sum "$source_root/capture-native.ts" "$source_root/vectors.ts" "$source_root/native.json" \
+            > "$WC_CAPTURE_ROOT/source-before.sha256"
+          cp "$source_root/capture-native.ts" "$source_root/vectors.ts" "$source_root/native.json" "$WC_CAPTURE_ROOT/inputs/"
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update > "$WC_CAPTURE_ROOT/bootstrap.log" 2>&1
+          apt-get install -y --no-install-recommends locales >> "$WC_CAPTURE_ROOT/bootstrap.log" 2>&1
+          localedef -i en_US -f UTF-8 en_US.UTF-8 >> "$WC_CAPTURE_ROOT/bootstrap.log" 2>&1
+          test "$(LC_ALL=en_US.UTF-8 locale charmap)" = UTF-8
+          locale -a > "$WC_CAPTURE_ROOT/locales.txt"
+          for tool in wc realpath cksum sort; do
+            test "$("$CORE_GNU_BIN/$tool" --version | head -n 1)" = "$tool (GNU coreutils) 9.1"
+          done
+      - name: Record OS, libc, binary and source identities
+        run: |
+          node --input-type=module <<'JS'
+          import { createHash } from 'node:crypto';
+          import { createReadStream } from 'node:fs';
+          import { readFile, writeFile, realpath, stat } from 'node:fs/promises';
+          import { execFileSync } from 'node:child_process';
+          import { arch, platform, release } from 'node:os';
+          const run = (command, args) => execFileSync(command, args, { encoding: 'utf8', timeout: 5000 }).trim();
+          const binaries = {};
+          for (const name of ['wc', 'realpath', 'cksum', 'sort']) {
+            const path = await realpath(`${process.env.CORE_GNU_BIN}/${name}`);
+            const info = await stat(path);
+            if (!info.isFile() || info.size > 16 * 1024 * 1024) throw new Error(`Unexpected binary: ${path}`);
+            const hash = createHash('sha256');
+            for await (const bytes of createReadStream(path)) hash.update(bytes);
+            binaries[name] = { path, version: run(path, ['--version']).split('\n')[0], sha256: hash.digest('hex'), size: info.size };
+          }
+          const sourceRevision = run('git', ['rev-parse', 'HEAD']);
+          if (sourceRevision !== process.env.GITHUB_SHA) throw new Error('Checkout revision mismatch');
+          const identity = {
+            capturedAt: new Date().toISOString(), sourceRevision,
+            runId: process.env.GITHUB_RUN_ID, runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+            containerImage: 'node:22-bookworm', platform: platform(), architecture: arch(), kernel: release(),
+            osRelease: await readFile('/etc/os-release', 'utf8'), libc: run('getconf', ['GNU_LIBC_VERSION']),
+            locales: run('locale', ['-a']).split('\n'), node: process.version, npm: run('npm', ['--version']),
+            packages: run('dpkg-query', ['-W', 'coreutils', 'libc6', 'locales']),
+            binaries, captureEnvironment: { CORE_GNU_BIN: '/usr/bin', LC_ALL: 'C', TZ: 'UTC' }, tsx: '4.22.4',
+          };
+          await writeFile(`${process.env.WC_CAPTURE_ROOT}/identity.json`, JSON.stringify(identity, null, 2) + '\n');
+          JS
+      - name: Capture every original native vector without changing the historical oracle
+        run: |
+          npm exec --yes --package=tsx@4.22.4 -- tsx --version > "$WC_CAPTURE_ROOT/tsx-version.log" 2>&1
+          npm exec --yes --package=tsx@4.22.4 -- tsx \
+            packages/safe-bash/tests/commands/core-regression-stress/capture-native.ts \
+            > "$WC_CAPTURE_ROOT/native-linux.json" 2> "$WC_CAPTURE_ROOT/capture.stderr"
+          sha256sum --check "$WC_CAPTURE_ROOT/source-before.sha256" > "$WC_CAPTURE_ROOT/source-after-check.log"
+          sha256sum "$WC_CAPTURE_ROOT/native-linux.json" "$WC_CAPTURE_ROOT/identity.json" \
+            > "$WC_CAPTURE_ROOT/results.sha256"
+      - name: Retain native observations and failed capture diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: safe-bash-coreutils91-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: out/wc-linux-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: error
+          retention-days: 7

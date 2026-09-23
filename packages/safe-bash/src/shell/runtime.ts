@@ -475,6 +475,9 @@ export interface State {
   directoryStackCwdPublication?: symbol;
   dotglob?: boolean;
   globstar?: boolean;
+  nullglob?: boolean;
+  nocaseglob?: boolean;
+  nocasematch?: boolean;
   braceexpand?: boolean;
   noglob?: boolean;
   noclobber?: boolean;
@@ -1560,7 +1563,7 @@ export class Runtime {
       });
       let result: Awaited<ReturnType<typeof matchEre>>;
       try {
-        const program = await compileEre(fragments, ledger, this.signal);
+        const program = await compileEre(fragments, ledger, this.signal, !!state.nocasematch);
         result = await matchEre(program, subject, ledger, this.signal);
       }
       catch (error) {
@@ -3341,6 +3344,7 @@ export class Runtime {
           return await evaluateConditional(command.expression, {
             fs: this.fs, cwd: state.cwd, signal: this.signal,
             locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
+            ignoreCase: !!state.nocasematch,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
@@ -3421,7 +3425,7 @@ export class Runtime {
           if (!matched) for (const word of clause.patterns) {
             if (++patterns % 128 === 0) await yieldTurn(this.signal);
             const pattern = (await this.word(word, state, io, false, true)).join("");
-            if (await matchesPattern(pattern, subject, work)) { matched = true; break; }
+            if (await matchesPattern(pattern, subject, work, !!state.nocasematch)) { matched = true; break; }
           }
           if (!matched) continue;
           if (clause.body.lists.length) status = await this.script(clause.body, state, io);
@@ -5614,6 +5618,7 @@ export class Runtime {
   }
 
   private async shoptBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    let setNamespace = false;
     let print = false;
     let quiet = false;
     let set = false;
@@ -5630,9 +5635,10 @@ export class Runtime {
         else if (flag === "q") quiet = true;
         else if (flag === "s") set = true;
         else if (flag === "u") unset = true;
+        else if (flag === "o") setNamespace = true;
         else {
           await this.diagnostic(context, `shopt: ${option.startsWith("--") ? option : `-${flag}`}: unsupported option`);
-          await writeDiagnostic(context.stderr, "shopt: usage: shopt [-pqsu] [--] [dotglob globstar ...]\n");
+          await writeDiagnostic(context.stderr, "shopt: usage: shopt [-opqsu] [--] [option ...]\n");
           return 2;
         }
       }
@@ -5641,32 +5647,36 @@ export class Runtime {
       await this.diagnostic(context, "shopt: cannot set and unset shell options simultaneously");
       return 1;
     }
-    const emit = async (name: "dotglob" | "globstar"): Promise<void> => {
-      if (!quiet) await writeText(context.stdout, print ? `shopt -${state[name] ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${state[name] ? "on" : "off"}\n`);
+    const options = new Map<string, { enabled: boolean }>();
+    for (const name of setNamespace ? ["braceexpand", "errexit", "noclobber", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
+      options.set(name, {
+        get enabled() { return name === "extglob" ? false : name === "braceexpand" ? state.braceexpand !== false : !!state[name]; },
+        set enabled(value) { if (name !== "extglob") state[name] = value; },
+      });
+    }
+    for (const [name, option] of (setNamespace ? state.extensions?.options : state.extensions?.shoptOptions) ?? []) options.set(name, option);
+    const emit = async (name: string, enabled: boolean): Promise<void> => {
+      if (!quiet) await writeText(context.stdout, print ? setNamespace ? `set ${enabled ? "-" : "+"}o ${name}\n` : `shopt -${enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(20)}\t${enabled ? "on" : "off"}\n`);
     };
     if (index === context.args.length) {
-      for (const name of ["dotglob", "globstar"] as const) if ((!set || state[name]) && (!unset || !state[name])) await emit(name);
-      for (const option of state.extensions?.shoptOptions.values() ?? []) if (!quiet && (!set || option.enabled) && (!unset || !option.enabled)) await writeText(context.stdout, print ? `shopt -${option.enabled ? "s" : "u"} ${option.name}\n` : `${option.name.padEnd(19)}\t${option.enabled ? "on" : "off"}\n`);
+      for (const [name, option] of options) if ((!set || option.enabled) && (!unset || !option.enabled)) await emit(name, option.enabled);
       return 0;
     }
     let status = 0;
     for (; index < context.args.length; index++) {
       this.signal.throwIfAborted();
       const name = context.args[index]!;
-      const extension = state.extensions?.shoptOptions.get(name);
-      if (extension) {
-        if (set || unset) extension.enabled = set;
-        else {
-          if (!quiet) await writeText(context.stdout, print ? `shopt -${extension.enabled ? "s" : "u"} ${name}\n` : `${name.padEnd(19)}\t${extension.enabled ? "on" : "off"}\n`);
-          if (!extension.enabled) status = 1;
-        }
-      } else if (name !== "dotglob" && name !== "globstar") {
-        await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (supported: dotglob, globstar)`);
+      const option = options.get(name);
+      if (!option) {
+        await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (supported: ${[...options.keys()].join(", ")})`);
         status = 1;
-      } else if (set || unset) state[name] = set;
+      } else if (!setNamespace && name === "extglob" && set) {
+        await this.diagnostic(context, "shopt: extglob: extended glob matching is unsupported");
+        status = 1;
+      } else if (set || unset) option.enabled = set;
       else {
-        await emit(name);
-        if (!state[name]) status = 1;
+        await emit(name, option.enabled);
+        if (!option.enabled) status = 1;
       }
     }
     return status;
@@ -6845,7 +6855,7 @@ export class Runtime {
     scratch.reserve(patternUnits * 2, 0);
     const pattern = patternFields.join("");
     await scanString(text, work);
-    const boundaries = await compilePatternBoundaries(pattern, work);
+    const boundaries = await compilePatternBoundaries(pattern, work, !!state.nocasematch);
     const operator = part.operator!;
     scratch.reserve(64, 0);
     const replacements: { value: string; quoted: boolean }[] = [];
@@ -7445,12 +7455,12 @@ export class Runtime {
             }
           }
           wildcardPrefix = true;
-        } else if (!/(?:^|[^\\])[*?[]/u.test(segment)) {
+        } else if (!state.nocaseglob && !/(?:^|[^\\])[*?[]/u.test(segment)) {
           const literal = segment.replace(/\\(.)/gu, "$1");
           const bytes = (await scanString(literal, work)).bytes;
           for (const candidate of candidates) add(make(candidate, literal, bytes, true, candidate.depth));
         } else {
-          const matches = await compilePattern(segment, work);
+          const matches = await compilePattern(segment, work, !!state.nocaseglob);
           for (const candidate of candidates) {
             let entries;
             try { entries = await read(candidate); }
@@ -7486,7 +7496,7 @@ export class Runtime {
       // In-place heap sort preserves ordinary UTF-16 pathname order while
       // charging comparisons, including long common prefixes, and yielding.
       await sortExpansionStrings(found, work);
-      return found.length ? found : [value];
+      return found.length ? found : state.nullglob ? [] : [value];
     } finally { scratch.close(); }
   }
 
@@ -7517,14 +7527,14 @@ export class Runtime {
         next.push(candidate);
         if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       };
-      if (!/(?:^|[^\\])[*?[]/u.test(segment)) {
+      if (!state.nocaseglob && !/(?:^|[^\\])[*?[]/u.test(segment)) {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
       } else {
         const scratch = this.budget.values.scope();
         work.allocation = scratch;
         try {
-          const matches = await compilePattern(segment, work);
+          const matches = await compilePattern(segment, work, !!state.nocaseglob);
           for (const candidate of candidates) {
             let entries;
             try {
@@ -7557,6 +7567,6 @@ export class Runtime {
         if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;
       }
     }
-    return found.length ? found.sort() : [value];
+    return found.length ? found.sort() : state.nullglob ? [] : [value];
   }
 }

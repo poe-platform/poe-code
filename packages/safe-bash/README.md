@@ -475,7 +475,9 @@ honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
   background jobs/job control, `trap`, `exec`, process substitution,
-  associative arrays, or C-style `for ((…))` loops. `shopt` supports only `dotglob`.
+  associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
+  `globstar`, `nullglob`, `nocaseglob`, and `nocasematch`, plus `-o` for supported
+  `set` options. `extglob` can be queried, printed, or unset; enabling it is unsupported.
 - Utilities implement subsets of their native counterparts' flags and behavior.
   There is no `git`, `npm`, `npx`, or fallback to installed host programs.
   The opt-in `node` command is not a general Node.js runtime.

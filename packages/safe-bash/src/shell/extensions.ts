@@ -290,7 +290,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
       options.set(option.name, option);
     }
     for (const option of instance.shoptOptions ?? []) {
-      if (!option.name || option.name === "dotglob" || shoptOptions.has(option.name) || option.flag !== undefined || typeof option.enabled !== "boolean") throw new TypeError("Invalid or duplicate extension shopt option");
+      if (!option.name || ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"].includes(option.name) || shoptOptions.has(option.name) || option.flag !== undefined || typeof option.enabled !== "boolean") throw new TypeError("Invalid or duplicate extension shopt option");
       shoptOptions.set(option.name, option);
     }
     return { definition, instance };

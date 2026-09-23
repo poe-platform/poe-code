@@ -11,7 +11,7 @@ const characterClasses: Readonly<Record<string, string>> = {
   space: " \\t\\r\\n\\v\\f", upper: "A-Z", word: "a-zA-Z0-9_", xdigit: "a-fA-F0-9",
 };
 
-async function tokens(pattern: string, work: StringWork): Promise<{ patternTokens: PatternToken[]; reservation: ValueReservation | undefined }> {
+async function tokens(pattern: string, work: StringWork, ignoreCase = false): Promise<{ patternTokens: PatternToken[]; reservation: ValueReservation | undefined }> {
   const admission = stringCheckpoint(work, pattern.length);
   if (admission) await admission;
   const reservation = work.allocation?.reserve(128 + pattern.length * 64, 0);
@@ -61,7 +61,7 @@ async function tokens(pattern: string, work: StringWork): Promise<{ patternToken
       }
       if (cursor < characters.length && cursor > index + 1) {
         let expression: RegExp;
-        try { expression = valid ? new RegExp(`^[${contents}](?![\\s\\S])`, "u") : /(?!)/u; }
+        try { expression = valid ? new RegExp(`^[${contents}](?![\\s\\S])`, ignoreCase ? "iu" : "u") : /(?!)/u; }
         catch { expression = /(?!)/u; }
         result.push({ kind: "class", expression });
         index = cursor;
@@ -71,21 +71,21 @@ async function tokens(pattern: string, work: StringWork): Promise<{ patternToken
   return { patternTokens: result, reservation };
 }
 
-export async function compilePattern(pattern: string, work: StringWork): Promise<(value: string, start?: number, end?: number) => Promise<boolean>> {
+export async function compilePattern(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, start?: number, end?: number) => Promise<boolean>> {
   work.signal.throwIfAborted();
-  const { patternTokens } = await tokens(pattern, work);
-  return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end);
+  const { patternTokens } = await tokens(pattern, work, ignoreCase);
+  return (value, start = 0, end = value.length) => matchTokens(patternTokens, value, work, start, end, ignoreCase);
 }
 
-export async function matchesPattern(pattern: string, value: string, work: StringWork): Promise<boolean> {
-  const { patternTokens, reservation } = await tokens(pattern, work);
-  try { return await matchTokens(patternTokens, value, work, 0, value.length); }
+export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false): Promise<boolean> {
+  const { patternTokens, reservation } = await tokens(pattern, work, ignoreCase);
+  try { return await matchTokens(patternTokens, value, work, 0, value.length, ignoreCase); }
   finally { reservation?.release(); }
 }
 
-export async function compilePatternBoundaries(pattern: string, work: StringWork): Promise<(value: string, shortest?: boolean, suffix?: boolean) => Promise<Float64Array>> {
+export async function compilePatternBoundaries(pattern: string, work: StringWork, ignoreCase = false): Promise<(value: string, shortest?: boolean, suffix?: boolean) => Promise<Float64Array>> {
   work.signal.throwIfAborted();
-  const { patternTokens } = await tokens(pattern, work);
+  const { patternTokens } = await tokens(pattern, work, ignoreCase);
   return async (value, shortest = false, suffix = false) => {
     let rowReservation: ValueReservation | undefined;
     let resultReservation: ValueReservation | undefined;
@@ -115,7 +115,7 @@ export async function compilePatternBoundaries(pattern: string, work: StringWork
             const consume = point === undefined ? -1 : previous;
             row[index] = skip < 0 ? consume : consume < 0 ? skip : shortest ? Math.min(skip, consume) : Math.max(skip, consume);
           } else {
-            const accepts = point !== undefined && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point : token.expression.test(String.fromCodePoint(point))));
+            const accepts = point !== undefined && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))));
             row[index] = accepts ? diagonal : -1;
           }
           diagonal = previous;
@@ -133,7 +133,7 @@ export async function compilePatternBoundaries(pattern: string, work: StringWork
   };
 }
 
-async function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number): Promise<boolean> {
+async function matchTokens(patternTokens: PatternToken[], value: string, work: StringWork, start: number, end: number, ignoreCase = false): Promise<boolean> {
   work.signal.throwIfAborted();
   let position = start;
   let tokenIndex = 0;
@@ -146,7 +146,7 @@ async function matchTokens(patternTokens: PatternToken[], value: string, work: S
     const token = patternTokens[tokenIndex];
     const point = value.codePointAt(position)!;
     if (token?.kind === "star") { star = tokenIndex++; retry = position; }
-    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point : token.expression.test(String.fromCodePoint(point))))) {
+    else if (token && (token.kind === "any" || (token.kind === "literal" ? token.value.codePointAt(0) === point || ignoreCase && token.value.toLowerCase() === String.fromCodePoint(point).toLowerCase() : token.expression.test(String.fromCodePoint(point))))) {
       position += point > 0xffff ? 2 : 1;
       tokenIndex++;
     } else if (star !== -1) { tokenIndex = star + 1; retry = nextCodePointOffset(value, retry); position = retry; }

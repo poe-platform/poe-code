@@ -25,6 +25,7 @@ interface ConditionalContext {
   readonly signal: AbortSignal;
   readonly locale: string;
   readonly work: StringWork;
+  readonly ignoreCase?: boolean;
   expand(word: Word, pattern?: boolean): Promise<string>;
   regex?(subject: string, pattern: Word): Promise<number>;
   present(name: string): boolean;
@@ -146,7 +147,7 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
   if (node.operator === "=~" || ["-nt", "-ot", "-ef"].includes(node.operator)) unsupported(node.operator);
   if (pattern) {
     await patternAdmission(right, context);
-    const match = await matchesPattern(right, left, context.work);
+    const match = await matchesPattern(right, left, context.work, context.ignoreCase);
     return node.operator === "!=" ? !match : match;
   }
   if (node.operator === "<" || node.operator === ">") {

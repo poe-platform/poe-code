@@ -12,6 +12,13 @@ nonprinting filtering keeps bytes 32 through 126. Both preserve original output
 bytes and use the existing whole-record byte comparison to break ties unless
 stable or unique mode disables it.
 
+Key character positions count bytes from the named field's start and may cross
+field separators, stopping at the record boundary. An end position without a
+character offset stops at the named field's end. For example, `-t '|' -k1.3,1.4`
+selects `Q9` in `w|Q9`; stable and unique sorting compare those selected bytes,
+so unique mode preserves records with distinct keys and keeps the first record
+when keys compare equal. This applies to both LF and NUL record delimiters.
+
 Month order recognizes case-insensitive English three-letter month prefixes
 after leading spaces or tabs, with unrecognized months before January.
 General numeric order places unrecognized numbers before NaNs, then orders

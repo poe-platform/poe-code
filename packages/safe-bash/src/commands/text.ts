@@ -420,8 +420,9 @@ async function keyBytes(line: Uint8Array, key: SortKey, separator: number | unde
   await work.charge(line.length % 1024);
   const start = (fields[key.start - 1]?.start ?? line.length) + key.startCharacter - 1;
   const last = key.end === undefined ? undefined : fields[key.end - 1];
+  // Explicit character positions can extend beyond a field, up to the record boundary.
   const end = key.end === undefined ? line.length : last === undefined ? line.length
-    : key.endCharacter === undefined ? last.end : Math.min(last.end, last.start + key.endCharacter);
+    : key.endCharacter === undefined ? last.end : Math.min(line.length, last.start + key.endCharacter);
   return line.subarray(Math.min(start, line.length), Math.max(start, end));
 }
 

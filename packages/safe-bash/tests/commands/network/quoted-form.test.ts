@@ -61,13 +61,16 @@ test("mixed file bodies agree with native curl including per-file attributes", a
   await fs.writeFile("/dev/stdin", payload);
   await fs.writeFile("/dev/null", new Uint8Array());
   try {
+    // Native curl needs @- for piped input; explicit metadata preserves the VFS file profile.
     for (const [operand, nativeOperand] of [
       ["/dev/stdin,/dev/null", "-;filename=stdin;type=application/octet-stream,/dev/null"],
-      ['/dev/null;filename="empty,first";type=text/plain,/dev/stdin;filename=last;type=application/octet-stream', '/dev/null;filename="empty,first";type=text/plain,-;filename=last;type=application/octet-stream'],
+      ['/dev/null;filename="empty,first";type=text/plain,/dev/stdin;filename=last;type=application/octet-stream', '/dev/null;filename="empty,first";type=text/plain,-;filename=last;type=application/octet-stream']
     ]) {
+      const requestCount = host.requests.length;
       const args = ["-sS", "-F", `field=@${operand}`, host.origin + "/echo"];
       const actual = await run(args, { fs });
       assert.equal(actual.exitCode, 0, actual.stderr.toString());
+      assert.equal(host.requests.length, requestCount + 1);
       const virtual = host.requests.at(-1)!.body;
       await new Promise<void>((resolve, reject) => {
         // Native stdin is a pipe, so use curl's stdin operand with the same file metadata.
@@ -78,6 +81,7 @@ test("mixed file bodies agree with native curl including per-file attributes", a
         child.on("close", code => code === 0 ? resolve() : reject(new Error(`native curl ${code}: ${stderr}`)));
         child.stdin.end(payload);
       });
+      assert.equal(host.requests.length, requestCount + 2);
       const normalize = (body: Buffer) => {
         const outer = body.subarray(2, body.indexOf("\r\n")).toString();
         const headers = body.subarray(0, body.indexOf("\r\n\r\n")).toString();

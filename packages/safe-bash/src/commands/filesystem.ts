@@ -1007,7 +1007,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           else if (flag === "p") indicator = "slash";
         }
       }
-      const parsed = options(args, "aAl1dFprRLhtSQcu", { "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      const parsed = options(args, "aAl1dFprRLhtSQcui", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
       if (sort === "name" && timeKey !== "mtimeMs" && !parsed.flags.has("l")) sort = "time";
       const formatName = (name: string): string => {
         if (!parsed.flags.has("Q")) return escapeText(name, "display");
@@ -1066,6 +1066,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       };
       const render = async ({ path, display, stat }: ListingEntry): Promise<void> => {
         let suffix = suffixFor(stat);
+        const inode = parsed.flags.has("i") ? `${stat.ino ?? "?"} ` : "";
         if (parsed.flags.has("l")) {
           let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
           const date = new Date(stat[timeKey]).toISOString().slice(0, 16).replace("T", " ");
@@ -1086,8 +1087,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             }
             size = `${stat.rdevMajor ?? "?"}, ${stat.rdevMinor ?? "?"}`;
           }
-          await output(context, `${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${formatName(display)}${suffix}${target}\n`);
-        } else await output(context, `${formatName(display)}${suffix}\n`);
+          await output(context, `${inode}${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${formatName(display)}${suffix}${target}\n`);
+        } else await output(context, `${inode}${formatName(display)}${suffix}\n`);
         outputWritten = true;
       };
       const list = async ({ path, display }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {

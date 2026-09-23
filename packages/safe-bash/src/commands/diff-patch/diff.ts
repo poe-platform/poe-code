@@ -81,14 +81,41 @@ async function edits(oldLines: string[], newLines: string[], oldKeys: string[], 
   return result;
 }
 
-async function run(context: CommandContext, budget: Budget): Promise<number> {
-  const options = flags(context.args);
+async function exclusionPatterns(options: DiffFlags, budget: Budget): Promise<Pattern[]> {
+  const exclusions: Pattern[] = [];
+  let patternBytes = 0;
+  const append = async (source: string, start = 0, end = source.length) => {
+    budget.step(1 + end - start);
+    await budget.checkpoint();
+    if (exclusions.length >= budget.limits.maxExcludePatterns) throw new ToolError("exclusion pattern count limit exceeded");
+    // UTF-16 length is a lower bound on UTF-8 bytes; admit the slice before allocating it.
+    const remaining = budget.limits.maxExcludePatternBytes - patternBytes;
+    if (end - start > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
+    const sourcePattern = source.slice(start, end);
+    const bytes = Buffer.byteLength(sourcePattern);
+    if (bytes > remaining) throw new ToolError("exclusion pattern byte limit exceeded");
+    patternBytes += bytes;
+    exclusions.push(globPattern(sourcePattern));
+  };
+  for (const pattern of options.excludes) await append(pattern);
   for (const path of options.excludeFiles) {
     if (path !== "-") await inspect(budget, path);
-    const contents = await budget.read(path === "-" ? "-" : pathOf(context, path));
-    options.excludes.push(...contents.split("\n").filter(Boolean));
+    const contents = await budget.read(path === "-" ? "-" : pathOf(budget.context, path));
+    let start = 0;
+    while (start < contents.length) {
+      const newline = contents.indexOf("\n", start);
+      const end = newline < 0 ? contents.length : newline;
+      if (end > start) await append(contents, start, end);
+      else { budget.step(); await budget.checkpoint(); }
+      start = end + 1;
+    }
   }
-  const exclusions = options.excludes.map(globPattern);
+  return exclusions;
+}
+
+async function run(context: CommandContext, budget: Budget): Promise<number> {
+  const options = flags(context.args);
+  const exclusions = await exclusionPatterns(options, budget);
   const pieces: string[] = [];
   const append = (text: string) => { budget.output(text); pieces.push(text); };
   let different = false;

@@ -352,6 +352,13 @@ synchronous JavaScript operation.
 | `maxMatrixCells` | 4,000,000 | Diff LCS table cells, four bytes each |
 | `maxFiles` | 1,024 | Diff visited pairs/queued-entry bound, or patch file sections |
 | `maxHunks` | 10,000 | Aggregate generated/parsed hunks |
+| `maxExcludePatterns` | 1,024 | Aggregate diff exclusions from `-x` / `--exclude` and `-X` / `--exclude-from` |
+| `maxExcludePatternBytes` | 64 KiB | Aggregate UTF-8 bytes of those exclusion patterns, excluding file line delimiters |
+
+Exclusion files are scanned one line at a time, including `-X -` for stdin.
+Empty lines are ignored, but every line charges the shared work budget and
+participates in cancellation checkpoints. Exclusion limits are checked before
+patterns are compiled; exceeding a limit returns exit 2 without partial stdout.
 
 Limits must be positive safe integers. Diagnostic messages have a separate
 fixed bound below 4096 bytes, even when an invalid argument is very large.

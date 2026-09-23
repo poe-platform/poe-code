@@ -16,6 +16,8 @@ export interface DiffPatchOptions {
   readonly maxMatrixCells?: number;
   readonly maxFiles?: number;
   readonly maxHunks?: number;
+  readonly maxExcludePatterns?: number;
+  readonly maxExcludePatternBytes?: number;
 }
 
 export class ToolError extends PublicDiagnostic {
@@ -44,6 +46,8 @@ export class Budget {
       maxMatrixCells: options.maxMatrixCells ?? 4_000_000,
       maxFiles: options.maxFiles ?? 1024,
       maxHunks: options.maxHunks ?? 10_000,
+      maxExcludePatterns: options.maxExcludePatterns ?? 1024,
+      maxExcludePatternBytes: options.maxExcludePatternBytes ?? 65_536,
     };
     for (const [name, value] of Object.entries(this.limits)) {
       if (!Number.isSafeInteger(value) || value < 1) throw new ToolError(`${name} must be a positive safe integer`);

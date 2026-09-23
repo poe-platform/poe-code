@@ -174,3 +174,64 @@ it("rejects overlapping polls within one session rather than interleaving record
     expect(results[1]).toMatchObject({ status: "rejected", reason: { code: "invalid-request", message: "ssconvert datasource poll is already running" } });
   } finally { for (const cleanup of cleanups) await cleanup(); }
 });
+
+it("rebinds a dynamic tag and stops dirtying it when its old tag changes", async () => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  let evaluations = 0, polls = 0;
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const context = { ...config, signal: new AbortController().signal, own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); },
+    runtimeFunctions: { COUNTED: { signature: "", implementation() { evaluations++; return { kind: "number" as const, value: 0 }; } } } };
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { return [encode(++polls === 1 ? "0:17\n1:41\n" : "0:23\n")]; }, close() {}
+  }; } }, context);
+  try {
+    const first = await session.poll({ sheets: [{ id: "s", name: "S", cells: [
+      { row: 0, column: 0, value: { kind: "number", value: 0 } },
+      { row: 0, column: 1, formula: "=ATL_LAST(A1)+COUNTED()", value: { kind: "blank" } },
+      { row: 0, column: 2, formula: "=B1+1", value: { kind: "blank" } }
+    ] }] });
+    expect(first.sheets[0]!.cells[1]!.value).toEqual({ kind: "number", value: 17 });
+    const changed = { ...first, sheets: first.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.map(cell =>
+      cell.column === 0 ? { ...cell, value: { kind: "number" as const, value: 1 } } : cell.column === 1 ? { ...cell, formulaDirty: true } : cell) })) };
+    const rebound = await session.poll(changed);
+    expect(rebound.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+      { kind: "number", value: 1 }, { kind: "number", value: 41 }, { kind: "number", value: 42 }
+    ]);
+    const beforeOldTag = evaluations;
+    expect((await session.poll(rebound)).sheets[0]!.cells[1]!.value).toEqual({ kind: "number", value: 41 });
+    expect(evaluations).toBe(beforeOldTag);
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+});
+
+it("releases edited and deleted formula links before admitting replacement watchers", async () => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const context = { ...config, limits: { ...config.limits, cells: 2 }, signal: new AbortController().signal,
+    own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); } };
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { return []; }, close() {}
+  }; } }, context);
+  try {
+    const first = await session.poll({ sheets: [{ id: "s", name: "S", cells: [
+      { row: 0, column: 0, formula: '=ATL_LAST("a")', value: { kind: "blank" } },
+      { row: 0, column: 1, formula: '=ATL_LAST("b")', value: { kind: "blank" } }
+    ] }] });
+    const edited = { ...first, sheets: first.sheets.map(sheet => ({ ...sheet, cells: sheet.cells.filter(cell => cell.column === 0)
+      .map(cell => ({ ...cell, formula: '=ATL_LAST("c")+ATL_LAST("d")', formulaDirty: true })) })) };
+    expect((await session.poll(edited)).sheets[0]!.cells[0]!.value).toEqual({ kind: "error", value: "#N/A" });
+  } finally { for (const cleanup of cleanups) await cleanup(); }
+});
+
+it("rejects a poll after invocation cleanup without reacquiring its transport", async () => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  let closed = 0, polled = 0;
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const context = { ...config, signal: new AbortController().signal, own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); } };
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { polled++; return []; }, close() { closed++; }
+  }; } }, context);
+  for (const cleanup of cleanups) await cleanup();
+  await expect(session.poll({ sheets: [] })).rejects.toMatchObject({ code: "invalid-request", message: "ssconvert datasource session is closed" });
+  for (const cleanup of cleanups) await cleanup();
+  expect(closed).toBe(1); expect(polled).toBe(0);
+});

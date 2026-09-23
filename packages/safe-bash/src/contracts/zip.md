@@ -5,6 +5,13 @@ The same archive options flow through `archiveCommands`, `agentCommands` and the
 `runBash` SDK's `archive` option. Commands never import host randomness, access
 ambient credentials, open a terminal, or spawn native tools.
 
+`unzip -n` skips existing regular files without overwrite prompts; it takes
+precedence over `-o`. `unzip -j` extracts files using only their final pathname
+component and skips directory entries. Selection patterns still match the
+original archive names; flattened collisions use the normal overwrite policy.
+Both options preserve archive-input, traversal, symlink, staging and backend
+capability checks. Flattened symlink targets must remain within the extraction root.
+
 `entropy(length, signal)` must return exactly the requested number of fresh,
 cryptographically secure bytes. Traditional ZIP requests 11 bytes per encrypted member;
 the twelfth header byte is the CRC high byte, or the DOS time high byte when the

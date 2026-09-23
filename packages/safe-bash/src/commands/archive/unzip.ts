@@ -117,7 +117,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
       const root = parsed.list || parsed.pipe || parsed.test ? resolvePath(rootRaw) : await extraction.directory(rootRaw, true);
       if (!parsed.list && !parsed.pipe && !parsed.test) answers = new Answers(extraction.source(context.stdin), limits, context.signal);
-      let overwrite: "ask" | "all" | "none" = parsed.overwrite ? "all" : "ask";
+      let overwrite: "ask" | "all" | "none" = parsed.neverOverwrite ? "none" : parsed.overwrite ? "all" : "ask";
       let exitCode = 0;
       let selected = 0;
       let badPasswords = 0;
@@ -177,7 +177,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           const fileType = entry.mode & 0o170000;
           if (fileType && fileType !== 0o100000 && fileType !== 0o040000 && fileType !== 0o120000 && fileType !== 0o010000) fail("unsupported special ZIP entry");
           if (path === root && !entry.directory) fail("entry would replace extraction root");
-          let shown = parsed.destination === undefined ? entry.name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${entry.name}`;
+          if (parsed.junkPaths && entry.directory) continue;
+          const name = parsed.junkPaths ? entry.name.split("/").at(-1)! : entry.name;
+          if (parsed.junkPaths) path = extraction.member(root, name);
+          if (path === root && !entry.directory) fail("entry would replace extraction root");
+          let shown = parsed.destination === undefined ? name : `${parsed.destination.endsWith("/") ? parsed.destination : `${parsed.destination}/`}${name}`;
           await extraction.parents(root, path, true);
           if (entry.directory) {
             if (entry.size) fail("directory has nonempty payload");

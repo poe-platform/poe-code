@@ -106,6 +106,71 @@ test("unzip inspection modes enforce limits and report unmatched names", async (
   assert.equal((await run(fs, ["-z", "missing.zip"])).exitCode, 9);
 });
 
+test("unzip -n preserves existing files without reading overwrite answers", async () => {
+  const fs = await fixture([{ name: "dir/keep", body: "replace" }, { name: "dir/new", body: "new" }]);
+  await fs.mkdir("/work/target"); await fs.mkdir("/work/target/dir");
+  await fs.writeFile("/work/target/dir/keep", Buffer.from("keep"));
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("unzip -n sample.zip -d target");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(Buffer.from(await fs.readFile("/work/target/dir/keep")).toString(), "keep");
+    assert.equal(Buffer.from(await fs.readFile("/work/target/dir/new")).toString(), "new");
+  } finally { await shell.dispose(); }
+});
+
+test("unzip -j skips directory entries and selects original member names", async () => {
+  const fs = await fixture([{ name: "dir/" }, { name: "dir/file", body: "data" }, { name: "other/file", body: "other" }]);
+  const result = await run(fs, ["-j", "sample.zip", "dir/*", "-d", "target"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: heading + " extracting: target/file             \n" });
+  assert.equal(Buffer.from(await fs.readFile("/work/target/file")).toString(), "data");
+  assert.deepEqual((await fs.readdir("/work/target")).map(entry => entry.name), ["file"]);
+});
+
+for (const flags of ["-n", "-no", "-on"]) test(`unzip ${flags} never consumes overwrite input`, async () => {
+  const fs = await fixture([{ name: "file", body: "replace" }]);
+  await fs.writeFile("/work/file", Buffer.from("keep"));
+  let reads = 0;
+  const stdin = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("y\n"); } };
+  assert.deepEqual(await run(fs, [flags, "sample.zip"], "", {}, { stdin }), { exitCode: 0, stdout: heading, stderr: "" });
+  assert.equal(reads, 0, "overwrite input consumed");
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), "keep");
+});
+
+test("unzip -j validates symlink targets relative to the flattened destination", async () => {
+  const fs = await fixture([{ name: "dir/link", body: "../file", mode: 0o120777 }]);
+  assert.equal((await run(fs, ["-j", "sample.zip"])).exitCode, 2);
+  await assert.rejects(fs.lstat("/work/link"));
+});
+
+for (const policy of ["-jn", "-jo"]) test(`unzip ${policy} applies overwrite policy to flattened collisions`, async () => {
+  const fs = await fixture([{ name: "a/file", body: "first" }, { name: "b/file", body: "second" }]);
+  const result = await run(fs, [policy, "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(Buffer.from(await fs.readFile("/work/file")).toString(), policy === "-jn" ? "first" : "second");
+});
+
+for (const name of ["../escape", "/escape", "folder/../../escape"]) test(`unzip -j retains member safety for ${name}`, async () => {
+  const fs = await fixture([{ name, body: "bad" }]);
+  const result = await run(fs, ["-j", "sample.zip"]);
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr, "unzip: ZIP unsafe traversal or absolute path\n");
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["sample.zip"]);
+});
+
+test("unzip -jn retains flattened destination and input archive safety", async () => {
+  const fs = await fixture([{ name: "dir/sample.zip", body: "bad" }]);
+  const before = await fs.readFile("/work/sample.zip");
+  assert.ok((await run(fs, ["-jn", "sample.zip"])).stderr.includes("overwrite input archive"));
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  await fs.writeFile("/work/sample.zip", zip([{ name: "dir/link", body: "bad" }]));
+  await fs.writeFile("/outside", Buffer.from("keep")); await fs.symlink!("/outside", "/work/link");
+  assert.ok((await run(fs, ["-jn", "sample.zip"])).stderr.includes("unsafe non-regular destination"));
+  assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
+});
+
 test("unzip native Linux listing includes exact padding and totals", async () => {
   assert.deepEqual(await run(await fixture(), ["-l", "sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + listing
     + "        0  2024-01-02 03:04   folder/\n        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n"

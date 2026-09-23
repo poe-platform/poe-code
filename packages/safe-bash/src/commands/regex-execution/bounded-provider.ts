@@ -7,9 +7,10 @@ import { EreLedger } from "./ere/limits.js";
 import { compileEre } from "./ere/syntax.js";
 import { prepareUtf8EreSubject } from "./ere/matcher.js";
 import { validateUtf8 } from "./utf8.js";
+import { executeBoundedGlobs } from "./bounded-glob.js";
 import type { EreFragment, EreProgram } from "./ere/types.js";
 import type { BoundedRegexProvider, RegexWorker, RegexWorkerRequest } from "./provider.js";
-import { ExprMatchError, exprMatchCeilings, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
+import { ExprMatchError, exprMatchCeilings, type BreSearchDescriptor, type BreSearchReply, type ExprMatchDescriptor, type ExprMatchLimits, type ExprMatchReply, type GlobDescriptor, type GrepDescriptor, type Reply, type Row, type SearchDescriptor } from "./protocol.js";
 
 export interface BoundedRegexProviderOptions {
   readonly maxWorkers?: number;
@@ -44,6 +45,7 @@ interface OwnedRequest {
   readonly ledger: EreLedger;
   readonly limits: Required<BoundedRegexProviderOptions>;
 }
+interface OwnedGlobRequest extends Omit<OwnedRequest, "descriptor"> { readonly descriptor: GlobDescriptor }
 interface OwnedExprRequest {
   readonly id: number;
   readonly descriptor: ExprMatchDescriptor | BreSearchDescriptor;
@@ -98,16 +100,32 @@ function options(input: BoundedRegexProviderOptions): Required<BoundedRegexProvi
   return Object.freeze(result);
 }
 
-function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions>): SelectionDescriptor {
+function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions>): SelectionDescriptor | GlobDescriptor {
   if (value === null || typeof value !== "object") fail("protocol", "invalid descriptor");
   const kind = Object.getOwnPropertyDescriptor(value, "kind");
   if (!kind || !("value" in kind)) fail("protocol", "invalid descriptor kind");
-  if (kind.value !== "grep" && kind.value !== "rg") fail("unsupported", "only grep and rg selection descriptors are supported");
+  if (kind.value === "glob") {
+    record(value, ["kind", "patterns", "globOptions"]);
+    array(value.patterns, limits.maxPatterns, "pattern");
+    array(value.globOptions, limits.maxPatterns, "glob option");
+    if (value.patterns.length !== value.globOptions.length) fail("protocol", "invalid glob option count");
+    let bytes = 0;
+    for (let index = 0; index < value.patterns.length; index++) {
+      const pattern = value.patterns[index];
+      if (typeof pattern !== "string") fail("protocol", "glob patterns must be strings");
+      if (pattern.length > Math.floor((limits.maxPatternBytes - bytes) / 2)) fail("limit", "aggregate pattern byte limit exceeded");
+      bytes += pattern.length * 2;
+      const option = value.globOptions[index];
+      record(option, ["insensitive", "literalUnclosedClass"]);
+      if (typeof option.insensitive !== "boolean" || typeof option.literalUnclosedClass !== "boolean") fail("protocol", "invalid glob options");
+    }
+    return value as unknown as GlobDescriptor;
+  }
+  if (kind.value !== "grep" && kind.value !== "rg") fail("unsupported", "unsupported descriptor kind");
   const flags = kind.value === "grep" ? ["fixed", "extended", "insensitive", "whole", "word"] : ["fixed", "whole", "word", "nullData"];
   record(value, ["kind", "patterns", ...flags, ...(kind.value === "rg" ? ["case"] : [])]);
   for (const flag of flags) if (typeof value[flag] !== "boolean") fail("protocol", `invalid ${flag} flag`);
   if (kind.value === "rg" && !["sensitive", "insensitive", "smart"].includes(value.case as string)) fail("protocol", "invalid case flag");
-  if (kind.value === "rg" && (value.word || value.case !== "sensitive")) fail("unsupported", "rg word matching and case-insensitive selection are unsupported");
   array(value.patterns, limits.maxPatterns, "pattern");
   let bytes = 0;
   for (let index = 0; index < value.patterns.length; index++) {
@@ -119,10 +137,11 @@ function descriptor(value: unknown, limits: Required<BoundedRegexProviderOptions
   return value as unknown as SelectionDescriptor;
 }
 
-function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedRequest {
+function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedRequest | OwnedGlobRequest {
   record(input, ["id", "descriptor", "rows"]);
   const selected = descriptor(input.descriptor, limits);
   array(input.rows, limits.maxRows, "row");
+  if (selected.kind === "glob" && input.rows.length !== 0 && input.rows.length !== selected.patterns.length) fail("protocol", "invalid glob row count");
   if (input.rows.length > Math.floor(limits.maxResultBytes / 16)) fail("limit", "result byte limit exceeded");
   let bytes = 0;
   for (let index = 0; index < input.rows.length; index++) {
@@ -131,20 +150,31 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     if (!(row.bytes instanceof Uint8Array) || typeof row.all !== "boolean" || typeof row.terminated !== "boolean"
       || Object.hasOwn(row, "directory") && typeof row.directory !== "boolean"
       || Object.hasOwn(row, "ancestors") && typeof row.ancestors !== "boolean") fail("protocol", "invalid row");
-    if (Object.hasOwn(row, "directory") || Object.hasOwn(row, "ancestors")) fail("unsupported", "glob row flags are unsupported");
+    if (selected.kind !== "glob" && (Object.hasOwn(row, "directory") || Object.hasOwn(row, "ancestors"))) fail("protocol", "unexpected glob row flags");
     const length = byteLength.call(row.bytes) as number;
+    if (selected.kind === "glob" && (row.all || length % 2 !== 0)) fail("protocol", "invalid glob row");
     if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
   }
   const ledger = new EreLedger({ maxExpansionBytes: 1_048_576, maxExpansionFields: 8192 }, {
-    patternBytes: limits.maxPatternBytes + (selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
+    patternBytes: Math.min(65_536, limits.maxPatternBytes + (selected.kind === "glob" ? 32 : selected.fixed ? 0 : 4)), subjectBytes: limits.maxInputBytes,
     work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
   });
   // Include snapshots, row/result metadata and worst-case match storage before copying.
   ledger.charge("allocationUnits", bytes + input.rows.length * 12 + selected.patterns.length * 2 + 16, signal);
   const patterns: string[] = [];
   for (let index = 0; index < selected.patterns.length; index++) patterns.push(selected.patterns[index]!);
-  const ownedDescriptor: SelectionDescriptor = selected.kind === "grep"
+  const globOptions: GlobDescriptor["globOptions"][number][] = [];
+  if (selected.kind === "glob") {
+    ledger.charge("allocationUnits", selected.globOptions.length * 4, signal);
+    for (let index = 0; index < selected.globOptions.length; index++) {
+      const option = selected.globOptions[index]!;
+      globOptions.push({ insensitive: option.insensitive, literalUnclosedClass: option.literalUnclosedClass });
+    }
+  }
+  const ownedDescriptor = selected.kind === "glob"
+    ? { kind: "glob" as const, patterns, globOptions }
+    : selected.kind === "grep"
     ? { kind: "grep", patterns, fixed: selected.fixed, extended: selected.extended, insensitive: selected.insensitive, whole: selected.whole, word: selected.word }
     : { kind: "rg", patterns, fixed: selected.fixed, case: selected.case, whole: selected.whole, word: selected.word, nullData: selected.nullData };
   const rows: Row[] = [];
@@ -153,9 +183,9 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     const source = new Uint8Array(byteBuffer.call(row.bytes) as ArrayBuffer, byteOffset.call(row.bytes) as number, byteLength.call(row.bytes) as number);
     const copy = new Uint8Array(source.length);
     copy.set(source);
-    rows.push({ bytes: copy, all: row.all, terminated: row.terminated });
+    rows.push({ bytes: copy, all: row.all, terminated: row.terminated, ...(selected.kind === "glob" ? { directory: row.directory ?? false, ancestors: row.ancestors ?? true } : {}) });
   }
-  return { id: input.id, descriptor: ownedDescriptor, rows, ledger, limits };
+  return { id: input.id, descriptor: ownedDescriptor, rows, ledger, limits } as OwnedRequest | OwnedGlobRequest;
 }
 
 function admitExpr(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderOptions>, signal: AbortSignal): OwnedExprRequest {
@@ -403,17 +433,20 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
   return new Float64Array(ranges);
 }
 
-async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
+async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: boolean): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
   const programs: LiteralProgram[] = [];
   for (const pattern of selected.patterns) {
-    programs.push(await compileLiteral(await literalBytes(pattern, selected, ledger, signal), ledger, signal, selected.kind === "grep" && selected.insensitive));
+    const bytes = await literalBytes(pattern, selected, ledger, signal);
+    if (fold && selected.kind === "rg" && bytes.some(byte => byte >= 128)) fail("unsupported", "rg case folding supports ASCII patterns only");
+    programs.push(await compileLiteral(bytes, ledger, signal, fold));
   }
   ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
     await validateUtf8(row.bytes, ledger, signal);
+    if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
     if (row.all) {
       ledger.charge("allocationUnits", programs.length * 2, signal);
       const finders = programs.map(program => async (from: number): Promise<Span | undefined> => {
@@ -443,8 +476,22 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal): Promise
   return { id: input.id, results };
 }
 
+async function insensitive(selected: SelectionDescriptor, ledger: EreLedger, signal: AbortSignal): Promise<boolean> {
+  if (selected.kind === "grep") return selected.insensitive;
+  if (selected.case !== "smart") return selected.case === "insensitive";
+  for (const pattern of selected.patterns) {
+    for (let index = 0; index < pattern.length; index++) {
+      ledger.charge("work", 1, signal);
+      await ledger.checkpoint(signal);
+      if (pattern[index]! >= "A" && pattern[index]! <= "Z") return false;
+    }
+  }
+  return true;
+}
+
 async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
+  const fold = await insensitive(selected, ledger, signal);
   let literal = selected.fixed;
   if (!literal && selected.kind === "rg") {
     literal = true;
@@ -454,7 +501,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       for (const character of pattern) if ("\\.^$[]()|*+?{}".includes(character)) { literal = false; break patterns; }
     }
   }
-  if (literal) return executeLiteral(input, signal);
+  if (literal) return executeLiteral(input, signal, fold);
   const programs: EreProgram[] = [];
   for (const pattern of selected.patterns) {
     if (selected.kind === "rg" && !selected.nullData && pattern.includes("\n")) fail("unsupported", "rg multiline matching is unsupported");
@@ -468,12 +515,13 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       fragments.unshift({ text: "^(", literal: false });
       fragments.push({ text: ")$", literal: false });
     }
-    programs.push(await compileEre(fragments, ledger, signal, selected.kind === "grep" && selected.insensitive));
+    programs.push(await compileEre(fragments, ledger, signal, fold));
   }
   ledger.charge("allocationUnits", 3, signal);
   const results: Float64Array[] = [];
   const usage: MatchUsage = { count: 0 };
   for (const row of rows) {
+    if (selected.kind === "rg" && (selected.word || fold) && row.bytes.some(byte => byte >= 128)) fail("unsupported", "rg word matching and case folding support ASCII subjects only");
     const subject = await prepareUtf8EreSubject(row.bytes, ledger, signal, selected.kind === "rg", selected.word);
     if (row.all) {
       ledger.charge("allocationUnits", programs.length + 1, signal);
@@ -533,10 +581,12 @@ class CooperativeWorker implements RegexWorker {
     const submitted = Object.getOwnPropertyDescriptor(input, "descriptor")?.value as unknown;
     const operation: unknown = submitted !== null && typeof submitted === "object" ? Object.getOwnPropertyDescriptor(submitted, "kind")?.value : undefined;
     const expression = operation === "expr-match" || operation === "bre-search";
-    let owned: OwnedRequest | OwnedExprRequest | undefined;
+    let owned: OwnedRequest | OwnedGlobRequest | OwnedExprRequest | undefined;
     let failure: string | undefined;
     let category: ExprMatchError["category"] = "unsupported";
-    try { owned = expression ? admitExpr(input, this.limits, this.#controller.signal) : admit(input, this.limits, this.#controller.signal); }
+    try {
+      owned = expression ? admitExpr(input, this.limits, this.#controller.signal) : admit(input, this.limits, this.#controller.signal);
+    }
     catch (error) {
       if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
       if (error instanceof ExprMatchError) category = error.category;
@@ -547,7 +597,9 @@ class CooperativeWorker implements RegexWorker {
       let reply: Reply | ExprMatchReply | BreSearchReply;
       try {
         this.#controller.signal.throwIfAborted();
-        reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal) : await execute(owned, this.#controller.signal) : { id, error: failure! };
+        reply = owned ? "subject" in owned ? await executeExpr(owned, this.#controller.signal)
+          : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, this.#controller.signal)
+          : await execute(owned as OwnedRequest, this.#controller.signal) : { id, error: failure! };
       } catch (error) {
         if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) {
           owned = undefined;
@@ -581,7 +633,7 @@ class CooperativeWorker implements RegexWorker {
   }
 }
 
-/** Cooperative ASCII grep patterns over UTF-8 scalars, ASCII expr, and UTF-8 literals; not a native-worker/RSS sandbox. */
+/** Cooperative ASCII selection/globs, ASCII expr, and UTF-8 literals; not a native-worker/RSS sandbox. */
 export function createBoundedRegexProvider(input: BoundedRegexProviderOptions = {}): BoundedRegexProvider {
   const limits = options(input);
   let active = 0;

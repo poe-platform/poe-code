@@ -1,5 +1,5 @@
 import type { Match } from "./matcher.js";
-import type { Arguments } from "./options.js";
+import { SearchError, type Arguments } from "./options.js";
 import { Limits, type Line } from "./shared.js";
 
 export const elapsed = Object.freeze({ secs: 0, nanos: 0, human: "0.000000s" });
@@ -49,7 +49,28 @@ export class Printer {
       if (this.args.lineNumber) prefix += line.number + separator;
       if (this.args.column && matches.length) prefix += (match ?? matches[0])!.start + 1 + separator;
       if (this.args.byteOffset) prefix += (line.offset + (match?.start ?? 0)) + separator;
-      const content = match ? line.content.subarray(match.start, match.end) : line.content;
+      let content = match ? line.content.subarray(match.start, match.end) : line.content;
+      if (this.args.replacement !== undefined && selected && !this.args.invert) {
+        const replacement = Buffer.from(this.args.replacement);
+        if (match) content = replacement;
+        else {
+          const parts: Buffer[] = [];
+          let cursor = 0;
+          let size = line.content.length;
+          for (const span of matches) {
+            size += replacement.length - (span.end - span.start);
+            if (size > this.limits.maxOutputBytes) throw new SearchError("replacement output byte limit exceeded");
+            parts.push(line.content.subarray(cursor, span.start), replacement); cursor = span.end;
+          }
+          parts.push(line.content.subarray(cursor));
+          content = Buffer.concat(parts);
+        }
+      }
+      if (this.args.trim) {
+        let start = 0;
+        while (start < content.length && (content[start] === 32 || content[start]! >= 9 && content[start]! <= 13)) start++;
+        content = content.subarray(start);
+      }
       const terminator = this.args.nullData ? "\0" : match && this.args.crlf ? "\r\n" : "\n";
       await this.limits.output(Buffer.concat([Buffer.from(prefix), content, Buffer.from(terminator)]));
     }

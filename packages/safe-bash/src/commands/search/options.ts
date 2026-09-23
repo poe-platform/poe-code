@@ -40,6 +40,8 @@ export interface Arguments {
   ignoreVcs: boolean;
   ignoreDot: boolean;
   ignoreParent: boolean;
+  ignoreFiles: boolean;
+  ignorePaths: string[];
   requireGit: boolean;
   binary: "auto" | "binary" | "text";
   nullPath: boolean;
@@ -53,13 +55,24 @@ export interface Arguments {
   separator: string | undefined;
   maxCount: number;
   maxDepth: number;
+  maxFileSize: number;
+  replacement?: string;
+  trim: boolean;
   globs: { source: string; insensitive: boolean }[];
   types: { name: string; include: boolean }[];
 }
 
 export function count(value: string, flag: string): number {
-  if (!/^[0-9]+$/u.test(value) || !Number.isSafeInteger(Number(value))) throw new SearchError(`${flag} requires a nonnegative integer`);
+  if (!value || [...value].some(character => character < "0" || character > "9") || !Number.isSafeInteger(Number(value))) throw new SearchError(`${flag} requires a nonnegative integer`);
   return Number(value);
+}
+
+function fileSize(value: string): number {
+  const suffix = value.at(-1)!;
+  const exponent = "KMG".indexOf(suffix) + 1;
+  const amount = count(exponent ? value.slice(0, -1) : value, "max-filesize") * 1024 ** exponent;
+  if (!Number.isSafeInteger(amount)) throw new SearchError("max-filesize is too large");
+  return amount;
 }
 
 export function parse(args: readonly string[]): Arguments {
@@ -67,9 +80,9 @@ export function parse(args: readonly string[]): Arguments {
     patterns: [], patternFiles: [], paths: [], explicitPatterns: false, mode: "lines", case: "sensitive",
     fixed: false, invert: false, word: false, whole: false, lineNumber: false, column: false, byteOffset: false,
     onlyMatching: false, quiet: false, hidden: false, follow: false, ignore: true, ignoreVcs: true,
-    ignoreDot: true, ignoreParent: true, requireGit: true, binary: "auto", nullPath: false, nullData: false,
+    ignoreDot: true, ignoreParent: true, ignoreFiles: true, ignorePaths: [], requireGit: true, binary: "auto", nullPath: false, nullData: false,
     crlf: false, includeZero: false, messages: true, heading: false, before: 0, after: 0, separator: "--",
-    maxCount: Infinity, maxDepth: 128, globs: [], types: [],
+    maxCount: Infinity, maxDepth: 128, maxFileSize: Infinity, trim: false, globs: [], types: [],
   };
   const operands: string[] = [];
   let unrestricted = 0;
@@ -138,6 +151,9 @@ export function parse(args: readonly string[]): Arguments {
         case "no-ignore-vcs": result.ignoreVcs = false; break;
         case "no-ignore-dot": result.ignoreDot = false; break;
         case "no-ignore-parent": result.ignoreParent = false; break;
+        case "ignore-file": result.ignorePaths.push(value()); if (result.ignorePaths.length > 1024) throw new SearchError("ignore file count limit exceeded"); break;
+        case "no-ignore-files": result.ignoreFiles = false; break;
+        case "ignore-files": result.ignoreFiles = true; break;
         case "no-require-git": result.requireGit = false; break;
         case "no-ignore-global": case "no-config": break;
         case "a": case "text": result.binary = "text"; break;
@@ -167,7 +183,13 @@ export function parse(args: readonly string[]): Arguments {
         case "context-separator": result.separator = value(); break;
         case "no-context-separator": result.separator = undefined; break;
         case "m": case "max-count": result.maxCount = count(value(), flag); break;
-        case "max-depth": result.maxDepth = count(value(), flag); if (result.maxDepth > 128) throw new SearchError("maximum supported directory depth is 128"); break;
+        case "maxdepth": case "max-depth": result.maxDepth = count(value(), flag); if (result.maxDepth > 128) throw new SearchError("maximum supported directory depth is 128"); break;
+        case "max-filesize": result.maxFileSize = fileSize(value()); break;
+        case "r": case "replace": result.replacement = value(); break;
+        case "trim": result.trim = true; break;
+        case "no-trim": result.trim = false; break;
+        case "U": case "multiline": case "no-multiline": break;
+        case "j": case "threads": count(value(), flag); break;
         case "sort": if (value() !== "path") throw new SearchError("only --sort=path is supported"); break;
         case "color": if (value() !== "never") throw new SearchError("only --color=never is supported"); break;
         default: throw new SearchError(`unsupported option '${long ? "--" : "-"}${flag}'`);
@@ -176,6 +198,7 @@ export function parse(args: readonly string[]): Arguments {
     }
   }
   if (result.before > 100000 || result.after > 100000) throw new SearchError("context limit exceeded");
+  if (result.replacement?.includes("$")) throw new SearchError("replacement capture expansion is unsupported; use a literal replacement without '$'");
   if (!result.help && result.mode !== "files" && !result.explicitPatterns) {
     const pattern = operands.shift();
     if (pattern === undefined) throw new SearchError("a search pattern is required");

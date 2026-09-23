@@ -14,6 +14,7 @@ export class Walker {
   private readonly typeGlobs: { glob: Glob; include: boolean }[] = [];
   private readonly hasPositiveType: boolean;
   private readonly cache = new Map<string, { rules: IgnoreRule[]; repository: boolean; root: boolean }>();
+  private readonly explicitRules: IgnoreRule[] = [];
   constructor(private readonly context: CommandContext, private readonly args: Arguments, private readonly limits: Limits, private readonly report: (error: unknown) => Promise<void>, private readonly session: RegexSession) {
     if (args.globs.length > 1024) throw new SearchError("glob count limit exceeded");
     this.globs = args.globs.map(({ source, insensitive }) => ({ glob: new Glob(source.startsWith("!") ? source.slice(1) : source, insensitive), include: !source.startsWith("!") }));
@@ -36,6 +37,13 @@ export class Walker {
     }
     for (const [source, include] of selected) this.typeGlobs.push({ glob: new Glob(source), include });
     await matchGlobs(this.typeGlobs.map(rule => rule.glob), [], this.session);
+    if (this.args.ignoreFiles) for (const operand of this.args.ignorePaths) {
+      const path = pathFor(this.context, operand);
+      await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [path]);
+      const bytes = await this.context.fs.readFile(path, { signal: this.context.signal, maxBytes: 1024 * 1024 });
+      this.explicitRules.push(...await ignoreRules(Buffer.from(bytes).toString("utf8"), this.context.cwd, 0, this.session));
+      if (this.explicitRules.length > 10000) throw new SearchError("ignore rule count limit exceeded");
+    }
   }
   private async exists(path: string): Promise<boolean> {
     try {
@@ -116,8 +124,8 @@ export class Walker {
     for (const entry of entries) {
       await this.limits.tick();
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
-      const child = `${path.replace(/\/$/u, "")}/${entry.name}`;
-      const display = label ? `${label.replace(/\/$/u, "")}/${entry.name}` : entry.name;
+      const child = `${path.endsWith("/") ? path.slice(0, -1) : path}/${entry.name}`;
+      const display = label ? `${label.endsWith("/") ? label.slice(0, -1) : label}/${entry.name}` : entry.name;
       try {
         if (entry.type === "symlink" && !this.args.follow) continue;
         if (entry.type === "symlink") await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
@@ -132,7 +140,13 @@ export class Walker {
         }
         if (!await this.accepted(child, entry.name, type === "directory", local.rules)) continue;
         if (type === "directory") yield* this.directory(child, display, depth + 1, parents, local.rules, local.repository);
-        else if (type === "file") yield { path: child, label: display, explicit: false, recursive: true };
+        else if (type === "file") {
+          if (Number.isFinite(this.args.maxFileSize)) {
+            await assertPathRequirements(this.context, searchRequirements, ["metadata"], [child]);
+            if ((await this.context.fs.stat(child, { signal: this.context.signal })).size > this.args.maxFileSize) continue;
+          }
+          yield { path: child, label: display, explicit: false, recursive: true };
+        }
       } catch (error) { this.context.signal.throwIfAborted(); if (error instanceof SearchError || error instanceof RegexExecutionError) throw error; await this.report(error); }
     }
   }
@@ -145,7 +159,7 @@ export class Walker {
       try {
         const stat: FileStat = await this.context.fs.stat(path, { signal: this.context.signal });
         if (stat.type !== "directory") { yield { path, label: operand, explicit: true, recursive: false }; continue; }
-        let inherited: { rules: IgnoreRule[]; repository: boolean } = { rules: [], repository: false };
+        let inherited: { rules: IgnoreRule[]; repository: boolean } = { rules: this.explicitRules, repository: false };
         const parents: string[] = [];
         let parent = dirname(resolvePath("/", path));
         if (this.args.ignoreParent) {

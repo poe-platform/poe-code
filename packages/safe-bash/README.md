@@ -95,9 +95,14 @@ before repeating the action. A configured regex executor may support more syntax
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 Default `rg` accepts UTF-8 literals and bounded ASCII regex operators (`.`, anchors,
 classes, groups, alternation and greedy repetition), including `-o` and match counts.
-It preserves original UTF-8 byte offsets. Word/case flags, Unicode regex syntax,
-escape extensions, lazy repetition and invalid UTF-8/NUL subjects require a
-configured regex executor; unsupported syntax fails explicitly.
+It preserves original UTF-8 byte offsets and supports case/word selection on ASCII
+subjects, plus bounded ASCII globs for path and ignore filtering. Unicode case/word
+selection, Unicode regex syntax, escape extensions, lazy repetition and invalid
+UTF-8/NUL subjects require a configured regex executor; unsupported profiles fail
+explicitly. Literal replacement, trimming, file-size limits, depth aliases and
+explicit virtual ignore files are supported. `--threads` accepts a count while
+execution stays serial; `--multiline` admits line-compatible searches, with
+cross-line patterns still rejected by the bounded matcher.
 
 `/commands/fmt` exports `parseFmtArguments`, the pure byte coroutine
 `createFmtEngine`, and equivalent `fmtCommand({ limits?, profile? })` /

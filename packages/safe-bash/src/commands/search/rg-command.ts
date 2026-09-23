@@ -57,7 +57,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const available = new AvailableRecords(args.nullData ? 0 : 10, limits.maxLineBytes, binary === "binary" ? 0 : -1);
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
   records: for await (const batch of available.batches(lines(available.source(source), limits, state, binary, args.nullData), line => line.content.length, batchSize)) {
-    const rows = batch.map(line => ({ bytes: args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content, all: args.onlyMatching || args.mode === "json" || args.mode === "matches", terminated: line.bytes.length !== line.content.length }));
+    const rows = batch.map(line => ({ bytes: args.crlf && line.content.at(-1) === 13 ? line.content.subarray(0, -1) : line.content, all: args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches", terminated: line.bytes.length !== line.content.length }));
     const results = await matcher.batch(rows);
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
@@ -140,7 +140,16 @@ Default input depends on shell configuration.
 
   -e, --regexp=PATTERN     Add a pattern (repeatable)
   -f, --file=FILE          Read patterns from FILE
+  -r, --replace=TEXT       Replace matches with literal TEXT
+      --trim              Trim leading ASCII whitespace
   -F, --fixed-strings      Use fixed strings
+      --max-filesize=SIZE  Filter discovered files (bytes or K/M/G)
+      --ignore-file=FILE   Read an explicit virtual ignore file
+      --no-ignore-files   Disable explicit ignore files
+      --ignore-files      Enable explicit ignore files
+      --maxdepth=NUM      Alias for --max-depth
+  -j, --threads=NUM        Accept a count (virtual execution stays serial)
+  -U, --multiline          Admit line-compatible searches only
   -i, --ignore-case        Ignore case distinctions
   -s, --case-sensitive     Match case sensitively
   -S, --smart-case         Infer case sensitivity from the pattern
@@ -188,7 +197,8 @@ Exit status: 0 when a match is found, 1 when none is found, 2 on error.
 Regular expression support depends on the configured regex executor.
 The default supports UTF-8 literals and bounded ASCII regular expressions.
 Regex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.
-Word/case flags and extended regex syntax require a configured executor.
+Case and word selection support ASCII patterns and subjects.
+Unicode selection and extended regex syntax require a configured executor.
 `));
             return { exitCode: 0 };
           }

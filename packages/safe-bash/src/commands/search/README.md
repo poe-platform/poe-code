@@ -68,12 +68,12 @@ option parsing. Unknown flags and malformed numeric values are errors.
 | --- | --- |
 | Patterns | Repeated `-e`/`--regexp`, `-f`/`--file`; otherwise the first operand is the pattern. Pattern files contain one UTF-8 pattern per line; `-f -` reads stdin. An empty pattern file matches nothing. |
 | Matching | `-F`/`--fixed-strings`, `--no-fixed-strings`, `-i`/`--ignore-case`, `-s`/`--case-sensitive`, `-S`/`--smart-case`, `-v`/`--invert-match`, `--no-invert-match`, `-w`/`--word-regexp`, `-x`/`--line-regexp`. |
-| Match output | `-n`/`--line-number`, `-N`/`--no-line-number`, `-H`/`--with-filename`, `-I`/`--no-filename`, `--column`/`--no-column`, `-b`/`--byte-offset`, `-o`/`--only-matching`, `--no-only-matching`, `--heading`/`--no-heading`. |
+| Match output | `-n`/`--line-number`, `-N`/`--no-line-number`, `-H`/`--with-filename`, `-I`/`--no-filename`, `--column`/`--no-column`, `-b`/`--byte-offset`, `-o`/`--only-matching`, `--no-only-matching`, `--heading`/`--no-heading`, `-r`/`--replace` (literal replacement without `$` capture expansion), `--trim`/`--no-trim` (leading ASCII whitespace). JSON retains original records and ranges. |
 | File lists | `--files`, `-l`/`--files-with-matches`, `--files-without-match`. **`-L` means follow symlinks, not files without matches.** |
 | Counts/status | `-c`/`--count`, `--count-matches`, `--include-zero`/`--no-include-zero`, `-q`/`--quiet`, `-m`/`--max-count`. Counts suppress zero unless requested. `-c -o` counts occurrences; inverted counts count selected nonmatching lines. |
 | Context | `-A`/`--after-context`, `-B`/`--before-context`, `-C`/`--context`, `--context-separator`, `--no-context-separator`. Adjacent context groups merge, with no duplicate records. Context defaults to zero. |
-| Path filtering | Repeated `-g`/`--glob`, `--iglob`, `--hidden`/`-.`, `--no-hidden`, `--max-depth` (0–128). |
-| Ignore controls | `--no-ignore`/`--ignore`, `--no-ignore-vcs`, `--no-ignore-dot`, `--no-ignore-parent`, `--no-require-git`, and repeated `-u`/`--unrestricted`. One `-u` disables ignores, two also include hidden entries, three also enable binary searching. |
+| Path filtering | Repeated `-g`/`--glob`, `--iglob`, `--hidden`/`-.`, `--no-hidden`, `--max-depth`/`--maxdepth` (0–128), `--max-filesize` (bytes or K/M/G binary suffix). Explicit files and stdin bypass size filtering. |
+| Ignore controls | `--no-ignore`/`--ignore`, `--no-ignore-vcs`, `--no-ignore-dot`, `--no-ignore-parent`, `--no-require-git`, repeated `--ignore-file` (virtual files), `--no-ignore-files`/`--ignore-files`, and repeated `-u`/`--unrestricted`. One `-u` disables automatic ignores, two also include hidden entries, three also enable binary searching. Explicit ignore files remain independent and have lower precedence than automatic files. |
 | Links/binary | `-L`/`--follow`, `--no-follow`, `-a`/`--text`, `--binary`, `--no-binary`, `--no-text`. |
 | Records/format | `--json`, `-0`/`--null`, `--no-null`, `--null-data`, `--crlf`. `--null` separates filenames with NUL; `--null-data` changes the input/output record separator to NUL. |
 | Diagnostics/order | `--no-messages`/`--messages`, `--sort=path`, `--color=never`, `--no-config`, `--no-ignore-global`. Config/global ignore loading and color are absent by design, so these negative options describe existing behavior. Other sort/color modes are rejected. |
@@ -83,6 +83,13 @@ mode. Output is deterministic: traversal sorts directory entries by UTF-8 bytes
 and visits explicit roots in argument order, without parallel workers or TTY
 color/heading detection. Default line output omits filenames for one explicit
 file/stdin and includes them for recursive searches or multiple paths.
+
+`-j`/`--threads` accepts a nonnegative count; virtual traversal stays serial.
+`-U`/`--multiline` and `--no-multiline` admit line-compatible searches. Cross-line
+patterns remain unsupported; this option does not change the record matcher.
+The default bounded provider supports ASCII case/word selection and ASCII glob
+syntax, with Unicode paths supported by case-sensitive wildcards. Unicode case
+folding and word selection are explicitly refused rather than approximated.
 
 Status is `0` for selected lines/files, `1` for no selection, and `2` for errors.
 `--files-without-match` selects files with no selected lines; `--files` succeeds

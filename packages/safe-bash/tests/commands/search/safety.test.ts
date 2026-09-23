@@ -14,7 +14,7 @@ test("plugin installs rg and rejects collisions without replacement", () => {
 });
 
 test("invalid options and regexes fail before stdin consumption or stdout", async () => {
-  for (const args of [["--bad", "x"], ["-g", "[", "x"], ["[", "-"], ["(?=x)", "-"], ["(x)\\1", "-"], ["x\ny", "-"], ["-A-1", "x"], ["-nA1m1", "x"], ["--max-depth=129", "x"], ["-U", "x"], ["--color=always", "x"], ["--json=bad", "x"]]) {
+  for (const args of [["--bad", "x"], ["-g", "[", "x"], ["[", "-"], ["(?=x)", "-"], ["(x)\\1", "-"], ["x\ny", "-"], ["-A-1", "x"], ["-nA1m1", "x"], ["--max-depth=129", "x"], ["--threads=bad", "x"], ["--color=always", "x"], ["--json=bad", "x"]]) {
     let consumed = false;
     const source = (async function* () { consumed = true; yield Buffer.from("x"); })();
     const result = await virtual({ args }, {}, { stdin: source });

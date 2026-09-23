@@ -61,12 +61,9 @@ test("fixed literals, BRE subset, pattern lists, whole and empty patterns retain
 
 test("unsupported dialects and flags are rejected even without subject rows", async () => {
   const unsupported: Descriptor[] = [
-    { kind: "rg", patterns: ["x"], fixed: true, case: "sensitive", whole: false, word: true, nullData: false },
     grep(["a\\+"], { extended: false }), grep(["é"]),
     ...["a^", "$a", "a^b", "a$b", "*a", "^*a", "^^*"].map(pattern => grep([pattern], { extended: false })),
     { kind: "rg", patterns: ["(?=a)"], fixed: false, case: "sensitive", whole: false, word: false, nullData: false },
-    { kind: "rg", patterns: ["a"], fixed: true, case: "smart", whole: false, word: false, nullData: false },
-    { kind: "glob", patterns: [], globOptions: [] },
   ];
   for (const descriptor of unsupported) {
     const reply = await run(request(descriptor, []));
@@ -78,6 +75,78 @@ test("unsupported dialects and flags are rejected even without subject rows", as
   assert.match(syntax.error, /invalid ERE/);
   const all = await run({ ...request(literal("rg", ["x"])), rows: [row("x", true)] });
   assert.deepEqual(spans(all), [[0, 1]]);
+});
+
+test("rg admits case, word and glob descriptors while retaining the ASCII selection profile", async () => {
+  const rg = { kind: "rg", patterns: ["alpha"], fixed: true, case: "insensitive", whole: false, word: true, nullData: false } as const;
+  assert.deepEqual(spans(await run(request(rg, ["Alpha alphabet", "ALPHA!"]))), [[0, 5], [0, 5]]);
+  for (const subject of ["éalpha", "Kalpha"]) {
+    const reply = await run(request(rg, [subject]));
+    assert.ok("error" in reply);
+    assert.match(reply.error, /ASCII/);
+  }
+  assert.deepEqual(spans(await run(request({ kind: "glob", patterns: [], globOptions: [] }, []))), []);
+});
+
+test("glob admission snapshots options and path bytes, bounds work and recovers", async () => {
+  const worker = createBoundedRegexProvider({ maxWork: 2048 }).createWorker(defaults);
+  const patterns = ["*.txt"];
+  const globOptions = [{ insensitive: true, literalUnclosedClass: false }];
+  const input = { id: 1, descriptor: { kind: "glob", patterns, globOptions }, rows: [{ bytes: Buffer.from("dir/A.TXT", "utf16le"), all: false, terminated: true, directory: false, ancestors: false }] } as const;
+  try {
+    const pending = exchange(worker, input);
+    patterns[0] = "*.skip"; globOptions[0]!.insensitive = false; input.rows[0].bytes.fill(0);
+    assert.deepEqual(spans(await pending), [[0, 0]]);
+    const excessive = await exchange(worker, { ...input, descriptor: { ...input.descriptor, patterns: ["**/*a*a*a*b"] }, rows: [{ ...input.rows[0], bytes: Buffer.from("a".repeat(64), "utf16le") }] });
+    assert.ok("error" in excessive);
+    assert.match(excessive.error, /work|states|allocation/);
+    assert.deepEqual(spans(await exchange(worker, request(literal("rg", ["x"]), ["x"]))), [[0, 1]]);
+  } finally { await worker.terminate(); }
+});
+
+test("glob protocol rejects accessors, mismatched rows, odd bytes and malformed UTF16", async () => {
+  let accessed = 0;
+  const descriptor: Descriptor = { kind: "glob", patterns: ["*"], globOptions: [{ insensitive: false, literalUnclosedClass: false }] };
+  const getter = { get insensitive() { accessed++; return false; }, literalUnclosedClass: false };
+  for (const input of [
+    { id: 1, descriptor: { ...descriptor, globOptions: [getter] }, rows: [] },
+    { id: 1, descriptor, rows: [row("a")] },
+    { id: 1, descriptor, rows: [{ bytes: Uint8Array.of(0, 0xd8), all: false, terminated: true }] },
+    { id: 1, descriptor, rows: [row("aa"), row("bb")] },
+  ]) {
+    const reply = await run(input);
+    assert.ok("error" in reply);
+    assert.match(reply.error, /protocol|UTF16/);
+  }
+  assert.equal(accessed, 0);
+});
+
+test("glob wildcard matching preserves UTF-8 paths and directory/ancestor rules", async () => {
+  for (const [pattern, path, directory, ancestors, expected] of [
+    ["*.txt", "dir/é.txt", false, false, true],
+    ["cache/", "cache/item", false, true, true],
+    ["cache/", "cache/item", false, false, false],
+    ["cache/", "cache", false, false, false],
+    ["cache/", "cache", true, false, true],
+    ["/top.txt", "sub/top.txt", false, false, false],
+  ] as const) {
+    const reply = await run({ id: 1, descriptor: { kind: "glob", patterns: [pattern], globOptions: [{ insensitive: false, literalUnclosedClass: false }] }, rows: [{ bytes: Buffer.from(path, "utf16le"), all: false, terminated: true, directory, ancestors }] });
+    assert.deepEqual(spans(reply), [expected ? [0, 0] : []]);
+  }
+});
+
+test("glob cancellation preserves falsey identity and permits a later session", async () => {
+  const executor = new RegexExecutor(createBoundedRegexProvider({ maxWorkers: 1 }));
+  const controller = new AbortController();
+  const session = executor.open(controller.signal);
+  const pending = session.run({ kind: "glob", patterns: ["*".repeat(4000)], globOptions: [{ insensitive: false, literalUnclosedClass: false }] }, []);
+  const rejected = assert.rejects(pending, reason => reason === false);
+  controller.abort(false);
+  await rejected;
+  await session.close();
+  const recovered = executor.open(new AbortController().signal);
+  try { assert.deepEqual(await recovered.run(literal("rg", ["x"]), [row("x")]), [[{ start: 0, end: 1 }]]); }
+  finally { await recovered.close(); await executor.dispose(); }
 });
 
 test("BRE boundary-anchor admission retains character-class literals and named classes", async () => {

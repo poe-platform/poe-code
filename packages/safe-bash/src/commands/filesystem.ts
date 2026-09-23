@@ -141,7 +141,7 @@ function childOperand(operand: string, name: string): string {
 async function copy(
   context: CommandContext, source: string, target: string,
   settings: CopyOptions, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
-  preflight = false, displaySource = source, displayTarget = target,
+  preflight = false, displaySource = source, displayTarget = target, rootStat?: FileStat,
 ): Promise<void> {
   context.signal.throwIfAborted();
   const { flags, preserve, copiedLinks, backup } = settings;
@@ -150,6 +150,7 @@ async function copy(
   const link = await context.fs.lstat(source, { signal: context.signal });
   const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
+  rootStat ??= sourceStat;
   const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";
   const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination && !linkMode);
   const physicalSource = preserveLink
@@ -224,9 +225,14 @@ async function copy(
         await context.fs.mkdir(target, { mode: (sourceStat.mode & 0o777) | (temporaryMode ? 0o700 : 0), signal: context.signal });
         created = true;
       }
-      for (const entry of await readDirectory(context, source, true)) {
+      // Unknown identity must not turn into an asserted filesystem boundary.
+      const crossDevice = flags.has("x") && !top
+        && compareCopyIdentity(rootStat, rootStat) === "same"
+        && compareCopyIdentity(sourceStat, sourceStat) === "same"
+        && (rootStat.identityScope !== sourceStat.identityScope || rootStat.dev !== sourceStat.dev);
+      for (const entry of crossDevice ? [] : await readDirectory(context, source, true)) {
         await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), settings, readDirectory, false, ancestors, preflight,
-          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name));
+          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), rootStat);
       }
     } finally {
       ancestors.delete(physicalSource);

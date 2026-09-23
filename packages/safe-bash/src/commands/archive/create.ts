@@ -3,6 +3,8 @@ import { escapeText } from "../../escaping.js";
 import { encodeEntry, type Entry } from "./format.js";
 import { Budget, checkPath, display, fail, fileSource, hasIdentity, maybeStat, operation, sameIdentity, vfsPath } from "./internal.js";
 import { Exclusions, type TarOptions } from "./options.js";
+import { quoteName } from "./listing.js";
+import { recordPadding } from "./stream.js";
 
 interface SourceEntry { readonly path: string; readonly stat: FileStat; readonly entry: Entry }
 
@@ -15,6 +17,7 @@ function safeName(name: string): string {
 export async function manifest(context: CommandContext, options: TarOptions, budget: Budget): Promise<{ entries: SourceEntry[]; output?: string; outputStat?: FileStat }> {
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
   const entries: SourceEntry[] = [];
+  let archiveBytes = 1024;
   let output: string | undefined;
   let outputStat: FileStat | undefined;
   if (options.archive !== "-") {
@@ -90,6 +93,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       if (!context.fs.utimes || capabilities.timestamps === false) fail("filesystem does not support preserving source access times");
     }
     const headers = encodeEntry(entry, budget.limits);
+    archiveBytes += headers.reduce((size, header) => size + header.length, 0) + Math.ceil(entry.size / 512) * 512;
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
     entries.push({ path, stat, entry });
     if (stat.type === "directory") {
@@ -125,6 +129,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (operand.name.split("/").includes("..")) await budget.output("tar: removing member-name prefix through '..'\n", true);
     await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, []);
   }
+  if (options.mode === "c") recordPadding(archiveBytes, options.recordSize, budget.limits.maxArchiveBytes);
   return { entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };
 }
 
@@ -146,7 +151,7 @@ export async function* createArchive(context: CommandContext, entries: readonly 
     headers += encoded.length > 1 ? 2 : 1;
     if (headers > budget.limits.maxMembers) fail("member/header limit exceeded");
     for (const chunk of encoded) if (chunk.length) yield chunk;
-    if (options.verbose) await budget.output(`${display(source.entry.name)}\n`, options.archive === "-");
+    if (options.verbose) await budget.output(`${quoteName(source.entry.name, options.quotingStyle)}\n`, options.archive === "-");
     if (source.entry.type === "0") {
       let bytes = 0;
       for await (const chunk of readBytes(fileSource(context, source.path, budget.limits), context.signal)) {

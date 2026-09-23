@@ -6,7 +6,7 @@ import { readArchive } from "./extract.js";
 import { Budget, bounded, display, fail, fileSource, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { parseOptions } from "./options.js";
 import { compareArchive, mutateArchive } from "./modes.js";
-import { autodetected, compressed } from "./stream.js";
+import { autodetected, compressed, recorded } from "./stream.js";
 import { createZipCommand } from "./zip.js";
 import { createUnzipCommand } from "./unzip.js";
 
@@ -41,6 +41,16 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
   -j, --bzip2              Use bzip2 compression
   -J, --xz                 Use xz compression
   -a, --auto-compress      Select output compression by archive suffix
+  -b, --blocking-factor=N  Use N 512-byte blocks per output record
+      --record-size=SIZE  Set output record bytes (multiple of 512; K/M/G suffixes)
+  -B, --read-full-records  Join short reads (always enabled for VFS streams)
+  -i, --ignore-zeros       Read past zero blocks, including concatenated archives
+  -n, --seek               Accept seekable input; VFS reads remain sequential
+      --no-seek           Read sequentially
+      --force-local       Treat archive names as local VFS paths (always enabled)
+      --utc               Show UTC timestamps; implies verbose listing
+      --quoting-style=STYLE Display literal, escape (default), or c filenames
+      --totals            Report archive bytes read or written to stderr
   -v, --verbose            List processed members
   -C, --directory=DIR      Change directory for subsequent operands
   -T, --files-from=FILE    Read filenames from FILE (- for standard input)
@@ -93,7 +103,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
       }
       if (parsed.mode === "c") {
         const prepared = await manifest(context, parsed, budget);
-        let source: ByteSource = bounded(createArchive(context, prepared.entries, parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
+        let source: ByteSource = bounded(recorded(createArchive(context, prepared.entries, parsed, budget), parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
         if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression);
         if (prepared.output) {
           const existing = await maybeStat(context, prepared.output);

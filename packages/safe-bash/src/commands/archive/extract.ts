@@ -4,6 +4,7 @@ import { Budget, checkPath, display, fail, hasIdentity, maybeStat, operation, pu
 import { Exclusions, type TarOptions } from "./options.js";
 import { Reader } from "./stream.js";
 import { TransformedNames } from "./transform.js";
+import { quoteName } from "./listing.js";
 
 function relativeName(name: string, strip: number): string | undefined {
   if (name.includes("\0")) fail("NUL in member name");
@@ -104,16 +105,28 @@ async function metadata(context: CommandContext, path: string, entry: ReadEntry,
   }
 }
 
-function verbose(entry: ReadEntry, fullTime?: boolean): string {
+function verbose(entry: ReadEntry, options: TarOptions): string {
   const type = entry.type === "5" ? "d" : entry.type === "2" ? "l" : entry.type === "1" ? "h" : "-";
   let permissions = "";
   for (const bit of [0o400, 0o200, 0o100, 0o040, 0o020, 0o010, 0o004, 0o002, 0o001]) permissions += entry.mode & bit ? (bit & 0o444 ? "r" : bit & 0o222 ? "w" : "x") : "-";
   for (const [offset, special, execute, lower, upper] of [[2, 0o4000, 0o100, "s", "S"], [5, 0o2000, 0o010, "s", "S"], [8, 0o1000, 0o001, "t", "T"]] as const) {
     if (entry.mode & special) permissions = permissions.slice(0, offset) + (entry.mode & execute ? lower : upper) + permissions.slice(offset + 1);
   }
-  const suffix = entry.type === "2" ? ` -> ${display(entry.linkname)}` : entry.type === "1" ? ` link to ${display(entry.linkname)}` : "";
-  const timestamp = fullTime && entry.mtime !== undefined ? new Date(entry.mtime * 1000).toISOString().split("T").join(" ").slice(0, -1) : entry.mtime ?? "-";
-  return `${type}${permissions} ${entry.uid ?? "-"}/${entry.gid ?? "-"} ${entry.size} ${timestamp} ${display(entry.name)}${suffix}\n`;
+  const suffix = entry.type === "2" ? ` -> ${quoteName(entry.linkname, options.quotingStyle)}` : entry.type === "1" ? ` link to ${quoteName(entry.linkname, options.quotingStyle)}` : "";
+  let timestamp: string | number = entry.mtime ?? "-";
+  if ((options.utc || options.metadata.fullTime) && entry.mtime !== undefined) {
+    const iso = new Date((options.utc ? Math.floor(entry.mtime) : entry.mtime) * 1000).toISOString().split("T").join(" ");
+    timestamp = options.utc ? iso.slice(0, options.metadata.fullTime ? 19 : 16) : iso.slice(0, -1);
+    if (options.utc && options.metadata.fullTime) {
+      let fraction = entry.mtime.toLocaleString("en-US", { useGrouping: false, maximumFractionDigits: 9 }).split(".")[1] ?? "";
+      if (entry.mtime < 0 && fraction) fraction = String(10n ** BigInt(fraction.length) - BigInt(fraction)).padStart(fraction.length, "0");
+      while (fraction.endsWith("0")) fraction = fraction.slice(0, -1);
+      if (fraction) timestamp += `.${fraction}`;
+    }
+  }
+  const owner = `${entry.uid ?? "-"}/${entry.gid ?? "-"}`;
+  const size = options.utc ? String(entry.size).padStart(Math.max(1, 18 - owner.length)) : entry.size;
+  return `${type}${permissions} ${owner} ${size} ${timestamp} ${quoteName(entry.name, options.quotingStyle)}${suffix}\n`;
 }
 
 export interface ArchiveVisitor {
@@ -147,8 +160,23 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
   if (options.mode === "x") await checkRoot(context, options.cwd);
   try {
     while (true) {
-      const block = await reader.exact(512);
+      let block: Uint8Array;
+      if (options.ignoreZeros) {
+        const first = await reader.take(1);
+        if (!first) {
+          if (reader.position === 0) fail("truncated archive");
+          if (pending) fail("orphan extended header at end of archive");
+          break;
+        }
+        block = new Uint8Array(512);
+        block[0] = first[0]!;
+        block.set(await reader.exact(511), 1);
+      } else block = await reader.exact(512);
       if (block.every(byte => byte === 0)) {
+        if (options.ignoreZeros) {
+          if (!pending) memberStart = reader.position;
+          continue;
+        }
         if (!(await reader.exact(512)).every(byte => byte === 0)) fail("missing second end-of-archive block");
         if (pending) fail("orphan extended header at end of archive");
         await reader.finish();
@@ -228,7 +256,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           name: await transformedNames.apply(entry.name),
           linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
         } : entry;
-        await budget.output(options.verbose ? verbose(shown, options.metadata.fullTime) : `${display(shown.name)}\n`);
+        await budget.output(options.verbose ? verbose(shown, options) : `${quoteName(shown.name, options.quotingStyle)}\n`);
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (entry.name.startsWith("/") && !warnedAbsolute) {
@@ -305,7 +333,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);
-      if (options.verbose) await budget.output(`${display(entry.name)}\n`);
+      if (options.verbose) await budget.output(`${quoteName(entry.name, options.quotingStyle)}\n`);
     }
     for (let index = 0; index < options.operands.length; index++) if (!matched.has(index)) fail(`member not found: ${display(options.operands[index]!.name)}`);
     for (const [path, value] of [...directories].sort(([first], [second]) => second.length - first.length)) {
@@ -315,6 +343,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       await metadata(context, path, value.entry, options);
     }
     if (keptExisting) fail("Exiting with failure status due to previous errors");
+    if (options.totals) await budget.output(`Total bytes read: ${reader.position}\n`, true);
   } finally {
     void reader.close().catch(() => {});
   }

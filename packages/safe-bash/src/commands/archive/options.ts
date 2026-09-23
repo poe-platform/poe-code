@@ -8,6 +8,11 @@ export interface TarOptions {
   archive: string;
   compression?: "gzip" | "bzip2" | "xz";
   verbose: boolean;
+  utc: boolean;
+  recordSize: number;
+  ignoreZeros: boolean;
+  totals: boolean;
+  quotingStyle: "literal" | "escape" | "c";
   showTransformedNames: boolean;
   transforms: NameTransform[];
   strip: number;
@@ -31,6 +36,11 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let compression: TarOptions["compression"];
   let autoCompress = false;
   let verbose = false;
+  let utc = false;
+  let recordSize = 512;
+  let ignoreZeros = false;
+  let totals = false;
+  let quotingStyle: TarOptions["quotingStyle"] = "escape";
   let sort: TarOptions["sort"] = "none";
   let dereference = false;
   let excludeCaches = false;
@@ -108,6 +118,31 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       compression = selected;
     } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
+    else if (flag === "utc") { utc = true; verbose = true; }
+    else if (flag === "totals") totals = true;
+    else if (flag === "i") ignoreZeros = true;
+    else if (flag === "B" || flag === "n" || flag === "no-seek" || flag === "force-local") {
+      // VFS archives are always local byte streams; Reader already joins short reads
+      // and consumes member bodies sequentially without requiring device seeking.
+    }
+    else if (flag === "b" || flag === "record-size") {
+      let digits = value!;
+      let multiplier = flag === "b" ? 512 : 1;
+      if (flag === "record-size") {
+        const suffixes: Record<string, number> = { c: 1, w: 2, b: 512, k: 1024, K: 1024, M: 1024 ** 2, G: 1024 ** 3 };
+        const suffix = suffixes[digits.at(-1) ?? ""];
+        if (suffix !== undefined) { multiplier = suffix; digits = digits.slice(0, -1); }
+      }
+      if (digits.startsWith("+")) digits = digits.slice(1);
+      const size = Number(digits) * multiplier;
+      if (!digits || ![...digits].every(character => "0123456789".includes(character)) || !Number.isSafeInteger(size) || size <= 0 || size % 512 !== 0) fail("record size must be a positive multiple of 512");
+      if (size > limits.maxArchiveBytes) fail("record size exceeds archive byte limit");
+      recordSize = size;
+    }
+    else if (flag === "quoting-style") {
+      if (value !== "literal" && value !== "escape" && value !== "c") fail(`unsupported quoting style: ${value}; use literal, escape or c`);
+      quotingStyle = value;
+    }
     else if (flag === "sort") {
       if (value !== "name" && value !== "none") fail(`unsupported sort order: ${value}`);
       sort = value;
@@ -180,8 +215,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "no-verbatim-files-from") verbatim = false;
     else fail(`unsupported option: ${flag}`);
   };
-  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform" };
-  const values = new Set(["f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort"]);
+  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform", "blocking-factor": "b", "read-full-records": "B", "ignore-zeros": "i", seek: "n" };
+  const values = new Set(["f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort", "b", "record-size", "quoting-style"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
@@ -197,7 +232,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkh".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBin".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -226,7 +261,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

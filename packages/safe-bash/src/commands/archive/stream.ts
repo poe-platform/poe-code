@@ -4,7 +4,7 @@ import { codec, CodecReader } from "../bytes/compression/codec.js";
 import { boundedCodec } from "../bytes/compression/bounded-codec.js";
 import { profiles } from "../bytes/compression/options.js";
 import type { TarOptions } from "./options.js";
-import { bounded, fail, type ArchiveLimits } from "./internal.js";
+import { bounded, fail, type ArchiveLimits, type Budget } from "./internal.js";
 
 export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits, format: NonNullable<TarOptions["compression"]> = "gzip"): ByteSource {
   signal.throwIfAborted();
@@ -54,6 +54,30 @@ export async function* autodetected(source: ByteSource, signal: AbortSignal, lim
       : size === 6 && [253, 55, 122, 88, 90, 0].every((byte, index) => prefix[index] === byte) ? "xz" : undefined;
     yield* format ? compressed(replay, true, signal, limits, format) : replay;
   } finally { await reader.close(); }
+}
+
+export function recordPadding(size: number, recordSize: number, maximum: number): number {
+  const padding = (recordSize - size % recordSize) % recordSize;
+  if (!Number.isSafeInteger(size) || size < 0 || size > maximum || padding > maximum - size) fail("archive byte limit exceeded");
+  return padding;
+}
+
+export async function* recorded(source: ByteSource, options: TarOptions, budget: Budget): ByteSource {
+  let size = 0;
+  for await (const chunk of readBytes(source, budget.context.signal)) {
+    if (chunk.length > budget.limits.maxArchiveBytes - size) fail("archive byte limit exceeded");
+    size += chunk.length;
+    yield chunk;
+  }
+  let padding = recordPadding(size, options.recordSize, budget.limits.maxArchiveBytes);
+  while (padding > 0) {
+    budget.context.signal.throwIfAborted();
+    const length = Math.min(padding, budget.limits.chunkSize);
+    size += length;
+    padding -= length;
+    yield new Uint8Array(length);
+  }
+  if (options.totals) await budget.output(`Total bytes written: ${size}\n`, true);
 }
 
 export class Reader {

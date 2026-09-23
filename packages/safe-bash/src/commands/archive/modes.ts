@@ -3,7 +3,8 @@ import { createArchive, manifest } from "./create.js";
 import { readArchive } from "./extract.js";
 import { Budget, bounded, display, fail, fileSource, hasIdentity, maybeStat, operation, publish, sameIdentity, vfsPath } from "./internal.js";
 import type { TarOptions } from "./options.js";
-import { autodetected, compressed, Reader } from "./stream.js";
+import { autodetected, compressed, Reader, recorded, recordPadding } from "./stream.js";
+import { quoteName } from "./listing.js";
 
 export async function compareArchive(context: CommandContext, options: TarOptions, budget: Budget): Promise<number> {
   let different = false;
@@ -53,7 +54,7 @@ export async function compareArchive(context: CommandContext, options: TarOption
         if (await actual.take(1)) equal = false;
       } finally { await actual.close(); }
       if (!equal) await difference("Contents differ");
-      if (options.verbose) await budget.output(`${display(entry.name)}\n`);
+      if (options.verbose) await budget.output(`${quoteName(entry.name, options.quotingStyle)}\n`);
       return;
     }
     await reader.discard(entry.size);
@@ -119,10 +120,11 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
     changed = entries.length > 0;
   }
   if (!changed) return;
+  recordPadding(bytes, options.recordSize, budget.limits.maxArchiveBytes);
   parts.push(new Uint8Array(1024));
   // All reads, validation and source creation finish before replacing the archive.
   const current = await maybeStat(context, path);
   if (!current || !sameIdentity(stat, current) || current.size !== stat.size || current.mtimeMs !== stat.mtimeMs || current.ctimeMs !== stat.ctimeMs) fail("archive changed during preparation");
   await operation(context, () => context.fs.rm(path, { signal: context.signal }));
-  await publish(context, path, (async function* (): ByteSource { yield* parts; })(), stat.mode & 0o7777);
+  await publish(context, path, recorded((async function* (): ByteSource { yield* parts; })(), options, budget), stat.mode & 0o7777);
 }

@@ -90,6 +90,12 @@ missing filesystem metadata capabilities. Supported common options:
 | `--verbatim-files-from`, `--no-verbatim-files-from` | Control file-list option handling; verbatim preserves literal dash/backslash names. |
 | `--mtime=DATE`, `--owner=ID`, `--group=ID`, `--mode=OCTAL` | Creation overrides; epoch (`@seconds`) or ISO/RFC timestamps, numeric IDs, and octal permissions. |
 | `--full-time`, `--numeric-owner` | Full UTC verbose timestamps and numeric ownership IDs. |
+| `--utc` | Enable verbose listing with UTC calendar timestamps, to the minute unless `--full-time` is also given. |
+| `--record-size=SIZE`, `-b N`, `--blocking-factor=N` | Pad output to SIZE bytes or N 512-byte blocks. SIZE must be a positive multiple of 512 within the archive byte limit; `K`, `M`, and `G` suffixes are supported. Without these flags the existing 512-byte alignment remains. Input chunk sizes remain independent of archive records. |
+| `-B`, `--read-full-records`, `-n`, `--seek`, `--no-seek`, `--force-local` | Accept ordinary VFS archives and stdin. The byte reader already joins short reads and consumes bodies sequentially; archive names, including colons, always address the configured VFS. These options do not enable host devices, remote archive access, or native seeking. |
+| `-i`, `--ignore-zeros` | Skip zero header blocks and continue through concatenated archives to EOF. Checksums, complete block/body reads, resource limits, and extraction path checks still apply. Without this flag, the existing strict two-end-block and zero-tail validation remains. |
+| `--quoting-style=literal\|escape\|c` | Control member names and link targets in listing/verbose output. `escape` is the default; `literal` preserves embedded newlines and backslashes; `c` uses double-quoted C escapes. Other quoting styles are unsupported. |
+| `--totals` | Report consumed uncompressed archive bytes, including headers and padding, to stderr after a successful read/write. Mutation reports each archive read and the resulting write. Timing/rate estimates and signal-triggered totals are unsupported. |
 | `--touch`, `-m` | Skip extraction timestamp restoration. |
 | `--same-permissions`, `--preserve-permissions`, `-p`, `--no-same-permissions` | Restore ordinary bits or apply the virtual 022 mask; special bits remain stripped. Explicit restoration requires permission support. |
 | `--no-same-owner` | Retain filesystem-assigned ownership; `--same-owner` cannot be supported without an ownership API. |

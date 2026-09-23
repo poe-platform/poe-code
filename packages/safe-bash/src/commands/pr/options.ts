@@ -11,6 +11,7 @@ export interface Options {
   lastPage: number;
   width: number;
   header: string | undefined;
+  dateFormat: string | undefined;
   extremities: boolean;
   keepFF: boolean;
   formFeed: boolean;
@@ -59,13 +60,14 @@ function pages(value: string, options: Options): void {
 export function parseOptions(args: string[], budget: Budget): Options {
   const options: Options = {
     files: [], columns: 1, explicitColumns: false, merge: false, across: false,
-    length: 66, firstPage: 1, lastPage: 2147483647, width: 72, header: undefined, extremities: true, keepFF: false,
+    length: 66, firstPage: 1, lastPage: 2147483647, width: 72, header: undefined, dateFormat: undefined, extremities: true, keepFF: false,
     formFeed: false, numbered: false, digits: 5, numberSeparator: "\t", startNumber: 1,
     separator: "", useSeparator: false, truncate: false, join: false, doubleSpace: false,
     margin: 0, expand: false, tabify: false, inputTab: "\t", inputTabWidth: 8,
     outputTab: "\t", outputTabWidth: 8, control: false, octal: false, quiet: false, information: undefined,
   };
   const long: Record<string, string> = {
+    "date-format": "\0",
     columns: "#", pages: "p", across: "a", "show-control-chars": "c", "double-space": "d", "expand-tabs": "e",
     "form-feed": "f", header: "h", "output-tabs": "i", "join-lines": "J", length: "l", merge: "m",
     "number-lines": "n", "first-line-number": "N", indent: "o", "no-file-warnings": "r", separator: "s",
@@ -108,7 +110,7 @@ export function parseOptions(args: string[], budget: Budget): Options {
         continue;
       }
       accumulating = false;
-      const required = "#phlwWNo".includes(option);
+      const required = "\0#phlwWNo".includes(option);
       const optional = "nseiS".includes(option);
       let value = attached;
       if (required || optional) {
@@ -121,6 +123,7 @@ export function parseOptions(args: string[], budget: Budget): Options {
       } else if (attached !== undefined) throw new PrError(`option ${quote(argument.slice(0, argument.indexOf("=")))} doesn't allow an argument`, true);
       switch (option) {
         case "p": if (!isLong) throw new PrError("invalid option -- 'p'", true); pages(value!, options); break;
+        case "\0": options.dateFormat = value; break;
         case "#": options.columns = integer(value!, 1, "invalid number of columns"); options.explicitColumns = true; columnDigits = undefined; break;
         case "h": options.header = value; break;
         case "l": options.length = integer(value!, 1, "'-l PAGE_LENGTH' invalid number of lines"); break;

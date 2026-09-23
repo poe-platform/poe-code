@@ -5,6 +5,9 @@ import { Budget, PrError, fileQuote, quote, settings, type PrCommandsOptions } f
 import { Lifecycle, Reader, fsDetail } from "./io.js";
 import { parseOptions } from "./options.js";
 import { Formatter } from "./format.js";
+import { formatDate } from "../time-env/format.js";
+import { TimeZone } from "../time-env/calendar.js";
+import { CommandFailure } from "../time-env/shared.js";
 
 export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
@@ -19,7 +22,7 @@ export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinit
       lifecycle = new Lifecycle(budget, output);
       const parsed = parseOptions(budget.arguments(), budget);
       if (parsed.information) {
-        await lifecycle.write(parsed.information === "version" ? "pr (virtual-bash)\n" : "Usage: pr [OPTION]... [FILE]...\nPaginate or columnate files for printing.\nOptions: -COLUMNS -h HEADER -l LENGTH -w WIDTH -t -n[SEP[DIGITS]] -m -s[SEP]\n");
+        await lifecycle.write(parsed.information === "version" ? "pr (virtual-bash)\n" : "Usage: pr [OPTION]... [FILE]...\nPaginate or columnate files for printing.\nOptions: -COLUMNS -h HEADER -l LENGTH -w WIDTH -t -n[SEP[DIGITS]] -m -s[SEP]\n  --date-format=FORMAT  format the header date\n");
       } else {
         const ctype = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
         const timeLocale = context.env.LC_ALL || context.env.LC_TIME || context.env.LANG || "C";
@@ -31,6 +34,18 @@ export function createPrCommand(options: PrCommandsOptions = {}): CommandDefinit
           else milliseconds = sampled ??= (options.clock ?? Date.now)();
           const value = new Date(milliseconds);
           if (!Number.isFinite(milliseconds) || Number.isNaN(value.getTime())) throw new PrError("invalid header timestamp");
+          if (parsed.dateFormat !== undefined) {
+            try {
+              return formatDate(parsed.dateFormat, BigInt(Math.trunc(milliseconds)) * 1_000_000n, new TimeZone("UTC"), {
+                maxArguments: limits.maxArguments, maxArgumentBytes: limits.maxArgumentBytes,
+                maxOutputBytes: Math.min(limits.maxBufferedBytes, limits.maxOutputBytes),
+                maxEnvironmentEntries: 1, maxFormatWidth: limits.maxPageWidth,
+              }).slice(0, -1);
+            } catch (error) {
+              if (error instanceof CommandFailure || error instanceof FsError) throw new PrError(error.message);
+              throw error;
+            }
+          }
           const year = String(value.getUTCFullYear()).padStart(4, "0");
           const month = String(value.getUTCMonth() + 1).padStart(2, "0");
           const day = String(value.getUTCDate()).padStart(2, "0");

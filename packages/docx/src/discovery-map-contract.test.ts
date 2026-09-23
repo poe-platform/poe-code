@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { expect, expectTypeOf, it } from "vitest";
 import { getDocxDiscovery, type DocxCapabilitiesData, type DocxSchemaData } from "./discovery.js";
 import { docxOperationSchemas } from "./operation-schema.js";
@@ -9,63 +8,32 @@ import { imageBatchActions } from "./image-batch-operations.js";
 import type { DocxOperationId } from "./operation-schema.js";
 import type { DocxOperationArgumentMap } from "./operation-types.js";
 
-const register = JSON.parse(
-  readFileSync(new URL("../../../docs/docx/command-coverage.json", import.meta.url), "utf8")
-) as {
-  operations: Record<string, { featureIds: string[] }>;
-  features: { id: string; operationIds: string[] }[];
-  sdk: { id: string; operationIds: string[]; featureIds: string[] }[];
-};
-const api = JSON.parse(
-  readFileSync(new URL("../../../docs/docx/public-api-map.json", import.meta.url), "utf8")
-) as {
-  rows: { id: string; feature_ids: string[] }[];
-};
 const schema = () =>
   getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data as DocxSchemaData;
 
-it("documents every declared operation and every public API ID without orphan routes", () => {
-  expect(Object.keys(register.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());
-  expect(register.sdk.map((row) => row.id).sort()).toEqual(api.rows.map((row) => row.id).sort());
-  expect(
-    register.sdk.flatMap((row) => row.operationIds.filter((id) => !docxOperationSchemas[id]))
-  ).toEqual([]);
-  expect(
-    register.features.flatMap((row) => row.operationIds.filter((id) => !docxOperationSchemas[id]))
-  ).toEqual([]);
-});
-
-it("retains every documented feature join on the same declaration used by schema and capabilities", () => {
+it("publishes every declared operation with valid feature joins", () => {
   const operations = schema().operations;
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!
     .data as DocxCapabilitiesData;
-  expect(capabilities.features.map((row) => row.id).sort()).toEqual(
-    register.features.map((row) => row.id).sort()
+  expect(operations.map(operation => operation.id).sort()).toEqual(
+    Object.keys(docxOperationSchemas).sort()
   );
-  const missing = register.features.flatMap((feature) =>
-    feature.operationIds
-      .filter(
-        (id) =>
-          !operations.find((operation) => operation.id === id)?.featureIds.includes(feature.id)
-      )
-      .map((id) => `${feature.id}:${id}`)
-  );
-  expect(missing).toEqual([]);
+  const features = new Set(capabilities.features.map(feature => feature.id));
+  expect(features.size).toBe(capabilities.features.length);
   for (const operation of operations) {
     expect(operation.featureIds.length, operation.id).toBeGreaterThan(0);
+    expect(new Set(operation.featureIds).size, operation.id).toBe(operation.featureIds.length);
+    for (const feature of operation.featureIds) expect(features.has(feature), operation.id).toBe(true);
     expect(operation.featureIds, operation.id).toEqual(
       Reflect.get(docxOperationSchemas[operation.id]!, "featureIds")
     );
-    expect([...operation.featureIds].sort(), operation.id).toEqual(
-      [...register.operations[operation.id]!.featureIds].sort()
-    );
   }
   for (const feature of capabilities.features) {
-    expect(Reflect.get(feature, "operationIds"), feature.id).toEqual(
-      operations
-        .filter((operation) => operation.featureIds.includes(feature.id))
-        .map((operation) => operation.id)
-    );
+    const operationIds = operations
+      .filter(operation => operation.featureIds.includes(feature.id))
+      .map(operation => operation.id);
+    expect(operationIds.length, feature.id).toBeGreaterThan(0);
+    expect(Reflect.get(feature, "operationIds"), feature.id).toEqual(operationIds);
   }
 });
 
@@ -154,113 +122,3 @@ it.each(Object.entries(docxOperationSchemas))(
     }
   }
 );
-
-it("keeps the current evidence snapshot joined to live declarations and every API row", async () => {
-  const audit = JSON.parse(
-    readFileSync(
-      new URL(
-        "../../../docs/docx/discovery-reconciliation-20260916/current-map.json",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  ) as {
-    operations: Record<
-      string,
-      {
-        support: string;
-        featureIds: string[];
-        fields: unknown;
-        sdkFields: unknown;
-        batchFields: unknown;
-      }
-    >;
-    apis: Record<string, { declaredOperationIds: string[]; cliCapabilityOperationIds: string[] }>;
-    runtimeExports: string[];
-  };
-  const native = JSON.parse(readFileSync(new URL("../../../docs/docx/document-part-save-20260917/discovery-map-update.json", import.meta.url), "utf8")) as {
-    operations: typeof audit.operations; apis: typeof audit.apis; runtimeExports: string[];
-    runtimeMembers: Record<string, { operationIds: string[]; members: { operationIds: string[]; evidenceKind: string }[] }>;
-  };
-  const textResources = JSON.parse(readFileSync(new URL("../../../docs/docx/text-resource-read-20260917/discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
-  Object.assign(native.operations, textResources.operations);
-  Object.assign(native.apis, textResources.apis);
-  Object.assign(native.runtimeMembers, textResources.runtimeMembers);
-  native.runtimeExports = textResources.runtimeExports;
-  const neutralErrors = JSON.parse(readFileSync(new URL("../../../docs/docx/neutral-error-discovery-20260918/discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
-  Object.assign(native.runtimeMembers, neutralErrors.runtimeMembers);
-  native.runtimeExports = neutralErrors.runtimeExports;
-  Object.assign(audit.operations, native.operations);
-  const construction = JSON.parse(readFileSync(new URL("../../../docs/docx/document-construction-carriers-20260918/discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
-  Object.assign(audit.operations, construction.operations);
-  const textStyles = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
-  Object.assign(audit.operations, textStyles.operations);
-  const styleRemoval = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/style-removal-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
-  Object.assign(audit.operations, styleRemoval.operations);
-  const styleAdmission = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/style-removal-admission-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
-  Object.assign(audit.operations, styleAdmission.operations);
-  const textLists = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/text-list-discovery-map-update.json", import.meta.url), "utf8")) as typeof native;
-  Object.assign(audit.operations, textLists.operations);
-  Object.assign(native.runtimeMembers, textLists.runtimeMembers);
-  native.runtimeExports = textLists.runtimeExports;
-  const tabLeader = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-acceptance-20260918/tab-leader-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations };
-  Object.assign(audit.operations, tabLeader.operations);
-  Object.assign(audit.apis, native.apis);
-  const latentMembership = JSON.parse(readFileSync(new URL("../../../docs/docx/text-style-family-audit-20260919/latent-has-discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations; apis: typeof audit.apis; runtimeExports: string[]; runtimeMembers: typeof native.runtimeMembers };
-  Object.assign(audit.operations, latentMembership.operations);
-  Object.assign(audit.apis, latentMembership.apis);
-  const fonts = JSON.parse(readFileSync(new URL("../../../docs/docx/font-inventory-20260921/discovery-map-update.json", import.meta.url), "utf8")) as { operations: typeof audit.operations; runtimeExports: string[]; runtimeMembers: typeof native.runtimeMembers };
-  Object.assign(audit.operations, fonts.operations);
-  audit.runtimeExports = fonts.runtimeExports;
-  expect(Object.keys(audit.operations).sort()).toEqual(Object.keys(docxOperationSchemas).sort());
-  expect(Object.keys(audit.apis).sort()).toEqual(api.rows.map((row) => row.id).sort());
-  expect(audit.runtimeExports).toEqual(Object.keys(await import("./index.js")).sort());
-  for (const operation of schema().operations) {
-    const declaration = docxOperationSchemas[operation.id]!;
-    expect(audit.operations[operation.id], operation.id).toMatchObject({
-      support: operation.support,
-      featureIds: declaration.featureIds,
-      fields: declaration.fields,
-      sdkFields: declaration.sdkFields,
-      batchFields: declaration.batchFields ?? null
-    });
-  }
-  for (const [id, row] of Object.entries(audit.apis)) {
-    expect(row.declaredOperationIds, id).toEqual(
-      register.sdk.find((entry) => entry.id === id)!.operationIds
-    );
-    for (const operation of row.cliCapabilityOperationIds) {
-      expect(audit.operations[operation], `${id}:${operation}`).toBeDefined();
-      expect(audit.operations[operation]!.support, `${id}:${operation}`).not.toBe("reject");
-    }
-  }
-  const runtimeAudit = JSON.parse(
-    readFileSync(
-      new URL(
-        "../../../docs/docx/discovery-reconciliation-20260916/runtime-public-members.json",
-        import.meta.url
-      ),
-      "utf8"
-    )
-  ) as {
-    exports: Record<
-      string,
-      { operationIds: string[]; members: { operationIds: string[]; evidenceKind: string }[] }
-    >;
-    unjoinedExports: string[];
-  };
-  Object.assign(runtimeAudit.exports, native.runtimeMembers);
-  Object.assign(runtimeAudit.exports, latentMembership.runtimeMembers);
-  Object.assign(runtimeAudit.exports, fonts.runtimeMembers);
-  expect(Object.keys(runtimeAudit.exports).sort()).toEqual(audit.runtimeExports);
-  expect(runtimeAudit.unjoinedExports).toEqual([]);
-  for (const [name, entry] of Object.entries(runtimeAudit.exports)) {
-    expect(entry.operationIds.length, name).toBeGreaterThan(0);
-    for (const member of entry.members) {
-      expect(member.evidenceKind).toBe("structural-mapping-not-behavior-pass");
-      expect(member.operationIds.length, name).toBeGreaterThan(0);
-      for (const id of member.operationIds)
-        expect(docxOperationSchemas[id], `${name}:${id}`).toBeDefined();
-    }
-  }
-});

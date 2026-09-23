@@ -57,7 +57,7 @@ jobs:
             for await (const bytes of createReadStream(path)) hash.update(bytes);
             binaries[name] = { path, version: run(path, ['--version']).split('\n')[0], sha256: hash.digest('hex'), size: info.size };
           }
-          const sourceRevision = run('git', ['rev-parse', 'HEAD']);
+          const sourceRevision = run('git', ['-c', `safe.directory=${process.cwd()}`, 'rev-parse', 'HEAD']);
           if (sourceRevision !== process.env.GITHUB_SHA) throw new Error('Checkout revision mismatch');
           const identity = {
             capturedAt: new Date().toISOString(), sourceRevision,

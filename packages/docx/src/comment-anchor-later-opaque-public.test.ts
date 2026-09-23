@@ -44,7 +44,7 @@ it(`later opaque comment anchor ownership; runtime=${runtime}; strict=${strict};
   const unaffected = placement === "preceding-unselected" || model && placement === "following-unselected";
   const code = !unaffected ? "unsupported-edit" : remaining === "default" ? null : "limit-exceeded";
   if (route === "model") {
-    const budget = new api.DocumentBudget(), document = await api.Document(input, { ...context, budget });
+    const budget = new api.DocumentBudget(remaining === "default" ? {} : { insertedNodes: 1000 }), document = await api.Document(input, { ...context, budget });
     const runs = document.paragraphs[0]!.runs, selected = whole ? runs : runs[index]!;
     const before = document.part.package.parts.map(part => [String(part.partname), part.blob]);
     if (remaining !== "default") budget.charge("insertedNodes", budget.limits.insertedNodes - budget.usage.insertedNodes - remaining);

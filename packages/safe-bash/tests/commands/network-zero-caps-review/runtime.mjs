@@ -22,7 +22,7 @@ export async function runSuite(root, network, { baseline = false, select = () =>
       for (const [label, value] of values) {
         await check(`validator/${factory}/${name}/${label}`, () => {
           const accepted = Number.isSafeInteger(value) && value >= (count && !baseline ? 0 : 1)
-            && (name !== 'maxTimeMs' || value <= 2147483647);
+            && (!baseline || name !== 'maxTimeMs' || value <= 2147483647);
           let calls = 0;
           const operation = () => network[factory]({ limits: { [name]: value },
             authorize: () => { calls++; return true; }, transport: async () => { throw Error('not invoked'); } });
@@ -34,7 +34,7 @@ export async function runSuite(root, network, { baseline = false, select = () =>
       }
     }
   }
-  for (const mode of ['direct', 'shell']) for (const spec of cases().filter(select)) {
+  for (const mode of ['direct', 'shell']) for (const spec of cases({ baseline }).filter(select)) {
     if (baseline && Object.values(spec.limits).includes(0)) {
       receipts.push({ name: `${mode}/${spec.name}`, skipped: 'baseline zero constructor configuration limitation' });
       continue;

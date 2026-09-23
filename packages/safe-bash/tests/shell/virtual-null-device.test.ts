@@ -346,7 +346,12 @@ for (const source of ["join /input /input", "diff /input /input", "html-to-markd
       }),
       makeFsModule() { return { readFile() { assert.fail("the guest must not read files"); } }; },
     };
-    const shell = new Shell({ fs }).use(agentCommands()).use(safeJsCommands({ runtime })).use(networkCommands({
+    const shell = new Shell({ fs }).use(agentCommands({
+      tableText: { limits: { maxChunkBytes: 16 } },
+      htmlToMarkdown: { limits: { maxInputBytes: 16 } },
+      search: { maxFileBytes: 16 },
+    })).use(safeJsCommands({ runtime, limits: { maxSourceBytes: 16 } })).use(networkCommands({
+      limits: { maxUploadBytes: 16 },
       authorize: () => true,
       async transport(request) {
         assert.equal(new TextDecoder().decode(await collectBytes(request.body!, { signal: request.signal, maxBytes: 16 })), "a\nb\n");

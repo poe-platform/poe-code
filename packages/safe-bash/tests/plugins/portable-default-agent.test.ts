@@ -40,7 +40,7 @@ test("invalid supplied providers do not silently select the default", () => {
   assert.throws(() => agentCommands({ regexExecutor: null! }), /provider/i);
 });
 
-test("default provider retains unsupported modes and bounded pattern admission", async () => {
+test("default provider retains unsupported modes without an implicit pattern limit", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
     const wholeWord = await shell.exec("grep -w a", { stdin: "a\naa\nbb\n" });
@@ -68,10 +68,10 @@ test("default provider retains unsupported modes and bounded pattern admission",
     assert.equal(unsupportedExpression.exitCode, 2);
     assert.equal(unsupportedExpression.stdout, "");
     assert.match(unsupportedExpression.stderr, /unsupported/u);
-    const limited = await shell.exec(`grep -E '${"a".repeat(8193)}'`, { stdin: "aa\n" });
-    assert.equal(limited.exitCode, 2);
-    assert.equal(limited.stdout, "");
-    assert.match(limited.stderr, /bounded regex limit:.*pattern/u);
+    const unmatched = await shell.exec(`grep -E '${"a".repeat(8193)}'`, { stdin: "aa\n" });
+    assert.equal(unmatched.exitCode, 1);
+    assert.equal(unmatched.stdout, "");
+    assert.equal(unmatched.stderr, "");
     assert.equal((await shell.exec("grep -E a", { stdin: "aa\n" })).stdout, "aa\n");
   } finally { await shell.dispose(); }
 });
@@ -129,7 +129,7 @@ test("default providers are per preset while search policies remain per executor
     assert.notEqual(grep, search);
     assert.equal(grep!.provider, search!.provider);
     assert.notEqual(grep!.provider, other!.provider);
-    assert.deepEqual(opened.map(executor => executor.options.maxWorkers), [1, 1, 1, 1, 2, 2]);
+    assert.deepEqual(opened.map(executor => executor.options.maxWorkers), [1, 1, 1, 1, 2, Infinity]);
   } finally { await Promise.all([first.dispose(), second.dispose()]); }
 });
 

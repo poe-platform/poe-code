@@ -8,7 +8,7 @@ export const invalid = [
   ['negative', -1], ['fraction', 0.5], ['nan', NaN], ['infinity', Infinity],
   ['unsafe', 9007199254740992], ['null', null], ['string', '0'], ['undefined', undefined],
 ];
-export function cases() {
+export function cases({ baseline = true } = {}) {
   const output = [];
   const add = (name, limits, args, responses, expected, extra = {}) => output.push({
     name, limits, args, responses, expected, ...extra,
@@ -69,9 +69,9 @@ export function cases() {
   }
   add('abort-response', { maxRedirects: 0, maxRetries: 0 }, [], ['abort'],
     { requests: 1, auth: 1, disposals: 1, body: '', reads: 1 }, { upload: true, abort: true });
-  add('redirect-default-ten', {}, ['-L', '--max-redirs', String(huge)], Array(11).fill(307),
+  add(baseline ? 'redirect-default-ten' : 'redirect-explicit-ten', baseline ? {} : { maxRedirects: 10 }, ['-L', '--max-redirs', String(huge)], Array(11).fill(307),
     { exit: 47, requests: 11, auth: 11, disposals: 11, body: '', reads: 0 });
-  add('retry-default-five', {}, ['--retry', String(huge), '--retry-delay', '0.001'], Array(6).fill(503),
+  add(baseline ? 'retry-default-five' : 'retry-explicit-five', baseline ? {} : { maxRetries: 5 }, ['--retry', String(huge), '--retry-delay', '0.001'], Array(6).fill(503),
     { exit: 0, requests: 6, auth: 6, disposals: 6, body: 'body-503', reads: 0 });
   add('default-cli-no-retry', {}, [], [503, 200],
     { exit: 0, requests: 1, auth: 1, disposals: 1, body: 'body-503', reads: 0 });

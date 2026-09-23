@@ -40,7 +40,7 @@ it(`active comment creation carrier parity; runtime=${runtime}; strict=${strict}
   const sink = { async write(bytes: Uint8Array) { memory.appendFileSync("/output", bytes); } };
   const code = remaining === "default" ? null : "limit-exceeded";
   if (route === "model") {
-    const budget = new api.DocumentBudget(), document = await api.Document(input, { ...context, budget, timestamp: new Date(args.timestamp) });
+    const budget = new api.DocumentBudget(remaining === "default" ? {} : { insertedNodes: 1000 }), document = await api.Document(input, { ...context, budget, timestamp: new Date(args.timestamp) });
     const before = document.part.package.parts.map(part => [String(part.partname), part.blob]);
     if (remaining !== "default") budget.charge("insertedNodes", budget.limits.insertedNodes - budget.usage.insertedNodes - remaining);
     expect(document.paragraphs[0]!.text).toBe("Active海🌊");

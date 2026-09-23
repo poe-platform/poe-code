@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 import { gzipSync } from "node:zlib";
-import { DEFAULT_ARCHIVE_LIMITS } from "../../../src/commands/archive/index.js";
 import type { ByteSource, FileSystem } from "../../../src/contracts/index.js";
 import { archive, digest, member, pattern, pax } from "./fixtures.js";
 import { absent, deadline, fixture, gate, source, success, tar } from "./helpers.js";
@@ -71,8 +70,7 @@ test("B01 configured entry, PAX and expanded-archive boundaries accept exact and
   }
 });
 
-test("B02 default 64 MiB entry declaration rejects plus one before body reads or publication", async () => {
-  assert.equal(DEFAULT_ARCHIVE_LIMITS.maxEntryBytes, 67_108_864);
+test("B02 explicit 64 MiB entry declaration rejects plus one before body reads or publication", async () => {
   for (const over of [false, true]) {
     const fs = await fixture();
     await fs.writeFile("/output/data", Buffer.from("old destination"));
@@ -95,7 +93,7 @@ test("B02 default 64 MiB entry declaration rejects plus one before body reads or
       },
       async return() { returns++; closed.resolve(); return { done: true, value: undefined }; },
     }; } };
-    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input, onInternalError(error) { reported.push(error); } });
+    const result = await tar(fs, ["-xf", "-", "-C", "/output"], { stdin: input, onInternalError(error) { reported.push(error); } }, { limits: { maxEntryBytes: 67_108_864 } });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stderr, over ? "tar: entry byte limit exceeded\n" : "tar: internal error\n");
     if (over) assert.deepEqual(reported, []);

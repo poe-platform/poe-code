@@ -6,9 +6,9 @@ import { runSuite } from './runtime.mjs';
 import { runMutations } from './mutations.mjs';
 
 const expectedDefaults = Object.freeze({
-  maxUploadBytes: 67108864, maxDownloadBytes: 67108864, maxBufferBytes: 8388608,
-  maxHeaderBytes: 65536, maxRedirects: 10, maxRetries: 5, maxUrls: 32, maxTimeMs: 120000,
-  maxTotalTimeMs: 120000,
+  maxUploadBytes: Infinity, maxDownloadBytes: Infinity, maxBufferBytes: Infinity,
+  maxHeaderBytes: Infinity, maxRedirects: Infinity, maxRetries: Infinity, maxUrls: Infinity, maxTimeMs: Infinity,
+  maxTotalTimeMs: Infinity,
 });
 
 test('independent zero-cap contract through direct and Shell/plugin public execution', { timeout: 30000 }, async context => {

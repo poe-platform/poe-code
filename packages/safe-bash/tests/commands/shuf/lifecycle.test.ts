@@ -23,22 +23,22 @@ async function fixture() {
   return { fs, context, cleanup };
 }
 
-test("nonstream entropy readFile has an admission bound before allocation", async () => {
+test("nonstream entropy readFile leaves omitted byte limits unlimited", async () => {
   const { fs } = await fixture();
   Object.defineProperty(fs, "readStream", { value: undefined });
   fs.readFile = async (_path, options) => {
-    assert.equal(options?.maxBytes, 64 * 1024 * 1024);
+    assert.equal(options?.maxBytes, undefined);
     assert.ok(options?.signal);
     return entropy;
   };
   assert.equal((await run(["-e", "a", "b", "--random-source=/random"], undefined, undefined, { fs })).exitCode, 0);
 });
 
-test("nonstream record readFile has an admission bound before allocation", async () => {
+test("nonstream record readFile leaves omitted byte limits unlimited", async () => {
   const { fs } = await fixture();
   Object.defineProperty(fs, "readStream", { value: undefined });
   fs.readFile = async (_path, options) => {
-    assert.equal(options?.maxBytes, 64 * 1024 * 1024);
+    assert.equal(options?.maxBytes, undefined);
     return Buffer.from("x\n");
   };
   assert.equal((await run(["/random"], undefined, undefined, { fs })).exitCode, 0);

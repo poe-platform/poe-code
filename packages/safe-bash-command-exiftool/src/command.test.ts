@@ -8,6 +8,39 @@ import { createExiftoolCommand, type ExiftoolCommandOptions } from "./command.js
 import { fixture } from "./fixtures.js";
 import { pngChunk } from "./png.js";
 
+test("short, grouped, XML, literal template and tabular extraction", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAC3RFWHRUaXRsZQBIZWxsb83PwM8AAAARdEVYdERlc2NyaXB0aW9uAFdvcmxkC2fZ1QAAAAxJREFUeJxj+M/AAAADAQEAyf6S7wAAAABJRU5ErkJggg==", "base64");
+  await fs.writeFile("/input.png", bytes);
+  for (const [args, expected] of [
+    [["-s2", "-Title"], "Title: Hello\n"],
+    [["-G1", "-s", "-Title"], "[PNG]           Title                           : Hello\n"],
+    [["-p", "$Title"], "Hello\n"],
+    [["-T", "-Title", "-Description", "-MissingTag"], "Hello\tWorld\t-\n"],
+  ] as const) {
+    const result = await invoke([...args, "input.png"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+  const xml = await invoke(["-X", "-Title", "input.png"], fs);
+  assert.equal(xml.exitCode, 0, xml.stderr);
+  assert.equal(xml.stdout, "<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>\n\n<rdf:Description rdf:about='input.png'\n  xmlns:et='http://ns.exiftool.org/1.0/' et:toolkit='Image::ExifTool 13.59'\n  xmlns:PNG='http://ns.exiftool.org/PNG/PNG/1.0/'>\n <PNG:Title>Hello</PNG:Title>\n</rdf:Description>\n</rdf:RDF>\n");
+  assert.deepEqual(await fs.readFile("/input.png"), new Uint8Array(bytes));
+});
+
+test("presentation escapes XML and refuses executable templates before writes", async () => {
+  const fs = createMemoryFileSystem(); const bytes = fixture("<&'\"");
+  await fs.writeFile("/image.png", bytes);
+  const xml = await invoke(["-X", "-Title", "image.png"], fs);
+  assert.equal(xml.exitCode, 0, xml.stderr);
+  assert.ok(xml.stdout.includes("<PNG:Title>&lt;&amp;&apos;&quot;</PNG:Title>"));
+  for (const template of ["${Title;system('bad')}", "$Unknown", "${Title}"]) {
+    const result = await invoke(["-p", template, "-Title=new", "image.png"], fs);
+    assert.equal(result.exitCode, 1);
+  }
+  assert.deepEqual(await fs.readFile("/image.png"), bytes);
+});
+
 test("buffered VFS fallback refuses bytes beyond the admitted stat extent", async () => {
   for (const argfile of [false, true]) {
     const fs = createMemoryFileSystem();
@@ -546,4 +579,10 @@ test("stdin editing and repeated stdin operands fail before reading", async () =
     assert.match(result.stderr, /stdin/);
   }
   assert.equal(read, false);
+});
+
+test("repeated template expansion remains bounded before output", async () => {
+  const fs = createMemoryFileSystem(); await fs.writeFile("/image.png", fixture("x".repeat(1000)));
+  await assert.rejects(invoke(["-p", "$Title".repeat(100), "image.png"], fs, new AbortController().signal, undefined,
+    { limits: { maxRetainedBytes: 150000 } }), /retained budget/);
 });

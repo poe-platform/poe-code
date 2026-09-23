@@ -47,3 +47,14 @@ test("typed SDK refuses option injection, unsupported combinations, cancellation
   const controller = new AbortController(); const reason = new Error("cancel SDK"); controller.abort(reason);
   assert.throws(() => createExiftoolArguments({ files: ["image.png"] }, { signal: controller.signal }), error => error === reason);
 });
+
+test("typed presentation options preserve CLI parity", () => {
+  assert.deepEqual(createExiftoolArguments({ files: ["image.png"], tags: ["Title"], groupFamily: 1 }, { signal }).args,
+    ["-G1", "-Title", "--", "image.png"]);
+  for (const [format, flag] of [["xml", "-X"], ["tabular", "-T"]] as const) {
+    assert.deepEqual(createExiftoolArguments({ files: ["image.png"], format }, { signal }).args, [flag, "--", "image.png"]);
+  }
+  assert.deepEqual(createExiftoolArguments({ files: ["image.png"], template: "$Title" }, { signal }).args,
+    ["-p", "$Title", "--", "image.png"]);
+  assert.throws(() => createExiftoolArguments({ files: ["image.png"], format: "xml", template: "$Title" }, { signal }), /Conflicting/);
+});

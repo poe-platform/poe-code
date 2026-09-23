@@ -6,14 +6,15 @@ export interface Invocation {
   json: boolean; csv: boolean; quoteScalars: boolean; duplicates: boolean; binary: boolean; missing: boolean;
   style: "short" | "compact" | "values"; overwrite: "backup" | "replace" | "in-place";
   destination: string | undefined;
-  groupFamily: 4 | undefined;
+  groupFamily: 1 | 4 | undefined;
+  xml: boolean; tabular: boolean; template: string | undefined;
 }
 export function parseArguments(args: readonly string[], limits: ResourceLimits): Invocation {
   if (args.length > 4096) throw new RangeError("ExifTool argument count exceeded");
   let extent = 0;
   for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
   const result: Invocation = { files: [], tags: [], assignments: [], json: false, csv: false, quoteScalars: false, duplicates: false,
-    binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, groupFamily: undefined };
+    binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
   let literal = false;
   let valueConvSelector = false;
   for (let index = 0; index < args.length; index++) {
@@ -25,19 +26,23 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     if (option === "-config") { if (value() !== "") throw new Error("User configuration modules are not supported"); continue; }
     if (option === "-j" || option === "-json") { result.json = true; continue; }
     if (option === "-csv") { result.csv = true; continue; }
+    if (arg === "-G1") { result.groupFamily = 1; continue; }
+    if (option === "-x") { result.xml = true; continue; }
+    if (arg === "-T") { result.tabular = true; result.missing = true; continue; }
+    if (option === "-p") { result.template = value(); continue; }
     if (arg === "-G4") { result.groupFamily = 4; continue; }
     if (option === "-api") { if (value().toLowerCase() !== "structformat=jsonq") throw new Error("API option not yet supported"); result.quoteScalars = true; continue; }
     if (option === "-a") { result.duplicates = true; continue; }
     if (option === "-b") { result.binary = true; continue; }
     if (option === "-f") { result.missing = true; continue; }
-    if (arg === "-S") { result.style = "compact"; continue; }
+    if (arg === "-S" || option === "-s2") { result.style = "compact"; continue; }
     if (option === "-s" || option === "-s1") { result.style = "short"; continue; }
     if (option === "-s3") { result.style = "values"; continue; }
     if (option === "-n") continue; // admitted PNG text tags have no PrintConv
     if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
     if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }
     if (option === "-o") { result.destination = value(); continue; }
-    if (["-if", "-p", "-stay_open", "-@", "-common_args"].includes(option) || option.startsWith("-execute")) throw new Error("ExifTool option not yet supported (no code evaluation or ambient polling): " + arg);
+    if (["-if", "-stay_open", "-@", "-common_args"].includes(option) || option.startsWith("-execute")) throw new Error("ExifTool option not yet supported (no code evaluation or ambient polling): " + arg);
     const equals = arg.indexOf("=");
     let name = arg.slice(1, equals < 0 ? undefined : equals);
     const operation = name.endsWith("+") ? "add" : name.endsWith("-") ? "remove" : "set";
@@ -56,6 +61,29 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
   if (result.json && result.binary) throw new Error("JSON binary policy not yet supported");
   if (result.csv && (result.json || result.binary || result.assignments.length)) throw new Error("CSV combined output/import policy not yet supported");
   if (result.csv && valueConvSelector) throw new Error("CSV ValueConv-qualified headers not yet supported");
-  if (result.groupFamily !== undefined && (!result.json || result.assignments.length)) throw new Error("Group-family qualification outside JSON not yet supported");
+  if (result.groupFamily === 4 && (!result.json || result.assignments.length)) throw new Error("Group-family qualification outside JSON not yet supported");
+  if (result.groupFamily === 1 && (result.json || result.csv || result.binary || result.xml || result.tabular || result.template !== undefined || result.assignments.length)) throw new Error("-G1 requires text extraction in this profile");
+  if ([result.json, result.csv, result.binary, result.xml, result.tabular, result.template !== undefined].filter(Boolean).length > 1) throw new Error("Conflicting ExifTool output modes");
+  if ((result.xml || result.tabular || result.template !== undefined) && result.assignments.length) throw new Error("Presentation modes require extraction");
+  if (result.template !== undefined) {
+    const parts = parseTemplate(result.template);
+    while (!parts.next().done) { /* Validate the entire template before acquiring files. */ }
+  }
   return result;
+}
+
+/** Only literal text and admitted $Tag substitutions; never template files or expressions. */
+export function* parseTemplate(template: string): Generator<{ literal?: string; tag?: string }> {
+  let start = 0;
+  for (let index = 0; index < template.length; index++) {
+    if (template[index] !== "$") continue;
+    if (index > start) yield { literal: template.slice(start, index) };
+    const begin = ++index;
+    while (index < template.length && ((template[index]! >= "A" && template[index]! <= "Z") || (template[index]! >= "a" && template[index]! <= "z"))) index++;
+    const name = template.slice(begin, index);
+    const tag = exiftoolRegistry.tags.find(tag => tag.toLowerCase() === name.toLowerCase());
+    if (!tag) throw new Error("Only literal $Tag template substitutions are supported");
+    yield { tag }; start = index; index--;
+  }
+  if (start < template.length) yield { literal: template.slice(start) };
 }

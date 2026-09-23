@@ -59,7 +59,7 @@ try {
 | PNG timestamp | `tIME`/ModifyDate inspection, assignment and deletion; fixed-width EXIF/ISO syntax, optional fractions and explicit offsets; native storage discards fractions/offsets without timezone conversion |
 | Duplicate tags | Last repeated text value wins; `-a` emits source order; extracted tags retain raw keyword, chunk/index/offset, instance, bytes and interpreted text |
 | Input | Literal VFS paths, `--` option terminator and one `-` stdin byte stream for extraction; stdin editing and repeated stdin operands are explicitly refused |
-| Presentation | `-s`, `-S`, `-s3`, `-b`, `-j`, `-csv`, `-f`; text sanitization is separate from stored values |
+| Presentation | `-s`, `-s2`/`-S`, `-s3`, `-G1`, `-X`, `-T`, literal `-p '$Title'`, `-b`, `-j`, `-csv`, `-f`; text sanitization is separate from stored values |
 | JSON | Conservative lexical numbers and booleans; `-api StructFormat=JSONQ` quotes every scalar; `1e999` stays lexical text in the SDK |
 | Duplicate JSON | `-j -G4` distinguishes `Copy1:Title` and the primary `:Title`; lowercase `-g4` grouped output is independently unsupported |
 | CSV extraction | Buffers all admitted files for union headers, preserves stored controls, quotes fields and supports `-f`; import, binary and ValueConv-qualified headers remain unsupported |
@@ -68,18 +68,22 @@ try {
 | Limits | Configurable cumulative input, decoded, retained, output and algorithm work admission; explicit cancellation and invocation cleanup |
 | Argument files | VFS `-@` expansion in argument order; initial BOM, physical lines, pinned whitespace/comment/CSTR rules and bounded nested includes |
 
-Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G4`,
-`-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`, `-s3`, `-n`,
+Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G1`, `-G4`, `-X`, `-T`, `-p TEMPLATE`,
+`-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`/`-s2`, `-s3`, `-n`,
 `-overwrite_original`, `-overwrite_original_in_place`, `-o PATH` and `-@ PATH`.
 Selectors are `-Title`, `-Author`, `-Description`, `-Comment`, `-Copyright`,
 `-ModifyDate` and the missing-value probe `-MissingTag`; a trailing `#` requests
 ValueConv without PrintConv. Assignment forms are `-TAG=VALUE`, `-TAG=` and
 `-TAG-=VALUE`, plus standalone `-all=`. Scalar `+=` is recognized but refused.
 Most flags and tag names are case-insensitive; `-S` and `-G4` are case-sensitive.
-No directory scanning, `-s2`, `-g4`, import or execute/stay_open protocol is admitted.
+No directory scanning, `-g4`, import or execute/stay_open protocol is admitted.
 
 Flags have combination limits: `-o` requires one file and assignments; `-G4`
-requires JSON extraction. JSON with binary output is refused. CSV cannot be
+requires JSON extraction; `-G1` requires text extraction. XML, tabular and template
+output require extraction and cannot be combined with other output formats. Templates
+accept literal text and admitted `$Tag` substitutions only; template files, braced
+expressions and code evaluation are refused. XML identifies the registry reference
+version 13.59; this is not a claim of complete native parity. JSON with binary output is refused. CSV cannot be
 combined with JSON, binary output, assignments or trailing-`#` selectors.
 `-api StructFormat=JSONQ` controls JSON serialization; it does not change stored
 metadata or make CSV an import format.
@@ -90,6 +94,8 @@ Default cumulative limits per invocation are 16,777,216 input bytes,
 are admitted. Override byte/work limits with `exiftoolCommands({ limits })` or
 `createExiftoolCommand({ limits })`; limits must be nonnegative safe integers.
 
+XML emits RDF descriptions with PNG namespaces and escaped values; `-T` emits
+one tab-separated row per file with `-` for missing selected tags.
 Text output uses aligned tag names by default, compact `Tag: value` with `-S`,
 or LF-terminated values with `-s3`. Binary output has no final terminator.
 JSON returns an array of file objects with `SourceFile`; CSV emits the union

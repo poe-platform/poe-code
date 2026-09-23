@@ -9,13 +9,14 @@ export interface ExiftoolInvocationOptions {
   readonly files: readonly string[];
   readonly tags?: readonly string[];
   readonly assignments?: readonly TagAssignment[];
-  readonly format?: "text" | "json" | "csv" | "binary";
+  readonly format?: "text" | "json" | "csv" | "binary" | "xml" | "tabular";
   readonly style?: "short" | "compact" | "values";
   readonly duplicates?: boolean;
   readonly missing?: boolean;
   readonly numeric?: boolean;
   readonly quoteScalars?: boolean;
-  readonly groupFamily?: 4;
+  readonly groupFamily?: 1 | 4;
+  readonly template?: string;
   readonly overwrite?: "backup" | "replace" | "in-place";
   readonly destination?: string;
 }
@@ -26,7 +27,7 @@ export interface ExiftoolInvocationOptions {
  */
 export function createExiftoolArguments(options: ExiftoolInvocationOptions, engine: EngineOptions): CommandArguments {
   const resources = new Resources(engine);
-  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination"];
+  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination", "template"];
   resources.admit("retained", 256);
   for (const key in options) {
     if (!Object.hasOwn(options, key)) continue;
@@ -60,7 +61,7 @@ export function createExiftoolArguments(options: ExiftoolInvocationOptions, engi
     }
   };
   if (options.format !== undefined && options.format !== "text") {
-    const flag = { json: "-j", csv: "-csv", binary: "-b" }[options.format];
+    const flag = { json: "-j", csv: "-csv", binary: "-b", xml: "-X", tabular: "-T" }[options.format];
     if (!flag) throw new TypeError("Unsupported ExifTool output format");
     append(flag);
   }
@@ -69,13 +70,14 @@ export function createExiftoolArguments(options: ExiftoolInvocationOptions, engi
     if (!flag) throw new TypeError("Unsupported ExifTool output style");
     append(flag);
   }
+  if (options.template !== undefined) { append("-p"); append(options.template); }
   if (options.duplicates) append("-a");
   if (options.missing) append("-f");
   if (options.numeric) append("-n");
   if (options.quoteScalars) { append("-api"); append("StructFormat=JSONQ"); }
   if (options.groupFamily !== undefined) {
-    if (options.groupFamily !== 4) throw new TypeError("Unsupported ExifTool group family");
-    append("-G4");
+    if (options.groupFamily !== 4 && options.groupFamily !== 1) throw new TypeError("Unsupported ExifTool group family");
+    append("-G", String(options.groupFamily));
   }
   if (options.overwrite !== undefined && options.overwrite !== "backup") {
     const flag = { replace: "-overwrite_original", "in-place": "-overwrite_original_in_place" }[options.overwrite];

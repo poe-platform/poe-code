@@ -14,6 +14,7 @@ import { isNumericShift } from "./shifts.js";
 import { CsvTable } from "./csv.js";
 import { expandArgfiles } from "./argfiles.js";
 import { virtualPath } from "./paths.js";
+import { renderPresentation, xmlHeader } from "./presentation.js";
 
 export interface ExiftoolCommandOptions { readonly replace?: boolean; readonly limits?: Partial<ResourceLimits> }
 function selected(tags: readonly MetadataTag[], names: readonly string[], duplicates: boolean, resources: Resources): MetadataTag[] {
@@ -86,6 +87,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           return { exitCode: 1 };
         }
         const json: string[] = [];
+        const xml: string[] = [];
         const csv = invocation.csv ? new CsvTable(resources, invocation.missing, invocation.tags) : undefined;
         const assignment = invocation.assignments.length === 1 ? invocation.assignments[0] : undefined;
         if (assignment?.operation === "add" && Object.hasOwn(exiftoolRegistry.scalarShiftErrorGroups, assignment.name) && !isNumericShift(assignment.value)) {
@@ -180,6 +182,13 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           }
           read++;
           const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
+          if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
+            const values = invocation.template !== undefined ? selected(tags, [], false, resources) : chosen;
+            const rendered = renderPresentation(file, values, invocation, resources);
+            if (invocation.xml) { resources.admit("retained", rendered.length * 2); xml.push(rendered); }
+            else await output(rendered);
+            continue;
+          }
           if (csv) { csv.add(file, chosen); continue; }
           const present = new Set<string>();
           if (invocation.missing) {
@@ -236,7 +245,8 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
               else {
                 resources.admit("work", (tag.name.length + tag.value.length) * 4);
                 const value = printable(tag.value, scalarOptions);
-                await output(invocation.style === "values" ? value + "\n" : (invocation.style === "compact" ? tag.name + ": " : tag.name.padEnd(32) + ": ") + value + "\n");
+                const group = invocation.groupFamily === 1 ? "[PNG]".padEnd(16) : "";
+                await output(group + (invocation.style === "values" ? value + "\n" : (invocation.style === "compact" ? tag.name + ": " : tag.name.padEnd(32) + ": ") + value + "\n"));
               }
             }
             if (invocation.missing && !invocation.binary) for (const name of invocation.tags) {
@@ -245,6 +255,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           }
         }
         if (invocation.json && !invocation.assignments.length) await output("[" + json.join(",\n") + "]\n");
+        if (invocation.xml) await output(xmlHeader + xml.join("") + "</rdf:RDF>\n");
         if (csv) {
           await output(csv.render());
           if (invocation.files.length > 1) await output(String(read).padStart(5) + " image files read\n", true);

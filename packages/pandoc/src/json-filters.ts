@@ -12,7 +12,7 @@ export interface JsonFilterRuntime {
     readonly args: readonly [string];
     readonly stdin: Uint8Array;
     readonly stdout: {write(bytes: Uint8Array): Promise<void>};
-    readonly signal: AbortSignal | undefined;
+    readonly signal: AbortSignal;
   }): Promise<number>;
 }
 
@@ -53,6 +53,8 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
       context.charge("retainedBytes", length);
       const stdin = new TextEncoder().encode(serialized.text);
       const chunks: Uint8Array[] = [];
+      const controller = new AbortController();
+      const cancel = () => controller.abort(context.signal!.reason);
       let open = true;
       let outputFailure: unknown;
       let failed = false;
@@ -69,14 +71,23 @@ export function createJsonFilterCapability(runtime: JsonFilterRuntime): FilterCa
             chunks.push(new Uint8Array(bytes));
           }
         } catch (error) {
-          if (!failed) {failed = true; outputFailure = error;}
+          if (!failed) {failed = true; outputFailure = error; controller.abort(error);}
           throw error;
         }
       }};
       let exitCode: number;
+      context.signal?.addEventListener("abort", cancel, {once: true});
+      if (context.signal?.aborted) cancel();
       try {
-        exitCode = await runtime.run({path: request.path, args: [context.to.split("+")[0]!.split("-")[0]!], stdin, stdout, signal: context.signal});
-      } finally {open = false;}
+        exitCode = await runtime.run({path: request.path, args: [context.to.split("+")[0]!.split("-")[0]!], stdin, stdout, signal: controller.signal});
+      } catch (error) {
+        if (failed) throw outputFailure;
+        throw error;
+      } finally {
+        open = false;
+        context.signal?.removeEventListener("abort", cancel);
+        controller.abort();
+      }
       context.checkpoint();
       if (failed) throw outputFailure;
       if (exitCode !== 0) throw new PandocError("E_IO", "convert", Number.isInteger(exitCode) ? `JSON filter ${request.path} exited with status ${exitCode}` : "JSON filter returned an invalid exit status");

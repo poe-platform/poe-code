@@ -12,7 +12,7 @@ it("exchanges Pandoc JSON and the writer argument with the supplied runtime", as
   const run = vi.fn<JsonFilterRuntime["run"]>(async invocation => {
     expect(invocation.path).toBe("./identity.py");
     expect(invocation.args).toEqual(["html"]);
-    expect(invocation.signal).toBe(signal);
+    expect(invocation.signal.aborted).toBe(false);
     const document = JSON.parse(decoder.decode(invocation.stdin));
     expect(document).toEqual({
       "pandoc-api-version": [1, 23, 1, 2],
@@ -70,6 +70,50 @@ it("enforces output limits even if a runtime swallows a write error", async () =
 it("rejects invalid UTF-8 returned by the runtime", async () => {
   const filters = createJsonFilterCapability({async run({stdout}) {await stdout.write(Uint8Array.of(255)); return 0;}});
   await expect(convert(input, options, {filters})).rejects.toMatchObject({code: "E_ENCODING"});
+});
+
+it("cancels runtime work when bounded output fails without caller cancellation", async () => {
+  const publish = vi.fn();
+  const filters = createJsonFilterCapability({async run({stdout, signal}) {
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(signal!.aborted).toBe(false);
+    await stdout.write(new Uint8Array(257)).catch(() => {});
+    expect(signal!.aborted).toBe(true);
+    expect(signal!.reason).toMatchObject({code: "E_LIMIT"});
+    return 0;
+  }});
+  await expect(convert(input, options, {filters, limits: {inputBytes: 256}, output: {publish}})).rejects.toMatchObject({code: "E_LIMIT"});
+  expect(publish).not.toHaveBeenCalled();
+});
+
+it("closes the runtime cancellation scope after successful cleanup", async () => {
+  const controller = new AbortController();
+  let runtimeSignal: AbortSignal | undefined;
+  const filters = createJsonFilterCapability({async run({stdin, stdout, signal}) {
+    runtimeSignal = signal;
+    await stdout.write(stdin);
+    return 0;
+  }});
+  await convert(input, options, {filters, signal: controller.signal});
+  expect(runtimeSignal!.aborted).toBe(true);
+  expect(controller.signal.aborted).toBe(false);
+});
+
+it("forwards caller cancellation and its reason to runtime cleanup", async () => {
+  const controller = new AbortController();
+  const reason = new Error("caller stopped");
+  let cleaned = false;
+  const filters = createJsonFilterCapability({async run({signal}) {
+    const cleanup = new Promise<number>(resolve => signal.addEventListener("abort", () => {
+      expect(signal.reason).toBe(reason);
+      cleaned = true;
+      resolve(0);
+    }, {once: true}));
+    controller.abort(reason);
+    return cleanup;
+  }});
+  await expect(convert(input, options, {filters, signal: controller.signal})).rejects.toMatchObject({code: "E_CANCELLED"});
+  expect(cleaned).toBe(true);
 });
 
 it("preflights the entire filter chain before acquiring input", async () => {

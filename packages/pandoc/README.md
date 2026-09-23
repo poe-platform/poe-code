@@ -103,7 +103,10 @@ host execution, filesystem access, or citation support.
 runtime to this capability. Its `run({path, args, stdin, stdout, signal})` method
 receives Pandoc JSON API `[1,23,1,2]` bytes and the base target writer name as its
 sole argument (extension suffixes are removed; aliases are preserved). Await `stdout.write(bytes)` for each output chunk and return the numeric
-exit status after runtime cleanup. Output is copied and charged against the shared
+exit status after runtime cleanup.
+The runtime always receives a scoped cancellation signal: caller cancellation and
+output-write failures abort it, and it closes when the runtime returns or throws.
+Output is copied and charged against the shared
 input/retained-byte budgets, then decoded and validated before the next filter or
 writer runs. Invalid JSON, nonzero status, cancellation, and limit failures prevent
 publication. Document-level resources, language, and direction stay outside the

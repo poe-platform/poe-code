@@ -16,9 +16,9 @@ function contextRange(start: number, count: number, offset: number): string {
 }
 
 export async function rejectText(patch: FilePatch, outcomes: readonly HunkOutcome[], oldName: string | undefined,
-  newName: string | undefined, indexName: string | undefined, reverse: boolean, budget: Budget): Promise<string> {
+  newName: string | undefined, indexName: string | undefined, reverse: boolean, budget: Budget, format?: "unified" | "context"): Promise<string> {
   const normal = patch.format === "normal";
-  const context = patch.format === "context" || normal;
+  const context = format === undefined ? patch.format === "context" || normal : format === "context";
   const names = [normal ? "/dev/null" : oldName ?? "/dev/null", normal ? "/dev/null" : newName ?? "/dev/null"];
   const times = normal ? ["", ""] : [timestamp(patch.oldHeader), timestamp(patch.newHeader)];
   if (reverse) { names.reverse(); times.reverse(); }

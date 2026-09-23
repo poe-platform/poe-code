@@ -132,11 +132,14 @@ export function reversePatch(patch: FilePatch): FilePatch {
 
 export interface HunkOutcome {
   readonly hunk: Hunk; readonly index: number; readonly failed: boolean;
+  readonly mergeRange?: readonly [number, number];
   readonly misordered: boolean;
   readonly line: number; readonly outputOffset: number; readonly offset: number; readonly fuzz: number;
 }
 
 export interface HunkApplication {
+  readonly ifdef?: string;
+  readonly merge?: "merge" | "diff3";
   readonly partial?: boolean;
   readonly rejectAll?: boolean;
   readonly outcomes?: HunkOutcome[];
@@ -221,17 +224,73 @@ export async function applyHunks(original: string, patch: FilePatch, fuzz: numbe
     application.outcomes?.push({ hunk, index: hunkIndex + 1, failed: found < 0, misordered: found < 0 && misordered,
       line: (matched < 0 ? startIndex(hunk.oldStart, hunk.oldCount) : matched) + 1 + outputOffset,
       outputOffset, offset: matched - startIndex(hunk.oldStart, hunk.oldCount), fuzz: usedFuzz });
+    if (found < 0 && application.merge && !misordered) {
+      const position = Math.max(cursor, Math.min(source.length, expected));
+      while (cursor < position) append(source[cursor++]!);
+      let local = source.slice(cursor, cursor + hunk.oldCount);
+      // Without an original anchor GNU inserts the conflict before local text.
+      if (!oldLines.some((line, index) => budget.equal(line.text, local[index] ?? ""))) local = [];
+      const incoming = hunk.lines.filter(line => line.kind !== "-").map(line => line.text);
+      const base = oldLines.map(line => line.text);
+      let prefix = 0;
+      let suffix = 0;
+      while (prefix < Math.min(local.length, incoming.length, base.length)
+        && local[prefix] === incoming[prefix] && local[prefix] === base[prefix]) prefix++;
+      while (suffix < Math.min(local.length, incoming.length, base.length) - prefix
+        && local[local.length - suffix - 1] === incoming[incoming.length - suffix - 1]
+        && local[local.length - suffix - 1] === base[base.length - suffix - 1]) suffix++;
+      budget.step(local.join("").length + incoming.join("").length + base.join("").length);
+      await budget.checkpoint();
+      for (const line of local.slice(0, prefix)) append(line);
+      const mergeStart = result.length + 1;
+      // An already applied hunk is a clean merge, not a reversal.
+      if (local.join("") === incoming.join("")) {
+        const last = application.outcomes?.pop();
+        if (last) application.outcomes!.push({ ...last, failed: false, fuzz: 0, offset: position - startIndex(hunk.oldStart, hunk.oldCount) });
+        for (const line of local.slice(prefix, local.length - suffix)) append(line);
+      } else {
+        append("<<<<<<<\n");
+        for (const line of local.slice(prefix, local.length - suffix)) append(line);
+        if (application.merge === "diff3") {
+          append("|||||||\n");
+          for (const line of base.slice(prefix, base.length - suffix)) append(line);
+        }
+        append("=======\n");
+        for (const line of incoming.slice(prefix, incoming.length - suffix)) append(line);
+        append(">>>>>>>\n");
+        const last = application.outcomes?.pop();
+        if (last) application.outcomes!.push({ ...last, mergeRange: [mergeStart, result.length] });
+      }
+      for (const line of local.slice(local.length - suffix)) append(line);
+      cursor += local.length;
+      outputOffset = result.length - cursor;
+      continue;
+    }
     if (found < 0) {
       if (application.partial) continue;
       throw new ToolError(`hunk ${hunkIndex + 1} does not match ${patch.oldPath}`, 1);
     }
     while (cursor < found) append(source[cursor++]!);
+    let removed: string[] = [];
+    let added: string[] = [];
+    const flush = () => {
+      if (!removed.length && !added.length) return;
+      if (application.ifdef) {
+        append(`#${removed.length ? "ifndef" : "ifdef"} ${application.ifdef}\n`);
+        for (const text of removed) append(text);
+        if (removed.length && added.length) append("#else\n");
+        for (const text of added) append(text);
+        append("#endif\n");
+      } else for (const text of added) append(text);
+      removed = []; added = [];
+    };
     for (const line of hunk.lines) {
-      if (line.kind === "+") append(line.text);
-      else if (line.kind === " ") { if (cursor < source.length) append(source[cursor++]!); }
-      else cursor++;
+      if (line.kind === "+") added.push(line.text);
+      else if (line.kind === " ") { flush(); if (cursor < source.length) append(source[cursor++]!); }
+      else { removed.push(source[cursor] ?? line.text); cursor++; }
     }
-    outputOffset += hunk.newCount - hunk.oldCount;
+    flush();
+    outputOffset = result.length - cursor;
   }
   while (cursor < source.length) append(source[cursor++]!);
   for (let index = 0; index < result.length - 1; index++) {

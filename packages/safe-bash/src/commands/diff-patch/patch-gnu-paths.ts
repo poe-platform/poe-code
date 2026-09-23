@@ -5,6 +5,7 @@ import { Budget, ToolError, host, inspect } from "./shared.js";
 import type { FilePatch } from "./unified.js";
 
 export interface PathOptions {
+  readonly posix?: boolean | undefined;
   readonly strip: number | undefined;
   readonly explicit: string | undefined;
   readonly reject: string | undefined;
@@ -18,6 +19,7 @@ export interface AuthorizedPatch {
   readonly indexName: string | undefined;
   readonly candidates: readonly string[];
   readonly selected?: string;
+  readonly posix?: boolean;
 }
 
 interface SelectionState {
@@ -64,10 +66,10 @@ export async function authorizePaths(patches: readonly FilePatch[], options: Pat
     const oldName = headerName(patch.oldPath, options);
     const newName = headerName(patch.newPath, options);
     const indexHeader = patch.indexPath === undefined ? undefined : headerName(patch.indexPath, options);
-    const indexName = patch.format === "normal" || (oldName === undefined && newName === undefined) ? indexHeader : undefined;
+    const indexName = options.posix || patch.format === "normal" || (oldName === undefined && newName === undefined) ? indexHeader : undefined;
     const candidates = options.explicit === undefined ? [...new Set([oldName, newName, indexName].filter((name): name is string => name !== undefined))] : [options.explicit];
     if (!candidates.length) throw new ToolError("strip count removes every patch filename");
-    result.push({ patch, oldName, newName, indexName, candidates });
+    result.push({ patch, oldName, newName, indexName, candidates, ...(options.posix ? { posix: true } : {}) });
   }
   const order = result.map((_patch, index) => index);
   if (state?.reverse) order.reverse();
@@ -152,6 +154,7 @@ export async function selectTarget(authorized: AuthorizedPatch, exists: (path: s
     budget.step();
     if (await exists(resolvePath(budget.context.cwd, candidate))) present.push(candidate);
   }
+  if (authorized.posix) return present[0] ?? authorized.candidates[0]!;
   const candidates = present.length ? present : [...authorized.candidates];
   const missingParents = new Map<string, number>();
   if (!present.length) for (const candidate of candidates) {

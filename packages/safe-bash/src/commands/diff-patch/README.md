@@ -93,6 +93,24 @@ periodically to observe cancellation.
 
 ## Supported patch subset
 
+- `--posix` selects the first existing old/new/Index filename, refuses missing
+  targets, retains empty files, and disables default mismatch backups. Explicit
+  backup options still apply.
+- `-D NAME` / `--ifdef=NAME` wraps changed groups in C conditional directives.
+  `--merge[=merge|diff3]` writes conflicts into the target, returning status 1
+  without a reject file; `diff3` includes the original patch text. Merge matching
+  uses zero fuzz. Conflict placement is bounded by the existing hunk coordinates;
+  arbitrary divergent edits and GNU's advanced merge alignment remain gaps.
+- `-T` / `--set-time` and `-Z` / `--set-utc` restore parsed header timestamps
+  when original timestamps and content match, or with `--force`. UTC interprets
+  timestamps without an explicit zone as UTC. Setting timestamps requires the
+  selected filesystem's `utimes` support; dry-run changes no metadata.
+- `--verbose`, `--quoting-style=STYLE`, `--reject-format=unified|context`, and
+  `--read-only=ignore|warn|fail` control progress, filename display, reject bytes,
+  and treatment of files with no write permission. Advisory permissions are not
+  treated as enforced permissions; permitted read-only replacement uses an
+  exclusive temporary file and rename while preserving mode.
+
 - `-s`, `--quiet`, and `--silent` suppress routine file progress and per-hunk
   status (including successful offset/fuzz details), following the pinned GNU
   quiet controls. Failed-hunk counts, reject destinations, automatic-reversal
@@ -355,8 +373,8 @@ file. Bounded UTF-8 processing and the quadratic unmatched diff matrix do not
 support arbitrary binary or huge-data workloads; there is no native fallback.
 
 The flag lists above describe the implemented interface, not all GNU flags.
-For example, patch `--posix`, `--ifdef`, `--merge`, timestamp controls,
-and version-control acquisition are not accepted. Diagnostics,
+Version-control acquisition still requires a native external process and is
+unsupported; `-g0` / `--get=0` explicitly disables it. Diagnostics,
 timestamps/metadata, repeated-line alignment, placement, and malformed-input
 handling are not established as fully GNU-identical. GNU mismatches remain
 defects to investigate, not a vague GNU/BSD parity exemption. Historical BSD

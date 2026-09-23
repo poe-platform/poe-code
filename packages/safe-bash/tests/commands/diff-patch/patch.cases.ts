@@ -246,3 +246,141 @@ for (const args of [["-p-1"], ["--fuzz=NaN"], ["-i"], ["--output="], ["a", "b"],
     assert.equal(await contents(result.fs, "target"), "old\n");
   });
 }
+
+for (const args of [["--posix"], ["--verbose"], ["--quoting-style=literal"], ["--reject-format=context"], ["--read-only=ignore"], ["-T"], ["--set-time"], ["-Z"], ["--set-utc"], ["--merge"], ["--merge=diff3"]]) {
+  test(`patch remaining GNU option ${args.join(" ")}`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "new\n");
+  });
+}
+
+for (const args of [["-DCHANGE"], ["-D", "CHANGE"], ["--ifdef=CHANGE"]]) {
+  test(`patch conditional replacement ${args.join(" ")}`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "#ifndef CHANGE\nold\n#else\nnew\n#endif\n");
+  });
+}
+
+for (const style of ["merge", "diff3"]) {
+  test(`patch merge ${style} retains conflicting local content`, async () => {
+    const result = await run("patch", [`--merge=${style}`], { files: { target: "local\n" }, input: replacement });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(await contents(result.fs, "target"), `<<<<<<<\n${style === "diff3" ? "|||||||\nold\n" : ""}=======\nnew\n>>>>>>>\nlocal\n`);
+    assert.equal((await result.fs.readdir("/work")).some(entry => entry.name === "target.rej"), false);
+  });
+}
+
+test("patch POSIX picks the first existing header instead of ranking names", async () => {
+  const result = await run("patch", ["--posix"], { files: { longer: "old\n", x: "old\n" }, input: replacement.replace("--- target", "--- longer").replace("+++ target", "+++ x") });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "longer"), "new\n");
+  assert.equal(await contents(result.fs, "x"), "old\n");
+});
+
+for (const behavior of ["ignore", "warn", "fail"]) {
+  test(`patch read-only ${behavior} respects filesystem permissions`, async () => {
+    const fs = await filesystem({ target: "old\n" });
+    await fs.chmod("/work/target", 0o444);
+    const result = await run("patch", [`--read-only=${behavior}`], { fs, input: replacement });
+    assert.equal(result.exitCode, behavior === "fail" ? 1 : 0, result.stderr);
+    assert.equal(await contents(fs, "target"), behavior === "fail" ? "old\n" : "new\n");
+    assert.equal(result.stdout.includes("read-only"), behavior !== "ignore");
+  });
+}
+
+for (const utc of ["-Z", "--set-utc", "-T", "--set-time"]) {
+  test(`patch ${utc} restores timestamps for an exact matching original`, async () => {
+    const fs = await filesystem({ target: "old\n" });
+    const oldTime = Date.parse("2020-01-01T00:00:00Z");
+    const newTime = Date.parse("2021-01-01T00:00:00Z");
+    await fs.utimes("/work/target", oldTime, oldTime);
+    const input = replacement.replace("--- target", "--- target\t2020-01-01 00:00:00 +0000").replace("+++ target", "+++ target\t2021-01-01 00:00:00 +0000");
+    const result = await run("patch", [utc], { fs, input });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await fs.stat("/work/target")).mtimeMs, newTime);
+  });
+}
+
+for (const option of ["--reject-format=bad", "--read-only=bad", "--quoting-style=bad", "--merge=bad"]) {
+  test(`patch validates ${option} before writing`, async () => {
+    const result = await run("patch", [option], { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 2);
+    assert.equal(await contents(result.fs, "target"), "old\n");
+  });
+}
+
+for (const style of ["merge", "diff3"]) {
+  test(`patch ${style} leaves common context outside conflict markers`, async () => {
+    const input = "--- target\n+++ target\n@@ -1,3 +1,3 @@\n a\n-old\n+new\n z\n";
+    const result = await run("patch", [`--merge=${style}`], { files: { target: "a\nlocal\nz\n" }, input });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(await contents(result.fs, "target"), `a\n<<<<<<<\nlocal\n${style === "diff3" ? "|||||||\nold\n" : ""}=======\nnew\n>>>>>>>\nz\n`);
+    assert.match(result.stdout, /NOT MERGED/u);
+  });
+}
+
+test("patch verbose emits format, input headers, exact hunk progress and completion", async () => {
+  const result = await run("patch", ["--verbose"], { files: { target: "old\n" }, input: replacement });
+  assert.equal(result.stdout, "Hmm...  Looks like a unified diff to me...\nThe text leading up to this was:\n--------------------------\n|--- target\n|+++ target\n--------------------------\npatching file target\nHunk #1 succeeded at 1.\ndone\n");
+});
+
+test("patch quoting style affects filenames in progress", async () => {
+  const result = await run("patch", ["--quoting-style=c"], { files: { "a b": "old\n" }, input: replacement.replaceAll("target", "a b") });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, 'patching file "a b"\n');
+});
+
+test("patch explicit context reject format changes reject bytes", async () => {
+  const result = await run("patch", ["--reject-format=context", "--force"], { files: { target: "local\n" }, input: replacement });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(await contents(result.fs, "target.rej"), "*** target\n--- target\n***************\n*** 1 ****\n! old\n--- 1 ----\n! new\n");
+});
+
+test("patch POSIX refuses missing creation targets", async () => {
+  const result = await run("patch", ["--posix"], { input: "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+new\n" });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.deepEqual(await result.fs.readdir("/work"), []);
+});
+
+test("patch POSIX suppresses default mismatch backups but permits an explicit request", async () => {
+  for (const extra of [[], ["--backup-if-mismatch"]]) {
+    const result = await run("patch", ["--posix", ...extra], { files: { target: "prefix\nold\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await result.fs.readdir("/work")).some(entry => entry.name === "target.orig"), extra.length > 0);
+  }
+});
+
+for (const input of ["--- target\n+++ target\n@@ -1 +1,0 @@\n-old\n", "--- target\n+++ target\n@@ -1,0 +2 @@\n+new\n"]) {
+  test(`patch conditional insertion/deletion ${JSON.stringify(input)}`, async () => {
+    const result = await run("patch", ["-DX"], { files: { target: "old\n" }, input });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), input.includes("-old") ? "#ifndef X\nold\n#endif\n" : "old\n#ifdef X\nnew\n#endif\n");
+  });
+}
+
+test("patch timestamp mismatch retains normal write time and reports the mismatch", async () => {
+  const result = await run("patch", ["-Z"], { files: { target: "old\n" }, input: replacement.replace("--- target", "--- target\t2020-01-01 00:00:00 +0000").replace("+++ target", "+++ target\t2021-01-01 00:00:00 +0000") });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.match(result.stdout, /time mismatch/u);
+  assert.notEqual((await result.fs.stat("/work/target")).mtimeMs, Date.parse("2021-01-01T00:00:00Z"));
+});
+
+test("Shell applies combined remaining GNU options without changing its cwd", async () => {
+  const fs = await filesystem({ "dir/target": "old\n", "dir/change": replacement });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());
+  const result = await shell.exec("patch --batch --posix --verbose --ifdef=CHANGE --read-only=ignore --quoting-style=c --reject-format=unified -Z -d dir -i change");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(fs, "dir/target"), "#ifndef CHANGE\nold\n#else\nnew\n#endif\n");
+  assert.equal((await shell.exec("pwd")).stdout, "/work\n");
+});
+
+test("patch read-only refusal saves ignored hunks as rejects", async () => {
+  const fs = await filesystem({ target: "old\n" });
+  await fs.chmod("/work/target", 0o444);
+  const result = await run("patch", ["--read-only=fail"], { fs, input: replacement });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(await contents(fs, "target.rej"), replacement);
+  assert.equal(result.stdout, "File target is read-only; refusing to patch\n1 out of 1 hunk ignored -- saving rejects to file target.rej\n");
+});

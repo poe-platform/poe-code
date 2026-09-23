@@ -8,7 +8,7 @@ import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-format
 import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type AuthorizedPatch, type BackupOptions, type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
 
-interface PatchFlags extends BackupOptions { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string }
+interface PatchFlags extends BackupOptions { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string; posix?: boolean; verbose?: boolean; ifdef?: string; merge?: "merge" | "diff3"; setTime?: "local" | "utc"; rejectFormat?: "unified" | "context"; readOnly?: "ignore" | "warn" | "fail"; quotingStyle?: string }
 
 function flags(args: readonly string[]): PatchFlags {
   const result: PatchFlags = { input: "-", reverse: false, dryRun: false, atomic: false, quiet: false, force: false, backup: true, fuzz: 2, ignoreWhitespace: false, removeEmpty: false };
@@ -23,6 +23,7 @@ function flags(args: readonly string[]): PatchFlags {
     else throw new ToolError(`invalid version control: ${parameter}`);
   };
   let literal = false;
+  let backupSelected = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
     const value = (attached: string | undefined, name: string) => {
@@ -34,24 +35,42 @@ function flags(args: readonly string[]): PatchFlags {
     else if (arg === "--") literal = true;
     else if (arg === "--dry-run") result.dryRun = true;
     else if (arg === "--atomic") result.atomic = true;
-    else if (arg === "--quiet" || arg === "--silent") result.quiet = true;
+    else if (arg === "--quiet" || arg === "--silent") { result.quiet = true; result.verbose = false; }
     else if (arg === "--force") result.force = true;
     else if (arg === "--batch") continue;
     else if (arg === "--binary") continue;
-    else if (arg === "--backup") result.alwaysBackup = true;
+    else if (arg === "--posix") result.posix = true;
+    else if (arg === "--verbose") { result.verbose = true; result.quiet = false; }
+    else if (arg === "--set-time") result.setTime ??= "local";
+    else if (arg === "--set-utc") result.setTime = "utc";
+    else if (arg === "--merge" || arg.startsWith("--merge=")) {
+      const style = arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : "merge";
+      if (style !== "merge" && style !== "diff3") throw new ToolError(`invalid merge style: ${style}`);
+      result.merge = style;
+    } else if (arg === "--backup") result.alwaysBackup = true;
     else if (arg === "--forward") result.forward = true;
-    else if (arg === "--no-backup-if-mismatch") result.backup = false;
-    else if (arg === "--backup-if-mismatch") result.backup = true;
+    else if (arg === "--no-backup-if-mismatch") { result.backup = false; backupSelected = true; }
+    else if (arg === "--backup-if-mismatch") { result.backup = true; backupSelected = true; }
     else if (arg === "--reverse") result.reverse = true;
     else if (arg === "--remove-empty-files") result.removeEmpty = true;
     else if (arg === "--ignore-whitespace" || arg === "--ignore-white-space") result.ignoreWhitespace = true;
     else if (arg === "--unified") select("unified");
     else if (arg === "--context") select("context");
     else if (arg === "--normal") select("normal");
-    else if (["--strip", "--input", "--fuzz", "--reject-file", "--output", "--directory", "--get", "--suffix", "--prefix", "--basename-prefix", "--version-control"].includes(arg.split("=")[0]!)) {
+    else if (["--strip", "--input", "--fuzz", "--reject-file", "--output", "--directory", "--get", "--suffix", "--prefix", "--basename-prefix", "--version-control", "--ifdef", "--quoting-style", "--reject-format", "--read-only"].includes(arg.split("=")[0]!)) {
       const [name] = arg.split("=");
       const parameter = value(arg.includes("=") ? arg.slice(arg.indexOf("=") + 1) : undefined, name!);
-      if (name === "--strip") result.strip = integer(parameter, "strip count");
+      if (name === "--ifdef") result.ifdef = parameter;
+      else if (name === "--quoting-style") {
+        if (!["literal", "shell", "shell-always", "shell-escape", "shell-escape-always", "c", "escape", "locale", "clocale"].includes(parameter)) throw new ToolError(`invalid quoting style: ${parameter}`);
+        result.quotingStyle = parameter;
+      } else if (name === "--reject-format") {
+        if (parameter !== "unified" && parameter !== "context") throw new ToolError(`invalid reject format: ${parameter}`);
+        result.rejectFormat = parameter;
+      } else if (name === "--read-only") {
+        if (!["ignore", "warn", "fail"].includes(parameter)) throw new ToolError(`invalid read-only behavior: ${parameter}`);
+        result.readOnly = parameter as "ignore" | "warn" | "fail";
+      } else if (name === "--strip") result.strip = integer(parameter, "strip count");
       else if (name === "--fuzz") result.fuzz = integer(parameter, "fuzz");
       else if (name === "--reject-file") result.reject = parameter;
       else if (name === "--output") result.output = parameter;
@@ -66,9 +85,11 @@ function flags(args: readonly string[]): PatchFlags {
     else for (let offset = 1; offset < arg.length; offset++) {
       const flag = arg[offset]!;
       if (flag === "R") result.reverse = true;
-      else if (flag === "s") result.quiet = true;
+      else if (flag === "s") { result.quiet = true; result.verbose = false; }
       else if (flag === "f") result.force = true;
       else if (flag === "t") continue;
+      else if (flag === "T") result.setTime ??= "local";
+      else if (flag === "Z") result.setTime = "utc";
       else if (flag === "b") result.alwaysBackup = true;
       else if (flag === "N") result.forward = true;
       else if (flag === "E") result.removeEmpty = true;
@@ -76,9 +97,10 @@ function flags(args: readonly string[]): PatchFlags {
       else if (flag === "u") select("unified");
       else if (flag === "c") select("context");
       else if (flag === "n") select("normal");
-      else if (["p", "i", "F", "r", "o", "d", "g", "z", "B", "Y", "V"].includes(flag)) {
+      else if (["p", "i", "F", "r", "o", "d", "g", "z", "B", "Y", "V", "D"].includes(flag)) {
         const parameter = value(arg.slice(offset + 1) || undefined, `-${flag}`);
-        if (flag === "p") result.strip = integer(parameter, "strip count");
+        if (flag === "D") result.ifdef = parameter;
+        else if (flag === "p") result.strip = integer(parameter, "strip count");
         else if (flag === "F") result.fuzz = integer(parameter, "fuzz");
         else if (flag === "r") result.reject = parameter;
         else if (flag === "o") result.output = parameter;
@@ -98,6 +120,9 @@ function flags(args: readonly string[]): PatchFlags {
   if (operands.length === 2) result.input = operands[1]!;
   if (!result.input || result.input.includes("\0")) throw new ToolError("invalid patch input path");
   for (const path of [result.output, result.directory]) if (path !== undefined && (!path || path.includes("\0"))) throw new ToolError("invalid patch option path");
+  if (result.ifdef !== undefined && (!result.ifdef || [...result.ifdef].some(c => !"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_".includes(c)))) throw new ToolError("invalid ifdef symbol");
+  if (result.merge) result.fuzz = 0;
+  if (result.posix && !backupSelected) result.backup = false;
   return result;
 }
 
@@ -113,6 +138,8 @@ interface Prepared {
   readonly backupMode?: number;
   readonly rejectPath?: string;
   readonly reject?: string;
+  readonly skipWrite?: boolean;
+  readonly mtimeMs?: number;
   readonly parents: readonly string[];
 }
 
@@ -133,9 +160,9 @@ async function applyContent(sourcePatch: FilePatch, current: string, exists: boo
   if (!creation() && !exists) return undefined;
   let outcomes: HunkOutcome[] = [];
   let result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-    partial: true, outcomes, rejectAll: creation() && current !== "",
+    partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current !== "",
   });
-  if (!options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
+  if (!options.merge && !options.force && !autoReversed && (outcomes[0]?.failed || outcomes[0]?.fuzz)) {
     const opposite = reversePatch(patch);
     const probe: HunkOutcome[] = [];
     const reverseFuzz = outcomes[0]!.failed ? options.fuzz : outcomes[0]!.fuzz - 1;
@@ -147,7 +174,7 @@ async function applyContent(sourcePatch: FilePatch, current: string, exists: boo
       reverseMismatch = true;
       outcomes = [];
       result = await applyHunks(current, patch, options.fuzz, budget, options.ignoreWhitespace, {
-        partial: true, outcomes, rejectAll: creation() && current !== "",
+        partial: true, outcomes, ...(options.ifdef === undefined ? {} : { ifdef: options.ifdef }), ...(options.merge === undefined ? {} : { merge: options.merge }), rejectAll: creation() && current !== "",
       });
     }
   }
@@ -182,10 +209,11 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>): Pr
     else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
     const stat = await inspect(budget, path);
     regular(stat, path);
-    const capabilities = mode === undefined ? undefined : await host(context, async () =>
+    const capabilities = await host(context, async () =>
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
     const preserveMode = mode !== undefined && capabilities?.permissions !== false;
     if (append) await host(context, () => context.fs.appendFile(path, Buffer.from(text), { signal: context.signal }));
+    else if (stat && capabilities?.permissions !== false && !(stat.mode & 0o222)) await replaceReadOnly(path, text, stat.mode, budget);
     else await host(context, () => context.fs.writeFile(path, Buffer.from(text), { signal: context.signal, flag: stat ? "w" : "wx", ...(preserveMode ? { mode } : {}) }));
     if (preserveMode && context.fs.chmod) await host(context, () => context.fs.chmod!(path, mode, { signal: context.signal }));
   };
@@ -195,7 +223,13 @@ async function publish(item: Prepared, budget: Budget, rejects: Set<string>): Pr
       regular(await inspect(budget, item.path), item.path);
       await host(context, () => context.fs.rm(item.path, { signal: context.signal }));
     }
-  } else await write(item.path, item.result);
+  } else if (!item.skipWrite) {
+    await write(item.path, item.result);
+    if (item.mtimeMs !== undefined) {
+      if (!context.fs.utimes) throw new ToolError("filesystem does not support setting timestamps");
+      await host(context, () => context.fs.utimes!(item.path, item.mtimeMs!, item.mtimeMs!, { signal: context.signal }));
+    }
+  }
   if (item.rejectPath !== undefined && item.reject !== undefined) {
     await write(item.rejectPath, item.reject, rejects.has(item.rejectPath), false);
     rejects.add(item.rejectPath);
@@ -227,7 +261,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
   const reject = options.reject === undefined || options.reject === "-" ? options.reject : safeTarget(options.reject, 0, true);
   if (options.reject !== undefined && reject === undefined) throw new ToolError("/dev/null is not a reject file; use -r -");
   const paths: PathOptions = { strip: options.strip, explicit, reject,
-    input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
+    posix: options.posix, input: options.input === "-" ? undefined : resolvePath(context.cwd, options.input) };
   const preview = new Map<string, string | undefined>();
   const previewParents = new Set<string>();
   const authorized = await authorizePaths(parsed, paths, budget, !options.dryRun || options.atomic ? {
@@ -239,7 +273,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       const current = preview.has(path) ? preview.get(path) : await inspect(budget, path) ? await budget.read(path) : undefined;
       const applied = await applyContent(item.patch, current ?? "", current !== undefined, options, budget);
       if (!applied) return;
-      const remove = applied.result === "" && (applied.deletion || options.removeEmpty);
+      const remove = !options.posix && options.ifdef === undefined && applied.result === "" && (applied.deletion || options.removeEmpty);
       preview.set(path, remove ? undefined : applied.result);
       if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) previewParents.add(parent);
     },
@@ -282,9 +316,42 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const prior = options.atomic ? staged.get(path) : undefined;
     const stat = await inspect(budget, path);
     regular(stat, path);
+    if (stat && options.readOnly !== "ignore") {
+      const capabilities = await host(context, async () => await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+      if (capabilities?.permissions !== false && !(stat.mode & 0o222)) {
+        const refuse = options.readOnly === "fail";
+        await status(`File ${name} is read-only; ${refuse ? "refusing to patch" : "trying to patch anyway"}\n`);
+        if (refuse) {
+          if (options.atomic) throw new ToolError(`read-only target: ${name}`, 1);
+          const destination = rejectName(name, paths);
+          const rejectPath = options.dryRun || destination === undefined ? undefined : resolvePath(context.cwd, destination);
+          if (rejectPath !== undefined) {
+            await authorizeOutputs([rejectPath], targets, paths.input, budget);
+            if (backupPaths.has(rejectPath)) throw new ToolError("reject path aliases another section's backup");
+            const patch = options.reverse ? reversePatch(sourcePatch) : sourcePatch;
+            const outcomes = patch.hunks.map((hunk, index) => ({ hunk, index: index + 1, failed: true, misordered: false,
+              line: hunk.oldStart, outputOffset: 0, offset: 0, fuzz: 0 }));
+            const reject = await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat);
+            const original = await budget.read(path);
+            publishing = true;
+            await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects);
+            committed++;
+            publishing = false;
+            rejectPaths.add(rejectPath);
+          }
+          await status(`${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} ${sourcePatch.hunks.length === 1 ? "hunk" : "hunks"} ignored${rejectPath === undefined ? "" : ` -- saving rejects to file ${destination}`}\n`);
+          exitCode = 1; return;
+        }
+      }
+    }
     const exists = prior ? !prior.remove : stat !== undefined;
     const original = prior ? prior.original : stat ? await budget.read(path) : undefined;
     const current = prior ? prior.remove ? "" : prior.result : original ?? "";
+    if (options.posix && !exists) {
+      await status(`No file to patch.  Skipping patch.\n${sourcePatch.hunks.length} out of ${sourcePatch.hunks.length} hunks ignored\n`);
+      exitCode = 1;
+      return;
+    }
     const applied = await applyContent(sourcePatch, current, exists, options, budget);
     if (!applied) {
       if (options.atomic) throw new ToolError(`patch target does not exist: ${path}`, 1);
@@ -306,34 +373,57 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const backup = !options.dryRun && (options.alwaysBackup || options.backup && mismatch) && !touched.has(path) ? original ?? "" : undefined;
     const backupPath = backup === undefined ? prior?.backupPath : await backupName(path, budget, options);
     const rejectDestination = rejectName(name, paths);
-    const rejectPath = !options.dryRun && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
-    const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget);
+    const rejectPath = !options.dryRun && !options.merge && failed.length && rejectDestination !== undefined ? resolvePath(context.cwd, rejectDestination) : undefined;
+    const rejected = rejectPath === undefined ? undefined : await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, reversed, budget, options.rejectFormat);
     await authorizeOutputs([outputPath, backupPath, rejectPath], targets, paths.input, budget);
     if ((backupPath !== undefined && rejectPaths.has(backupPath)) || (rejectPath !== undefined && backupPaths.has(rejectPath))) {
       throw new ToolError("reject path aliases another section's backup");
     }
     if (backupPath !== undefined) backupPaths.add(backupPath);
     if (rejectPath !== undefined) rejectPaths.add(rejectPath);
-    const remove = outputPath === undefined && result === "" && (deletion || options.removeEmpty);
+    const remove = !options.posix && options.ifdef === undefined && outputPath === undefined && result === "" && (deletion || options.removeEmpty);
     const outputPrior = outputPath === undefined ? undefined : staged.get(outputPath);
     const outputOriginal = outputPath === undefined ? original : outputPrior ? outputPrior.original : await inspect(budget, outputPath) ? await budget.read(outputPath) : undefined;
     if (outputPath !== undefined) outputContents += result;
+    let mtimeMs: number | undefined;
+    let timeMessage = "";
+    if (options.setTime) {
+      const oldTime = patchTimestamp(reversed ? sourcePatch.newHeader : sourcePatch.oldHeader, options.setTime);
+      const newTime = patchTimestamp(reversed ? sourcePatch.oldHeader : sourcePatch.newHeader, options.setTime);
+      if (newTime !== undefined) {
+        if (!options.force && stat && oldTime !== undefined && oldTime !== stat.mtimeMs) timeMessage = `Not setting time of file ${name} (time mismatch)\n`;
+        else if (!options.force && mismatch) timeMessage = `Not setting time of file ${name} (contents mismatch)\n`;
+        else {
+          if (!options.dryRun && !context.fs.utimes) throw new ToolError("filesystem does not support setting timestamps");
+          mtimeMs = newTime;
+        }
+      }
+    }
     const item: Prepared = { path: outputPath ?? path, original: outputOriginal, result: outputPath === undefined ? result : outputContents, remove,
       ...(outputPath === undefined ? {} : { sourcePath: path, ...(original === undefined ? {} : { sourceOriginal: original }) }),
       ...(backup === undefined ? prior?.backup === undefined ? {} : { backup: prior.backup } : { backup }),
       ...(backupPath === undefined ? {} : { backupPath }),
       ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
+      ...(mtimeMs === undefined ? {} : { mtimeMs }),
       ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd) : [] };
-    let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? name : `${output} (read from ${name})`}\n`;
+    const displayName = quotePatchName(name, options.quotingStyle);
+    let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
+    if (options.verbose) {
+      const format = sourcePatch.format ?? "unified";
+      const headers = sourcePatch.oldHeader === undefined ? "" : `|${format === "context" ? "***" : "---"} ${sourcePatch.oldHeader}\n|${format === "context" ? "---" : "+++"} ${sourcePatch.newHeader}\n`;
+      message = `Hmm...  Looks like a ${format} diff to me...\nThe text leading up to this was:\n--------------------------\n${headers}--------------------------\n` + message;
+    }
     if (autoReversed) message += "Reversed (or previously applied) patch detected!  Assuming -R.\n";
     for (const outcome of outcomes) {
       if (outcome.misordered) message += "misordered hunks! output would be garbled\n";
       if (options.quiet) continue;
-      if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
-      else if (outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
+      if (outcome.failed && options.merge) message += `Hunk #${outcome.index} NOT MERGED at ${outcome.mergeRange?.[0] ?? outcome.line}-${outcome.mergeRange?.[1] ?? outcome.line}.\n`;
+      else if (outcome.failed) message += `Hunk #${outcome.index} FAILED at ${outcome.line}.\n`;
+      else if (options.verbose || outcome.offset || outcome.fuzz) message += `Hunk #${outcome.index} succeeded at ${outcome.line}${outcome.fuzz ? ` with fuzz ${outcome.fuzz}` : ""}${outcome.offset ? ` (offset ${outcome.offset} ${outcome.offset === 1 ? "line" : "lines"})` : ""}.\n`;
     }
-    if (failed.length) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
+    if (failed.length && !options.merge) message += `${failed.length} out of ${outcomes.length} ${outcomes.length === 1 ? "hunk" : "hunks"} FAILED${options.dryRun || rejectPath === undefined ? "" : ` -- saving rejects to file ${rejectDestination}`}\n`;
     if (deletion && result !== "") message += `Not deleting file ${name} as content differs from patch\n`;
+    message += timeMessage;
     budget.output(result);
     if (backup !== undefined) budget.output(backup);
     await status(message);
@@ -341,8 +431,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (options.atomic) {
       staged.set(item.path, item);
       if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
-    }
-    else if (!options.dryRun) {
+    } else if (!options.dryRun) {
       publishing = true;
       await publish(item, budget, rejects);
       committed++;
@@ -372,9 +461,51 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
   }
   if (!options.dryRun) await pruneDirectories(parents, budget);
+  if (options.verbose) await status("done\n");
   if (options.atomic && (!options.quiet || messages.length)) await writeBytes(context.stdout, Buffer.from(messages.join("")), context.signal);
   if (progress?.error) throw progress.error;
   return exitCode;
 }
 
 export function patchCommand(options: DiffPatchOptions) { return definition("patch", options, run); }
+
+function patchTimestamp(header: string | undefined, zone: "local" | "utc"): number | undefined {
+  const separator = header?.indexOf("\t") ?? -1;
+  if (separator < 0) return undefined;
+  let text = header!.slice(separator + 1).trim();
+  const parts = text.split(" ").filter(Boolean);
+  if (zone === "utc" && parts.length === 2) text += " +0000";
+  const time = Date.parse(text);
+  return Number.isFinite(time) ? time : undefined;
+}
+
+async function replaceReadOnly(path: string, text: string, mode: number, budget: Budget): Promise<void> {
+  const context = budget.context;
+  const temporary = `${path}.patch-${globalThis.crypto.randomUUID()}`;
+  let owned = false;
+  let operation: Promise<void> | undefined;
+  let cleanupPromise: Promise<void> | undefined;
+  const cleanup = () => cleanupPromise ??= (async () => {
+    await operation?.catch(() => {});
+    if (owned) { await context.fs.rm(temporary); owned = false; }
+  })();
+  context.registerCleanup?.(cleanup);
+  operation = (async () => {
+    await host(context, () => context.fs.writeFile(temporary, Buffer.from(text), { flag: "wx", mode: 0o600, signal: context.signal }));
+    owned = true;
+    regular(await inspect(budget, path), path);
+    if (context.fs.chmod) await host(context, () => context.fs.chmod!(temporary, mode & 0o7777, { signal: context.signal }));
+    await host(context, () => context.fs.rename(temporary, path, { signal: context.signal }));
+    owned = false;
+  })();
+  try { await operation; } finally { await cleanup(); }
+}
+
+function quotePatchName(name: string, style = "shell"): string {
+  const safe = [...name].every(c => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-".includes(c));
+  if (style === "literal" || safe && !["shell-always", "shell-escape-always", "c", "locale", "clocale"].includes(style)) return name;
+  if (style === "c" || style === "clocale") return JSON.stringify(name);
+  if (style === "locale") return `‘${name}’`;
+  if (style === "escape") return JSON.stringify(name).slice(1, -1);
+  return `'${name.replaceAll("'", "'\\''")}'`;
+}

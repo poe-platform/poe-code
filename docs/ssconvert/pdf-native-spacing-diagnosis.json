@@ -1,0 +1,82 @@
+{
+  "scope": "Authenticated native PDF operator diagnosis of adjacent-column spacing; no painter parity claim",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "native": {
+    "runId": 35861302809,
+    "revision": "66a974db3450c6ac08ad9daf4ed1b125cd068b18",
+    "file": "print-column-data-slice.pdf",
+    "sha256": "dbb73575021642245fb64d491d8f5faaea09a8d273bb1ad08fcb2548091de956",
+    "fontSha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+  },
+  "glyphMetrics": [
+    {
+      "character": "c",
+      "nativePdfWidthInEm1000": 549.804688,
+      "fontkitAdvanceInEm1000": 549.8046875
+    },
+    {
+      "character": "e",
+      "nativePdfWidthInEm1000": 615.234375,
+      "fontkitAdvanceInEm1000": 615.234375
+    },
+    {
+      "character": "l",
+      "nativePdfWidthInEm1000": 277.832031,
+      "fontkitAdvanceInEm1000": 277.83203125
+    },
+    {
+      "character": "0",
+      "nativePdfWidthInEm1000": 636.230469,
+      "fontkitAdvanceInEm1000": 636.23046875
+    }
+  ],
+  "pages": [
+    {
+      "page": 1,
+      "decodedBodyText": "cell0cell1",
+      "bodyOperatorText": "7.5 0 0 -7.5 76.75 82.731201 Tm\n/f-1-0 1 Tf\n[(c)50(e)15(l)-22(l)-22(0)-4064(c)50(e)15(l)-22(l)-22(1)]TJ\nET\nQ",
+      "leadingPositionsCalculatedFromNativeOperators": [
+        76.75,
+        124.74950195500003
+      ],
+      "extractedNativeLeadingPositions": [
+        76.75,
+        124.749502
+      ],
+      "candidateLeadingPositions": [
+        76.75,
+        124.75
+      ],
+      "nativeSpacingDriftPoints": -0.0004980449999720804,
+      "calculationMatchesAllExtractedNativeLeadingCoordinatesExactly": true
+    },
+    {
+      "page": 2,
+      "decodedBodyText": "cell2cell3",
+      "bodyOperatorText": "7.5 0 0 -7.5 76.75 82.731201 Tm\n/f-1-0 1 Tf\n[(c)50(e)15(l)-22(l)-22(2)-4064(c)50(e)15(l)-22(l)-22(3)]TJ\nET\nQ",
+      "leadingPositionsCalculatedFromNativeOperators": [
+        76.75,
+        124.74950195500003
+      ],
+      "extractedNativeLeadingPositions": [
+        76.75,
+        124.749502
+      ],
+      "candidateLeadingPositions": [
+        76.75,
+        124.75
+      ],
+      "nativeSpacingDriftPoints": -0.0004980449999720804,
+      "calculationMatchesAllExtractedNativeLeadingCoordinatesExactly": true
+    }
+  ],
+  "conclusion": "The native body combines adjacent cells in one TJ run. Native PDF font widths equal the supplied font raw advances to six decimal places, while TJ positioning uses integer adjustments. Calculating the second cell start from the native widths and serialized TJ adjustments reproduces 124.749502 exactly at six decimals, accounting for both 0.000498pt leading-position differences. Candidate independent text objects place both second cells at 124.75pt. The remaining larger text-width and vertical/header differences are still open; these receipts do not prove a general Pango glyph metric, hinting or shaping algorithm.",
+  "checks": [
+    "Authenticated supplied font hash",
+    "Native PDF font widths equal fontkit raw glyph advances within serialization precision",
+    "Parsed native body operator text matches expected original cell sequence",
+    "All four calculated native leading positions equal extractor receipts at six decimals"
+  ],
+  "scriptSha256": "193d35149ca974b5ed27a7435986726042f7e68e08eae2a227cdc7278df5f497"
+}

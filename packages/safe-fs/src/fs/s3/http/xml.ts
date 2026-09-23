@@ -40,7 +40,10 @@ function decodeEntities(text: string): string {
   return result;
 }
 
-export function parseXml(bytes: Uint8Array): XmlNode {
+export function parseXml(bytes: Uint8Array, limits: { maxNodes?: number; maxDepth?: number } = {}): XmlNode {
+  for (const limit of [limits.maxNodes, limits.maxDepth]) {
+    if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError("XML limits must be positive safe integers");
+  }
   let xml: string;
   try { xml = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
   catch { return malformed("XML is not UTF-8"); }
@@ -124,7 +127,7 @@ export function parseXml(bytes: Uint8Array): XmlNode {
     const selfClosing = xml[position] === "/";
     if (selfClosing) position++;
     if (xml[position++] !== ">") malformed();
-    if (++nodes > 32_768 || stack.length >= 32) malformed("XML structure limit exceeded");
+    if (++nodes > (limits.maxNodes ?? Infinity) || stack.length >= (limits.maxDepth ?? Infinity)) malformed("XML structure limit exceeded");
     const node: XmlNode = { name: tag, text: "", children: [] };
     const parent = stack.at(-1);
     if (parent) parent.children.push(node);

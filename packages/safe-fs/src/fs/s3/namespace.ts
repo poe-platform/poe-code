@@ -31,8 +31,9 @@ interface Namespace {
   nodes: Record<string, NamespaceNode>;
 }
 
-function limit(value: number, maximum: number): number {
-  if (!Number.isSafeInteger(value) || value < 1 || value > maximum) throw new RangeError('Invalid S3 namespace limit');
+function limit(value: number | undefined): number {
+  if (value === undefined) return Infinity;
+  if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid S3 namespace limit');
   return value;
 }
 
@@ -40,13 +41,13 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
   const client = options.client;
   if (client?.capabilities?.conditionalPut !== true || client.capabilities.streamingRead !== true || !client.getObjectStream) throw new FsError('ENOTSUP', { message: 'S3 namespaces require verified conditional PUT and bounded streaming reads' });
   if (![options.bucket, options.key].every(value => typeof value === 'string' && value.length > 0 && !value.includes('\0'))) throw new TypeError('An explicit S3 bucket and manifest key are required');
-  const maxBytes = limit(options.maxBytes ?? 1048576, 67108864);
-  const maxEntries = limit(options.maxEntries ?? 1024, 65536);
-  const maxManifestBytes = limit(options.maxManifestBytes ?? 8388608, 268435456);
-  const maxAttempts = limit(options.maxAttempts ?? 8, 64);
-  const descriptorOptions = { ...options, maxFileBytes: options.maxFileBytes ?? maxBytes, maxOpenFiles: options.maxOpenFiles ?? 16 };
+  const maxBytes = limit(options.maxBytes);
+  const maxEntries = limit(options.maxEntries);
+  const maxManifestBytes = limit(options.maxManifestBytes);
+  const maxAttempts = limit(options.maxAttempts);
+  const descriptorOptions = options;
   for (const key of ['chunkBytes', 'maxStagedBytes', 'maxStagedPages', 'maxFileBytes', 'maxOpenFiles'] as const) {
-    if (descriptorOptions[key] !== undefined) limit(descriptorOptions[key], key === 'chunkBytes' ? 1048576 : Number.MAX_SAFE_INTEGER);
+    if (descriptorOptions[key] !== undefined) limit(descriptorOptions[key]);
   }
   const object = Object.freeze({ Bucket: options.bucket, Key: options.key });
   const scope = Object.freeze({});
@@ -92,7 +93,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
     forwarded.signal?.throwIfAborted();
     try {
       const response = await client.getObjectStream!(object, forwarded.signal ? { abortSignal: forwarded.signal } : {});
-      const body = await collectBytes(response.Body, { ...forwarded, maxBytes: maxManifestBytes });
+      const body = await collectBytes(response.Body, { ...forwarded, ...(maxManifestBytes === Infinity ? {} : { maxBytes: maxManifestBytes }) });
       if (typeof response.ETag !== 'string' || !response.ETag || response.ETag.startsWith('W/')) throw new FsError('EIO', { message: 'S3 namespace requires a strong object validator' });
       let decoded;
       try { decoded = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(body)); }
@@ -333,7 +334,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
       return version(node);
     },
     async publish(input, expectedRevision, source, forwarded) {
-      const bytes = await collectBytes(source, { ...forwarded, maxBytes });
+      const bytes = await collectBytes(source, { ...forwarded, ...(maxBytes === Infinity ? {} : { maxBytes: maxBytes }) });
       if (bytes.length !== forwarded.size) throw new FsError('EIO');
       const published = await mutate(forwarded, value => {
         const name = resolveName(value, input, true), node = value.nodes[name];

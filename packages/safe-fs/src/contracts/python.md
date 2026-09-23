@@ -14,8 +14,8 @@ wrapped using `open`, for shell-owned output accounting; the original filesystem
 still supplies path-specific capability admission. The service does not advertise
 the backing filesystem's capabilities as its own supported RPC surface.
 
-The defaults are 65,536 bytes per transfer, 256 simultaneous descriptors and
-65,536 entries per directory listing. `maxTransferBytes`, `maxOpenFiles`, and
+The transfer granularity defaults to 65,536 bytes. Simultaneous descriptors and
+directory listing entries are unlimited unless configured. `maxTransferBytes`, `maxOpenFiles`, and
 `maxDirectoryEntries` configure these admission bounds. Directory listing limits
 are forwarded to the backend; cancellation is checked when the listing returns,
 then an oversized reply is rejected with `EFBIG` before reaching the interpreter.

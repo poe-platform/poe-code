@@ -269,8 +269,8 @@ export function retainFileSystemCleanup(
   cleanupCallback: (view: RetainedFileSystemCleanupView) => void | PromiseLike<void>,
   options?: RetainedFileSystemCleanupOptions,
 ): () => Promise<void> {
-  const maximum = options?.maxOperations === undefined ? 256 : options.maxOperations;
-  if (!Number.isSafeInteger(maximum) || maximum < 0 || maximum > 4096) throw new RangeError("cleanup maxOperations must be an integer between 0 and 4096");
+  const maximum = options?.maxOperations ?? Infinity;
+  if (options?.maxOperations !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("cleanup maxOperations must be a nonnegative safe integer");
   if (typeof cleanupCallback !== "function") throw new TypeError("cleanup callback must be a function");
   const scope = originals.get(filesystem);
   scope?.signal.throwIfAborted();

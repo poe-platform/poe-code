@@ -132,9 +132,9 @@ export class S3FileSystem implements FileSystem {
     this.bucket = options.bucket;
     this.allowRename = options.allowNonAtomicRename ?? true;
     this.pageSize = validateLimit(options.pageSize ?? 1000, "pageSize", 1, 1000);
-    this.maxReadBytes = validateLimit(options.maxReadBytes ?? 64 * 1024 * 1024, "maxReadBytes", 0);
-    this.maxStreamBytes = validateLimit(options.maxStreamBytes ?? 5_000_000_000, "maxStreamBytes", 0, 5_000_000_000);
-    this.maxListEntries = validateLimit(options.maxListEntries ?? 100_000, "maxListEntries", 1);
+    this.maxReadBytes = options.maxReadBytes === undefined ? Infinity : validateLimit(options.maxReadBytes, "maxReadBytes", 0);
+    this.maxStreamBytes = options.maxStreamBytes === undefined ? Infinity : validateLimit(options.maxStreamBytes, "maxStreamBytes", 0);
+    this.maxListEntries = options.maxListEntries === undefined ? Infinity : validateLimit(options.maxListEntries, "maxListEntries", 1);
     this.capabilities = Object.freeze({
       open: false,
       read: true, stat: true, readdir: true, realpath: true, access: true,
@@ -380,7 +380,7 @@ export class S3FileSystem implements FileSystem {
   }
 
   private async body(output: S3GetOutput, path: string, options: ReadFileOptions): Promise<Uint8Array> {
-    const limit = Math.min(this.maxReadBytes, validateLimit(options.maxBytes ?? this.maxReadBytes, "maxBytes", 0));
+    const limit = Math.min(this.maxReadBytes, options.maxBytes === undefined ? this.maxReadBytes : validateLimit(options.maxBytes, "maxBytes", 0));
     return this.call("readFile", path, options, async () => {
       if (output.ContentLength !== undefined && output.ContentLength > limit) fail("EFBIG", "readFile", path);
       const body = output.Body;
@@ -390,7 +390,7 @@ export class S3FileSystem implements FileSystem {
         if (body.byteLength > limit) fail("EFBIG", "readFile", path);
         bytes = new Uint8Array(body);
       } else if (Symbol.asyncIterator in body) {
-        bytes = await collectBytes(body, { maxBytes: limit, ...(options.signal ? { signal: options.signal } : {}) });
+        bytes = await collectBytes(body, { ...(limit === Infinity ? {} : { maxBytes: limit }), ...(options.signal ? { signal: options.signal } : {}) });
       } else if ("transformToByteArray" in body) {
         const converted = await body.transformToByteArray();
         if (!(converted instanceof Uint8Array)) fail("EIO", "readFile", path, "transport body is not binary");
@@ -412,7 +412,7 @@ export class S3FileSystem implements FileSystem {
 
   async readFile(input: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     const path = this.path(input);
-    validateLimit(options.maxBytes ?? this.maxReadBytes, "maxBytes", 0);
+    if (options.maxBytes !== undefined) validateLimit(options.maxBytes, "maxBytes", 0);
     const info = await this.stat(input, options);
     if (info.type === "directory") fail("EISDIR", "readFile", path);
     if (info.size > Math.min(this.maxReadBytes, options.maxBytes ?? this.maxReadBytes)) fail("EFBIG", "readFile", path);
@@ -923,7 +923,7 @@ export class S3FileSystem implements FileSystem {
       const previous = current ? await this.body(current, path, options) : new Uint8Array();
       const limit = Math.min(this.maxReadBytes, this.maxStreamBytes);
       if (previous.length > limit) fail("EFBIG", "writeStream", path);
-      const bytes = await this.call("writeStream", path, options, () => collectBytes(source, { maxBytes: limit - previous.length, ...options }));
+      const bytes = await this.call("writeStream", path, options, () => collectBytes(source, { ...(limit === Infinity ? {} : { maxBytes: limit - previous.length }), ...options }));
       const body = new Uint8Array(previous.length + bytes.length);
       body.set(previous);
       body.set(bytes, previous.length);

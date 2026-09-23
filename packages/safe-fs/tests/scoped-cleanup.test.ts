@@ -189,18 +189,18 @@ test("cleanup maxOperations bounds admissions, including fire-and-forget calls",
   const none = retainFileSystemCleanup(backing, view => view.lstat("/").then(() => {}), { maxOperations: 0 });
   await assert.rejects(none(), { code: "EFBIG" });
   assert.equal(operations, 1);
-  for (const maxOperations of [-1, NaN, Infinity, 1.5, 4097, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => retainFileSystemCleanup(backing, () => {}, { maxOperations }), RangeError);
+  for (const maxOperations of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => retainFileSystemCleanup(backing, () => {}, { maxOperations }), RangeError);
 });
 
-test("cleanup defaults to 256 admitted operations", async () => {
+test("cleanup omits its operation quota by default", async () => {
   let operations = 0;
   const memory = new MemoryFileSystem();
   const backing = wrapped(memory, { async lstat(path, options) { operations++; return memory.lstat(path, options); } });
   const close = retainFileSystemCleanup(backing, async view => {
     for (let index = 0; index < 257; index++) await view.lstat("/");
   });
-  await assert.rejects(close(), { code: "EFBIG" });
-  assert.equal(operations, 256);
+  await close();
+  assert.equal(operations, 257);
 });
 
 test("callback settlement closes admission immediately but drains ignored pending operations", async () => {
@@ -275,14 +275,14 @@ test("cleanup never replaces the default charge with a no-op after cancellation"
   assert.equal(backingCalls, 0);
 });
 
-test("cleanup checks maximum before probing the backing or invoking a callback", async () => {
+test("cleanup validates limits before probing the backing or invoking a callback", async () => {
   const memory = new MemoryFileSystem();
   let inspected = 0;
   let called = 0;
   const backing = new Proxy(memory, { get() { inspected++; throw new Error("unexpected backing probe"); } });
-  assert.throws(() => retainFileSystemCleanup(backing, () => { called++; }, { maxOperations: 4097 }), RangeError);
+  assert.throws(() => retainFileSystemCleanup(backing, () => { called++; }, { maxOperations: Number.MAX_SAFE_INTEGER + 1 }), RangeError);
   assert.deepEqual([inspected, called], [0, 0]);
-  await retainFileSystemCleanup(memory, () => {}, { maxOperations: 4096 })();
+  await retainFileSystemCleanup(memory, () => {}, { maxOperations: 4097 })();
 });
 
 test("cleanup propagates the first ignored operation failure only after draining its peers", async () => {

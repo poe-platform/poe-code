@@ -50,7 +50,7 @@ async function scanUsedBytes(fs: FileSystem, limits: { maxScanEntries: number; m
     const directory = pending.pop();
     if (!directory) break;
     const signal = options?.signal;
-    const listing = fs.readdir(directory.path, { ...options, ...(signal ? { signal } : {}), maxEntries: remaining });
+    const listing = fs.readdir(directory.path, { ...options, ...(signal ? { signal } : {}), ...(remaining === Infinity ? {} : { maxEntries: remaining }) });
     const entries = await (retained ? namespaceMetadata(listing, signal) : listing);
     options?.signal?.throwIfAborted();
     const count = entries.length;
@@ -131,11 +131,11 @@ async function existingBytes(fs: FileSystem, path: string, options?: FsOptions):
 export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOptions): FileSystem {
   if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0) throw new RangeError("maxBytes must be a nonnegative safe integer");
   const scanLimits = {
-    maxScanEntries: options.maxScanEntries === undefined ? 4096 : options.maxScanEntries,
-    maxScanDepth: options.maxScanDepth === undefined ? 64 : options.maxScanDepth,
+    maxScanEntries: options.maxScanEntries ?? Infinity,
+    maxScanDepth: options.maxScanDepth ?? Infinity,
   };
-  for (const [name, value] of Object.entries(scanLimits)) {
-    if (!Number.isSafeInteger(value) || value < 0) throw new RangeError(`${name} must be a nonnegative safe integer`);
+  for (const [name, value] of Object.entries({ maxScanEntries: options.maxScanEntries, maxScanDepth: options.maxScanDepth })) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError(`${name} must be a nonnegative safe integer`);
   }
   let queue: Promise<unknown> = Promise.resolve();
   let reservedBytes = 0;

@@ -1172,5 +1172,5 @@ function stockRetainedResize(filesystem: MemoryFileSystem): boolean {
 }
 
 export function createMemoryFileSystem(options: MemoryFileSystemOptions | Readonly<Record<string, unknown>> = {}): MemoryFileSystem {
-  return new MemoryFileSystem(normalizeMemoryFileSystemLimits(options));
+  return new MemoryFileSystem(options);
 }

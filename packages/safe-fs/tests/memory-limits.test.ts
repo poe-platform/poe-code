@@ -13,9 +13,9 @@ function storage(filesystem: memory.MemoryFileSystem, name: string): Uint8Array 
   return root.entries.get(name)!.data;
 }
 
-test("Memory defaults are finite, frozen, and shared by constructor and factory", () => {
+test("Memory defaults are unlimited, frozen, and shared by constructor and factory", () => {
   assert.deepEqual(memory.defaultMemoryFileSystemLimits, {
-    maxFileBytes: 16 * 1024 * 1024, maxRetainedBytes: 64 * 1024 * 1024, maxMetadataUnits: 10_000,
+    maxFileBytes: Infinity, maxRetainedBytes: Infinity, maxMetadataUnits: Infinity,
   });
   assert.ok(Object.isFrozen(memory.defaultMemoryFileSystemLimits));
   for (const filesystem of [new memory.MemoryFileSystem(), memory.createMemoryFileSystem()]) {

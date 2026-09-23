@@ -4,7 +4,7 @@ import { finishCleanup } from "./cleanup.js";
 export type ByteSource = AsyncIterable<Uint8Array>;
 
 export interface CollectOptions {
-  readonly maxBytes: number;
+  readonly maxBytes?: number;
   readonly signal?: AbortSignal;
 }
 
@@ -19,14 +19,14 @@ export function toByteSource(input: string | Uint8Array): ByteSource {
 }
 
 export async function collectBytes(source: ByteSource, options: CollectOptions): Promise<Uint8Array> {
-  if (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0) {
+  if (options.maxBytes !== undefined && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes < 0)) {
     throw new RangeError("maxBytes must be a nonnegative safe integer");
   }
   const chunks: Uint8Array[] = [];
   let size = 0;
   options.signal?.throwIfAborted();
   for await (const chunk of readBytes(source, options.signal)) {
-    if (chunk.byteLength > options.maxBytes - size) {
+    if (chunk.byteLength > (options.maxBytes ?? Infinity) - size) {
       throw new FsError("EFBIG", { syscall: "collectBytes", message: "output exceeds maxBytes" });
     }
     if (chunk.byteLength > 0) chunks.push(new Uint8Array(chunk));

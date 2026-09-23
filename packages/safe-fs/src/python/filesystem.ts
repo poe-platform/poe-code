@@ -49,9 +49,9 @@ export class PythonFileSystem {
     if (!options.cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "python filesystem", path: options.cwd, message: "cwd must be absolute" });
     this.#cwd = options.cwd;
     this.#transfer = options.maxTransferBytes ?? 65536;
-    this.#limit = options.maxOpenFiles ?? 256;
-    this.#directoryLimit = options.maxDirectoryEntries ?? 65536;
-    for (const limit of [this.#transfer, this.#limit, this.#directoryLimit]) if (!Number.isSafeInteger(limit) || limit < 1) throw new FsError("EINVAL", { syscall: "python filesystem" });
+    this.#limit = options.maxOpenFiles ?? Infinity;
+    this.#directoryLimit = options.maxDirectoryEntries ?? Infinity;
+    for (const limit of [this.#transfer, options.maxOpenFiles, options.maxDirectoryEntries]) if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new FsError("EINVAL", { syscall: "python filesystem" });
     this.#open = options.open;
     this.#scope = composeAbortSignals([...(options.signal === undefined ? [] : [options.signal]), this.#abort.signal]);
   }
@@ -156,7 +156,7 @@ export class PythonFileSystem {
       case "realpath": return fs.realpath(this.#path(request.args[0]), options);
       case "readdir": {
         const path = this.#path(request.args[0]);
-        const entries = await fs.readdir(path, { ...options, maxEntries: this.#directoryLimit });
+        const entries = await fs.readdir(path, { ...options, ...(this.#directoryLimit === Infinity ? {} : { maxEntries: this.#directoryLimit }) });
         signal.throwIfAborted();
         if (entries.length > this.#directoryLimit) throw new FsError("EFBIG", { syscall: "readdir", path, message: "Python directory listing exceeds configured limit" });
         return entries;

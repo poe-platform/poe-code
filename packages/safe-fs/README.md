@@ -83,7 +83,7 @@ writes when the host supplies `store.createStaging`: private externally backed
 pages keep working memory bounded without publishing the growing file after
 every write. Conditional publication still occurs at sync/close, and retained
 readers keep their old versions. Without that optional backend primitive, the
-default 8 MiB dirty-page budget still limits unflushed output. See the
+optional dirty-page budget limits unflushed output only when configured. See the
 [object descriptor and spill contract](src/contracts/object-publication.md) for
 backend methods, failure semantics and qualification; no provider storage is
 configured automatically.
@@ -226,12 +226,12 @@ There are no package environment variables, implicit credentials, or automatic `
 
 | API | Options and defaults |
 | --- | --- |
-| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts no options; built-in `real` requires `root`. |
+| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts optional file, retained-byte, metadata and total-byte quotas; built-in `real` requires `root`. |
 | `createNodeFileSystemAdapterRegistry(extensions?)` | Optional map of additional adapter descriptors; defaults to only `memory` and `real`. |
-| Memory / read-only | Memory takes no options. Read-only takes the backing filesystem, without an options object. |
+| Memory / read-only | Memory accepts independent optional `maxFileBytes`, `maxRetainedBytes`, `maxMetadataUnits` and `maxBytes` quotas, all unlimited by default. Read-only takes the backing filesystem, without an options object. |
 | Real | Required `root`: existing absolute host directory; the constructor/factory also accepts the root string directly. |
 | Mount | Required `root`: fallback filesystem. `mounts` defaults to `{}` and maps absolute virtual paths to filesystems. |
-| Overlay | Required `upper` and `lower`; `maxBufferBytes` defaults to 64 MiB. |
+| Overlay | Required `upper` and `lower`; `maxBufferBytes` is unlimited unless configured. |
 | Quota | `withFileSystemQuota` requires a nonnegative safe-integer `maxBytes`. It serializes mutations and counts files, symlinks, copies, hard links, truncation, and streaming writes. |
 | Node bridge | `cwd` defaults to `/`, must be an absolute virtual path; optional lifetime `signal`. |
 | Portable bridge | Same `cwd` and `signal`, plus required `codec` with `isEncoding`, `encode`, and `decode` functions. |
@@ -268,9 +268,9 @@ For in-memory S3 simulations, `new MockS3Client({ buckets, pageSize?, now?, auth
 | `readOnly` | `false` |
 | `allowNonAtomicRename` | `true`; rename copies then deletes, without rollback guarantees |
 | `pageSize` | 1,000; range 1–1,000 |
-| `maxReadBytes` | 64 MiB |
-| `maxStreamBytes` | 5,000,000,000 bytes; also the maximum accepted value |
-| `maxListEntries` | 100,000 |
+| `maxReadBytes` | Unlimited unless configured |
+| `maxStreamBytes` | Unlimited unless configured |
+| `maxListEntries` | Unlimited unless configured |
 | `compareEntry` | Optional trusted backing-identity callback |
 
 `createS3HttpTransport` requires `endpoint` (an origin without path or credentials), `region`, and `credentials`. Credentials contain `accessKeyId`, `secretAccessKey`, and optional `sessionToken`, or come from an async provider receiving `{ signal }`.
@@ -280,9 +280,9 @@ For in-memory S3 simulations, `new MockS3Client({ buckets, pageSize?, now?, auth
 | `addressingStyle` | `path`; alternative `virtual-hosted` requires a DNS endpoint |
 | `listUrlEncoding` | `percent`; alternative `form` |
 | `allowInsecureHttp` | `false`; HTTPS required unless explicitly enabled |
-| `maxPutBytes`, `maxGetBytes` | 64 MiB each |
-| `maxXmlBytes` | 4 MiB; maximum 16 MiB |
-| `requestTimeoutMs` | 30,000 |
+| `maxPutBytes`, `maxGetBytes` | Unlimited unless configured |
+| `maxXmlBytes` | Unlimited unless configured |
+| `requestTimeoutMs` | Unlimited unless configured |
 | `enableCopy` | `true`; disabling uses a buffered GET/PUT fallback |
 | `verifiedConditionalOperations` | Optional `put`, `copy`, `delete` booleans, each defaulting to false; enable only after verifying the server's semantics |
 | `clock` | Current date/time function, used for signing |
@@ -299,10 +299,10 @@ For in-memory S3 simulations, `new MockS3Client({ buckets, pageSize?, now?, auth
 | --- | --- |
 | `headers` | Empty; explicit authentication/custom headers. Protocol-reserved headers are rejected; authorization and cookies require HTTPS. |
 | `requestStreamSupport` | `native` for global Fetch, otherwise false; accepts `native` or a boolean declaration for the injected transport |
-| `maxResponseBytes` | 64 MiB |
-| `maxXmlBytes` | 2 MiB |
-| `maxEntries` | 10,000 |
-| `timeoutMs` | 30,000 |
+| `maxResponseBytes` | Unlimited unless configured |
+| `maxXmlBytes` | Unlimited unless configured |
+| `maxEntries` | Unlimited unless configured |
+| `timeoutMs` | Unlimited unless configured |
 | `overwritePolicy` | `lock`; alternative `etag` uses conditional overwrites |
 | `atomicEmptyDirectory` | Optional trusted binding with the canonical `namespaceUrl` and `removeEmptyDirectory` callback; required for strict empty-only `rmdir` |
 | `compareEntry` | Optional trusted backing-identity callback on Node; unavailable under browser policy |

@@ -45,7 +45,7 @@ export interface WebDavFileSystemOptions {
   readonly maxResponseBytes?: number;
   readonly maxXmlBytes?: number;
   readonly maxEntries?: number;
-  /** Per-request and aggregate stat/write-preflight walk timeout; defaults to 30,000 ms. */
+  /** Per-request and aggregate stat/write-preflight walk timeout; unlimited unless configured. */
   readonly timeoutMs?: number;
   readonly overwritePolicy?: "lock" | "etag";
   readonly atomicEmptyDirectory?: WebDavAtomicEmptyDirectoryBinding;
@@ -75,9 +75,9 @@ function positive(value: number, name: string, zero = false): number {
   return value;
 }
 
-function createRequestTimeout(timeoutMs: number): AbortSignalScope {
+function createRequestTimeout(timeoutMs: number | undefined): AbortSignalScope {
   const controller = new AbortController();
-  const timer = setTimeout(() => {
+  const timer = timeoutMs === undefined ? undefined : setTimeout(() => {
     controller.abort(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
   }, timeoutMs);
   if (typeof timer === "object" && timer !== null) {
@@ -207,7 +207,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly maxResponseBytes: number;
   private readonly maxXmlBytes: number;
   private readonly maxEntries: number;
-  private readonly timeoutMs: number;
+  private readonly timeoutMs: number | undefined;
   private readonly walkDeadlines = new WeakMap<FsOptions, { deadline?: AbortSignalScope }>();
   private readonly overwritePolicy: "lock" | "etag";
   private readonly configuredComparison: boolean;
@@ -258,14 +258,14 @@ export class WebDavFileSystem implements FileSystem {
       removeDirectory: this.atomicEmptyDirectory !== undefined,
       streamingAppend: this.requestStreamSupport !== false,
     });
-    this.maxResponseBytes = positive(options.maxResponseBytes ?? 64 * 1024 * 1024, "maxResponseBytes");
-    this.maxXmlBytes = positive(options.maxXmlBytes ?? 2 * 1024 * 1024, "maxXmlBytes");
-    this.maxEntries = positive(options.maxEntries ?? 10_000, "maxEntries");
-    this.timeoutMs = positive(options.timeoutMs ?? 30_000, "timeoutMs");
+    this.maxResponseBytes = options.maxResponseBytes === undefined ? Infinity : positive(options.maxResponseBytes, "maxResponseBytes");
+    this.maxXmlBytes = options.maxXmlBytes === undefined ? Infinity : positive(options.maxXmlBytes, "maxXmlBytes");
+    this.maxEntries = options.maxEntries === undefined ? Infinity : positive(options.maxEntries, "maxEntries");
+    this.timeoutMs = options.timeoutMs === undefined ? undefined : positive(options.timeoutMs, "timeoutMs");
     this.overwritePolicy = options.overwritePolicy ?? "lock";
     this.configuredComparison = options.compareEntry !== undefined;
     if (!["lock", "etag"].includes(this.overwritePolicy)) throw new FsError("EINVAL", { message: "invalid overwritePolicy" });
-    if (this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
+    if (this.timeoutMs !== undefined && this.timeoutMs > 2_147_483_647) throw new FsError("EINVAL", { message: "timeoutMs exceeds timer range" });
     registerResourceQuery(this, (path, settings) => this.resourceId(path, settings), originalWebDavComparison, options.compareEntry);
     registerEntryAuthority(this, compareWebDavResources);
   }
@@ -502,7 +502,7 @@ export class WebDavFileSystem implements FileSystem {
       fail("ENOTSUP", method, path, "paginated WebDAV responses are unsupported");
     }
     let root: XmlElement;
-    try { root = await this.xml(response, signal, this.maxEntries); }
+    try { root = await this.xml(response, signal, this.maxEntries === Infinity ? undefined : this.maxEntries); }
     catch (error) {
       if (error instanceof XmlResponseLimitError) fail("EFBIG", method, path, "response exceeds entry limit");
       throw error;
@@ -738,7 +738,7 @@ export class WebDavFileSystem implements FileSystem {
 
   async readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     const normalized = normalize(path);
-    const limit = Math.min(this.maxResponseBytes, positive(options.maxBytes ?? this.maxResponseBytes, "maxBytes", true));
+    const limit = Math.min(this.maxResponseBytes, options.maxBytes === undefined ? this.maxResponseBytes : positive(options.maxBytes, "maxBytes", true));
     if ((await this.stat(path, options)).type === "directory") fail("EISDIR", "readFile", path);
     return this.request("GET", normalized, options, { headers: { "Accept-Encoding": "identity" } }, async (response, signal) => {
       if (response.status !== 200) this.httpError(response.status, "GET", path);

@@ -10,9 +10,9 @@ export interface MemoryFileSystemLimits {
 export type MemoryFileSystemOptions = Partial<MemoryFileSystemLimits>;
 
 export const defaultMemoryFileSystemLimits: Readonly<MemoryFileSystemLimits> = Object.freeze({
-  maxFileBytes: 16 * 1024 * 1024,
-  maxRetainedBytes: 64 * 1024 * 1024,
-  maxMetadataUnits: 10_000,
+  maxFileBytes: Infinity,
+  maxRetainedBytes: Infinity,
+  maxMetadataUnits: Infinity,
 });
 
 export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<MemoryFileSystemLimits> {
@@ -26,7 +26,8 @@ export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<Memo
     limits.maxBytes = record.maxBytes;
   }
   for (const key of keys) {
-    const value = Object.hasOwn(record, key) ? record[key] : limits[key];
+    if (!Object.hasOwn(record, key)) continue;
+    const value = record[key];
     if (typeof value !== "number" || !Number.isSafeInteger(value) || value < (key === "maxMetadataUnits" ? 1 : 0)) {
       throw new RangeError(`${key} must be a ${key === "maxMetadataUnits" ? "positive" : "nonnegative"} safe integer`);
     }

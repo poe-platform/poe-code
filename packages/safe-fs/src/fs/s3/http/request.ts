@@ -10,12 +10,12 @@ export interface RequestScope {
   readonly finish: () => void;
 }
 
-export function scopeFor(signal: AbortSignal | undefined, timeout: number): RequestScope {
+export function scopeFor(signal: AbortSignal | undefined, timeout: number | undefined): RequestScope {
   const controller = new AbortController();
   const abort = (): void => controller.abort(signal?.reason);
   signal?.addEventListener("abort", abort, { once: true });
   if (signal?.aborted) abort();
-  const timer = setTimeout(() => controller.abort(new S3ServiceError("RequestTimeout", 408)), timeout);
+  const timer = timeout === undefined ? undefined : setTimeout(() => controller.abort(new S3ServiceError("RequestTimeout", 408)), timeout);
   return {
     signal: controller.signal,
     finish: () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); },

@@ -769,9 +769,7 @@ export class MountFileSystem implements FileSystem {
         catch (error) { failed = true; throw error; }
         finally { await finishCleanup(() => source.return(undefined), failed); }
       } else {
-        const maxBytes = 64 * 1024 * 1024;
-        const data = await reader.readFile(origin.local, { ...options, maxBytes });
-        if (data.byteLength > maxBytes) fail("EFBIG");
+        const data = await reader.readFile(origin.local, options);
         options.signal?.throwIfAborted();
         await writer.writeFile(target.local, data, writeOptions);
       }

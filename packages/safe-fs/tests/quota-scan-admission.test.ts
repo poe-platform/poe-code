@@ -16,7 +16,7 @@ for (const name of ["maxScanEntries", "maxScanDepth"] as const) {
   }
 }
 
-test("quota forwards the default entry allowance on an empty census", async () => {
+test("quota does not enable a listing quota when only bytes are configured", async () => {
   const raw = createMemoryFileSystem();
   const readdir = raw.readdir.bind(raw);
   const signal = new AbortController().signal;
@@ -27,7 +27,7 @@ test("quota forwards the default entry allowance on an empty census", async () =
     return readdir(path, options);
   };
   await withFileSystemQuota(raw, { maxBytes: 1 }).writeFile("/a", bytes("a"), { signal });
-  assert.deepEqual(allowances, [4096]);
+  assert.deepEqual(allowances, [undefined]);
 });
 
 test("quota admits zero entry/depth limits for an empty census, not a namespace maximum", async () => {

@@ -117,7 +117,7 @@ test('S3 namespace write flags retain exclusive-create and append semantics', as
 });
 
 test('S3 namespace refuses invalid descriptor configuration before initialization effects', async () => {
-  for (const invalid of [{ maxOpenFiles: 0 }, { maxFileBytes: 0 }, { chunkBytes: 1048577 }, { maxStagedBytes: 0 }, { maxStagedPages: 0 }]) {
+  for (const invalid of [{ maxOpenFiles: 0 }, { maxFileBytes: 0 }, { chunkBytes: Number.MAX_SAFE_INTEGER + 1 }, { maxStagedBytes: 0 }, { maxStagedPages: 0 }]) {
     const client = new MockS3Client({ buckets: ['owned'] });
     await assert.rejects(createS3NamespaceFileSystem({ ...options, client, ...invalid }));
     assert.equal(client.requests.length, 0);

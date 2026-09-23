@@ -41,18 +41,18 @@ No product environment variables are read. All options are explicit:
 | `client` | Required S3 transport, including explicit authentication and endpoint policy. |
 | `bucket` | Required nonempty bucket name. |
 | `key` | Required nonempty dedicated manifest object key. |
-| `maxBytes` | 1 MiB; total committed file bytes, positive integer up to 64 MiB. |
-| `maxEntries` | 1,024; total files/directories including root, positive integer up to 65,536. |
-| `maxManifestBytes` | 8 MiB; bounded serialized reads and writes, positive integer up to 256 MiB. A conservative encoding bound is admitted before JSON allocation, so this can reject a namespace before its content-byte limit is exhausted. |
-| `maxAttempts` | 8; conditional commit attempts, positive integer up to 64. Exhaustion returns `EAGAIN`, never an unconditional overwrite. |
-| `maxOpenFiles` | 16; shared immutable descriptor admission for this adapter instance. |
-| `maxFileBytes` | `maxBytes`; descriptor file-size ceiling, also subject to namespace limits. |
-| `chunkBytes` | 65,536; descriptor staging page size, positive integer up to 1 MiB. |
-| `maxStagedBytes` | 8 MiB; shared descriptor dirty-page budget. |
-| `maxStagedPages` | 4,096; descriptor staging page-count bound. |
+| `maxBytes` | Unlimited; optional positive safe integer for committed file-content bytes. |
+| `maxEntries` | Unlimited; optional positive safe integer for committed nodes including root. |
+| `maxManifestBytes` | Unlimited; optional positive safe integer for serialized reads and writes. A conservative encoding bound is admitted before JSON allocation. |
+| `maxAttempts` | Unlimited; optional positive safe integer for conditional commit attempts. Exhaustion returns `EAGAIN`, never an unconditional overwrite. |
+| `maxOpenFiles` | Unlimited; shared immutable descriptor admission for this adapter instance. |
+| `maxFileBytes` | Unlimited; independent descriptor file-size ceiling, also subject to an explicit namespace byte quota. |
+| `chunkBytes` | 65,536; descriptor staging page size, positive safe integer. |
+| `maxStagedBytes` | Unlimited; shared descriptor dirty-page budget. |
+| `maxStagedPages` | Unlimited; descriptor staging page-count bound. |
 
 The latter five options use the existing object-file-descriptor contract;
-integer bounds are validated before initialization. Namespace limits count
+supplied integer bounds are validated before initialization. Namespace limits count
 committed bytes/entries, not total process RSS. Reads, encoding and immutable
 descriptor snapshots also consume bounded host memory. Every mutation reads and
 conditionally replaces the manifest: this is intended for bounded workspaces,

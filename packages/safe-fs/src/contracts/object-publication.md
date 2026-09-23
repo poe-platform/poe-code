@@ -129,15 +129,15 @@ POSIX unlink visibility guarantees are added.
 
 ## Configuration
 
-All limits are positive safe integers, shared by handles from one adapter:
+All supplied limits are positive safe integers; omitted quotas are unlimited, shared by handles from one adapter:
 
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `chunkBytes` | 65,536 | Range/publication chunk and dirty-page size; maximum 1,048,576 |
-| `maxStagedBytes` | 8,388,608 | Aggregate dirty-page payload without spill; active page workspace with spill |
-| `maxStagedPages` | 4,096 | Aggregate dirty-page metadata without spill; active page count with spill |
-| `maxFileBytes` | 268,435,456 | Maximum logical acquired/generated file size |
-| `maxOpenFiles` | 64 | Handles, including acquisitions/retirements in progress |
+| `chunkBytes` | 65,536 | Range/publication chunk and dirty-page size |
+| `maxStagedBytes` | Unlimited | Aggregate dirty-page payload without spill; active page workspace with spill |
+| `maxStagedPages` | Unlimited | Aggregate dirty-page metadata without spill; active page count with spill |
+| `maxFileBytes` | Unlimited | Maximum logical acquired/generated file size |
+| `maxOpenFiles` | Unlimited | Handles, including acquisitions/retirements in progress |
 
 No environment variables are read. Without `createStaging`, exhaustion still
 rejects `ENOSPC`; adding descriptors alone does not make large writes fit an

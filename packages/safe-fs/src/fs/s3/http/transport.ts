@@ -10,8 +10,9 @@ import { children, integer, malformed, parseXml, text, timestamp } from "./xml.j
 
 const empty = new Uint8Array();
 
-function limit(value: number | undefined, fallback: number, name: string, maximum = 1024 * 1024 * 1024): number {
-  const result = value ?? fallback;
+function limit(value: number | undefined, fallback: number, name: string, maximum = Number.MAX_SAFE_INTEGER): number {
+  if (value === undefined) return fallback;
+  const result = value;
   if (!Number.isSafeInteger(result) || result < 1 || result > maximum) invalid(`invalid ${name}`);
   return result;
 }
@@ -138,10 +139,10 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
   const listEncoding = options.listUrlEncoding ?? "percent";
   if (listEncoding !== "percent" && listEncoding !== "form") invalid("unsupported LIST URL encoding");
   if (addressing === "virtual-hosted" && (isIP(endpoint.hostname.replace(/^\[|\]$/g, "")) || endpoint.hostname === "localhost")) invalid("virtual-hosted addressing requires a DNS endpoint");
-  const maxPut = limit(options.maxPutBytes, 64 * 1024 * 1024, "maxPutBytes");
-  const maxGet = limit(options.maxGetBytes, 64 * 1024 * 1024, "maxGetBytes");
-  const maxXml = limit(options.maxXmlBytes, 4 * 1024 * 1024, "maxXmlBytes", 16 * 1024 * 1024);
-  const timeout = limit(options.requestTimeoutMs, 30_000, "requestTimeoutMs", 2_147_483_647);
+  const maxPut = limit(options.maxPutBytes, Infinity, "maxPutBytes");
+  const maxGet = limit(options.maxGetBytes, Infinity, "maxGetBytes");
+  const maxXml = limit(options.maxXmlBytes, Infinity, "maxXmlBytes");
+  const timeout = options.requestTimeoutMs === undefined ? undefined : limit(options.requestTimeoutMs, 0, "requestTimeoutMs", 2_147_483_647);
   const enabledCopy = boolean(options.enableCopy, true, "enableCopy");
   const verified = options.verifiedConditionalOperations;
   const conditionalPut = boolean(verified?.put, false, "verifiedConditionalOperations.put");

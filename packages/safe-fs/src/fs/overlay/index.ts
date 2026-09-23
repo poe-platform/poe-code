@@ -131,8 +131,8 @@ export class OverlayFileSystem implements FileSystem {
       const entry = await this.required(path, options);
       return { filesystem: entry.backend, path: entry.path, readOnly: this.capabilities.readOnly === true };
     }, false));
-    this.maxBufferBytes = options.maxBufferBytes ?? 64 * 1024 * 1024;
-    integer(this.maxBufferBytes, "/");
+    this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
+    if (options.maxBufferBytes !== undefined) integer(options.maxBufferBytes, "/");
     const writable = !this.#upper.capabilities.readOnly && this.#upper.capabilities.atomicRename === true;
     const readable = [this.#upper, this.#lower].map((backend) =>
       typeof backend.readStream === "function" ? backend.capabilities.streamingRead : false);
@@ -444,7 +444,7 @@ export class OverlayFileSystem implements FileSystem {
     if (options.maxBytes !== undefined) integer(options.maxBytes, entry.path);
     const limit = Math.min(options.maxBytes ?? this.maxBufferBytes, this.maxBufferBytes);
     if (entry.stat.size > limit) fail("EFBIG", entry.path);
-    const result = await entry.backend.readFile(entry.path, { ...options, maxBytes: limit });
+    const result = await entry.backend.readFile(entry.path, { ...options, ...(limit === Infinity ? {} : { maxBytes: limit }) });
     options.signal?.throwIfAborted();
     if (!(result instanceof Uint8Array)) fail("EIO", entry.path, "backend returned non-byte data");
     if (result.byteLength > limit) fail("EFBIG", entry.path);
@@ -865,7 +865,7 @@ export class OverlayFileSystem implements FileSystem {
       await this.replace({ path: entry.path, entry }, options, async (temporary) => {
         if (this.#upper.truncate) await this.#upper.truncate(temporary, length, options);
         else {
-          const previous = await this.#upper.readFile(temporary, { ...options, maxBytes: this.maxBufferBytes });
+          const previous = await this.#upper.readFile(temporary, { ...options, ...(this.maxBufferBytes === Infinity ? {} : { maxBytes: this.maxBufferBytes }) });
           const bytes = new Uint8Array(length);
           bytes.set(previous.subarray(0, length));
           await this.#upper.writeFile(temporary, bytes, options);
@@ -945,7 +945,7 @@ export class OverlayFileSystem implements FileSystem {
       });
       return;
     }
-    const bytes = await collectBytes(source, { maxBytes: this.maxBufferBytes, ...(options.signal ? { signal: options.signal } : {}) });
+    const bytes = await collectBytes(source, { ...(this.maxBufferBytes === Infinity ? {} : { maxBytes: this.maxBufferBytes }), ...(options.signal ? { signal: options.signal } : {}) });
     await this.writeFile(path, bytes, options);
   }
 }

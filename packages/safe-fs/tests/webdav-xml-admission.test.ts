@@ -12,19 +12,17 @@ function remote(xml: string, maxEntries = 10_000, maxXmlBytes = 2 * 1024 * 1024)
 
 describe("WebDAV XML allocation admission", () => {
   // The multistatus root and directory resource contain exactly eleven elements.
-  it.each([99_989, 99_990])("admits independent node boundary with %s ignored elements", async count => {
+  it.each([99_989, 99_990])("does not impose an implicit node boundary with %s ignored elements", async count => {
     const xml = multistatus(resource("/dav/", true), "<x/>".repeat(count));
     const result = remote(xml).stat("/");
-    if (count === 99_989) await expect(result).resolves.toMatchObject({ type: "directory" });
-    else await expect(result).rejects.toMatchObject({ code: "EIO", cause: { message: expect.stringContaining("XML resource limit") } });
+    await expect(result).resolves.toMatchObject({ type: "directory" });
   });
 
   // The root namespace declaration consumes one attribute; sibling scopes do not accumulate.
-  it.each([9_999, 10_000])("admits independent attribute boundary with %s ignored attributes", async count => {
+  it.each([9_999, 10_000])("does not impose an implicit attribute boundary with %s ignored attributes", async count => {
     const xml = multistatus(resource("/dav/", true), '<x a=""/>'.repeat(count));
     const result = remote(xml).stat("/");
-    if (count === 9_999) await expect(result).resolves.toMatchObject({ type: "directory" });
-    else await expect(result).rejects.toMatchObject({ code: "EIO", cause: { message: expect.stringContaining("XML attribute limit") } });
+    await expect(result).resolves.toMatchObject({ type: "directory" });
   });
 
   it("refuses the excess DAV response before parsing its malformed descendants", async () => {

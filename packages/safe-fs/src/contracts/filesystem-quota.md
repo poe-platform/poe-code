@@ -8,7 +8,7 @@ physical storage, allocated blocks, process memory, or cumulative write traffic.
 
 ## Census admission
 
-The optional `maxScanEntries` and `maxScanDepth` settings default to 4096 and 64.
+The optional `maxScanEntries` and `maxScanDepth` settings are unlimited unless explicitly configured.
 Both must be nonnegative safe integers; invalid values throw `RangeError` when
 the wrapper is created. Omission or `undefined` selects the default, not `null`.
 Scan settings are validated and captured once per wrapper. `maxBytes` retains

@@ -33,13 +33,13 @@ for (const xml of ["", "<root>", "<root></other>", "<a/><b/>", "text<root/>", "<
 }
 
 test("bounded nesting and node counts", () => {
-  assert.throws(() => parseXml("<r>".repeat(65) + "</r>".repeat(65)), /resource limit/);
+  assert.throws(() => parseXml("<r>".repeat(65) + "</r>".repeat(65), { maxDepth: 64 }), /resource limit/);
   assert.throws(() => parseXml("<root><a/><b/></root>", { maxNodes: 2 }), /resource limit/);
   assert.throws(() => parseXml("<root/>", { maxDepth: 0 }), RangeError);
   assert.throws(() => parseXml('<root first="1" second="2"/>', { maxAttributes: 1 }), /attribute limit/);
-  assert.throws(() => parseXml(`<root ${Array.from({ length: 129 }, (_, index) => `attr${index}="value"`).join(" ")}/>`), /attribute limit/);
+  assert.throws(() => parseXml(`<root ${Array.from({ length: 129 }, (_, index) => `attr${index}="value"`).join(" ")}/>`, { maxAttributesPerElement: 128 }), /attribute limit/);
   const declarations = (start: number, count: number): string => Array.from({ length: count }, (_, index) => `xmlns:prefix${start + index}="urn:${start + index}"`).join(" ");
-  assert.throws(() => parseXml(`<root ${declarations(0, 100)}><child ${declarations(100, 100)}><leaf ${declarations(200, 57)}/></child></root>`), /namespace scope limit/);
+  assert.throws(() => parseXml(`<root ${declarations(0, 100)}><child ${declarations(100, 100)}><leaf ${declarations(200, 57)}/></child></root>`, { maxNamespaces: 256 }), /namespace scope limit/);
 });
 
 test("namespace budget is scoped, not consumed by independent sibling declarations", () => {

@@ -183,21 +183,21 @@ function* validDeclaration(content: string, expectedEncoding: XmlLimits["expecte
 }
 
 export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator<number, XmlElement, void> {
-  const maxDepth = limits.maxDepth ?? 64;
-  const maxNodes = limits.maxNodes ?? 100_000;
-  const maxAttributes = limits.maxAttributes ?? 10_000;
+  const maxDepth = limits.maxDepth ?? Infinity;
+  const maxNodes = limits.maxNodes ?? Infinity;
+  const maxAttributes = limits.maxAttributes ?? Infinity;
   const retainContent = limits.retainContent !== false;
-  const maxContentNodes = limits.maxContentNodes ?? (retainContent ? 100_000 : maxNodes);
+  const maxContentNodes = limits.maxContentNodes ?? Infinity;
   const emptyContent: readonly XmlContent[] = Object.freeze([]);
   const emptyAttributes: readonly XmlAttribute[] = Object.freeze([]);
   const emptyNamespaces: ReadonlyMap<string, string> = new Map();
-  const maxAttributesPerElement = limits.maxAttributesPerElement ?? 128;
-  const maxNamespaces = limits.maxNamespaces ?? 256;
-  for (const limit of [maxDepth, maxNodes, maxAttributes, maxContentNodes, maxAttributesPerElement, maxNamespaces]) {
-    if (!Number.isSafeInteger(limit) || limit < 1) throw new RangeError("XML limits must be positive integers");
+  const maxAttributesPerElement = limits.maxAttributesPerElement ?? Infinity;
+  const maxNamespaces = limits.maxNamespaces ?? Infinity;
+  for (const limit of [limits.maxDepth, limits.maxNodes, limits.maxAttributes, limits.maxContentNodes, limits.maxAttributesPerElement, limits.maxNamespaces]) {
+    if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError("XML limits must be positive integers");
   }
-  const maxTextLength = limits.maxTextLength ?? Number.MAX_SAFE_INTEGER;
-  if (!Number.isSafeInteger(maxTextLength) || maxTextLength < 1) throw new RangeError("XML limits must be positive integers");
+  const maxTextLength = limits.maxTextLength ?? Infinity;
+  if (limits.maxTextLength !== undefined && (!Number.isSafeInteger(maxTextLength) || maxTextLength < 1)) throw new RangeError("XML limits must be positive integers");
   let textLength = 0;
   const admitText = (text: string): void => {
     if (text.length > maxTextLength - textLength) throw new XmlLimitError("maxTextLength", "XML text limit exceeded");

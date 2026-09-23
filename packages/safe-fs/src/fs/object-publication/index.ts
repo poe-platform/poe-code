@@ -63,12 +63,12 @@ interface ObjectFileState {
 export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectFilePublicationStore,
   options: ObjectFileDescriptorOptions = {}): FileSystem {
   const chunkBytes = options.chunkBytes ?? 65536;
-  const maxStagedBytes = options.maxStagedBytes ?? 8 * 1024 * 1024;
-  const maxStagedPages = options.maxStagedPages ?? 4096;
-  const maxFileBytes = options.maxFileBytes ?? 256 * 1024 * 1024;
-  const maxOpenFiles = options.maxOpenFiles ?? 64;
-  if (![chunkBytes, maxStagedBytes, maxStagedPages, maxFileBytes, maxOpenFiles].every(value => Number.isSafeInteger(value) && value > 0)
-    || chunkBytes > 1048576 || typeof store.acquire !== "function"
+  const maxStagedBytes = options.maxStagedBytes ?? Infinity;
+  const maxStagedPages = options.maxStagedPages ?? Infinity;
+  const maxFileBytes = options.maxFileBytes ?? Infinity;
+  const maxOpenFiles = options.maxOpenFiles ?? Infinity;
+  if (![chunkBytes, options.maxStagedBytes, options.maxStagedPages, options.maxFileBytes, options.maxOpenFiles].every(value => value === undefined || Number.isSafeInteger(value) && value > 0)
+    || typeof store.acquire !== "function"
     || store.publish !== undefined && typeof store.publish !== "function"
     || store.createStaging !== undefined && typeof store.createStaging !== "function") throw new TypeError("Invalid object descriptor configuration");
   const createStaging = store.createStaging?.bind(store);

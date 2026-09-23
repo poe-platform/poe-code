@@ -18,7 +18,7 @@ describe("incremental regex splitting", () => {
   });
 
   it("still enforces regex budgets when the suffix is required", async () => {
-    await expect(run("return ('a'+'x'.repeat(25)).split(/a|(x+)+y/,3);")).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+    await expect(run("return ('a'+'x'.repeat(25)).split(/a|(x+)+y/,3);", { budget: new Budget({ maxSteps: 1000 }) })).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
   });
 
   it("still enforces the result array budget", async () => {

@@ -13,6 +13,17 @@ gh auth status
 
 For non-interactive CI, provide a token for `gh`, for example `GH_TOKEN`, with access to the repository and the review operations being performed. The SDK does not parse token environment variables itself: authentication remains the responsibility of `gh` and its configured environment.
 
+In a managed agent session, check the effective network and approval policy before
+starting PR work. Authentication and workspace write access do not guarantee
+GitHub connectivity. Run a fresh `gh pr view PR_URL --json headRefOid,mergeable,statusCheckRollup`
+query to verify access to the current head, conflicts, and CI. If sandbox network
+access is blocked, request approval for that exact read-only query only when the
+active policy permits it; a reviewer denial leaves verification blocked. Preserve
+the transport error and denial instead of reporting cached data as current.
+The SDK cannot change the host policy or grant escalation. For the supported
+Codex approval path and host-policy recovery, see the
+[agent-spawn guidance](../agent-spawn/README.md#spawn-modes).
+
 ## Exports
 
 - `parseGitHubPullRequestRef(prUrl)` and `canonicalPullRequestUrl(prUrl)` parse pull request URLs.

@@ -61,6 +61,36 @@ command. This does not guarantee network access. Report a sandboxed transport
 failure separately; earlier approvals or cached PR status do not verify current
 access or readiness. Poe Code does not change the reviewer or automatically retry.
 
+Before starting GitHub PR work in a managed Codex session, check the active
+session's filesystem permissions, network permissions, approval policy, and
+approval reviewer. `workspace-write` describes filesystem access; it does not
+promise GitHub network access or permission to escalate. Poe Code's requested
+spawn mode cannot establish the effective policy imposed by the host. A working
+local `hey-boss` query likewise does not establish access to GitHub.
+
+Verify access with a fresh, read-only query inside the sandbox first:
+
+```sh
+gh pr view https://github.com/OWNER/REPO/pull/NUMBER \
+  --json headRefOid,mergeable,statusCheckRollup
+```
+
+If this fails because network access is restricted, and the active policy permits
+approval requests, ask Codex to run that exact query with
+`sandbox_permissions: "require_escalated"` and a justification such as
+`"Read current GitHub PR head, conflicts, and CI for the authorized verification."`
+The configured reviewer must approve the action before it runs. User authorization
+to monitor a PR does not override the managed network policy or a reviewer denial.
+
+If escalation is prohibited or rejected, preserve both the sandbox transport
+error and the approval denial, and report fresh PR verification as blocked.
+Do not treat cached `hey-gh` results as current verification or retry through a
+different transport to evade the denial. Ask the host administrator for a
+session/profile that permits the required GitHub metadata access, then repeat
+the fresh query there. Changing spawn arguments cannot repair an active session.
+See the official [Codex sandbox and approval guidance](https://developers.openai.com/codex/sandboxing)
+and [permission profile guidance](https://developers.openai.com/codex/permissions).
+
 If a separately launched Codex session fails before executing a command with
 `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`, the host rejected
 bubblewrap's network namespace initialization. Verify the compatibility path

@@ -71,6 +71,23 @@ function fixture(argv: readonly string[], input = "<p>X</p>") {
     text: () => output.map((b) => new TextDecoder().decode(b)).join("")
   };
 }
+test("pretty CLI and SDK preserve htmlq 0.5.0 spacing after block void elements", async () => {
+  for (const [input, expected] of [
+    ['<head><base href="/"><title>T</title></head>', '\n<html>\n  <head>\n    <base href="/">\n    \n    <title>\n      T\n    </title>\n  </head>\n  <body>\n  </body>\n</html>\n'],
+    ['<p>a<br>b</p>', '\n<html>\n  <head>\n  </head>\n  <body>\n    <p>\n      a\n      <br>\n      \n      b\n    </p>\n  </body>\n</html>\n'],
+    ['<p>a<img src="x">b</p>', '\n<html>\n  <head>\n  </head>\n  <body>\n    <p>\n      a<img src="x">b\n    </p>\n  </body>\n</html>\n']
+  ]) {
+    const cli = fixture(["html", "-p", "-f", "in"], input);
+    const sdk = fixture([], input);
+    assert.equal((await createHtmlqCommand().execute(cli.context)).exitCode, 0);
+    assert.equal((await htmlq(sdk.context, { selector: "html", pretty: true, filename: "in" })).exitCode, 0);
+    assert.equal(cli.text(), expected);
+    assert.deepEqual(cli.output, sdk.output);
+    assert.deepEqual(cli.errors, []);
+    assert.deepEqual(sdk.errors, []);
+    await Promise.all([...cli.cleanups, ...sdk.cleanups].map((fn) => fn()));
+  }
+});
 test("CLI and SDK share argv validation and projection, opt-in registration", async () => {
   const cli = fixture(["p", "-t"]),
     sdk = fixture([]);

@@ -97,7 +97,11 @@ function* pieces(
         }
         yield ">";
         if (n.namespace === "html" && voidElements.has(n.name)) {
-          if (mode === "pretty") { indent -= 2; previousWasBlock = !inlineElements.has(n.name); }
+          if (mode === "pretty") {
+            indent -= 2;
+            previousWasBlock = !inlineElements.has(n.name);
+            if (previousWasBlock) yield "\n" + " ".repeat(indent);
+          }
           stack.pop();
           continue;
         }

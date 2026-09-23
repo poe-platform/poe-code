@@ -52,7 +52,7 @@ for (const source of ['V=abc; printf before >marker; : "${V:$(true |):1}"', 'V=a
   const result = await shell.exec(source); assert.notEqual(result.exitCode, 0); assert.equal(result.stdout, "");
   await assert.rejects(fs.stat("/marker"), error => error instanceof FsError && error.code === "ENOENT"); checks++;
 }
-for (const parameter of ["@", "*"]) {
+for (const parameter of ["?", "#"]) {
   const result = await shell.exec(`printf before >marker; : "\${${parameter}:1:2}"`);
   assert.equal(result.exitCode, 2); assert.match(result.stderr, /Unsupported non-scalar substring expansion/u);
   await assert.rejects(fs.stat("/marker"), error => error instanceof FsError && error.code === "ENOENT"); checks++;

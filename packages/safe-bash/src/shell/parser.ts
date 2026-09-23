@@ -911,7 +911,7 @@ class Lexer {
               replacement = this.word("}");
             }
           } else {
-            if (length || !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name)) this.error("Unsupported non-scalar substring expansion");
+            if (length || (name !== "@" && name !== "*" && !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name))) this.error("Unsupported non-scalar substring expansion");
             this.position++;
             const offset = this.word(":}", true, false, true);
             let substringLength: Word | undefined;

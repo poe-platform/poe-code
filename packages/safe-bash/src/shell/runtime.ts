@@ -6917,6 +6917,11 @@ export class Runtime {
         : !part.quoted && split && state.variables.IFS === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
+    if (part.substring && (part.name === "@" || part.name === "*")) {
+      const values = await this.positionalSlice(part, state, io);
+      const separator = part.name === "@" && !split || hereString && (part.name === "@" || !part.quoted) ? " " : this.ifsSeparator(state, io);
+      return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
+    }
     let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
@@ -7364,8 +7369,8 @@ export class Runtime {
           emptyNameGroups ??= new Set<object>();
           emptyNameGroups.add(quoteGroup);
         }
-      } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || part.transform && part.name === "@")) {
-        const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : this.positionalValues(state);
+      } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || part.transform && part.name === "@" || part.substring && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+        const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;
@@ -7383,11 +7388,12 @@ export class Runtime {
         if (typeof value === "string" && index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
       } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform && split) {
-        for (let position = 0; position < state.positional.length; position++) {
+        const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
+        for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
-          append(stateMonitor(state)?.positionals.get(String(position), state.positional[position]!) ?? state.positional[position]!, false, true);
+          append(members[position]!, false, true);
         }
-        if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
+        if (members.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
@@ -7549,6 +7555,30 @@ export class Runtime {
     if (values.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     for (const value of values) if (typeof value !== "string") allocation.hold(value);
     return createCommandArguments(values, allocation);
+  }
+
+  private async positionalSlice(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue[]> {
+    const evaluate = async (word: Word): Promise<bigint> => {
+      const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false);
+      const source = shellValueText(concatShellValues(fields, io[valueScope]));
+      return this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
+    };
+    let offset = await evaluate(part.substring!.offset);
+    if (offset < 0n) offset += BigInt(state.positional.length + 1);
+    if (offset < 0n || offset > BigInt(state.positional.length)) return [];
+    const count = part.substring!.length ? await evaluate(part.substring!.length) : undefined;
+    if (count !== undefined && count < 0n) throw new ExpansionFailure("substring expression < 0", io.diagnosticLine ?? part.line);
+    if (count === 0n) return [];
+    const end = count === undefined ? state.positional.length + 1 : Number(offset + count > BigInt(state.positional.length + 1) ? BigInt(state.positional.length + 1) : offset + count);
+    const values: ShellValue[] = [];
+    for (let index = Number(offset); index < end; index++) {
+      if (values.length >= this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      io[valueScope]?.reserve(32, 0);
+      const text = index === 0 ? state.arg0 ?? "virtual-bash" : state.positional[index - 1]!;
+      values.push(stateMonitor(state)?.positionals.get(index === 0 ? zeroPositionKey : String(index - 1), text) ?? text);
+      if (index % 4096 === 0) await yieldTurn(this.signal);
+    }
+    return values;
   }
 
   async arrayMembers(name: string, state: State, io: IO, keys = false, substring?: Extract<WordPart, { kind: "variable" }>["substring"]): Promise<ShellValue[]> {

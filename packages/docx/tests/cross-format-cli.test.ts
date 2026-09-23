@@ -4,7 +4,7 @@ import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
 import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 import { pptxCommands } from "@poe-platform/safe-bash/commands/pptx";
 import { createPresentation, createPptxCommandEngine, addImage } from "pptx";
-import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine, insertDocumentImage } from "../src/index.js";
+import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine, insertDocumentImage, openDocumentLocations } from "../src/index.js";
 
 import { rasterPng, rasterGif } from "./fixtures/raster.js";
 
@@ -22,6 +22,30 @@ beforeAll(() => {
     delay === 0 ? setImmediate(callback) : timer(callback, delay)) as typeof setTimeout);
 });
 afterAll(() => vi.restoreAllMocks());
+
+it.each(["images.add", "images.set", "equations.add"])("accepts backend filesystem metadata in %s input identities", async operation => {
+  const f = await fixture("docx", operation === "images.set");
+  try {
+    expect((await f.fs.stat(f.input)).filesystemType).toBe("memory");
+    const locations = await openDocumentLocations(new Uint8Array(f.volume.readFileSync(f.input) as Buffer), { limits, signal: new AbortController().signal });
+    const selection = locations.at("paragraph", 1).token;
+    const fragment = '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><m:r><m:t>x</m:t></m:r></m:oMath>';
+    f.volume.writeFileSync("/fragment.xml", fragment);
+    await f.fs.writeFile("/fragment.xml", encoder.encode(fragment));
+    f.volume.writeFileSync("/pixel.png", rasterPng());
+    await f.fs.writeFile("/pixel.png", rasterPng());
+    for (const publish of f.publications) publish.mockClear();
+    const commands: Record<string, string> = {
+      "images.add": "images add /left.docx --paragraph 1 --file /pixel.png",
+      "images.set": "images set /left.docx --image 1 --alt metadata",
+      "equations.add": `equations add /left.docx --select '${selection}' --file /fragment.xml`,
+    };
+    const result = await f.run(`${commands[operation]} --dry-run --json`);
+    expect(result.exitCode, result.stderr + result.stdout).toBe(0);
+    expect(envelope(result.stdout, operation, true).affected).toBe(1);
+    for (const publish of f.publications) expect(publish).not.toHaveBeenCalled();
+  } finally { await f.shell.dispose(); }
+});
 
 async function fixture(format: "docx" | "pptx", withImage = false) {
   const volume = Volume.fromJSON({});

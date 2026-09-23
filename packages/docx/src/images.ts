@@ -232,7 +232,7 @@ export async function extractDocumentImages(input: Uint8Array, options: DocxOper
   const { input: borrowedIdentity, ...selection } = options;
   let identity: PublicationInput | undefined;
   if (borrowedIdentity !== undefined) {
-    const admitted = ownData(borrowedIdentity, ["path", "stat"]), stat = ownData(admitted.stat, ["type", "size", "allocatedBytes", "ioBlockSize", "preferredIoBlockSize", "mode", "mtimeMs", "atimeMs", "ctimeMs", "birthtimeMs", "revision", "identityScope", "ino", "dev", "rdevMajor", "rdevMinor", "nlink", "uid", "gid"]);
+    const admitted = ownData(borrowedIdentity, ["path", "stat"]), stat = ownData(admitted.stat, ["type", "filesystemType", "size", "allocatedBytes", "ioBlockSize", "preferredIoBlockSize", "mode", "mtimeMs", "atimeMs", "ctimeMs", "birthtimeMs", "revision", "identityScope", "ino", "dev", "rdevMajor", "rdevMinor", "nlink", "uid", "gid"]);
     if (typeof admitted.path !== "string" || !admitted.path) throw new DocxUsageError("Image input identity requires an explicit path.");
     identity = { path: admitted.path, stat: stat as unknown as PublicationInput["stat"] };
   }

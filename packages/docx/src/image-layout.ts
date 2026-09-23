@@ -322,6 +322,7 @@ export async function setDocumentImageLayout(
       throw new InputTypeError("Expected a closed file stat.");
     closedRecord(request.input.stat, [
       "type",
+      "filesystemType",
       "size",
       "allocatedBytes",
       "ioBlockSize",

@@ -114,7 +114,7 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     if (![Object.prototype, null].includes(Object.getPrototypeOf(request.input))) throw new InputTypeError("Expected a closed file identity.");
     closedRecord(request.input, ["path", "stat"]);
     if (!request.input.stat || ![Object.prototype, null].includes(Object.getPrototypeOf(request.input.stat))) throw new InputTypeError("Expected a closed file stat.");
-    closedRecord(request.input.stat, ["type", "size", "allocatedBytes", "ioBlockSize", "preferredIoBlockSize", "mode", "mtimeMs", "atimeMs", "ctimeMs", "birthtimeMs", "revision", "identityScope", "ino", "dev", "rdevMajor", "rdevMinor", "nlink", "uid", "gid"]);
+    closedRecord(request.input.stat, ["type", "filesystemType", "size", "allocatedBytes", "ioBlockSize", "preferredIoBlockSize", "mode", "mtimeMs", "atimeMs", "ctimeMs", "birthtimeMs", "revision", "identityScope", "ino", "dev", "rdevMajor", "rdevMinor", "nlink", "uid", "gid"]);
     request = { operation: request.operation, options: request.options, input: { path: request.input.path, stat: { ...request.input.stat } } };
   }
   const settings = archiveSettings(context), invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options: request.options }, settings.budget), options = invocation.options as DocxOperationArguments<"images.add">;

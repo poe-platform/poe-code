@@ -22,6 +22,11 @@ export interface Arguments {
   humanReadable?: boolean;
   checkAlignment?: boolean;
   parallel?: boolean;
+  byteOffset?: bigint;
+  endByte?: bigint;
+  raw?: boolean;
+  startCondition?: string;
+  endCondition?: string;
 }
 const unsignedMax = (1n << 64n) - 1n;
 export class DeserializationError extends XanError {}
@@ -53,14 +58,14 @@ export function inferDelimiter(path: string): number {
   if (/\.psv$/u.test(path)) return 124;
   return 44;
 }
-const shortOptions: Record<string, string> = { H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
-const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel", "evaluate", "evaluate-file"]);
+const shortOptions: Record<string, string> = { B: "byte-offset", S: "start-condition", E: "end-condition", H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
+const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel", "raw", "evaluate", "evaluate-file"]);
 const common = ["help", "output", "delimiter"];
 const allowed: Record<Subcommand, Set<string>> = {
   headers: new Set([...common, "just-names", "csv", "start", "color"]),
   count: new Set([...common, "no-headers", "human-readable", "check-alignment", "approx", "parallel", "threads"]),
   select: new Set([...common, "no-headers", "evaluate", "evaluate-file"]),
-  slice: new Set([...common, "no-headers", "start", "skip", "end", "len", "index", "indices", "last"]),
+  slice: new Set([...common, "no-headers", "start", "skip", "end", "len", "index", "indices", "last", "byte-offset", "end-byte", "raw", "start-condition", "end-condition"]),
 };
 export async function parseArguments(args: readonly string[], cwd: string, budget: Budget): Promise<Arguments> {
   budget.bound("maxArgs", args.length);
@@ -140,7 +145,13 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   }
   if (values.has("color") && !["auto", "never"].includes(values.get("color")!)) throw new XanError("unsupported in bounded CSV profile: color");
   const numbers = new Map<string, bigint>();
-  for (const name of ["start", "skip", "end", "len", "index", "last"]) if (values.has(name)) numbers.set(name, await unsigned(values.get(name)!, `--${name}`, budget));
+  for (const name of ["start", "skip", "end", "len", "index", "last", "byte-offset", "end-byte"]) if (values.has(name)) numbers.set(name, await unsigned(values.get(name)!, `--${name}`, budget));
+  const byteOffset = numbers.get("byte-offset");
+  const endByte = numbers.get("end-byte");
+  if (byteOffset !== undefined && endByte !== undefined && endByte <= byteOffset) throw new XanError("-B/--byte-offset must be less than --end-byte!");
+  if (values.has("raw") && (byteOffset === undefined || endByte === undefined)) throw new XanError("--raw requires both -B/--byte-offset & --end-byte!");
+  if (byteOffset !== undefined && operands[0] === "-") throw new XanError("byte slicing requires a file path");
+  if (values.has("indices") && (values.has("start-condition") || values.has("end-condition"))) throw new XanError("indices cannot be combined with conditions");
   const range = ["start", "skip", "end", "len", "index"].some(name => values.has(name));
   if ((values.has("last") && (values.has("indices") || range)) || (values.has("indices") && range)) throw new XanError("conflicting slice modes");
   if (values.has("index") && ["start", "skip", "end", "len"].some(name => values.has(name))) throw new XanError("conflicting index/range options");
@@ -172,7 +183,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
     budget.release((indices.length - count) * 8); indices.length = count;
   }
   budget.release(values.size * 32);
-  return { command, humanReadable: values.has("human-readable"), checkAlignment: values.has("check-alignment"), parallel, inputs: operands, noHeaders: values.has("no-headers"), justNames: values.has("just-names"), csv: values.has("csv"), help, selection: selection ?? "", start,
+  return { command, raw: values.has("raw"), ...(byteOffset !== undefined ? { byteOffset } : {}), ...(endByte !== undefined ? { endByte } : {}), ...(values.has("start-condition") ? { startCondition: values.get("start-condition")! } : {}), ...(values.has("end-condition") ? { endCondition: values.get("end-condition")! } : {}), humanReadable: values.has("human-readable"), checkAlignment: values.has("check-alignment"), parallel, inputs: operands, noHeaders: values.has("no-headers"), justNames: values.has("just-names"), csv: values.has("csv"), help, selection: selection ?? "", start,
     evaluate: values.has("evaluate"), evaluateFile: values.has("evaluate-file"),
     ...(output !== undefined && output !== "-" ? { output: path(output) } : {}),
     ...(delimiter !== undefined ? { delimiter } : {}), ...(end !== undefined ? { end } : {}), ...(indices !== undefined ? { indices } : {}), ...(last !== undefined ? { last } : {}),

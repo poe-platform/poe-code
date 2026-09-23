@@ -29,7 +29,18 @@ Unknown keys and invalid limits fail construction. Limits are invocation-wide.
   reads that expression from a virtual UTF-8 file instead of a literal selector.
   Surrounding whitespace is accepted; other expression syntax refuses.
 - `slice`: `-n/--no-headers`, `-s/--start N`, `--skip N`, `-e/--end N`,
-  `-l/--len N`, `-i/--index N`, `-I/--indices LIST`, `-L/--last N`.
+  `-l/--len N`, `-i/--index N`, `-I/--indices LIST`, `-L/--last N`,
+  `-B/--byte-offset N`, `--end-byte N`, `--raw`,
+  `-S/--start-condition EXPR`, `-E/--end-condition EXPR`.
+  Conditions support named columns compared with quoted strings or finite numeric
+  literals using `==`, `!=`, `<`, `<=`, `>`, `>=`; other Moonblade expressions refuse.
+  Start includes the first matching row; end excludes the first matching row.
+  Row ranges apply after the start condition. Indices conflict with conditions.
+  Byte offsets require a file and stream past preceding bytes within input/work limits;
+  this is not constant-time seeking. End-byte is exclusive and, matching XAN 0.61.0,
+  applies only with a byte offset. Raw requires both offsets and copies exact bytes
+  after serializing the original header (unless `-n`), ignoring row/condition flags.
+  Last-row mode ignores byte offsets and conditions, matching XAN 0.61.0.
 - Every subcommand accepts `-h/--help`, `-d/--delimiter BYTE`, `-o/--output PATH`.
   Long equals forms, short attached values, clustered switches and `--` work.
   Repeated flags and mixed slice modes refuse. Headers has no `-n`.
@@ -39,7 +50,7 @@ against command cwd. `.tsv`/`.tab`, `.ssv`/`.scsv`, `.psv` infer tab, semicolon,
 pipe; otherwise comma. Input delimiter override does not change output delimiter.
 NUL/CR/LF/quote/non-ASCII delimiters refuse; literal `\t` is accepted.
 Compression and `.cdx`, `.ndjson`, `.jsonl`, `.vcf`, `.gtf`, `.gff2`, `.sam`,
-`.bed` formats refuse, as do general expressions, conditions, byte slicing, raw slicing,
+`.bed` formats refuse, as do expressions beyond the condition subset and
 forced color. No shell/eval interpretation occurs.
 
 Selectors use the adopted consuming grammar: signed indices, named duplicate
@@ -110,3 +121,6 @@ provider acceptance or full XAN/just-bash comparison is claimed.
 
 Source-only count compatibility checks: from the repository root run
 `node --import tsx --conditions=poe-code-source --test packages/safe-bash/tests/commands/xan-count-options.test.mjs`.
+
+Source-only slice compatibility checks: run
+`node --import tsx --conditions=poe-code-source --test packages/safe-bash/tests/commands/xan-slice-options.test.mjs`.

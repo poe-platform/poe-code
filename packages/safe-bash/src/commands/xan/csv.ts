@@ -11,6 +11,7 @@ export class Scanner {
   private cursor = 0;
   private absolute = 0;
   private initial = true;
+  private endByte: bigint | undefined;
   private prefix: number[] = [];
   private skipLF = false;
   private count = 0;
@@ -25,6 +26,7 @@ export class Scanner {
   }
   private async nextByte(): Promise<number | undefined> {
     this.signal.throwIfAborted();
+    if (this.endByte !== undefined && BigInt(this.absolute) >= this.endByte) return undefined;
     if (this.prefix.length) return this.prefix.shift()!;
     while (this.cursor === this.chunk.length) {
       this.budget.check();
@@ -39,6 +41,23 @@ export class Scanner {
     this.absolute++;
     this.budget.work(); await this.budget.checkpoint();
     return this.chunk[this.cursor++];
+  }
+  async position(start: bigint, end?: bigint): Promise<void> {
+    this.initial = false;
+    while (BigInt(this.absolute) < start) if (await this.nextByte() === undefined) break;
+    this.endByte = end;
+  }
+  async *raw(): ByteSource {
+    const bytes = new Bytes(this.budget);
+    try {
+      while (true) {
+        const byte = await this.nextByte();
+        if (byte === undefined) break;
+        await bytes.push(byte);
+        if (bytes.length === 4096) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); bytes.free(); }
+      }
+      if (bytes.length) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); }
+    } finally { bytes.free(); await this.close(); }
   }
   async next(): Promise<RecordRow | undefined> {
     this.budget.check();

@@ -58,7 +58,7 @@ jobs:
       - name: Collect native identity and isolated base-profile captures
         run: |
           python3 - <<'PY'
-          import hashlib, json, os, pathlib, shutil, subprocess, yaml
+          import hashlib, json, os, pathlib, shutil, subprocess, shlex, yaml
           root = pathlib.Path('out/ssconvert-linux')
           profile_path = pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json')
           reference_path = pathlib.Path('docs/ssconvert/reference-profile.json')
@@ -67,6 +67,12 @@ jobs:
           for key in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
               pathlib.Path(env[key]).mkdir(parents=True, exist_ok=True)
           binary = pathlib.Path('/opt/ssconvert-reference/bin/ssconvert')
+          activation_source = root / 'function-activation.c'
+          activation_source.write_text("#include <gnumeric.h>\n#include <libgnumeric.h>\n#include <gnumeric-conf.h>\n#include <command-context-stderr.h>\n#include <gnm-plugin.h>\n#include <func.h>\n#include <goffice/goffice.h>\nint main(int argc, char const **argv) {\n  argv = gnm_pre_parse_init(argc, argv);\n  gnm_conf_set_persistence(FALSE);\n  gnm_init();\n  GOCmdContext *cc = gnm_cmd_context_stderr_new();\n  gnm_plugins_init(cc);\n  GOErrorInfo *errors = NULL;\n  go_plugin_db_activate_plugin_list(go_plugins_get_available_plugins(), &errors);\n  if (errors) {\n    go_error_info_print(errors);\n    go_error_info_free(errors);\n    return 1;\n  }\n  GPtrArray *functions = gnm_func_enumerate();\n  g_print(\"name\\tflags\\tfixed\\tnodes\\thelpEntries\\tminimum\\tmaximum\\timplementationStatus\\n\");\n  for (guint i = 0; i < functions->len; i++) {\n    GnmFunc *fn = g_ptr_array_index(functions, i);\n    gnm_func_load_if_stub(fn);\n    int count = 0, minimum = 0, maximum = 0;\n    gnm_func_get_help(fn, &count);\n    gnm_func_count_args(fn, &minimum, &maximum);\n    g_print(\"%s\\t%u\\t%d\\t%d\\t%d\\t%d\\t%d\\t%d\\n\",\n      gnm_func_get_name(fn, FALSE), (unsigned)gnm_func_get_flags(fn),\n      gnm_func_is_fixargs(fn), gnm_func_is_varargs(fn), count, minimum, maximum,\n      gnm_func_get_impl_status(fn));\n  }\n  g_ptr_array_free(functions, TRUE);\n  g_object_unref(cc);\n  gnm_shutdown();\n  gnm_pre_parse_shutdown();\n  return 0;\n}\n")
+          activation_binary = root / 'function-activation'
+          flags = shlex.split(subprocess.check_output(['pkg-config', '--cflags', '--libs', 'libspreadsheet-1.12'], env=env, text=True))
+          with (root / 'function-activation-compile.log').open('wb') as log:
+              subprocess.run(['cc', str(activation_source), '-o', str(activation_binary), *flags], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
           metadata = []
           def capture(label, command):
               result = subprocess.run(command, env=env, capture_output=True, timeout=120)
@@ -82,6 +88,7 @@ jobs:
               ('libraries', ['ldd', str(binary)]),
               ('versions', ['pkg-config', '--modversion', 'libgoffice-0.10', 'glib-2.0', 'gtk+-3.0', 'libgsf-1', 'pango', 'cairo']),
               ('native-version', [str(binary), '--version']),
+              ('functions', [str(activation_binary.resolve())]),
               ('importers', [str(binary), '--list-importers']),
               ('exporters', [str(binary), '--list-exporters'])
           ]:
@@ -113,6 +120,8 @@ jobs:
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
               optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
               binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),
+              activationCollectorSourceSha256=hashlib.sha256(activation_source.read_bytes()).hexdigest(),
+              activationCollectorBinarySha256=hashlib.sha256(activation_binary.read_bytes()).hexdigest(),
               inputSha256=hashlib.sha256(input_path.read_bytes()).hexdigest(),
               linkedLibraries=libraries, fonts=fonts, captures=metadata)
           (root / 'identity.json').write_text(json.dumps(identity, indent=2) + '\n')

@@ -110,5 +110,21 @@
     "policy": "Store installed prefix inside SHA256-bound tar.gz to preserve executable modes and symlinks across upload-artifact ZIP normalization.",
     "captureStatus": "rerun-required",
     "scope": "native oracle provisioning, no product parity claim"
+  },
+  "activationCollector": {
+    "policy": "Enumerate the actual runtime registry after ssconvert-equivalent plugin initialization, then force each stub to load and record flags, fixed/node body, native help entries and argument bounds. Synthetic failed-load fallback is not proven implementation; retain stderr/help absence.",
+    "sourceSha256": "bcaaa54d321c78666585fc29689b9aa7df20a658a0aa7a19959245bdab455ed1",
+    "localCompile": "Darwin authenticated installed libspreadsheet API compiles successfully; not Linux qualification",
+    "localRuntime": {
+      "platform": "Darwin arm64",
+      "exitCode": 0,
+      "stderrHex": "",
+      "stdoutSha256": "231317b92a0f55423b2bb88be8b77964469ad80fe93c86c02799386a580db1c8",
+      "rows": 648,
+      "rowsWithoutHelp": [],
+      "placeholderRows": []
+    },
+    "requiredLinux": "run the same collector with exact isolated profile environment and preserve source/binary/stdout identity",
+    "productParity": "unqualified"
   }
 }

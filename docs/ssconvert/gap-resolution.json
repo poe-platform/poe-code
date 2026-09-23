@@ -1027,5 +1027,15 @@
     "rebuiltBundleControls": 44,
     "guardedLintSubjects": 16407,
     "publication": "unverified"
+  },
+  "rgWordAdmissionFollowup": {
+    "proof": "docs/ssconvert/rg-word-admission-gap-proof.json",
+    "expectationCommit": "076550eb4",
+    "remoteMainVerified": true,
+    "currentTests": 11,
+    "nativeAsciiExactCases": 6,
+    "retainedScopeDifferences": 2,
+    "guardedLintSubjects": 16407,
+    "publication": "unverified"
   }
 }

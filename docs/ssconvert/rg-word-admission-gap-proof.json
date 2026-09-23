@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "scope": "Current ASCII rg whole-word support versus stale stockdefaultunsupported assertion",
+  "maintainedCurrentRed": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/rg-stock-word-current-red.log",
+    "bytes": 3032,
+    "sha256": "c275dc5e124be2598ff9bb016adf9837d71e8ff5a718898f464307f2cc54f4e3",
+    "tests": 11,
+    "pass": 10,
+    "fail": 1,
+    "skipped": 0
+  },
+  "nativeReceipt": {
+    "path": "out/ssconvert-gap-resolution/bash-release-feedback/rg-stock-word-native-current.json",
+    "bytes": 3595,
+    "sha256": "449b04074c61143f3a8d79be729512f584da7fad1186986fc16ddc6c59e9bdc1"
+  },
+  "nativeProfile": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.23.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+    "size": 4030432,
+    "sha256": "c6c50764c763f44464bd4681dc0392668b2cb42f88bd123f8d0b43fbf3b02576",
+    "version": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)\n",
+    "platform": "darwin"
+  },
+  "asciiExactCases": 6,
+  "retainedScopeDifferences": [
+    "NonASCIIsubject:productunsupported2/native0;no Unicode word parityclaim.",
+    "Lookahead:bothstatus2butdifferentdiagnostic;notexactoutputclaim."
+  ],
+  "currentSourceAuthority": {
+    "commit": "223aa9b56",
+    "bindings": [
+      {
+        "path": "packages/safe-bash/src/commands/regex-execution/bounded-provider.ts",
+        "bytes": 35082,
+        "sha256": "f0082d8f9fd679a33ce2067acc9b3b27ab0387e5b0aa9432497e8c03fa6c7230"
+      },
+      {
+        "path": "packages/safe-bash/src/commands/search/rg-command.ts",
+        "bytes": 14721,
+        "sha256": "04dbe73a2f4a5f2894efb4b37b34ae32dc50fbc93df4274048721dda0f60a818"
+      },
+      {
+        "path": "packages/safe-bash/tests/plugins/portable-default-agent.test.ts",
+        "bytes": 12468,
+        "sha256": "e721e072a8384adc922e539299c00d20b49dea05d79aae1df4cccb892424f98a"
+      }
+    ],
+    "evidence": "boundedprovider selects.word and rejects nonASCIIsubjects explicitly; public help documents ASCII word selection."
+  },
+  "nativeRows": [
+    {
+      "name": "standalone",
+      "args": [
+        "-w",
+        "a"
+      ],
+      "input": "a\naa\nba\na_\n_a\na1\n1a\na-a\n",
+      "product": {
+        "status": 0,
+        "stdout": "a\na-a\n",
+        "stderr": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\na-a\n",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "no-match",
+      "args": [
+        "-w",
+        "a"
+      ],
+      "input": "aa\n",
+      "product": {
+        "status": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "native": {
+        "status": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "fixed",
+      "args": [
+        "-Fw",
+        "a"
+      ],
+      "input": "a\naa\na-a\n",
+      "product": {
+        "status": 0,
+        "stdout": "a\na-a\n",
+        "stderr": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\na-a\n",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "ERE",
+      "args": [
+        "-w",
+        "a+"
+      ],
+      "input": "a\naa\nba\n",
+      "product": {
+        "status": 0,
+        "stdout": "a\naa\n",
+        "stderr": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\naa\n",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "long-form",
+      "args": [
+        "--word-regexp",
+        "a"
+      ],
+      "input": "a\naa\n",
+      "product": {
+        "status": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "line-mode",
+      "args": [
+        "-x",
+        "a"
+      ],
+      "input": "a\naa\na-a\n",
+      "product": {
+        "status": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\n",
+        "stderr": ""
+      },
+      "exactMatch": true
+    },
+    {
+      "name": "non-ASCII-subject",
+      "args": [
+        "-w",
+        "a"
+      ],
+      "input": "a\n\u00e9 a\n",
+      "product": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "rg: bounded regex unsupported: rg word matching and case folding support ASCII subjects only\n"
+      },
+      "native": {
+        "status": 0,
+        "stdout": "a\n\u00e9 a\n",
+        "stderr": ""
+      },
+      "exactMatch": false
+    },
+    {
+      "name": "unsupported-lookahead",
+      "args": [
+        "a(?=b)"
+      ],
+      "input": "ab\n",
+      "product": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "rg: unsupported ERE profile at 1: extended group syntax\n"
+      },
+      "native": {
+        "status": 2,
+        "stdout": "",
+        "stderr": "rg: regex parse error:\n    (?:a(?=b))\n        ^^^\nerror: look-around, including look-ahead and look-behind, is not supported\n\nConsider enabling PCRE2 with the --pcre2 flag, which can handle backreferences\nand look-around.\n"
+      },
+      "exactMatch": false
+    }
+  ],
+  "conclusion": "rg-w a inputaa yields correctnomatch1; oldunsupported2expectationstale. Replace unsupportedcontrol with explicitly unsupported nonASCIIsubject,retainboundedpatternbudgetcontrols,andaddASCIIpositive/negativecontrols withoutsourcechange.",
+  "limits": [
+    "ASCII whole-word controls only; no full pattern, Unicode, case, backend, or publication claim."
+  ],
+  "currentExpectationReconciliation": {
+    "ownedPath": "packages/safe-bash/tests/plugins/portable-default-agent.test.ts",
+    "changes": "ASCIIwordmatch+nomatch controls;nonASCIIsubject retains unsupportedstatus2/nooutput/ASCIIrefusal assertion. Patternbudget andexprunsupportedcontrols unchanged. Source/sealedcaptures untouched.",
+    "green": {
+      "path": "out/ssconvert-gap-resolution/bash-release-feedback/rg-stock-word-current-green.log",
+      "bytes": 2452,
+      "sha256": "a24981787978440522d7e6c4524fc855fdad5e564f4a98ff48e768756fd67171",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0
+    },
+    "finalTestBinding": {
+      "path": "packages/safe-bash/tests/plugins/portable-default-agent.test.ts",
+      "bytes": 12873,
+      "sha256": "eceb09878bc7c5e84eeecd7ba931d13de442d46c62c2f8677390a52192b63136"
+    },
+    "typecheck": {
+      "sourceAndTests": 0,
+      "historicalConsumer": 0,
+      "sourceGroups": 6,
+      "artifactPositiveGroups": 26,
+      "exactNegativeGroups": 3,
+      "runtimeExecutions": 0,
+      "receipt": {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/release-feedback-final-types.log",
+        "bytes": 2203,
+        "sha256": "93fa493acf2891b3bbc55bc7879e393771e3c21da692650836326d62aeccbf6b"
+      }
+    }
+  },
+  "integratedGate": {
+    "complete": true,
+    "exitCode": 0,
+    "subjects": 16407,
+    "errors": 0,
+    "warnings": 0,
+    "types": "passed",
+    "workflows": "passed",
+    "qualification": "Owned combined candidate; later incoming commits require containing CI.",
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/byte-substitute-patch-mkdir-stable-root-lint.log",
+      "bytes": 1747,
+      "sha256": "f7d809853ba7f7c30a66415af7f1fbb225d529343dc7a1765e7e9d626443da02"
+    }
+  },
+  "delivery": {
+    "expectationCommit": "076550eb4",
+    "remoteMainVerified": true,
+    "publication": "unverified"
+  }
+}

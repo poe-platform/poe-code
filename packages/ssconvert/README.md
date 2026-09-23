@@ -46,6 +46,8 @@ fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. Font bytes and character-map work are bounded before parsing.
 PDF export retains styled cells' logical text for copying and extraction,
 including combining marks whose glyph positions differ from their text order.
+Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;
+missing intermediate or final glyphs retain the supported decomposition.
 With explicit fonts, it also admits fully materialized Gnumeric Sans styles for blank cells
 and single-line values that fit the selected font and cell: General or explicit
 left/right/center alignment, regular or bold, sizes

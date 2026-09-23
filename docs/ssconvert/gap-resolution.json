@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T16:30:46.263206+00:00",
+  "recordedAt": "2026-09-23T17:48:17.473949+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1718,5 +1718,21 @@
     "exactUnchangedRasterPages": 5,
     "status": "implemented and locally qualified; delivery and publication pending",
     "remaining": "Font-aware composition and complete rendering remain open"
+  },
+  "pdfFontComposition": {
+    "proof": "docs/ssconvert/pdf-font-composition-gap-proof.json",
+    "nativeCases": 108,
+    "matchingNativeOutlineSequences": 102,
+    "canonicalPairs": 42,
+    "matchingCanonicalPairs": 42,
+    "originalExtractedStrings": 108,
+    "publicInterfaces": [
+      "SDK",
+      "Shell",
+      "XML replay",
+      "browser",
+      "dedicated worker"
+    ],
+    "status": "bounded composition implemented and locally qualified; six CGJ sequences and exact rendering remain open; delivery pending"
   }
 }

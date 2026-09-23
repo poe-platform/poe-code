@@ -13,6 +13,7 @@ import { layoutPrintPages } from "../rendering/print/layout.js";
 import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
 import { cellPrintStyle, type CellPrintStyle } from "../rendering/print/cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
+import { normalizeFontText } from "../rendering/print/font-normalization.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
 const printDisplayScale = 72 / 96;
@@ -122,14 +123,15 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     const {font, metrics, ascentRatio, descentRatio} = selected;
     if (cellBox && (value.includes("\n") || value.includes("\r"))) unsupported("default-style text layout");
     const supported = new Set(font.getCharacterSet());
-    for (const scalar of value) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
+    const shapedValue = cellBox ? normalizeFontText(value, supported, tick) : value;
+    for (const scalar of shapedValue) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     let baseline = page.getHeight() - y - size;
     let width = cellBox ? 0 : font.widthOfTextAtSize(value, size);
     if (cellBox) {
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const glyphs: {x: number; y: number}[] = [];
       // Pango rounds shaped advances in display pixels before print scaling.
-      for (const position of metrics.layout(value).positions) {
+      for (const position of metrics.layout(shapedValue).positions) {
         tick();
         const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
         if (!Number.isFinite(advance) || advance < 0 || !Number.isFinite(position.xOffset) || !Number.isFinite(position.yOffset) || position.yAdvance !== 0) unsupported("supplied font advances");
@@ -141,7 +143,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
       x -= alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1);
-      const encoded = font.encodeText(value).asString();
+      const encoded = font.encodeText(shapedValue).asString();
       if (encoded.length !== glyphs.length * 4) unsupported("supplied font glyph mapping");
       const resource = page.node.newFontDictionary(font.name, font.ref);
       // Positioned marks can be reordered by text extractors; retain the logical cell string.

@@ -59,3 +59,16 @@ it.each(["A\u030a\u0301", "a\u0302\u0323", "office"])("preserves logical text %s
   expect(contents.match(/\bEMC\b/g)).toHaveLength(1);
   expect(book).toEqual(original);
 });
+
+it.each([
+  ["A\u0301", "Á"],
+  ["A\u030a\u0301", "Å\u0301"], // This font has Å, but has no Ǻ glyph.
+  ["a\u0302\u0323", "ậ"],
+  ["ι\u0308\u0301", "ΐ"],
+  ["и\u0306", "й"],
+])("composes supported print glyphs for %s without changing logical text", async (value, painted) => {
+  const book = await fixture(value, 10), original = structuredClone(book);
+  const {runs} = await pdfText(await writePdf(book, [], context));
+  expect(runs[0]!.text).toBe(painted);
+  expect(book).toEqual(original);
+});

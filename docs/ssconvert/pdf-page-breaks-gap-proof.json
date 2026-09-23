@@ -111,7 +111,7 @@
     "browserScreenshotSha256": "e8e0f47917180f3d6f9f43722e8e3680460a245526bed325b7a3ed3ecdf1acc7"
   },
   "qualificationLimits": [
-    "Actual native PDF/checkpoint comparison is pending.",
+    "Three actual native PDF/XML/PDF replay geometry and page-token-membership controls pass;full rendering remains open.",
     "No full font,glyph,style,chart,repeat,grid or rendering-family closure.",
     "Other original goal families and containing publication remain required."
   ],
@@ -464,9 +464,12 @@
       ]
     }
   ],
-  "pendingNative": {
+  "nativeQualification": {
     "run": 35861302809,
-    "head": "66a974db3450c6ac08ad9daf4ed1b125cd068b18",
-    "status": "in-progress"
+    "proof": "docs/ssconvert/linux-pdf-page-breaks-native-capture.json",
+    "models": 3,
+    "pageGeometryTokenOrderAndMembershipExact": true,
+    "nativeXmlReplayPdfBytesExact": true,
+    "fontGlyphPixelParity": false
   }
 }

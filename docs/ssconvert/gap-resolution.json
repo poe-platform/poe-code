@@ -834,9 +834,10 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Persisted manual/data-slice row and column page breaks now apply to PDF export;stored auto breaks are recomputed. Seven memory controls,67focused/22527package tests in366files,lint/types and maintained build pass. Three original models preserve page counts/Letter geometry on SDK/Shell/XML formula replay/browser/worker,exact SDK/Shell/replay text and immutable inputs. All five SDK pages and browser dashboard visually inspected;zero diagnostics/console. Actual native run35861302809 is in progress. Font/glyph/style/chart/repeat/grid/full rendering remain open.",
+      "currentFinding": "Persisted manual/data-slice row and column page breaks now apply to PDF export;stored auto breaks are recomputed. Seven memory controls,67focused/22527package tests in366files,lint/types and maintained build pass. Three original models preserve page counts/Letter geometry on SDK/Shell/XML formula replay/browser/worker,exact SDK/Shell/replay text and immutable inputs. All five SDK pages and browser dashboard visually inspected;zero diagnostics/console. Authenticated actual native run35861302809 confirms all3models/ninecommands,fiveLetterpages,exact normalized page token order/membership and byte-identical native XML replay PDFs with empty native streams. Prefix AArch64/0755,49module hashes/eightfont blobs authenticate. Native font sizing/appearance differs;pixel/glyph fidelity is unqualified. Font/glyph/style/chart/repeat/grid/full rendering remain open.",
       "proof": [
-        "docs/ssconvert/pdf-page-breaks-gap-proof.json"
+        "docs/ssconvert/pdf-page-breaks-gap-proof.json",
+        "docs/ssconvert/linux-pdf-page-breaks-native-capture.json"
       ],
       "delivery": {
         "localCommit": null,

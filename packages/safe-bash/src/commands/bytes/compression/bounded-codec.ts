@@ -26,7 +26,7 @@ export interface BoundedCodecOptions {
   readonly xzDecompressMemory?: number | undefined;
   readonly xzCheck?: number | undefined;
   readonly xzIgnoreCheck?: boolean | undefined;
-  readonly xzFormat?: "auto" | "xz" | undefined;
+  readonly xzFormat?: "auto" | "xz" | "lzma" | undefined;
   /** bzip2's reduced-memory decoder. */
   readonly small?: boolean | undefined;
   readonly zstd?: ZstdOptions | undefined;
@@ -70,6 +70,10 @@ export async function* boundedCodec(
         signal.throwIfAborted();
       }
       if (ended) {
+        if (options.xzFormat === "lzma") {
+          if (eof) return;
+          throw new CompressedDataError("Compressed data is corrupt");
+        }
         if (options.format === "xz") {
           let padding = 0;
           while (!eof) {

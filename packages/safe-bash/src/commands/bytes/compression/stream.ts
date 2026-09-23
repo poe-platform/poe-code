@@ -28,7 +28,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
     recognized = magic.every((byte, index) => index >= length || header[index] === byte) &&
       (length < 4 || (header[3]! >= 0x31 && header[3]! <= 0x39));
   } else if (options.format === "xz") {
-    recognized = length >= 6 && [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((byte, index) => header[index] === byte);
+    recognized = options.xzFormat !== "lzma" && length >= 6 && [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((byte, index) => header[index] === byte);
     if (!recognized && length === 13 && options.xzFormat !== "xz") {
       // XZ auto-detection also recognizes legacy LZMA headers. Unsupported or
       // damaged recognized streams must still fail rather than become plaintext.

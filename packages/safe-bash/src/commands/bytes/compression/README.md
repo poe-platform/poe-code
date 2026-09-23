@@ -103,7 +103,12 @@ padding and trailing bytes; it also applies to file output and test mode.
 Compression still consumes all input. `--format=auto`, `--format auto`,
 `-Fauto` and `-F auto` explicitly select the existing XZ/LZMA-alone decoder
 and XZ encoder. `--format=xz` / `-Fxz` select XZ encoding and restrict
-decoding to XZ streams, rejecting LZMA-alone input. `--no-sparse` selects the existing dense-output behavior;
+decoding to XZ streams, rejecting LZMA-alone input. `--format=lzma` / `-Flzma`
+select legacy LZMA-alone encoding and decoding, with `.lzma` file output.
+Legacy encoding has no integrity check; explicitly selecting a check other
+than `none` fails. Trailing data fails unless `--single-stream` is selected.
+The existing allocation ceiling still applies to every preset.
+`--no-sparse` selects the existing dense-output behavior;
 `--no-warn` selects the existing frontend profile without XZ warnings.
 `--memlimit-decompress=BYTES` (or a separate argument) limits allocations and
 XZ/LZMA decoder memory admission for every member, including test mode. Binary
@@ -119,7 +124,7 @@ Errors still fail and are reported unless quiet is repeated.
 the encoded integrity check; CRC64 remains the default. `--ignore-check` skips
 data checksum verification during decompression and test mode while still
 validating stream headers and structure. Both controls apply to all XZ aliases.
-Other forced formats, memory adjustment, custom filters, block
+Raw format, memory adjustment, custom filters, block
 controls and listing remain unsupported; these options do not lift codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and

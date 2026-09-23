@@ -4,7 +4,7 @@ export interface CompressionOptions {
   format: CompressionFormat;
   xzCheck?: number;
   xzIgnoreCheck?: boolean;
-  xzFormat?: "auto" | "xz";
+  xzFormat?: "auto" | "xz" | "lzma";
   decompress: boolean;
   stdout: boolean;
   keep: boolean;
@@ -134,7 +134,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       if (argument === "--no-sparse" || argument === "--no-warn") continue;
       if (argument === "--format" || argument.startsWith("--format=")) {
         const format = argument === "--format" ? args[++index] : argument.slice("--format=".length);
-        if (format !== "auto" && format !== "xz") throw new UsageError("only --format=auto and --format=xz are supported by the XZ frontend");
+        if (format !== "auto" && format !== "xz" && format !== "lzma") throw new UsageError("only --format=auto, --format=xz and --format=lzma are supported by the XZ frontend");
         result.xzFormat = format;
         continue;
       }
@@ -175,7 +175,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "F": {
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const format = flags.slice(offset + 1) || args[++index];
-          if (format !== "auto" && format !== "xz") throw new UsageError("only --format=auto and --format=xz are supported by the XZ frontend");
+          if (format !== "auto" && format !== "xz" && format !== "lzma") throw new UsageError("only --format=auto, --format=xz and --format=lzma are supported by the XZ frontend");
           result.xzFormat = format;
           offset = flags.length;
           break;
@@ -235,6 +235,9 @@ export function parseOptions(command: string, args: readonly string[]): Compress
   }
   if (result.suffix === "" && !result.decompress) throw new UsageError("invalid suffix ''");
   if (result.small && !result.decompress) result.level = Math.min(result.level, 2);
+  if (result.xzFormat === "lzma" && !result.decompress && result.xzCheck !== undefined && result.xzCheck !== 0) {
+    throw new UsageError("the LZMA format supports only --check=none");
+  }
   if (!result.operands.length) result.operands.push("-");
   return result;
 }

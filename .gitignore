@@ -72,3 +72,43 @@ harnesses/fix-bugs/fix-bugs.md
 # Disposable local QA artifacts
 /.cache/
 /output/
+
+# DOCX regression cases belong in source tests, not captured documents or reports.
+/.docx-*
+/docs/docx/**
+!/docs/docx/usage.md
+!/docs/docx/acceptance-matrix.md
+/docs/plans/*docx*
+!/docs/plans/docx-deferred-audit.md
+/docs/plans/archive/*docx*
+/packages/docx/**/*.docx
+/packages/docx/**/*.dotx
+/packages/safe-bash/tests/integration/pyodide-runtime/browser-documents/captures/
+*.cpuprofile
+/docs/pandoc/**/*.log
+/docs/pandoc/**/*.png
+/docs/pandoc/**/*.epub
+/docs/pandoc/**/*.pdf
+/docs/pandoc/**/*.pptx
+/docs/pandoc/**/*.docx
+/docs/pandoc/**/*.dotx
+
+# Keep presentation documentation concise; generate regression inputs in memory.
+/docs/pptx/**
+!/docs/pptx/usage.md
+!/docs/pptx/package-usage.md
+/packages/pptx/**/*.pptx
+/packages/pptx/**/*.potx
+/packages/pptx/**/*.ppsx
+/docs/pandoc/**/*.log.gz
+/docs/pandoc/**/*.bin
+/docs/pandoc/**/*.html
+/docs/pandoc/**/*.jpg
+/docs/pandoc/**/*.tex
+/docs/pandoc/**/*.rst
+/docs/pandoc/**/*.rtf
+
+# Disposable stress-run transcripts.
+/packages/safe-bash/tests/shell-stress/env-split-validity/author-run-v1.json
+/packages/safe-bash/tests/shell-stress/env-split-validity/author-run-v2.json
+/packages/safe-bash/benchmarks/reports/current-integration/test.stdout.log

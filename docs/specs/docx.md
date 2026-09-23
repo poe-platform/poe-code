@@ -6,157 +6,9 @@ Implemented Through: Not applicable
 
 Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 
-The bounded [archive extraction record](../docx/archive-extraction.md) implements
-`extract` with all/media-only selection, optional pretty XML and conditional new-tree
-VFS publication. The bounded [packing record](../plans/docx-safe-packing.md)
-implements explicit authenticated inventory reconstruction and one staged package
-publication. The [bounded live view record](../docx/xml-package-views.md) qualifies returned XML,
-package, part and resource views over the existing style/formatting domain. Full
-document owner bindings and whole-public-API coverage remain pending; the full
-proposed contract below is retained.
-
-The later [live table/section/review record](../docx/live-model-integration.md)
-qualifies shared document owner bindings for that scoped graph. Earlier utility
-milestone pending statements are historical; whole-public-API coverage and
-neighboring model tasks remain pending under the shared office contracts.
-
-This remains the full proposed contract. Scoped package-engine evidence is in
-[the validation profile](../docx/validation-profile.md), and the bounded command
-discovery milestone is recorded in [help/output evidence](../docx/help-errors-output.md).
-The bounded inspect/validate implementation and additive result fields are recorded
-in [inspection evidence](../docx/inspection-profile.md). None of these milestones
-establishes complete document-operation or model API conformance. The
-accompanying pipeline sequences implementation; downloaded corpus availability
-does not establish product conformance.
-
-The bounded logical text read milestone and its additive segment context are
-recorded in [text extraction evidence](../docx/text-extraction.md). It implements
-the utility read surface only, not the proposed document object model.
-
-The bounded scoped direct-formatting operation is described in
-[run formatting evidence](../docx/run-formatting.md). It does not promote the
-planned live object model, run whole-text setters or batch execution to implemented.
-
-The bounded tracked text creation milestone is recorded in
-[tracked text evidence](../docx/tracked-text-evidence.md). Its original tests
-qualify creation only; decision edits, live review owners, corpus/renderer QA
-and whole public API conformance require separate verified evidence.
-The later [bounded decision evidence](../docx/revision-decisions-evidence.md)
-qualifies selected inline text and exposed-property acceptance/rejection only;
-live owners, ordered batches and whole-format conformance remain pending.
-
-The later [bounded control evidence](../docx/content-control-values.md) qualifies
-typed utility inspection/filling and existing PNG picture-control replacement.
-The later [bounded repeat/binding evidence](../docx/repeat-controls-bindings.md)
-qualifies native row/block expansion, contained classic-comment/bookmark/inline
-PNG graph remapping and explicit singleton custom-XML synchronization. Live
-owners, ordered control batches and corpus/renderer qualification remain
-pending; neither milestone promotes the complete format contract. The later
-[bounded record-template evidence](../docx/record-template-filling.md) qualifies
-explicit tagged body filling and nested native row/section records only; template
-utility batches and whole model coverage remain pending.
-
-The bounded paragraph operations are described in
-[paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
-properties and explicit whole-paragraph text assignment, plus block/inline caret
-insertion. Whole Paragraph owner bindings remain pending; the later style
-milestone below implements its bounded formatting model and batch subset.
-
-The bounded style/default operations and collision-safe Title/headings 0–9 are
-recorded in [style evidence](../docx/styles.md). They expose utility operations;
-the later [style-formatting evidence](../docx/style-formatting-audit.md) records
-latent mutation and the bounded live style/font/paragraph/tab subgraph. Complete
-document-model coverage remains pending.
-
-The bounded theme/font-resource inventory and preservation evidence is recorded
-in [font resource evidence](../docx/font-resources.md). It adds detailed inspection
-and an explicit embedded-font mutation boundary; it does not establish whole-model
-or rendered font-selection coverage.
-
-The bounded section utility and its ownership/inheritance limits are recorded in
-[section and page-setting evidence](../docx/sections-page-settings.md). It does
-not complete the live section model or pagination. The later bounded
-[header/footer story evidence](../plans/docx-header-footer-stories.md) records
-noncreating reads, explicit local/shared edits and binding removal. General
-image editors and the complete live model remain pending. The bounded
-[table construction milestone](../plans/docx-table-construction.md) now adds
-rectangular table insertion and typed table/row/cell formatting. The bounded
-[table editing milestone](../plans/docx-table-editing.md) adds logical table
-inspection, selected cell values/formatting and explicit rectangular row/column
-insertion/deletion. The bounded [merged-cell milestone](../plans/docx-merged-cells.md)
-adds explicit content-preserving merge/split and row deletion through spans.
-The later [table and expanded-workflow milestone](../plans/docx-table-bdd-adaptation.md)
-qualifies live table owners and all 870 selected table-unit/expanded-BDD rows
-through original SDK tests and supplementary safe-bash workflows. Its explicit
-language/security dispositions do not establish whole-public-API coverage;
-document renderer QA remains not run.
-
-The bounded [hyperlink milestone](../plans/docx-hyperlinks.md) adds `links list`,
-`links add`, `links set` and `links remove` through the shared CLI/SDK engine.
-Removal unwraps visible label runs by default; `deleteContent: true` explicitly
-deletes the label. Shared-story mutation and the live hyperlink model remain pending.
-
-The bounded [cached-field milestone](../plans/docx-fields.md) adds `fields list`
-and `fields set` through the shared CLI/SDK engine. It inventories simple, complex
-and nested fields and edits supported cached results without execution, preserving
-instructions, run formatting and omitted flags. Field creation, outer nested-result
-replacement, shared-story editing and the live model remain pending. The bounded
-`FieldListData` reports instruction keyword `kind`, simple/complex `form`, exact
-decoded `instruction`, cached `result`, `update`, `locked`, `nested` child locations
-and each owner `location`; it is separate from the full proposed ResourceDetails.
-
-The later [bounded TOC/caption structure milestone](../plans/docx-toc-caption-structures.md)
-adds fields.add, toc.add/set and captions.add/set, plus typed field instruction
-edits. It preserves unselected caches and supports static caption labels. Creation
-uses simple fields; complex/nested existing fields remain inspectable and editable
-within the recorded boundaries. Shared stories, nested instruction replacement,
-outer nested-cache replacement, field batches and live field models remain pending.
-No page numbers, sequence counters or TOC entries are recalculated.
-
-The bounded [footnote/endnote milestone](../plans/docx-notes.md) implements
-notes.list/get/add/set/remove with explicit shared-reference and storage-ID
-policies. Numbering/restart settings are preserved and inspected without layout.
-Rich bodies reuse scoped story editors; whole-note text assignment rejects
-affected tables/images/fields/opaque content. This is utility coverage, not a
-new live model or note batch executor.
-
-The bounded [classic-comment milestone](../plans/docx-comments.md) implements
-comments.list/get/add/set/remove with explicit identity/time, run-boundary body
-anchors, consistency checks and targeted marker/body deletion. Its snapshot
-CommentReadData uses comment_id and stored timestamp strings; the proposed live
-Comment model retains its Date-valued timestamp. The later
-[comment extension milestone](../plans/docx-comment-extensions.md) inventories
-modern parts/IDs and adds verified single-paragraph text retention and synchronized
-removal. Opaque affected metadata and orphaned replies reject; thread authoring
-remains unsupported.
-Comment batches, cross-paragraph anchor creation and live model owners remain pending.
-
-The bounded [revision read milestone](../plans/docx-revision-read-views.md) adds
-revision inventory, direct run/paragraph property snapshots for original view,
-current/original formatting context in all view, and explicit opaque metadata.
-Its snapshot IDs/authors/times retain nullable stored strings. Ordinary unrelated
-edits preserve review markup; affected unsafe range/removal boundaries reject.
-Tracked creation, acceptance/rejection, revision batches and live owners remain
-pending. This supersedes the earlier text-read limitation on property history
-only for the supported direct snapshots.
-
-The bounded [inert object milestone](../plans/docx-inert-objects.md) implements
-`objects.list` and `objects.extract`: OLE/package bindings, shared owner and preview
-metadata, exact VFS payload extraction and redacted security reports. Object
-inventory without selectors is package-global; explicit story/owner selectors
-narrow stored occurrences. Embedded binaries remain opaque and previews remain
-preserved. This does not implement live owners, object batches, activation or
-whole-public-API coverage.
-
-The bounded [signature inventory/removal milestone](../plans/docx-signatures.md)
-implements package-global `signatures list` and separate explicit `signatures
-remove`. Its additive `SignatureListData` contains part items, inert relationship
-metadata and `verified: null`. `SignatureMutationData` enumerates removed parts,
-relationships and content-type entries, with changed/dryRun/output fields.
-Ordinary edits reject signed baselines; shared/unsupported signature graphs
-reject stripping before publication. This is utility coverage only; cryptographic
-verification/regeneration, live signature owners and general batches remain
-unsupported or pending.
+Current test coverage is indexed in [DOCX acceptance](../docx/acceptance-matrix.md).
+The specification remains proposed; passing a focused test does not establish
+complete conformance.
 
 ## Normative language
 
@@ -226,11 +78,9 @@ types and revision identifiers for each implemented family. An unverified sectio
 number MUST NOT be invented. The implementation MUST NOT imply ECMA/ISO
 certification merely because its scoped validator passes.
 
-The [standards coverage register](../docx/standards-coverage.md) maps F01–F50 to
-reviewed sections, namespaces, schema declarations and explicit unsupported
-subfeatures. The [source manifest](../docx/standards-sources.json) pins exact
-download bytes and schema hashes. These are research evidence, not implemented
-support. Unknown extensions MUST remain opaque where preservation is safe;
+The standards above identify the sources for F01–F50. Independent schema checks
+use the file hashes in `packages/docx/tests/schema-pins.json`; those pins and
+research inputs do not establish implemented support. Unknown extensions MUST remain opaque where preservation is safe;
 operations requiring unverified extension semantics MUST reject affected edits.
 
 A **package** is the ZIP/OPC container. A **part** is a named payload in that
@@ -365,7 +215,7 @@ Both tools use ordinary exit statuses 0/1/2/3/4/130 as defined by the shared
 contract. For `diff`, 0 means equal, 1 means different, 2 means comparison trouble,
 and 130 means cancellation. A successful difference is not an SDK exception.
 
-The [exhaustive discovery milestone](../docx/schema-capability-discovery.md)
+The [exhaustive discovery milestone](../docx/acceptance-matrix.md)
 exposes every actual operation declaration, including unsupported typed public
 owners, through root schema/help and scoped discovery. No-input capabilities
 classifies all F01–F50 and leaves feature presence unknown. Input capabilities is
@@ -378,7 +228,7 @@ crosslinks distinguish executed discovery from separately pending model behavior
 
 This section defines product choices, not requirements imposed by the file
 format. The shared contracts take precedence; this section supplies DOCX-specific
-arguments and effects. The [command register](../docx/command-coverage.json)
+arguments and effects. The [command register](../../packages/docx/src/operation-schema.ts)
 records these declarations and their acceptance associations. It is an evidence
 register subordinate to this single specification, not a second contract.
 
@@ -582,7 +432,7 @@ ID. `!` means required, `?` optional. Field names are JSON argument keys; CLI fl
 are their mechanical kebab-case spelling with `--`. Types are closed unions;
 `Length` is positive/nonnegative according to the target and uses explicit shared
 units. Enum symbols/setter subsets are the complete neutral declarations in the
-[public surface register](../docx/public-api-map.json), including inherited members,
+[public surface register](../../packages/docx/src/index.ts), including inherited members,
 helpers and aliases. No arbitrary strings/numbers substitute for enums.
 
 Profiles are compositional applicability rules, not permission to ignore flags:
@@ -765,7 +615,7 @@ Style operations are package-global and reject scope, ordinal/token selectors an
 Defaults get takes no name; set requires at least one applicable property.
 The schema enumerates the exact closed fields and implemented model batch IDs.
 Typed model batch execution is limited to the declared style/formatting subgraph.
-The separate [bounded ordered utility milestone](../plans/docx-ordered-batch-operations.md)
+The bounded ordered utility executor
 implements the explicitly enumerated fields/text/paragraphs/runs/tables/images/
 properties registry through the shared CLI/SDK executor. Mixed utility/model
 arrays and unrelated model operations MUST reject without publication; this
@@ -976,10 +826,8 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   SDK options use content/columnWidths/borders/shading/rowOptions; command JSON
   transport suffixes and source files normalize to those same fields. Aggregate
   newly constructed cells share the invocation budget. Bounded cell updates and
-  rectangular row/column insertion/deletion are implemented by the
-  [table editing milestone](../plans/docx-table-editing.md). The
-  [merged-cell milestone](../plans/docx-merged-cells.md) adds merge/split and span-aware
-  row removal. Live table model batches, span insertion and column removal remain pending.
+  rectangular row/column insertion/deletion are implemented by table utilities.
+  Merge/split and span-aware row removal are also supported. Live table model batches, span insertion and column removal remain pending.
 - **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
   external target accepts absolute https/http/mailto only and is never fetched;
   destinations may remain unresolved (section 9.1). Removing a link unwraps its
@@ -1747,9 +1595,8 @@ qualified by this bounded utility.
   MUST return changed false. Changes use kind remove, before locations and null
   after for deleted owners; surviving owners use staged locations and fresh
   display positions, with a collapsed range at the removed range start. Utility
-  batches and live content-owner APIs remain pending. The
-  [bounded mapping/evidence record](../plans/docx-range-and-structure-removal.md)
-  separates these utility results from whole-public-API obligations.
+  batches and live content-owner APIs remain pending. Utility behavior alone
+  does not establish whole-public-API conformance.
 - **Removal/sanitization/lorem.** signatures remove strips the full signature
   graph and is explicit consent in the command path; no cryptographic claim.
   Other mutations reject signed input. Sanitize remove is a nonempty unique
@@ -1786,7 +1633,7 @@ qualified by this bounded utility.
 The core-v1 understood-namespace set is the Strict and Transitional URI pairs
 for w, r, a, wp, pic, m, ep, cus and vt, plus shared ct, pr, cp, mc and xml,
 and the two Dublin Core namespaces, exactly as pinned in the
-[standards namespace register](../docx/standards-coverage.md). Recognizing an
+[standards namespace register](#3-standards-boundary-and-terminology). Recognizing an
 extension to inspect or perform a narrow explicitly declared edit does not
 claim understanding its whole namespace for MCE Requires/MustUnderstand. Extension
 namespaces outside that set are not eligible MCE Choice requirements in core-v1.
@@ -3263,7 +3110,7 @@ M-VALUES through M-CLI apply to every associated member. Documentation drift
 resolutions remain explicit evidence, including comment_id/timestamp, scoped
 lookup, table_direction, nullable setter differences and native per-axis DPI.
 
-The [owned acceptance procedure](../plans/docx-grammar-refinement.md) separates
+The acceptance procedure separates
 this documentary grammar check from later product conformance. The register's
 per-command tests, per-member API cases, per-feature independent scenarios and
 language-mapping cases are required collectively: parity between two entry points
@@ -3576,7 +3423,7 @@ unselected compatibility branches retain their relationships. The bounded editor
 accepts direct paragraph hyperlinks and rejects tracked/controlled wrappers,
 opaque affected edits, ranges and ambiguous shared header/footer mutation.
 
-The bounded [bookmark range milestone](../plans/docx-bookmarks.md) implements
+The bounded bookmark range editor implements
 bookmarks list/add/set/remove. Add uses a nonempty paragraph scalar-range token,
 including multi-run and table-cell ranges. Inspection reports duplicate IDs/names,
 missing or reversed ends, illegal boundaries, nested overlaps and crossings.
@@ -3669,10 +3516,9 @@ they MUST distinguish measured values from estimates and configured ceilings.
 
 ## 11. Corpus and original test contract
 
-The [contract reconciliation evidence](../docx/contract-reconciliation.md)
-records feature-by-feature original acceptance targets and intentional behavior
-differences. Its linked API and test registers retain individual identities and
-pending evidence; their counts MUST NOT be presented as implementation coverage.
+The [test index](../docx/acceptance-matrix.md) identifies maintained regression
+suites. Test counts MUST NOT be presented as implementation coverage. Open
+acceptance work is recorded in the [deferred backlog](../plans/docx-deferred-audit.md).
 
 The implementation MUST account for every collected parameter variant and expanded
 BDD example in the pinned research inventory. Adapt every applicable behavioral

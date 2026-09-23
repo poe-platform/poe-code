@@ -1,45 +1,8 @@
-# pptx package usage draft
+# PPTX byte transport
 
-Status: local private workspace with bounded document operations and a live model.
-This draft substitutes for package README changes until permission is given;
-it is not a published installation or whole-public-API coverage claim.
-
-The workspace is named exactly `pptx`. It is TypeScript ESM with strict NodeNext
-compilation and declaration exports. Its declared runtime dependencies are the
-shared Office package, XML parser and hash library. The main export includes
-`Presentation`, `createPptxCommandEngine`, document operations, types and neutral
-errors. `pptx/bytes` exports `readBinary` and `writeBinary`; these transport
-primitives alone do not validate ZIP or PPTX.
-
-The command engine supports `schema` and `capabilities` discovery. The safe-bash
-adapter supplies explicit virtual filesystem and publication capabilities for
-`pptx` commands. Discover the actual supported subset before editing:
-
-```sh
-pptx schema text replace --json
-pptx capabilities --json
-pptx text replace deck.pptx --find Draft --with Final --first --output final.pptx --json
-pptx properties set deck.pptx --name title --value 'Coastal survey' --output titled.pptx
-```
-
-Use plural resources such as `images`, `tables` and `properties`. Model members
-retain neutral spellings such as `core_properties` and `slide_layouts`; operation
-JSON options use camelCase. `Presentation(input?, context?)`, save and input
-admission are asynchronous. Owned in-memory property access is synchronous.
-CLI positions are one-based; model sequences are zero-based and keyed placeholders
-retain key lookup. Fingerprinted selectors must be current and owner-scoped.
-
-The command engine uses the shared version-1 JSON result and exit profile:
-success 0, content/selection/unsupported 1, usage 2, I/O 3, limits 4, cancellation 130. Diff uses 0 equal, 1 different, 2 failed comparison and 130 cancelled.
-Outputs require explicit publication intent; dry-run validates without publishing.
-No host filesystem, native presentation runtime, network, clock or identity is
-implicitly available. [Model usage and evidence](presentation-public-surface-evidence.md),
-[text replacement](text-replacement.md) and [merge/split](slide-merge-split-usage.md)
-describe bounded interfaces. Inherited members, enums, collections, helpers and
-untested public APIs remain subject to the shared SDK's full coverage requirements.
-
-The remaining sections document the byte transport interface specifically. Their
-limits and publication boundaries must not be read as package-wide limitations.
+The private `pptx/bytes` entry point exports `readBinary` and `writeBinary`.
+These transport primitives do not validate ZIP or PPTX. See [usage](usage.md)
+for presentation operations, model examples and host configuration.
 
 ```typescript
 import type { ByteContext, ByteSink } from "pptx";
@@ -116,18 +79,3 @@ failures with null data, zero affected count and nonempty errors. Byte transport
 does not provide multi-output publication. Fingerprinted `Location` uses an identity
 coordinate system and the format's eight scopes. No unimplemented model methods,
 inherited members, collections or enums have been renamed or marked private.
-
-Maintained development routes:
-
-```sh
-npm run build:workspaces -- --workspace=pptx
-npm test --workspace=pptx
-npm run lint --workspace=pptx
-```
-
-The wildcard workspace discovery includes these build/unit routes automatically.
-Tests use original bytes and memfs; existing fixture/assertion suites remain in
-the package test selection. Distribution includes only emitted runtime/declaration
-files, package metadata and the standalone license. Research and test fixtures
-are excluded. Browser/workerd export-condition resolution is checked separately
-from execution in those hosts; native host qualification is not implied.

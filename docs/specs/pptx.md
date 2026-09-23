@@ -11,11 +11,9 @@ editing presentations through a typed SDK and an explicit safe-bash command.
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
 recommendation whose exceptions need evidence. MAY identifies optional behavior.
-The full contract remains proposed. Implemented Through identifies the committed
-source inspected for the bounded [implementation checkpoint](../pptx/implementation-checkpoint-20260913.md),
-not completion of every requirement. That checkpoint records all F01–F60 support
-levels, evidence limits and unresolved shared-contract gaps. Uncommitted product
-changes are excluded from its implementation claims.
+The full contract remains proposed. Implemented Through records the historical
+source inspection, not completion of every requirement. Current supported behavior
+is described by [usage](../pptx/usage.md), executable discovery and source tests.
 
 ## 1. Problem Statement
 
@@ -205,12 +203,11 @@ and 130 means cancellation. A successful difference is not an SDK exception.
 
 The operation table in Appendix A is exhaustive for direct commands. Each row
 specifies the exact path, input arity, flags, argument schema, applicable options,
-SDK ID, scope, cardinality and publication class. The accompanying
-[operation register](../pptx/command-coverage.json) defines closed JSON Schema
-2020-12 objects at `operations[ID].arguments`, `optionsSchema`, `batchOptions`
-and `resultSchema`. Its `$defs` resolve locally. This spec and the shared contracts
-are authoritative; the register MUST agree with them. This is a proposed schema
-contract, not an executable implementation or a released schema bundle.
+SDK ID, scope, cardinality and publication class. Executable discovery MUST expose
+closed JSON Schema 2020-12 objects for arguments, options, batch options and
+results, with locally resolvable `$defs`. Those schemas MUST agree with this spec
+and the shared contracts. This is a proposed schema contract; declarations alone
+do not establish implementation or conformance.
 
 `pptx PATH INPUT FLAGS` binds to the typed operation with the same dotted ID.
 `text` is the sole shorthand for `text get`. Old singular resources and top-level
@@ -1190,8 +1187,7 @@ Before implementation readiness: pin extension schemas; validate limit defaults
 against actual media decks; specify the exact basic chart/animation/path subsets
 and complete CLI grammar; establish independent renderer availability and fonts.
 These are bounded research tasks in the plan, not implicit support promises.
-New package READMEs remain subject to repository permission; draft usage/config
-documentation under `docs/pptx` and report that publication dependency explicitly.
+The package remains private; publication is a separate release decision.
 
 ## Appendix A. Direct operation register
 
@@ -1199,7 +1195,7 @@ All rows are proposed. `?` marks optional arguments; other arguments are require
 Names before `:` are exact flags; values follow §6.1 encoding. Every row has the
 same dotted SDK ID as its space-separated path. Input arity counts document
 positionals, not auxiliary `--source`, `--sources`, `--template` or file arguments.
-The `arguments` and `optionsSchema` JSON objects in the linked register are exact;
+The argument and option schemas exposed by discovery MUST be closed;
 no additional fields/options are accepted. Shared options retain their fixed
 names. Nondefault object-member operations execute through the closed typed batch
 schemas, not extra undocumented direct flags.

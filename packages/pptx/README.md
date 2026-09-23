@@ -35,8 +35,3 @@ CLI `--limit NAME=VALUE` sets or overrides limits: `maxBytes`, `maxNodes`,
 [Configuration defaults](../../docs/pptx/usage.md#configuration-and-limits) and
 [byte transport options](../../docs/pptx/package-usage.md) document the complete
 host and per-operation configuration. External links are never fetched implicitly.
-
-## Development
-
-Run `npm test --workspace=pptx` and `npm run lint --workspace=pptx` from the
-repository root.

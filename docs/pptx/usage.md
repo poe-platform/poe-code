@@ -54,7 +54,7 @@ selected occurrence; `--shared` explicitly authorizes shared-resource replacemen
 Sizing uses `contain`, `cover` or `stretch`. Check the image command schema and
 capabilities for format/metadata restrictions; image characterization does not
 promise decoding or rendering. Extraction preserves original bytes and reports
-safe output paths and hashes. See [image details](images-usage.md).
+safe output paths and hashes.
 
 ## Merge and templates
 
@@ -67,7 +67,6 @@ Merge appends sources in order. Optional `--source-slides '[2,1]'` selects that
 ordered list from every source. Theme policy `source` is supported; destination
 theme conversion is rejected. Dimension policy defaults to `reject`; explicit
 `destination` retains the destination dimensions without scaling imported shapes.
-See [merge restrictions](slide-merge-split-usage.md).
 
 `create --template` is a shared-contract target currently rejected with
 `unsupported-profile` (exit 1). Apply bindings directly to an existing admitted
@@ -83,7 +82,7 @@ Bindings are literal text, fixed-grid table values or admitted image bytes.
 There is no expression evaluation, script execution, URL lookup or recursive
 expansion of inserted braces. Every recognized slot on a selected slide needs a
 binding. Table bindings require matching unmerged dimensions. Notes/master binding
-and table resizing are unsupported. The [repeat form](template-repeat-usage.md)
+and table resizing are unsupported. The repeat form
 uses explicit prototype slide positions, ordered records and required
 `shared-media` or `isolated-instance` policy. Layouts/masters/themes remain shared.
 
@@ -102,9 +101,8 @@ pptx text 'final deck.pptx'
 ## Public SDK imports
 
 The exact declared ESM entry points are `pptx` and `pptx/bytes`. No deep source
-imports are public. The [export catalog](sdk-exports.md) lists every current
-runtime and type-only export; returned and inherited members are additional
-obligations, not omitted because they lack an export or begin with `_`.
+imports are public. The [package entry point](../../packages/pptx/src/index.ts) declares runtime
+and type-only exports. Returned and inherited members are also part of the SDK.
 These examples use the following named imports:
 
 ```ts

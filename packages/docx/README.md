@@ -11,11 +11,11 @@ const invocation = parseDocxArguments(["schema", "text", "replace"].map(encode))
 console.log(getDocxDiscovery(invocation).data);
 ```
 
-[Usage](../../docs/docx/usage.md) covers public imports, safe-bash registration,
-selection, mutation and publication. The [operation register](../../docs/docx/usage-contracts.json)
-and generated `help`/`schema` describe all operation arguments and configuration.
-[Acceptance evidence](../../docs/docx/whole-api-acceptance.md) distinguishes
-qualified behavior from declared APIs.
+[Usage](../../docs/docx/usage.md) covers imports, explicit Safe Bash registration,
+selection, mutation, and publication. Generated `help` and `schema` describe
+operation arguments. The [test index](../../docs/docx/acceptance-matrix.md) links
+to maintained regressions; the [specification](../../docs/specs/docx.md) describes
+the proposed contract.
 
 ## Configuration and environment
 
@@ -27,17 +27,12 @@ omitted resources unlimited. Command engines accept optional `limits` and
 provide `registerCleanup`. Archive limits are `maxArchiveBytes`, `maxEntryBytes`,
 `maxTotalBytes`, `maxMembers`, `maxPathBytes`, `maxDepth`, `maxExtraBytes`,
 `maxCommentBytes`, `maxRetainedBytes`, and `chunkSize`.
-[Resource accounting](../../docs/docx/resource-limits.md) describes all document
-budget options. CLI `--limit NAME=VALUE` uses the same document settings as the
-SDK and can raise or lower an earlier setting. Capabilities lists finite limits;
-resources omitted from that list are unlimited.
+The [usage guide](../../docs/docx/usage.md#host-limits-and-publication) describes
+host limits and document budgets. CLI `--limit NAME=VALUE` uses the same document
+settings as the SDK and can raise or lower an earlier setting. Capabilities lists
+finite limits; resources omitted from that list are unlimited.
 
 Filesystem and publication authority must be explicitly supplied. Linked content
 is inert; no ambient filesystem, network or native Office process is acquired.
 Test-only `DOCX_SCHEMA_ROOT` and pinned `/usr/bin/xmllint` are required by the
 optional schema research checks, not by runtime operations.
-
-## Development
-
-Run `npm test --workspace=docx` and `npm run lint --workspace=docx` from the
-repository root. `npm run test:schemas --workspace=docx` runs opt-in schema checks.

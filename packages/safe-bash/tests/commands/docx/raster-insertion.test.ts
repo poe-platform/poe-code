@@ -73,12 +73,12 @@ for (const [name, width, height] of [["portrait", 2, 3], ["landscape", 3, 2]] as
     assert.equal(result.exitCode, 0, result.stderr); const item = JSON.parse(result.stdout).data.item; assert.equal(item.details.mime, "image/jpeg"); assert.equal(item.details.widthEmu, width * 6350); assert.equal(item.details.heightEmu, height * 12700);
   } finally { await shell.dispose(); }
 });
-test("docx named image insertion extracts byte-identical source and reports publication", async () => {
-  const image = rasterPng(), { shell, volume } = await setup(await textFixture(paragraph("Source"))); volume.writeFileSync("/work/leaf.png", image);
+for (const [extension, image] of [["png", rasterPng()], ["gif", rasterGif()]] as const) test(`docx named ${extension} insertion extracts byte-identical source and reports publication`, async () => {
+  const { shell, volume } = await setup(await textFixture(paragraph("Source"))); volume.writeFileSync(`/work/leaf.${extension}`, image);
   try {
-    const insertion = await shell.exec("docx images add 'survey notes.docx' --file leaf.png --output inserted.docx --json"); assert.equal(insertion.exitCode, 0, insertion.stderr); const report = JSON.parse(insertion.stdout); assert.equal(report.affected, 1); assert.equal(report.data.output.path, "/work/inserted.docx");
+    const insertion = await shell.exec(`docx images add 'survey notes.docx' --file leaf.${extension} --output inserted.docx --json`); assert.equal(insertion.exitCode, 0, insertion.stderr); const report = JSON.parse(insertion.stdout); assert.equal(report.affected, 1); assert.equal(report.data.output.path, "/work/inserted.docx");
     const extraction = await shell.exec("docx images extract inserted.docx --output-dir out --allow-partial-output --json"); assert.equal(extraction.exitCode, 0, extraction.stderr);
-    assert.deepEqual(volume.readFileSync("/work/out/image-1.png"), Buffer.from(image));
+    assert.deepEqual(volume.readFileSync(`/work/out/image-1.${extension}`), Buffer.from(image));
   } finally { await shell.dispose(); }
 });
 test("docx cell insertion keeps existing text and admits decorative intent", async () => {
@@ -88,7 +88,7 @@ test("docx cell insertion keeps existing text and admits decorative intent", asy
     assert.equal(result.exitCode, 0, result.stderr); const item = JSON.parse(result.stdout).data.item; assert.equal(item.details.decorative, true); assert.equal(item.details.widthEmu, 914400); assert.equal(item.details.heightEmu, 1828800);
   } finally { await shell.dispose(); }
 });
-for (const [name, image] of [["wrong.jpg", rasterPng()], ["unsupported.gif", rasterGif()]] as const) test(`docx refuses ${name} image insertion before publication`, async () => {
+for (const [name, image] of [["wrong.jpg", rasterPng()], ["truncated.gif", rasterGif().subarray(0, 6)]] as const) test(`docx refuses ${name} image insertion before publication`, async () => {
   const bytes = await textFixture(paragraph("Keep")), { shell, volume } = await setup(bytes); volume.writeFileSync(`/work/${name}`, image);
   try { const result = await shell.exec(`docx images add 'survey notes.docx' --file ${name} --output refused.docx --json`); assert.notEqual(result.exitCode, 0); const report = JSON.parse(result.stdout); assert.equal(report.ok, false); assert.equal(report.affected, 0); assert.equal(volume.existsSync("/work/refused.docx"), false); assert.deepEqual(volume.readFileSync("/work/survey notes.docx"), Buffer.from(bytes)); } finally { await shell.dispose(); }
 });

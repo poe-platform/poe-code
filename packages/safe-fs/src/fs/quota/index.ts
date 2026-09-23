@@ -357,8 +357,8 @@ export function withFileSystemQuota(fs: FileSystem, options: FileSystemQuotaOpti
     },
     rename(source, destination, renameOptions) {
       return mutate(async () => {
-        renameOptions?.signal?.throwIfAborted();
         if (renameOptions?.noReplace) {
+          renameOptions.signal?.throwIfAborted();
           const capabilities = await fs.capabilitiesFor?.(destination, renameOptions) ?? fs.capabilities;
           renameOptions.signal?.throwIfAborted();
           if (capabilities.atomicRenameNoReplace !== true) throw new FsError("ENOTSUP", { syscall: "rename", path: source, dest: destination });

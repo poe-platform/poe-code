@@ -35,6 +35,20 @@ test("csvformat original csvkit 2.2.0 German locale regression", async () => {
   });
 });
 
+test("csvformat CLI and SDK preserve numeric/null input across output quoting policies", async () => {
+  for (const quoting of [2, 4, 5]) {
+    const input = quoting === 5 ? '"label","n"\n"x",\n' : '"label","n"\n"x",12\n';
+    for (const outQuoting of [0, 1, 2, 3, 4, 5]) {
+      const header = [1, 2, 4, 5].includes(outQuoting) ? '"label","n"\n' : "label,n\n";
+      const row = quoting === 5 ? ([1, 2].includes(outQuoting) ? '"x",""\n' : [4, 5].includes(outQuoting) ? '"x",\n' : "x,\n") :
+        outQuoting === 1 || outQuoting === 5 ? '"x","12.0"\n' : outQuoting === 2 || outQuoting === 4 ? '"x",12.0\n' : "x,12.0\n";
+      const expected = { stdout: header + row, stderr: "", status: 0 };
+      assert.deepEqual(await invoke(input, ["-u", String(quoting), "-U", String(outQuoting)]), expected);
+      assert.deepEqual(await invoke(input, [], { quoting, out_quoting: outQuoting }), expected);
+    }
+  }
+});
+
 for (const [index, item] of reference.cases.entries()) {
   if (item.command !== "csvformat") continue;
   test(`csvformat frozen raw observation ${index}`, async () => {

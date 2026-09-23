@@ -19,6 +19,8 @@ The host explicitly supplies input and output, codecs, locale, clock and termina
 configuration. Database connections, compression and Python interpretation require
 appropriate host bindings; ambient host credentials are never loaded implicitly.
 The engine does not fall back to native csvkit processes.
+`csvcut` and `csvformat` accept numeric and null cells from input quoting modes
+2, 4 and 5, preserving Python float serialization and empty null output cells.
 
 The configured SQLite provider accepts `--engine-option echo False` and
 `--engine-option future True` for `csvsql` and `sql2csv`, including both together.

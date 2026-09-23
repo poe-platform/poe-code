@@ -23,7 +23,7 @@ async function invoke(command: string, input: string, argv: readonly string[], o
   finally { await Promise.all(cleanups.map(cleanup => cleanup())); }
 }
 
-test("typed quoting awaits header sink before reporting a later blocker and closes its input iterator", async () => {
+test("typed quoting awaits header sink before writing typed rows and closes its input iterator", async () => {
   let entered!: () => void; let release!: () => void;
   const started = new Promise<void>(resolve => { entered = resolve; });
   const blocked = new Promise<void>(resolve => { release = resolve; });
@@ -41,7 +41,8 @@ test("typed quoting awaits header sink before reporting a later blocker and clos
   await Promise.race([started, pending.then(result => { throw new Error(JSON.stringify(result)); })]);
   expect(writes).toEqual(["a,b\n"]);
   release();
-  expect(await pending).toEqual({ stdout: "", stderr: "csvkit: unsupported or unqualified: input quoting mode 2 numeric/null operation cells\n", status: 78 });
+  expect(await pending).toEqual({ stdout: "", stderr: "", status: 0 });
+  expect(writes).toEqual(["a,b\n", "1.0,2.0\n"]);
   expect(advances).toBe(2);
   expect(finalized).toBe(true);
 });
@@ -61,11 +62,19 @@ for (const mode of [2, 4]) test(`input quoting ${mode} reports original unquoted
   });
 });
 
-// These remain honest blockers: preserving strings must never coerce typed cells.
+// Typed readers retain float and null semantics through projection and writing.
 for (const [mode, input] of [[2, '"a","b"\n1,2\n'], [4, '"a","b"\n1,\n'], [5, '"a","b"\nx,\n']] as const) {
-  test(`input quoting ${mode} blocks typed records after preserving prior raw output`, async () => {
+  test(`input quoting ${mode} writes typed records after preserving prior raw output`, async () => {
     expect(await invoke("csvcut", input, ["-u", String(mode)])).toEqual({
-      stdout: "a,b\n", stderr: `csvkit: unsupported or unqualified: input quoting mode ${mode} numeric/null operation cells\n`, status: 78,
+      stdout: mode === 2 ? "a,b\n1.0,2.0\n" : mode === 4 ? "a,b\n1.0,\n" : "a,b\nx,\n", stderr: "", status: 0,
     });
+  });
+}
+
+for (const mode of [2, 4, 5]) {
+  for (const command of ["csvcut", "csvformat"]) test(`${command} quoting ${mode} accepts issue 524 CRLF cells`, async () => {
+    const input = mode === 5 ? "label,n\r\nChangedGamma,\r\nChangedDelta,\r\n" : '"label","n"\r\n"ChangedGamma",12\r\n"ChangedDelta",14\r\n';
+    const argv = ["--quoting", String(mode), ...(command === "csvcut" ? ["-c", "label"] : [])];
+    expect(await invoke(command, input, argv)).toEqual({ stdout: command === "csvcut" ? "label\nChangedGamma\nChangedDelta\n" : mode === 5 ? "label,n\nChangedGamma,\nChangedDelta,\n" : "label,n\nChangedGamma,12.0\nChangedDelta,14.0\n", stderr: "", status: 0 });
   });
 }

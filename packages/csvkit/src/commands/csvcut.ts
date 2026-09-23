@@ -2,16 +2,18 @@
 import type { CommandDescriptor } from "../descriptor.js";
 import type { Runtime } from "../runtime.js";
 import { defaultHeaders, printNames, parseColumnIdentifiers } from "../columns.js";
+import { pythonValueText } from "../csv.js";
+import { inputWriteCell } from "../operations/input-cells.js";
 
 async function cut(runtime: Runtime): Promise<number> {
   if (runtime.options.names_only) return printNames(runtime);
   await runtime.prompt();
   let headers: readonly string[] | undefined;
   let columns: number[] = [];
-  for await (const record of runtime.records()) {
+  for await (const record of runtime.records(undefined, undefined, undefined, undefined, undefined, true)) {
     if (headers === undefined) {
       const generated = Boolean(runtime.options.no_header_row);
-      headers = generated ? defaultHeaders(record.cells.length) : record.cells;
+      headers = generated ? defaultHeaders(record.cells.length) : record.cells.map(cell => pythonValueText(inputWriteCell(cell)));
       columns = parseColumnIdentifiers(runtime.options.columns as string | null, headers,
         runtime.options.zero_based ? 0 : 1, runtime.options.not_columns as string | null,
         runtime.step, generated);
@@ -19,7 +21,8 @@ async function cut(runtime: Runtime): Promise<number> {
       if (!generated) continue;
     }
     const selected = columns.map(index => record.cells[index] ?? null);
-    if (!runtime.options.delete_empty || selected.some(value => value)) await runtime.row(selected);
+    if (!runtime.options.delete_empty || selected.some(value => typeof value === "number" ? value !== 0 : Boolean(value)))
+      await runtime.row(selected.map(inputWriteCell));
   }
   // The source helper returns empty headers before validating selectors at EOF.
   if (headers === undefined) await runtime.row([]);

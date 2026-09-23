@@ -49,6 +49,21 @@ test("csvcut CLI and SDK select raw cells before deleting empty output rows", as
   assert.deepEqual(await invoke(input, [], { columns: "2,1,2", delete_empty: true, line_numbers: true }), expected);
 });
 
+test("csvcut CLI and SDK project floats and nulls without changing their spelling", async () => {
+  for (const quoting of [2, 4, 5]) {
+    const input = quoting === 5 ? '"label","n"\nx,\n' : '"label","n"\n"x",-0\n"y",12\n';
+    const expected = { stdout: quoting === 5 ? "n\n\"\"\n" : "n\n-0.0\n12.0\n", stderr: "", status: 0 };
+    assert.deepEqual(await invoke(input, ["-u", String(quoting), "-c", "n"]), expected);
+    assert.deepEqual(await invoke(input, [], { quoting, columns: "n" }), expected);
+  }
+});
+
+test("csvcut deletes zero floats but retains NaN as Python truthy", async () => {
+  assert.deepEqual(await invoke('"n"\n0\n-0\nnan\ninf\n', ["-u", "2", "-x"]), {
+    stdout: "n\nnan\ninf\n", stderr: "", status: 0
+  });
+});
+
 test("csvcut exposes only its source argument meanings without collisions", () => {
   const flags = csvcut.actions.flatMap(action => action.optionStrings);
   assert.equal(new Set(flags).size, flags.length);

@@ -158,7 +158,9 @@ export class Runtime {
     if (!path || path === "-") this.#stdinText = file;
     return file;
   }
-  async *records(path: string | null = this.options.input_path as string | null, file = this.input(path), skipped = Number(this.options.skip_lines ?? 0), table = false, recordLimit?: number): AsyncGenerator<CsvRecord> {
+  records(path?: string | null, file?: LazyInput, skipped?: number, table?: boolean, recordLimit?: number): AsyncGenerator<CsvRecord>;
+  records(path: string | null | undefined, file: LazyInput | undefined, skipped: number | undefined, table: boolean | undefined, recordLimit: number | undefined, preserveCells: true): AsyncGenerator<CsvRecord<CsvCell>>;
+  async *records(path: string | null = this.options.input_path as string | null, file = this.input(path), skipped = Number(this.options.skip_lines ?? 0), table = false, recordLimit?: number, preserveCells = false): AsyncGenerator<CsvRecord<CsvCell>> {
     const options = this.options;
     let inferred: CsvDialect = {};
     // Applicability comes from the original executable's declared parser actions.
@@ -195,10 +197,9 @@ export class Runtime {
       let emitted = 0;
       for await (const record of readCsvStream(file.lines(skipped), dialect, this.step, this.#admitRow)) {
       // Parse first so upstream float conversion diagnostics remain observable.
-      // Operation contracts currently support strings only; never stringify a
-      // float/null field, which would lose Python type and output semantics.
+      // String-only operations must explicitly qualify primitive input cells.
       const cells = record.cells;
-      if (!cells.every((cell): cell is string => { this.step(); return typeof cell === "string"; }))
+      if (!cells.every(cell => { this.step(); return preserveCells || typeof cell === "string"; }))
         throw new CsvkitBlocked(`input quoting mode ${dialect.quoting} numeric/null operation cells`);
       yield { cells, line: record.line };
       if (recordLimit !== undefined && ++emitted >= recordLimit) return;

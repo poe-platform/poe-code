@@ -2,17 +2,23 @@ import type { Runtime } from "../runtime.js";
 import { defaultHeaders, normalizeHeaders } from "./headers.js";
 import { CsvkitBlocked } from "../errors.js";
 import { inferTable, type InferenceOptions, type TypedTable } from "./types.js";
+import { pythonValueText } from "../csv.js";
+import { inputWriteCell } from "../operations/input-cells.js";
 
 export { inferTable, columnTypeOrder, castValue } from "./types.js";
 export type { ColumnType, TableValue, TypedColumn, TypedTable, InferenceOptions } from "./types.js";
 
-export async function readTable(runtime: Runtime, path?: string, rowLimit?: number, normalize = false, lineNumbers = false): Promise<TypedTable> {
+export async function readTable(runtime: Runtime, path?: string, rowLimit?: number, normalize = false, lineNumbers = false, preserveCells = false): Promise<TypedTable> {
   const o = runtime.options;
   let headers: readonly string[] | undefined;
   const rows: (readonly string[])[] = [];
   const recordLimit = rowLimit === undefined ? undefined : rowLimit + (o.no_header_row ? 0 : 1);
-  for await (const record of runtime.records(path, runtime.input(path), Number(o.skip_lines ?? 0), true, recordLimit)) {
-    const cells = lineNumbers ? [!o.no_header_row && record.line === 1 ? "line_numbers" : String(record.line - (o.no_header_row ? 0 : 1)), ...record.cells] : record.cells;
+  const file = runtime.input(path);
+  const records = preserveCells ? runtime.records(path, file, Number(o.skip_lines ?? 0), true, recordLimit, true) :
+    runtime.records(path, file, Number(o.skip_lines ?? 0), true, recordLimit);
+  for await (const record of records) {
+    const values = record.cells.map(cell => pythonValueText(inputWriteCell(cell)));
+    const cells = lineNumbers ? [!o.no_header_row && record.line === 1 ? "line_numbers" : String(record.line - (o.no_header_row ? 0 : 1)), ...values] : values;
     if (cells.length > runtime.context.limits.maxColumns) throw new CsvkitBlocked("column budget exceeded");
     if (headers === undefined) {
       headers = o.no_header_row ? defaultHeaders(cells.length) : cells;
@@ -20,7 +26,7 @@ export async function readTable(runtime: Runtime, path?: string, rowLimit?: numb
       if (headers.some(name => !name) || new Set(headers).size !== headers.length) throw new CsvkitBlocked("Agate duplicate/unnamed column warning provenance");
       if (!o.no_header_row) { if (rowLimit === 0) break; continue; }
     }
-    runtime.retain(64 + record.cells.length * 16 + record.cells.reduce((size, value) => size + value.length * 16 + 32, 0));
+    runtime.retain(64 + values.length * 16 + values.reduce((size, value) => size + value.length * 16 + 32, 0));
     rows.push(cells);
     if (rowLimit !== undefined && rows.length >= rowLimit) break;
   }

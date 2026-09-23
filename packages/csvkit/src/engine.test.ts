@@ -171,10 +171,10 @@ for (const [index, item] of reference.cases.entries()) {
     await Promise.all(f.cleanups.map(cleanup => cleanup()));
   });
 }
-test("unimplemented numeric input quoting is explicitly blocked", async () => {
+test("numeric input quoting preserves Python floats", async () => {
   const f = fixture('"a","b"\n1,2\n', ["-u", "2"]);
-  assert.equal(await execute("csvcut", f.context), 78);
-  assert.deepEqual(f.result(), { stdout: "a,b\n", stderr: "csvkit: unsupported or unqualified: input quoting mode 2 numeric/null operation cells\n" });
+  assert.equal(await execute("csvcut", f.context), 0);
+  assert.deepEqual(f.result(), { stdout: "a,b\n1.0,2.0\n", stderr: "" });
 });
 for (const [index, item] of additional.cases.entries()) {
   test(`additional frozen operation ${index}: ${item.command} ${item.argv.join(" ")}`, async () => {

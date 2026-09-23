@@ -4,6 +4,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { csvkitCommands, type CsvkitCommandsOptions } from "../../src/commands/csvkit/index.js";
 import { utf8Codec } from "poe-code/csvkit";
+import { agentCommands } from "../../src/plugins/index.js";
 
 const options: CsvkitCommandsOptions = {
   codecs: [utf8Codec],
@@ -81,14 +82,35 @@ test("csvformat stress raw rows retain ragged widths, blanks and literal strings
   } finally { await shell.dispose(); }
 });
 
-test("csvformat stress unsupported numeric/null input cells retain completed headers", async () => {
+test("csvformat stress numeric/null input cells preserve Python writer semantics", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
   try {
     for (const [quoting, stdin] of [[2, '"a","b"\n1,2\n'], [4, '"a","b"\n1,2\n'], [5, '"a","b"\nx,\n']] as const) {
-      exact(await shell.exec(`csvformat -u ${quoting}`, { stdin }), "a,b\n",
-        `csvkit: unsupported or unqualified: input quoting mode ${quoting} numeric/null operation cells\n`, 78);
+      exact(await shell.exec(`csvformat -u ${quoting}`, { stdin }), quoting === 5 ? "a,b\nx,\n" : "a,b\n1.0,2.0\n");
     }
     exact(await shell.exec("csvformat -u5", { stdin: '"a","b"\n1,2\n' }), "a,b\n1,2\n");
+  } finally { await shell.dispose(); }
+});
+
+test("issue 524 named and piped CSV primitives support formatting and projection", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands()).use(csvkitCommands(options));
+  try {
+    for (const quoting of [2, 4, 5]) {
+      const input = quoting === 5 ? "label,n\r\nChangedGamma,\r\nChangedDelta,\r\n" :
+        '"label","n"\r\n"ChangedGamma",12\r\n"ChangedDelta",14\r\n';
+      await fs.writeFile("/changed input.csv", bytes(input));
+      for (const piped of [false, true]) {
+        for (const command of ["csvformat", "csvcut"]) {
+          const args = command === "csvcut" ? " -c label" : "";
+          const invocation = `${command} --quoting=${quoting}${args} ${piped ? "-" : '"/changed input.csv"'}`;
+          exact(await shell.exec(`${piped ? 'cat "/changed input.csv" | ' : ""}${invocation} > "/changed output.csv"`), "");
+          assert.deepEqual(await fs.readFile("/changed output.csv"), bytes(command === "csvcut" ? "label\nChangedGamma\nChangedDelta\n" :
+            quoting === 5 ? "label,n\nChangedGamma,\nChangedDelta,\n" : "label,n\nChangedGamma,12.0\nChangedDelta,14.0\n"));
+          assert.deepEqual(await fs.readFile("/changed input.csv"), bytes(input));
+        }
+      }
+    }
   } finally { await shell.dispose(); }
 });
 

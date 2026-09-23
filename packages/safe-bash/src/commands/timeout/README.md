@@ -3,8 +3,8 @@
 This internal leaf module defines a cooperative `timeout` wrapper around one
 literal `CommandContext.invoke` call. It exports `createTimeoutCommand`,
 `createTimeoutCommands`, `timeoutCommands`, and their three timeout option and
-scheduler interfaces. It is not wired into the root export, package subpaths,
-or the default agent command aggregate.
+scheduler interfaces. The command is available in the default agent command
+aggregate and through the package's `commands/timeout` subpath.
 
 Durations use the ASCII `smhd` grammar fixed by the accepted timeout profile.
 The parser scans the existing string once in reverse with constant auxiliary
@@ -19,3 +19,21 @@ and settle after its child cleanup. An ignored signal, blocked event loop,
 uncooperative host task, stalled clock, or nonsettling cleanup can prevent
 settlement. This module makes no native process, process-group, hard-preemption,
 or arbitrary host-error provenance claim.
+
+`-k DURATION`, `-kDURATION`, `--kill-after DURATION` and
+`--kill-after=DURATION` accept the same duration grammar. Children completing
+before expiry retain their output and status. Zero kill-after disables escalation.
+Without a host binding, an expired positive kill-after request returns 125 with
+an explicit capability diagnostic after cooperative cancellation and cleanup.
+An initial KILL selection retains the existing cooperative signal profile;
+it does not establish native hard preemption.
+
+Hosts with actual escalation capability can supply `killAfterPolicy` to
+`createTimeoutCommand` or `timeoutCommands`. This trusted callback receives the
+original context, literal child command and arguments, forwarded stream options,
+and a policy containing `durationMilliseconds`, `killAfterMilliseconds`,
+`signalNumber` and `preserveStatus`. It owns deadline scheduling, truthful signal
+delivery, hard escalation, status selection and child cleanup. It must honor
+`context.signal`, register cooperative cleanup before resource acquisition, and
+settle only after owned work is retired. Supplying the callback does not confer
+capabilities on a host. Duration zero bypasses the policy and invokes normally.

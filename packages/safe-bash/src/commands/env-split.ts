@@ -215,7 +215,7 @@ export async function parseEnvOptions(
   const operands: string[] = [];
   const operandValues: ShellValue[] = [];
   const longOptions = new Map([
-    ["ignore-environment", "i"], ["unset", "u"], ["null", "0"], ["chdir", "C"], ["split-string", "S"], ["debug", "v"],
+    ["argv0", "a"], ["ignore-environment", "i"], ["unset", "u"], ["null", "0"], ["chdir", "C"], ["split-string", "S"], ["debug", "v"],
   ]);
   const accept = async (key: string, content?: string, source: ShellValue = content ?? "") => {
     if (key === "S") {
@@ -243,7 +243,7 @@ export async function parseEnvOptions(
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const key = longOptions.get(name);
       if (!key) throw new UsageError(`unrecognized option '${argument}'`);
-      const required = key === "u" || key === "C" || key === "S";
+      const required = key === "a" || key === "u" || key === "C" || key === "S";
       if (!required && equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       const content = required ? equals < 0 ? next() : argument.slice(equals + 1) : undefined;
       if (required && content === undefined) throw new UsageError(`option '--${name}' requires an argument`);
@@ -253,8 +253,8 @@ export async function parseEnvOptions(
     for (let index = 1; index < argument.length; index++) {
       if (work.tick()) await work.pause();
       const key = argument[index]!;
-      if (key !== "i" && key !== "u" && key !== "0" && key !== "C" && key !== "S" && key !== "v") throw new UsageError(`invalid option -- '${key}'`);
-      const required = key === "u" || key === "C" || key === "S";
+      if (key !== "a" && key !== "i" && key !== "u" && key !== "0" && key !== "C" && key !== "S" && key !== "v") throw new UsageError(`invalid option -- '${key}'`);
+      const required = key === "a" || key === "u" || key === "C" || key === "S";
       const attached = argument.slice(index + 1);
       const content = required ? attached || next() : undefined;
       if (required && content === undefined) throw new UsageError(`option requires an argument -- '${key}'`);

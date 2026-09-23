@@ -184,6 +184,8 @@ export interface CommandInput {
 }
 
 export interface CommandInvokeOptions {
+  /** Zeroth argument identity; command remains the name used for lookup. */
+  readonly argv0?: string | undefined;
   readonly admittedHandles?: AdmittedHandles | undefined;
   readonly processSignals?: ProcessSignals | undefined;
   readonly argumentValues?: CommandArguments;
@@ -215,6 +217,8 @@ export interface InvocationCapabilities {
 }
 
 export interface CommandContext {
+  /** Zeroth argument identity; command remains the name used for lookup. */
+  readonly argv0?: string | undefined;
   /** Live caller state; omitted by hosts that cannot answer shell predicates. */
   readonly shellPredicates?: {
     variable(name: string): boolean;

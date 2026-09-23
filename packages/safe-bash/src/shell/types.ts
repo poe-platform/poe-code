@@ -12,6 +12,8 @@ export interface ShellCapabilities extends InvocationCapabilities {
 }
 
 export interface ShellInvokeOptions {
+  /** Zeroth argument identity; command remains the name used for lookup. */
+  readonly argv0?: string | undefined;
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
   readonly argumentValues?: CommandArguments;

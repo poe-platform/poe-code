@@ -538,6 +538,8 @@ export interface State {
 const declarationArrays = Symbol("declarationArrays");
 
 interface IO {
+  /** Zeroth argument identity; command remains the name used for lookup. */
+  readonly argv0?: string | undefined;
   readonly [declarationArrays]?: ReadonlyMap<number, ArrayAssignment> | undefined;
   readonly capabilities?: CommandContext["capabilities"];
   readonly admittedHandles?: CommandContext["admittedHandles"];
@@ -3836,6 +3838,7 @@ export class Runtime {
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
         capabilities: io.capabilities,
+        ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }),
         [invocationScope]: io[invocationScope],
         ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }),
         ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }),
@@ -4782,7 +4785,7 @@ export class Runtime {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
       return 2;
     }
-    const arg0 = commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : context.command;
+    const arg0 = commandString && args.length ? getCommandArguments(context).values[context.args.length - args.length]! : (context.argv0 ?? context.command);
     if (commandString) args.shift();
     const child = this.processState(context, state, io, arg0, args);
     child.errexit = errexit;
@@ -4790,7 +4793,7 @@ export class Runtime {
     child.noexec = noexec;
     child.nounset = nounset;
     const references = new PipeDescriptorFrame(io[invocationScope]);
-    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
+    const childIO = isolateIO({ ...io, ...context, argv0: undefined, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
     if (source !== undefined) {
       this.budget.source(Buffer.byteLength(source));
@@ -5387,6 +5390,7 @@ export class Runtime {
         || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) {
         throw new TypeError("invoke requires a command and literal string arguments without NUL");
       }
+      if (options.argv0 !== undefined && (typeof options.argv0 !== "string" || options.argv0.includes("\0"))) throw new TypeError("invoke argv0 must be a string without NUL");
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     }, (runtime, scope) => runtime.invokeScoped(name, args, options, context, state, scope));
   }
@@ -5424,6 +5428,7 @@ export class Runtime {
     const references = new PipeDescriptorFrame(scope);
     const io = isolateIO({
       ...context,
+      argv0: options.argv0,
       ...(options.admittedHandles === undefined ? {} : { admittedHandles: options.admittedHandles }),
       ...(options.processSignals === undefined ? {} : { processSignals: options.processSignals }),
       [invocationScope]: scope,

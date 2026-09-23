@@ -16,6 +16,7 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
     const invoke = context.invoke;
     if (invoke) return invoke(context.command, argumentValues.args, {
       argumentValues,
+      ...(context.argv0 === undefined ? {} : { argv0: context.argv0 }),
       stdin: context.stdin, cwd: context.cwd, env: context.env, stdout: context.stdout, stderr: context.stderr,
       ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
     });
@@ -108,6 +109,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         if ((await context.fs.stat(cwd, { signal: context.signal })).type !== "directory") throw new FsError("ENOTDIR", { path: cwd });
         cwd = await context.fs.realpath(cwd, { signal: context.signal });
       }
+      const argv0 = value(parsed, "a");
+      if (argv0?.includes("\0")) throw new UsageError("argv0 cannot contain NUL");
       if (offset < parsed.operands.length) {
         if (debug) {
           await writeDiagnostic(context.stderr, `executing: ${parsed.operands[offset]}\n`, context.signal);
@@ -119,10 +122,11 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         const childEnv: Record<string, string> = Object.assign(Object.create(null) as Record<string, string>, Object.fromEntries(names.map(name => [name, env[name]!])));
         if (context.invoke) return context.invoke(parsed.operands[offset]!, childArguments.args, {
           argumentValues: childArguments,
+          ...(argv0 === undefined ? {} : { argv0 }),
           env: childEnv, replaceEnv: true, cwd, stdin: context.stdin, stdout: context.stdout, stderr: context.stderr,
           ...(context.stdinIsDefault === undefined ? {} : { stdinIsDefault: context.stdinIsDefault }),
         });
-        return execute({ ...context, command: parsed.operands[offset]!, args: childArguments.args, argumentValues: childArguments, env: childEnv, cwd });
+        return execute({ ...context, argv0, command: parsed.operands[offset]!, args: childArguments.args, argumentValues: childArguments, env: childEnv, cwd });
       }
       for (const name of names) await output(context, `${name}=${env[name]}${parsed.flags.has("0") ? "\0" : "\n"}`);
       return { exitCode: 0 };

@@ -197,6 +197,20 @@ function assertUnusedBindingMigration(path: string, expected: string, current: B
   return original;
 }
 
+function archivedCliSpellingSource(): Buffer {
+  const bytes = readFileSync(new URL("./cli-before-input-modes.ts.txt", import.meta.url));
+  assert.equal(bytes.length, 8581, "immutable pre-input-modes CLI image size");
+  assert.equal(digest(bytes), "e347ee94fb27a848d1a3a6b2b4ef495a52d6cd345d7ff1590c31f998b4d5bcb5", "immutable pre-input-modes CLI image digest");
+  return bytes;
+}
+
+function archivedStreamingSource(): Buffer {
+  const bytes = readFileSync(new URL("./streaming-before-input-modes.ts.txt", import.meta.url));
+  assert.equal(bytes.length, 9023, "immutable pre-input-modes streaming image size");
+  assert.equal(digest(bytes), "e33c599f03bfbd4fd5293013d145b85a321bfa65921059bc272cd86a7b7bf3b1", "immutable pre-input-modes streaming image digest");
+  return bytes;
+}
+
 function assertSpellingMigration(migration: SpellingMigration, expected: string, current: Buffer, receiptBytes: Buffer) {
   const approved = spellingMigrations.find(entry => entry.path === migration.path);
   assert.ok(approved, "unapproved spelling migration path");
@@ -276,7 +290,9 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   const numericAsyncMigrated = new Set<string>();
   function assertCurrent(path: string, expected: string, snapshot?: Buffer) {
     assert.ok(!compared.has(path), "duplicate current comparison");
-    let current = path === resourceDepthMigration.path ? archivedHazardStartupSource() : readFileSync(path);
+    let current = path === resourceDepthMigration.path ? archivedHazardStartupSource()
+      : path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
+      : path === "tests/commands/structured/streaming.test.ts" ? archivedStreamingSource() : readFileSync(path);
     if (path === numericAsyncMigration.path) {
       current = assertNumericAsyncMigration({ path, expected, current, ...(snapshot ? { snapshot } : {}) });
       numericAsyncMigrated.add(path);
@@ -317,17 +333,17 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       assertCurrent(path, hash);
     }
   }
-  assert.equal(compared.size, 140, "139 current comparisons and one immutable pre-diagnostic resource image");
+  assert.equal(compared.size, 140, "137 current comparisons and three immutable test images");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
-  assert.equal(compared.size - migrated.size, 136, "retained comparisons outside spelling migrations, including one archived resource image");
+  assert.equal(compared.size - migrated.size, 136, "retained comparisons outside spelling migrations, including archived resource and streaming images");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
   assert.deepEqual([...bindingMigrated], [unusedBindingMigration.path], "only the reviewed unused-binding helper migration");
   assert.deepEqual([...depthMigrated], [resourceDepthMigration.path], "only the reviewed resource-depth fixture migration");
   assert.deepEqual([...hazardStartupMigrated], [hazardStartupMigration.path], "only the reviewed hazard-startup migration");
   assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
   const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size;
-  assert.equal(unchangedComparisons, 133, "byte-unchanged retained current comparisons");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 1, archivedResourceImages: 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
+  assert.equal(unchangedComparisons, 133, "132 byte-unchanged current comparisons and one archived streaming image");
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 3, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -360,7 +376,7 @@ for (const migration of spellingMigrations) for (const [name, mutate] of spellin
   const input: MigrationControl = {
     migration: { ...migration, deletions: [...migration.deletions] },
     expected,
-    current: readFileSync(migration.path),
+    current: migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource() : readFileSync(migration.path),
     receipt: readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)),
   };
   if (mutate) {
@@ -378,7 +394,8 @@ for (const migration of spellingMigrations.slice(0, 2)) test("reviewed spelling 
   const firstByte = snapshot[0];
   assert.ok(firstByte !== undefined, "historical snapshot mutation requires a byte");
   snapshot[0] = firstByte ^ 1;
-  const restored = assertSpellingMigration(migration, original.afterSha256, readFileSync(migration.path), readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
+  const current = migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource() : readFileSync(migration.path);
+  const restored = assertSpellingMigration(migration, original.afterSha256, current, readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
   assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
 });
 

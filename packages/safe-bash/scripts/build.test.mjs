@@ -36,7 +36,7 @@ function fixture(extra = {}, compilerOptions = {}) {
   const fileSystem = Object.create(memory);
   fileSystem.lstatSync = path => { metadata.push(String(path)); return memory.lstatSync(path); };
   fileSystem.readdirSync = (path, ...args) => { listings.push(String(path)); return memory.readdirSync(path, ...args); };
-  fileSystem.openSync = (path, flags, ...args) => { const nativeFlags = flags; flags = ["O_WRONLY", "O_CREAT", "O_TRUNC", "O_NOFOLLOW", "O_NONBLOCK"].reduce((value, name) => value | ((nativeFlags & constants[name]) !== 0 ? memory.constants[name] : 0), 0); const descriptor = memory.openSync(path, flags, ...args); descriptors.add(descriptor); if ((nativeFlags & constants.O_WRONLY) !== 0) writes.push(String(path)); else reads.push(String(path)); return descriptor; };
+  fileSystem.openSync = (path, flags, ...args) => { const nativeFlags = flags; flags = ["O_WRONLY", "O_CREAT", "O_EXCL", "O_TRUNC", "O_NOFOLLOW", "O_NONBLOCK"].reduce((value, name) => value | ((nativeFlags & constants[name]) !== 0 ? memory.constants[name] : 0), 0); const descriptor = memory.openSync(path, flags, ...args); descriptors.add(descriptor); if ((nativeFlags & constants.O_WRONLY) !== 0) writes.push(String(path)); else reads.push(String(path)); return descriptor; };
   fileSystem.closeSync = descriptor => { memory.closeSync(descriptor); descriptors.delete(descriptor); };
   return { volume, memory, fileSystem, reads, metadata, listings, descriptors, writes, output: [], run(args = []) { return buildPackage({ root, tools, fileSystem, args, write: text => this.output.push(text) }); } };
 }
@@ -1234,6 +1234,143 @@ test("build refuses a symlinked output leaf without truncating target", async ()
   noHeldReads(owned);
 });
 
+test("build replaces existing outputs without a writable open that changes ctime on macOS", async () => {
+  const owned = fixture({ "dist/index.js": "prior output" });
+  const target = root + "/dist/index.js";
+  const priorInode = owned.memory.lstatSync(target).ino;
+  const open = owned.fileSystem.openSync;
+  const metadata = owned.fileSystem.lstatSync, descriptorStat = owned.fileSystem.fstatSync;
+  let ctimeChanged = false;
+  const ctime = stat => { if (ctimeChanged && stat.ino === priorInode) stat.ctimeMs += 1000; return stat; };
+  owned.fileSystem.lstatSync = path => ctime(metadata(path));
+  owned.fileSystem.fstatSync = descriptor => ctime(descriptorStat(descriptor));
+  owned.fileSystem.openSync = (path, flags, ...args) => {
+    const descriptor = open(path, flags, ...args);
+    if (String(path) === target && (flags & constants.O_WRONLY) !== 0) {
+      ctimeChanged = true;
+    }
+    return descriptor;
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.notEqual(owned.memory.lstatSync(target).ino, priorInode);
+  assert.match(owned.memory.readFileSync(target, "utf8"), /answer = 42/);
+  assert.equal(owned.writes.includes(target), false);
+  assert.equal(owned.descriptors.size, 0);
+  assert.equal(owned.memory.readdirSync(root + "/dist").some(name => name.includes(".emit-")), false);
+  noHeldReads(owned);
+});
+
+for (const defect of ["ctime", "content", "replacement", "symlink", "hardlink"]) test("build refuses output publication after destination " + defect + " drift", async () => {
+  const owned = fixture({ "dist/index.js": "prior output", "dist/sentinel": "protected" });
+  const target = root + "/dist/index.js";
+  const open = owned.fileSystem.openSync;
+  const priorInode = owned.memory.lstatSync(target).ino;
+  const metadata = owned.fileSystem.lstatSync, descriptorStat = owned.fileSystem.fstatSync;
+  let ctimeChanged = false;
+  const ctime = stat => { if (ctimeChanged && stat.ino === priorInode) stat.ctimeMs += 1000; return stat; };
+  owned.fileSystem.lstatSync = path => ctime(metadata(path));
+  owned.fileSystem.fstatSync = descriptor => ctime(descriptorStat(descriptor));
+  let changed = false;
+  owned.fileSystem.openSync = (path, flags, ...args) => {
+    const descriptor = open(path, flags, ...args);
+    if (!changed && (flags & constants.O_WRONLY) !== 0) {
+      changed = true;
+      if (defect === "ctime") {
+        ctimeChanged = true;
+      } else if (defect === "content") owned.memory.writeFileSync(target, "changed output");
+      else {
+        owned.memory.unlinkSync(target);
+        if (defect === "replacement") owned.memory.writeFileSync(target, "replacement");
+        else if (defect === "symlink") owned.memory.symlinkSync(root + "/dist/sentinel", target);
+        else owned.memory.linkSync(root + "/dist/sentinel", target);
+      }
+    }
+    return descriptor;
+  };
+  await assert.rejects(owned.run(["--sourceMap", "false"]), /identity changed|link|regular|single-link/);
+  assert.equal(owned.memory.readFileSync(root + "/dist/sentinel", "utf8"), "protected");
+  assert.equal(owned.descriptors.size, 0);
+  assert.equal(owned.memory.readdirSync(root + "/dist").some(name => name.includes(".emit-")), false);
+  noHeldReads(owned);
+});
+
+test("build refuses a destination that appears while its new output is prepared", async () => {
+  const owned = fixture();
+  const target = root + "/dist/index.js";
+  const open = owned.fileSystem.openSync;
+  owned.fileSystem.openSync = (path, flags, ...args) => {
+    const descriptor = open(path, flags, ...args);
+    if ((flags & constants.O_WRONLY) !== 0) owned.memory.writeFileSync(target, "other publisher");
+    return descriptor;
+  };
+  await assert.rejects(owned.run(["--sourceMap", "false"]), /appeared before publication/);
+  assert.equal(owned.memory.readFileSync(target, "utf8"), "other publisher");
+  assert.equal(owned.descriptors.size, 0);
+  assert.equal(owned.memory.readdirSync(root + "/dist").some(name => name.includes(".emit-")), false);
+  noHeldReads(owned);
+});
+
+for (const phase of ["write", "close", "rename"]) test("build preserves prior output when fresh publication fails at " + phase, async () => {
+  const owned = fixture({ "dist/index.js": "prior output" });
+  const failure = Object.freeze({ phase });
+  const target = root + "/dist/index.js";
+  const open = owned.fileSystem.openSync, close = owned.fileSystem.closeSync;
+  let selected;
+  owned.fileSystem.openSync = (path, flags, ...args) => {
+    const descriptor = open(path, flags, ...args);
+    if ((flags & constants.O_WRONLY) !== 0) selected = descriptor;
+    return descriptor;
+  };
+  owned.fileSystem.writeFileSync = (descriptor, ...args) => { if (phase === "write" && descriptor === selected) throw failure; return owned.memory.writeFileSync(descriptor, ...args); };
+  owned.fileSystem.closeSync = descriptor => { close(descriptor); if (phase === "close" && descriptor === selected) throw failure; };
+  owned.fileSystem.renameSync = (from, to) => { if (phase === "rename" && String(to) === target) throw failure; return owned.memory.renameSync(from, to); };
+  let caught = false;
+  try { await owned.run(["--sourceMap", "false"]); } catch (error) { caught = true; assert.equal(error, failure); }
+  assert.equal(caught, true);
+  assert.equal(owned.memory.readFileSync(target, "utf8"), "prior output");
+  assert.equal(owned.descriptors.size, 0);
+  assert.equal(owned.memory.readdirSync(root + "/dist").some(name => name.includes(".emit-")), false);
+  noHeldReads(owned);
+});
+
+test("build refuses temporary-file replacement and leaves the foreign replacement intact", async () => {
+  const owned = fixture({ "dist/index.js": "prior output" });
+  const close = owned.fileSystem.closeSync, open = owned.fileSystem.openSync;
+  let selected, temporary;
+  owned.fileSystem.openSync = (path, flags, ...args) => {
+    const descriptor = open(path, flags, ...args);
+    if ((flags & constants.O_WRONLY) !== 0) { selected = descriptor; temporary = path; }
+    return descriptor;
+  };
+  owned.fileSystem.closeSync = descriptor => {
+    close(descriptor);
+    if (descriptor === selected) {
+      owned.memory.unlinkSync(temporary);
+      owned.memory.writeFileSync(temporary, "foreign replacement");
+    }
+  };
+  await assert.rejects(owned.run(["--sourceMap", "false"]), error => error instanceof AggregateError && error.errors.every(item => /identity changed/.test(item.message)));
+  assert.equal(owned.memory.readFileSync(temporary, "utf8"), "foreign replacement");
+  assert.equal(owned.memory.readFileSync(root + "/dist/index.js", "utf8"), "prior output");
+  assert.equal(owned.descriptors.size, 0);
+  noHeldReads(owned);
+});
+
+test("build stages long valid output basenames within the native filename limit", async () => {
+  const name = "a".repeat(235);
+  const owned = fixture({ ["src/" + name + ".ts"]: "export const longName = 1;" });
+  const open = owned.fileSystem.openSync;
+  owned.fileSystem.openSync = (path, ...args) => {
+    if (Buffer.byteLength(String(path).split("/").at(-1)) > 255) throw Object.assign(new Error("filename exceeds native limit"), { code: "ENAMETOOLONG" });
+    return open(path, ...args);
+  };
+  assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.match(owned.memory.readFileSync(root + "/dist/" + name + ".js", "utf8"), /longName = 1/);
+  assert.equal(owned.descriptors.size, 0);
+  assert.equal(owned.memory.readdirSync(root + "/dist").some(item => item.includes(".emit-")), false);
+  noHeldReads(owned);
+});
+
 
 test("build resolves trusted hoisted Node and undici declaration inputs", async () => {
   const owned = fixture({ "src/index.ts": 'import type { Dispatcher } from "undici-types"; export function use(value: Dispatcher): void { value.dispatch(); }' });
@@ -1676,7 +1813,7 @@ test("optional output bytes are verified after write rather than assumed from co
   };
   owned.fileSystem.writeFileSync = (descriptor, text) => owned.memory.writeFileSync(descriptor, "x".repeat(Buffer.byteLength(text)));
   await assert.rejects(owned.run(["--optional"]), /output bytes changed/);
-  assert.equal(owned.writes.length, 1, JSON.stringify(owned.writes.map(path => [path, owned.memory.readFileSync(path, "utf8").slice(0, 20)])));
+  assert.equal(owned.writes.length, 1, JSON.stringify(owned.writes));
   noHeldReads(owned);
 });
 

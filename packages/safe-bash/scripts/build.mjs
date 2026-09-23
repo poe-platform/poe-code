@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import { createRequire } from "node:module";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -479,23 +479,54 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       const before = physical(absolute);
       assert.ok(!before || before.isFile(), "compiler output must be a regular file");
       checkCancellation();
-      const descriptor = fileSystem.openSync(absolute, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK, 0o666);
-      let failed = false, failure;
+      // Never open an existing output for writing: on macOS the open itself can
+      // change ctime. Prepare a new single-link file, then revalidate both names
+      // before replacing the admitted destination.
+      const temporary = join(dirname(absolute), ".emit-" + randomUUID());
+      const descriptor = fileSystem.openSync(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK, before ? before.mode & 0o777 : 0o666);
+      let failed = false, failure, temporaryIdentity, published = false;
       try {
         discardIndex(dirname(absolute));
         checkCancellation();
         const opened = fileSystem.fstatSync(descriptor);
         assert.ok(opened.isFile() && opened.nlink === 1, "compiler output must be regular and single-link");
-        if (before) sameIdentity(before, opened);
-        checkCancellation();
-        fileSystem.ftruncateSync(descriptor, 0);
+        sameIdentity(opened, physical(temporary));
         checkCancellation();
         fileSystem.writeFileSync(descriptor, (writeByteOrderMark ? "\uFEFF" : "") + data, "utf8");
         checkCancellation();
       } catch (error) { failed = true; failure = error; }
+      try { temporaryIdentity = fileSystem.fstatSync(descriptor); } catch (error) {
+        failure = failed ? new AggregateError([failure, error], "compiler write and stat failed") : error;
+        failed = true;
+      }
       try { fileSystem.closeSync(descriptor); } catch (error) {
-        if (failed) throw new AggregateError([failure, error], "compiler write and close failed");
-        throw error;
+        failure = failed ? new AggregateError([failure, error], "compiler write and close failed") : error;
+        failed = true;
+      }
+      if (!failed) try {
+        checkCancellation();
+        assert.ok(temporaryIdentity.isFile() && temporaryIdentity.nlink === 1, "compiler output must be regular and single-link");
+        sameIdentity(temporaryIdentity, physical(temporary));
+        const current = physical(absolute);
+        if (before) sameIdentity(before, current);
+        else assert.equal(current, undefined, "compiler output appeared before publication");
+        checkCancellation();
+        fileSystem.renameSync(temporary, absolute);
+        published = true;
+        discardIndex(dirname(absolute));
+      } catch (error) { failed = true; failure = error; }
+      if (!published) try {
+        discardIndex(dirname(absolute));
+        const current = physical(temporary);
+        if (current) {
+          assert.ok(temporaryIdentity, "compiler temporary output identity is unavailable");
+          sameIdentity(temporaryIdentity, current);
+          fileSystem.unlinkSync(temporary);
+          discardIndex(dirname(absolute));
+        }
+      } catch (error) {
+        failure = failed ? new AggregateError([failure, error], "compiler write and temporary cleanup failed") : error;
+        failed = true;
       }
       if (failed) throw failure;
       checkCancellation();

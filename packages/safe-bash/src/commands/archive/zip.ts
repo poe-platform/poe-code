@@ -983,7 +983,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget, log?
     else if (!parsed.difference) { await budget.member(entry.size); entries.push(entry); }
   }
   if (parsed.grow && (parsed.zip64 !== undefined || deleted.size || archive.entries.some(entry => !entries.includes(entry)))) {
-    for (const entry of archive.entries) zipGrowRecords.delete(entry);
+    for (const entry of archive.entries) {
+      zipGrowRecords.delete(entry);
+      if (parsed.zip64 === false) entry.zip64 = false;
+    }
   }
   const pendingProgress: ZipEntry[] = [];
   for (const { entry } of selected.values()) { entries.push(entry); if (entry.source) pendingProgress.push(entry); else append(entry, false); }

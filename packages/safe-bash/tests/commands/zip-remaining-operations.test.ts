@@ -472,8 +472,10 @@ for (const version of [9, 47]) test(`grow refuses unsupported STORE extraction v
 for (const flags of [["-g", "-fd"], ["-g", "-fz"], ["-g", "-fz-"]]) test(`grow retained descriptor records remain valid with ${flags}`, async () => {
   const fs = await sources();
   assert.equal((await execute("zip", fs, ["-qfd", "descriptors.zip", "b"])).exitCode, 0);
-  assert.equal((await execute("zip", fs, [...flags, "descriptors.zip", "a"])).exitCode, 0);
-  assert.equal((await execute("unzip", fs, ["-tqq", "descriptors.zip"])).exitCode, 0);
+  const grown = await execute("zip", fs, [...flags, "descriptors.zip", "a"]);
+  assert.equal(grown.exitCode, 0, grown.stderr);
+  const checked = await execute("unzip", fs, ["-tqq", "descriptors.zip"]);
+  assert.equal(checked.exitCode, 0, checked.stderr);
 });
 for (const flags of [["-g"], ["-J"]]) test(`${flags} preserves forced ZIP64 input and archive comments`, async () => {
   const fs = await sources();

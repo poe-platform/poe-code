@@ -106,7 +106,7 @@ for (const vector of vectors) {
       if (vector.change) {
         const { path, value } = vector.change;
         if (value === null) delete expected[path];
-        else expected[path] = { ...(before[path] ?? { type: "file", mode: 0o100666, nlink: 1 }), value: Buffer.from(value).toString("base64") };
+        else expected[path] = { ...(before[path] ?? { type: "file", mode: 0o100644, nlink: 1 }), value: Buffer.from(value).toString("base64") };
       }
       assert.deepEqual(await snapshot(fs), expected, "entire VFS: only the authorized target may change");
     } finally { await shell.dispose(); }

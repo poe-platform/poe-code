@@ -45,7 +45,7 @@ for (const fixture of repeatedMatchFixtures) for (const atomic of [false, true])
       assert.equal(result.stdout, native.stdout);
       assert.equal(result.stderr, native.stderr);
       assert.deepEqual(await namespace(filesystem), Object.fromEntries(Object.entries(native.after).map(([path, entry]) => [path,
-        { type: entry.type, mode: (before[path] ?? before["/work/target"]!).mode,
+        { type: entry.type, mode: before[path]?.mode ?? (path.endsWith(".orig") ? before["/work/target"]!.mode : 0o100644),
           nlink: (before[path] ?? before["/work/target"]!).nlink, ...(entry.hex === undefined ? {} : { hex: entry.hex }) }])));
     }
   });

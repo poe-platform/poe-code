@@ -1,6 +1,6 @@
 {
   "scope": "Actual native Linux BIFF8 import/recalc for standard unavailable external SUPBOOK cell and area links, plus deleted-local control",
-  "status": "native-mismatch-validated-reader-repair-pending-delivery",
+  "status": "native-unavailable-external-csv-effects-qualified-five-public-surfaces",
   "wholeGoalComplete": false,
   "run": 35849184383,
   "workflowConclusion": "success",
@@ -6297,5 +6297,197 @@
     "Broader BIFF revisions and NameX semantics",
     "Other original goal families and publication"
   ],
-  "publication": "unverified"
+  "publication": "unverified",
+  "productFix": {
+    "commit": "055483e6bb",
+    "failingMemoryTests": 6,
+    "focusedTests": 49,
+    "packageTests": 22453,
+    "packageFiles": 361,
+    "packageLintAndTypes": "passed",
+    "maintainedRootBuild": "passed",
+    "cachedResultsPreserved": true,
+    "rawSupbookRetained": true,
+    "implicitLinkResolution": false
+  },
+  "publicReplay": [
+    {
+      "id": "external-biff8-cell",
+      "cases": 1,
+      "logicalFields": 2,
+      "outputBytes": 9,
+      "sdkExact": true,
+      "rootShellExact": true,
+      "xmlFormulaReplayExact": true,
+      "inputUnchanged": true,
+      "sdkDiagnostics": [
+        {
+          "code": "biff-loss-warning",
+          "severity": "warning",
+          "message": "BIFF SUPBOOK retained without semantic interpretation"
+        }
+      ],
+      "shellStderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+      "xmlStderr": "",
+      "nativeStderrHex": "0a287373636f6e766572743a3632313831293a20676e756d657269633a726561642d5741524e494e47202a2a3a2031303a33343a35332e3435373a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632313831293a20676e756d657269633a726561642d5741524e494e47202a2a3a2031303a33343a35332e3435373a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a",
+      "shellStderrExact": false,
+      "xmlStderrExact": false
+    },
+    {
+      "id": "external-biff8-area",
+      "cases": 1,
+      "logicalFields": 2,
+      "outputBytes": 9,
+      "sdkExact": true,
+      "rootShellExact": true,
+      "xmlFormulaReplayExact": true,
+      "inputUnchanged": true,
+      "sdkDiagnostics": [
+        {
+          "code": "biff-loss-warning",
+          "severity": "warning",
+          "message": "BIFF SUPBOOK retained without semantic interpretation"
+        }
+      ],
+      "shellStderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+      "xmlStderr": "",
+      "nativeStderrHex": "0a287373636f6e766572743a3632313833293a20676e756d657269633a726561642d5741524e494e47202a2a3a2031303a33343a35332e3438393a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632313833293a20676e756d657269633a726561642d5741524e494e47202a2a3a2031303a33343a35332e3438393a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a",
+      "shellStderrExact": false,
+      "xmlStderrExact": false
+    },
+    {
+      "id": "external-biff8-deleted-local-control",
+      "cases": 1,
+      "logicalFields": 2,
+      "outputBytes": 9,
+      "sdkExact": true,
+      "rootShellExact": true,
+      "xmlFormulaReplayExact": true,
+      "inputUnchanged": true,
+      "sdkDiagnostics": [],
+      "shellStderr": "",
+      "xmlStderr": "",
+      "nativeStderrHex": "",
+      "shellStderrExact": true,
+      "xmlStderrExact": true
+    }
+  ],
+  "browserReplay": {
+    "browser": [
+      {
+        "id": "external-biff8-cell",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "biff-loss-warning",
+            "severity": "warning",
+            "message": "BIFF SUPBOOK retained without semantic interpretation"
+          }
+        ],
+        "stderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+        "stderrExact": false,
+        "exact": true,
+        "outputBytes": 9
+      },
+      {
+        "id": "external-biff8-area",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "biff-loss-warning",
+            "severity": "warning",
+            "message": "BIFF SUPBOOK retained without semantic interpretation"
+          }
+        ],
+        "stderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+        "stderrExact": false,
+        "exact": true,
+        "outputBytes": 9
+      },
+      {
+        "id": "external-biff8-deleted-local-control",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "outputBytes": 9
+      }
+    ],
+    "worker": [
+      {
+        "id": "external-biff8-cell",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "biff-loss-warning",
+            "severity": "warning",
+            "message": "BIFF SUPBOOK retained without semantic interpretation"
+          }
+        ],
+        "stderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+        "stderrExact": false,
+        "exact": true,
+        "outputBytes": 9
+      },
+      {
+        "id": "external-biff8-area",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "biff-loss-warning",
+            "severity": "warning",
+            "message": "BIFF SUPBOOK retained without semantic interpretation"
+          }
+        ],
+        "stderr": "BIFF SUPBOOK retained without semantic interpretation\n",
+        "stderrExact": false,
+        "exact": true,
+        "outputBytes": 9
+      },
+      {
+        "id": "external-biff8-deleted-local-control",
+        "cases": 1,
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "outputBytes": 9
+      }
+    ]
+  },
+  "screenshot": {
+    "inspected": true,
+    "sha256": "b814cd1e97ec5284561488b770e4671f91e9f4f9660aa270d767ffd38601b6d2",
+    "width": 1280,
+    "height": 720
+  },
+  "browserConsole": {
+    "messages": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "diagnosticParity": false,
+  "diagnosticQualification": "Native emits original PID/time-bound external-reference warnings twice per external input. Product retains its deterministic SUPBOOK loss warning; XML formula checkpoint preserves error effects but does not replay import diagnostics.",
+  "artifactBindings": [
+    {
+      "path": "packages/ssconvert/dist/index.js",
+      "sha256": "ac81ddd072fcd1cc777997fc9c3e540d269e9c6091d606b5fcf7c19108ca3cd0"
+    },
+    {
+      "path": "packages/safe-bash/dist/index.js",
+      "sha256": "61166fd6f7def631f67d147b3c15b8de9e9daf8679ec0585ff565de57041def5"
+    }
+  ],
+  "setupFailures": [
+    "Initial memory receipt assertion used record.type rather than actual record.kind; corrected after error effects passed.",
+    "Browser port8877 was already occupied; no existing process was modified, owned server moved to18937.",
+    "Public root replay attempted during build saw transient missing safe-js dist module; repeated successfully after maintained build completed."
+  ]
 }

@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:27:28.772406+00:00",
+  "recordedAt": "2026-09-23T10:40:10.901486+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -245,7 +245,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Add-in imports and ordinary deleted local links verified on remote main. Modern NameX deleted/self/last-deleted display scopes preserve indexed identity across18 native/public imports and18 matching BIFF readbacks. DDE/OLE/builtins, registration loops/order, true external books, ODF global qualification, arrays/other tokens, modern self cell-reference applicability and broader profiles remain open.",
+      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -336,7 +336,8 @@
             "remoteMain": "Exact ls-remote main verified after push",
             "publication": "Release35765441617 active; build/audit passed, unit/checks/Bash gates active; earlier containing releases cancelled"
           }
-        }
+        },
+        "docs/ssconvert/linux-external-biff-native-capture.json"
       ],
       "delivery": {
         "localCommit": null,
@@ -1503,6 +1504,26 @@
     "nativeAlgorithmIdDirectlyReported": false,
     "externalProgramDependencyClosureComplete": false,
     "productCodeChangeRequired": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxExternalBiffQualification": {
+    "evidence": "docs/ssconvert/linux-external-biff-native-capture.json",
+    "nativeRun": 35849184383,
+    "cases": 3,
+    "logicalFields": 6,
+    "stdoutBytes": 27,
+    "originalExternalMismatches": 2,
+    "currentCsvDifferences": 0,
+    "exactSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "worker"
+    ],
+    "diagnosticParity": false,
+    "productFixCommit": "055483e6bb",
     "publication": "unverified",
     "wholeGoalComplete": false
   }

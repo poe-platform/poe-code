@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T01:43:11.373954+00:00",
+  "recordedAt": "2026-09-23T10:00:56.470197+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -692,8 +692,11 @@
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "explicit provider/service and native lifecycle qualification pending",
-      "proof": [],
+      "currentFinding": "Actual Linux GDA6/UI bodies load; four admission controls produce #N/A plus shutdown GLib critical, valid EXECSQL/READDBTABLE first-connection calls abort SIGTRAP without display. Headless native queries unavailable; explicit host extension and GNOME-DB qualification remain open.",
+      "proof": [
+        "docs/ssconvert/linux-gda-native-reference.json",
+        "docs/ssconvert/linux-gda-headless-native-capture.json"
+      ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,
@@ -1322,7 +1325,7 @@
       "EXECSQL",
       "READDBTABLE"
     ],
-    "nativeQueryExecution": "pending-headless-effect-probes",
+    "nativeQueryExecution": "observed first-connection headless GTK fatal; see linuxGdaHeadlessExecution",
     "sourceUnpatched": true,
     "publication": "unverified",
     "wholeGoalComplete": false
@@ -1350,6 +1353,26 @@
     "screenshotInspected": true,
     "productCodeChangeRequired": false,
     "otherPrimitiveGammaAndWiderDomains": "open",
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxGdaHeadlessExecution": {
+    "evidence": "docs/ssconvert/linux-gda-headless-native-capture.json",
+    "nativeRun": 35845404375,
+    "arityErrorControls": 4,
+    "nativeAdmissionExit": 0,
+    "nativeAdmissionHasShutdownCritical": true,
+    "validQueryExits": [
+      -5,
+      -5
+    ],
+    "validQueryOutputBytes": [
+      0,
+      0
+    ],
+    "headlessQueryClassification": "mandatory GTK fatal without display",
+    "successfulNativeQueries": false,
+    "sourceUnpatched": true,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

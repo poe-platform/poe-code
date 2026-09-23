@@ -24,6 +24,7 @@ export interface CurlArguments {
   bearer?: string;
   upload?: string;
   output?: string;
+  outputs?: { output?: string; remoteName: boolean }[];
   outputDirectory?: string;
   dumpHeader?: string;
   writeOut?: string;
@@ -106,7 +107,10 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
     const property = Object.hasOwn(booleans, positive) ? booleans[positive] : undefined;
     if (property) {
       Object.assign(result, { [property]: !option.startsWith("no-") });
-      if (property === "remoteName" && result.remoteName) delete result.output;
+      if (property === "remoteName") {
+        (result.outputs ??= []).push({ remoteName: result.remoteName });
+        if (result.remoteName) delete result.output;
+      }
       return;
     }
     switch (option) {
@@ -135,7 +139,9 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "data-binary": result.data.push({ kind: "binary", value: value! }); break;
       case "data-urlencode": result.data.push({ kind: "urlencode", value: value! }); break;
       case "json": case "form": case "form-string": result.data.push({ kind: option, value: value! }); break;
-      case "output": result.output = value!; result.remoteName = false; break;
+      case "output":
+        result.output = value!; result.remoteName = false;
+        (result.outputs ??= []).push({ output: value!, remoteName: false }); break;
       case "output-dir": result.outputDirectory = value!; break;
       case "dump-header": result.dumpHeader = value!; break;
       case "write-out": result.writeOut = value!; break;

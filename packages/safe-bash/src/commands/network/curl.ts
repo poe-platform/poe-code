@@ -139,9 +139,6 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
         }
         for (const url of args.urls) parseUrl(url, args.globoff);
-        if (!args.download && args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
-          throw new CurlError(2, "Multiple URLs with file/header outputs are unsupported");
-        }
       } catch (error) {
         context.signal.throwIfAborted();
         const failure = error instanceof CurlError ? error : new CurlError(2, `Invalid ${profile.name} arguments`);
@@ -152,7 +149,8 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
       let started = executions.get(scope);
       if (started === undefined) { started = performance.now(); executions.set(scope, started); }
       let exitCode = 0;
-      for (const url of args.urls) {
+      const headerState = { dumped: false };
+      for (const [index, url] of args.urls.entries()) {
         context.signal.throwIfAborted();
         if (performance.now() - started >= limits.maxTotalTimeMs) {
           const failure = new CurlError(28, "Operation timed out");
@@ -162,7 +160,14 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           }
           return { exitCode: profile.status(failure.exitCode) };
         }
-        const code = await transfer(context, args, url, limits, transport, authorize, started, profile.status);
+        const transferArgs = { ...args };
+        if (!args.download) {
+          const destination = args.outputs?.[index];
+          delete transferArgs.output;
+          transferArgs.remoteName = destination?.remoteName ?? false;
+          if (destination?.output !== undefined) transferArgs.output = destination.output;
+        }
+        const code = await transfer(context, transferArgs, url, limits, transport, authorize, started, profile.status, headerState);
         exitCode = args.download ? code || exitCode : code;
       }
       return { exitCode };
@@ -171,7 +176,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
 }
 
 async function transfer(context: CommandContext, args: CurlArguments, input: string, limits: NetworkLimits,
-  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number, status: (code: number) => number): Promise<number> {
+  transport: NonNullable<NetworkCommandsOptions["transport"]>, authorize: NetworkCommandsOptions["authorize"], started: number, status: (code: number) => number, headerState: { dumped: boolean }): Promise<number> {
   const start = performance.now();
   const remaining = (): number => Math.min(args.maxTimeMs - (performance.now() - start), limits.maxTotalTimeMs - (performance.now() - started));
   const hasFileOutput = args.remoteName || args.output !== undefined && args.output !== "-" || args.dumpHeader !== undefined && args.dumpHeader !== "-";
@@ -334,7 +339,10 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (args.verbose) await writeBytes(context.stderr, encode(`< HTTP ${response.status}\n`), signal);
         if (args.dumpHeader !== undefined) {
           if (args.dumpHeader === "-") await publish(block);
-          else await dumpHeaders(context, args.dumpHeader, block, dumped, signal);
+          else {
+            await dumpHeaders(context, args.dumpHeader, block, dumped || headerState.dumped, signal);
+            headerState.dumped = true;
+          }
           dumped = true;
         }
         if (args.head || args.include) included.push(block);

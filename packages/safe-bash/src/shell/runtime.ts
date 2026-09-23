@@ -1,5 +1,4 @@
 import type { InternalErrorHandler } from "../contracts/command.js";
-import { creationFileSystem, parseMask, symbolicMask } from "./umask.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, monotonicNow, registerYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
@@ -72,6 +71,7 @@ import { matchEre } from "../commands/regex-execution/ere/matcher.js";
 import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
+import { creationFileSystem, umaskBuiltin } from "./umask.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxParseUnits: defaultMaxParseUnits,
@@ -4597,6 +4597,7 @@ export class Runtime {
     variables.OPTIND = "1";
     variables.OPTERR = "1";
     const child = trackState({
+      umask: state.umask ?? 0o022,
       extensions: forkExtensions(state.extensions, "process"),
       cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
       directoryStack: { entries: [], bytes: 0 },
@@ -5955,32 +5956,9 @@ export class Runtime {
   }
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
-    if (command === "umask") {
-      let symbolic = false;
-      let reusable = false;
-      let index = 0;
-      while (args[index]?.startsWith("-")) {
-        const option = args[index++]!;
-        if (option === "--") break;
-        for (const flag of option.slice(1)) {
-          if (flag === "S") symbolic = true;
-          else if (flag === "p") reusable = true;
-          else { await writeDiagnostic(stderr, `umask: ${option}: invalid option\n`); return 2; }
-        }
-      }
-      const value = args[index];
-      if (value !== undefined) {
-        const mask = parseMask(value, state.umask ?? 0o022);
-        if (mask === undefined) { await writeDiagnostic(stderr, `umask: ${value}: invalid mode\n`); return 1; }
-        state.umask = mask;
-      } else {
-        const mask = state.umask ?? 0o022;
-        await writeText(stdout, `${reusable ? `umask ${symbolic ? "-S " : ""}` : ""}${symbolic ? symbolicMask(mask) : mask.toString(8).padStart(4, "0")}\n`);
-      }
-      return 0;
-    }
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
+    if (command === "umask") return umaskBuiltin(context, state);
     if (command === "shopt") return this.shoptBuiltin(context, state);
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);

@@ -284,6 +284,7 @@ export class Shell implements PluginHost {
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         state = {
+          umask: 0o022,
           extensions: extensionState(extensions.definitions),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },

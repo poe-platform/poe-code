@@ -7,6 +7,46 @@ import { MockS3Client } from "../src/fs/s3/mock.js";
 import { ReadOnlyFileSystem } from "../src/fs/readonly/index.js";
 import type { FileSystem } from "../src/contracts/filesystem.js";
 
+test("scoped creation masks cover write, append, streams and descriptors while retaining authority", async () => {
+  const memory = new MemoryFileSystem();
+  const signal = new AbortController().signal;
+  const scoped = scopeFileSystem(memory, () => {}, signal, undefined, { creationMask: 0o077 });
+  await scoped.writeFile("/write", new Uint8Array());
+  await scoped.appendFile("/append", new Uint8Array());
+  await scoped.writeStream!("/stream", { async *[Symbol.asyncIterator]() { yield new Uint8Array([1]); } });
+  const descriptor = await scoped.open!("/open", { access: "write", creation: "exclusive", mode: 0o666 });
+  await descriptor.close();
+  await scoped.mkdir("/directory");
+  await scoped.mkdir("/explicit", { mode: 0o755 });
+  const nested = scopeFileSystem(scoped, () => {}, signal);
+  await nested.writeFile("/nested", new Uint8Array());
+  for (const path of ["/write", "/append", "/stream", "/open", "/nested"]) {
+    assert.equal((await memory.stat(path)).mode & 0o777, 0o600);
+    assert.equal(await scoped.compareEntry!(path, memory, path), "same");
+  }
+  assert.equal((await memory.stat("/directory")).mode & 0o777, 0o700);
+  assert.equal((await memory.stat("/explicit")).mode & 0o777, 0o755);
+  await memory.chmod("/write", 0o640);
+  await scoped.writeFile("/write", new Uint8Array());
+  assert.equal((await memory.stat("/write")).mode & 0o777, 0o640);
+  await memory.writeFile("/unscoped", new Uint8Array());
+  assert.equal((await memory.stat("/unscoped")).mode & 0o777, 0o666);
+});
+
+test("creation masks remain advisory on S3 and preserve existing metadata modes", async () => {
+  const remote = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });
+  await remote.writeFile("/existing", new Uint8Array(), { mode: 0o640 });
+  const scoped = scopeFileSystem(remote, () => {}, new AbortController().signal, undefined, { creationMask: 0o077 });
+  assert.equal(scoped.capabilities.permissions, false);
+  await scoped.writeFile("/new", new Uint8Array());
+  assert.equal((await scoped.stat("/new")).mode & 0o777, 0o600);
+  await scoped.writeFile("/existing", new Uint8Array([1]));
+  assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
+  await scoped.writeStream!("/existing", { async *[Symbol.asyncIterator]() { yield new Uint8Array([2]); } });
+  assert.equal((await scoped.stat("/existing")).mode & 0o777, 0o640);
+  await assert.rejects(scoped.chmod("/existing", 0o600), { code: "ENOTSUP" });
+});
+
 test("scoped view retains S3 and Memory authority in both directions and nested views", async () => {
   const memory = new MemoryFileSystem();
   const remote = new S3FileSystem({ transport: new MockS3Client({ buckets: ["bucket"] }), bucket: "bucket" });

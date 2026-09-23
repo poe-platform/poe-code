@@ -1,3 +1,7 @@
+import type { CommandContext } from "../contracts/command.js";
+import { writeText } from "../contracts/io.js";
+import { writeDiagnostic } from "../escaping.js";
+
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
 import { registerEntryView, type OpenFileOptions } from "@poe-code/safe-fs/core";
 
@@ -52,10 +56,14 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
   return view;
 }
 
-export function parseMask(value: string, previous: number): number | undefined {
-  if (value.length && [...value].every(char => char >= "0" && char <= "7")) {
-    const mode = Number.parseInt(value, 8);
-    return mode <= 0o777 ? mode : undefined;
+function parseMask(value: string, previous: number): number | undefined {
+  if (value.length && value[0]! >= "0" && value[0]! <= "9") {
+    let mode = 0;
+    for (const digit of value) {
+      if (digit < "0" || digit > "7") return undefined;
+      mode = (mode * 8 + Number(digit)) & 0o777;
+    }
+    return mode;
   }
   let allowed = ~previous & 0o777;
   for (const clause of value.split(",")) {
@@ -91,9 +99,36 @@ export function parseMask(value: string, previous: number): number | undefined {
   return ~allowed & 0o777;
 }
 
-export function symbolicMask(mask: number): string {
+function symbolicMask(mask: number): string {
   return ["u", "g", "o"].map((who, index) => {
     const bits = (~mask >> (6 - index * 3)) & 7;
     return `${who}=${bits & 4 ? "r" : ""}${bits & 2 ? "w" : ""}${bits & 1 ? "x" : ""}`;
   }).join(",");
+}
+
+export async function umaskBuiltin(context: CommandContext, state: { umask?: number }): Promise<number> {
+  let symbolic = false;
+  let printable = false;
+  let index = 0;
+  while (index < context.args.length && context.args[index]!.startsWith("-") && context.args[index] !== "-") {
+    const option = context.args[index++]!;
+    if (option === "--") break;
+    for (const flag of option.slice(1)) {
+      if (flag === "S") symbolic = true;
+      else if (flag === "p") printable = true;
+      else { await writeDiagnostic(context.stderr, `umask: ${option}: invalid option\n`); return 2; }
+    }
+  }
+  const operand = context.args[index];
+  if (operand !== undefined) {
+    const mask = parseMask(operand, state.umask ?? 0o022);
+    if (mask === undefined) { await writeDiagnostic(context.stderr, `umask: ${operand}: invalid mode\n`); return 1; }
+    state.umask = mask;
+    if (!symbolic) return 0;
+    printable = false;
+  }
+  const mask = state.umask ?? 0o022;
+  const value = symbolic ? symbolicMask(mask) : mask.toString(8).padStart(4, "0");
+  await writeText(context.stdout, `${printable ? symbolic ? "umask -S " : "umask " : ""}${value}\n`);
+  return 0;
 }

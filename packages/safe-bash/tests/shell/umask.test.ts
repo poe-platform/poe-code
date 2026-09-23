@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Shell } from "../../src/shell/index.js";
-import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { createMemoryFileSystem, MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
@@ -501,6 +501,8 @@ test("umask comparison forwarding preserves cancellation reason identity", async
   }
 });
 
+import { spawnSync } from "node:child_process";
+
 test("umask masks new files, directories and redirects without changing existing modes", async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs }).use(agentCommands());
@@ -564,4 +566,78 @@ test("literal command invocation inherits the mask without affecting concurrent 
   assert.deepEqual(results.map(result => result.stdout), ["0077\n", "0002\n"]);
   for (const path of ["/child-file", "/private-file"]) assert.equal((await fs.stat(path)).mode & 0o777, 0o600);
   assert.equal((await fs.stat("/shared-file")).mode & 0o777, 0o664);
+});
+
+test("umask controls new files, directories and redirections without changing existing modes", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/existing", new Uint8Array(), { mode: 0o640 });
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec("umask 077; umask; touch created; mkdir directory; echo data > redirected; echo more >> appended; echo replace > existing; stat -c %a created directory redirected appended existing");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "0077\n600\n700\n600\n600\n640\n");
+  } finally { await shell.dispose(); }
+});
+
+test("umask is inherited by children and reset between concurrent invocations", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    const result = await shell.exec("umask 077; (umask 027; umask); echo $(umask); bash -c 'umask; umask 002'; umask; umask 002 | cat; umask; f() { umask 007; }; f; umask");
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0027\n0077\n0077\n0077\n0077\n0007\n");
+    const results = await Promise.all([shell.exec("umask 077; touch private; umask"), shell.exec("umask; touch normal")]);
+    assert.deepEqual(results.map(result => result.stdout), ["0077\n", "0022\n"]);
+    assert.deepEqual(results.map(result => result.stderr), ["", ""]);
+    assert.equal((await fs.stat("/private")).mode & 0o777, 0o600);
+    assert.equal((await fs.stat("/normal")).mode & 0o777, 0o644);
+  } finally { await shell.dispose(); }
+});
+
+test("umask supports symbolic forms and printable output; invalid masks preserve state", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("umask 077; umask -S; umask -p; umask u=rwx,g=rx,o=; umask; umask g+w,o+r; umask; umask 089; echo $?; umask");
+    assert.equal(result.stdout, "u=rwx,g=,o=\numask 0077\n0027\n0003\n1\n0003\n");
+    assert.match(result.stderr, /umask:/u);
+    assert.equal((await shell.exec("type umask")).stdout, "umask is a shell builtin\n");
+    assert.equal((await shell.exec("umask -z")).exitCode, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("umask output and symbolic operations agree with Bash", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  try {
+    for (const source of [
+      "umask 022; umask; umask -S; umask -p; umask -pS",
+      "umask 077; umask -S 027; umask; umask -pS 002",
+      "umask 027; umask g=rwx,o=; umask; umask u-x,g+w,o=r; umask",
+      "umask 027; umask u=g,g=o,o=u; umask; umask u+rw-w+rx,g=r; umask",
+      "umask 7777; umask; umask a=rw; umask; umask -- 002; umask",
+      "umask 022; umask u=,g=,o=; umask; umask a+r,a-w,a+x; umask",
+    ]) {
+      const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+      assert.ifError(native.error);
+      const result = await shell.exec(source);
+      assert.equal(result.stdout, native.stdout, source);
+      assert.equal(result.stderr, native.stderr, source);
+      assert.equal(result.exitCode, native.status, source);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("nested SDK invocations inherit masks without changing the caller", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(agentCommands());
+  shell.commands.register({ name: "child", async execute(context) {
+    await context.invoke("touch", ["nested"]);
+    return context.invoke("umask", ["002"]);
+  } });
+  try {
+    const result = await shell.exec("umask 077; child; umask");
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0077\n");
+    assert.equal((await fs.stat("/nested")).mode & 0o777, 0o600);
+  } finally { await shell.dispose(); }
 });

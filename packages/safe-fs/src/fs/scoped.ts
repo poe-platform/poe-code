@@ -6,7 +6,7 @@ import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
 
-const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void }>();
+const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined }>();
 const operations = new Set<keyof FileSystem>([
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
@@ -16,8 +16,18 @@ const operations = new Set<keyof FileSystem>([
 ]);
 
 export function scopeFileSystem(filesystem: FileSystem, charge: () => void, signal: AbortSignal, cleanupCharge = charge,
-  options: { readonly preserveDescriptorWriteReceipt?: boolean } = {}): FileSystem {
+  options: { readonly preserveDescriptorWriteReceipt?: boolean; readonly creationMask?: number } = {}): FileSystem {
   const original = originals.get(filesystem)?.filesystem ?? filesystem;
+  const creationMask = options.creationMask ?? originals.get(filesystem)?.creationMask;
+  if (creationMask !== undefined && (!Number.isInteger(creationMask) || creationMask < 0 || creationMask > 0o777)) throw new RangeError("creationMask must be a permission mask between 0 and 0777");
+  const creationOptions = <Options extends FsOptions & { readonly mode?: number }>(settings: Options, directory = false): Options => {
+    // Explicit directory modes (mkdir -m) are independent of the shell mask.
+    // Modes remain advisory on adapters that do not enforce permissions.
+    if (creationMask === undefined || directory && settings.mode !== undefined) return settings;
+    const mode = settings.mode ?? (directory ? 0o777 : 0o666);
+    if (!Number.isSafeInteger(mode) || mode < 0 || mode > 0o7777) throw new FsError("EINVAL");
+    return { ...settings, mode: mode & ~creationMask };
+  };
   const methods = new Map<PropertyKey, { original: unknown; scoped: unknown }>();
   const assertOpen = (options?: FsOptions): void => {
     signal.throwIfAborted();
@@ -168,6 +178,10 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           const options = args.at(-1);
           admit(options && typeof options === "object" && "signal" in options ? options as FsOptions : undefined);
         }
+        if (["writeFile", "appendFile", "writeStream", "mkdir"].includes(String(property))) {
+          const index = property === "mkdir" ? 1 : 2;
+          args[index] = creationOptions((args[index] ?? {}) as FsOptions & { mode?: number }, property === "mkdir");
+        }
         if (["publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
           const options = args[property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
@@ -198,7 +212,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       const scoped = property === "open"
         ? async (path: string, options: OpenFileOptions) => {
           admit(options);
-          const selected = resizeOptions(options);
+          const selected = resizeOptions(creationOptions(options));
           let descriptor: FileDescriptor | undefined;
           try {
             descriptor = await Reflect.apply(method, original, [path, selected]) as FileDescriptor;
@@ -214,7 +228,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         ? async (path: string, options: OpenResizeFileOptions = {}) => {
           admit(options);
           assertOpen(options);
-          return wrapResizeHandle(await openRetainedResizeFile(original, path, resizeOptions(options)));
+          return wrapResizeHandle(await openRetainedResizeFile(original, path, resizeOptions(creationOptions(options))));
         }
         : property === "capabilitiesFor"
           ? async (...args: unknown[]) => ownedMutationCapabilities(original, retainedResizeCapabilities(original, await dispatch(...args) as FileSystem["capabilities"]))
@@ -229,7 +243,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return scoped;
     },
   });
-  originals.set(view, { filesystem: original, signal, cleanupCharge });
+  originals.set(view, { filesystem: original, signal, cleanupCharge, creationMask });
   registerEntryView(view, async (path, options) => {
     assertOpen(options);
     return { filesystem: original, path };

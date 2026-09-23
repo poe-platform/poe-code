@@ -179,6 +179,7 @@ jobs:
               if fifo_receipt is not None:
                   record['fifoLifecycle'] = fifo_receipt
               metadata.append(record)
+              (root / 'capture-progress.json').write_text(json.dumps(metadata, indent=2) + '\n')
               if result.returncode not in expected_exit_codes:
                   raise RuntimeError('Native capture failed: ' + label)
           for label, command in [
@@ -261,7 +262,7 @@ jobs:
                   data = bytes.fromhex(item['inputHex'])
                   assert hashlib.sha256(data).hexdigest() == item['inputSha256']
                   path.write_bytes(data)
-                  capture(item['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], probe_env, expected_exit_codes=(0, 1))
+                  capture(item['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], probe_env, expected_exit_codes=tuple(item.get('expectedExitCodes', [0, 1])))
                   python_reference_inputs.append(dict(label=item['label'], inputSha256=item['inputSha256'], logicalFields=item['logicalFields']))
           clock_control = None
           control = json.loads(language_fixture_path.read_text())['frozenDateControl']

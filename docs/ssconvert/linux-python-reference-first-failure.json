@@ -1,0 +1,76 @@
+{
+  "scope": "First actual original Python module native reference run,partial evidence after unexpected raw RangeRef tuple exit",
+  "status": "native-partial-captures-reduced-full-profile-unqualified",
+  "wholeGoalComplete": false,
+  "run": 35859733087,
+  "head": "c566d5d571b889358a33d96511a9e8581d10a237",
+  "workflowConclusion": "failure",
+  "prefixReceipt": {
+    "sha256": "a9c4ef9be1203f68b0317c1adfe350782ca4eb5ef6db7c928d3bbd869e22ba1d",
+    "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+    "elfMachine": "AArch64",
+    "mode": "0755"
+  },
+  "sourceArchiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+  "pythonBridgeSourceSha256": "639f259fd15d493696f39f90a2cb10562c318ddd55e064f10e33826f98bce856",
+  "moduleFiles": [
+    {
+      "name": "plugin.xml",
+      "sha256": "3fd6c7edb9ef664f908e8a36bf92a5769b28e88bdb63859af06acf9c6dfb63ec"
+    },
+    {
+      "name": "raw_reference_probe.py",
+      "sha256": "470354ec521df32e88835e7776d9dcb639a17b5a705704bde57f7822dcd9d850"
+    }
+  ],
+  "registeredSelectedFunctions": [
+    "probe_array\t0\t0\t1\t0\t0\t2147483647\t7",
+    "probe_reference\t0\t1\t0\t0\t1\t1\t7",
+    "probe_identity\t0\t1\t0\t0\t1\t1\t7"
+  ],
+  "registrationDiagnosticsHex": "0a2a2a202866756e6374696f6e2d61637469766174696f6e3a3632373433293a20435249544943414c202a2a3a2031323a32333a35352e3138393a20676e6d5f66756e635f6765745f68656c703a20617373657274696f6e202766756e632d3e68656c7027206661696c65640a0a2a2a202866756e6374696f6e2d61637469766174696f6e3a3632373433293a20435249544943414c202a2a3a2031323a32333a35352e3138393a20676e6d5f66756e635f6765745f68656c703a20617373657274696f6e202766756e632d3e68656c7027206661696c65640a0a2a2a202866756e6374696f6e2d61637469766174696f6e3a3632373433293a20435249544943414c202a2a3a2031323a32333a35352e3138393a20676e6d5f66756e635f6765745f68656c703a20617373657274696f6e202766756e632d3e68656c7027206661696c65640a",
+  "inputsAndPartialCaptures": [
+    {
+      "label": "python-original-column-array",
+      "inputSha256": "62d8c7f8adcd792e8faa6be052214712c0876b44c3e6f1793433cf73bd86c0ac",
+      "stdoutHex": "322c330a352c380a",
+      "stderrHex": "",
+      "stdoutBytes": 8,
+      "stderrBytes": 0
+    },
+    {
+      "label": "python-original-range-return",
+      "inputSha256": "8c7cfae8dac2d123fc967b90d2f70aa7c0142a19d5a6b82786d2edfe4e1b2766",
+      "stdoutHex": "352c31320a372c0a",
+      "stderrHex": "",
+      "stdoutBytes": 8,
+      "stderrBytes": 0
+    },
+    {
+      "label": "python-original-raw-reference",
+      "inputSha256": "9322fab43f925b983b15c6505c0f85ba138f2d7d3ba34a28faf268f4a6a6f3db",
+      "stdoutHex": "",
+      "stderrHex": "",
+      "stdoutBytes": 0,
+      "stderrBytes": 0
+    }
+  ],
+  "failure": {
+    "label": "python-original-raw-reference",
+    "expectedExitCodes": [
+      0,
+      1
+    ],
+    "actualExitCode": "not persisted by this workflow before its exception",
+    "emptyStdout": true,
+    "emptyStderr": true,
+    "workflowError": "RuntimeError: Native capture failed: python-original-raw-reference",
+    "sourceHypothesis": "RangeRef custom tp_getattr resolves get_tuple by calling PyObject_CallMethod on the same name;method lookup may recurse. Exact signal and causal comparison require a repeated capture with per-call receipts and start/end control."
+  },
+  "qualificationLimits": [
+    "Complete identity.json was never written; full linked-library/module/font closure is unqualified for this failed run.",
+    "The column-oriented array and returned RangeRef stdout bytes are actual observed artifacts; they do not qualify raw tuple/axes or a full native profile.",
+    "No specific SIGSEGV code is inferred from absent output."
+  ],
+  "publication": "unverified"
+}

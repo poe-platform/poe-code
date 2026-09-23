@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { ByteSink, ByteSource, CommandContext, FileSystem, VirtualShellPlugin, ShellCapabilities } from "@poe-platform/safe-bash";
-import { cloneDefaultValue, validate, type AnySchema, type Static } from "toolcraft-schema";
+import { cloneDefaultValue, toJsonSchema, validate, type AnySchema, type Static } from "toolcraft-schema";
 import type { Command, CommandNode, Group, HandlerFs } from "./index.js";
 import type { HumanInLoopRuntime } from "./human-in-loop/types.js";
 import { executeCLICommand, formatCLIName, type CLIInvocationRuntime, type CLIControls } from "./cli.js";
@@ -133,6 +133,27 @@ function handlerFileSystem(invocation: ToolcraftInvocation<object>): HandlerFs {
   };
 }
 
+function assertNativeSchema(schema: unknown, commandPath: string): void {
+  if (schema === null || typeof schema !== "object" || Array.isArray(schema)) return;
+  const document = schema as Record<string, unknown>;
+  if (document.pattern !== undefined || document.patternProperties !== undefined) {
+    throw new TypeError(`Schema regex validation is unsupported in native Toolcraft commands: ${commandPath}; use the invocation's bounded regex capability in the handler`);
+  }
+  // Visit schema positions only: parameter names and literal defaults are not keywords.
+  for (const key of ["properties", "$defs", "definitions", "dependentSchemas", "dependencies"]) {
+    const map = document[key];
+    if (map !== null && typeof map === "object" && !Array.isArray(map)) {
+      for (const child of Object.values(map)) assertNativeSchema(child, commandPath);
+    }
+  }
+  for (const key of ["allOf", "anyOf", "oneOf", "prefixItems", "items", "additionalItems", "additionalProperties", "contains", "if", "then", "else", "not", "propertyNames", "unevaluatedItems", "unevaluatedProperties"]) {
+    const child = document[key];
+    if (Array.isArray(child)) {
+      for (const item of child) assertNativeSchema(item, commandPath);
+    } else assertNativeSchema(child, commandPath);
+  }
+}
+
 /** Executes already-tokenized argv in process, using the same parser and dispatch as runCLI. */
 export function createToolcraftCommandExecutor<TServices extends object>(
   library: Group<TServices> | readonly Group<TServices>[],
@@ -142,6 +163,10 @@ export function createToolcraftCommandExecutor<TServices extends object>(
     .filter(root => !root.scope || root.scope.includes("cli"));
   const multiple = Array.isArray(library);
   const commands = new Map(roots.flatMap(root => [...discoverCommands(root, multiple ? `${root.name}/` : "")]));
+  for (const [commandPath, command] of commands) {
+    assertNativeSchema(toJsonSchema(command.params), commandPath);
+    if (command.stream) assertNativeSchema(toJsonSchema(command.stream.event), commandPath);
+  }
   const defaults = cloneDefaultValue(options.defaults ?? {});
   for (const [commandPath, values] of Object.entries(defaults)) {
     const command = commands.get(commandPath);

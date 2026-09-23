@@ -3,6 +3,7 @@ import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe
 import { S, defineCommand, defineGroup, defineStreamCommand } from "./index.js";
 import { createToolcraftCommandExecutor, toolcraftCommands, type ToolcraftInvocation } from "toolcraft/safe-bash";
 import { createHumanInLoop } from "./human-in-loop/index.js";
+import { withJsonSchema } from "toolcraft-schema";
 
 const library = defineGroup({
   name: "tools",
@@ -105,6 +106,23 @@ describe("library discovery and configuration", () => {
     expect(() => toolcraftCommands(library, { defaults: { echo: { typo: 1 } } })).toThrow("Unknown default parameter");
     expect(() => toolcraftCommands(library, { defaults: { echo: { message: 1 } } })).toThrow("Invalid default parameter");
     expect(() => toolcraftCommands(library, { services: { fs: {} } })).toThrow("reserved");
+  });
+
+  it("rejects regex-dependent schemas rather than using the host regex engine", () => {
+    for (const params of [
+      S.Object({ value: S.String({ pattern: "^allowed$" }) }),
+      S.Object({ values: S.Array(S.String({ pattern: "^allowed$" })) }),
+      withJsonSchema(S.Object({}), { type: "object", patternProperties: { "^allowed$": { type: "string" } } }),
+      withJsonSchema(S.Object({}), { type: "object", $defs: { input: { type: "string", pattern: "^allowed$" } }, properties: { value: { $ref: "#/$defs/input" } } }),
+      S.Object({ choice: S.Union([S.Object({ value: S.String({ pattern: "^allowed$" }) }), S.Object({ count: S.Number() })]) })
+    ]) {
+      const root = defineGroup({ name: "patterns", children: [defineCommand({ name: "run", params, handler: ({ params }) => params })] });
+      expect(() => toolcraftCommands(root)).toThrow("Schema regex validation is unsupported in native Toolcraft commands");
+    }
+    const plain = defineGroup({ name: "plain", children: [defineCommand({ name: "run", params: S.Object({ pattern: S.String({ default: "literal" }) }), handler: ({ params }) => params })] });
+    expect(() => toolcraftCommands(plain)).not.toThrow();
+    const stream = defineGroup({ name: "stream", children: [defineStreamCommand({ name: "events", params: S.Object({}), event: S.String({ pattern: "^allowed$" }), async *handler() { yield "allowed"; } })] });
+    expect(() => toolcraftCommands(stream)).toThrow("Schema regex validation is unsupported");
   });
 
   it("supports enum/array/object/union argv and default commands without exposing hidden or scoped tools", async () => {

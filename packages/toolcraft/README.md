@@ -102,7 +102,11 @@ or overlay filesystem. Library services combine with invocation services, with
 invocation-owned services taking precedence on name collisions. Runtime capability
 names are reserved and cannot be replaced through services. Explicitly revoking
 `humanInLoop` also disables a library-configured approval provider.
-Schema pattern validation currently follows Toolcraft's existing validator.
+Schema `pattern` and `patternProperties` validation is unsupported in this native
+surface: registration rejects these keywords in parameter and stream-event schemas,
+including nested JSON Schema definitions, instead of using the host regex engine.
+Tools that need regex work can use the injected bounded provider in their handlers.
+CLI-excluded roots are also inaccessible through the public command executor.
 
 ## What the owner decides
 

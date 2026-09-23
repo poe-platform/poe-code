@@ -52,13 +52,29 @@ test("sort: buffer failure must not publish partial replacement", async () => {
   assert.equal(result.stdout.length, 0);
 });
 
-for (const args of [["-a", "not-an-algorithm"], ["--check", "--raw"], ["-t"], ["--unknown"]]) test(`cksum: unsupported syntax ${args.join(" ")} consumes no input`, async () => {
+for (const args of [["-a", "not-an-algorithm"], ["--check", "--raw"], ["--check", "--zero"], ["-t"], ["--unknown"]]) test(`cksum: unsupported syntax ${args.join(" ")} consumes no input`, async () => {
   let pulls = 0;
   const input = (async function* () { pulls++; yield Buffer.from("secret"); })();
   const result = await execute("cksum", args, { stdin: input });
   assert.notEqual(result.exitCode, 0);
   assert.equal(pulls, 0);
   assert.equal(result.stdout.length, 0);
+});
+
+test("cksum: --check consumes one tagged manifest and verifies VFS data", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/data", Buffer.from("abc"));
+  let pulls = 0;
+  const input = (async function* () {
+    pulls++;
+    yield Buffer.from(`SHA256 (data) = ${createHash("sha256").update("abc").digest("hex")}\n`);
+  })();
+  const result = await execute("cksum", ["--check"], { fs, stdin: input });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(pulls, 1);
+  assert.equal(result.stdout.toString(), "data: OK\n");
+  assert.equal(result.stderr.length, 0);
 });
 
 test("cksum: verification reads a malformed stdin manifest once before rejecting it", async () => {

@@ -72,17 +72,7 @@ Utilities are especially useful for scripting and CI/CD.
 npx poe-code@latest spawn codex "Say hello" --mode read
 ```
 
-`--mode` is the permission mode: `yolo | auto | edit | read`. It is prompted for in an
-interactive terminal, but **required in CI**: without a TTY, `spawn` fails unless you pass
-`--mode` (or `--yes`, which uses the shared `auto` default). The same choices apply to
-`gaslight` and `harness run`, and values are case-insensitive (`--mode READ` works).
-Only `--mode yolo` skips the agent's permission prompts, so keep it out of untrusted CI jobs.
-Codex `read` mode uses its Landlock compatibility sandbox on Linux to retain file and
-network restrictions on hosts that reject bubblewrap loopback setup. Streamed Codex
-sandbox initialization failures report compatibility guidance in the CLI and SDK.
-If workspace-write sandbox startup fails, the agent can request approval for the exact
-command through the session’s existing reviewer; see the [sandbox recovery guidance](packages/agent-spawn/README.md#spawn-modes).
-Read-only commands do not change an existing session’s permission policy.
+`--mode` is the permission mode: `yolo | auto | edit | read`.
 
 #### Spawn against a GitHub repository
 

@@ -377,6 +377,7 @@
     "packages/safe-bash-command-exiftool/dist",
     "packages/safe-bash-command-fmt/dist",
     "packages/safe-bash-command-wkhtmltopdf/dist",
+    "packages/safe-bash-command-mmdc/dist",
     "packages/safe-js/dist",
     "packages/safe-fs/dist/**/*.d.ts",
     "!packages/safe-js/dist/package.json",
@@ -557,7 +558,8 @@
     "safe-bash-command-csvgrep": "*",
     "safe-bash-command-csvcut": "*",
     "safe-bash-command-htmlq": "*",
-    "safe-bash-csv-engine": "*"
+    "safe-bash-csv-engine": "*",
+    "safe-bash-command-mmdc": "*"
   },
   "repository": {
     "type": "git",

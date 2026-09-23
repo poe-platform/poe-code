@@ -431,6 +431,10 @@
     "./commands/htmlq": {
       "types": "./dist/commands/htmlq/index.d.ts",
       "import": "./dist/commands/htmlq/index.js"
+    },
+    "./commands/mmdc": {
+      "types": "./dist/commands/mmdc/index.d.ts",
+      "import": "./dist/commands/mmdc/index.js"
     }
   },
   "files": [
@@ -541,7 +545,8 @@
     "safe-bash-command-csvcut": "*",
     "safe-bash-command-htmlq": "*",
     "safe-bash-csv-engine": "*",
-    "docx": "*"
+    "docx": "*",
+    "safe-bash-command-mmdc": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -690,6 +695,14 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {}
+        },
+        "safe-bash-command-mmdc": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          }
         }
       }
     }

@@ -22,7 +22,7 @@ for (const flag of ["--require ./data.json", "--require=./data.json", "-r ./data
   });
 }
 
-for (const selector of ["-e 'console.log(globalThis.loaded)'", "-p 'globalThis.loaded'", "scripts/main.js", "--input-type=module scripts/main.mjs", "-"]) {
+for (const selector of ["-e 'console.log(globalThis.loaded)'", "-p 'globalThis.loaded'", "scripts/main.js", "--input-type=module scripts/main.mjs", "-", "--input-type=commonjs -"]) {
   test(`node executes CommonJS preloads before ${selector}`, async () => {
     const fs = new MemoryFileSystem();
     await fs.mkdir("/work/scripts", { recursive: true });

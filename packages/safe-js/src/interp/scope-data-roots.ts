@@ -4,6 +4,7 @@ import type { InterpreterValue } from "./interpreter.js";
 type ScopeDataRoot =
   { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] };
 const freeze = Object.freeze;
+const setPrototypeOf = Object.setPrototypeOf;
 const defineProperty = Reflect.defineProperty;
 const hasOwn = Object.hasOwn;
 const records = new WeakMap<object, ScopeDataRoot>();
@@ -45,15 +46,13 @@ export const scopeDataRoots = Object.freeze({
   }
 });
 
-// Indexed own-property writes cannot expose the vector to a replaced push
-// method or an inherited index setter. Measurement must likewise use indices.
+// Private null-prototype vectors need neither descriptor allocations nor native
+// array methods. Indexed reads/writes cannot invoke inherited prototype hooks.
 export class ScopeDataRootList {
-  readonly #values: InterpreterValue[] = [];
+  readonly #values: InterpreterValue[] = setPrototypeOf([], null);
 
   append(value: InterpreterValue): void {
-    defineProperty(this.#values, this.#values.length, {
-      value, writable: true, enumerable: true, configurable: true
-    });
+    this.#values[this.#values.length] = value;
   }
 
   snapshot(): readonly InterpreterValue[] {

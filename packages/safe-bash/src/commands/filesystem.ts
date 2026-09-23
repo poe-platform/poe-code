@@ -961,11 +961,22 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("ls", async context => {
       let sort: "name" | "time" | "size" = "name";
+      let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
       let ended = false;
       const args: string[] = [];
       for (let index = 0; index < context.args.length; index++) {
         const argument = context.args[index]!;
+        if (!ended && (argument === "--time" || argument.startsWith("--time="))) {
+          const selection = argument === "--time" ? context.args[++index] : argument.slice(7);
+          if (selection === undefined) throw new UsageError("option '--time' requires an argument");
+          const aliases = { mtime: "mtimeMs", modification: "mtimeMs", atime: "atimeMs", access: "atimeMs", use: "atimeMs", ctime: "ctimeMs", status: "ctimeMs" } as const;
+          const matches = Object.keys(aliases).filter(alias => alias.startsWith(selection));
+          const alias = Object.hasOwn(aliases, selection) ? selection : matches.length === 1 ? matches[0] : undefined;
+          if (alias === undefined) throw new UsageError(`invalid argument '${selection}' for '--time'`);
+          timeKey = aliases[alias as keyof typeof aliases];
+          continue;
+        }
         if (!ended && (argument === "--sort" || argument.startsWith("--sort="))) {
           const selection = argument === "--sort" ? context.args[++index] : argument.slice(7);
           if (selection !== "time" && selection !== "size") throw new UsageError("--sort requires 'time' or 'size'");
@@ -989,12 +1000,15 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (argument === "--") ended = true;
         if (!ended && argument.startsWith("-") && !argument.startsWith("--")) for (const flag of argument.slice(1)) {
           if (flag === "t") sort = "time";
+          else if (flag === "c") timeKey = "ctimeMs";
+          else if (flag === "u") timeKey = "atimeMs";
           else if (flag === "S") sort = "size";
           else if (flag === "F") indicator = "classify";
           else if (flag === "p") indicator = "slash";
         }
       }
-      const parsed = options(args, "aAl1dFprRLhtSQ", { "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      const parsed = options(args, "aAl1dFprRLhtSQcu", { "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      if (sort === "name" && timeKey !== "mtimeMs" && !parsed.flags.has("l")) sort = "time";
       const formatName = (name: string): string => {
         if (!parsed.flags.has("Q")) return escapeText(name, "display");
         let quoted = '"';
@@ -1024,7 +1038,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (sort !== "name" || !lexical) entries.sort((left, right) => {
           context.signal.throwIfAborted();
           if (sort !== "name") {
-            const key = sort === "time" ? "mtimeMs" : "size";
+            const key = sort === "time" ? timeKey : "size";
             if (left.stat[key] > right.stat[key]) return -1;
             if (left.stat[key] < right.stat[key]) return 1;
           }
@@ -1054,7 +1068,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         let suffix = suffixFor(stat);
         if (parsed.flags.has("l")) {
           let size = parsed.flags.has("h") ? humanSize(stat.size, path) : String(stat.size);
-          const date = new Date(stat.mtimeMs).toISOString().slice(0, 16).replace("T", " ");
+          const date = new Date(stat[timeKey]).toISOString().slice(0, 16).replace("T", " ");
           let target = "";
           if (stat.type === "symlink") {
             await admitFilesystemModes(context, "ls", ["link"], [path]);

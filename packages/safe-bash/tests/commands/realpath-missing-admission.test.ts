@@ -221,9 +221,11 @@ test("realpath -m preserves the small native lexical corpus", async context => {
   assert.deepEqual(result, { exitCode: native.status, stdout: native.stdout, stderr: native.stderr });
 });
 
-test("realpath -e and unsupported readlink -m do not admit the missing hook", async () => {
+test("realpath -e and readlink -m do not admit the realpath missing hook", async () => {
   const observed = observe(createMemoryFileSystem());
   assert.equal((await execute(observed.view, ["-e", "/missing"])).exitCode, 1);
-  assert.equal((await execute(observed.view, ["-m", "/missing"], undefined, undefined, "readlink")).exitCode, 2);
+  assert.deepEqual(await execute(observed.view, ["-m", "/missing"], undefined, undefined, "readlink"), {
+    exitCode: 0, stdout: "/missing\n", stderr: "",
+  });
   assert.equal(observed.calls.some(call => call.method === "canonicalizeMissingTarget"), false);
 });

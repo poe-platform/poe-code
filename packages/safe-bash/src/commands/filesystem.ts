@@ -323,21 +323,36 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("mv", async context => {
       let ended = false;
-      let suffixValue = false;
+      let optionValue = false;
       const args = context.args.map(argument => {
-        if (suffixValue) { suffixValue = false; return argument; }
+        if (optionValue) { optionValue = false; return argument; }
         if (argument === "--") ended = true;
-        if (!ended && (argument === "-S" || argument === "--suffix")) suffixValue = true;
+        if (!ended && ["-S", "--suffix", "-t", "--target-directory"].includes(argument)) optionValue = true;
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "fnvbB:S:", { force: "f", "no-clobber": "n", verbose: "v", backup: "B", suffix: "S" });
+      const parsed = options(args, "fnvbB:S:Tt:", {
+        force: "f", "no-clobber": "n", verbose: "v", backup: "B", suffix: "S",
+        "no-target-directory": "T", "target-directory": "t",
+      });
       const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
       const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
       const backupMode = modes[control];
       if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
       if (backupMode !== "none" && parsed.flags.has("n")) throw new UsageError("options --backup and --no-clobber are mutually exclusive");
       const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
-      const destination = await destinations(context, parsed.operands);
+      if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
+      const targetDirectory = value(parsed, "t");
+      if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
+      let destination;
+      if (targetDirectory !== undefined) {
+        requireOperands(parsed.operands);
+        const target = pathOf(context, targetDirectory);
+        if ((await context.fs.stat(target, { signal: context.signal })).type !== "directory") throw new FsError("ENOTDIR", { path: target });
+        destination = { target, directory: true, sources: parsed.operands };
+      } else if (parsed.flags.has("T")) {
+        requireOperands(parsed.operands, 2, 2);
+        destination = { target: pathOf(context, parsed.operands[1]!), directory: false, sources: parsed.operands.slice(0, 1) };
+      } else destination = await destinations(context, parsed.operands);
       const budget = new MoveBudget(context.signal);
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
@@ -398,7 +413,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           throw error;
         }
         if (parsed.flags.has("v")) {
-          const targetOperand = parsed.operands.at(-1)!;
+          const targetOperand = targetDirectory ?? parsed.operands.at(-1)!;
           const displayTarget = destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand;
           await output(context, `renamed '${escapeText(operand, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
         }

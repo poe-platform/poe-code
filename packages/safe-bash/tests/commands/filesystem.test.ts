@@ -403,6 +403,82 @@ for (const [command, expected, target] of [
   });
 }
 
+for (const option of ["-t target", "-ttarget", "--target-directory target", "--target-directory=target"]) {
+  test(`mv accepts ${option} with multiple sources and verbose output`, async () => {
+    const fs = await fixture({ input: "abc\n", second: "def\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`mkdir target; mv -v ${option} input second`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "renamed 'input' -> 'target/input'\nrenamed 'second' -> 'target/second'\n");
+    for (const [name, bytes] of [["input", "abc\n"], ["second", "def\n"]]) {
+      assert.equal(new TextDecoder().decode(await fs.readFile(`/work/target/${name}`)), bytes);
+      await assert.rejects(fs.stat(`/work/${name}`), { code: "ENOENT" });
+    }
+  });
+}
+
+for (const option of ["-T", "--no-target-directory"]) {
+  test(`mv ${option} treats the destination as an exact path`, async () => {
+    const fs = await fixture({ input: "abc\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`mv ${option} input output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "abc\n");
+    await assert.rejects(fs.stat("/work/input"), { code: "ENOENT" });
+    await fs.mkdir("/work/target");
+    const rejected = await shell.exec(`mv ${option} output target`);
+    assert.equal(rejected.exitCode, 1, rejected.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "abc\n");
+    await assert.rejects(fs.stat("/work/target/output"), { code: "ENOENT" });
+  });
+}
+
+test("mv -T replaces an empty directory instead of nesting the source", async () => {
+  const fs = await fixture({ "source/note": "kept" });
+  await fs.mkdir("/work/target");
+  const result = await run("mv", ["-T", "source", "target"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target/note")), "kept");
+  await assert.rejects(fs.stat("/work/source"), { code: "ENOENT" });
+  await assert.rejects(fs.stat("/work/target/source"), { code: "ENOENT" });
+});
+
+test("mv -t follows a directory symlink and preserves no-clobber behavior", async () => {
+  const fs = await fixture({ input: "new", "target/input": "old", second: "moved" });
+  await fs.symlink("target", "/work/link");
+  const result = await run("mv", ["input", "second", "-nv", "-t", "link"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "renamed 'second' -> 'link/second'\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "new");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target/input")), "old");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/target/second")), "moved");
+});
+
+for (const args of [
+  ["-t"], ["--target-directory"], ["-t", "target"],
+  ["-t", "target", "-T", "input"], ["-T", "input", "second", "output"],
+  ["-t", "target", "-t", "other", "input"],
+]) {
+  test(`mv rejects invalid target-directory arguments: ${args.join(" ")}`, async () => {
+    const fs = await fixture({ input: "abc\n", second: "def\n" });
+    await fs.mkdir("/work/target");
+    const result = await run("mv", args, { fs });
+    assert.equal(result.exitCode, 2, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "abc\n");
+    assert.deepEqual(await fs.readdir("/work/target"), []);
+  });
+}
+
+for (const target of ["missing", "second"]) {
+  test(`mv -t requires an existing directory: ${target}`, async () => {
+    const fs = await fixture({ input: "abc\n", second: "def\n" });
+    const result = await run("mv", ["-t", target, "input"], { fs });
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "abc\n");
+  });
+}
+
 test("mv -nv stays silent when skipping an existing destination", async () => {
   const fs = await fixture({ input: "new", output: "kept" });
   const result = await run("mv", ["-nv", "input", "output"], { fs });

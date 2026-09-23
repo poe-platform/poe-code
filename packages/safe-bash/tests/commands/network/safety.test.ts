@@ -8,6 +8,40 @@ import { createCurlCommand, type HttpRequest, type HttpResponse } from "../../..
 import { fixture, run, server } from "./helpers.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 import { Shell } from "../../../src/shell/shell.js";
+import { parseArguments } from "../../../src/commands/network/args.js";
+import { defaultNetworkLimits } from "../../../src/commands/network/index.js";
+
+test("curl accepts native finite timeout spellings and preserves host caps", async () => {
+  const host = await server();
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(networkCommands({ authorize: () => true }));
+  try {
+    for (const option of ["--max-time", "--connect-timeout"]) {
+      for (const [value, seconds] of [[".75", 0.75], ["3.", 3], ["+3.5", 3.5], ["3E+0", 3],
+        ["0x1.8p1", 3], [" \t3", 3], ["-0.00", 0], ["0X.8P+2", 2], ["1e-2", 0.01]] as const) {
+        const parsed = parseArguments([option, value, "http://127.0.0.1/"], defaultNetworkLimits);
+        assert.equal(option === "--max-time" ? parsed.maxTimeMs : parsed.connectTimeoutMs,
+          seconds === 0 ? (option === "--max-time" ? defaultNetworkLimits.maxTimeMs : undefined) : seconds * 1000);
+        const result = await shell.exec(`curl -s ${option} '${value}' '${host.origin}/bytes'`);
+        const native = await promisify(execFile)("/usr/bin/curl", ["-q", "-sS", "--noproxy", "*", option, value, `${host.origin}/bytes`], { encoding: "buffer" });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(Buffer.from(result.stdoutBytes), native.stdout);
+      }
+      const capped = parseArguments([option, "3E+0", "http://127.0.0.1/"], { ...defaultNetworkLimits, maxTimeMs: 100 });
+      assert.equal(option === "--max-time" ? capped.maxTimeMs : capped.connectTimeoutMs, 100);
+    }
+  } finally { await shell.dispose(); await host.close(); }
+});
+
+test("curl rejects malformed, negative and nonfinite timeout operands before transport", async () => {
+  for (const option of ["--max-time", "--connect-timeout"]) {
+    for (const value of ["", " ", "3 ", "3s", "-0.1", "NaN", "Infinity", "1e999", "0x1p9999", ".", "1e", "0x.p1", "0x1p", "0b11"]) {
+      let calls = 0;
+      const result = await run([option, value, "http://127.0.0.1/"], { options: { transport: async () => { calls++; return response(); } } });
+      assert.equal(result.exitCode, 2, value);
+      assert.equal(calls, 0, value);
+    }
+  }
+});
 
 function response(body: ByteSource = toByteSource("ok")): HttpResponse {
   return { status: 200, statusText: "OK", headers: [], body, async dispose() {} };

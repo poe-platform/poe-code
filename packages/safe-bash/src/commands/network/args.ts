@@ -83,6 +83,49 @@ function number(value: string, integral = false): number {
   return parsed;
 }
 
+function timeoutSeconds(value: string): number {
+  const invalid = (): never => { throw new CurlError(2, "Invalid numeric option"); };
+  let index = 0;
+  while (index < value.length && " \t\n\r\v\f".includes(value[index]!)) index++;
+  const negative = value[index] === "-";
+  if (negative || value[index] === "+") index++;
+  const hexadecimal = value.slice(index, index + 2).toLowerCase() === "0x";
+  if (hexadecimal) index += 2;
+  const digits = hexadecimal ? "0123456789abcdef" : "0123456789";
+  const radix = hexadecimal ? 16 : 10;
+  let mantissa = 0;
+  let digitCount = 0;
+  let fractionDigits = 0;
+  let point = false;
+  for (; index < value.length; index++) {
+    const character = value[index]!.toLowerCase();
+    const digit = digits.indexOf(character);
+    if (digit >= 0) {
+      mantissa = mantissa * radix + digit;
+      digitCount++;
+      if (point) fractionDigits++;
+    } else if (character === "." && !point) point = true;
+    else break;
+  }
+  if (!digitCount) invalid();
+  let exponent = 0;
+  if (value[index]?.toLowerCase() === (hexadecimal ? "p" : "e")) {
+    index++;
+    const exponentNegative = value[index] === "-";
+    if (exponentNegative || value[index] === "+") index++;
+    const start = index;
+    while (index < value.length && "0123456789".includes(value[index]!)) index++;
+    if (index === start) invalid();
+    exponent = Number(value.slice(start, index)) * (exponentNegative ? -1 : 1);
+  }
+  if (index !== value.length) invalid();
+  const parsed = hexadecimal
+    ? (negative ? -1 : 1) * mantissa * 2 ** (exponent - fractionDigits * 4)
+    : Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > Number.MAX_SAFE_INTEGER) invalid();
+  return parsed;
+}
+
 export function validateRequestHeader(name: string, value: string): void {
   try { validateHeaderName(name); validateHeaderValue(name, value); }
   catch { throw new CurlError(2, "Invalid HTTP header"); }
@@ -172,12 +215,12 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       case "upload-file": result.upload = value!; break;
       case "url": result.urls.push(value!); break;
       case "max-time": {
-        const milliseconds = number(value!) * 1000;
+        const milliseconds = timeoutSeconds(value!) * 1000;
         result.maxTimeMs = milliseconds === 0 ? limits.maxTimeMs : Math.min(milliseconds, limits.maxTimeMs);
         break;
       }
       case "connect-timeout": {
-        const milliseconds = number(value!) * 1000;
+        const milliseconds = timeoutSeconds(value!) * 1000;
         if (milliseconds === 0) delete result.connectTimeoutMs;
         else result.connectTimeoutMs = Math.min(milliseconds, limits.maxTimeMs);
         break;

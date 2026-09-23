@@ -70,8 +70,10 @@ export class LocalTemplate {
           else if (alternate >= 0) append(await render(alternate + 6, finish, bindings, depth + 1));
           i = finishEnd;
         } else {
-          if (["else", "endif", "endfor"].includes(token) || [...token].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "A" && ch <= "Z") && !(ch >= "0" && ch <= "9") && !"_-".includes(ch))) c.fail("E_UNSUPPORTED_FEATURE", `Unsupported template expression: ${token}`);
-          append(stringify(bindings[token]));
+          if (["else", "endif", "endfor", "sep"].includes(token) || [...token].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "A" && ch <= "Z") && !(ch >= "0" && ch <= "9") && !"_-".includes(ch))) c.fail("E_UNSUPPORTED_FEATURE", `Unsupported template expression: ${token}`);
+          const value = stringify(bindings[token]);
+          // A body followed by a template newline occupies one line ending.
+          append(token === "body" && this.template![i] === "\n" && value.endsWith("\n") ? value.slice(0, -1) : value);
         }
       }
       c.charge("retainedBytes", length * 2);

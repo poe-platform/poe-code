@@ -45,11 +45,11 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
         else {
           const files: CommandInputs = context.fs ? {
             ...(context.cwd === undefined ? {} : {cwd: context.cwd}), stdin: context.stdin,
-            readFile: (path, signal) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal}),
+            readFile: (path, signal, maxBytes) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal, ...(maxBytes === undefined ? {} : {maxBytes})}),
             writeFile: (path, bytes, signal) => context.fs!.writeFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, bytes, {signal})
           } : context;
-          const {options, operands, destination} = await resolveConversionArgs(context.args, files, context.signal, configured);
-          const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, signal: context.signal,
+          const {options, operands, destination, limits} = await resolveConversionArgs(context.args, files, context.signal, configured);
+          const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, limits, signal: context.signal,
             ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id, base, signal) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
             ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd}),
             ...(destination === undefined ? {} : {output: {publish: async (bytes: Uint8Array, signal: AbortSignal | undefined) => files.writeFile!(destination, bytes, signal!)}})});

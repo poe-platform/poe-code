@@ -60,14 +60,19 @@ template expressions are rejected. `includeInHeader`, `includeBeforeBody`, and
 HTML unless a custom template is supplied. The corresponding flags are
 `--template`, `--variable`/`-V`, `--variable-json`, `--include-in-header`/`-H`,
 `--include-before-body`/`-B`, and `--include-after-body`/`-A`.
+Short include flags accept attached paths, such as `-Hheader.html`.
 
 `--defaults`/`-d` reads an explicitly named VFS YAML map. Use `from`/`reader` and
 `to`/`writer` to select formats; explicit flags override scalar defaults.
 Supported defaults cover the writer flags above, template variables, metadata,
 include arrays, `input-files`, and `output-file`. Repeated defaults combine
 ordered file lists and maps; unsafe execution keys and YAML aliases are refused.
+`-dsettings.yaml` is also accepted. Explicit CLI operands replace `input-files`
+defaults; `-` in that list reads the supplied stdin once.
 SDK callers can use `resolveConversionArgs(args, files, signal, context)` with
-explicit read/write callbacks, then pass its options and operands to `convert`.
+explicit read/write callbacks, then pass its options and operands to `convert`
+with the returned `limits` in the conversion context. Those remaining limits
+keep defaults, templates, includes and document inputs within one budget.
 `fileScope`/`--file-scope` parses document operands separately.
 `sandbox`/`--sandbox` retains explicit VFS authority and never provides a native
 Pandoc sandbox or additional filesystem isolation.

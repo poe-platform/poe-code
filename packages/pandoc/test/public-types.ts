@@ -1,4 +1,4 @@
-import {convert, createJsonFilterCapability, type JsonFilterRuntime, type ConversionOptions} from "@poe-code/pandoc";
+import {convert, createJsonFilterCapability, resolveConversionArgs, type JsonFilterRuntime, type ConversionOptions} from "@poe-code/pandoc";
 import {pandocCommands, type PandocCommandsOptions} from "@poe-platform/safe-bash/commands/pandoc";
 const options: ConversionOptions = {from: "commonmark", to: "plain"};
 const plugin: PandocCommandsOptions = {replace: true, limits: {inputBytes: 100}};
@@ -7,5 +7,7 @@ declare const runtime: JsonFilterRuntime;
 const filters = createJsonFilterCapability(runtime);
 void convert([], {...options, filters: [{kind: "json", path: "filter.py"}]}, {filters});
 void pandocCommands({filters});
+const parsed = await resolveConversionArgs([], {}, new AbortController().signal);
+void convert(parsed.operands ?? [], parsed.options, {limits: parsed.limits});
 // @ts-expect-error Native engine configuration is not a public conversion option.
 void convert([], {from: "commonmark", to: "plain", nativeEngine: "pandoc"}, {});

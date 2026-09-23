@@ -6,12 +6,12 @@ import { resourceDirectory } from "./resources.js";
 export interface CommandInputs {
   readonly cwd?: string;
   readonly stdin?: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
-  readFile?(path: string, signal: AbortSignal): Promise<Uint8Array>;
+  readFile?(path: string, signal: AbortSignal, maxBytes?: number): Promise<Uint8Array>;
   writeFile?(path: string, bytes: Uint8Array, signal: AbortSignal): Promise<void>;
 }
 
 /** Parsing creates lazy inputs. Only the validated converter may acquire them. */
-export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
+export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal, defaultInputs: readonly string[] = []): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
   const options: {-readonly [K in keyof ConversionOptions]?: ConversionOptions[K]} = {};
   const pdfFonts: InputSource[] = [];
   const metadataJson: MetadataObject[] = [];
@@ -43,7 +43,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     if (positional || !arg.startsWith("-")) {operands.push(source(arg)); continue;}
     // Short options with an argument also accept it in the same token.
-    if (arg.length > 2 && ["-f", "-r", "-t", "-w", "-o", "-F", "-L"].includes(arg.slice(0, 2)) && arg[2] !== "=")
+    if (arg.length > 2 && ["-f", "-r", "-t", "-w", "-o", "-F", "-L", "-H", "-B", "-A"].includes(arg.slice(0, 2)) && arg[2] !== "=")
       arg = `${arg.slice(0, 2)}=${arg.slice(2)}`;
     if (arg === "--lossy" || arg === "--standalone" || arg === "-s" || arg === "--fail-if-warnings") {
       const key = arg === "--lossy" ? "lossy" : arg === "--fail-if-warnings" ? "failIfWarnings" : "standalone";
@@ -176,6 +176,13 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     if (key === "wrap") {if (!["none", "auto", "preserve"].includes(value!)) fail("Invalid wrap policy"); options.wrap = value as NonNullable<WriteOptions["wrap"]>;}
     else if (key === "rawContent") {if (value !== "reject" && value !== "escape" && value !== "retain") fail("Invalid raw-content policy"); options.rawContent = value as "reject" | "escape" | "retain";}
     else if (key === "from" || key === "to") options[key] = value!;
+  }
+  if (!operands.length) for (const path of defaultInputs) {
+    if (path === "-") {
+      if (stdinUsed || !files.stdin) fail("Stdin may be supplied once");
+      stdinUsed = true;
+      operands.push({source: "stdin", chunks: files.stdin!});
+    } else operands.push(source(path));
   }
   if (yes) {
     const registry = createFormatRegistry();

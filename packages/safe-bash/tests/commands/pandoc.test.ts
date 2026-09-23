@@ -212,3 +212,158 @@ test("pandoc local defaults, templates, variables and includes use the configure
     assert.equal(volume.readFileSync("/work/result.html", "utf8"), result.stdout);
   } finally {await shell.dispose();}
 });
+test("pandoc loads explicit YAML defaults through Shell and honors CLI overrides", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/defaults.yaml", "from: commonmark\nto: plain\ninput-files:\n  - b.md\noutput-file: out\n");
+  try {
+    for (const defaults of ["--defaults defaults.yaml", "--defaults=defaults.yaml", "-d defaults.yaml", "-ddefaults.yaml"]) {
+      const result = await shell.exec(`pandoc ${defaults} --to=html`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(volume.readFileSync("/work/out", "utf8"), "<p>Beta</p>\n");
+    }
+  } finally {await shell.dispose();}
+});
+test("pandoc renders an explicit body-only HTML template without a document wrapper", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/body.html", "$body$\n");
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml --template=body.html b.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.trimEnd(), "<p>Beta</p>");
+  } finally {await shell.dispose();}
+});
+test("pandoc supplies string and JSON variables to explicit templates", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/variables.html", "$label$|$short$|$audit$|$body$\n");
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml --template variables.html --variable=label:Audit -Vshort=Pass --variable-json=audit:[1] b.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.trimEnd(), "Audit|Pass|1|<p>Beta</p>");
+  } finally {await shell.dispose();}
+});
+test("pandoc inserts VFS header and body includes in supplied order", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/head.html", '<meta name="audit" content="verified">');
+  volume.writeFileSync("/work/before.html", "<aside>Before</aside>");
+  volume.writeFileSync("/work/after.html", "<aside>After</aside>");
+  volume.writeFileSync("/work/end.html", "<aside>End</aside>");
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml -s -Hhead.html -B before.html -Aafter.html --include-after-body=end.html b.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const header = result.stdout.indexOf('<meta name="audit" content="verified">');
+    const before = result.stdout.indexOf("<aside>Before</aside>");
+    const body = result.stdout.indexOf("<p>Beta</p>");
+    const after = result.stdout.indexOf("<aside>After</aside>");
+    const end = result.stdout.indexOf("<aside>End</aside>");
+    assert.ok(header >= 0 && header < result.stdout.indexOf("</head>"), result.stdout);
+    assert.ok(before >= 0 && before < body && body < after && after < end, result.stdout);
+  } finally {await shell.dispose();}
+});
+test("pandoc file-scope controls cross-input references and sandbox accepts explicit VFS files", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/reference.md", "[Cross][target]");
+  volume.writeFileSync("/work/definition.md", "[target]: https://example.test/");
+  volume.writeFileSync("/work/body.html", "$body$\n");
+  try {
+    const combined = await shell.exec("pandoc -fcommonmark -thtml reference.md definition.md");
+    assert.equal(combined.exitCode, 0, combined.stderr);
+    assert.equal(combined.stdout.trimEnd(), '<p><a href="https://example.test/">Cross</a></p>');
+    const separate = await shell.exec("pandoc -fcommonmark -thtml --file-scope --sandbox --template body.html reference.md definition.md");
+    assert.equal(separate.exitCode, 0, separate.stderr);
+    assert.equal(separate.stdout.trimEnd(), "<p>[Cross][target]</p>");
+  } finally {await shell.dispose();}
+});
+test("pandoc refuses output aliases of defaults and all defaults-referenced input files", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/body.html", "$body$\n");
+  volume.writeFileSync("/work/head.html", "<meta name=\"audit\" content=\"verified\">");
+  volume.writeFileSync("/work/before.html", "<aside>Before</aside>");
+  volume.writeFileSync("/work/after.html", "<aside>After</aside>");
+  try {
+    for (const source of ["defaults.json", "b.md", "body.html", "head.html", "before.html", "after.html"]) {
+      for (const hardlink of [false, true]) {
+        const output = hardlink ? "alias" : source;
+        const defaults = {from: "commonmark", to: "html", "input-files": ["b.md"], template: "body.html", "include-in-header": ["head.html"], "include-before-body": ["before.html"], "include-after-body": ["after.html"], "output-file": output};
+        volume.writeFileSync("/work/defaults.json", JSON.stringify(defaults));
+        if (hardlink) volume.linkSync(`/work/${source}`, "/work/alias");
+        const original = volume.readFileSync(`/work/${source}`, "utf8");
+        const result = await shell.exec("pandoc -d defaults.json");
+        assert.equal(result.exitCode, 9, `${source}: ${result.stderr}`);
+        assert.equal(result.stdout, "");
+        assert.equal(volume.readFileSync(`/work/${source}`, "utf8"), original);
+        if (hardlink) volume.unlinkSync("/work/alias");
+      }
+    }
+  } finally {await shell.dispose();}
+});
+test("pandoc missing option files preserve an existing output destination", async () => {
+  const {shell, volume} = fixture();
+  try {
+    for (const option of ["--defaults", "--template", "--include-in-header", "--include-before-body", "--include-after-body"]) {
+      const result = await shell.exec(`pandoc -fcommonmark -thtml ${option} missing.html b.md -o out`);
+      assert.equal(result.exitCode, 9, `${option}: ${result.stderr}`);
+      assert.equal(result.stdout, "");
+      assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+    }
+  } finally {await shell.dispose();}
+});
+test("pandoc defaults and includes obey the shared input budget before output publication", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/defaults.yaml", "from: commonmark\nto: html\ninput-files: [b.md]\noutput-file: out\n");
+  volume.writeFileSync("/work/before.html", "<aside>" + "A".repeat(100) + "</aside>");
+  try {
+    for (const command of ["pandoc -d defaults.yaml", "pandoc -fcommonmark -thtml -B before.html b.md -o out"]) {
+      const accepted = await shell.exec(command);
+      assert.equal(accepted.exitCode, 0, accepted.stderr);
+      assert.notEqual(volume.readFileSync("/work/out", "utf8"), "Keep");
+      volume.writeFileSync("/work/out", "Keep");
+      const result = await shell.exec(command, {limits: {maxInputBytes: 32}}).catch(() => undefined);
+      assert.ok(result === undefined || result.exitCode !== 0);
+      assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+    }
+  } finally {await shell.dispose();}
+});
+test("pandoc rejects unsupported template loop separators before publishing output", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/loop.html", "$for(audit)$$audit$$sep$,$endfor$\n");
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml --template loop.html --variable-json=audit:[1] b.md -o out");
+    assert.equal(result.exitCode, 5, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+  } finally {await shell.dispose();}
+});
+test("pandoc merges reader and writer aliases across defaults layers", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/first.yaml", "from: commonmark\nto: html\ninput-files: [b.md]\n");
+  volume.writeFileSync("/work/second.yaml", "reader: commonmark\nwriter: plain\n");
+  try {
+    const result = await shell.exec("pandoc -dfirst.yaml -dsecond.yaml");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "Beta\n");
+  } finally {await shell.dispose();}
+});
+test("pandoc defaults can explicitly consume stdin", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/stdin.yaml", 'from: commonmark\nto: html\ninput-files: ["-"]\n');
+  try {
+    const result = await shell.exec("printf 'From defaults stdin' | pandoc -dstdin.yaml");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "<p>From defaults stdin</p>\n");
+  } finally {await shell.dispose();}
+});
+test("pandoc resolves table-of-contents aliases before defaults and CLI overrides", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/b.md", "# Heading");
+  volume.writeFileSync("/work/toc.yaml", "from: commonmark\nto: html\nstandalone: true\ntable-of-contents: true\ninput-files: [b.md]\n");
+  volume.writeFileSync("/work/no-toc.yaml", "toc: false\n");
+  try {
+    for (const overrides of ["--toc=false", "-d no-toc.yaml"]) {
+      const result = await shell.exec(`pandoc -d toc.yaml ${overrides}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.includes("Heading"), result.stdout);
+      assert.ok(!result.stdout.includes("<nav"), result.stdout);
+    }
+  } finally {await shell.dispose();}
+});

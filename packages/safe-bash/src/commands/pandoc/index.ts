@@ -74,8 +74,8 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
       const files = {
         cwd: context.cwd,
         stdin: context.stdinIsDefault ? [] : context.stdin,
-        readFile: async (path: string) => (stdout ?? invocation).acquire(async () => {
-          const bytes = await context.fs.readFile(pathOf(context, path), {signal: readSignal, maxBytes});
+        readFile: async (path: string, _signal: AbortSignal, remainingBytes?: number) => (stdout ?? invocation).acquire(async () => {
+          const bytes = await context.fs.readFile(pathOf(context, path), {signal: readSignal, maxBytes: Math.min(maxBytes, remainingBytes ?? maxBytes)});
           total += bytes.byteLength;
           context.inputBudget?.check(total);
           return bytes;
@@ -83,7 +83,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };
-      const parsed = await resolveConversionArgs(carrier.args, files, invocation.signal, {limits});
+      const parsed = await resolveConversionArgs(carrier.args, files, invocation.signal, {limits: {...limits, inputBytes: maxBytes}});
       const protectedInputs = [...(parsed.operands ?? []), ...(parsed.options.metadataFiles ?? []), ...(parsed.options.pdfFonts ?? []), ...(parsed.options.template ? [parsed.options.template] : []), ...(parsed.options.includeInHeader ?? []), ...(parsed.options.includeBeforeBody ?? []), ...(parsed.options.includeAfterBody ?? [])];
       const protectedPaths = [...parsed.defaultsPaths.map(path => pathOf(context, path)), ...protectedInputs.filter(input => input.source && !("chunks" in input && input.chunks === files.stdin)).map(input => pathOf(context, input.source!))];
       const readsStdin = parsed.operands === undefined || parsed.operands.some(input => "chunks" in input && input.chunks === files.stdin);
@@ -131,7 +131,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
         mkdir: (path: string, supplied?: {recursive?: boolean}) => owner.acquire(() => context.fs.mkdir(path, {signal, ...(supplied?.recursive === undefined ? {} : {recursive: supplied.recursive})}), () => {}),
         writeFile: (path: string, bytes: Uint8Array, supplied?: {flag?: "wx"}) => owner.acquire(() => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, {signal, ...(supplied?.flag === undefined ? {} : {flag: supplied.flag})})), () => {})
       };
-      const result = await convert(inputs, parsed.options, {limits: {...limits, inputBytes: maxBytes}, signal,
+      const result = await convert(inputs, parsed.options, {limits: parsed.limits, signal,
         resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})});
       for (const diagnostic of result.diagnostics) await context.stderr.write(new TextEncoder().encode(`${diagnostic.code}: ${diagnostic.message}\n`));
       const bytes = result.kind === "binary" ? result.bytes : new TextEncoder().encode(result.text);

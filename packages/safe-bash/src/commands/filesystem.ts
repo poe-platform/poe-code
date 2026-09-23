@@ -317,7 +317,21 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("mv", async context => {
-      const parsed = options(context.args, "fnv", { force: "f", "no-clobber": "n", verbose: "v" });
+      let ended = false;
+      let suffixValue = false;
+      const args = context.args.map(argument => {
+        if (suffixValue) { suffixValue = false; return argument; }
+        if (argument === "--") ended = true;
+        if (!ended && (argument === "-S" || argument === "--suffix")) suffixValue = true;
+        return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
+      });
+      const parsed = options(args, "fnvbB:S:", { force: "f", "no-clobber": "n", verbose: "v", backup: "B", suffix: "S" });
+      const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
+      const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
+      const backupMode = modes[control];
+      if (!backupMode) throw new UsageError(`invalid argument '${control}' for backup type`);
+      if (backupMode !== "none" && parsed.flags.has("n")) throw new UsageError("options --backup and --no-clobber are mutually exclusive");
+      const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
       const destination = await destinations(context, parsed.operands);
       const budget = new MoveBudget(context.signal);
       await preflightOperands(context, destination.sources, async operand => {
@@ -332,18 +346,51 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
         if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
         if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
-        try { await context.fs.rename(source, target, { signal: context.signal, ...(parsed.flags.has("n") ? { noReplace: true } : {}) }); }
-        catch (error) {
-          context.signal.throwIfAborted();
-          if (parsed.flags.has("n")) {
-            if (codeOf(error) === "EEXIST") return;
-            throw error;
+        let backup: string | undefined;
+        if (backupMode !== "none") {
+          const sourceStat = await context.fs.lstat(source, { signal: context.signal });
+          const targetStat = await maybeStat(context, target, false);
+          if (targetStat) {
+            const identity = await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal });
+            if (source === target || identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+            if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "backup rename lacks authoritative distinctness" });
+            if ((sourceStat.type === "directory") !== (targetStat.type === "directory")) throw new FsError(sourceStat.type === "directory" ? "ENOTDIR" : "EISDIR", { path: target });
+            let largest = 0n;
+            if (backupMode !== "simple") {
+              const prefix = `${basename(target)}.~`;
+              for (const entry of await readDirectory(context, dirname(target))) {
+                if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
+                const digits = entry.name.slice(prefix.length, -1);
+                if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
+                const number = BigInt(digits);
+                if (number > largest) largest = number;
+              }
+            }
+            backup = backupMode === "numbered" || largest > 0n ? `${target}.~${largest + 1n}~` : target + backupSuffix;
+            if (backup === source || backup === target) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
+            const backupStat = await maybeStat(context, backup, false);
+            if (backupStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
+            await admitFilesystemModes(context, "mv", ["rename"], [target, backup]);
+            await context.fs.rename(target, backup, { signal: context.signal });
           }
-          if (codeOf(error) !== "EXDEV") throw error;
-          if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
-            if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
-            return;
+        }
+        try {
+          try { await context.fs.rename(source, target, { signal: context.signal, ...(parsed.flags.has("n") ? { noReplace: true } : {}) }); }
+          catch (error) {
+            context.signal.throwIfAborted();
+            if (parsed.flags.has("n")) {
+              if (codeOf(error) === "EEXIST") return;
+              throw error;
+            }
+            if (codeOf(error) !== "EXDEV") throw error;
+            if (!await moveAcrossDevices(context, source, target, parsed.flags.has("n"), budget)) {
+              if (!parsed.flags.has("n")) throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
+              return;
+            }
           }
+        } catch (error) {
+          if (backup) await context.fs.rename(backup, target, { signal: context.signal });
+          throw error;
         }
         if (parsed.flags.has("v")) {
           const targetOperand = parsed.operands.at(-1)!;

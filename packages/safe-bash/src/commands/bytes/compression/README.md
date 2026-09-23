@@ -54,6 +54,12 @@ forced stdout mode; bzip2 and zstd reject it. Force alone does not enable
 file-output passthrough or test-mode copying. Zstandard's explicit
 `--no-pass-through` disables copying even with force.
 
+Zstandard decompression also detects gzip, XZ and legacy LZMA members, including
+mixed-format concatenations and standard skippable Zstandard frames. Detection
+runs at each member boundary using the bundled codecs; the existing memory and
+dictionary limits still apply. Recognized corrupt streams fail rather than pass
+through as plaintext.
+
 The Zstandard family supports `--[no-]check` for checksum generation and
 validation, `--stream-size=BYTES` for a pledged input size (written in the frame
 and enforced), `--size-hint=BYTES`, `--[no-]compress-literals`, and

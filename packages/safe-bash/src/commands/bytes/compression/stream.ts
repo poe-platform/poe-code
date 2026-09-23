@@ -1,6 +1,7 @@
 import { inheritYieldCheckpoint, yieldTurn } from "../../../contracts/yield.js";
 import { FsError, readBytes, type ByteSource } from "../../../contracts/index.js";
 import type { CompressionOptions } from "./options.js";
+import { zstdDecode } from "./zstd-decode.js";
 import { gunzipMembers } from "./gunzip.js";
 import { codec, CodecReader } from "./codec.js";
 import { boundedCodec, type BoundedCodecOptions } from "./bounded-codec.js";
@@ -59,7 +60,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
   restored.set(header.subarray(0, length));
   if (remainder) restored.set(remainder, length);
   reader.restore(restored);
-  yield* boundedCodec(reader, options, signal);
+  yield* (options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec)(reader, options, signal);
 }
 
 async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void, prefetch = true): ByteSource {
@@ -129,7 +130,7 @@ export async function transform(
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
   const nativeTransform = options.decompress && !options.test && (options.passthrough || (options.force && options.stdout && options.passthrough !== false))
-    ? passthroughStream : boundedCodec;
+    ? passthroughStream : options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec;
   const transformed = options.format !== "gzip"
     ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, zstd: options.zstd, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;

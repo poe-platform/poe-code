@@ -1,7 +1,7 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { yieldTurn } from "../../../contracts/yield.js";
-import { readBytes, type ByteSource } from "../../../contracts/index.js";
-import { codec } from "./codec.js";
+import type { ByteSource } from "../../../contracts/index.js";
+import { codec, CodecReader, type CodecInput } from "./codec.js";
 
 const crcTable = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -14,16 +14,14 @@ function updateCrc(value: number, bytes: Uint8Array): number {
 }
 
 class Input {
-  private readonly iterator: AsyncGenerator<Uint8Array>;
   private pending: Uint8Array = new Uint8Array();
   private pulls = 0;
-  constructor(source: ByteSource, private readonly signal: AbortSignal) { this.iterator = readBytes(source, signal); }
+  constructor(private readonly upstream: CodecInput, private readonly signal: AbortSignal) {}
   async chunk(): Promise<Uint8Array | undefined> {
     this.signal.throwIfAborted();
     if (this.pending.length) { const result = this.pending; this.pending = new Uint8Array(); return result; }
     if (++this.pulls % 64 === 0) await yieldTurn(this.signal);
-    const next = await this.iterator.next();
-    return next.done ? undefined : next.value;
+    return this.upstream.chunk();
   }
   restore(bytes: Uint8Array): void { this.pending = bytes; }
   async byte(): Promise<number | undefined> {
@@ -42,7 +40,7 @@ class Input {
     for (let offset = 0; offset < length; offset++) result[offset] = await this.required();
     return result;
   }
-  async close(): Promise<void> { await this.iterator.return(undefined); }
+  release(): void { this.upstream.restore(this.pending); }
 }
 
 async function header(input: Input, magic: Uint8Array): Promise<void> {
@@ -74,7 +72,8 @@ async function header(input: Input, magic: Uint8Array): Promise<void> {
 export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSignal, force: boolean, warn: () => void): ByteSource {
   const controller = new AbortController();
   const signal = AbortSignal.any([parentSignal, controller.signal]);
-  const input = new Input(source, signal);
+  const reader = new CodecReader(source, signal);
+  const input = new Input(reader, signal);
   let members = 0;
   try {
     for (;;) {
@@ -104,19 +103,32 @@ export async function* gunzipMembers(source: ByteSource, parentSignal: AbortSign
         warn();
         return;
       }
-      await header(input, Uint8Array.of(first, second));
-      let crc = 0xffffffff;
-      let size = 0;
-      for await (const chunk of codec(input, { mode: "inflate-raw" }, signal)) {
-        crc = updateCrc(crc, chunk);
-        size = (size + chunk.length) >>> 0;
-        yield chunk;
-      }
-      const footer = await input.exact(8);
-      const view = new DataView(footer.buffer, footer.byteOffset, footer.byteLength);
-      if (((crc ^ 0xffffffff) >>> 0) !== view.getUint32(0, true)) throw new PublicDiagnostic("incorrect data check (CRC)");
-      if (size !== view.getUint32(4, true)) throw new PublicDiagnostic("incorrect length check");
+      yield* decodeMember(input, signal);
       members++;
     }
-  } finally { controller.abort(); await input.close(); }
+  } finally { controller.abort(); await reader.close(); }
+}
+
+async function* decodeMember(input: Input, signal: AbortSignal): ByteSource {
+  await header(input, Uint8Array.of(31, 139));
+  let crc = 0xffffffff;
+  let size = 0;
+  for await (const chunk of codec(input, { mode: "inflate-raw" }, signal)) {
+    crc = updateCrc(crc, chunk);
+    size = (size + chunk.length) >>> 0;
+    yield chunk;
+  }
+  const footer = await input.exact(8);
+  const view = new DataView(footer.buffer, footer.byteOffset, footer.byteLength);
+  if (((crc ^ 0xffffffff) >>> 0) !== view.getUint32(0, true)) throw new PublicDiagnostic("incorrect data check (CRC)");
+  if (size !== view.getUint32(4, true)) throw new PublicDiagnostic("incorrect length check");
+}
+
+export async function* gunzipMember(reader: CodecInput, signal: AbortSignal): ByteSource {
+  const input = new Input(reader, signal);
+  try {
+    const magic = await input.exact(2);
+    if (magic[0] !== 31 || magic[1] !== 139) throw new PublicDiagnostic("not in gzip format");
+    yield* decodeMember(input, signal);
+  } finally { input.release(); }
 }

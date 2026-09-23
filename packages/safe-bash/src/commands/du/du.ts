@@ -6,6 +6,7 @@ import { Budget, DuLimitError } from "./budget.js";
 import { formatSize } from "./format.js";
 import { settings, type DuCommandsOptions } from "./options.js";
 import { excluded } from "./exclude.js";
+import { gnuInformation } from "../gnu-information.js";
 
 interface Amount { readonly bytes: number; readonly complete: boolean; readonly directory?: boolean }
 
@@ -179,6 +180,8 @@ export function createDuCommand(options: DuCommandsOptions = {}): CommandDefinit
     const budget = new Budget(work, limits, context);
     context.registerCleanup?.(budget.close);
     try {
+      const info = await gnuInformation("du", context);
+      if (info) return info;
       const args = parse(budget);
       if (context.stdout.ownedOutput) operation = createOutputOperation(context, context.stdout);
       if (args.help) { await budget.emit(work.stdout, helpText); return { exitCode: 0 }; }

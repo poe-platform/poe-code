@@ -5,6 +5,7 @@ import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
 import { parseArguments, type SplitArguments, type SplitLimits } from "./options.js";
+import { gnuInformation } from "../gnu-information.js";
 
 async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Uint8Array> {
   let remaining = args.size;
@@ -137,6 +138,8 @@ export function createSplitCommand(limits: SplitLimits): CommandDefinition {
   return { name: "split", async execute(context) {
     context.signal.throwIfAborted();
     try {
+      const info = await gnuInformation("split", context);
+      if (info) return info;
       await run(context, limits);
       context.signal.throwIfAborted();
       return { exitCode: 0 };

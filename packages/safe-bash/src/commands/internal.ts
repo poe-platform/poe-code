@@ -3,6 +3,7 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { writeDiagnostic } from "../escaping.js";
 import { inputRequirements } from "./portable-requirements.js";
 import { RecordBuffer } from "./record-buffer.js";
+import { gnuInformation } from "./gnu-information.js";
 import {
   FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler,
@@ -122,7 +123,7 @@ export function define(name: string, handler: CommandHandler, failureCode = 1): 
     name,
     async execute(context) {
       context.signal.throwIfAborted();
-      try { return await handler(context); }
+      try { return await gnuInformation(name, context) ?? await handler(context); }
       catch (error) {
         context.signal.throwIfAborted();
         await diagnostic(context, error);

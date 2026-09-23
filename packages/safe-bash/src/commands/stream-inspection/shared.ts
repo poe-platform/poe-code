@@ -1,6 +1,7 @@
 import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
+import { gnuInformation } from "../gnu-information.js";
 
 export interface StreamInspectionLimits {
   readonly maxInputBytes: number;
@@ -149,6 +150,8 @@ export function command(name: string, limits: StreamInspectionLimits, run: (sess
     context.signal.throwIfAborted();
     let session: Session | undefined;
     try {
+      const info = await gnuInformation(name, context);
+      if (info) return info;
       session = new Session(context, limits);
       await run(session);
       context.signal.throwIfAborted();

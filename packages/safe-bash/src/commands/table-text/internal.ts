@@ -2,6 +2,7 @@ import { PublicDiagnostic } from "../../diagnostics.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, readBytes, writeBytes, type ByteSource, type CommandContext, type CommandDefinition, type CommandHandler } from "../../contracts/index.js";
 import { diagnostic, pathOf } from "../internal.js";
+import { gnuInformation } from "../gnu-information.js";
 
 export interface TableTextLimits {
   readonly maxInputBytes: number;
@@ -43,7 +44,7 @@ export function fail(message: string): never { throw new FsError("EINVAL", { mes
 export function command(name: string, handler: CommandHandler): CommandDefinition {
   return { name, async execute(context) {
     context.signal.throwIfAborted();
-    try { return await handler(context); }
+    try { return await gnuInformation(name, context) ?? await handler(context); }
     catch (error) { context.signal.throwIfAborted(); await diagnostic(context, error); return { exitCode: 1 }; }
   } };
 }

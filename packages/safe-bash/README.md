@@ -141,7 +141,7 @@ Tar creation also accepts `--sort=name` (bytewise directory-child order; operand
 
 Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.
 
-Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+Use `cat --help`, `base64 --help`, `cp --help`, `sort --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options. `base64 --version`, `cp --version` and `sort --version` identify the safe-bash implementation. These informational requests exit before processing input files.
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
 `mv -i` / `--interactive` asks on stderr before replacing an existing destination

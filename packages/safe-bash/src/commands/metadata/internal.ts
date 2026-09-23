@@ -1,6 +1,7 @@
 import { yieldTurn } from "../../contracts/yield.js";
 import { FsError, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileType } from "../../contracts/index.js";
 import { diagnostic } from "../internal.js";
+import { gnuInformation } from "../gnu-information.js";
 
 export interface MetadataLimits {
   readonly maxEntries: number;
@@ -49,7 +50,7 @@ export class MetadataBudget {
 export function metadataCommand(name: string, handler: CommandHandler): CommandDefinition {
   return { name, async execute(context) {
     context.signal.throwIfAborted();
-    try { return await handler(context); }
+    try { return await gnuInformation(name, context) ?? await handler(context); }
     catch (error) { context.signal.throwIfAborted(); await diagnostic(context, error); return { exitCode: 1 }; }
   } };
 }

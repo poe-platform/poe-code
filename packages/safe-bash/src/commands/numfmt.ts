@@ -693,7 +693,7 @@ class Converter {
     let base = settings.from === "iec" || settings.from === "iec-i" ? 1024 : 1000;
     if (offset < text.length) {
       while (blank(text[offset])) offset++;
-      const suffix = text[offset];
+      const suffix = text[offset] === "k" ? "K" : text[offset];
       if (suffix !== undefined && !"KMGTPEZY".includes(suffix)) return this.failure(`invalid suffix in input: ${quoted}`);
       if (settings.from === "none") return this.failure(`rejecting suffix in input: ${quoted} (consider using --from)`);
       exponent = suffix === undefined ? 0 : "KMGTPEZY".indexOf(suffix) + 1;
@@ -765,7 +765,7 @@ class Converter {
       const negative = rendered.startsWith("-");
       rendered = (negative ? "-" : "") + (negative ? rendered.slice(1) : rendered).padStart(Number(settings.zeroPadding) - Number(negative), "0");
     }
-    if (settings.to !== "none") rendered += powerIndex ? "KMGTPEZY"[powerIndex - 1] ?? "(error)" : "";
+    if (settings.to !== "none") rendered += powerIndex ? (settings.to === "si" ? "kMGTPEZY" : "KMGTPEZY")[powerIndex - 1] ?? "(error)" : "";
     if (rendered.length >= (settings.to === "none" ? 128 : 127)) throw new NumfmtDiagnostic(`failed to prepare value '${fixed(printedValue, 6)}' for printing`);
     if (settings.to === "iec-i" && powerIndex) rendered += "i";
     if (settings.developer && settings.to !== "none") await this.output.emit(`  returning value: ${quote(rendered, settings.unicode)}\n`, true);

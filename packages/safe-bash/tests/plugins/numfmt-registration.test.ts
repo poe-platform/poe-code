@@ -12,11 +12,12 @@ for (const route of ["factory", "plugin"] as const) {
     if (route === "plugin") shell.use(agentCommands());
     try {
       for (const [script, stdout] of [
-        ["numfmt --to=si 1000 2500000", "1.0K\n2.5M\n"],
+        ["numfmt --to=si 1000 2500000", "1.0k\n2.5M\n"],
         ["cat /numbers | numfmt --to=iec", "1.0K\n1.0M\n"],
         ["env numfmt --from=iec-i 1Ki 2Mi", "1024\n2097152\n"],
-        ["printf '1000 2000' | xargs numfmt --to=si", "1.0K\n2.0K\n"],
-        ["sh /convert.sh", "name,bytes\nalpha,1.0K\nbeta,2.5M\n"],
+        ["printf '1000 2000' | xargs numfmt --to=si", "1.0k\n2.0k\n"],
+        ["printf '3.5k\\n-8.5ki\\n' | numfmt --from=auto > /converted; cat /converted", "3500\n-8704\n"],
+        ["sh /convert.sh", "name,bytes\nalpha,1.0k\nbeta,2.5M\n"],
       ] as const) {
         const result = await shell.exec(script);
         assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, stdout, ""], script);
@@ -32,7 +33,7 @@ test("numfmt public registration preserves rounding, raw field bytes and partial
     const rounded = await shell.exec("numfmt --round=nearest --format=%.1f -- 1.25 -1.25");
     assert.deepEqual([rounded.exitCode, rounded.stdout, rounded.stderr], [0, "1.3\n-1.3\n", ""]);
     const raw = await shell.exec("numfmt --delimiter=, --field=2 --to=si", { stdin: Uint8Array.of(255, 44, 49, 48, 48, 48, 10) });
-    assert.deepEqual([raw.exitCode, Buffer.from(raw.stdoutBytes), raw.stderr], [0, Buffer.from([255, 44, 49, 46, 48, 75, 10]), ""]);
+    assert.deepEqual([raw.exitCode, Buffer.from(raw.stdoutBytes), raw.stderr], [0, Buffer.from([255, 44, 49, 46, 48, 107, 10]), ""]);
     const invalid = await shell.exec("numfmt --from=iec-i 1Ki invalid 2Mi");
     assert.deepEqual([invalid.exitCode, invalid.stdout, invalid.stderr], [2, "1024\n", "numfmt: invalid number: 'invalid'\n"]);
   } finally { await shell.dispose(); }

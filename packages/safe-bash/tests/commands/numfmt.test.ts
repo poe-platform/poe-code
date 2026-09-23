@@ -32,7 +32,46 @@ interface NativeCase {
   stderrHex: string;
   exitCode: number;
 }
-const native = ["./numfmt-native.snapshot.json", "./numfmt-extended.snapshot.json"].flatMap(path => (JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8")) as { cases: NativeCase[] }).cases);
+for (const [mode, suffix, output] of [
+  ["auto", "k", "3500\n-8500\n"], ["si", "k", "3500\n-8500\n"],
+  ["iec", "k", "3584\n-8704\n"], ["iec-i", "ki", "3584\n-8704\n"],
+  ["auto", "ki", "3584\n-8704\n"],
+]) test(`numfmt GNU 9.10 lowercase kilo input ${mode} ${suffix}`, async () => {
+  for (const unit of [suffix, suffix.replace("k", "K")]) {
+    assert.deepEqual(await format([`--from=${mode}`], `3.5${unit}\n-8.5${unit}\n`), {
+      exitCode: 0, stdoutHex: Buffer.from(output!).toString("hex"), stderrHex: "",
+    });
+  }
+});
+test("numfmt GNU 9.10 SI kilo output preserves IEC casing", async () => {
+  for (const [mode, input, output] of [
+    ["si", "2700\n-8100\n999\n999999\n1000000\n", "2.7k\n-8.1k\n999\n1.0M\n1.0M\n"],
+    ["iec", "3584\n-8704\n", "3.5K\n-8.5K\n"],
+    ["iec-i", "3584\n-8704\n", "3.5Ki\n-8.5Ki\n"],
+  ]) assert.deepEqual(await format([`--to=${mode}`], input), {
+    exitCode: 0, stdoutHex: Buffer.from(output!).toString("hex"), stderrHex: "",
+  });
+});
+// Preserve the GNU 8.30 captures. These explicit expectation edits select the
+// GNU 9.10 kilo vocabulary; they are authored expectations, not new native captures.
+const native = ["./numfmt-native.snapshot.json", "./numfmt-extended.snapshot.json"].flatMap(path => (JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8")) as { cases: NativeCase[] }).cases).map(entry => {
+  let stdout = Buffer.from(entry.stdoutHex, "hex").toString("latin1");
+  let stderr = Buffer.from(entry.stderrHex, "hex").toString("latin1");
+  if (entry.name.startsWith("scales ")) {
+    const [, from, to] = entry.name.split(" ");
+    const lines = stdout.split("\n");
+    if (to === "si") for (const index of [4, 5, ...(from !== "none" && from !== "iec-i" ? [7] : []), ...(from === "auto" || from === "iec-i" ? [8] : [])]) lines[index] = lines[index]!.replace("K", "k");
+    if (from === "auto" || from === "si" || from === "iec") {
+      lines[12] = to === "none" ? from === "iec" ? "1024" : "1000" : to === "si" ? from === "iec" ? "1.1k" : "1.0k" : from === "iec" ? `1.0K${to === "iec-i" ? "i" : ""}` : "1000";
+      stderr = stderr.replace("numfmt: invalid suffix in input: '1k'\n", "");
+    } else stderr = stderr.replace("numfmt: invalid suffix in input: '1k'", from === "none" ? "numfmt: rejecting suffix in input: '1k' (consider using --from)" : "numfmt: missing 'i' suffix in input: '1k' (e.g Ki/Mi/Gi)");
+    stdout = lines.join("\n");
+  } else if (entry.args.includes("--to=si")) {
+    stdout = stdout.split("K").join("k");
+    if (entry.args.includes("---debug")) stderr = stderr.split("K").join("k");
+  }
+  return { ...entry, stdoutHex: Buffer.from(stdout, "latin1").toString("hex"), stderrHex: Buffer.from(stderr, "latin1").toString("hex") };
+});
 for (const entry of native) test(`numfmt native ${entry.name}`, async () => {
   const result = await format(entry.args, Buffer.from(entry.stdinHex, "hex"), { env: { LC_ALL: entry.locale, ...entry.extraEnv } });
   assert.deepEqual(result, { stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex, exitCode: entry.exitCode });
@@ -264,7 +303,7 @@ test("numfmt no-Buffer plain argv and owned byte carriers retain portable admiss
     }
   } finally { Reflect.set(globalThis, "Buffer", saved); }
   assert.deepEqual(results, [
-    ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "1.0K\n", stderr: "" })),
+    ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "1.0k\n", stderr: "" })),
     ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "1000é\n", stderr: "" })),
     ...Array.from({ length: 2 }, () => ({ exitCode: 1, stdout: "", stderr: "numfmt: numfmt output limit exceeded\n" })),
     ...Array.from({ length: 4 }, () => ({ exitCode: 1, stdout: "", stderr: "numfmt: argument limit exceeded\n" })),

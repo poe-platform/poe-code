@@ -487,6 +487,7 @@ function assertSource7Discovery(files) {
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
+    "tests/shell/array-ifs-empty-fields.test.ts",
     "tests/shell/declare.test.ts",
     "tests/shell/umask.test.ts",
     "tests/shell/command-portable-path.test.ts",

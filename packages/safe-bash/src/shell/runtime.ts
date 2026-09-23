@@ -7521,6 +7521,11 @@ export class Runtime {
         }
       } else if (part.kind === "variable" && split && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || ["^", "^^", ",", ",,"].includes(part.operator ?? "")) && part.name === "@" || (part.substring || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
+        if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
+          // Split the joined expansion so non-whitespace IFS retains empty member fields.
+          await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)));
+          continue;
+        }
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();
           const original = members[position]!;

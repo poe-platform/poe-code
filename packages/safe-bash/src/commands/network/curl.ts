@@ -5,6 +5,7 @@ import { collectBytes, createOutputOperation, readBytes, toByteSource, writeByte
 import { pathOf } from "../internal.js";
 import { createDeadlineOutput, deadlineDiagnostic } from "./aggregate.js";
 import type { CurlArguments } from "./args.js";
+import { curlRequestTarget } from "./url.js";
 import { parseCurlInput } from "./input.js";
 import { createBody, queryData } from "./body.js";
 import { decodeContent } from "./decode.js";
@@ -223,6 +224,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     if (format !== undefined) { writeOutFormat(format, values); formatReady = true; }
     const parsed = parseUrl(input, args.globoff);
     const initial = parsed.url;
+    const rawTarget = curlRequestTarget(input);
+    let initialTarget = rawTarget;
+    const initialSearch = initial.search;
     if (args.query?.length) {
       const queryArgs = { ...args, data: args.query };
       delete queryArgs.upload;
@@ -246,6 +250,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       initial.search += `${initial.search ? "&" : "?"}${query.replace(/%[0-9a-f]{2}/gi, escape => escape.toLowerCase())}`;
       body = undefined;
     }
+    if (initial.search !== initialSearch) initialTarget += initial.search.slice(initialSearch.length);
     let output = args.remoteName ? args.directoryIndex && initial.pathname.endsWith("/") ? args.directoryIndex : remoteFilename(initial) : args.output;
     if (args.outputDirectory !== undefined && output !== undefined && output !== "-" && (!args.download || args.remoteName)) {
       output = `${args.outputDirectory}/${output}`;
@@ -269,6 +274,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       downloaded = 0;
       failure = undefined;
       let current = new URL(initial);
+      let currentUrl = current.origin + initialTarget;
       let method = initialMethod;
       let requestMethod = initialRequestMethod;
       let currentBody = body;
@@ -280,11 +286,11 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       while (true) {
         signal.throwIfAborted();
         if (remaining() <= 0) throw new CurlError(28, "Operation timed out");
-        values.url_effective = current.href;
+        values.url_effective = currentUrl;
         values.method = method;
         let denyPrivateNetworks = false;
         let allowed: boolean;
-        try { allowed = await withSignal(() => authorize({ url: current.href, method, attempt, signal,
+        try { allowed = await withSignal(() => authorize({ url: currentUrl, method, attempt, signal,
           requirePrivateNetworkDeny() { denyPrivateNetworks = true; },
           ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
         catch { signal.throwIfAborted(); throw new CurlError(7, "Network authorization failed"); }
@@ -301,7 +307,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         })();
         try {
         response = await operation.acquire(async () => {
-          const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
+          const acquired = await transport({ url: currentUrl, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
             ...(args.httpVersion === undefined ? {} : { httpVersion: args.httpVersion }),
             ...(args.ignoreContentLength ? { ignoreContentLength: true as const } : {}),
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
@@ -335,9 +341,21 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         const location = header(response.headers, "location");
         if (redirectStatuses.has(response.status) && location !== undefined) {
           let target: URL;
-          try { target = parseUrl(new URL(location, current).href, true, true).url; }
+          let targetUrl: string;
+          try {
+            const base = currentUrl.split("?")[0]!;
+            const colon = location.indexOf(":");
+            const boundary = [...location].findIndex(character => "/?#".includes(character));
+            const resolved = colon >= 0 && (boundary < 0 || colon < boundary) ? location : location.startsWith("//") ? current.protocol + location
+              : location.startsWith("/") ? current.origin + location
+              : location.startsWith("?") ? base + location
+              : location.startsWith("#") || location === "" ? currentUrl + location
+              : base.slice(0, base.lastIndexOf("/") + 1) + location;
+            target = parseUrl(resolved, true, true).url;
+            targetUrl = target.origin + curlRequestTarget(resolved);
+          }
           catch (error) { if (error instanceof CurlError) throw error; throw new CurlError(3, "Malformed redirect URL"); }
-          values.redirect_url = target.href;
+          values.redirect_url = targetUrl;
           if (args.location) {
             if (redirects++ >= args.maxRedirects) throw new CurlError(47, "Maximum redirects exceeded");
             if (current.protocol === "https:" && target.protocol === "http:") throw new CurlError(1, "HTTPS-to-HTTP redirects are disabled");
@@ -347,8 +365,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
               requestMethod = "GET";
               if (args.method === undefined) method = "GET";
             }
-            previous = current.href;
+            previous = currentUrl;
             current = target;
+            currentUrl = targetUrl;
             values.num_redirects = String(redirects);
             await stop(response, signal); response = undefined;
             continue;

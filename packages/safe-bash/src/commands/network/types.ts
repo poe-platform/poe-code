@@ -8,6 +8,7 @@ export interface HttpRequest {
   readonly httpVersion?: "1.0" | "1.1";
   /** Read until EOF rather than using Content-Length; host transport must opt in. */
   readonly ignoreContentLength?: true;
+  /** Validated HTTP(S) origin with curl request-target spelling; transports must preserve it. */
   readonly url: string;
   readonly method: string;
   readonly headers: HttpHeaders;
@@ -43,6 +44,7 @@ export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & 
 };
 
 export interface NetworkAuthorization {
+  /** Validated HTTP(S) origin with curl request-target spelling; transports must preserve it. */
   readonly url: string;
   readonly method: string;
   readonly redirectFrom?: string;

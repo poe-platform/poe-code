@@ -1,4 +1,5 @@
 import { type ByteSource } from "../../contracts/index.js";
+import { curlRequestTarget } from "./url.js";
 import { CurlError, type HttpTransport } from "./types.js";
 
 export interface FetchTransportOptions {
@@ -34,6 +35,9 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
     const url = new URL(input.url);
     if (url.protocol !== "http:" && url.protocol !== "https:") throw new CurlError(1, "Unsupported protocol");
     if (input.denyPrivateNetworks === true) throw new CurlError(7, "Fetch transport cannot enforce private-network denial");
+    if (curlRequestTarget(input.url) !== url.pathname + url.search) {
+      throw new CurlError(2, "Fetch transport cannot preserve the literal request target");
+    }
     const stopped = new AbortController();
     const signal = AbortSignal.any([input.signal, stopped.signal]);
     const body = requestBody(input.body, signal);

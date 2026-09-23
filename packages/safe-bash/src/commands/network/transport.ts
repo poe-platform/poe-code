@@ -1,3 +1,4 @@
+import { curlRequestTarget } from "./url.js";
 import { request as httpRequest, validateHeaderName, validateHeaderValue, type ClientRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { lookup } from "node:dns/promises";
@@ -93,6 +94,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
       signal.throwIfAborted();
       request = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, {
         method: input.method,
+        path: curlRequestTarget(input.url),
         headers: pinned && headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
         signal, maxHeaderSize, agent: false,
         ...(requestCa === undefined ? {} : { ca: requestCa as string | Buffer | (string | Buffer)[] }),

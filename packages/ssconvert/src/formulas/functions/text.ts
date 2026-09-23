@@ -280,8 +280,18 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     return boundedText(result, host);
   },
   CLEAN: (args, host) => {
-    let result = "";
-    for (const c of textArg(args, 0, host)) { host.tick(); const point = c.codePointAt(0)!; if (isUnicodePrintable(point)) result += c; }
+    const source = byteTextArg(args, 0, host);
+    let result = "", size = 0;
+    for (let position = 0; position < source.length && source[position] !== 0;) {
+      host.tick();
+      const { point, next } = readByteTextCharacter(source, position, host.tick);
+      position = next;
+      if (!isUnicodePrintable(point)) continue;
+      size += point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4;
+      if (size > host.context.limits.outputBytes)
+        throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
+      result += String.fromCodePoint(point);
+    }
     return str(result);
   },
   PROPER: (args, host) => {

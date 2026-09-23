@@ -1,3 +1,4 @@
+import { waitForRetryEffects } from "../test/fixtures/retry-effects.js";
 import { EventEmitter } from "node:events";
 import { vol } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -376,6 +377,7 @@ describe("independent AR-001 original workflows", () => {
           })
         ]);
         await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
+        if (scenario.id.startsWith("retry")) await waitForRetryEffects(execution);
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         expect(() => dump(execution, { mode: "capture" })).toThrow(
           expect.objectContaining({ code: "reentry" })
@@ -421,9 +423,10 @@ describe("independent AR-001 original workflows", () => {
         const restored = restore(JSON.parse(serialized!), { source: scenario.source });
         expect(restored.executionSemantics).toBe("jobs-v9");
         expect(restored.version).toBe(2);
-        const rebound = makeFixture(scenario.id, false, scenario.policy);
+        const holdReplay = phase !== "completed" && scenario.id === "retry-reissue";
+        const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
-        const resumed = await run(scenario.source, {
+        const resumedExecution = run(scenario.source, {
           bindings: rebound.bindings,
           snapshot: restored,
           budget: new Budget({ maxSteps: 150_000 }),
@@ -432,6 +435,12 @@ describe("independent AR-001 original workflows", () => {
               ? receiptsProvider(original.snapshot.hostCalls ?? [], requests)
               : undefined
         });
+        try {
+          if (holdReplay) await waitForRetryEffects(resumedExecution);
+        } finally {
+          rebound.release();
+        }
+        const resumed = await resumedExecution;
         expect(resumed.ok).toBe(true);
         if (!resumed.ok) throw new Error(resumed.error.message);
         expect(JSON.parse(JSON.stringify(resumed.returnValue))).toEqual(scenario.expected);

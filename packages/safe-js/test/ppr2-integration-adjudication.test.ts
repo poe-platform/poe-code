@@ -11,6 +11,7 @@ import {
   type HostCallResumeRequest
 } from "../src/index.js";
 import { runCli } from "../src/cli.js";
+import { waitForRetryEffects } from "./fixtures/retry-effects.js";
 import { promiseReplayContext } from "../src/interp/promise-replay.js";
 import { hashSource } from "../src/parse/hash.js";
 import { parseModule } from "../src/parse/parser.js";
@@ -76,6 +77,7 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
           })
         ]);
         await vi.waitFor(() => expect(host.calls).toEqual(scenario.callsAtBoundary), { interval: 1, timeout: 1000 });
+        if (scenario.id.startsWith("retry")) await waitForRetryEffects(execution);
         expect(() => dump(execution)).toThrow(expect.objectContaining({ code: "reentry" }));
         captures.push(await dump(execution, { mode: "replay" }));
         const signals = new EventEmitter();
@@ -109,14 +111,21 @@ describe("independent ordered PPR2 fresh writer continuations", () => {
         expect(snapshot.executionSemantics).toBe(expectedFresh);
         expect(snapshot.version).toBe(2);
         const before = JSON.stringify(snapshot);
-        const rebound = makeFixture(scenario.id, false, scenario.policy);
+        const holdReplay = index < 2 && scenario.id === "retry-reissue";
+        const rebound = makeFixture(scenario.id, holdReplay, scenario.policy);
         const requests: HostCallResumeRequest[] = [];
-        const resumed = await run(scenario.source, {
+        const resumedExecution = run(scenario.source, {
           snapshot,
           bindings: rebound.bindings,
           budget: new Budget({ maxSteps: 150_000 }),
           hostCallResumeProvider: receiptsProvider(original.snapshot.hostCalls ?? [], requests)
         });
+        try {
+          if (holdReplay) await waitForRetryEffects(resumedExecution);
+        } finally {
+          rebound.release();
+        }
+        const resumed = await resumedExecution;
         expect(resumed.ok).toBe(true);
         if (!resumed.ok) throw Error(resumed.error.message);
         expect(resumed.returnValue).toEqual(native);

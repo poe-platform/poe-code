@@ -39,7 +39,11 @@ try {
 ```
 
 Filesystem and network access require explicit host bindings. The engine never
-uses a native spreadsheet converter as a fallback. BIFF8 external cell and area
+uses a native spreadsheet converter as a fallback. PDF exports can use an explicit
+`fonts.resolve({ family, bold, italic, maxBytes, signal })` host binding returning
+TrueType font bytes, which the engine copies. The default request is Sans, regular; missing supplied
+fonts refuse without substitution. With no binding, the packaged JetBrains Mono
+font remains the default. Font bytes and character-map work are bounded before parsing. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.

@@ -84,7 +84,19 @@ export interface PasswordCapability {
     encoding: "utf8";
   })>): Promise<string | Uint8Array | undefined>;
 }
+/** Explicit host font selection; no system-font or filesystem discovery. */
+export interface FontCapability {
+  resolve(request: Readonly<{
+    family: string;
+    bold: boolean;
+    italic: boolean;
+    /** Remaining invocation font-byte budget, admitted before copying/parsing. */
+    maxBytes: number;
+    signal: AbortSignal;
+  }>): Promise<Uint8Array | undefined>;
+}
 export interface CapabilityContext {
+  readonly fonts?: FontCapability;
   readonly datasource?: import("./datasource.js").DatasourceSession;
   readonly stdinIsDefault?: boolean;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;
@@ -105,6 +117,8 @@ export interface CapabilityContext {
   readonly diagnostic?: (diagnostic: Diagnostic) => Promise<void>;
 }
 export interface EngineConfig {
+  /** Explicit supplied fonts for the PDF painter. Undefined retains the packaged default. */
+  readonly fonts?: FontCapability;
   /** Explicit optional sample datasource transport, owned per operation. */
   readonly datasource?: import("./datasource.js").DatasourceCapability;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;

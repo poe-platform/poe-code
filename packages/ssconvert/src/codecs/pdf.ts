@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
+import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { foldSheetName } from "../workbook/case-fold.js";
@@ -81,8 +81,24 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     tick(value.length);
     if (!font) {
       pdf.registerFontkit(fontkit);
-      const resource = suppliedDefaultFont(bytes => tick(bytes));
-      font = await pdf.embedFont(resource.bytes, { subset: true });
+      let bytes: Uint8Array;
+      if (context.fonts) {
+        const supplied = await context.fonts.resolve(Object.freeze({ family: "Sans", bold: false, italic: false,
+          maxBytes: context.limits.inputBytes, signal: context.signal }));
+        tick();
+        if (supplied === undefined) unsupported("supplied font unavailable");
+        if (!(supplied instanceof Uint8Array)) unsupported("supplied font bytes");
+        if (supplied.byteLength > context.limits.inputBytes) throw new SsconvertError("resource-limit", "ssconvert PDF font bytes limit exceeded");
+        tick(supplied.byteLength);
+        bytes = new Uint8Array(supplied);
+        admitTrueTypeFont(bytes, message => unsupported(`supplied font: ${message}`), tick);
+      } else bytes = suppliedDefaultFont(count => tick(count)).bytes;
+      try { font = await pdf.embedFont(bytes, { subset: true }); }
+      catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof SsconvertError) throw error;
+        unsupported("supplied font parsing");
+      }
       tick();
     }
     const supported = new Set(font.getCharacterSet());

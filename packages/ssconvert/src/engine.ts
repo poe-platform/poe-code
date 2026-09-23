@@ -52,6 +52,7 @@ export function createEngine(supplied: EngineConfig): Engine {
   const config = {
     ...supplied,
     ...(supplied.datasource === undefined ? {} : { datasource: Object.freeze({ open: supplied.datasource.open.bind(supplied.datasource) }) }),
+    ...(supplied.fonts === undefined ? {} : { fonts: Object.freeze({ resolve: supplied.fonts.resolve.bind(supplied.fonts) }) }),
     ...(supplied.password === undefined ? {} : { password: Object.freeze({ read: supplied.password.read.bind(supplied.password) }) }),
     ...(supplied.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(supplied.runtimeFunctions) }),
     limits: Object.freeze({ ...supplied.limits }),
@@ -134,6 +135,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       ...(config.random === undefined ? {} : { random: config.random }),
       ...(config.runtimeFunctions === undefined ? {} : { runtimeFunctions: config.runtimeFunctions }),
       ...(config.externalReferences === undefined ? {} : { externalReferences: config.externalReferences }),
+      ...(config.fonts === undefined ? {} : { fonts: config.fonts }),
       ...(config.password === undefined ? {} : { password: config.password }),
       async diagnostic(supplied) {
         check(context);

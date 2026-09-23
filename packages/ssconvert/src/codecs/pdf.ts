@@ -13,6 +13,9 @@ import { renderPrintHeaderFooter } from "../rendering/print/header-footer.js";
 import { admitDefaultCellPrintStyle } from "../rendering/print/default-cell-style.js";
 import { sheetPrintSettings } from "../rendering/print/settings.js";
 
+// Native default display DPI for the admitted materialized Gnumeric style profile.
+const printDisplayScale = 72 / 96;
+
 // Explicit GTK names in the measured C profile; no ambient paper discovery.
 const papers: Readonly<Record<string, readonly [number, number]>> = {
   iso_a4: [210 * 72 / 25.4, 297 * 72 / 25.4], na_letter: [612, 792], na_legal: [612, 1008],
@@ -116,9 +119,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     if (cellBox) {
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
       const width = font.widthOfTextAtSize(value, size);
-      if (width > cellBox.width - 5 || height > cellBox.height) unsupported("default-style text layout");
-      x += 2.5; // Leave a half-point grid offset and a two-point text inset.
-      baseline = page.getHeight() - y - cellBox.height + height - ascent;
+      if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
+      x += 2 + 0.5 + 3 * printDisplayScale;
+      baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : font.widthOfTextAtSize(value, size) / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
   };
@@ -272,7 +276,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           const value = context.formatting ? await context.formatting.format(cell.value, cell.format ?? "General", context) : cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? cell.value.value ? "TRUE" : "FALSE" : String(cell.value.value));
           tick();
           await text(page, value, geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start,
-            geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start, 10, "left",
+            geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start, cell.style ? 10 * printDisplayScale : 10, "left",
             cell.style ? { width: positions.column(cell.column).size, height: positions.row(cell.row).size } : undefined);
         }
         for (const { object, rectangle } of objects) {

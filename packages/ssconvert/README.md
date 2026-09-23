@@ -45,7 +45,8 @@ TrueType font bytes, which the engine copies. The default request is Sans, regul
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
 font remains the default. Font bytes and character-map work are bounded before parsing. With explicit fonts,
 PDF export also admits fully materialized default Gnumeric Sans styles for blank
-cells and single-line text that fits the selected font and cell. Other styles,
+cells and single-line text that fits the selected font and cell. This profile
+uses the captured native 96-DPI scale and print insets, including 7.5-point cell text. Other styles,
 merges and text layouts retain explicit refusals. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,

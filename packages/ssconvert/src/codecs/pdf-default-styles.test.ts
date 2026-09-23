@@ -64,3 +64,20 @@ it("refuses a cell shorter than the selected font metrics", async () => {
   const book = await fixture(), sheet = book.sheets[0]!;
   await expect(writePdf({...book, sheets: [{...sheet, view: {...sheet.view, defaultRowHeight: 5}}]}, [], context)).rejects.toThrow("PDF default-style text layout");
 });
+
+it("applies the native default96dpi scale to materialized cell fonts", async () => {
+  const draw = vi.spyOn(PDFPage.prototype, "drawText");
+  try {
+    await writePdf(await fixture(), [], context);
+    const cells = draw.mock.calls.filter(([text]) => text.startsWith("cell"));
+    expect(cells.map(([, options]) => options?.size)).toEqual([7.5, 7.5, 7.5, 7.5]);
+  } finally {draw.mockRestore();}
+});
+it("retains the native print origin,leading grid and scaled text margin", async () => {
+  const draw = vi.spyOn(PDFPage.prototype, "drawText");
+  try {
+    await writePdf(await fixture("v"), [], context);
+    const cells = draw.mock.calls.filter(([text]) => text.startsWith("cell"));
+    expect(cells.map(([, options]) => options?.x)).toEqual([76.75, 124.75, 76.75, 124.75]);
+  } finally {draw.mockRestore();}
+});

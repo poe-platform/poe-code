@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T13:26:06.698205+00:00",
+  "recordedAt": "2026-09-23T13:34:47.815174+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -842,7 +842,7 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Persisted manual/data-slice row and column page breaks apply to PDF export;stored auto breaks are recomputed. Authenticated native run35861302809 confirms three models/ninecommands/fiveLetterpages with exact normalized page token order/membership and byte-identical native XML replay PDFs;AArch64/0755 prefix,49module hashes/eightfonts authenticated. Explicit bounded fontauthority selects SHA-boundDejaVuSans acrossSDK/Shell/XMLreplay/browser/worker with immutableinput/fontbytes and missingbinding zerooutput. Three actual native checkpoints previously refused all materializedstyles;portable painter now admits complete neutralGnumericSans10 styles for blank/single-line stringcells thatfit. All15public controls match native page counts/Letter geometry/tokenorder and identicalPDFbytes permodel;allfiveSDKpages/browserdashboard inspected,zero diagnostics/console.13style/7fontcontrols and22547package tests/368files,lint/types/rootbuild pass. Native7.5pt Pango/Cairo size/placement/shaping differs from portable10pt;fullfont/glyph/pixel/style/chart/repeat/grid/layout/rendering parity remainsopen. Other styles,merges,richtext,numericgeneral layout and overflow retain refusals.",
+      "currentFinding": "Persisted manual/data-slice row and column page breaks apply to PDF export;stored auto breaks are recomputed. Authenticated native run35861302809 confirms three models/ninecommands/fiveLetterpages with exact normalized page token order/membership and byte-identical native XML replay PDFs;AArch64/0755 prefix,49module hashes/eightfonts authenticated. Explicit bounded fontauthority selects SHA-boundDejaVuSans acrossSDK/Shell/XMLreplay/browser/worker with immutableinput/fontbytes and missingbinding zerooutput. Three actual native checkpoints previously refused all materializedstyles;portable painter now admits complete neutralGnumericSans10 styles for blank/single-line stringcells thatfit. All15public controls match native page counts/Letter geometry/tokenorder and identicalPDFbytes permodel;allfiveSDKpages/browserdashboard inspected,zero diagnostics/console.15style/7fontcontrols and22549package tests/368files,lint/types/rootbuild pass. Source-bound native96DPI scaling now paints admitted Sans10 cells at7.5pt with4.75pt nominalleading inset and sourcebottomgrid correction. Exact leading xMin matches10/12bodywords;twoadjacent-column positions differ0.000498pt,bodyrightbounds up to0.157998pt and vertical/header bounds stilldiffer withouttolerancepass;fullfont/glyph/pixel/style/chart/repeat/grid/layout/rendering parity remainsopen. Other styles,merges,richtext,numericgeneral layout and overflow retain refusals.",
       "proof": [
         "docs/ssconvert/pdf-page-breaks-gap-proof.json",
         "docs/ssconvert/linux-pdf-page-breaks-native-capture.json",
@@ -855,6 +855,11 @@
           "path": "docs/ssconvert/pdf-default-style-checkpoint-gap-proof.json",
           "kind": "validated-materialized-default-style-product-and-five-interface-proof",
           "outcome": "13style/7fontcontrols,22547package tests/368files,lint/types/rootbuild;threeactualnative checkpoints now export across15publiccontrols with identicalPDFbytes permodel/native pagegeometry/tokenorder. Allfivepages/dashboard inspected. Fullnative font/layout/glyph/pixel/style fidelity remainsopen."
+        },
+        {
+          "path": "docs/ssconvert/pdf-native-default-scale-gap-proof.json",
+          "kind": "source-bound-native-font-scale-product-with-retained-exact-coordinate-failures",
+          "outcome": "2red->15style/7fontcontrols;22549package tests/368files,lint/types/rootbuild. All15publiccontrols retain nativepages/text and identicalPDFbytes permodel;fivepages/dashboard inspected. Nominal7.5pt/4.75pt corrected;exactx fails2/12and widerbounds remainopen."
         }
       ],
       "delivery": {

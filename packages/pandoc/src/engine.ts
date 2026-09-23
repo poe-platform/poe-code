@@ -19,6 +19,7 @@ import type {
   SerializedDocument,
   WriteOptions,
   Diagnostic,
+  FilterRequest,
   ReaderCapability
 } from "./types.js";
 
@@ -453,6 +454,7 @@ export async function convert(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const writer = session.registry.resolve(options.to, "write");
+    const filters: FilterRequest[] = [];
     if (options.filters !== undefined) {
       if (!Array.isArray(options.filters)) session.fail("E_OPTION", "filters must be an array");
       session.charge("references", options.filters.length);
@@ -462,8 +464,15 @@ export async function convert(
             (request.kind !== "citeproc" && (typeof request.path !== "string" || !request.path)))
           session.fail("E_OPTION", "Invalid filter request");
         if (request.kind !== "citeproc") session.charge("text", request.path.length);
+        filters.push(Object.freeze(request.kind === "citeproc" ? {kind: request.kind} : {kind: request.kind, path: request.path}));
       }
-      if (options.filters.length && !context.filters) session.fail("E_CAPABILITY", "Filters and citeproc require an explicitly supplied filter capability");
+      if (filters.length && (!context.filters || typeof context.filters.apply !== "function" ||
+          (context.filters.supports !== undefined && typeof context.filters.supports !== "function")))
+        session.fail("E_CAPABILITY", "Filters and citeproc require an explicitly supplied filter capability");
+      if (context.filters?.supports) for (const request of filters) {
+        if (await session.call(async () => context.filters!.supports!(request)) !== true)
+          session.fail("E_CAPABILITY", `Filter capability does not support ${request.kind} processing`);
+      }
     }
     if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
     await session.preflightOptions();
@@ -547,7 +556,7 @@ export async function convert(
     }
     const document = await session.writable(
       await session.document({ blocks, metadata, resources, ...settings }, true),
-      writer.writer!.math, options.filters, options.to
+      writer.writer!.math, filters, options.to
     );
     return await session.finish(
       await session.call(() => writer.writer!.write(document, session, writer))

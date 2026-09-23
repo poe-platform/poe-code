@@ -6,6 +6,7 @@ import {pathOf} from "../internal.js";
 
 export interface PandocCommandsOptions {
   readonly limits?: ConversionContext["limits"];
+  readonly filters?: ConversionContext["filters"];
   readonly replace?: boolean;
 }
 const statuses: Readonly<Record<string, number>> = {
@@ -32,6 +33,7 @@ async function verifyOutputIdentity(context: CommandContext, owner: OutputOperat
 export function createPandocCommand(options: PandocCommandsOptions = {}): CommandDefinition {
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("pandoc replace must be boolean");
   const limits = {...options.limits};
+  const filters = options.filters;
   return {name: "pandoc", description: "Convert documents with the original bounded TypeScript SDK", async execute(context) {
     context.signal.throwIfAborted();
     // Enroll the root scope before any invocation-owned I/O. stdout gets its own
@@ -115,7 +117,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
         writeFile: (path: string, bytes: Uint8Array, supplied?: {flag?: "wx"}) => owner.acquire(() => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, {signal, ...(supplied?.flag === undefined ? {} : {flag: supplied.flag})})), () => {})
       };
       const result = await convert(inputs, parsed.options, {limits: {...limits, inputBytes: maxBytes}, signal,
-        resourceFiles, resourceCwd: context.cwd});
+        resourceFiles, resourceCwd: context.cwd, ...(filters === undefined ? {} : {filters})});
       for (const diagnostic of result.diagnostics) await context.stderr.write(new TextEncoder().encode(`${diagnostic.code}: ${diagnostic.message}\n`));
       const bytes = result.kind === "binary" ? result.bytes : new TextEncoder().encode(result.text);
       signal.throwIfAborted();

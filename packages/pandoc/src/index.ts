@@ -33,6 +33,9 @@ export type {
   WriterCapability
 } from "./types.js";
 
+export {createJsonFilterCapability} from "./json-filters.js";
+export type {JsonFilterRuntime} from "./json-filters.js";
+
 export { normalizeDocument, normalizeDocumentCooperatively, AstError } from "./ast.js";
 export { createExecutionContext, ExecutionContext, defaultLimits } from "./execution.js";
 export type { AstLimits } from "./ast.js";

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type {FilterRequest} from "@poe-code/pandoc";
 import {Shell} from "../../src/shell/index.js";
 import {MemoryFileSystem} from "../../src/fs/memory/index.js";
 import {FsError} from "../../src/contracts/index.js";
@@ -7,6 +8,34 @@ import {agentCommands} from "../../src/plugins/index.js";
 import {createPandocCommand, createPandocCommands, pandocCommands} from "../../src/commands/pandoc/index.js";
 
 import {fixture} from "./pandoc-fixture.js";
+test("pandoc forwards explicitly supplied filters through actual Shell execution", async () => {
+  const {shell, volume} = fixture();
+  const requests: FilterRequest[] = [];
+  shell.use(pandocCommands({replace: true, filters: {async apply(document, request, context) {
+    requests.push(request);
+    assert.equal(context.to, "html");
+    return {...document, blocks: [{t: "Para", c: [{t: "Str", c: "FILTERED"}]}]};
+  }}}));
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml -Ffirst.py --lua-filter=second.lua -C b.md -oout");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.deepEqual(requests, [{kind: "json", path: "first.py"}, {kind: "lua", path: "second.lua"}, {kind: "citeproc"}]);
+    assert.equal(volume.readFileSync("/work/out", "utf8"), "<p>FILTERED</p>\n");
+  } finally {await shell.dispose();}
+});
+
+test("pandoc filter failure leaves the existing output unchanged", async () => {
+  const {shell, volume} = fixture();
+  shell.use(pandocCommands({replace: true, filters: {async apply() {throw new Error("Filter failed");}}}));
+  try {
+    const result = await shell.exec("pandoc -fcommonmark -thtml -Fbroken.py b.md -oout");
+    assert.equal(result.exitCode, 9, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(volume.readFileSync("/work/out", "utf8"), "Keep");
+  } finally {await shell.dispose();}
+});
+
 test("pandoc accepts native aliases, attached values and bare metadata through Shell", async () => {
   const {shell, volume} = fixture();
   try {

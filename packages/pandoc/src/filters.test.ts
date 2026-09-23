@@ -2,7 +2,7 @@ import {expect, it, vi} from "vitest";
 import {parseConversionArgs} from "./cli.js";
 import {convert} from "./engine.js";
 import {createPandocCommand} from "./safe-bash.js";
-import type {Document, FilterRequest} from "./types.js";
+import type {Document, FilterCapability, FilterRequest} from "./types.js";
 
 it.each(["--filter=identity.py", "-Fidentity.py", "--lua-filter=uppercase.lua", "-Luppercase.lua", "--citeproc", "-C"])("admits filter syntax: %s", arg => {
   expect(parseConversionArgs(["-fcommonmark", "-thtml", arg], {}, new AbortController().signal).options.filters).toHaveLength(1);
@@ -21,6 +21,29 @@ it("refuses unavailable processing before acquiring input", async () => {
   const inputs = (async function* () {read(); yield new TextEncoder().encode("Hello");})();
   await expect(convert([{chunks: inputs}], {from: "commonmark", to: "html", filters: [{kind: "citeproc"}]}, {})).rejects.toMatchObject({code: "E_CAPABILITY"});
   expect(read).not.toHaveBeenCalled();
+});
+
+it("keeps preflighted requests stable while input is acquired", async () => {
+  const request = {kind: "json" as const, path: "allowed.py"};
+  const requests: FilterRequest[] = [request];
+  const apply = vi.fn(async (document: Document) => document);
+  const supports = vi.fn((filter: FilterRequest) => filter.kind === "json" && filter.path === "allowed.py");
+  const chunks = (async function* () {
+    request.path = "denied.py";
+    requests.push({kind: "citeproc"});
+    yield new TextEncoder().encode("Hello");
+  })();
+  await convert([{chunks}], {from: "commonmark", to: "html", filters: requests}, {filters: {supports, apply}});
+  expect(supports).toHaveBeenCalledExactlyOnceWith({kind: "json", path: "allowed.py"});
+  expect(apply).toHaveBeenCalledOnce();
+  expect(apply.mock.calls[0]).toEqual([expect.anything(), {kind: "json", path: "allowed.py"}, expect.anything()]);
+});
+
+it.each([{}, {apply: true}, {apply: async (document: Document) => document, supports: true}])("rejects malformed filter authority before input acquisition", async filters => {
+  const acquire = vi.fn();
+  const chunks = (async function* () {acquire(); yield new TextEncoder().encode("Hello");})();
+  await expect(convert([{chunks}], {from: "commonmark", to: "html", filters: [{kind: "citeproc"}]}, {filters: filters as FilterCapability})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  expect(acquire).not.toHaveBeenCalled();
 });
 
 it("runs injected processing through the shell adapter before writing", async () => {

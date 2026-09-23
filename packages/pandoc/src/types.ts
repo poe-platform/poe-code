@@ -166,6 +166,8 @@ export type FilterRequest =
   | {readonly kind: "citeproc"};
 /** Trusted host integration; no engine or host execution is enabled implicitly. */
 export interface FilterCapability {
+  /** Optional admission check for every request, before input acquisition or processing. */
+  supports?(request: FilterRequest): boolean;
   apply(document: Document, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<Document>;
 }
 export interface MetadataObject { readonly [key: string]: MetadataValue }

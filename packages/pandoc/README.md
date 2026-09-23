@@ -1,11 +1,12 @@
 # @poe-code/pandoc
 
-Private document-conversion workspace. Applications use the published
-`poe-code/pandoc` entry; explicit shell registration is exposed by
-`poe-code/safe-bash/commands/pandoc`.
+Private document-conversion workspace. Within this repository, import
+`@poe-code/pandoc`; explicit shell registration is exposed by
+`@poe-platform/safe-bash/commands/pandoc`. These entries are not included in the
+published `poe-code` package.
 
 ```ts
-import { convert } from "poe-code/pandoc";
+import { convert } from "@poe-code/pandoc";
 
 const result = await convert(
   [{ bytes: new TextEncoder().encode("# Hello\n") }],
@@ -91,11 +92,41 @@ Conversion-only `filters` is an ordered list of `{kind: "json", path}`,
 Supply `ConversionContext.filters.apply(document, request, context)` (or the
 same capability to `createPandocCommand`) to process them after metadata merges
 and before writing. The callback receives the target format as `context.to`.
-Returned documents are validated with the conversion limits; cancellation and
-callback errors prevent publication. No filter engine is bundled: without an
+An optional `supports(request)` check rejects unsupported requests before any
+input is acquired. Requests are snapshotted before these checks. Returned documents
+are validated with the conversion limits; cancellation and callback errors prevent publication. No filter engine is bundled: without an
 explicit capability these requests fail `E_CAPABILITY` before input acquisition.
 Paths identify requests for the trusted adapter; they never enable implicit
 host execution, filesystem access, or citation support.
+
+`createJsonFilterCapability(runtime)` adapts an explicitly supplied JSON-filter
+runtime to this capability. Its `run({path, args, stdin, stdout, signal})` method
+receives Pandoc JSON API `[1,23,1,2]` bytes and the base target writer name as its
+sole argument (extension suffixes are removed; aliases are preserved). Await `stdout.write(bytes)` for each output chunk and return the numeric
+exit status after runtime cleanup. Output is copied and charged against the shared
+input/retained-byte budgets, then decoded and validated before the next filter or
+writer runs. Invalid JSON, nonzero status, cancellation, and limit failures prevent
+publication. This adapter uses the existing JSON profile: document-level resources,
+language, and direction fields cannot be serialized. Source documents with relative
+image targets are rejected because their source-directory information cannot survive
+arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
+and resource policies. Lua and citeproc require their
+own explicitly supplied capabilities.
+
+The Safe Bash plugin accepts the same capability as `pandocCommands({filters})`.
+For example, with your already configured `jsonRuntime`:
+
+```ts
+import {createJsonFilterCapability} from "@poe-code/pandoc";
+import {pandocCommands} from "@poe-platform/safe-bash/commands/pandoc";
+
+const filters = createJsonFilterCapability(jsonRuntime);
+shell.use(pandocCommands({filters}));
+await shell.exec("pandoc -f commonmark -t html -F ./identity.py sample.md");
+```
+
+The runtime owns filter loading and execution. Registration does not grant it
+filesystem or process authority, install an interpreter, or enable ambient lookup.
 
 `limits` can lower the exported `defaultLimits` ceilings: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,

@@ -48,3 +48,14 @@ const nonScalarPorts: NonNullable<EngineConfig["runtimeFunctions"]> = {
 };
 const arrayResult: import("@poe-code/ssconvert").RuntimeFunctionResult = { kind: "matrix", rows: [[{ kind: "number", value: 2 }]] };
 if (!nonScalarPorts.HOST_ARRAY || arrayResult.kind !== "matrix") throw new Error("Invalid public non-scalar consumer");
+
+const databaseQuery: import("@poe-code/ssconvert").DatabaseQuery = (request, host) => {
+  const readOnly: true = request.readOnly;
+  const sql: string = request.sql;
+  if (!readOnly || !sql || host.context.signal.aborted) return { kind: "empty" };
+  host.tick();
+  return { kind: "recordset", rows: [[{ kind: "number", value: 2 }, { kind: "blank" }]] };
+};
+const { createDatabaseFunctions } = await import("poe-code/ssconvert");
+const databaseConfig: EngineConfig = { ...config, runtimeFunctions: createDatabaseFunctions(databaseQuery) };
+void databaseConfig;

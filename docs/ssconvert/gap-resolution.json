@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T11:58:56.716473+00:00",
+  "recordedAt": "2026-09-23T12:05:55.166Z",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -696,10 +696,11 @@
     {
       "id": "database-functions",
       "status": "open",
-      "currentFinding": "Actual Linux GDA6/UI bodies load; four admission controls produce #N/A plus shutdown GLib critical, valid EXECSQL/READDBTABLE first-connection calls abort SIGTRAP without display. Headless native queries unavailable; explicit host extension and GNOME-DB qualification remain open.",
+      "currentFinding": "Actual Linux GDA6/UI bodies load; four admission controls produce #N/A plus shutdown GLib critical, valid EXECSQL/READDBTABLE first-connection calls abort SIGTRAP without display. Headless native queries unavailable; explicit host extension and GNOME-DB qualification remain open. Explicit createDatabaseFunctions(query) now ports EXECSQL/READDBTABLE through cooperative host-owned read-only query requests,source SQL table construction,blank recordsets,exact connection/query/row-limit diagnostics and shared bounded owned scalar matrices. Six initially failing controls and10database/21focused/22518package tests,lint/public types and maintained root build pass. Native successful GUI connection/query,type/date/formatted results and full lifecycle remain unqualified.",
       "proof": [
         "docs/ssconvert/linux-gda-native-reference.json",
-        "docs/ssconvert/linux-gda-headless-native-capture.json"
+        "docs/ssconvert/linux-gda-headless-native-capture.json",
+        "docs/ssconvert/database-host-functions-gap-proof.json"
       ],
       "delivery": {
         "localCommit": null,

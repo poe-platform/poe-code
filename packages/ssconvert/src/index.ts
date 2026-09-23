@@ -58,3 +58,6 @@ export { perlSampleFunctions, pythonSampleFunctions } from "./formulas/optional-
 export { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 
 export type { DatasourceCapability, DatasourceTransport, DatasourceSession } from "./datasource.js";
+
+export { createDatabaseFunctions } from "./formulas/database-functions.js";
+export type { DatabaseQuery, DatabaseQueryRequest, DatabaseQueryResult } from "./formulas/database-functions.js";

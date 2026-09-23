@@ -1,0 +1,57 @@
+{
+  "scope": "Explicit cooperative database host formula ports derived from authenticated GDA source contracts",
+  "status": "implemented-source-contract-qualified",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "sourceApplicability": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "path": "plugins/gda/plugin-gda.c",
+    "sha256": "41d41467cab8d10f56332d1bf76bb5dd15d74257712e8666d11e32260409f4e5",
+    "functions": [
+      "gnumeric_execSQL",
+      "gnumeric_readDBTable",
+      "display_recordset",
+      "conn_error"
+    ],
+    "nativeExecutionProof": "docs/ssconvert/linux-gda-headless-native-capture.json",
+    "nativeHeadlessOutcome": "Actual first valid connection aborts SIGTRAP during mandatory GTK dialog; this source-derived host cohort is not successful native query qualification."
+  },
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/formulas/database-functions.ts",
+      "sha256": "e30883d6ca825e22c903d7baaaf989f43b096e46d30837098c31c7e4b60b8a23"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/database-functions.test.ts",
+      "sha256": "0f5692d25992e4c8f8cabd578b7ee06fcef0620947598d27fd76541ee1e81b9e"
+    },
+    {
+      "path": "packages/ssconvert/src/index.ts",
+      "sha256": "7edc058f0e4dacec109aa16d35f5cbcfde927571285e2fb6dc09b99495f5be3b"
+    },
+    {
+      "path": "packages/ssconvert/tests/public-consumer.mts",
+      "sha256": "8c997ee5d7d4d8efebc5bbb0594f8ec83bbc7e27bbe4751ec06c9fe0a90f063f"
+    }
+  ],
+  "initialFailingMemoryControls": 6,
+  "databaseControls": 10,
+  "focusedTests": 21,
+  "packageTests": 22518,
+  "packageFiles": 365,
+  "packageLintAndSourceTestConsumerTypes": "passed",
+  "maintainedRootBuild": "passed",
+  "contracts": {
+    "registration": "createDatabaseFunctions(query), injected through runtimeFunctions identically for SDK and command engines",
+    "arguments": "Four ordinary typed string arguments; C-string truncation at the first NUL; evaluator arity and error admission before host calls",
+    "request": "Frozen dsn/username/password/sql/readOnly:true; READDBTABLE retains exact SELECT * FROM <table> construction",
+    "results": "Zero rows or no result become blank; bounded owned rectangular scalar recordsets use shared runtime admission",
+    "diagnostics": "Source-defined connection error and sheet maximum row error; host query diagnostics retain exact supplied strings; host exceptions/cancellation propagate",
+    "authority": "Host owns connection selection, read-only enforcement, single-statement parser, execution, typed conversion and cooperative cancellation; no ambient DSN registry, credentials, SQL engine or GUI is provided"
+  },
+  "qualificationLimits": [
+    "Full native GDA GUI/connection/type/date/format lifecycle qualification remains open.",
+    "The host callback is trusted cooperative JavaScript; readOnly is a required backend contract, not an SQL sandbox.",
+    "Other original families and containing publication remain required."
+  ]
+}

@@ -16,7 +16,7 @@ through qualified text formulas, arrays and CSV output. LOWER/UPPER use captured
 Unicode 16 C-locale case behavior, including native byte values. CLEAN, PROPER, REPT, REPLACE/REPLACEB, SUBSTITUTE, FIND/FINDB, SEARCH/SEARCHB and LENB/LEFTB/RIGHTB/MIDB
 also accept native byte values. Wider Perl grammar,
 diagnostics and byte consumers remain documented gaps. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
-using the native reader's built-in password or an explicit host `password.read` callback. AES/Blowfish-encrypted OpenDocument spreadsheets open through the same host callback. Encrypted Paradox tables open automatically using their declared header key. Format support has documented limits; see the
+using the native reader's built-in password or an explicit host `password.read` callback. AES/Blowfish-encrypted OpenDocument spreadsheets open through the same host callback. Encrypted Paradox tables open automatically using their declared header key. The optional `createDatabaseFunctions(query)` binding runs EXECSQL/READDBTABLE through an explicit cooperative host query port, with read-only requests and bounded owned recordsets. Format support has documented limits; see the
 [usage guide](../../docs/ssconvert/usage-draft.md) for examples and capabilities.
 
 ```ts

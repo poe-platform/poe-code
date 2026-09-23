@@ -331,7 +331,7 @@ function tokenize(pattern: string): Token[] {
 export class Exclusions {
   private readonly patterns: Token[][];
   private work = 0;
-  constructor(patterns: readonly string[], readonly maxWork = 10_000_000, private readonly anchored = false) { this.patterns = patterns.map(tokenize); }
+  constructor(patterns: readonly string[], readonly maxWork = Infinity, private readonly anchored = false) { this.patterns = patterns.map(tokenize); }
   matches(name: string): boolean {
     const characters = Array.from(name);
     for (const tokens of this.patterns) {

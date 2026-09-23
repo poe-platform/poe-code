@@ -157,7 +157,7 @@ export async function stageZip(scope: ZipScope, prepared: ZipStaging, consume: (
     }
   }, { maxOperations: 16 });
   try {
-    for (let attempt = 0; attempt < Math.min(64, scope.limits.maxMembers); attempt++) {
+    for (let attempt = 0; attempt < scope.limits.maxMembers; attempt++) {
       const path = `${prepared.parent === "/" ? "" : prepared.parent}/.${prepared.stagingPrefix ?? "zip"}-${attempt + 1}`;
       checkPath(path, scope.limits);
       checkPath(`${path}/archive.zip`, scope.limits);

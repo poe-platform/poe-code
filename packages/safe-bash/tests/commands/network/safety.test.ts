@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { setTimeout as sleep } from "node:timers/promises";
 import { test } from "node:test";
 import { FsError, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
-import { createCurlCommand, type HttpResponse } from "../../../src/commands/network/index.js";
+import { createCurlCommand, type HttpRequest, type HttpResponse } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
 
 function response(body: ByteSource = toByteSource("ok")): HttpResponse {
@@ -35,6 +35,48 @@ test("range requests still require host authorization", async () => {
   } });
   assert.equal(result.exitCode, 7);
   assert.equal(calls, 0);
+});
+
+test("JSON redirects permanently drop cross-origin custom headers and generated credentials", async () => {
+  const urls = ["http://127.0.0.1/start", "http://other.example/redirect", "http://127.0.0.1/echo"];
+  const visits: string[] = [];
+  const requests: HttpRequest[] = [];
+  const result = await run(["-L", "--json", "{}", "-u", "synthetic:password",
+    "-H", "Content-Type: application/private", "-H", "Accept: application/private",
+    "-H", "Cookie: synthetic=session", "-H", "X-Test: synthetic", urls[0]!], { options: {
+    authorize(request) { visits.push(request.url); return true; },
+    transport: async request => {
+      const index = requests.length;
+      requests.push(request);
+      return index < 2 ? { ...response(), status: 302, headers: [["Location", urls[index + 1]!]] } : response();
+    },
+  } });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(visits, urls);
+  assert.deepEqual(requests.map(request => request.url), urls);
+  for (const [index, request] of requests.entries()) {
+    const headers = new Map(request.headers.map(([name, value]) => [name.toLowerCase(), value]));
+    assert.equal(headers.get("content-type"), index === 0 ? "application/private" : "application/json");
+    assert.equal(headers.get("accept"), index === 0 ? "application/private" : "application/json");
+    assert.equal(headers.has("authorization"), index === 0);
+    assert.equal(headers.has("cookie"), index === 0);
+    assert.equal(headers.has("x-test"), index === 0);
+  }
+});
+
+test("JSON headers restored after cross-origin suppression obey the request header byte limit", async () => {
+  let calls = 0;
+  const result = await run(["-L", "--json", "{}", "-A", "a", "-H", "Content-Type:", "http://127.0.0.1/start"], { options: {
+    authorize: () => true,
+    limits: { maxHeaderBytes: 70 },
+    transport: async () => {
+      calls++;
+      return calls === 1 ? { ...response(), status: 302, headers: [["Location", "http://a/"]] } : response();
+    },
+  } });
+  assert.equal(result.exitCode, 63, result.stderr.toString());
+  assert.match(result.stderr.toString(), /Request headers exceed host byte limit/);
+  assert.equal(calls, 1);
 });
 
 test("denied URLs neither invoke transport nor consume uploads", async () => {

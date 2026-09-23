@@ -544,6 +544,10 @@ Following curl 8.5/8.10, `--data-urlencode name@file` sends no field when the
 file is empty; use `--data-urlencode name=` to send an explicit empty value.
 Repeated curl data options use curl 8.10.1 joining semantics: `&` is added only
 when earlier fragments have produced bytes, so empty leading fragments add no separator.
+`curl --json` retains its `Content-Type: application/json` and `Accept: application/json`
+headers when `-G` or a 301/302/303 redirect removes the body. Explicit `-H` overrides
+and suppression still apply within the original origin; cross-origin custom-header
+and credential protections remain in effect.
 
 ## Limitations
 

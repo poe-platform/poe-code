@@ -40,7 +40,10 @@ function parseUrl(text: string, globoff: boolean, redirect = false): { url: URL;
 }
 
 function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number): HttpHeaders {
-  const defaults: [string, string][] = [["Accept", args.data[0]?.kind === "json" ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
+  const json = args.data[0]?.kind === "json";
+  // --json supplies semantic headers even when a redirect or -G removes the body.
+  if (json) contentType = "application/json";
+  const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
   if (args.range !== undefined) defaults.push(["Range", `bytes=${args.range}`]);

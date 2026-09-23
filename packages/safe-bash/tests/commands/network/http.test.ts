@@ -131,6 +131,38 @@ test("curl boolean option lookup rejects inherited object names", async () => {
 });
 
 for (const status of [301, 302, 303, 307, 308]) {
+  for (const [name, options, contentType, accept] of [
+    ["JSON defaults", "--json @/input", "application/json", "application/json"],
+    ["JSON overrides", "--json @/input -H 'Content-Type: application/example' -H 'Accept: application/example'", "application/example", "application/example"],
+    ["JSON suppression", "--json @/input -H 'Content-Type:' -H 'Accept:'", undefined, undefined],
+    ["JSON empty headers", "--json @/input -H 'Content-Type;' -H 'Accept;'", "", ""],
+    ["binary defaults", "--data-binary @/input", "application/x-www-form-urlencoded", "*/*"],
+    ["explicit JSON type", "--data-binary @/input -H 'Content-Type: application/json'", "application/json", "*/*"],
+  ] as const) {
+    test(`Shell curl ${status} redirect preserves ${name}`, async () => {
+      const fs = new MemoryFileSystem();
+      const input = Buffer.from('{"x":true}\n');
+      await fs.writeFile("/input", input);
+      const shell = new Shell({ fs }).use(networkCommands({
+        authorize: request => new URL(request.url).origin === host.origin,
+      }));
+      try {
+        const start = host.requests.length;
+        const result = await shell.exec(`curl -sS -L ${options} ${host.origin}/redirect/${status}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const requests = host.requests.slice(start);
+        assert.equal(requests.length, 2);
+        const discarded = status === 301 || status === 302 || status === 303;
+        for (const [index, request] of requests.entries()) {
+          const bodyDiscarded = index === 1 && discarded;
+          assert.equal(request.method, bodyDiscarded ? "GET" : "POST");
+          assert.deepEqual(request.body, bodyDiscarded ? Buffer.alloc(0) : input);
+          assert.equal(request.headers["content-type"], bodyDiscarded && name === "binary defaults" ? undefined : contentType);
+          assert.equal(request.headers.accept, accept);
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
   for (const method of [undefined, "POST", "PUT", "PATCH"]) {
     test(`Shell curl ${status} redirect handles POST data with ${method ?? "implicit POST"}`, async () => {
       const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({
@@ -166,6 +198,21 @@ for (const status of [301, 302, 303, 307, 308]) {
     } finally { await shell.dispose(); }
   });
 }
+
+test("Shell curl GET query retains JSON semantic headers without a request body", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({
+    authorize: request => new URL(request.url).origin === host.origin,
+  }));
+  try {
+    const result = await shell.exec(`curl -sS -G --json '{}' ${host.origin}/echo`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const request = host.requests.at(-1)!;
+    assert.equal(request.method, "GET");
+    assert.equal(request.body.length, 0);
+    assert.equal(request.headers["content-type"], "application/json");
+    assert.equal(request.headers.accept, "application/json");
+  } finally { await shell.dispose(); }
+});
 
 for (const method of ["DELETE", "GET", "OPTIONS", "POST"]) {
   test(`Shell curl frames ${method} request bodies and redirect replays`, async () => {

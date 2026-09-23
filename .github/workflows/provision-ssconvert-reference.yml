@@ -184,6 +184,13 @@ jobs:
                   capture('frozen-date-' + str(index), [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=zone['timezone'], LD_PRELOAD=str(hook_binary.resolve())))
               clock_control = dict(clockUnixSeconds=control['clockUnixSeconds'], inputSha256=control['inputSha256'], hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones, policy=control['policy'])
           service_path = pathlib.Path('docs/ssconvert/linux-optional-service-native-probes.json')
+          external_programs = []
+          for program in json.loads(service_path.read_text()).get('externalPrograms', []):
+              executable = shutil.which(program['name'], path=env['PATH'])
+              assert executable is not None
+              program_path = pathlib.Path(executable).resolve(strict=True)
+              capture(program['id'] + '-version', [str(program_path), *program['versionArguments']])
+              external_programs.append(dict(id=program['id'], name=program['name'], resolvedPath=str(program_path), bytes=program_path.stat().st_size, sha256=hashlib.sha256(program_path.read_bytes()).hexdigest()))
           service_inputs = []
           for fixture in json.loads(service_path.read_text())['inputs']:
               if fixture['profileId'] != profile['id']:
@@ -240,7 +247,7 @@ jobs:
               sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
-              scalarOracle=scalar_oracle,
+              scalarOracle=scalar_oracle, externalPrograms=external_programs,
               serviceFixtureSha256=hashlib.sha256(service_path.read_bytes()).hexdigest(), serviceInputs=service_inputs,
               dependencyBuilds=json.loads((root / 'dependency-builds.json').read_text()),
               languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs, frozenDateControl=clock_control,

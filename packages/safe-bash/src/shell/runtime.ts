@@ -4647,7 +4647,13 @@ export class Runtime {
       for (const match of matches) {
         if (mode === "path" && match.kind !== "file") continue;
         let text: string;
-        if (mode === "kind") text = `${match.kind}\n`;
+        if (mode === "kind") {
+          // Dispatch distinguishes registry commands and virtual interpreters;
+          // Bash discovery exposes only shell builtin or file for these entries.
+          const kind = match.kind === "command" ? (shellBuiltinNames.has(name) ? "builtin" : "file")
+            : match.kind === "interpreter" ? "file" : match.kind;
+          text = `${kind}\n`;
+        }
         else if (mode === "name" || mode === "path") text = `${match.name}\n`;
         else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
         else text = `${name} is ${match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;

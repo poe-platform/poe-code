@@ -28,10 +28,10 @@ for (const row of profile.observations) test(`${profile.name}/${row.mode}/${row.
   assert.deepEqual({ stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex"), status: result.exitCode }, row.result);
 });
 
-test("honest builtin, registry and interpreter labels remain distinct", async () => {
+test("verbose discovery retains dispatch labels while type -t uses Bash kinds", async () => {
   const commands = new CommandRegistry([{ name: "custom", execute: () => ({ exitCode: 31 }) }]);
   const result = await new Shell({ fs: new MemoryFileSystem(), commands }).exec("PATH=; command -V true custom bash sh; type -t true custom bash sh");
-  assert.equal(result.stdout, "true is a shell builtin\ncustom is a registered command\nbash is a virtual shell interpreter\nsh is a virtual shell interpreter\nbuiltin\ncommand\ninterpreter\ninterpreter\n");
+  assert.equal(result.stdout, "true is a shell builtin\ncustom is a registered command\nbash is a virtual shell interpreter\nsh is a virtual shell interpreter\nbuiltin\nfile\nfile\nfile\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
 });

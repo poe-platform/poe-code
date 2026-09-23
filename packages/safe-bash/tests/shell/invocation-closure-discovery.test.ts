@@ -20,7 +20,7 @@ for (const entry of reference.profiles[0]!.observations) test(`discovery native 
 test("registry and virtual interpreters are real, not imaginary native builtins", async () => {
   const { shell, commands } = setup();
   const result = await shell.exec("type say bash sh; type -t say bash sh; command -v say bash sh printf cat; command say ok");
-  assert.equal(result.stdout, "say is a registered command\nbash is a virtual shell interpreter\nsh is a virtual shell interpreter\ncommand\ninterpreter\ninterpreter\nsay\nbash\nsh\nok\n");
+  assert.equal(result.stdout, "say is a registered command\nbash is a virtual shell interpreter\nsh is a virtual shell interpreter\nfile\nfile\nfile\nsay\nbash\nsh\nok\n");
   assert.equal(result.stderr, "");
   commands.unregister("say");
   assert.equal((await shell.exec("command -v say")).exitCode, 1);

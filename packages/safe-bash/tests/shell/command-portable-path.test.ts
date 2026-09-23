@@ -4,6 +4,34 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { CommandRegistry, FsError, pipeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+test("type -t reports Bash command kinds without exposing dispatch kinds", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("type -t cat printf echo bash sh command test '['");
+  assert.equal(result.stdout, "file\nbuiltin\nbuiltin\nfile\nfile\nbuiltin\nbuiltin\nbuiltin\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  const shadowed = await shell.exec("cat() { true; }; type -t cat; type -ft cat; type -at cat");
+  assert.equal(shadowed.stdout, "function\nfile\nfunction\nfile\n");
+  assert.equal(shadowed.stderr, "");
+  assert.equal(shadowed.exitCode, 0);
+  const missing = await shell.exec("type -t missing_command");
+  assert.equal(missing.stdout, "");
+  assert.equal(missing.stderr, "");
+  assert.equal(missing.exitCode, 1);
+});
+
+test("type -t classifies custom registry commands as files and respects absent commands", async context => {
+  const commands = new CommandRegistry([{ name: "custom", execute: () => ({ exitCode: 0 }) }]);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands });
+  context.after(() => shell.dispose());
+  const result = await shell.exec("type -t custom bash command printf echo");
+  assert.equal(result.stdout, "file\nfile\nbuiltin\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 1);
+});
 
 const cases = [
   { source: "command -p printf hello", stdout: "hello" },

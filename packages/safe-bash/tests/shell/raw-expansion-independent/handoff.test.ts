@@ -7,7 +7,7 @@ import { agentCommands } from "../../../src/plugins/index.js";
 import { handoffCases, handoffFiles } from "./handoff-cases.js";
 
 const supportedCases = [
-  ...handoffCases.filter(fixture => fixture.name !== "brace-replay-declare-assignment"),
+  ...handoffCases,
   { name: "export-brace-assignment", script: "raw=$'\\200'; export value={left,right}\"$raw\"; printf '%s\\000' \"$value\"\n", status: 0, stdoutHex: "72696768748000", stderrHex: "" },
   { name: "plain-brace-assignment", script: "raw=$'\\200'; value={left,right}\"$raw\"; printf '%s\\000' \"$value\"\n", status: 0, stdoutHex: "7b6c6566742c72696768747d8000", stderrHex: "" },
 ];
@@ -39,12 +39,12 @@ for (const fixture of supportedCases) {
   });
 }
 
-test("plain declare assignment is explicitly outside the supported declaration profile", async () => {
+test("plain declare assignment retains the final brace-expanded argument", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
     const result = await shell.exec("raw=X; declare value={left,right}\"$raw\"; printf '%s' \"$value\"");
     assert.equal(result.exitCode, 0);
-    assert.equal(result.stdoutBytes.length, 0);
-    assert.ok(result.stderr.includes("declare: only -A NAME is supported"));
+    assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), "726967687458");
+    assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
 });

@@ -42,8 +42,15 @@ state/size lookahead. This is not an O(concurrency) claim for all runtime metada
 opaque host allocations, or the Shell's buffered public result.
 
 Literal byte-valued fixed arguments, replacement, size bounds and existing input
-parsing are preserved. Children receive empty default-origin stdin, not xargs's
-argument stream. Child cwd/environment changes do not change the parent Shell.
+parsing are preserved. `-a FILE` / `--arg-file=FILE` reads arguments from the
+virtual filesystem,
+relative to the current directory, and leaves stdin available to children.
+Without an argument file, children receive empty default-origin stdin.
+`-L N` / `--max-lines=N` batches nonempty input lines, retaining quoted and
+escaped arguments. Trailing unquoted spaces or tabs continue a logical line.
+With `-0` or `-d`, each delimited item counts as a line. Line batching implies
+failure when a batch exceeds the command size bound. Child cwd/environment
+changes do not change the parent Shell.
 
 ## Output and outcomes
 

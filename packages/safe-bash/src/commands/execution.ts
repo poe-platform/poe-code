@@ -1,7 +1,7 @@
 import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { writeDiagnostic } from "../escaping.js";
 import { shellValueByteLength } from "../contracts/value.js";
-import { define, emptyInput, encoder, escapeBytes, integer, options, output, pathOf, UsageError, value } from "./internal.js";
+import { define, emptyInput, encoder, escapeBytes, integer, input as fileInput, options, output, pathOf, UsageError, value } from "./internal.js";
 import { EnvSplitError, parseEnvOptions } from "./env-split.js";
 import { delimitedArguments, replaceXargsArguments, xargsDisplay } from "./xargs-bytes.js";
 
@@ -23,14 +23,25 @@ export function directExecutor(fallback: CommandHandler): CommandHandler {
   };
 }
 
-async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false): AsyncGenerator<string> {
+async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replacement = false, lines = false): AsyncGenerator<string | null> {
   const utf8 = new TextDecoder("utf-8", { fatal: true });
   let current = "";
   let active = false;
   let escaped = false;
   let quote = "";
-  const parse = function* (text: string): Generator<string> {
+  let lineActive = false;
+  let trailingBlank = false;
+  const parse = function* (text: string): Generator<string | null> {
     for (const character of text) {
+      const blank = character === " " || character === "\t";
+      if (character === "\n" && !quote && !escaped) {
+        if (active) { yield current; current = ""; active = false; }
+        if (lines && lineActive && !trailingBlank) { yield null; lineActive = false; }
+        trailingBlank = false;
+        continue;
+      }
+      if (!blank || quote || escaped) lineActive = true;
+      trailingBlank = blank && !quote && !escaped;
       if (escaped) { current += character; active = true; escaped = false; }
       else if (quote) {
         if (character === "\n") throw new UsageError("unmatched quote in input");
@@ -38,9 +49,9 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
         else current += character;
       } else if (character === "\\") { escaped = true; active = true; }
       else if (character === "'" || character === '"') { quote = character; active = true; }
-      else if (character === "\n" || !replacement && /[ \t\r\v\f]/u.test(character)) {
+      else if (character === "\n" || !replacement && [" ", "\t", "\r", "\v", "\f"].includes(character)) {
         if (active) { yield current; current = ""; active = false; }
-      } else if (replacement && !active && /[ \t]/u.test(character)) continue;
+      } else if (replacement && !active && blank) continue;
       else { current += character; active = true; }
       if (current.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
     }
@@ -107,8 +118,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const argumentValues = getCommandArguments(context);
       const operandIndices: number[] = [];
       let replacementOrigin: { index: number; offset: number } | undefined;
-      const shortOptions = "0rn:s:I:d:tP:xE:";
-      const longOptions = { null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
+      const shortOptions = "0rn:s:I:d:tP:xE:a:L:";
+      const longOptions = { "arg-file": "a", "max-lines": "L", null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
         (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; });
       const requested = integer(value(parsed, "P") ?? "1");
@@ -124,7 +135,11 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         if (shellValueByteLength(argumentValues.values[index]!) - offset > 131072) throw new UsageError("replacement string exceeds 128 KiB limit");
         replacementPattern = argumentValues.bytes(index)!.subarray(offset);
       }
-      const maxArgs = replacement === undefined ? integer(value(parsed, "n") ?? "5000", 1) : 1;
+      const maxLines = parsed.flags.has("L") ? integer(value(parsed, "L")!, 1) : undefined;
+      const argumentFile = value(parsed, "a");
+      const childInput = argumentFile === undefined ? emptyInput() : context.stdin;
+      const childInputIsDefault = argumentFile === undefined ? true : context.stdinIsDefault;
+      const maxArgs = replacement === undefined ? integer(value(parsed, "n") ?? (maxLines === undefined ? "5000" : String(Number.MAX_SAFE_INTEGER)), 1) : 1;
       const maxBytes = integer(value(parsed, "s") ?? "131072", 1);
       if (maxBytes > 131072) throw new UsageError("command size limit cannot exceed 128 KiB");
       let delimiter = parsed.flags.has("0") ? "\0" : undefined;
@@ -140,6 +155,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       if (baseBytes >= maxBytes) throw new UsageError("initial arguments exceed command size limit");
       let batch: (string | Uint8Array)[] = [];
       let bytes = baseBytes;
+      let lines = 0;
       let executed = false;
       let status = 0;
       let stop = false;
@@ -188,7 +204,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       if (context.signal.aborted) cancelled();
       const source: ByteSource = { [Symbol.asyncIterator]() {
         inputSignal.throwIfAborted();
-        inputIterator = context.stdin[Symbol.asyncIterator]();
+        inputIterator = (argumentFile === undefined ? context.stdin : fileInput({ ...context, signal: inputSignal }, pathOf(context, argumentFile)))[Symbol.asyncIterator]();
         return {
           async next() {
             const result = await inputIterator!.next();
@@ -211,7 +227,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
         if (stop) return;
         context.signal.throwIfAborted();
         executed = true;
-        batch = []; bytes = baseBytes;
+        batch = []; bytes = baseBytes; lines = 0;
         let slot = 0;
         while (slots.has(slot)) slot++;
         slots.add(slot);
@@ -219,10 +235,10 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
           childSignal.throwIfAborted();
           const env = { ...context.env, ...(slotVariable === undefined ? {} : { [slotVariable]: String(slot) }) };
           if (context.invoke) return context.invoke(command, args, {
-            argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true,
+            argumentValues: childArguments, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }),
             cwd: context.cwd, env, stdout: context.stdout, stderr: context.stderr, signal: childSignal,
           });
-          return execute({ ...context, command, args, argumentValues: childArguments, stdin: emptyInput(), stdinIsDefault: true, env, signal: childSignal });
+          return execute({ ...context, command, args, argumentValues: childArguments, stdin: childInput, ...(childInputIsDefault === undefined ? {} : { stdinIsDefault: childInputIsDefault }), env, signal: childSignal });
         }).then(result => {
           const exitCode = result.exitCode;
           if (!terminal && (exitCode === 255 || exitCode === 126 || exitCode === 127)) {
@@ -237,20 +253,28 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       try {
         if (delimiter !== undefined && eof !== undefined && eof !== "") await writeDiagnostic(context.stderr, "xargs: warning: the -E option has no effect if -0 or -d is used.\n\n", context.signal);
         const incoming = delimiter === undefined
-          ? argumentsFrom(source, inputSignal, replacement !== undefined)
+          ? argumentsFrom(source, inputSignal, replacement !== undefined, maxLines !== undefined && replacement === undefined)
           : delimitedArguments(source, inputSignal, context.signal, delimiter.charCodeAt(0), replacement === undefined ? maxBytes - baseBytes - 1 : maxBytes - 1);
         for await (const argument of incoming) {
+          if (argument === null) {
+            if (++lines === maxLines && batch.length) {
+              await dispatch();
+              await capacity();
+              if (stop) break;
+            }
+            continue;
+          }
           if (stop || delimiter === undefined && eof !== undefined && eof !== "" && argument === eof) break;
           const size = (typeof argument === "string" ? Buffer.byteLength(argument) : argument.byteLength) + 1;
           if (replacement === undefined && baseBytes + size > maxBytes) throw new UsageError("single argument exceeds command size limit");
           if (batch.length && (batch.length === maxArgs || bytes + size > maxBytes)) {
-            if (parsed.flags.has("x") && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
+            if ((parsed.flags.has("x") || maxLines !== undefined) && batch.length < maxArgs) throw new UsageError("command size limit exceeded");
             await dispatch();
             await capacity();
             if (stop) break;
           }
           batch.push(argument); bytes += size;
-          if (batch.length === maxArgs) {
+          if (batch.length === maxArgs || delimiter !== undefined && maxLines !== undefined && ++lines === maxLines) {
             await dispatch();
             await capacity();
             if (stop) break;

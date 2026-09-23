@@ -614,12 +614,17 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7; builtSDK/Shell/checkpoint/browser/worker bytes exact. Required RangeRef representation and wider-profile qualification remain unresolved.",
+      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7. Eighteen precision-bounded RangeRef formats now match both native profiles and builtSDK/Shell/checkpoint/browser/worker bytes exactly; precision<=22 excludes every address digit. Address-bearing RangeRef representation and wider-profile qualification remain unresolved.",
       "proof": [
         {
           "path": "docs/ssconvert/python-printf-gap-proof.json",
           "kind": "executed-source-oracle-and-activated-native-profile",
           "outcome": "7341 maintained tests,839printf/17runtime focused,lint/types/build; native784/784 on two profiles; original49 red exception cases repaired with old sentinel values retained. RangeRef refusal remains open."
+        },
+        {
+          "path": "docs/ssconvert/python-printf-range-prefix-gap-proof.json",
+          "kind": "executed-native-stable-prefix-and-public-replay",
+          "outcome": "18 original memory regressions repaired;861focused and13311maintained tests,lint/types/build;18nativecases exact on both activated profiles andSDK/Shell/replay/browser/worker. Address digits remain explicitly refused."
         }
       ],
       "delivery": {

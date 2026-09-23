@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Stable precision-bounded native Python RangeRef formatting; remaining address-bearing and wider profile contracts stay open",
+  "capturedAt": "2026-09-23 03:29:52 UTC",
+  "candidate": {
+    "commit": "80446ec06",
+    "hashes": {
+      "packages/ssconvert/src/formulas/functions/python-printf.ts": "153c9179caf931c2420c47a1b85ec3ee29c0af4be11b26f6f02313a43ebcf64d",
+      "packages/ssconvert/src/formulas/python-printf.test.ts": "d9992094ca260346b4ab9a64b69068555d881b7dbeaa49a2e342f50e3d1ef8f2"
+    }
+  },
+  "native": {
+    "cases": [
+      {
+        "format": "%.0s",
+        "expected": "",
+        "formula": "=PY_PRINTF(\"%.0s\",B50:C51)"
+      },
+      {
+        "format": "%25.1s",
+        "expected": "                        <",
+        "formula": "=PY_PRINTF(\"%25.1s\",B50:C51)"
+      },
+      {
+        "format": "%.9s",
+        "expected": "<RangeRef",
+        "formula": "=PY_PRINTF(\"%.9s\",B50:C51)"
+      },
+      {
+        "format": "%.20s",
+        "expected": "<RangeRef object at ",
+        "formula": "=PY_PRINTF(\"%.20s\",B50:C51)"
+      },
+      {
+        "format": "%.22s",
+        "expected": "<RangeRef object at 0x",
+        "formula": "=PY_PRINTF(\"%.22s\",B50:C51)"
+      },
+      {
+        "format": "%.0r",
+        "expected": "",
+        "formula": "=PY_PRINTF(\"%.0r\",B50:C51)"
+      },
+      {
+        "format": "%25.1r",
+        "expected": "                        <",
+        "formula": "=PY_PRINTF(\"%25.1r\",B50:C51)"
+      },
+      {
+        "format": "%.9r",
+        "expected": "<RangeRef",
+        "formula": "=PY_PRINTF(\"%.9r\",B50:C51)"
+      },
+      {
+        "format": "%.20r",
+        "expected": "<RangeRef object at ",
+        "formula": "=PY_PRINTF(\"%.20r\",B50:C51)"
+      },
+      {
+        "format": "%.22r",
+        "expected": "<RangeRef object at 0x",
+        "formula": "=PY_PRINTF(\"%.22r\",B50:C51)"
+      },
+      {
+        "format": "%.0a",
+        "expected": "",
+        "formula": "=PY_PRINTF(\"%.0a\",B50:C51)"
+      },
+      {
+        "format": "%25.1a",
+        "expected": "                        <",
+        "formula": "=PY_PRINTF(\"%25.1a\",B50:C51)"
+      },
+      {
+        "format": "%.9a",
+        "expected": "<RangeRef",
+        "formula": "=PY_PRINTF(\"%.9a\",B50:C51)"
+      },
+      {
+        "format": "%.20a",
+        "expected": "<RangeRef object at ",
+        "formula": "=PY_PRINTF(\"%.20a\",B50:C51)"
+      },
+      {
+        "format": "%.22a",
+        "expected": "<RangeRef object at 0x",
+        "formula": "=PY_PRINTF(\"%.22a\",B50:C51)"
+      },
+      {
+        "format": "%-25.22s",
+        "expected": "<RangeRef object at 0x   ",
+        "formula": "=PY_PRINTF(\"%-25.22s\",B50:C51)"
+      },
+      {
+        "format": "%025.22r",
+        "expected": "   <RangeRef object at 0x",
+        "formula": "=PY_PRINTF(\"%025.22r\",B50:C51)"
+      },
+      {
+        "format": "%+25.0a",
+        "expected": "                         ",
+        "formula": "=PY_PRINTF(\"%+25.0a\",B50:C51)"
+      }
+    ],
+    "profiles": [
+      {
+        "python": "3.14.7",
+        "exitCode": 0,
+        "stderrHex": "",
+        "stdoutHex": "0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a223c52616e6765526566206f626a656374206174203078202020220a222020203c52616e6765526566206f626a656374206174203078220a2220202020202020202020202020202020202020202020202020220a",
+        "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+        "actual": [
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "<RangeRef object at 0x   ",
+          "   <RangeRef object at 0x",
+          "                         "
+        ],
+        "matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      {
+        "python": "3.12.13",
+        "exitCode": 0,
+        "stderrHex": "",
+        "stdoutHex": "0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a0a222020202020202020202020202020202020202020202020203c220a3c52616e67655265660a223c52616e6765526566206f626a65637420617420220a223c52616e6765526566206f626a656374206174203078220a223c52616e6765526566206f626a656374206174203078202020220a222020203c52616e6765526566206f626a656374206174203078220a2220202020202020202020202020202020202020202020202020220a",
+        "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+        "actual": [
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "",
+          "                        <",
+          "<RangeRef",
+          "<RangeRef object at ",
+          "<RangeRef object at 0x",
+          "<RangeRef object at 0x   ",
+          "   <RangeRef object at 0x",
+          "                         "
+        ],
+        "matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ]
+      }
+    ],
+    "inputSha256": "2e596ad640259eb46300ae438090a99c8cad9fef41d6d957569a857d8482fed5",
+    "authority": "Authenticated Gnumeric RangeRef tp_name and default CPython object repr; stable prefix stops before address digits. Existing address-varying native controls retained in python-printf-gap-proof.json."
+  },
+  "checks": {
+    "originalFocused": {
+      "tests": 861,
+      "pass": 843,
+      "fail": 18
+    },
+    "fixedFocused": {
+      "tests": 861,
+      "pass": 861,
+      "fail": 0
+    },
+    "maintainedWorkspace": {
+      "testFiles": 352,
+      "tests": 13311,
+      "pass": 13311
+    },
+    "lint": "maintained package ESLint, source/test/public-consumer types passed",
+    "build": "maintained selected @poe-code/ssconvert closure passed",
+    "guardedRootLint": {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0,
+      "scope": {
+        "configured": 16386,
+        "linted": 16386,
+        "ignored": 2241,
+        "unconfigured": 39479,
+        "ignoredDirectories": 271,
+        "heldExcluded": 5
+      },
+      "sha256": "8d47cbeaf8dd0b52e35e113a55e643357e58084e5ecf921f90402715ce482bef"
+    },
+    "public": {
+      "cases": 18,
+      "sdkExitCode": 0,
+      "shellExitCode": 0,
+      "sdkNativeBytesExact": true,
+      "shellNativeBytesExact": true,
+      "replayNativeBytesExact": true,
+      "inputUnchanged": true,
+      "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+      "qualification": "fresh built owning package SDK and source Shell; final root packed/installed/registry controls remain open"
+    },
+    "browserWorker": {
+      "browser": {
+        "cases": 18,
+        "exactNativeCsv": true,
+        "replayExact": true,
+        "inputUnchanged": true,
+        "diagnostics": [],
+        "outputBytes": 345
+      },
+      "worker": {
+        "cases": 18,
+        "exactNativeCsv": true,
+        "replayExact": true,
+        "inputUnchanged": true,
+        "diagnostics": [],
+        "outputBytes": 345
+      }
+    },
+    "screenshot": {
+      "path": "out/ssconvert-gap-resolution/python-printf-range-screenshot.png",
+      "sha256": "a9e3d9badd9408ab6d6f3e86e1cd0a9985f69eba93b2adcb3aaa2a29b0491387",
+      "inspected": true,
+      "observation": "Readable actual SDK/Shell/replay controls show empty, partial, full stable prefix and preserved trailing padding."
+    }
+  },
+  "evidenceHashes": {
+    "packages/ssconvert/src/formulas/functions/python-printf.ts": "153c9179caf931c2420c47a1b85ec3ee29c0af4be11b26f6f02313a43ebcf64d",
+    "packages/ssconvert/src/formulas/python-printf.test.ts": "d9992094ca260346b4ab9a64b69068555d881b7dbeaa49a2e342f50e3d1ef8f2",
+    "out/ssconvert-gap-resolution/python-printf-range-red.log": "43b723b3bc5f283889e39072ee3d0f86e35f083a6a7b5655cb83aa69ae9e04b5",
+    "out/ssconvert-gap-resolution/python-printf-range-green.log": "6e8965e5f2165371e1ede1e972c08ac77b870599cc85028fd69cab656a4fd4e9",
+    "out/ssconvert-gap-resolution/python-printf-range-lint.log": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5",
+    "out/ssconvert-gap-resolution/python-printf-range-workspace.log": "5d33949bf1556b414efbd55c6a5e49d268d0e0fce20ace652b2d86a19f782005",
+    "out/ssconvert-gap-resolution/python-printf-range-build.log": "4d6d072e7dd8c9c8207741273318cf41176486653e7b86a705b2d8694bf6d108",
+    "out/ssconvert-gap-resolution/python-printf-range-browser-build.log": "b0e33457c6623c9eaad3381c3240d1701f08eddc2da9be77671213e87b493c89",
+    "out/ssconvert-gap-resolution/python-printf-range-browser-404.log": "359247972a655297f7fb24428b66119e28d9992115c6a0fb17f56de89679bf5d",
+    "out/ssconvert-gap-resolution/python-printf-range-browser.log": "aa29ce47cb8cc886df66171c0e7b530aa17e86d9078de3df0ca5f132a583ea34",
+    "out/ssconvert-gap-resolution/python-printf-range-screenshot.png": "a9e3d9badd9408ab6d6f3e86e1cd0a9985f69eba93b2adcb3aaa2a29b0491387"
+  },
+  "qualificationLimits": [
+    "Native tp_name RangeRef uses default CPython address-bearing repr. Only precision<=22 can exclude every address digit; unbounded and precision23+ remain explicit portable refusals. No invented host pointers.",
+    "Actual activated Darwin Python3.12.13 and3.14.7 results are separate from exact optional Linux profiles. The inherited environment/HOME/user-plugin discovery closure remains unqualified.",
+    "SDK qualification uses the fresh built owning package; Shell uses the coherent source graph. Final frozen/root packed/installed/registry cells remain required.",
+    "The initial public collector omitted required codecs:[] and failed before engine conversion; it was corrected without a product edit. Initial browser query404 is retained with its hash beside fresh no-store blob module/browser/worker qualification.",
+    "All other plan families and actual containing publication remain open."
+  ]
+}

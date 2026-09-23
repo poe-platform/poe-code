@@ -18,6 +18,8 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
 }
 
 const cases = [
+  ["local integer initializer", "f(){ local -i a='2+3'; printf %s \"$a\"; }; f"],
+  ["local integer subsequent writes", 'a=outer; f(){ local -i a=2; a="a+3"; printf -v a %s "a*2"; printf %s "$a"; }; f; printf %s "$a"'],
   ["scalar and empty assignment", 'value=old; printf -v value "%s:%03d" hi 7; printf "<%s>" "$value"; printf -v value ""; printf "<%s>" "$value"'],
   ["dynamic locals", 'value=global; inner() { printf -v value %s changed; }; outer() { local value=local; inner; printf "<%s>" "$value"; }; outer; printf "<%s>" "$value"'],
   ["readonly refusal", 'readonly value=old; printf -v value %s new; printf "<%s:%s>" "$?" "$value"'],
@@ -57,6 +59,54 @@ const cases = [
   ["replacing byte scalar at index zero", 'value=$(printf "\\377"); printf -v "value[0]" %s new; printf "%s" "$value"'],
   ["UTF-8 indexed payload and BOM", 'printf -v "value[1]" "\\357\\273\\277é"; printf "%s" "${value[1]}"'],
 ] as const;
+
+for (const [source, expected] of [
+  ['f(){ local -n ref=target; target=hello; printf %s "$ref"; }; f', "hello"],
+  ['target=outer; f(){ local -n ref=target; ref=inner; printf -v ref %s changed; printf %s "$target"; }; f; printf %s "$target"', "changedchanged"],
+  ['target=outer; ref=global; f(){ local -n ref=target; g(){ local ref=shadow; printf %s "$ref"; }; g; printf %s "$ref"; }; f; printf %s "$ref"', "shadowouterglobal"],
+  ['f(){ local -i count=2; count+=3; printf %s "$count"; }; f', "5"],
+  ['f(){ local -i count=2; g(){ local count=text; printf %s "$count"; }; g; count="count+1"; printf %s "$count"; }; f', "text3"],
+  ['f(){ local -n ref=target; local -n other=ref; target=hello; (printf %s "$other"); printf %s "$ref"; }; f', "hellohello"],
+  [String.raw`f(){ local -n ref=target; target=$'\xff'; printf '%s' "$ref"; }; f`, "�"],
+  ['f(){ local -n ref=target; target=hello; unset ref; printf "<%s>" "${target-unset}"; }; f', "<unset>"],
+] as const) {
+  test(`local attributes: ${source}`, async () => {
+    const { shell } = fixture();
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  });
+}
+
+test("local nameref preserves raw bytes in reads and writes", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec(String.raw`f(){ local -n ref=target; target=$'\xff'; printf '%s' "$ref"; printf -v ref '\376'; printf '%s' "$target"; }; f`);
+  assert.deepEqual(result.stdoutBytes, Uint8Array.of(255, 254));
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("local nameref refuses writes to readonly targets", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec('readonly target=old; f(){ local -n ref=target; printf -v ref %s new; printf "<%s:%s>" "$?" "$ref"; }; f');
+  assert.equal(result.stdout, "<1:old>");
+  assert.match(result.stderr, /readonly variable/u);
+});
+
+test("local nameref rejects invalid targets without replacing the outer binding", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec('ref=outer; f(){ local -n ref=bad-name; printf "<%s:%s>" "$?" "$ref"; }; f; printf %s "$ref"');
+  assert.equal(result.stdout, "<1:outer>outer");
+  assert.match(result.stderr, /invalid name reference/u);
+});
+
+test("local nameref cycles stop with a diagnostic", async () => {
+  const { shell } = fixture();
+  const result = await shell.exec('f(){ local -n first=second; local -n second=first; printf %s "$first"; }; f');
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /circular name reference/u);
+});
 
 // GNU Bash 5.0.17 qualified the original corpus (docs/plans/bugfix-636-printf-variable.md).
 // Fixed contracts preserve required empty/readonly/indexed assignment on Bash 3 hosts.

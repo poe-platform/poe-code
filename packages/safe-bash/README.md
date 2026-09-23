@@ -89,6 +89,10 @@ files and default directory modes through the supplied filesystem. Host umask
 is unchanged and may further restrict real file modes; remote modes can be advisory.
 `readonly -f name` protects a function from redefinition and `unset -f`;
 `readonly -f` lists protected functions. `unset -v` removes variables independently.
+`local -i count=2+3` evaluates scalar assignments as arithmetic; `local -n ref=target`
+reads and writes the named variable. Both attributes follow function scope and restore
+outer bindings on return. Nameref targets must be simple variable names; combined
+integer, nameref, and indexed attributes are unsupported.
 
 ### Command bundle
 

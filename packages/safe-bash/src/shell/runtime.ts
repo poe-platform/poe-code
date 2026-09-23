@@ -978,18 +978,35 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
   } finally { saved.heldValue?.release(); delete saved.heldValue; }
 }
 
-function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly offset: number; readonly error: string | undefined } {
+function isShellIdentifier(name: string): boolean {
+  if (!name) return false;
+  for (let index = 0; index < name.length; index++) {
+    const code = name.charCodeAt(index);
+    if (code === 95 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || index > 0 && code >= 48 && code <= 57) continue;
+    return false;
+  }
+  return true;
+}
+
+function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly integer: boolean; readonly nameref: boolean; readonly offset: number; readonly error: string | undefined } {
   signal.throwIfAborted();
   let indexed = false;
+  let integer = false;
+  let nameref = false;
   let offset = 0;
   while (args[offset]?.startsWith("-")) {
     signal.throwIfAborted();
     const option = args[offset++]!;
     if (option === "--") break;
-    if (option !== "-a") return { indexed, offset, error: option };
-    indexed = true;
+    for (const flag of option.slice(1)) {
+      if (flag === "a") indexed = true;
+      else if (flag === "i") integer = true;
+      else if (flag === "n") nameref = true;
+      else return { indexed, integer, nameref, offset, error: option };
+    }
+    if (option === "-" || indexed && (integer || nameref) || integer && nameref) return { indexed, integer, nameref, offset, error: option };
   }
-  return { indexed, offset, error: undefined };
+  return { indexed, integer, nameref, offset, error: undefined };
 }
 
 function decimalIndex(value: string): number {
@@ -1839,6 +1856,7 @@ export class Runtime {
   }
 
   private unsetVariable(state: State, name: string, internal = false): void {
+    name = this.referenceName(state, name);
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     delete state.variables[name];
     state.exported.delete(name);
@@ -1866,8 +1884,9 @@ export class Runtime {
     return new Proxy(state.variables, {
       get: (target, key) => {
         this.signal.throwIfAborted();
-        if (arrayStore(state)?.get(String(key))) throw new ArrayFailure("indexed arithmetic is unsupported");
-        const value = Reflect.get(target, key);
+        const name = typeof key === "string" ? this.referenceName(state, key) : key;
+        if (arrayStore(state)?.get(String(name))) throw new ArrayFailure("indexed arithmetic is unsupported");
+        const value = Reflect.get(target, name);
         if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
         return value;
       },
@@ -1878,7 +1897,8 @@ export class Runtime {
   private referenceName(state: State, name: string): string {
     const seen = new Set<string>();
     while (state.variableAttributes?.get(name)?.includes("n") && state.variables[name]) {
-      if (seen.has(name)) throw new PublicDiagnostic(`${name}: circular name reference`);
+      this.signal.throwIfAborted();
+      if (seen.has(name)) throw new ExpansionFailure(`${name}: circular name reference`);
       seen.add(name);
       name = state.variables[name]!;
     }
@@ -1896,6 +1916,7 @@ export class Runtime {
   }
 
   async assignVariable(state: State, name: string, value: ShellValue, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
+    name = this.referenceName(state, name);
     if (!arrayStore(state)?.get(name)) { this.writeVariable(state, name, value, origin); return; }
     await this.arrayZero(state, name, async () => value);
   }
@@ -4038,7 +4059,8 @@ export class Runtime {
     let io = snapshotScope ? { ...originalIO, [invocationScope]: snapshotScope } : originalIO;
     const previous = new Map<string, SavedVariable>();
     const assign = async () => {
-      for (const assignment of assignments) {
+      for (const original of assignments) {
+        const assignment = { ...original, name: this.referenceName(state, original.name) };
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
         if (arrayStore(state)?.get(assignment.name)) {
           if (words.length) {
@@ -4052,7 +4074,11 @@ export class Runtime {
           continue;
         }
         let value = concatShellValues(await this.valueWord(assignment.value, state, io, false), io[valueScope]);
-        if (assignment.append) value = concatShellValues([stateMonitor(state)?.values.get(assignment.name, state.variables[assignment.name] ?? "") ?? state.variables[assignment.name] ?? "", value], io[valueScope]);
+        if (assignment.append) {
+          value = state.variableAttributes?.get(assignment.name)?.includes("i")
+            ? concatShellValues([`(${state.variables[assignment.name] || "0"})+(`, value, ")"], io[valueScope])
+            : concatShellValues([stateMonitor(state)?.values.get(assignment.name, state.variables[assignment.name] ?? "") ?? state.variables[assignment.name] ?? "", value], io[valueScope]);
+        }
         if (state.readonlyVariables?.has(assignment.name)) {
           await this.diagnostic(io, `${assignment.name}: readonly variable`);
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
@@ -5906,6 +5932,7 @@ export class Runtime {
       }
       const value = concatShellValues(chunks, allocation);
       this.signal.throwIfAborted();
+      name = this.referenceName(state, name);
       if (state.readonlyVariables?.has(name)) {
         await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
         return 1;
@@ -6091,6 +6118,7 @@ export class Runtime {
       const disabled = new Set<string>();
       const declarationArgs = [...args];
       let indexedLocal = false;
+      let namerefLocal = false;
       const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true
         || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
       let indexedReadonly = false;
@@ -6158,6 +6186,9 @@ export class Runtime {
           return 2;
         }
         indexedLocal = options.indexed;
+        if (options.integer) enabled.add("i");
+        if (options.nameref) enabled.add("n");
+        namerefLocal = options.nameref;
         declarationArgs.splice(0, options.offset);
         if (indexedLocal && declarationArgs.length === 0) {
           await writeDiagnostic(stderr, "local: -a requires a variable name\n");
@@ -6267,6 +6298,9 @@ export class Runtime {
         const name = match[1]!;
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
         const compound = syntax?.name === name ? syntax : undefined;
+        if (namerefLocal && match[2] !== undefined && (match[2] === name || !isShellIdentifier(match[2]))) {
+          await this.diagnostic(context, `local: ${match[2]}: invalid name reference`); status = 1; continue;
+        }
         const append = command === "readonly" && readonlySyntax && arg[name.length] === "+";
         const assignedValue = (): ShellValue => {
           const original = declarationValues[declarationOffset + declarationIndex]!;
@@ -6434,7 +6468,7 @@ export class Runtime {
           }
           if (guestArrays(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
-          if (command === "declare" && !enabled.has("I")) state.variableAttributes?.delete(name);
+          if (!enabled.has("I")) state.variableAttributes?.delete(name);
           if (!assignments.has(name) && match[2] === undefined && !enabled.has("I")) {
             if (name === "PIPESTATUS") state.variables[name] = "";
             else delete state.variables[name];
@@ -6444,7 +6478,7 @@ export class Runtime {
             state.getopts.integer = false;
           }
         }
-        if (command === "declare") {
+        if (command === "declare" || command === "local") {
           let attributes = state.variableAttributes?.get(name) ?? "";
           for (const flag of disabled) attributes = attributes.split(flag).join("");
           for (const flag of enabled) if ("ilun".includes(flag) && !attributes.includes(flag)) attributes += flag;
@@ -6459,7 +6493,7 @@ export class Runtime {
           continue;
         }
         if (match[2] !== undefined) {
-          if (command === "declare" && enabled.has("n")) publishVariable(state, name, assignedValue());
+          if ((command === "declare" || command === "local") && enabled.has("n")) publishVariable(state, name, assignedValue());
           else this.writeVariable(state, name, append ? concatShellValues([stateMonitor(state)?.values.get(name, state.variables[name] ?? "") ?? state.variables[name] ?? "", assignedValue()], context[valueScope]) : assignedValue());
         }
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
@@ -6799,6 +6833,9 @@ export class Runtime {
   }
 
   private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean, split: boolean, hereDocument: boolean): Promise<ShellValue> {
+    if (part.kind === "variable" && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
+      part = { ...part, name: this.referenceName(state, part.name) };
+    }
     this.signal.throwIfAborted();
     if (part.kind === "compound-substitution-eof") {
       await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: command substitution: line ${io.diagnosticLine ?? part.line}: syntax error: unexpected end of file\n`);

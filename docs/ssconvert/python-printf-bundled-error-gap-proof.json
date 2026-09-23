@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Typed refusals survive separately bundled public SDK and Shell exports; narrow actual npm-installed RangeRef qualification",
+  "recordedAt": "2026-09-23T04:12:18.459982+00:00",
+  "host": "Darwin",
+  "candidate": {
+    "commit": "f8c06f76f",
+    "sourceHashes": {
+      "packages/ssconvert/src/contracts.ts": "0095134a8773f88221722c36fafcd1c2cf3a02488405397d0aff0741f4890721",
+      "packages/ssconvert/src/cli.ts": "6128f03e3f0fbd84d2ce3d3c3fafe2d2da0844aa73d7d7fafb17a67950d1c193",
+      "packages/ssconvert/src/cli/diagnostics.test.ts": "e220d4f59fcb2e94802f887bf435f5158a467b2809843ceb5aa0edee2cb7a68d"
+    }
+  },
+  "originalFailures": {
+    "memory": {
+      "failed": 2,
+      "passed": 27,
+      "message": "separately loaded SsconvertError escapes runCommand rather than printing message and returning status1/3"
+    },
+    "installedPublicRoot": {
+      "firstObservedFormat": "%.23s",
+      "expectedStderr": "Unsupported ssconvert feature: Python RangeRef object representation\n",
+      "actualStderr": "shell: line 1: internal error\n",
+      "cause": "Public pythonSampleFunctions throws its SDK-bundled class while the Shell command uses another bundled constructor"
+    },
+    "fixtureDefect": {
+      "firstAttempt": "incorrectly expected SDK convert to return status; corrected to assert its deliberate unsupported-feature rejection",
+      "preserved": true
+    }
+  },
+  "change": "SsconvertError owns a nonenumerable shared Symbol.for tag. isSsconvertError recognizes tagged Error instances; runCommand uses it for typed diagnostics. Ordinary host errors with matching name/code/status fields still propagate.",
+  "verification": {
+    "focused": {
+      "files": 3,
+      "tests": 96,
+      "passed": 96
+    },
+    "maintainedSsconvert": {
+      "files": 352,
+      "tests": 13314,
+      "passed": 13314
+    },
+    "packageLintAndSourceTestConsumerTypes": "passed",
+    "normalRootBuild": {
+      "exitCode": 0,
+      "workspaceBuilds": 126,
+      "noDeclaredBuild": "@poe-code/py-poe-spawn, not counted as a pass"
+    },
+    "installedPositive": {
+      "cases": 18,
+      "sdkExitCode": 0,
+      "shellExitCode": 0,
+      "sdkNativeBytesExact": true,
+      "shellNativeBytesExact": true,
+      "replayNativeBytesExact": true,
+      "inputUnchanged": true,
+      "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+      "qualification": "actual npm install of root tarball with scripts disabled; imports audited to installed directory; registry publication remains unverified"
+    },
+    "installedRefusals": {
+      "cases": 4,
+      "rows": [
+        {
+          "format": "%.23s",
+          "sdkRejected": true,
+          "sdkErrorCode": "unsupported-feature",
+          "sinkWrites": 0,
+          "shellExitCode": 1,
+          "targetUnchanged": true,
+          "inputUnchanged": true
+        },
+        {
+          "format": "%.23r",
+          "sdkRejected": true,
+          "sdkErrorCode": "unsupported-feature",
+          "sinkWrites": 0,
+          "shellExitCode": 1,
+          "targetUnchanged": true,
+          "inputUnchanged": true
+        },
+        {
+          "format": "%.23a",
+          "sdkRejected": true,
+          "sdkErrorCode": "unsupported-feature",
+          "sinkWrites": 0,
+          "shellExitCode": 1,
+          "targetUnchanged": true,
+          "inputUnchanged": true
+        },
+        {
+          "format": "%s",
+          "sdkRejected": true,
+          "sdkErrorCode": "unsupported-feature",
+          "sinkWrites": 0,
+          "shellExitCode": 1,
+          "targetUnchanged": true,
+          "inputUnchanged": true
+        }
+      ]
+    },
+    "screenshot": {
+      "path": "installed-refusals.png",
+      "sha256": "9b29a4894c0c464832904f9a0657021976449869456fefad16103a4536149616",
+      "inspected": true
+    },
+    "guardedLint": {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 0,
+      "scope": {
+        "configured": 16395,
+        "linted": 16395,
+        "ignored": 2241,
+        "unconfigured": 39481,
+        "ignoredDirectories": 271,
+        "heldExcluded": 5
+      },
+      "receiptCount": 25,
+      "directoryCount": 6926,
+      "timings": {
+        "traversalMs": 255472,
+        "parsingMs": 2888,
+        "initializationMs": 29053
+      },
+      "cacheHits": 16339
+    }
+  },
+  "artifact": {
+    "name": "poe-code",
+    "version": "0.0.0-dev",
+    "size": 39440434,
+    "unpackedSize": 198172305,
+    "integrity": "sha512-ff2qC34aOOuhHs5MBTKmxWJWEzd2ua/SdimlukyIoDNq3y21VaHlhKPvvQbjDfRhGDPY+YawB0y5Gg7rzyZCUw==",
+    "tarballSha256": "c232699539189700dfdd5cf28e098381a1f08eeabb5e3d75addb91cbe828ddb5"
+  },
+  "artifactRuntimeHashes": {
+    "packages/ssconvert/dist/index.js": "4a7f28831b208d943a1eb0df4d4bb43524875551317b239a4ab304b988f22a11",
+    "dist/safe-bash.js": "61ba33860d89f7ecab647fee05ddcee4a3ad9951686d9899548f705a3e1536e3",
+    "packages/safe-js/dist/safe-fs-core.js": "022fe0bcf7134bfd37b7002bb22572aefefc9c2790df8a557ae1681c20f694c1"
+  },
+  "importAudit": {
+    "events": 459,
+    "distinctUrls": 82,
+    "traceSha256": "e9fa388366c4ef8e5b6bec4e0e77045706f9bdd4302be44aa998ac772eb80da4",
+    "rule": "Every non-builtin runtime import resolves by realpath inside the installed directory; outside-checkout imports rejected",
+    "installedLockSha256": "ba89bacb5fa84512278baed99f968c27bac8bffa5361a6836318e4e423736b28"
+  },
+  "delivery": {
+    "localCommit": "f8c06f76f",
+    "remoteMain": "975b2c7d4d9e5319f034ed2b349581ad39ca9be3",
+    "ancestorVerified": true,
+    "containingPublication": "unverified"
+  },
+  "remaining": "Address-varying RangeRef formats, complete native/optional profiles, broader diagnostics and all other original plan families remain open."
+}

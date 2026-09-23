@@ -289,5 +289,22 @@
     "SDK qualification uses the fresh built owning package; Shell uses the coherent source graph. Final frozen/root packed/installed/registry cells remain required.",
     "The initial public collector omitted required codecs:[] and failed before engine conversion; it was corrected without a product edit. Initial browser query404 is retained with its hash beside fresh no-store blob module/browser/worker qualification.",
     "All other plan families and actual containing publication remain open."
-  ]
+  ],
+  "rootPackedInstalledFollowup": {
+    "proof": "docs/ssconvert/python-printf-bundled-error-gap-proof.json",
+    "positiveCases": 18,
+    "refusalCases": 4,
+    "stdoutBytes": 345,
+    "stdoutSha256": "fc63c1eef5774748cdbc14515df8448c2e6ef664c561204c872a37687e050e13",
+    "importAudit": {
+      "events": 459,
+      "distinctUrls": 82,
+      "traceSha256": "e9fa388366c4ef8e5b6bec4e0e77045706f9bdd4302be44aa998ac772eb80da4",
+      "rule": "Every non-builtin runtime import resolves by realpath inside the installed directory; outside-checkout imports rejected",
+      "installedLockSha256": "ba89bacb5fa84512278baed99f968c27bac8bffa5361a6836318e4e423736b28"
+    },
+    "diagnosticFix": "f8c06f76f",
+    "remoteMainVerified": true,
+    "publication": "unverified"
+  }
 }

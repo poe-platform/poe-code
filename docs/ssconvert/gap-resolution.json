@@ -925,5 +925,15 @@
     "containingReleaseRun": 35816270280,
     "publication": "pending; not verified",
     "remaining": "maintained typecheck artifact/source closure and all original plan families"
+  },
+  "bundledSsconvertDiagnosticsFollowup": {
+    "proof": "docs/ssconvert/python-printf-bundled-error-gap-proof.json",
+    "commit": "f8c06f76f",
+    "remoteMainVerified": true,
+    "maintainedTests": 13314,
+    "installedPositiveCases": 18,
+    "installedRefusals": 4,
+    "guardedLintSubjects": 16395,
+    "publication": "unverified"
   }
 }

@@ -32,7 +32,7 @@ export function copyOptions(context: CommandContext) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "arRfnvPLpdbB:S:t:T", {
+  const parsed = options(args, "arRfnvPHLpdbB:S:t:T", {
     archive: "a", preserve: "p", "attributes-only": false,
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,

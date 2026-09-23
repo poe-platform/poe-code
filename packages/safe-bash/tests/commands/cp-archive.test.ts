@@ -4,6 +4,36 @@ import { fixture } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+test("cp -H accepts ordinary files and follows only command-line symbolic links", async () => {
+  const fs = await fixture({ source: "SYNTHETIC_SOURCE\n", "tree/child": "CHILD\n" });
+  await fs.symlink("source", "/work/source-link");
+  await fs.symlink("child", "/work/tree/link");
+  await fs.symlink("missing", "/work/tree/dangling");
+  await fs.symlink("tree", "/work/tree-link");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    for (const source of ["source", "source-link"]) {
+      const result = await shell.exec(`cp -H ${source} ${source}-copy`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal((await fs.lstat(`/work/${source}-copy`)).type, "file");
+      assert.equal(new TextDecoder().decode(await fs.readFile(`/work/${source}-copy`)), "SYNTHETIC_SOURCE\n");
+    }
+    const recursive = await shell.exec("cp -RH tree-link copy");
+    assert.equal(recursive.exitCode, 0, recursive.stderr);
+    assert.equal(recursive.stdout, "");
+    assert.equal(recursive.stderr, "");
+    assert.equal((await fs.lstat("/work/copy")).type, "directory");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/copy/child")), "CHILD\n");
+    assert.equal(await fs.readlink("/work/copy/link"), "child");
+    assert.equal(await fs.readlink("/work/copy/dangling"), "missing");
+    const unsupported = await shell.exec("cp --dereference-command-line source invalid");
+    assert.equal(unsupported.exitCode, 2);
+    await assert.rejects(fs.lstat("/work/invalid"), { code: "ENOENT" });
+  } finally { await shell.dispose(); }
+});
+
 for (const option of ["--archive", "-a"]) {
   test(`cp ${option} copies directory trees and preserves symbolic links`, async () => {
     const fs = await fixture({ "tree/input": "abc\n", "tree/deep/file": "nested" });

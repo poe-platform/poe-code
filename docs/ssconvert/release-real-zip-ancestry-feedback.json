@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "releaseRun": "35922740457",
+  "releaseHead": "efedefd0671bd090e5e9e93a420c8f120d6cc6a6",
+  "validatedBase": "dd3eedb6d14e64add2ce7054c73f610cf68065a1",
+  "contractChange": "40ff1210cc4c68e1e283e7808625ca42cbc071e6",
+  "classification": "Six stale extraction-success expectations conflict with the explicit atomicStagingAncestry requirement. RealFS trustedOwnedStaging is correctly weaker; no product/contract/capability changes made.",
+  "change": {
+    "path": "packages/safe-fs/tests/real-zip-staging.test.ts",
+    "sha256": "8147d370209a3df85a4bc881a7bbfed0873ea03484aea12311ea421ed351c2b5",
+    "beforeSha256": "cd9a89ef0838f6a761aec9042eb0f3274d1a6f757c9f9b001ec4be68d5afd46e"
+  },
+  "contractEvidence": [
+    {
+      "path": "packages/safe-bash/src/commands/archive/unzip/safety.ts",
+      "sha256": "417aa5725a582afc6a82e874830afe7e0638ed6a7def235436d5e581068a0d6c"
+    },
+    {
+      "path": "packages/safe-fs/src/contracts/filesystem.md",
+      "sha256": "81fd5cd02465ea034e3aa5dfd2f64b08d7754f76ed2c129573ee918de9a30e7c"
+    },
+    {
+      "path": "packages/safe-fs/src/fs/real/index.ts",
+      "sha256": "4b25ef7b6307cdaffa7728bb3bf4b67b2b445fbc058e35ee5adeb04a4c68e540"
+    }
+  ],
+  "preserved": {
+    "originalNativeFixtureBase64": "UEsDBBQAAAAAAAAAIVhOgYhHBAAAAAQAAAAFAAAAaW5wdXRhYmMKUEsBAhQDFAAAAAAAAAAhWE6BiEcEAAAABAAAAAUAAAAAAAAAAAAAAIABAAAAAGlucHV0UEsFBgAAAAABAAEAMwAAACcAAAAAAA==",
+    "originalNativeFixtureSha256": "b28fdf2f19efd624e8a9430c117c97dca8ec8e9b684d55328fe6ee2c592c8f75",
+    "unchangedDirectStagingTests": [
+      "preserves a substituted staging entry and refuses publication and cleanup",
+      "preserves every staging child when cleanup encounters an unexpected entry",
+      "refuses a destination created after the absence observation",
+      "refuses an exchanged staging parent",
+      "withholds trusted staging from read-only, quota, and incomplete views",
+      "returns its original creation receipt when cancellation arrives during commit",
+      "preserves cancellation reasons and creates nothing before admission"
+    ],
+    "testCount": 13,
+    "zipCreationAndUpdateStillSucceed": true
+  },
+  "validation": {
+    "command": "npx vitest run --config vitest.config.ts packages/safe-fs/tests/real-zip-staging.test.ts",
+    "red": {
+      "tests": 13,
+      "passed": 7,
+      "failed": 6,
+      "log": {
+        "path": "out/ssconvert-real-zip-feedback/current-red.log",
+        "sha256": "af2d2a47c4b905faa16ee9b1f4259ae7d7dabede1aa9cea595c4f503063c7aa8"
+      }
+    },
+    "green": {
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "log": {
+        "path": "out/ssconvert-real-zip-feedback/current-green.log",
+        "sha256": "a329c4dda530442d8362cb9c609d27cabc05fb8217549f690bd24ed655b3c0a2"
+      }
+    },
+    "independent": {
+      "command": "npx vitest run packages/safe-fs/tests/real-zip-staging.test.ts packages/safe-fs/tests/file-staging.test.ts",
+      "tests": 37,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": {
+      "command": "npm run typecheck --workspace=@poe-code/safe-fs",
+      "exitCode": 0
+    },
+    "lint": {
+      "complete": true,
+      "exitCode": 0,
+      "errorCount": 0,
+      "warningCount": 8,
+      "scope": {
+        "configured": 17591,
+        "linted": 17591,
+        "ignored": 2241,
+        "unconfigured": 38003,
+        "ignoredDirectories": 271,
+        "heldExcluded": 5
+      },
+      "command": "npm run lint:eslint"
+    }
+  },
+  "affectedChecks": [
+    "ZIP created by current command on rooted RealFS",
+    "Original native ZIP fixture",
+    "Updated nested archive",
+    "Mounted RealFS view",
+    "Device RealFS view",
+    "Scoped RealFS view"
+  ],
+  "exactRefusal": {
+    "exitCode": 2,
+    "stderr": "unzip: extraction requires atomic staging ancestry verification\n",
+    "stdout": {
+      "normal": "Archive:  archive.zip\n",
+      "quiet": ""
+    }
+  },
+  "retainedEffects": "Nested extraction creates /work/tree before refusing file publication; tree remains empty, /work/input remains abc\\n, archive remains byte-identical. Flat cases create no destination or stage entries. Each affected scenario additionally checks exact unzip -p payload bytes.",
+  "ciEvidence": [
+    {
+      "path": "out/ssconvert-pwd-packed/release35922740457-unit-failures.log",
+      "sha256": "ff577b6c9fb0a4f50e972b654f178467661906eb1434a9f4a05f225222233bb8"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/release35922740457-unit-outcome.json",
+      "sha256": "958c53270fe9179b6f0ece54235f83b216ec8ff892ef15bf7ccba903f0df5500"
+    }
+  ],
+  "limits": [
+    "Tests use memfs-backed native filesystem mocks; no real host atomicity guarantee is inferred.",
+    "No complete unit gate or successful release is implied."
+  ],
+  "additionalLogs": [
+    {
+      "path": "out/ssconvert-real-zip-feedback/independent-focused.log",
+      "sha256": "2daf2e5a6ef187fb836639e17b423c40da21d5353023ff7b7f7d4080421aa63d"
+    },
+    {
+      "path": "out/ssconvert-real-zip-feedback/typecheck.log",
+      "sha256": "9c7353d93bfdfdde03bfee963386fac789903c30838d2ce3309e0c25282333e1"
+    },
+    {
+      "path": "out/ssconvert-real-zip-feedback/lint.log",
+      "sha256": "191b56d81447f08360e4abb62fe0b0e027c2edcabfddcaa3872a3477a52816a5"
+    }
+  ],
+  "publication": {
+    "status": "pending",
+    "failedRelease": 35922740457,
+    "failedFreshTests": 6,
+    "allFourBashShardsPassed": true
+  },
+  "candidateStatus": "Historical local candidate was superseded by equivalent upstream correction during rebase; its hashes and checks above are retained as evidence, not final-file bindings.",
+  "upstream": {
+    "commit": "48213620ee918a5dd18bb1b83502a6dfb6b92e00",
+    "preservedWithoutChanges": true,
+    "fileSha256": "fa95e40664764a443b2862478abdaac6135a1524d71a9f2f538f74b2ec0f9881",
+    "focused": {
+      "tests": 37,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "f0c632a7d7d4c122272a893bf7830f79a4c6d8af276860e6629a83fd1f6727d5"
+    },
+    "scope": "Upstream fixes all six failures and retains unzip -p payload coverage. The local candidate additionally asserted nested empty-directory effects; those extra assertions were not substituted over upstream."
+  },
+  "deliveryScope": "Evidence and plan only; runtime and test files identical to upstream."
+}

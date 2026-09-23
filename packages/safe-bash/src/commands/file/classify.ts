@@ -66,6 +66,68 @@ function magic(bytes: Uint8Array): Classification | undefined {
   return undefined;
 }
 
+function csv(text: string, complete: boolean): boolean {
+  let records = 0, columns = 0, fields = 1, recordStart = 0;
+  let state: "start" | "unquoted" | "quoted" | "closed" = "start";
+  const endRecord = (): boolean => {
+    if (fields < 2 || (records > 0 && fields !== columns)) return false;
+    records++;
+    columns = fields;
+    fields = 1;
+    state = "start";
+    return true;
+  };
+  for (let index = 0; index < text.length; index++) {
+    const character = text[index]!;
+    if (state === "quoted") {
+      if (character === '"') {
+        if (text[index + 1] === '"') index++;
+        else state = "closed";
+      }
+      continue;
+    }
+    if (character === ',') { fields++; state = "start"; }
+    else if (character === '\n') {
+      if (!endRecord()) return false;
+      recordStart = index + 1;
+    } else if (character === '\r' && (text[index + 1] === '\n' || (!complete && index + 1 === text.length))) continue;
+    else if (character === '"' && state === "start") state = "quoted";
+    else {
+      if (character === '"' || character === '\r' || state === "closed") return false;
+      state = "unquoted";
+    }
+  }
+  // A sniff cap is not EOF: count only terminated records in an incomplete sample.
+  if (complete && recordStart < text.length && (state === "quoted" || !endRecord())) return false;
+  return records >= 2;
+}
+
+function textFormat(text: string, complete: boolean): readonly [string, string] | undefined {
+  const lineEnd = text.indexOf("\n");
+  if (text.startsWith("#!") && lineEnd >= 0) {
+    const words = text.slice(2, lineEnd).trim().replaceAll("\t", " ").split(" ").filter(Boolean);
+    const path = words[0] ?? "";
+    const name = path.slice(path.lastIndexOf("/") + 1);
+    const interpreter = name === "env" ? words[1] ?? "" : name;
+    if (["sh", "bash", "ash", "ksh", "zsh", "csh", "tcsh"].includes(interpreter)) return ["shell script", "text/x-shellscript"];
+    if (interpreter === "python" || (interpreter.startsWith("python") && interpreter.length > 6
+      && "0123456789".includes(interpreter[6]!) && [...interpreter.slice(6)].every(character => "0123456789.".includes(character)))) {
+      return ["Python script", "text/x-script.python"];
+    }
+  }
+  const lower = text.toLowerCase();
+  if (lower.startsWith("<?xml") && " \t\r\n".includes(lower[5] ?? "\0")) return ["XML document", "text/xml"];
+  for (const marker of ["<!doctype html", "<html", "<head", "<title"]) {
+    let offset = lower.indexOf(marker);
+    while (offset >= 0) {
+      if (" \t\r\n\f>".includes(lower[offset + marker.length] ?? "\0")) return ["HTML document", "text/html"];
+      offset = lower.indexOf(marker, offset + marker.length);
+    }
+  }
+  if (csv(text, complete)) return ["CSV text", "text/csv"];
+  return undefined;
+}
+
 export function classify(bytes: Uint8Array, complete: boolean): Classification {
   if (!bytes.length) return complete ? result("empty", "inode/x-empty") : binary;
   const recognized = magic(bytes);
@@ -95,5 +157,6 @@ export function classify(bytes: Uint8Array, complete: boolean): Classification {
     try { JSON.parse(text); return result("JSON text data", "application/json", encoding); } catch {}
   }
   const description = encoding === "us-ascii" ? "ASCII text" : encoding === "iso-8859-1" ? "ISO-8859 text" : encoding === "utf-8" ? "Unicode text, UTF-8" : `Unicode text, ${encoding === "utf-16le" ? "UTF-16, little-endian" : "UTF-16, big-endian"}`;
-  return result(description, "text/plain", encoding);
+  const format = textFormat(text, complete);
+  return result(format ? `${format[0]}, ${description}` : description, format?.[1] ?? "text/plain", encoding);
 }

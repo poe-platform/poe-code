@@ -107,7 +107,9 @@ integer, nameref, and indexed attributes are unsupported.
 ### Command bundle
 
 `agentCommands()` registers all **79 commands** below. They operate on the supplied
-filesystem and byte streams, not host executables.
+filesystem and byte streams, not host executables. `file` recognizes bounded CSV,
+HTML, XML and shell/Python shebang text alongside JSON and binary headers, preserving
+the detected charset in MIME output; see its [recognition limits](src/commands/file/README.md#recognition-and-limits-of-meaning).
 
 `hexdump` and `hd` default to the BSD numeric and repeated-row profile.
 Use `agentCommands({ hexdump: { dialect: "util-linux" } })` or

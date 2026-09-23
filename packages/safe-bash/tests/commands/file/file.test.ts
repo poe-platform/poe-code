@@ -63,6 +63,114 @@ for (const specimen of fixtures) {
   });
 }
 
+// MIME expectations checked with file 5.45, LC_ALL=C and TZ=UTC, using these text bytes.
+const textFormats = [
+  { name: "csv", text: "k,v\nA,1\nB,2\n", mime: "text/csv", description: "CSV text" },
+  { name: "html", text: "<!DOCTYPE html><html><body>Audit</body></html>\n", mime: "text/html", description: "HTML document" },
+  { name: "xml", text: '<?xml version="1.0"?><audit/>\n', mime: "text/xml", description: "XML document" },
+  { name: "shell", text: "#!/bin/sh\necho audit\n", mime: "text/x-shellscript", description: "shell script" },
+  { name: "python", text: '#!/usr/bin/env python3\nprint("audit")\n', mime: "text/x-script.python", description: "Python script" },
+];
+
+for (const specimen of textFormats) {
+  test(`text format ${specimen.name}: Shell file, stdin and whole-read MIME/encoding/description`, async () => {
+    const memory = createMemoryFileSystem();
+    const bytes = Buffer.from(specimen.text);
+    await memory.writeFile("/misleading.exe", bytes);
+    for (const fs of [memory, proxyFs(memory, { readStream: undefined })]) {
+      const shell = new Shell({ fs });
+      shell.use(fileCommands());
+      try {
+        for (const operand of ["/misleading.exe", "-"]) {
+          for (const [flags, expected] of [
+            ["-bi", `${specimen.mime}; charset=us-ascii\n`],
+            ["-b --mime-type", `${specimen.mime}\n`],
+            ["-b --mime-encoding", "us-ascii\n"],
+          ]) {
+            const result = await shell.exec(`file ${flags} ${operand}`, { stdin: bytes });
+            assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+            assert.equal(result.stdout, expected);
+          }
+          const human = await shell.exec(`file -b ${operand}`, { stdin: bytes });
+          assert.equal(human.exitCode, 0); assert.equal(human.stderr, "");
+          assert.ok(human.stdout.includes(specimen.description), human.stdout);
+        }
+      } finally { await shell.dispose(); }
+    }
+    assert.deepEqual(await memory.readFile("/misleading.exe"), new Uint8Array(bytes));
+  });
+}
+
+for (const [name, text, mime] of [
+  ["two CSV records", "a,b\n1,2\n", "text/csv"],
+  ["quoted CSV", 'a,b\n"one,two","three"\n"four","five"\n', "text/csv"],
+  ["multiline CSV with escaped quotes", 'a,b\n"one\ntwo","say ""hello"""\nfour,five\n', "text/csv"],
+  ["CSV CRLF and missing final newline", "a,b\r\n1,2\r\n3,4", "text/csv"],
+  ["empty CSV fields", "a,b\n,\n,\n", "text/csv"],
+  ["UTF-8 CSV", "k,v\nA,café\nB,☕\n", "text/csv"],
+  ["HTML with leading whitespace and attributes", ' \t\n<HTML lang="en"><body>café</body></HTML>\n', "text/html"],
+  ["HTML after a comment", "<!-- audit -->\n<html></html>\n", "text/html"],
+  ["UTF-8 XML", '<?xml version="1.0"?><audit>café</audit>\n', "text/xml"],
+  ["UTF-8 shell with arguments", "#! /bin/sh -e\necho café\n", "text/x-shellscript"],
+  ["bash through env", "#!/usr/bin/env bash\necho audit\n", "text/x-shellscript"],
+  ["versioned Python", '#!/usr/bin/python3.12\nprint("café")\n', "text/x-script.python"],
+  ["one CSV record", "a,b\n", "text/plain"],
+  ["uneven CSV records", "a,b\n1,2,3\n4,5\n", "text/plain"],
+  ["unclosed CSV quote", 'a,b\n1,2\n"three,four\n', "text/plain"],
+  ["quote in unquoted CSV field", 'a,b\none"two,three\nfour,five\n', "text/plain"],
+  ["trailing text after CSV quote", 'a,b\n"one"tail,two\nthree,four\n', "text/plain"],
+  ["lookalike HTML tag", "<htmlish>Hello</htmlish>\n", "text/plain"],
+  ["undeclared XML element", "<audit/>\n", "text/plain"],
+  ["unknown shebang", "#!/usr/bin/custom\nvalue\n", "text/plain"],
+  ["lookalike shell name", "#!/bin/shell\necho audit\n", "text/plain"],
+  ["ASCII prose", "ordinary text\n", "text/plain"],
+  ["UTF-8 prose", "café ☕\n", "text/plain"],
+  ["JSON priority", '{\n"a":1,\n"b":2,\n"c":3\n}\n', "application/json"],
+] as const) {
+  test(`text recognition: ${name}`, async () => {
+    const encoding = Buffer.byteLength(text) === text.length ? "us-ascii" : "utf-8";
+    const result = await run(["-bi", "-"], {}, { stdin: toByteSource(text) });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${mime}; charset=${encoding}\n`);
+  });
+}
+
+test("text format signatures never override binary validation", async () => {
+  for (const specimen of textFormats) {
+    for (const tail of [Buffer.from([0]), Buffer.from([128])]) {
+      const result = await run(["-bi", "-"], {}, { stdin: toByteSource(Buffer.concat([Buffer.from(specimen.text), tail])) });
+      assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "application/octet-stream; charset=binary\n");
+    }
+  }
+});
+
+test("bounded text recognition requires complete signatures and CSV records", async () => {
+  for (const [prefix, mime] of [
+    ["a,b\n1,2", "text/plain"],
+    ["a,b\n1,2\n\"three,", "text/csv"],
+    ["a,b\r\n1,2\r\n3,4\r", "text/csv"],
+    ["<html", "text/plain"],
+    ["<html>", "text/html"],
+    ["<?xml", "text/plain"],
+    ['<?xml version="1.0"?>', "text/xml"],
+    ["#!/bin/sh", "text/plain"],
+    ["#!/bin/sh\n", "text/x-shellscript"],
+  ] as const) {
+    let closed = false;
+    const stdin = (async function* () {
+      try {
+        yield Buffer.from(prefix);
+        assert.fail("file must not read beyond its sniff cap");
+      } finally { closed = true; }
+    })();
+    const result = await run(["-bi", "-"], { limits: { maxSniffBytes: Buffer.byteLength(prefix) } }, { stdin });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${mime}; charset=us-ascii\n`, prefix);
+    assert.equal(closed, true);
+  }
+});
+
 test("stable factories, collision preflight and replacement are explicit", async () => {
   assert.equal(createFileCommand().name, "file");
   assert.deepEqual(createFileCommands().map(command => command.name), ["file"]);

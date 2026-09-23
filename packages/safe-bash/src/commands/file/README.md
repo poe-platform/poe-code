@@ -75,7 +75,7 @@ BS/TAB/LF/FF/CR/ESC are allowed. Prefix endings may contain an incomplete final
 code unit; decoding is not finalized unless complete input was observed.
 UTF-32, other legacy codepages and BOM-less UTF-16 are not supported. This is
 a fixed text profile, not general encoding or locale detection. Text descriptions intentionally omit native
-line-ending counts, BOM wording, language guesses and executable permission claims.
+line-ending counts, BOM wording and executable permission claims.
 
 JSON requires a complete bounded object/array that successfully passes JSON.parse
 after text decoding. Scalars remain plain text. A syntactically complete JSON
@@ -85,6 +85,19 @@ extent admits complete JSON below that bound, including 65536/65537-byte documen
 hosts can configure `limits.maxSniffBytes` for another bounded extent. Whole readFile content
 at the cap can be proved complete. Text classification generally describes only
 the sampled prefix, not unseen later bytes.
+
+CSV recognition requires at least two records with the same number of fields
+(at least two), with LF or CRLF separators. Quoted fields support commas,
+newlines and doubled quotes. An incomplete sample counts only terminated records;
+complete input may omit the last newline. HTML recognition uses case-insensitive
+`<!doctype html`, `<html`, `<head` or `<title` markers with a following whitespace
+or `>` boundary. XML requires an initial `<?xml` declaration marker and whitespace.
+A terminated shebang line identifies sh, bash, ash, ksh, zsh, csh, tcsh and Python
+(including numeric versions), directly or through a plain `env INTERPRETER` form.
+These bounded text signatures preserve the detected charset and add human format
+labels; they do not parse entire documents, execute scripts, or inspect modes.
+Unknown formats remain plain text. Native language heuristics and descriptions
+can differ; recognizing a prefix does not validate unseen content.
 
 Header recognition covers PNG, GIF, JPEG, WebP, TIFF, BMP, ICO, PDF, gzip, bzip2,
 XZ, Zstandard, ZIP, 7-zip, RAR, POSIX ustar (header checksum), ELF, DOS/PE,
@@ -96,8 +109,8 @@ Unknown content uses application/octet-stream or the text fallback.
 
 No custom magic files, -z/-Z, --extension/--apple, -e test exclusions,
 recursive traversal, filesystem devices, permissions inspection, access-time
-restoration, native label padding/raw rendering, libmagic parameter flags, CSV/XML/HTML/script
-language classification, Mach-O or arbitrary libmagic database compatibility.
+restoration, native label padding/raw rendering, libmagic parameter flags,
+general language detection, Mach-O or arbitrary libmagic database compatibility.
 Unknown options fail explicitly; unsupported format bytes take the fallback.
 
 ## Bounded I/O and budgets

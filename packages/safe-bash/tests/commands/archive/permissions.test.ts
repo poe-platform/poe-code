@@ -56,3 +56,31 @@ for (const streaming of [true, false]) for (const profile of profiles) {
     }
   });
 }
+
+test("explicit permission policies mask ordinary write bits without enabling special bits", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/file", binary);
+    assert.equal((await shell.exec("tar -cf archive --mode=7777 file")).exitCode, 0);
+    for (const [flag, expected] of [["--same-permissions", 0o777], ["--no-same-permissions", 0o755]] as const) {
+      const result = await shell.exec(`tar -xf archive -C /out ${flag}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal((await fs.stat("/out/file")).mode & 0o7777, expected);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("permission restoration refuses an unsupported destination before replacing it", async () => {
+  const base = createMemoryFileSystem();
+  const filesystem = wrapped(base, { capabilities: { ...base.capabilities, permissions: false }, capabilitiesFor: async () => ({ ...base.capabilities, permissions: false }) });
+  const { shell } = await fixture({}, filesystem);
+  try {
+    await base.writeFile("/work/file", binary);
+    await base.writeFile("/out/file", Buffer.from("existing"));
+    assert.equal((await shell.exec("tar -cf archive file")).exitCode, 0);
+    const result = await shell.exec("tar -xf archive -C /out --same-permissions");
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /does not support restoring archive permissions/);
+    assert.equal(Buffer.from(await base.readFile("/out/file")).toString(), "existing");
+  } finally { await shell.dispose(); }
+});

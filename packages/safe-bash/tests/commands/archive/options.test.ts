@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { archive, binary, fixture, member, record } from "./helpers.js";
+import { archive, binary, fixture, member, record, wrapped } from "./helpers.js";
 
 test("tar lists transformed names only when requested, selecting original names", async () => {
   const { shell } = await fixture();
@@ -195,5 +195,111 @@ test("unsupported file-list grammar and stream reuse fail explicitly", async () 
     }
     assert.equal((await shell.exec("tar tf - -T -", { stdin: "file\n" })).exitCode, 2);
     assert.equal((await shell.exec("tar cf - -T - -T -", { stdin: "" })).exitCode, 2);
+  } finally { await shell.dispose(); }
+});
+
+test("tar creation accepts explicit numeric ownership, mode and timestamps", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/file", binary);
+    const created = await shell.exec("tar -cf archive --mtime=@0 --owner=12 --group 34 --mode=0751 --numeric-owner file");
+    assert.equal(created.exitCode, 0, created.stderr);
+    const listed = await shell.exec("tar --full-time -tvf archive");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.match(listed.stdout, /12\/34 .*1970-01-01 00:00:00.*file/);
+    assert.equal((await shell.exec("tar -xf archive --no-same-owner --same-permissions -C /out")).exitCode, 0);
+    const stat = await fs.stat("/out/file");
+    assert.equal(stat.mode & 0o777, 0o751);
+    assert.equal(stat.mtimeMs, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const flags of ["--touch", "-m", "--same-permissions", "--preserve-permissions", "-p", "--no-same-permissions", "--delay-directory-restore", "--no-delay-directory-restore"]) {
+  test(`tar extraction policy ${flags}`, async () => {
+    const { fs, shell } = await fixture();
+    try {
+      const result = await shell.exec(`tar -xf - -C /out ${flags}`, { stdin: archive(member("file", binary)) });
+      assert.equal(result.exitCode, 0, result.stderr);
+      const stat = await fs.stat("/out/file");
+      assert.deepEqual(await fs.readFile("/out/file"), binary);
+      if (flags === "--touch" || flags === "-m") assert.notEqual(stat.mtimeMs, 1_700_000_000_000);
+      else assert.equal(stat.mtimeMs, 1_700_000_000_000);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("invalid metadata arguments fail before archive publication", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/file", binary);
+    for (const option of ["--mtime=bad", "--owner=-1", "--group=unknown", "--mode=888", "--mtime", "--owner", "--group", "--mode"]) {
+      const result = await shell.exec(`tar -cf archive file ${option}`);
+      assert.equal(result.exitCode, 2);
+      await assert.rejects(fs.stat("/work/archive"));
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("tar preserves source access times when requested", async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/file", binary);
+    await fs.utimes!("/work/file", 1000, 2000);
+    for (const flag of ["--atime-preserve", "--atime-preserve=replace"]) {
+      const result = await shell.exec(`tar -cf archive ${flag} file`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const stat = await fs.stat("/work/file");
+      assert.equal(stat.atimeMs, 1000);
+      assert.equal(stat.mtimeMs, 2000);
+    }
+  } finally { await shell.dispose(); }
+});
+
+
+test("atime preservation includes directory traversal and file reads", async () => {
+  const { fs } = await fixture();
+  await fs.mkdir("/work/dir");
+  await fs.writeFile("/work/dir/file", binary);
+  await fs.utimes!("/work/dir", 1000, 2000);
+  await fs.utimes!("/work/dir/file", 3000, 4000);
+  const accessed = new Set<string>();
+  const filesystem = wrapped(fs, {
+    readdir: async (path, options) => { accessed.add(path); return fs.readdir(path, options); },
+    readStream: (path, options) => { accessed.add(path); return fs.readStream!(path, options); },
+    lstat: async (path, options) => { const stat = await fs.lstat(path, options); return accessed.has(path) ? { ...stat, atimeMs: 9999 } : stat; },
+    stat: async (path, options) => { const stat = await fs.stat(path, options); return accessed.has(path) ? { ...stat, atimeMs: 9999 } : stat; },
+    utimes: async (path, atime, mtime, options) => { await fs.utimes!(path, atime, mtime, options); accessed.delete(path); },
+  });
+  const { shell } = await fixture({}, filesystem);
+  try {
+    const result = await shell.exec("tar -cf archive --atime-preserve dir");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await filesystem.stat("/work/dir")).atimeMs, 1000);
+    assert.equal((await filesystem.stat("/work/dir/file")).atimeMs, 3000);
+  } finally { await shell.dispose(); }
+});
+
+for (const delay of [true, false]) test(`directory restoration ${delay ? "waits for archive end" : "follows subtree completion"}`, async () => {
+  const { fs } = await fixture();
+  const restored: string[] = [];
+  const filesystem = wrapped(fs, {
+    chmod: async (path, mode, options) => { restored.push(path); await fs.chmod!(path, mode, options); },
+  });
+  const { shell } = await fixture({}, filesystem);
+  try {
+    const bytes = archive(member("dir/", new Uint8Array(), "5"), member("dir/file", binary), member("other", binary));
+    const result = await shell.exec(`tar -xf - -C /out --${delay ? "delay" : "no-delay"}-directory-restore`, { stdin: bytes });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(restored, delay ? ["/out/dir/file", "/out/other", "/out/dir"] : ["/out/dir/file", "/out/dir", "/out/other"]);
+    assert.equal((await fs.stat("/out/dir")).mtimeMs, 1_700_000_000_000);
+  } finally { await shell.dispose(); }
+});
+
+test("full-time leaves nonverbose listing bytes unchanged", async () => {
+  const { shell } = await fixture();
+  try {
+    const result = await shell.exec("tar --full-time -tf -", { stdin: archive(member("dir/file", binary)) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "dir/file\n");
   } finally { await shell.dispose(); }
 });

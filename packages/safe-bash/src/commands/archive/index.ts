@@ -47,6 +47,19 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --transform=EXPR    Substitute member names when listing (s/old/new/[gix])
       --show-transformed-names Display transformed names in archive listings
       --format=FORMAT     Create pax (default), posix or ustar archives
+      --mtime=DATE        Override creation mtime (@seconds or ISO/RFC date)
+      --owner=ID          Override numeric creation owner
+      --group=ID          Override numeric creation group
+      --mode=OCTAL        Override creation permission bits
+      --numeric-owner     Use numeric ownership IDs
+      --full-time         Show full UTC timestamps in verbose listings
+  -m, --touch              Retain current extraction timestamps
+  -p, --same-permissions   Restore ordinary archive permission bits
+      --no-same-permissions Apply virtual 022 mask to ordinary permissions
+      --no-same-owner     Retain filesystem-assigned ownership
+      --atime-preserve[=replace] Restore source access times after creation
+      --delay-directory-restore Restore directory metadata at archive end
+      --no-delay-directory-restore Restore after leaving each directory subtree
       --help              Display this help and exit
       --                  End options; remaining arguments are filenames
 

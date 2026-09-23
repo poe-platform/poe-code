@@ -15,6 +15,7 @@ export interface TarOptions {
   cwd: string;
   operands: Operand[];
   excludes: string[];
+  metadata: { mtime?: number; uid?: number; gid?: number; mode?: number; touch?: boolean; permissions?: boolean; fullTime?: boolean; delayDirectories?: boolean; preserveAtime?: boolean };
 }
 
 export async function parseOptions(context: CommandContext, limits: ArchiveLimits): Promise<TarOptions | "help"> {
@@ -35,6 +36,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let stdinUsed = false;
   let filesFromBytes = 0;
   let lateExclude = false;
+  const metadata: TarOptions["metadata"] = {};
   const operands: Operand[] = [];
   const excludes: string[] = [];
   const operand = (name: string) => {
@@ -90,6 +92,32 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "v") verbose = true;
     else if (flag === "show-transformed-names") showTransformedNames = true;
     else if (flag === "transform") transforms.push(...parseTransform(value!));
+    else if (flag === "atime-preserve") {
+      if (value !== "replace") fail("only --atime-preserve=replace is supported; filesystem has no no-atime read capability");
+      metadata.preserveAtime = true;
+    }
+    else if (flag === "full-time") metadata.fullTime = true;
+    else if (flag === "numeric-owner" || flag === "no-same-owner") { /* IDs are numeric; extraction retains filesystem ownership. */ }
+    else if (flag === "same-owner") fail("filesystem does not support restoring archive ownership");
+    else if (flag === "m" || flag === "touch") metadata.touch = true;
+    else if (flag === "p" || flag === "same-permissions" || flag === "preserve-permissions") metadata.permissions = true;
+    else if (flag === "no-same-permissions") metadata.permissions = false;
+    else if (flag === "delay-directory-restore") metadata.delayDirectories = true;
+    else if (flag === "no-delay-directory-restore") metadata.delayDirectories = false;
+    else if (flag === "owner" || flag === "group" || flag === "mode") {
+      const radix = flag === "mode" ? 8 : 10;
+      const digits = radix === 8 ? "01234567" : "0123456789";
+      if (!value || ![...value].every(character => digits.includes(character))) fail(`invalid numeric ${flag}: ${value}`);
+      const number = parseInt(value, radix);
+      if (!Number.isSafeInteger(number) || (flag === "mode" && number > 0o7777)) fail(`invalid numeric ${flag}: ${value}`);
+      if (flag === "owner") metadata.uid = number;
+      else if (flag === "group") metadata.gid = number;
+      else metadata.mode = number;
+    } else if (flag === "mtime") {
+      const seconds = value!.startsWith("@") ? Number(value!.slice(1)) : Date.parse(value!) / 1000;
+      if (!value || value === "@" || !Number.isFinite(seconds) || Math.abs(seconds * 1000) > 8.64e15) fail(`invalid mtime: ${value}`);
+      metadata.mtime = seconds;
+    }
     else if (flag === "f") { if (!value) fail("empty archive name"); archive = value; }
     else if (flag === "C") await directory(value!);
     else if (flag === "T") await names(value!);
@@ -107,7 +135,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else fail(`unsupported option: ${flag}`);
   };
   const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", xform: "transform" };
-  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format", "transform"]);
+  const values = new Set(["f", "C", "T", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
@@ -119,10 +147,11 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       let value = equals < 0 ? undefined : argument.slice(equals + 1);
       if (values.has(flag) && value === undefined) value = context.args[++index];
       if (values.has(flag) && value === undefined) fail(`missing argument for --${name}`);
-      if (!values.has(flag) && value !== undefined) fail(`option --${name} does not take an argument`);
+      if (flag === "atime-preserve" && value === undefined) value = "replace";
+      if (!values.has(flag) && flag !== "atime-preserve" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCT".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTmp".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -149,7 +178,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes };
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, showTransformedNames, transforms, strip, format, cwd, operands, excludes, metadata };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

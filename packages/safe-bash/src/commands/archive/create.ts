@@ -44,8 +44,8 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       name: stat.type === "directory" && !name.endsWith("/") ? `${name}/` : name,
       type: stat.type === "directory" ? "5" : stat.type === "symlink" ? "2" : "0",
       linkname: "", size: stat.type === "file" ? stat.size : 0,
-      mode: stat.mode & 0o7777, uid: stat.uid ?? 0, gid: stat.gid ?? 0,
-      mtime: options.format === "ustar" ? Math.floor(stat.mtimeMs / 1000) : stat.mtimeMs / 1000,
+      mode: options.metadata.mode ?? (stat.mode & 0o7777), uid: options.metadata.uid ?? stat.uid ?? 0, gid: options.metadata.gid ?? stat.gid ?? 0,
+      mtime: options.format === "ustar" ? Math.floor(options.metadata.mtime ?? stat.mtimeMs / 1000) : options.metadata.mtime ?? stat.mtimeMs / 1000,
     };
     if (options.format === "pax") entry.atime = stat.atimeMs / 1000;
     if (stat.type === "symlink") {
@@ -79,6 +79,10 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       if (!Number.isSafeInteger(entry.size) || entry.size < 0 || entry.size > budget.limits.maxEntryBytes) fail("entry byte limit exceeded");
       if (entry.size > budget.limits.maxTotalBytes - budget.totalBytes) fail("total payload byte limit exceeded");
       budget.totalBytes += entry.size;
+    }
+    if (options.metadata.preserveAtime && (entry.type === "0" || entry.type === "5")) {
+      const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+      if (!context.fs.utimes || capabilities.timestamps === false) fail("filesystem does not support preserving source access times");
     }
     const headers = encodeEntry(entry, budget.limits);
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
@@ -132,6 +136,15 @@ export async function* createArchive(context: CommandContext, entries: readonly 
       await unchanged(context, source);
       const padding = (512 - bytes % 512) % 512;
       if (padding) yield new Uint8Array(padding);
+    }
+  }
+  if (options.metadata.preserveAtime) {
+    const restored = new Set<string>();
+    for (const source of entries) {
+      if ((source.entry.type !== "0" && source.entry.type !== "5") || restored.has(source.path)) continue;
+      await unchanged(context, source);
+      await operation(context, () => context.fs.utimes!(source.path, source.stat.atimeMs, source.stat.mtimeMs, { signal: context.signal }));
+      restored.add(source.path);
     }
   }
   yield new Uint8Array(1024);

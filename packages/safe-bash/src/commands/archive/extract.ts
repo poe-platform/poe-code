@@ -88,11 +88,13 @@ async function checkSymlinkTarget(context: CommandContext, root: string, path: s
   }
 }
 
-async function metadata(context: CommandContext, path: string, entry: ReadEntry): Promise<void> {
-  if (context.fs.chmod && context.fs.capabilities.permissions !== false) {
-    await operation(context, () => context.fs.chmod!(path, entry.mode & 0o777, { signal: context.signal }));
+async function metadata(context: CommandContext, path: string, entry: ReadEntry, options: TarOptions): Promise<void> {
+  const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+  if (options.metadata.permissions === true && (!context.fs.chmod || capabilities.permissions === false)) fail("filesystem does not support restoring archive permissions");
+  if (context.fs.chmod && capabilities.permissions !== false) {
+    await operation(context, () => context.fs.chmod!(path, entry.mode & (options.metadata.permissions === false ? 0o755 : 0o777), { signal: context.signal }));
   }
-  if (context.fs.utimes && context.fs.capabilities.timestamps !== false) {
+  if (!options.metadata.touch && context.fs.utimes && capabilities.timestamps !== false) {
     const atime = entry.atime ?? (entry.atimeDeleted ? undefined : entry.mtime);
     const mtime = entry.mtime;
     if (atime === undefined && mtime === undefined) return;
@@ -102,7 +104,7 @@ async function metadata(context: CommandContext, path: string, entry: ReadEntry)
   }
 }
 
-function verbose(entry: ReadEntry): string {
+function verbose(entry: ReadEntry, fullTime?: boolean): string {
   const type = entry.type === "5" ? "d" : entry.type === "2" ? "l" : entry.type === "1" ? "h" : "-";
   let permissions = "";
   for (const bit of [0o400, 0o200, 0o100, 0o040, 0o020, 0o010, 0o004, 0o002, 0o001]) permissions += entry.mode & bit ? (bit & 0o444 ? "r" : bit & 0o222 ? "w" : "x") : "-";
@@ -110,7 +112,8 @@ function verbose(entry: ReadEntry): string {
     if (entry.mode & special) permissions = permissions.slice(0, offset) + (entry.mode & execute ? lower : upper) + permissions.slice(offset + 1);
   }
   const suffix = entry.type === "2" ? ` -> ${display(entry.linkname)}` : entry.type === "1" ? ` link to ${display(entry.linkname)}` : "";
-  return `${type}${permissions} ${entry.uid ?? "-"}/${entry.gid ?? "-"} ${entry.size} ${entry.mtime ?? "-"} ${display(entry.name)}${suffix}\n`;
+  const timestamp = fullTime && entry.mtime !== undefined ? new Date(entry.mtime * 1000).toISOString().split("T").join(" ").slice(0, -1) : entry.mtime ?? "-";
+  return `${type}${permissions} ${entry.uid ?? "-"}/${entry.gid ?? "-"} ${entry.size} ${timestamp} ${display(entry.name)}${suffix}\n`;
 }
 
 export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget): Promise<void> {
@@ -204,7 +207,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           name: await transformedNames.apply(entry.name),
           linkname: entry.linkname ? await transformedNames.apply(entry.linkname) : entry.linkname,
         } : entry;
-        await budget.output(options.verbose ? verbose(shown) : `${display(shown.name)}\n`);
+        await budget.output(options.verbose ? verbose(shown, options.metadata.fullTime) : `${display(shown.name)}\n`);
         await reader.discard(entry.size); await reader.padding(entry.size); continue;
       }
       if (entry.name.startsWith("/") && !warnedAbsolute) {
@@ -231,7 +234,21 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         if (targetStat.type !== "file" || (published.get(hardTarget)!.identityScope !== undefined && !sameIdentity(published.get(hardTarget)!, targetStat))) fail("hardlink target changed or is not a regular file");
         if (!context.fs.link || context.fs.capabilities.hardlinks === false) fail("filesystem does not support hardlinks");
       }
+      if (options.metadata.delayDirectories === false) {
+        for (const [directory, value] of [...directories].sort(([first], [second]) => second.length - first.length)) {
+          if (path === directory || isPathWithin(directory, path)) continue;
+          await parents(context, value.root, directory, false);
+          const stat = await operation(context, () => context.fs.lstat(directory, { signal: context.signal }));
+          if (stat.type !== "directory") fail("directory changed before metadata restoration");
+          await metadata(context, directory, value.entry, options);
+          directories.delete(directory);
+        }
+      }
       await parents(context, root, path, true);
+      if (options.metadata.permissions === true && entry.type !== "2" && entry.type !== "1") {
+        const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities);
+        if (!context.fs.chmod || capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
+      }
       const existing = await maybeStat(context, path);
       if (archivePath && (path === archivePath || (existing && archiveStat && sameIdentity(existing, archiveStat)))) fail("entry would overwrite the input archive");
       if (existing?.type === "file" && archiveStat && (!hasIdentity(existing) || !hasIdentity(archiveStat))) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
@@ -255,7 +272,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await removeExisting(context, path, existing);
         published.delete(path); directories.delete(path);
         await publish(context, path, reader.body(entry.size));
-        await metadata(context, path, entry);
+        await metadata(context, path, entry, options);
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);
@@ -266,7 +283,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       await parents(context, value.root, path, false);
       const stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
       if (stat.type !== "directory") fail("directory changed before metadata restoration");
-      await metadata(context, path, value.entry);
+      await metadata(context, path, value.entry, options);
     }
   } finally {
     void reader.close().catch(() => {});

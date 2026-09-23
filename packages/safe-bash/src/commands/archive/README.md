@@ -77,6 +77,13 @@ required. Supported common options:
 | `-T`, `--files-from` | Names from a VFS file or `-` stdin; repeated file lists supported. |
 | `--null`, `--no-null` | Select NUL/newline file-list separation. NUL mode always treats names literally. |
 | `--verbatim-files-from`, `--no-verbatim-files-from` | Control file-list option handling; verbatim preserves literal dash/backslash names. |
+| `--mtime=DATE`, `--owner=ID`, `--group=ID`, `--mode=OCTAL` | Creation overrides; epoch (`@seconds`) or ISO/RFC timestamps, numeric IDs, and octal permissions. |
+| `--full-time`, `--numeric-owner` | Full UTC verbose timestamps and numeric ownership IDs. |
+| `--touch`, `-m` | Skip extraction timestamp restoration. |
+| `--same-permissions`, `--preserve-permissions`, `-p`, `--no-same-permissions` | Restore ordinary bits or apply the virtual 022 mask; special bits remain stripped. Explicit restoration requires permission support. |
+| `--no-same-owner` | Retain filesystem-assigned ownership; `--same-owner` cannot be supported without an ownership API. |
+| `--atime-preserve[=replace]` | Restore source file/directory access times after successful creation; requires timestamps. Does not promise unchanged ctime or restoration on cancellation. No-atime reads (`system`) are unsupported. |
+| `--delay-directory-restore`, `--no-delay-directory-restore` | Restore at archive end (default) or after leaving a directory subtree. |
 | `--format=pax`, `--format=posix`, `--format=ustar` | Creation format. Default PAX extends USTAR when needed. Strict USTAR rejects metadata that requires extensions and truncates fractional mtime to whole seconds. |
 
 Modern short clusters, attached short-option values, traditional initial
@@ -104,7 +111,7 @@ creating without any operands or file list fails. Archive stdin and file-list
 stdin cannot be shared during list/extract, and a stdin file list is single-use.
 
 Append/update/delete/compare, `-O`, sparse/device/FIFO handling, additional
-compression, dereferencing, ownership switches, creation/extraction transforms, wildcard selection,
+compression, dereferencing, ownership restoration, creation/extraction transforms, wildcard selection,
 ACL/xattr switches, POSIX named bracket classes, and all other options are
 unsupported and produce failure. No option or archive data executes code.
 

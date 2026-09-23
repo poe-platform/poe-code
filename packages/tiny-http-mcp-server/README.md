@@ -389,6 +389,57 @@ CLI equivalent:
 npx tiny-http-mcp-server --stateless
 ```
 
+## Cloudflare Workers and Fetch hosts
+
+Use the additive `tiny-http-mcp-server/fetch` entry point for a stateless
+`Request` → `Response` handler. It shares the typed tool registry and protocol
+engine with the Node server, without importing Node HTTP, stdio, or OAuth
+modules. Existing `createHttpServer` integrations are unchanged.
+
+```ts
+import { createFetchServer, defineSchema } from "tiny-http-mcp-server/fetch";
+
+const mcp = createFetchServer<{ userId: string }>({
+  name: "images",
+  version: "1.0.0",
+  maxRequestBytes: 128 * 1024,
+  maxResponseBytes: 512 * 1024,
+  maxConcurrentToolCalls: 4,
+  maxQueuedToolCalls: 0
+}).tool("whoami", "Identify the caller", defineSchema({}), (_, { context }) =>
+  context.userId
+);
+
+export default {
+  async fetch(request: Request, env: Env) {
+    // Verify the key with your existing authentication system on EVERY request.
+    const user = await authenticateApiKey(request, env);
+    if (!user) return new Response("Unauthorized", { status: 401 });
+    return mcp.fetch(request, { userId: user.id });
+  }
+};
+```
+
+Authentication and URL routing belong to your host. The second `fetch` argument
+is trusted local state; JSON-RPC parameters and `_meta` cannot override it.
+Tool handlers also receive `request` and a cancellation `signal`. Use that signal
+for downstream work; aborted requests must not keep consuming resources.
+
+The Fetch transport returns JSON for POST, acknowledges notifications with 202,
+and returns 405 with `Allow: POST` for GET/DELETE and other methods. It creates no
+sessions and rejects batch requests before executing any member. Clients must
+send `Content-Type: application/json` and accept both `application/json` and
+`text/event-stream`. Origins are rejected unless explicitly listed in
+`allowedOrigins`; the host owns CORS preflight/response headers. Thrown handler
+exceptions are sanitized; return an explicit MCP `isError` result for an error
+message intended for callers.
+
+`.tool(...)` and `.registerTool(...)` support the same typed schemas, structured
+outputs, and content results as the Node API. Request and response byte limits
+default to 1 MiB. Tool concurrency, queue bounds, active request limits, and tool
+timeouts use the shared server options. Stateless Fetch does not support
+subscriptions or server-initiated notification streams.
+
 ## API Reference
 
 The package re-exports the base server helpers from `tiny-stdio-mcp-server`, so you can import `defineSchema`, `createServer`, `Image`, `Audio`, `File`, and related types from here as well.

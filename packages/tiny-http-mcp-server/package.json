@@ -24,6 +24,10 @@
     "./test-support": {
       "types": "./dist/test-support.d.ts",
       "import": "./dist/test-support.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch.d.ts",
+      "import": "./dist/fetch.js"
     }
   },
   "scripts": {
@@ -47,7 +51,7 @@
   "license": "MIT",
   "dependencies": {
     "jose": "^6.1.2",
-    "tiny-stdio-mcp-server": "^0.1.0"
+    "tiny-stdio-mcp-server": "^0.1.27"
   },
   "bundleDependencies": [
     "mcp-oauth",
@@ -56,8 +60,8 @@
     "jose"
   ],
   "optionalDependencies": {
-    "mcp-oauth": "*",
     "auth-store": "*",
+    "mcp-oauth": "*",
     "tiny-mcp-client": "*"
   },
   "devDependencies": {

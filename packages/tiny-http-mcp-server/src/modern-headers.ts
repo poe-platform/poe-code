@@ -1,6 +1,5 @@
 import type { IncomingHttpHeaders } from "node:http";
 import {
-  JSON_RPC_ERROR_CODES,
   type JSONRPCError,
   type JSONRPCNotification,
   type JSONRPCRequest
@@ -19,7 +18,7 @@ export function validateModernHeaders(
       : undefined;
   if (typeof version !== "string")
     return {
-      code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+      code: -32602,
       message: "Missing protocol version request metadata"
     };
   const expected: Record<string, unknown> = { "mcp-protocol-version": version };

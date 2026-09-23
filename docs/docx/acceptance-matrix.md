@@ -1463,3 +1463,323 @@ Review UTC creation precision correction (2026-09-21): [named exact evidence](re
 Native opaque property depth correction (2026-09-21): [named exact evidence](property-opaque-admitted-depth-20260921/named-evidence.json) retains48 original admitted XMLDepth8192 recursive collection failures, both dialects/kinds and native core/extended/custom groups. All172 original cases pass, including exact lower-depth/quota refusals, scalar-only edits, opaque unsupported-edit and source/forced-output/nondirty/member/relationship retention. Current maintained61-file neighbors pass7921 cases with zero failures/skips; exact hashes/membership match. Clean selected build/lint/types and independent alternative-native240 public observations pass156 workflows/84 contract-defined core-MCE refusals; refused MCE receives no admitted-depth credit. Human CLI screenshot is inspected/readable. Historical12 fixture errors remain separated from product failures; overlapping counts are not summed. Every complete requested family remains open. No push/publication.
 
 Actual CLI tracked-review variants (2026-09-21): [384 named phases](tracked-cli-review-views-20260921/named-evidence.json) pass48 depth4096 Choice/fallback/process workflows, both dialects/kinds and four public edit routes. All read phases use actual CLI original/final/all commands; old SDK-backed CLI labels receive no such credit. Required native owners, bold deletion/italic insertion overrides, inactive/opaque payload and nondirty/member/relationship bytes retain exact semantics. Independent alternative native144 observations pass48 creations/views and96 justified SDK/actual CLI affected opaque carried-revision decision refusals. Explicit2GiB quotas supply no default-quota claim. Human CLI screenshot is inspected/readable; observer/fixture errors and incorrect decision-success assumption are retained with zero product-defect credit. The verified85-file cohort passes11981 cases, overlapping and later-qualified date expectations are not added or promoted. Clean selected build/lint/types pass; complete requested families remain open. No push/publication.
+
+
+Executed review/settings result dependencies (2026-09-21):
+[named exact assertions](review-resource-contract-20260921/closed-dependency-named-evidence.json)
+cover the closed comment/revision details, exact native numeric revision projection,
+font owner-local XML relationship order, dedicated non-body revision inventory,
+native signed core revision model getter and canonical settings scalar metadata.
+Original red tests and incorrect legacy-shape/diagnostic/advisory-state observers
+are retained separately. Current rebuilt independent evidence passes
+[292 observations](review-resource-contract-20260921/independent-settled-public-receipt.json).
+[84 exact settings depth/rendering boundaries](review-resource-contract-20260921/settings-boundary-qualified-current-receipt.json)
+retain expected conservative default-budget and protected-publication refusals;
+explicit sufficient-capacity reads and noncreating protected property inspection pass.
+The interrupted cohorts receive zero gate credit. The final unchanged258-file
+cohort is pending; these dependencies do not seal any complete-family entry.
+
+Current compiled native replays after the resource/settings dependencies:
+[3,364 core property observations](core-native-offset-dates-20260921/settled-current-public-receipt.json),
+[2,688 control/date/repeat/binding/template observations](control-native-date-calendar-20260921/settled-current-public-receipt.json),
+[696 comment/date/native observations](review-native-dates-20260921/settled-current-public-receipt.json)
+and [336 review creation observations](review-native-dates-20260921/settled-current-creation-receipt.json)
+pass exact retained programme/source/compiled hash checks. The adapted canonical
+observers preserve raw metadata checks in readonly scalar properties and explicit
+native APIs; model timestamps retain their distinct documented Date precision.
+Counts overlap historical campaigns and are not unique obligations or a
+complete-family certificate. F25–F30/F41–F43/F47 remain open while exact
+normative/public/source/carrier/variant/cross-family reconciliation continues.
+
+Native control identity and destructive revision scope follow-up (2026-09-21):
+[named exact assertions](review-resource-contract-20260921/control-scope-and-ancillary-named-evidence.json)
+bind 320 original arbitrary-width signed control ID cases, 96 active-carrier ID
+collision cases, 128 malformed identity refusals, 192 revision scope/ordinal/token
+decisions and 64 complete closed ancillary detail assertions. Original 96 wide-ID
+and 96 collision failures are retained; integer comparison remains exact beyond
+JavaScript number precision. The 2,371-case focused maintained cohort passes with
+exact source/build/membership hashes and zero skips. The separately authored
+[15,360 native public observations](review-resource-contract-20260921/control-identities-independent-v2-current-receipt.json)
+pass all dialect/kind/prefix/codec/carrier/row/block/repeat/template/route cases,
+including 201-digit IDs, raw untouched owner IDs, unique remapping and atomic
+malformed refusal. Independent graph parsing now resolves UTF-16 according to
+native BOM; the original 6,144 observer failures remain preserved with zero gate
+credit. The earlier pending258-file cohort completed with48 obsolete canonical
+settings observer failures and receives zero complete-gate credit. The current
+unchanged266-file cohort remains pending. These bounded assertions do not accept
+any complete family; no push/publication.
+
+Native core date datatype QName qualification (2026-09-21):
+[288 exact named cases](review-resource-contract-20260921/core-date-qname-named-evidence.json)
+pass public model, SDK and actual opt-in CLI variants for absent/stored created
+and modified dates, occupied dcterms prefix, alternate stored datatype prefixes,
+UTF-8/UTF-16LE/UTF-16BE and Strict/Transitional DOCX/DOTX. Independent SAX scope
+resolution proves the datatype QName is bound; existing type spelling, explicit
+pre-epoch whole-second value, codec/BOM, unrelated Unicode subtree, dirty-part
+trivia and untouched payload/relationship/source bytes survive. The initial144
+inherited-namespace observer failures remain preserved; no product defect was
+validated. A separately authored rebuilt native programme passes288 observations,
+including actual CLI before reads and exact model no-op save. Package lint/types
+pass. These new units lie outside the pending266-file selection, and overlapping
+counts are not summed. Every requested complete-family entry remains open.
+
+The later `review-resource-contract-20260921/current-control-expanded-receipt.json` collected the previously pending exact266-file cohort:49,023 passed/5failed/0skipped, with exact source/compiled/membership hashes. This is a failed gate and earns zero complete-gate or family acceptance credit. The named four native tracked phase failures and dependent preservation failure are retained in `current-control-expanded-failure-summary.json`; an unchanged focused replay is required. The subsequent comment traversal repair has a passing rebuilt independent120-observation receipt (`comment-range-independent-fixed-current-receipt.json`), including successful unrelated native depth and contract-defined opaque refusal; original memfs/guard and whole-cohort replays remain pending. All ten complete families remain open.
+
+Native settings depth is additionally qualified in `review-resource-contract-20260921/settings-native-depth-named-evidence.json`:original24cases reproduced12compiled recursion failures at4096; the iterative physical census repair passes all originals and2,041settings/protection/comment-source assertions with exact11-file source/build/membership hashes. An independently authored alternate-part/prefix programme passes120rebuilt native snapshot/resource/orderedSDK/actualCLI/orderedCLI observations across Strict/Transitional DOCX/DOTX and UTF8/UTF16LE/UTF16BE, including exact paths/scalars, source/destination, codec/BOM and no-op member/relationship retention. The actual built native-depth CLI screenshot was visually inspected. Explicit raised capacities are documented; no default-quota or full-family claim. The expanded current269-file cohort is pending; all ten families remain open.
+
+Current native-depth regression (2026-09-21): [exact receipt](review-resource-contract-20260921/current-native-depth-expanded-receipt.json) passes49,484assertions in269exact maintained uncached serial files, zero failures/skips; source/compiled/selected membership hashes verified. This clears the current bounded whole-family/dependency regression gate, including unchanged tracked review deadlines. Six new original outside-cohort note/logical-anchor/fanout/alias suites are executing against the same unchanged build and have zero passing credit pending receipts. All ten requested complete families remain open; no push/publication.
+
+Final comment-domain follow-up (2026-09-21): [exact19-file receipt](review-resource-contract-20260921/comment-story-domain-settled-fixed-current-receipt.json) passes1,109assertions with zero failures/skips and exact source/build/membership hashes. Original memfs witnesses cover logical nonempty anchors, normal/shared notes, native fanout/depth, duplicate note/glossary ownership, inert customXML and independent native document domains. [Independent108case native census replay](review-resource-contract-20260921/comment-existing-census-native-independent-qualified-current-receipt.json) and [288case note replay](review-resource-contract-20260921/comment-note-native-independent-domain-settled-current-receipt.json) pass every original form/codec/route after the shared-domain implementation. The original108case cohort failed24output observers at the defaultZIPentry ceiling; its failed receipt is preserved and qualified separately, with no depth/profile/case reduction. Latest expanded gate and exact complete-family reconciliation remain pending; all ten families remain open. No push/publication.
+
+Standard-native glossary and comment endpoint qualification (2026-09-21):
+The earlier eight glossary fixture cases used a nonstandard content type and earn
+zero standard-native glossary credit. Their original sources and qualification
+remain retained. The corrected standard `document.glossary+xml` cases reproduced
+eight original memfs ownership failures, and an independent programme reproduced
+36 native failures before the package-domain census repair. All original variants
+now pass in the [final23-file dependency gate](review-resource-contract-20260921/comment-active-domain-settled23-final-current-receipt.json):
+2,730 passed, zero failed/skipped, exact source/build/membership hashes verified.
+The original131,072-node final-run fanout exceeded its unchanged five-second
+deadline in the preceding22-file gate; that failed gate receives zero gate credit.
+The active endpoint extent repair retains physical source/opaque-writer guards;
+all24 original count/form/route/deadline variants now pass. All64 qualified
+note-field owner cases pass: syntactically balanced prior fields preserve selected
+ordinary note comments; malformed fields atomically reject at their actual public
+preflight phase. Invalid success and category assumptions are preserved separately
+with zero product-defect credit. [Six final native campaigns](review-resource-contract-20260921/current-status.json)
+pass against the final source/build for note/depth/census/standard-glossary,
+core datatype QName and settings depth. Counts overlap units and are not summed.
+
+Exact researched feature scenarios (2026-09-21):
+[Named216 current passing assertions](review-resource-contract-20260921/review-feature-exact-public-named-evidence.json)
+bind all18pinned feature identities R1637/R1657–R1673 to their full expanded
+states, defaults and transitions across Strict/Transitional DOCX/DOTX and direct
+public model, ordered SDK and actual opt-in CLI. They distinguish present/absent
+parts, zero/four comments, four-object iteration, stored-ID2 lookup, all15typed
+core keys/default metadata and every native Boolean transition. Exact no-op
+archives, dirty-part trivia, nondirty payload/relationship retention and source
+preservation are asserted. Original216behavior passes and the test-only type
+inference failure are retained separately; the explicit type annotation changes
+no behavioral case or product implementation. Maintained package lint/types pass.
+The preserved354-file broader gate and six remaining native programmes are
+executing. Every requested complete-family entry remains open until exact
+normative/public/source/carrier/variant/cross-family closure; no push/publication.
+
+Broader current regression result (2026-09-22):
+The preserved [354-file gate](review-resource-contract-20260921/current-comment-domain-expanded354-final-current-receipt.json) completed with57,193passed, zero failed/skipped, and exact source/compiled/executed membership hashes verified. All24original native fanout cases retain their counts and5000msdeadlines (maximum4073.65ms). The six queued independent native programmes also pass their exact15,360/3,364/2,688/696/336/292observations against that settled build. These bounded results do not close complete families. Six newly authored edge suites (540cases) and the maintained command dependency are executing before any new repair; physical fanout, ordered grammar, raw customXML and returned-part/style retention variants remain unverified. The clause reconciliation draft is mapping-only. Every requested family remains open; no push/publication.
+
+Native comment guard dependency qualification (2026-09-22): [named current evidence](review-resource-contract-20260921/comment-native-guards-named-current-evidence.json) binds all 192 maintained cases and 384 independent compiled variants for selected opaque-body and outside-author ownership guards. Original native failures survive: 144 selected-body failures, then 96 newly reachable modern-attribute failures after the first repair, and 16 outside-author failures with exact RangeError stacks. Iterative physical traversals preserve preorder, ownership, attribute conditions, per-node work and atomic rejection semantics, with bounded pending-reference reservations. All qualified native forms and codecs return unsupported-edit before publication for opaque selected bodies; safe modern removal deletes only verified comment/thread/person entries while unknown outside author ownership rejects and retains metadata. The original unsupported metadata content type and readonly fixture assignment are separately qualified. This closes these named dependencies on the recorded build only. The original property/style deadline failures, preserved 372-file union, remaining independent replays and complete ten-family reconciliation remain open; no push or publication.
+
+Current rich-comment user edge execution (2026-09-22):
+[named workflows](review-resource-contract-20260921/comments-expanded-workflows-named-evidence.json)
+add all thirteen complete expanded source scenarios R1618–R1630 through156
+Strict/Transitional DOCX/DOTX model/SDK/actual CLI variants. Stored/read-only
+identities and Date ownership, default/selected styles, returned paragraph
+equality, single Picture Drawing and exact owned extracted bytes are asserted.
+The initial96 source identities remain preserved. Three additional
+[returned-source identities](review-resource-contract-20260921/review-returned-source-identities-named-evidence.json)
+pass36 variants: cached core-property/part ownership and exact ID42 run anchoring;
+private helper mechanics have a specific observable mapping, no invented API.
+
+[Drawing native-depth evidence](review-resource-contract-20260921/comment-drawing-native-depth-named-evidence.json)
+retains24 original native main-stack failures and24 shallow passes. All48
+originals pass after iterative package-domain traversal, with original depths,
+limits, cases and deadlines unchanged. Current focused dependencies pass1729
+cases/15files;432 independently compiled native observations pass across all
+three encodings, both dialects/kinds, admitted depths and absent/embedded/linked
+pictures. Read-only CLI publication options reject; source, forced destination
+and all untouched member/relationship bytes remain exact. The inspected
+[terminal image](review-resource-contract-20260921/comment-drawing-terminal-20260922.png)
+shows a readable zero-change batch and neutral missing-image diagnostic.
+Historical authored context/publication/type failures are separately qualified.
+
+The preserved417-file gate passed67121 cases with zero failures/skips and exact
+hashes before the Drawing repair. Its predecessor build is not promoted as the
+new complete-family build. All seventeen native programs and the additive427-file
+gate, actual shell boundary and root opt-in/browser checks are being replayed.
+All F25–F30/F41–F43/F47 complete-family entries remain open; overlapping counts
+are not summed. No push or publication.
+
+Additional native control/resource edge execution (2026-09-22):
+The preserved427-file gate completed68,503passes/1failure/0skips with exact
+source/compiled/membership hashes. Its original signature-fanout CLI deadline
+failure remains historical failed-gate evidence; an unchanged32-case replay
+passed. Neither receipt qualifies a complete family.
+
+[Closed control snapshot repair](review-resource-contract-20260921/control-snapshot-null-repaired-named-evidence.json)
+retains all96 original unsupported-picture scalar leaks. All96 now pass across
+fourforms/threeencodings/eight source-native direct/ordered SDK/actual CLI routes.
+The package reset preserves logical-text traversal/accounting and typed picture
+reasons; a failed verified occurrence exposes null. The same current receipt
+binds480 qualified internal-signature UTF16LE cases. Selected maintained build
+and DOCX lint/types passed. The visually inspected terminal image is recorded
+separately; terminal font lacks the sample CJK glyph, so that glyph is not visual
+fidelity evidence. Source/destination retention and expected undeclared get-route
+usage/status2 are independently asserted.
+
+[Finite-double exact JSON evidence](review-resource-contract-20260921/binding-finite-exact-transport-named-evidence.json)
+passes480 retained MAX_VALUE/MIN_VALUE/nonfinite scenarios. The48 MAX_VALUE CLI
+routes independently reject the original short integral token that would round,
+then accept its exact integer decimal transport. Original432passes/48authored
+transport-observer failures survive. The contract's integer precision guard is
+unchanged; no product parser defect is claimed.
+
+[Closed native-codec resource evidence](review-resource-contract-20260921/closed-review-ancillary-settings-native-codecs-named-evidence.json)
+passes660 original protocol variants across UTF8/UTF16LE/UTF16BE. Exact comment/
+revision/ancillary/settings fields, current owner tokens, date provenance,
+owner-local XML-order references and redaction are independently compiled-native
+executions. Conditional generic control ResourceDetails fields retain a specific
+[applicability rationale](review-resource-contract-20260921/control-generic-resource-details-conditional-applicability-current.json);
+they are not fabricated snapshot fields or vacuous runtime passes.
+
+Scalar784, picture144, external signature576, binding selector/cache5280,
+repeat values5184, native font352, native scalar property1084 and native control/
+binding/repeat/template carrier912 companions have exact individually named
+passing receipts on their recorded builds. Overlapping observations are not
+summed as unique requirements. The current picture-repaired product is undergoing
+all17 preserved native programmes, actual shell/opt-in checks and the443-file
+additive regression gate. Four later native-codec files and a strengthened
+main-process revision-depth384-case companion are outside443; they require their
+own passing receipts and the next dependency replay. Allten complete-family
+entries remain open until semantic requirement/source/variant closure. No push
+or publication.
+
+Effective ancestor override qualification (2026-09-22): the new original4608
+revision cases exposed768 false refusals when a selected known whitespace policy
+overrode an unknown unselected ancestor. The final package repair resolves the
+complete effective inherited map before validation. The unchanged4608 replay and
+DOCX lint pass; exact receipt is
+`review-resource-contract-20260921/revision-inherited-effective-ancestor-repaired-current-receipt.json`.
+The fresh eighteen-native/shell/opt-in/preserved457 replay remains pending. All ten
+family entries remain open; historical failed and terminated cohorts are retained.
+
+Current live-part and native evidence dependencies (2026-09-22):
+The [6,672-case current replay](review-resource-contract-20260921/settings-comment-part-root-alias-iterative-originals-repaired-current-receipt.json)
+passes with zero failures/skips and exact source, compiled and executed membership
+hashes. It retains the original settings root144, classic collection216, modern
+raw metadata3456, body/ownership and synchronized utility/core predecessors.
+Root aliases retain unchanged expanded root identity; overlapping descendants
+may detach. Preserve-only modern raw edits reject atomically, while exact no-ops
+and isolated classic/inert edits retain their supported behavior. Maintained
+selected build and DOCX lint/types pass. Original stale-handle and mutation-guard
+failures remain archived.
+
+The [whole-part encoding companion](review-resource-contract-20260921/ancillary-whole-part-codecs-runtime-types-qualified-current-receipt.json)
+passes all384 original source/authenticated compiled-native direct/ordered SDK
+and actualCLI cases, both dialects/kinds and three byte-verified XML encodings.
+Earlier ancillary UTF16 labels covered late-added UTF8 parts; those mixed-encoding
+receipts retain their precise historical meaning and supply no homogeneous target
+part encoding credit. The type-only runtime selector qualification preserves all
+assertions and scenarios. No product change was needed for the new variants.
+
+[Exact public review read views](review-resource-contract-20260921/review-exact-public-views-unique-row-ids-qualified-current-receipt.json)
+pass all2016 observations, with complete original/final/all text, segment order,
+current/original formatting, zero-effect read envelopes, retained destinations
+and byte-identical public model save. Moves, nested changes, opaque prose, row
+and paragraph marks run in source/compiled public SDK and actualCLI routes across
+both forms/kinds/all encodings. The original288 row save failures are preserved:
+[public validation](review-resource-contract-20260921/review-exact-public-views-original-row-fixture-validation-current.json)
+identifies duplicate authored row revision IDs; distinct IDs qualify the fixture
+without changing product behavior, expected views or case count.
+
+Maintained repository ESLint passes with zero errors/19 warnings. The inspected
+[current native terminal image](review-resource-contract-20260921/modern-settings-live-cli-screenshot-current.png)
+shows preserve-only refusal and successful retained Settings alias mutation.
+The sequential18 native programmes, actualShell91, root explicit-opt-in2 and
+complete declaration-derived969-file maintained DOCX lifecycle remain pending.
+Every requested complete-family entry remains open until current exact semantic,
+public/source/carrier/variant and cross-family reconciliation. No push/publication.
+
+Current frozen review/property continuation (2026-09-23): the declaration-derived
+1,000-file numeric-work-qualified DOCX lifecycle is still executing. Its partial
+file reports provide no complete-gate credit. The 41 authenticated native
+programmes (one serial original56-deadline programme and40 pooled programmes),
+actual Shell/codec/root checks, maintained Shell runner, exact requirement binding
+and four fresh CLI screenshots remain guarded behind complete successful
+settlement. The unchanged995 predecessor test hashes and original5000ms deadlines
+remain required.
+
+Two additional property evidence gaps remain open: homogeneous codec execution
+of every original1084 numeric-width/native-ID callback, and independently
+enumerated lower/finite numeric boundaries. The [8,672-case companion preparation](review-resource-contract-20260921/property-width-all-codecs-companion-preexecution-20260923.json)
+and [6,528-case lower/finite preparation](review-resource-contract-20260921/property-lower-finite-all-codecs-preexecution-20260923.json)
+retain the complete original scalar callback bodies, both source/actual compiled
+APIs, both dialects/kinds, SDK/actual opt-in CLI and four genuine whole-package
+codecs. Neither programme has executed. Syntax/descriptor preparation is zero
+passing evidence; any product failure requires an original maintained failing
+memfs regression before repair and dependent replay. The [QA procedure](../plans/docx-owned-location-minting-qa-20260922.md)
+requires exact named runtime binding and actual PNG inspection before final
+substantive certification. All ten complete-family entries remain open; no push
+or publication.
+
+Latest active1000-file observation: the [unchanged original24 comment-range fanout file](review-resource-contract-20260921/numeric-work-qualified-full-comment-range-partial-original-red-20260923.json)
+has reported three genuine original5000ms deadline failures. The campaign remains
+frozen through complete settlement and has zero passing-gate credit. Its guarded
+native/public/property successors must refuse execution. All original cases and
+deadlines remain required; the next qualified complete lifecycle must explicitly
+audit this24-case file alongside the seven existing finite-deadline cohorts.
+
+Complete numeric-work-qualified lifecycle settlement (2026-09-23): the exact maintained uncached1000-file run settled266430passed/3failed/0skipped with all4782 frozen source/helper/compiled/declaration identities and unique executed membership verified. Required posttest did not execute. Independent complete JSON audit retains all eight original finite5000ms cohorts: seven pass, original comment-range fanout24 remains failed (three timeouts5116.647583/5181.506250/5272.089500ms). Receipts: `review-resource-contract-20260921/numeric-work-qualified-full-docx-current-20260923-receipt.json`, `numeric-work-qualified-full-docx-current-20260923-complete-full-and-original-deadline-audit-20260923.json`, and `numeric-work-qualified-failed-epoch-successor-refusal-and-waiter-stop-20260923.json`. The full gate has zero passing credit; the native successor refused without execution, and postchain/property supplement waiters were stopped without domain execution. Original24 maintained focused reproduction and exact parent/child callback profiling follow under frozen identities; no changed deadline, erased case, partial acceptance, push or publication. Allten families remain open.
+
+Executed first-anchor preflight and property-width supplementation (2026-09-23): qualified original104 reproduces64 allocation-precedence failures and includes32 full-capacity existing opaque-refusal controls; bounded physical first-run review-model guard restores unsupported-edit before comment/relationship/style allocation. Current128 (including unchanged original24 fanout), neighboring1561 and typed current512 SDK/actual opt-in CLI cases pass with their required posttests and frozen identities. Current2496 original property width/native64 model/SDK/CLI cases pass+posttest2 after supplying contract-required explicit Date/author to the unrelated model core-metadata creation probe; original832 context failures retained. Every1000 predecessor test source remains unchanged; fresh maintained1003 membership is discovered. Exact native52/416/typed256/property1248 companions are prepared and unexecuted, alongside required8672/6528 property supplements. Failed full1000/three original comment deadlines and every historical source/result remain retained. All F25–F30/F41–F43/F47 complete-family entries remain open pending fresh complete lifecycle, all eight original deadline cohorts, native/Shell/codecs/visual and substantive exact requirement certification. No push/publication.
+
+
+Current comment ownership/carrier/field dependencies (2026-09-23): the original
+12,672 utility/later-owner cases reproduced 6,016 failures; original 4,704 active
+carrier cases reproduced 2,880 failures. Original inactive-field campaigns retained
+512 begin-token false positives, 512 end-token false negatives and 512 passing
+hidden-marker controls. Exact failed-name cross-products and raw traces are retained
+under `review-resource-contract-20260921`. Repairs preflight every selected logical
+model run before allocation, check comment-only utility physical fidelity before
+insertion charging, retain active logical carrier paths, and change field depth
+only for projected active tokens. Raw hidden comment references still prevent edits;
+supported unselected model siblings remain supported.
+
+The [current focused lifecycle](review-resource-contract-20260921/comment-owner-carrier-inactive-fields-maintained-focused-current-20260923-receipt.json)
+passes 21,549 cases in 29 files plus required posttest 2 with exact frozen identities.
+Maintained selected DOCX build and lint/types pass, with seven retained lint warnings.
+The [independent assertion/domain review](review-resource-contract-20260921/comment-owner-carrier-independent-assertion-domain-review-20260923.json)
+records source/oracle inspection only. Complete declaration-derived 1,008-file
+validation retains every predecessor 1,003 test hash and the five unchanged new
+originals. Current full settlement, eight original finite 5,000ms cohorts, 50 native
+programmes, dependent Shell/opt-in/codecs/lint, eight inspected CLI visuals,
+8,672/6,528/2,240 property supplements and substantive exact requirement certification
+are pending. Focused totals and mapping supply no complete-family acceptance.
+All ten requested families remain open. No push or publication.
+
+
+Current 1,008-file campaign failure observation (2026-09-23): the unchanged
+288-case `repeat-template-admitted-native-table-depth-public.test.ts` reports
+286 passes and two genuine original 5,000ms deadline failures, both admitted
+2,048-level native UTF16LE DOTX paths (`controls.repeat` native CLI Transitional;
+`template.apply` native SDK batch Strict). Rounded reporter times are 5,006/5,028ms;
+final exact JSON and complete settlement remain pending. The
+[original partial report](review-resource-contract-20260921/comment-owner-carrier-qualified-full-table-depth-partial-original-red-20260923.json)
+retains exact names, raw output and all 4,790 frozen identities. The full gate has
+zero passing credit and its native/public/property successors must refuse.
+Sources remain frozen through settlement; no deadline/capacity/assertion/case is
+changed. The separately prepared special-note anchor candidate has zero executed
+cases and remains a hypothesis. All ten families remain open; no push/publication.
+
+Current comment-owner/carrier epoch settled on 2026-09-23: `review-resource-contract-20260921/comment-owner-carrier-qualified-full-docx-current-20260923-receipt.json` records exactly1,008 files,288,455 passes,2 failures,0 skipped and current frozen source/helper/compiled/declaration/executed-membership identity verification. Required posttest did not run after the failed maintained lifecycle. The independent complete-result audit `comment-owner-carrier-qualified-full-docx-current-20260923-complete-full-and-original-deadline-audit-20260923.json` retains both exact original table names, failure traces and durations; seven other original finite5,000ms cohorts pass. The full gate has zero passing credit. Native guard refused before driver launch; all four proven owned idle waiters settled143 with zero domain execution (`comment-owner-carrier-qualified-failed-epoch-successor-refusal-and-waiter-stop-20260923.json` and completion receipt). Unchanged table288 reproduction and original special-note2048 campaign are running/queued sequentially through maintained exact-file selection, not yet passing evidence. Alltenfamily entries remain unresolved.
+
+Current special-note/parser-cooperation repair has bounded evidence only: selected maintained build and DOCX lint/source/test types exit0 (seven retained warnings), then unchanged37-file23,801-case focused lifecycle and both required posttests pass with current source/compiled/helper/declaration hashes independently verified. The unchanged original special-note2,048 case source is retained after1,536 genuine original failures; normal-note512 positive controls remain. Shared focused reporter supplies no passing named durations, so none are fabricated. [Current focused audit](review-resource-contract-20260921/special-note-parser-cooperation-maintained-focused-current-independent-audit-20260923.json) does not certify complete F25–F30/F41–F43/F47 families. Original table288 current5,000ms lifecycle is running; fresh declaration-derived1,009-file full/51native/public/Shell/codecs/ninevisual/property/substantive epoch remains mandatory. Alltenfamilies stay open; no push/publication.
+
+Current original table deadline settlement (2026-09-23): unchanged288 maintained cases settle284pass/4 genuine5,000ms timeouts, all Transitional DOTX depth2,048 template.apply: UTF16LE native-cli-batch and UTF16BE native-sdk/native-sdk-batch/native-cli. Required posttest unexecuted; dependent full never launched after gate refusal. Four isolated original-child profiles pass their observations diagnostically but receive zero maintained deadline or acceptance credit. Prepared full/native/public/visual/property epoch remains unexecuted; alltenfamilies remain open. Exact failures retained in `special-note-cooperation-qualified-table288-original-maintained-current-20260923.log`; no passing named durations are inferred.
+
+Bounded XML normalization attempt (2026-09-23): original unprofiled table284/4 red is preserved. Original88 memfs parser controls pass before repair; additive84 dense-line-ending controls also pass before bounded refinement. Current root-owned XML/WebDAV/S3 uncached285+posttest2, selectedDOCXbuild, safe-fs types and DOCXlint/types pass exact frozen source hashes (seven existing warnings). Isolated balanced diagnostics show12.85% lower nested-parser median and6.49% higher dense-line median; no diagnostic deadline/family credit. Fresh38-file23,965 focused then unchanged original288 unprofiled deadline lifecycle is running. Alltenfamilies remain open; broader root/shared checks and complete full/native/public/ninevisual/property/substantive epoch unexecuted. No push/publication.
+
+Current bounded allocation gates settle green (2026-09-23):38 files/23,965 passes plus posttest2, then unchanged original288 five-second table cases plus posttest2 pass, with current source/compiled/helper/declaration identity independently verified. Shared reporter supplies no exact passing named durations; full JSON eight-cohort audit remains required. Original284/4 and all profiling histories remain retained. New classic model-body/special-note anchor boundary3072 originals are installed unchanged and running; native companion/broader root/shared/full/public/visual/property/substantive closure remains unexecuted. Alltenfamilies open, no push/publication.
+
+Current classic live body boundary settled (2026-09-23): unchanged original3,072 model/publicSDK/actual typed opt-in CLI cases plus requiredposttest2 pass, current frozen source/compiled/helper/declaration identities verified. No new product defect found: body-only edits retain existing special-note anchors and unsafe utility classification. Original1,536 compiled-native callbacks are prepared with exact type-erased callback equality and independent source/compiled namespaces, not executed. Fresh maintained1,010-file membership preserves every1,008 predecessor hash and both original additions. Complete full/eight original5,000ms/native52/Shell/codecs/ninevisual/property/broader shared/substantive certification remain pending; alltenfamilies open. No push/publication.
+
+Additive signature closed-details candidate (2026-09-23): original640 draft independently covers required signature `parts` metadata arm across both public runtimes/forms/kinds/fourcodecs/direct-orderedSDK/actualCLI, with native/generic-target/unrecognized well-formed root positives and external/inert controls. Current schema/implementation emits role/verified without parts, whereas compound resource details are closed and signatures3118–3123 requires part descriptors. This is source/contract evidence only, zero bug/pass credit until execution after current1,010-file full settles unchanged. Idle owned native waiter stopped143 before any domain launch. Alltenfamilies remain open; no push/publication.
+
+Additive signature graph/schema candidate (2026-09-23): original512 draft covers complete origin/certificate/signature graphs, generic and unrecognized signature XML and canonical encoded identities across both runtimes/forms/kinds/four codecs/direct-ordered SDK/actual CLI. Exact public closed schemas precede graph assertions, so an early schema failure cannot certify downstream graph execution. Native320/256 companions preserve exact original callbacks after type erasure and independent runtime imports; syntax checks supply zero runtime credit. Original product/schema/formatter and all three role-observer sources are preserved before candidate execution. Both original campaigns wait sequentially for the current frozen full run. All ten families remain open, including all ten pending CLI visuals and broader shared checks. No push/publication.
+
+Current additive signature scope (2026-09-23): six sequential original campaigns640→graph512→binary128→cumulative128→owner-order256→native-Word256 are prepared and queued after the frozen1,010-file full settlement, totaling1,920 new cases with zero runtime credit. Arbitrary binary certificates, exact cumulative match capacity/exit4 rejection, canonical inventory owner versus relationship XML order, original/reversed ZIP layout and native Word main/orphan-settings read/strip-refusal interactions have explicit original assertions. Static-only graph cast and contract exit4 draft corrections preserve every case and their initial unexecuted versions. Prepared native320/256v2/64/64v2/128/128 retain exact type-erased original callbacks. Fresh AST preflight retains all51 old pooled programs plus six additions:57pooled plus serial56,58total programs/62driver stages; all126 original clauses remain before four additive clauses, and allten prior CLI visuals remain before the eleventh signature visual. Membership/three-observer qualification/build/focused/full/native/public/visual/property/broader shared/substantive gates remain unexecuted. Initial operational count-error history is preserved. Alltenfamilies remain open; no source repair, staging, commit, push or publication from preparation.
+
+
+The model-body epoch settled on2026-09-23 with exactly1,010 files/293,576passes/1failure/0skips and authenticated frozen source/compiled/helper/declaration/executed membership. All eight original finite5,000ms cohorts passed the independent complete-result audit. The original settings72 StrictDOTX/depth4096/actualCLI/raised-capacity case timed out at5,000ms (actual5,259.272333999164ms), failing the maintained lifecycle; required posttest did not run. Complete passing-gate credit is zero. All six original signature campaigns and unchanged settings72 reproduction must settle before repair; current exact failures/controls require independent contextual validation. Every F25–F30/F41–F43/F47 family remains open, including this newly discovered settings performance dependency. Evidence: `review-resource-contract-20260921/model-body-qualified-full-docx-current-20260923-receipt.json` and `model-body-qualified-full-docx-current-20260923-complete-full-and-original-deadline-audit-20260923.json`.
+
+Current bounded signature/settings replay (2026-09-23): selected maintained build and DOCX lint/source/test types pass (seven retained warnings). Fresh declaration-derived16-file4,284-case signature14/settings72/JSON50 replay plus requiredposttest2 passes with exact source/compiled/helper/declaration/test hashes verified. Separate unprofiled authenticated compiled-native settings72 executes every unchanged original callback/name/form/kind/depth/capacity/route under finite original5,000ms deadlines; maximum555.546791ms. These bounded greens do not erase the retained failed1,010-file gate. Fresh maintained1,017-file complete lifecycle is running; all eight original deadline cohorts plus settings72 remain required. Native57pooled plus retained serial56/additive serial72, all11actualCLIvisuals/property supplements/broader maintained root checks and substantive certification remain unexecuted. Evidence: `review-resource-contract-20260921/bounded-json-signature-settings-current-maintained-focused-20260923-receipt.json` and `bounded-json-current-original-settings72-unprofiled-native-20260923-helper-closure-receipt.json`. Alltenfamilies remain open; no push/publication.

@@ -10,6 +10,101 @@ Append at most 8 lines per implementation attempt. Keep each unresolved behavior
 with its task ID, exact defect, check/result, owned WIP and a concrete next action.
 A parked task or completed attempt does not establish product acceptance.
 
+- 2026-09-23 `checkpoint-removal-native-hyphens`: VERIFIED bounded improvement; F44 requirement OPEN. Selected defect: scalar removal skipped native nonbreaking/soft hyphens, deleting trailing text instead.
+  Change: count both native hyphens as Unicode scalars in the shared removal editor; original memfs SDK/CLI regressions verify exact text, retained formatting, collapsed result locations and unchanged input.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/removal.test.ts` — red: 2 failed/31 passed; sole rerun: exit 0, 33 passed plus 2 automatic posttest passes; no timeout.
+  Focused lint: `gtimeout --signal=INT --kill-after=10s 180s npm exec -- eslint packages/docx/src/removal.ts packages/docx/src/removal.test.ts` — exit 0; diff whitespace check passed. No CLI presentation change.
+  Duration: approximately 3 minutes total; selected Vitest runs 2.25s / 1.86s. No broad suites, native/render matrices, shared-infrastructure changes or evidence-index rebuilding.
+  Local commit: `2f2c31eb94e079f701434d2c85d0ba930d6766ca`; only the two verified DOCX files committed. Owned WIP: this receipt only; unrelated edits preserved, DOCX remains opt-in, no push or publication.
+  Remaining: F44 product acceptance and broader removal/sanitization obligations remain OPEN and deferred; no new active task or automatic retry.
+
+- 2026-09-23 `checkpoint-image-mutation`: VERIFIED bounded improvement; F32 requirement OPEN. Selected defect: `images.add` rejected admitted GIF/BMP/TIFF after successful raster characterization.
+  Change: remove the redundant PNG/JPEG-only guard; six original memfs SDK/CLI regressions verify saved bytes, MIME/suffix coherence, native dimensions and unchanged inputs. DOCX stays opt-in; unrelated edits preserved.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/images.test.ts --test-file=packages/docx/src/images-command.test.ts` — red: 6 failed/39 passed; sole rerun: exit 0, 45 passed plus 2 automatic posttest passes; no timeout.
+  Focused lint: same 180s supervisor with `npm exec -- eslint packages/docx/src/image-insertion.ts packages/docx/src/images.test.ts packages/docx/src/images-command.test.ts` — initial require-yield failure; comment-only fixture justification; sole lint rerun exit 0. Diff whitespace check passed.
+  Duration: approximately 4 minutes total; selected Vitest runs 2.54s / 2.85s. No full suites, native/render matrices, evidence rebuild or shared-infrastructure work.
+  Local commit: `693575e63338005f1421ec7ccb68491534bbacf4`; only the three verified DOCX files committed. Owned WIP: this receipt only in `docs/plans/docx-deferred-audit.md`; no push or publication.
+  Remaining: F32 acceptance and floating insertion remain OPEN; floating insertion still explicitly rejects. Any further implementation or qualification requires a separate bounded task; no automatic retry or new active task.
+
+- 2026-09-23 `checkpoint-comments-active-anchors`: PARKED / no-change; F25 requirement OPEN. Selected behavior: reject opaque comment-anchor ownership before allocation through SDK/CLI batches.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements preflight; no remaining defect reproduced. No product code changed or existing edits adopted.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/comment-anchor-opaque-preflight-sdk-cli-public.test.ts` — exit 0; 512/512 selected tests passed; automatic posttest also passed (2 tests).
+  Duration: selected Vitest run 11.77s; complete maintained command approximately 61s; bounded attempt approximately 3 minutes.
+  Commit: none (no verified improvement to commit). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; existing package WIP preserved.
+  Remaining: `packages/docx/src/comment-anchor-active-creation-carriers-public.test.ts` inspected but unrun; creation-carrier behavior and broader F25 acceptance remain unverified here. Next action, only in a separately authorized bounded task: validate that existing creation-carrier file within its deadline; no automatic retry or family audit.
+
+- 2026-09-23 `checkpoint-revision-decision-depth`: PARKED / no product change; F26 requirement OPEN. Selected behavior: accept/reject an insertion containing admitted run-property depth (32/8192) through SDK/CLI and batch routes.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already has iterative selected-descendant traversal; existing edits and both original memfs test files preserved without adoption.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/revision-decision-selected-native-depth-public.test.ts` — exit 1; 192 source-route cases passed, 192 native-route cases failed, 96 unhandled `write EPIPE` errors; overall verification FAILED.
+  Duration: selected Vitest run 159.50s (test callbacks 154.77s); maintained command approximately 180s, exited with failure rather than timeout; bounded attempt approximately 5 minutes; no rerun.
+  Commit: none. Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no product, test, or shared-infrastructure edits.
+  Remaining defect: native subprocess routes fail and close stdin; underlying cause is undiagnosed, so native selected-depth behavior remains unverified. Unrun: `packages/docx/src/revision-decision-unrelated-native-depth-public.test.ts`; no separate lint/build route or broader checks.
+  Next action, only in a separately authorized bounded task: capture the first native child's stderr/exit cause and distinguish a DOCX defect from test/runtime infrastructure; park any shared-infrastructure fix separately. Broader F26 acceptance remains OPEN; no automatic retry, new active task, push, or publication.
+
+- 2026-09-23 `checkpoint-complex-review-variants`: PARKED; F27 requirement OPEN. Selected defect: accepting an inline insertion inside a table with unresolved `tblGridChange` publishes instead of refusing the affected edit.
+  Reproduced with the new original memfs test `refuses an inline revision decision affected by table-grid history without publishing`; SDK returned `changed: true` and published 1,755 bytes. The ancestor structural-property guard in `packages/docx/src/revision-decisions.ts` omits `tblGrid`.
+  Change: regression test only; no implementation, shared-infrastructure, opt-in, or unrelated edits changed. Owned WIP: the added single test in `packages/docx/src/review-complex-complete-variants-public.test.ts` and this receipt in `docs/plans/docx-deferred-audit.md`; pre-existing file content is unowned.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/review-complex-complete-variants-public.test.ts` — exit 1 on both permitted runs; each had 4,224 existing passes and one new failure, neither timed out.
+  First failure exposed an invalid inherited writer setting in the new fixture; the sole rerun corrected it and cleanly reproduced unexpected successful publication. Vitest durations: 96.66s / 102.63s; complete commands approximately 115s / 118s; bounded attempt approximately 6 minutes.
+  Commit: none; failing test remains uncommitted. Unrun: the new test's CLI assertions (SDK assertion stops execution), `packages/docx/src/review-native-timestamp-range-public.test.ts`, separate lint/build, screenshots, and broader qualification.
+  Next action in a separately authorized task: include table-grid history in the affected-decision guard and verify this regression through SDK/CLI; no implementation added because the one allowed rerun was exhausted. Other variants and family acceptance remain OPEN; no automatic retry, new active task, push, or publication.
+
+- 2026-09-23 `checkpoint-control-scalar-and-picture`: PARKED / no product change; F28 requirement OPEN. Selected behavior: picture-control replacement retains admitted run-property depth (32/8192), geometry, crop, alt text, placeholder definitions, old media and unrelated relationships through SDK/CLI and batch routes.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements iterative picture-occurrence traversal; no remaining defect reproduced in the selected behavior. Existing product/test edits preserved without adoption; DOCX remains opt-in.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/picture-control-retained-native-depth-public.test.ts` — exit 0; 512/512 source/compiled cases passed; automatic posttest also passed (2 tests); no rerun.
+  Duration: selected Vitest run 119.41s (callbacks 115.89s); complete maintained command approximately 150s; bounded attempt approximately 4 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no implementation, test or shared-infrastructure changes.
+  Remaining: scalar trivia retention is unverified here; `packages/docx/src/control-scalar-trivia-original-public.test.ts` and its implementation were inspected but that file was unrun. No separate lint/build, screenshots, native matrices or broader qualification ran.
+  Next action, only in a separately authorized bounded task: validate the existing scalar-retention behavior within its deadline and fix only a reproduced defect. Broader F28 acceptance remains OPEN; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-repeat-native-depth`: PARKED / no product change; F29 requirement OPEN. Selected behavior: admitted nested native table repetition at depths 1/1024/2048 through controls.repeat/template.apply SDK/CLI and batch routes.
+  Original memfs check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/repeat-template-admitted-native-table-depth-public.test.ts` — exit 1; 288/288 failed, 192 unhandled EPIPE errors; no timeout or rerun.
+  Diagnosis: the original child's imports alone fail with ERR_MODULE_NOT_FOUND for `node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js`, imported by `packages/safe-bash/dist/core.js`; the same 180s-supervised import-only probe exited 1 in 0.63s. Native repetition behavior is unverified; no DOCX product defect established.
+  Duration: selected Vitest run 105.88s (callbacks 103.81s); complete maintained command approximately 119s; bounded attempt approximately 3 minutes.
+  Commit: none. Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; existing implementation and both starting test files preserved without adoption. No product, test, shared-infrastructure or opt-in changes.
+  Unrun: `packages/docx/src/repeat-template-native-physical-depth-public.test.ts`, separate lint/build, screenshots and broader qualification. No logs created because `/out` is read-only; failed redirection did not start a test.
+  Next action, only in a separately authorized task: repair the shared native runtime artifact/dependency resolution outside this DOCX pass, then validate the original admitted-depth file. Shared-infrastructure work and broader F29 acceptance remain deferred; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-property-native-scalars`: PARKED / no-change; F30 requirement OPEN. Selected behavior: unknown custom variants matching inherited object keys remain opaque, reject typed mutation, and retain their native payloads.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already guards integer-variant lookup with `Object.hasOwn`; no remaining defect reproduced. Existing product/test edits preserved without adoption; DOCX remains opt-in.
+  Original memfs check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/property-inherited-native-variant-public.test.ts` — exit 0; 408/408 source/compiled cases passed; automatic posttest also passed (2 tests); no rerun.
+  Duration: selected Vitest run 27.95s (callbacks 21.84s); complete maintained command approximately 75s; bounded attempt approximately 2 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no implementation, test or shared-infrastructure changes.
+  Unrun: `packages/docx/src/property-width-mutation-and-native64-public.test.ts` was inspected; width/native64 behavior, separate lint/build, screenshots and broader qualification were not checked. No logs created because `/out` is read-only; failed directory creation did not start a test.
+  Next action, only in a separately authorized bounded task: validate the existing width/native64 behavior within its deadline and fix only a reproduced defect. Broader F30 acceptance remains OPEN; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-ancillary-xml-boundaries`: PARKED / no-change; F41 requirement OPEN. Selected behavior: raw custom XML replacement admits unbound items, rejects changed bound items/properties/declarations, and retains unchanged bytes through SDK/CLI.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements the selected guards; no remaining defect reproduced. Existing implementation and original memfs tests preserved without adoption; DOCX remains opt-in.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/raw-custom-xml-boundaries-public.test.ts` — exit 0; 80/80 selected tests passed; automatic posttest also passed (2 tests); no rerun.
+  Duration: selected Vitest run 7.47s (callbacks 1.70s); complete maintained command approximately 51s; bounded attempt approximately 2 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no product, test or shared-infrastructure changes.
+  Unrun: `packages/docx/src/binding-signature-resource-ordered-batch-public.test.ts` was inspected; its ordered-batch behavior, separate lint/build, screenshots and broader qualification were not checked.
+  Next action, only in a separately authorized bounded task: validate the existing ordered binding/resource behavior and fix only a reproduced defect. Broader F41 acceptance remains OPEN; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-settings-native-carriers`: PARKED / no product change; F42 requirement OPEN. Selected behavior: native settings boolean whitespace reads preserve supported values, unsupported spellings and original package bytes through SDK/CLI and batch routes.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements the selected lexical handling; no remaining defect reproduced. Existing implementation and original memfs tests preserved without adoption; DOCX remains opt-in.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/settings-native-boolean-whitespace-public.test.ts` — exit 0; 1,440/1,440 selected tests passed; automatic posttest also passed (2 tests); no rerun.
+  Duration: selected Vitest run 26.42s (callbacks 20.77s); complete maintained command approximately 75s; bounded attempt approximately 2 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no product, test or shared-infrastructure edits.
+  Unrun: `packages/docx/src/settings-native-depth-public.test.ts` and its implementation were inspected; native depth behavior, separate lint/build, screenshots and broader qualification were not checked here.
+  Next action, only in a separately authorized bounded task: validate existing native-depth behavior within its deadline and fix only a reproduced DOCX defect; park shared-infrastructure findings separately. Broader F42 acceptance remains OPEN; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-signature-graph-retention`: PARKED / no-change; F43 requirement OPEN. Selected behavior: signature inventories use canonical owner order and each owner's XML relationship order independently of ZIP member order through SDK/CLI and batch routes.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements owner sorting; no remaining defect reproduced. Existing implementation and original memfs tests preserved without adoption; DOCX remains opt-in.
+  Check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/signature-relationship-owner-order-public.test.ts` — exit 0; 256/256 source/compiled cases passed; automatic posttest also passed (2 tests); no rerun.
+  Duration: selected Vitest run 15.57s (callbacks 9.89s); complete maintained command approximately 55s; bounded attempt approximately 2 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no product, test or shared-infrastructure changes.
+  Unrun: `packages/docx/src/signature-graph-closed-parts-public.test.ts` was inspected; closed graph metadata, separate lint/build, screenshots and broader qualification were not checked here.
+  Next action, only in a separately authorized bounded task: validate the existing closed graph metadata behavior and fix only a reproduced DOCX defect. Broader F43 acceptance remains OPEN; no automatic retry, new active task, push or publication.
+
+- 2026-09-23 `checkpoint-template-ordered-batches`: PARKED / no-change; F47 requirement OPEN. Selected behavior: ordered template/control edits expose typed staged results and publish once, while a later failure preserves the destination through SDK/CLI.
+  Current dirty main at `4ff4eca9198c246365122aef7ae7bdfc2d752715` already implements the selected behavior; no actionable defect reproduced. Existing implementation/test edits preserved without adoption; DOCX remains opt-in.
+  Original memfs check: `gtimeout --signal=INT --kill-after=10s 180s npm test -- --no-cache --workspace=docx --test-file=packages/docx/src/ordered-batch-boundaries-public.test.ts --test-file=packages/docx/src/review-controls-ordered-batch-public.test.ts` — exit 0; 436/436 selected tests passed; automatic posttest passed (2 tests); no rerun.
+  Duration: selected Vitest run 8.63s; complete maintained command approximately 50s; bounded attempt approximately 2 minutes.
+  Commit: none (no owned product improvement). Owned WIP: this receipt in `docs/plans/docx-deferred-audit.md` only; no product, test, shared-infrastructure or opt-in changes.
+  Remaining: complete F47 template/ordered-batch requirements remain OPEN; this bounded passing check does not establish family acceptance. No separate lint/build, screenshots, schema/render/native matrices or broader qualification ran.
+  Next action, only in a separately authorized task: address a concrete remaining F47 report; no new defect or active audit task was manufactured. No automatic retry, push or publication.
+
 ## Deferred task register
 
 - `checkpoint-review-remaining-work`: Freeze the remaining review work into small checkpoints — deferred; original status preserved below.

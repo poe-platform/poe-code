@@ -992,7 +992,18 @@
     "maintainedFiles": 355,
     "maintainedTests": 13860,
     "publicFieldsEachSurface": 266,
-    "integratedGuardedLint": "incomplete2 checkout identity drift; stable rerun required",
+    "integratedGuardedLint": "Stable integrated candidate16407subjects/types/workflows passed;original incomplete2 attempt retained",
+    "publication": "unverified"
+  },
+  "byteStringSubstituteFollowup": {
+    "proof": "docs/ssconvert/byte-string-substitute-gap-proof.json",
+    "implementationCommit": "268233c63bb2c9366f2d1d6b5db2b685f954113c",
+    "remoteMainVerified": true,
+    "focusedTests": 956,
+    "maintainedFiles": 356,
+    "maintainedTests": 14168,
+    "publicFieldsEachSurface": 342,
+    "guardedLintSubjects": 16407,
     "publication": "unverified"
   }
 }

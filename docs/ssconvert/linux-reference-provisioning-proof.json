@@ -1,6 +1,6 @@
 {
   "scope": "Linux native reference provisioning",
-  "status": "configure-prerequisites-validated-rerun-required",
+  "status": "goffice-built-gnumeric-parser-prerequisite-validated-rerun-required",
   "wholeGoalComplete": false,
   "initialRun": 35836474044,
   "initialHead": "5496dd7e634a29f97664b6505cef36af72ac2f02",
@@ -26,5 +26,26 @@
     "librsvg2-dev"
   ],
   "productParity": "unqualified",
-  "publication": "unverified"
+  "publication": "unverified",
+  "followupRuns": [
+    {
+      "run": 35837051471,
+      "head": "a50e5c33eaa80dc71fe2a440fe226789b324c1c1",
+      "goffice": "configure-make-install-success",
+      "gnumericSourceSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+      "gnumericConfigure": {
+        "exitCode": 1,
+        "missing": [
+          "bison or equivalent"
+        ],
+        "logBytes": 2264,
+        "logSha256": "341a4fd8d5c82a555defb4115fed05512bf12b76f377fcb5427003c957134f9a",
+        "log": "checking for a BSD-compatible install... /usr/bin/install -c\nchecking whether build environment is sane... yes\nchecking for a race-free mkdir -p... /usr/bin/mkdir -p\nchecking for gawk... no\nchecking for mawk... mawk\nchecking whether make sets $(MAKE)... yes\nchecking whether make supports nested variables... yes\nchecking whether to enable maintainer-specific portions of Makefiles... yes\nchecking whether make supports nested variables... (cached) yes\nchecking for pkg-config... /usr/bin/pkg-config\nchecking pkg-config is at least version 0.9.0... yes\nchecking for gtk-doc... no\nconfigure: WARNING:\n  You will not be able to create source packages with 'make dist'\n  because gtk-doc is not found.\nchecking for gtkdoc-check... no\nchecking for gtkdoc-check... no\nchecking for gtkdoc-rebase... no\nchecking for gtkdoc-mkpdf... no\nchecking whether to build gtk-doc documentation... no\nchecking for glib-2.0 >= 2.10.0 gobject-2.0  >= 2.10.0... yes\nchecking whether NLS is requested... yes\nchecking for intltool >= 0.35.0... 0.51.0 found\nchecking for intltool-update... /usr/bin/intltool-update\nchecking for intltool-merge... /usr/bin/intltool-merge\nchecking for intltool-extract... /usr/bin/intltool-extract\nchecking for xgettext... /usr/bin/xgettext\nchecking for msgmerge... /usr/bin/msgmerge\nchecking for msgfmt... /usr/bin/msgfmt\nchecking for gmsgfmt... /usr/bin/msgfmt\nchecking for perl... /usr/bin/perl\nchecking for perl >= 5.8.1... 5.40.1\nchecking for XML::Parser... ok\nchecking build system type... aarch64-unknown-linux-gnu\nchecking host system type... aarch64-unknown-linux-gnu\nchecking for gcc... gcc\nchecking whether the C compiler works... yes\nchecking for C compiler default output file name... a.out\nchecking for suffix of executables... \nchecking whether we are cross compiling... no\nchecking for suffix of object files... o\nchecking whether the compiler supports GNU C... yes\nchecking whether gcc accepts -g... yes\nchecking for gcc option to enable C11 features... none needed\nchecking whether gcc understands -c and -o together... yes\nchecking whether make supports the include directive... yes (GNU style)\nchecking dependency style of gcc... gcc3\nchecking for bison... no\nchecking for byacc... no\nconfigure: error: *** bison or equivalent is required\n"
+      },
+      "correction": [
+        "bison"
+      ],
+      "productParity": "unqualified"
+    }
+  ]
 }

@@ -1,6 +1,52 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { fixture, run } from "./helpers.js";
+import { Shell } from "../../src/shell/shell.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+for (const option of ["--target-directory=target", "--target-directory target", "-t target", "-ttarget", "-vt target"]) {
+  test(`cp copies multiple sources with ${option}`, async () => {
+    const fs = await fixture({ input: "abc\n", second: "def\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`mkdir target; cp ${option} input second`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    for (const [name, bytes] of [["input", "abc\n"], ["second", "def\n"]]) {
+      assert.equal(Buffer.from(await fs.readFile(`/work/target/${name}`)).toString(), bytes);
+      assert.equal(Buffer.from(await fs.readFile(`/work/${name}`)).toString(), bytes);
+    }
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, option === "-vt target" ? "'input' -> 'target/input'\n'second' -> 'target/second'\n" : "");
+  });
+}
+
+for (const option of ["--no-target-directory", "-T"]) {
+  test(`cp treats the destination as a single path with ${option}`, async () => {
+    const fs = await fixture({ input: "abc\n", "source/child": "nested" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`cp ${option} input output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), "abc\n");
+    await fs.mkdir("/work/target");
+    const rejected = await shell.exec(`cp ${option} input target`);
+    assert.notEqual(rejected.exitCode, 0);
+    await assert.rejects(fs.stat("/work/target/input"), { code: "ENOENT" });
+    const directory = await shell.exec(`cp -R ${option} source target`);
+    assert.equal(directory.exitCode, 0, directory.stderr);
+    assert.equal(Buffer.from(await fs.readFile("/work/target/child")).toString(), "nested");
+    await assert.rejects(fs.stat("/work/target/source"), { code: "ENOENT" });
+  });
+}
+
+test("cp rejects invalid target-directory invocations without copying", async () => {
+  for (const args of [["-t"], ["-t", "target"], ["-t", "target", "-T", "input"], ["-T", "input", "second", "target"], ["-t", "missing", "input"], ["-t", "input", "second"], ["-t", "target", "-t", "target", "input"]]) {
+    const fs = await fixture({ input: "abc\n", second: "def\n" });
+    await fs.mkdir("/work/target");
+    const result = await run("cp", args, { fs });
+    assert.notEqual(result.exitCode, 0, args.join(" "));
+    assert.deepEqual(await fs.readdir("/work/target"), []);
+    assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "abc\n");
+  }
+});
 
 test("forced hard linking never removes the source through a dotted alias", async () => {
   const fs = await fixture({ file: "preserve me" });

@@ -120,12 +120,16 @@ async function removeEmptyDirectory(context: CommandContext, path: string, readD
   await context.fs.rmdir(path, { signal: context.signal });
 }
 
-async function destinations(context: CommandContext, operands: readonly string[]) {
-  requireOperands(operands, 2);
-  const target = pathOf(context, operands.at(-1)!);
-  const directory = (await maybeStat(context, target))?.type === "directory";
+async function destinations(context: CommandContext, operands: readonly string[], targetDirectory?: string, noTargetDirectory = false) {
+  if (targetDirectory !== undefined && noTargetDirectory) throw new UsageError("cannot combine --target-directory and --no-target-directory");
+  requireOperands(operands, targetDirectory === undefined ? 2 : 1, noTargetDirectory ? 2 : Infinity);
+  const targetOperand = targetDirectory ?? operands.at(-1)!;
+  const target = pathOf(context, targetOperand);
+  const stat = await maybeStat(context, target);
+  if (targetDirectory !== undefined && stat?.type !== "directory") throw new FsError(stat ? "ENOTDIR" : "ENOENT", { path: target });
+  const directory = !noTargetDirectory && stat?.type === "directory";
   if (operands.length > 2 && !directory) throw new FsError("ENOTDIR", { path: target });
-  return { target, directory, sources: operands.slice(0, -1) };
+  return { target, targetOperand, directory, sources: targetDirectory === undefined ? operands.slice(0, -1) : operands };
 }
 
 function childOperand(operand: string, name: string): string {
@@ -302,7 +306,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     define("cp", async context => {
       const parsed = copyOptions(context);
       if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
-      const destination = await destinations(context, parsed.operands);
+      if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
+      const destination = await destinations(context, parsed.operands, value(parsed, "t"), parsed.flags.has("T"));
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
@@ -310,7 +315,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
-        const targetOperand = parsed.operands.at(-1)!;
+        const targetOperand = destination.targetOperand;
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
           parsed.flags, readDirectory, true, new Set(), false, operand,
           destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand, parsed.backup);

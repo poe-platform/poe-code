@@ -16,14 +16,15 @@ export function copyOptions(context: CommandContext) {
     const argument = context.args[index]!;
     args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}` : argument);
     if (argument === "--") ended = true;
-    const suffixOffset = argument.startsWith("-") && !argument.startsWith("--") ? argument.indexOf("S", 1) : -1;
-    if (!ended && (argument === "--suffix" || suffixOffset > 0 && suffixOffset === argument.length - 1)) {
+    const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
+      ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
+    if (!ended && (argument === "--suffix" || argument === "--target-directory" || valueOffset > 0 && valueOffset === argument.length - 1)) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "rRfnvPLbB:S:", {
+  const parsed = options(args, "rRfnvPLbB:S:t:T", {
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
-    backup: "B", suffix: "S",
+    backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T",
   });
   let backup: CopyBackup | undefined;
   if (parsed.flags.has("b") || parsed.flags.has("B")) {

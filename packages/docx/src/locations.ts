@@ -3,7 +3,7 @@ import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.j
 import { DocumentArchiveEditor } from "./package-write.js";
 import { DocumentBudget } from "./budget.js";
 import { LocationIndex, addressKey, documentScopes, pathContains, type DocumentScope, type LocationEntry, type StoryReference } from "./location-index.js";
-import { closedRecord, decodeLocation, encodeGeneratedLocation as encodeLocation, safeOrdinal, SelectionError,
+import { closedRecord, createGeneratedLocation, decodeLocation, safeOrdinal, SelectionError,
   type Location, type LocationKind, type LocationPayload } from "./location-token.js";
 import { readTextSegments, type TextData } from "./text-traversal.js";
 import type { TextOptions } from "./text.js";
@@ -69,6 +69,8 @@ class DocumentLocations {
   readonly #context: ReturnType<typeof archiveSettings>;
   readonly #budget: DocumentBudget;
   readonly #inventory: boolean;
+  readonly #wholeLocations = new WeakMap<LocationEntry, Location>();
+  readonly #locationBytes = new WeakMap<Location, number>();
 
   constructor(archive: AdmittedDocumentArchive, sourceSha256: string, context: ArchiveContext, mode: "editing" | "inventory", index?: LocationIndex) {
     const settings = archiveSettings(context);
@@ -88,16 +90,32 @@ class DocumentLocations {
   text(options: TextOptions = {}): TextData {
     const selected = resolveDocxSelection(this, { operation: "text.get", inputs: ["document"], options });
     const budget = this.#budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
-    return readTextSegments(this.#index, selected, options.view ?? "final", entry => this.#location(entry), budget);
+    return readTextSegments(this.#index, selected, options.view ?? "final", entry => this.#location(entry), budget,
+      location => this.#locationBytes.get(location));
   }
 
   #location(entry: LocationEntry, range: LocationPayload["range"] = null): Location {
+    const cached = range === null ? this.#wholeLocations.get(entry) : undefined;
+    if (cached?.value.generation === this.#generation) {
+      this.#budget.charge("retainedBytes", cached.token.length * 4);
+      this.#budget.charge("work", cached.token.length);
+      return cached;
+    }
     const value: LocationPayload = { version: 1, sourceSha256: this.#sourceSha256, generation: this.#generation,
       part: entry.part, story: entry.story, path: entry.path, range };
-    const token = encodeLocation(value);
+    const generated = createGeneratedLocation(value), token = generated.token;
     this.#budget.charge("retainedBytes", token.length * 4);
     this.#budget.charge("work", token.length);
-    return Object.freeze({ kind: entry.kind, token, value: decodeLocation(token), positions: Object.freeze({ ...entry.positions }) });
+    const result = Object.freeze({ kind: entry.kind, token, value: generated.value, positions: Object.freeze({ ...entry.positions }) });
+    this.#budget.charge("retainedBytes", 64);
+    const metadata = new TextEncoder().encode(JSON.stringify({ kind: result.kind, token: "", value: null, positions: result.positions })).length;
+    this.#budget.charge("work", metadata);
+    this.#locationBytes.set(result, metadata + token.length + generated.bytes - 4);
+    if (range === null) {
+      this.#budget.charge("retainedBytes", 64);
+      this.#wholeLocations.set(entry, result);
+    }
+    return result;
   }
 
   #entry(value: LocationPayload, kind?: LocationKind): LocationEntry {
@@ -339,7 +357,7 @@ class DocumentLocations {
           if (update.after === null && before.value.range === null && next.byAddress.get(addressKey(before.value))?.some(entry => entry.kind === before.kind))
             throw new InvalidValueError("A surviving location cannot be reported as deleted.");
           if (update.after !== null) {
-            const value = decodeLocation(encodeLocation({ ...update.after, version: 1, sourceSha256: this.#sourceSha256, generation: this.#generation }));
+            const value = createGeneratedLocation({ ...update.after, version: 1, sourceSha256: this.#sourceSha256, generation: this.#generation }).value;
             after = this.#location(this.#entry(value, before.kind), value.range);
           }
           return Object.freeze({ before, after });

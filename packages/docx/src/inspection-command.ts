@@ -245,8 +245,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits?: P
             : await executeXmlCommand(invocation, bytes, inputIdentity, request, context, io);
           budget.check("serializedOutput", output.length);
         } else if (invocation.operation === "revisions.list") {
-          const data = await inspectDocumentRevisions(bytes, invocation.options as DocxOperationArguments<"revisions.list">, context);
-          const human = data.items.map((item, i) => `${i + 1}. ${escapeTerminalText(item.markup)} (ID ${escapeTerminalText(item.id ?? "unknown")}): ${item.support}; ${escapeTerminalText(item.author ?? "unknown")}; ${escapeTerminalText(item.timestamp ?? "unknown")}`).join("\n") + (data.items.length ? "\n" : "");
+          const data = await inspectDocumentRevisions(bytes, invocation.options as DocxOperationArguments<"revisions.list">, context, "resource");
+          const human = data.items.map((item, i) => {
+            const field = (name: string) => escapeTerminalText(String(item.properties.find(property => property.name === name)?.value ?? "unknown"));
+            return `${i + 1}. ${field("markup")} (ID ${field("id")}): ${field("support")}; ${field("author")}; ${field("stored_timestamp")}`;
+          }).join("\n") + (data.items.length ? "\n" : "");
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data, affected: 0, locations: data.items.map(i => i.location), warnings: [], errors: [] }) + "\n" : human);
           budget.check("serializedOutput", output.length);
         } else if (invocation.operation === "fields.list") {

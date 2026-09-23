@@ -94,6 +94,7 @@ export async function editDocumentProperties(input: Uint8Array, options: Propert
     const normalized = normalizeDocxPropertyOptions({ name: `${group}:${requested.key}`, value: opts.value, type }, false);
     if (opts.type !== undefined && opts.type !== type) throw new InvalidValueError("Property type conflicts with its stored declaration.");
     value = type === "date" ? normalizePropertyDate(normalized.value) : normalized.value as PropertyValue["value"];
+    if ((group === "custom" || group === "core" && requested.key === "lastPrinted") && type === "date" && typeof value === "string" && value.slice(0, 4) === "0000" && value !== selected?.property.value?.value) throw new InvalidValueError("XML dateTime properties require a nonzero native year.");
     if (group === "custom" && selected?.property.valueNode && typeof value === "number" && !propertyNumberFits(value, selected.property.valueNode.localName)) throw new UnsupportedEditError("Assigned number exceeds the retained custom XML variant range.");
     if (group !== "custom" && !propertyDeclaration(group, requested.key, archive.dialect)) throw new UnsupportedEditError("This native property is not writable.");
   }
@@ -114,7 +115,7 @@ export async function editDocumentProperties(input: Uint8Array, options: Propert
           const node = pending.pop()!;
           budget.charge("work", node.children.length + 1);
           budget.charge("retainedBytes", node.children.length * 8 + 16);
-          pending.push(...node.children);
+          for (const child of node.children) pending.push(child);
           if (node.namespace !== documentDialects[archive.dialect].cus || node.localName !== "property") continue;
           const stored = Number(propertyAttribute(node, "pid"));
           if (Number.isSafeInteger(stored) && stored >= 2) used.add(stored);

@@ -10,6 +10,8 @@ import { containsRevision } from "./revision-markup.js";
 import { commentExtensionParts } from "./comment-extension-parts.js";
 import { parseMediaType } from "./media-type.js";
 import { characterizeRasterHeader } from "./raster-header.js";
+import { storedIntegerIdentity, trimXmlWhitespace } from "./stored-lexical.js";
+import { activeXmlChildren } from "./xml-active-children.js";
 
 const word = ["http://schemas.openxmlformats.org/wordprocessingml/2006/main", "http://purl.oclc.org/ooxml/wordprocessingml/main"];
 const relationships = ["http://schemas.openxmlformats.org/officeDocument/2006/relationships", "http://purl.oclc.org/ooxml/officeDocument/relationships"];
@@ -18,14 +20,29 @@ const pictures = ["http://schemas.openxmlformats.org/drawingml/2006/picture", "h
 const drawings = ["http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"];
 function nodes(root: XmlElement, budget: DocumentBudget): XmlElement[] {
   budget.charge("work", 1); const result: XmlElement[] = [];
-  const visit = (node: XmlElement): void => { budget.charge("work", node.children.length + node.attributes.length + 1); budget.charge("retainedBytes", 8); result.push(node); for (const child of node.children) visit(child); };
-  visit(root); return result;
+  budget.charge("retainedBytes", 8); const pending = [root];
+  while (pending.length) {
+    const node = pending.pop()!;
+    budget.charge("work", node.children.length + node.attributes.length + 1);
+    budget.charge("retainedBytes", 8 + node.children.length * 8); result.push(node);
+    for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+  }
+  return result;
 }
 function parents(root: XmlElement, budget: DocumentBudget): Map<XmlElement, XmlElement> { budget.charge("work", 1); const result = new Map<XmlElement, XmlElement>(); for (const node of nodes(root, budget)) for (const child of node.children) { budget.charge("work", 1); budget.charge("retainedBytes", 16); result.set(child, node); } return result; }
 function attribute(node: XmlElement, name: string, namespace = node.namespace): string | undefined { return node.attributes.find(attribute => attribute.namespace === namespace && attribute.localName === name)?.value; }
-function number(value: string | undefined, signed = false): number {
-  if (value === undefined || !value || [...value].some((char, index) => !"0123456789".includes(char) && !(signed && index === 0 && char === "-"))) throw new UnsupportedEditError("A template identity is malformed.");
-  const result = Number(value); if (!Number.isSafeInteger(result) || result < (signed ? -2147483648 : 0) || result > 4294967295) throw new UnsupportedEditError("A template identity is out of range."); return result;
+function number(value: string | undefined, signed = false, maximum = 4294967295): number {
+  if (value === undefined) throw new UnsupportedEditError("A template identity is malformed.");
+  const raw = trimXmlWhitespace(value), digits = raw[0] === "+" || raw[0] === "-" ? raw.slice(1) : raw;
+  if (!digits || [...digits].some(char => !"0123456789".includes(char))) throw new UnsupportedEditError("A template identity is malformed.");
+  const result = Number(raw); if (!Number.isSafeInteger(result) || result < (signed ? -2147483648 : 0) || result > maximum) throw new UnsupportedEditError("A template identity is out of range."); return result === 0 ? 0 : result;
+}
+function controlIdentity(value: string | undefined, budget: DocumentBudget): string {
+  budget.charge("work", value?.length ?? 1);
+  const identity = storedIntegerIdentity(value);
+  if (identity === undefined) throw new UnsupportedEditError("A template identity is malformed.");
+  budget.charge("retainedBytes", identity.length * 2);
+  return identity;
 }
 function opening(node: XmlElement, changes: ReadonlyMap<string, string> = new Map()): string {
   return `<${node.name}${[...node.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, uri]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${xmlValue(uri)}"`).join("")}${node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/").map(attribute => ` ${attribute.name}="${xmlValue(changes.get(attribute.name) ?? attribute.value)}"`).join("")}>`;
@@ -35,7 +52,7 @@ export interface ControlClone { readonly xml: string; }
 export class ControlClonePlanner {
   readonly #context: ReturnType<typeof archiveSettings>;
   readonly #package: DocumentPackage;
-  readonly #identities = new Map<string, Set<number>>();
+  readonly #identities = new Map<string, Set<string>>();
   readonly #nextIdentity: Map<string, number>;
   readonly #names = new Set<string>();
   readonly #relationships = new Map<string, { id: string; edge: PackageRelationship }[]>();
@@ -52,16 +69,21 @@ export class ControlClonePlanner {
       if (!word.includes(xml.root.namespace) || xml.root.localName !== root) throw new UnsupportedEditError("A declared story part requires its matching WordprocessingML root.");
       this.#source.set(part.partname, xml);
       const owners = parents(xml.root, this.#context.budget);
+      const children = activeXmlChildren(xml, this.#context.budget);
       for (const node of nodes(xml.root, this.#context.budget)) {
-        if (node.localName === "id" && word.includes(node.namespace) && owners.get(node)?.localName === "sdtPr" && owners.get(node)?.namespace === node.namespace && owners.get(owners.get(node)!)?.localName === "sdt" && owners.get(owners.get(node)!)?.namespace === node.namespace && attribute(node, "val") !== undefined) this.#taken("control").add(number(attribute(node, "val"), true));
-        if (word.includes(node.namespace) && node.localName === "bookmarkStart") { this.#taken("bookmark").add(number(attribute(node, "id"))); this.#names.add(attribute(node, "name") ?? ""); }
-        if (word.includes(node.namespace) && node.localName === "comment" && owners.get(node)?.localName === "comments" && owners.get(node)?.namespace === node.namespace) this.#taken("comment").add(number(attribute(node, "id")));
-        if (drawings.includes(node.namespace) && node.localName === "docPr" || pictures.includes(node.namespace) && node.localName === "cNvPr") this.#taken("drawing").add(number(attribute(node, "id", "")));
+        if (node.localName === "sdt" && word.includes(node.namespace)) for (const properties of children(node).filter(child => child.namespace === node.namespace && child.localName === "sdtPr")) {
+          for (const id of children(properties).filter(child => child.namespace === node.namespace && child.localName === "id" && attribute(child, "val") !== undefined)) this.#reserve("control", controlIdentity(attribute(id, "val"), this.#context.budget));
+        }
+        if (node.localName === "id" && word.includes(node.namespace) && owners.get(node)?.localName === "sdtPr" && owners.get(node)?.namespace === node.namespace && owners.get(owners.get(node)!)?.localName === "sdt" && owners.get(owners.get(node)!)?.namespace === node.namespace && attribute(node, "val") !== undefined) this.#reserve("control", controlIdentity(attribute(node, "val"), this.#context.budget));
+        if (word.includes(node.namespace) && node.localName === "bookmarkStart") { this.#reserve("bookmark", String(number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER))); this.#names.add(attribute(node, "name") ?? ""); }
+        if (word.includes(node.namespace) && node.localName === "comment" && owners.get(node)?.localName === "comments" && owners.get(node)?.namespace === node.namespace) this.#reserve("comment", String(number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER)));
+        if (drawings.includes(node.namespace) && node.localName === "docPr" || pictures.includes(node.namespace) && node.localName === "cNvPr") this.#reserve("drawing", String(number(attribute(node, "id", ""))));
       }
     }
   }
-  #taken(kind: string): Set<number> { let values = this.#identities.get(kind); if (!values) { values = new Set(); this.#identities.set(kind, values); } return values; }
-  #allocate(kind: string): string { const values = this.#taken(kind), next = this.#nextIdentity.get(kind); let value = next ?? 1; while (values.has(value)) { this.#context.budget.charge("work", 1); value++; } if (value > 2147483647) throw new UnsupportedEditError("Template identities are exhausted."); if (next === undefined) this.#context.budget.charge("retainedBytes", 64 + kind.length * 2); values.add(value); this.#nextIdentity.set(kind, value + 1); return String(value); }
+  #taken(kind: string): Set<string> { let values = this.#identities.get(kind); if (!values) { this.#context.budget.charge("retainedBytes", 64 + kind.length * 2); values = new Set(); this.#identities.set(kind, values); } return values; }
+  #reserve(kind: string, identity: string): void { const values = this.#taken(kind); if (!values.has(identity)) { this.#context.budget.charge("retainedBytes", 32 + identity.length * 2); values.add(identity); } }
+  #allocate(kind: string): string { const values = this.#taken(kind), next = this.#nextIdentity.get(kind); let value = next ?? 1; while (values.has(String(value))) { this.#context.budget.charge("work", 1); value++; } if (value > 2147483647) throw new UnsupportedEditError("Template identities are exhausted."); if (next === undefined) this.#context.budget.charge("retainedBytes", 64 + kind.length * 2); const identity = String(value); this.#reserve(kind, identity); this.#nextIdentity.set(kind, value + 1); return identity; }
   admit(xml: DocumentXmlEditor, item: XmlElement): XmlElement[] {
     const all = nodes(item, this.#context.budget), budget = this.#context.budget;
     const supported = new Set("comment sdt sdtPr sdtEndPr sdtContent id tag alias lock text richText picture date dateFormat lid calendar storeMappedDataAs dropDownList comboBox listItem showingPlcHdr placeholder docPart temporary color appearance p pPr r rPr t tab br cr tbl tblPr tblGrid gridCol tr trPr tc tcPr tblStyle tblW tblInd tblBorders top left bottom right insideH insideV tblLayout tblCellMar tcW vAlign cantSplit tblHeader jc spacing ind keepNext keepLines pageBreakBefore widowControl numPr ilvl numId pStyle rStyle b bCs i iCs u strike dstrike caps smallCaps sz szCs rFonts lang highlight shd vertAlign noProof position kern w fitText rtl cs vanish webHidden textDirection drawing hyperlink bookmarkStart bookmarkEnd commentRangeStart commentRangeEnd commentReference".split(" "));
@@ -69,7 +91,7 @@ export class ControlClonePlanner {
       comment: ["id", "author", "date", "initials"],
       p: ["rsidR", "rsidRDefault", "rsidP", "rsidDel"], r: ["rsidR", "rsidRPr", "rsidDel"], tr: ["rsidR", "rsidTr", "rsidDel"], tbl: ["rsidR"], sdt: [], sdtPr: [], sdtEndPr: [], sdtContent: [], pPr: [], rPr: [], tblPr: [], tblGrid: [], trPr: [], tc: [], tcPr: [], t: [], drawing: [],
       bookmarkStart: ["id", "name", "colFirst", "colLast", "displacedByCustomXml"], bookmarkEnd: ["id", "displacedByCustomXml"], commentRangeStart: ["id", "displacedByCustomXml"], commentRangeEnd: ["id", "displacedByCustomXml"], commentReference: ["id"], hyperlink: ["anchor", "history", "docLocation", "tgtFrame", "tooltip"],
-      date: ["fullDate"], dropDownList: ["lastValue"], comboBox: ["lastValue"], listItem: ["value", "displayText"], text: ["multiLine"], richText: [], picture: [], placeholder: [], temporary: [], showingPlcHdr: [], gridCol: ["w"],
+      date: ["fullDate"], dropDownList: ["lastValue"], comboBox: ["lastValue"], listItem: ["value", "displayText"], text: ["multiLine"], richText: [], picture: [], placeholder: [], temporary: [], showingPlcHdr: ["val"], gridCol: ["w"],
       rFonts: ["ascii", "hAnsi", "eastAsia", "cs", "hint", "asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"], lang: ["val", "eastAsia", "bidi"], spacing: ["before", "after", "beforeLines", "afterLines", "beforeAutospacing", "afterAutospacing", "line", "lineRule"], ind: ["left", "right", "start", "end", "firstLine", "hanging", "leftChars", "rightChars", "firstLineChars", "hangingChars"], shd: ["val", "color", "fill", "themeColor", "themeFill", "themeTint", "themeShade", "themeFillTint", "themeFillShade"], color: ["val", "themeColor", "themeTint", "themeShade"], u: ["val", "color", "themeColor", "themeTint", "themeShade"], br: ["type", "clear"], tab: [],
     };
     const sized = new Set("tblW tblInd tcW".split(" "));
@@ -81,23 +103,23 @@ export class ControlClonePlanner {
     budget.charge("work", all.length * 8);
     if (containsRevision(item)) throw new UnsupportedEditError("Reviewed templates cannot be cloned.");
     for (const node of all) {
-      if (word.includes(node.namespace) && !supported.has(node.localName) || !xml.compatibility.canEdit(node) || node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute)) || ["fldChar", "fldSimple", "permStart", "permEnd", "footnoteReference", "endnoteReference", "sectPr", "object", "pict"].includes(node.localName) || node.content.some(content => content.kind !== "element" && (content.kind !== "text" || content.text.trim() && !["t", "instrText"].includes(node.localName)))) throw new UnsupportedEditError("The template contains unsupported boundaries or opaque data.");
+      if (word.includes(node.namespace) && !supported.has(node.localName) || !xml.compatibility.canEdit(node) || node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute)) || ["fldChar", "fldSimple", "permStart", "permEnd", "footnoteReference", "endnoteReference", "sectPr", "object", "pict"].includes(node.localName) || node.content.some(content => !["element", "comment", "processing-instruction"].includes(content.kind) && (content.kind !== "text" || content.text.trim() && !["t", "instrText"].includes(node.localName)))) throw new UnsupportedEditError("The template contains unsupported boundaries or opaque data.");
     }
     return all;
   }
   preflight(xml: DocumentXmlEditor, item: XmlElement, owner: string): void {
-    const all = this.admit(xml, item), owned = new Set(all), stack: string[] = [];
+    const all = this.admit(xml, item), owned = new Set(all), stack: number[] = [];
     for (const node of all.filter(node => node.namespace === item.namespace)) {
       if (node.localName === "bookmarkStart") {
-        const id = attribute(node, "id"), name = attribute(node, "name"); number(id);
-        if (!name || all.filter(candidate => candidate.namespace === item.namespace && candidate.localName === "bookmarkStart" && attribute(candidate, "id") === id).length !== 1) throw new UnsupportedEditError("Bookmark declarations must be unique.");
+        const id = number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER), name = attribute(node, "name");
+        if (!name || all.filter(candidate => candidate.namespace === item.namespace && candidate.localName === "bookmarkStart" && number(attribute(candidate, "id"), false, Number.MAX_SAFE_INTEGER) === id).length !== 1) throw new UnsupportedEditError("Bookmark declarations must be unique.");
         if ([...this.#source].some(([part, source]) => nodes(part === owner ? xml.root : source.root, this.#context.budget).some(candidate => !owned.has(candidate) && word.includes(candidate.namespace) && candidate.localName === "hyperlink" && attribute(candidate, "anchor") === name))) throw new UnsupportedEditError("Bookmark references cannot cross the template boundary.");
-        stack.push(id!);
-      } else if (node.localName === "bookmarkEnd" && stack.pop() !== attribute(node, "id")) throw new UnsupportedEditError("Bookmark ranges cannot cross template boundaries.");
+        stack.push(id);
+      } else if (node.localName === "bookmarkEnd" && stack.pop() !== number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER)) throw new UnsupportedEditError("Bookmark ranges cannot cross template boundaries.");
       if (["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName)) {
-        const id = number(attribute(node, "id"));
-        const markers = all.filter(candidate => candidate.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(candidate.localName) && number(attribute(candidate, "id")) === id);
-        if (["commentRangeStart", "commentRangeEnd", "commentReference"].some(name => markers.filter(marker => marker.localName === name).length !== 1) || all.indexOf(markers.find(marker => marker.localName === "commentRangeStart")!) >= all.indexOf(markers.find(marker => marker.localName === "commentRangeEnd")!) || [...this.#source].some(([part, source]) => nodes(part === owner ? xml.root : source.root, this.#context.budget).some(candidate => !owned.has(candidate) && candidate.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(candidate.localName) && number(attribute(candidate, "id")) === id))) throw new UnsupportedEditError("Comments must have ordered complete owned ranges.");
+        const id = number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER);
+        const markers = all.filter(candidate => candidate.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(candidate.localName) && number(attribute(candidate, "id"), false, Number.MAX_SAFE_INTEGER) === id);
+        if (["commentRangeStart", "commentRangeEnd", "commentReference"].some(name => markers.filter(marker => marker.localName === name).length !== 1) || all.indexOf(markers.find(marker => marker.localName === "commentRangeStart")!) >= all.indexOf(markers.find(marker => marker.localName === "commentRangeEnd")!) || [...this.#source].some(([part, source]) => nodes(part === owner ? xml.root : source.root, this.#context.budget).some(candidate => !owned.has(candidate) && candidate.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(candidate.localName) && number(attribute(candidate, "id"), false, Number.MAX_SAFE_INTEGER) === id))) throw new UnsupportedEditError("Comments must have ordered complete owned ranges.");
       }
     }
     if (stack.length) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
@@ -107,8 +129,8 @@ export class ControlClonePlanner {
       const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`));
       if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const comments = this.#source.get(edges[0]!.target_part.partname)!;
-      for (const id of new Set(markers.map(node => number(attribute(node, "id"))))) {
-        const bodies = comments.root.children.filter(node => node.namespace === item.namespace && node.localName === "comment" && number(attribute(node, "id")) === id);
+      for (const id of new Set(markers.map(node => number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER)))) {
+        const bodies = comments.root.children.filter(node => node.namespace === item.namespace && node.localName === "comment" && number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER) === id);
         if (bodies.length !== 1 || nodes(bodies[0]!, this.#context.budget).some(node => !comments.compatibility.canEdit(node) || node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !comments.compatibility.canEdit(attribute)) || !["comment", "p", "pPr", "r", "rPr", "t", "tab", "br", "cr", "b", "i", "rFonts"].includes(node.localName))) throw new UnsupportedEditError("A comment requires one supported stored body.");
         this.admit(comments, bodies[0]!);
       }
@@ -162,23 +184,23 @@ export class ControlClonePlanner {
     };
     const starts = all.filter(node => node.localName === "bookmarkStart" && node.namespace === item.namespace); const ends = all.filter(node => node.localName === "bookmarkEnd" && node.namespace === item.namespace);
     for (const start of starts) {
-      const id = number(attribute(start, "id")), name = attribute(start, "name"); const paired = ends.filter(end => number(attribute(end, "id")) === id);
-      if (!name || starts.filter(node => number(attribute(node, "id")) === id).length !== 1 || paired.length !== 1 || all.indexOf(paired[0]!) < all.indexOf(start)) throw new UnsupportedEditError("Bookmarks must have complete owned pairs.");
+      const id = number(attribute(start, "id"), false, Number.MAX_SAFE_INTEGER), name = attribute(start, "name"); const paired = ends.filter(end => number(attribute(end, "id"), false, Number.MAX_SAFE_INTEGER) === id);
+      if (!name || starts.filter(node => number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER) === id).length !== 1 || paired.length !== 1 || all.indexOf(paired[0]!) < all.indexOf(start)) throw new UnsupportedEditError("Bookmarks must have complete owned pairs.");
       if ([...this.#source].some(([part, source]) => nodes(part === owner ? xml.root : source.root, this.#context.budget).some(node => !owned.has(node) && word.includes(node.namespace) && node.localName === "hyperlink" && attribute(node, "anchor") === name))) throw new UnsupportedEditError("Bookmark references cannot cross the template boundary.");
       const fresh = this.#allocate("bookmark"); let suffix = 1, newName: string; do { newName = name.slice(0, 30) + "_" + suffix++; } while (this.#names.has(newName)); this.#names.add(newName);
       change(start, "id", fresh); change(paired[0]!, "id", fresh); change(start, "name", newName);
       for (const link of all.filter(node => node.namespace === item.namespace && node.localName === "hyperlink" && attribute(node, "anchor") === name)) change(link, "anchor", newName);
     }
-    if (ends.length !== starts.length || ends.some(end => !starts.some(start => attribute(start, "id") === attribute(end, "id")))) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
+    if (ends.length !== starts.length || ends.some(end => !starts.some(start => number(attribute(start, "id"), false, Number.MAX_SAFE_INTEGER) === number(attribute(end, "id"), false, Number.MAX_SAFE_INTEGER)))) throw new UnsupportedEditError("Bookmarks cross the template boundary.");
     const commentMarkers = all.filter(node => node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName));
     if (commentMarkers.length) {
       if (this.#package.parts.some(part => commentExtensionParts.some(role => parseMediaType(part.content_type) === role.contentType.toLowerCase()))) throw new UnsupportedEditError("Modern comments cannot be cloned.");
       const edges = this.#package.relationships(owner).filter(edge => relationships.some(namespace => edge.reltype === `${namespace}/comments`)); if (edges.length !== 1 || edges[0]!.is_external) throw new UnsupportedEditError("A classic comment part is required.");
       const part = edges[0]!.target_part.partname, comments = this.#source.get(part)!;
-      for (const id of new Set(commentMarkers.map(node => number(attribute(node, "id"))))) {
-        const markers = commentMarkers.filter(node => number(attribute(node, "id")) === id);
-        if (["commentRangeStart", "commentRangeEnd", "commentReference"].some(name => markers.filter(node => node.localName === name).length !== 1) || [...this.#source].some(([name, source]) => nodes(name === owner ? xml.root : source.root, this.#context.budget).some(node => !owned.has(node) && node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) && number(attribute(node, "id")) === id))) throw new UnsupportedEditError("Comments must be entirely owned by one item.");
-        const body = comments.root.children.filter(node => node.namespace === item.namespace && node.localName === "comment" && number(attribute(node, "id")) === id); if (body.length !== 1) throw new UnsupportedEditError("A comment requires one stored body.");
+      for (const id of new Set(commentMarkers.map(node => number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER)))) {
+        const markers = commentMarkers.filter(node => number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER) === id);
+        if (["commentRangeStart", "commentRangeEnd", "commentReference"].some(name => markers.filter(node => node.localName === name).length !== 1) || [...this.#source].some(([name, source]) => nodes(name === owner ? xml.root : source.root, this.#context.budget).some(node => !owned.has(node) && node.namespace === item.namespace && ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) && number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER) === id))) throw new UnsupportedEditError("Comments must be entirely owned by one item.");
+        const body = comments.root.children.filter(node => node.namespace === item.namespace && node.localName === "comment" && number(attribute(node, "id"), false, Number.MAX_SAFE_INTEGER) === id); if (body.length !== 1) throw new UnsupportedEditError("A comment requires one stored body.");
         if (nodes(body[0]!, this.#context.budget).some(node => !comments.compatibility.canEdit(node) || node.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !comments.compatibility.canEdit(attribute)) || !["comment", "p", "pPr", "r", "rPr", "t", "tab", "br", "cr", "b", "i", "rFonts"].includes(node.localName))) throw new UnsupportedEditError("The comment body has unsupported cloning semantics.");
         const fresh = this.#allocate("comment"); const attr = body[0]!.attributes.find(attribute => attribute.namespace === item.namespace && attribute.localName === "id")!;
         this.#comments.push({ part, xml: opening(body[0]!, new Map([[attr.name, fresh]])) + comments.sourceXml(body[0]!, new Map(), true) + `</${body[0]!.name}>` }); for (const marker of markers) change(marker, "id", fresh);
@@ -194,19 +216,21 @@ export class ControlClonePlanner {
         const id = `rId${ordinal}`; additions.push({ id, edge }); this.#relationships.set(owner, additions); change(node, attr.localName, id, attr.namespace);
       }
     }
-    budget.charge("retainedBytes", 96); const affected = new Set<XmlElement>();
-    for (const changed of attributeChanges.keys()) {
-      let ancestor: XmlElement | undefined = changed;
-      while (ancestor && !affected.has(ancestor)) {
-        budget.charge("work", 1); budget.charge("retainedBytes", 32);
-        affected.add(ancestor); ancestor = owners.get(ancestor);
-      }
+    budget.charge("retainedBytes", 96 + all.length * 64);
+    const containers = new Map<XmlElement, XmlElement[]>([[item, []]]), nearest = new Map<XmlElement, XmlElement>([[item, item]]);
+    for (const node of all) {
+      budget.charge("work", 1); if (node === item) continue;
+      const owner = nearest.get(owners.get(node)!)!;
+      if (attributeChanges.has(node)) { containers.get(owner)!.push(node); containers.set(node, []); nearest.set(node, node); }
+      else nearest.set(node, owner);
     }
-    const render = (node: XmlElement): string => {
-      const nested = new Map<XmlElement, string>(); for (const child of node.children) if (affected.has(child)) nested.set(child, render(child));
-      return attributeChanges.has(node) || node === item ? opening(node, attributeChanges.get(node)) + xml.sourceXml(node, nested, true) + `</${node.name}>` : xml.sourceXml(node, nested);
-    };
-    const result = render(item); budget.charge("retainedBytes", result.length * 8); budget.charge("work", result.length); return { xml: result };
+    budget.charge("retainedBytes", containers.size * 64); const rendered = new Map<XmlElement, string>();
+    for (const [node, children] of [...containers].reverse()) {
+      const nested = new Map(children.map(child => [child, rendered.get(child)!]));
+      const value = opening(node, attributeChanges.get(node)) + xml.sourceXml(node, nested, true) + `</${node.name}>`;
+      budget.charge("retainedBytes", value.length * 2); rendered.set(node, value);
+    }
+    const result = rendered.get(item)!; budget.charge("retainedBytes", result.length * 8); budget.charge("work", result.length); return { xml: result };
   }
   finish(editor: DocumentArchiveEditor): DocumentArchive {
     for (const [owner, additions] of this.#relationships) {

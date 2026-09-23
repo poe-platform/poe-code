@@ -1,6 +1,6 @@
 import { parseXmlSteps, XmlLimitError, type XmlElement, type XmlLimits } from "@poe-code/safe-fs/xml";
 import { CancellationError, InputTypeError, InvalidValueError, ResourceLimitError } from "./archive.js";
-import { documentXmlCache, DocumentBudget } from "./budget.js";
+import { documentXmlCache, DocumentBudget, reservedWorkTurn } from "./budget.js";
 import { parseMediaType } from "./media-type.js";
 import { DocumentError } from "./document-error.js";
 export type { XmlElement, XmlContent, XmlAttribute } from "@poe-code/safe-fs/xml";
@@ -62,13 +62,16 @@ export function documentXmlSettings(options: DocumentXmlLimits, budget = new Doc
   return limits;
 }
 
-function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget: DocumentBudget): Generator<number, DocumentXml> {
+interface XmlParseReservations { xmlNodes: number; work: number; retainedBytes: number }
+
+function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget: DocumentBudget, reservations: XmlParseReservations): Generator<number, DocumentXml> {
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected XML bytes.");
   const limits = documentXmlSettings(options, budget);
   if (input.byteLength > limits.maxBytes || input.byteLength > limits.maxWork)
     throw new ResourceLimitError("XML byte or work limit exceeded.");
   // Snapshot, decoded strings, parser tokens and namespace lookup storage.
   budget.charge("retainedBytes", input.byteLength * 16);
+  reservations.retainedBytes += input.byteLength * 16;
   const bytes = new Uint8Array(input);
   const encoding = bytes[0] === 0xff && bytes[1] === 0xfe ? "UTF-16LE"
     : bytes[0] === 0xfe && bytes[1] === 0xff ? "UTF-16BE" : "UTF-8";
@@ -88,7 +91,7 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
       maxContentNodes: Math.min(limits.maxContentNodes, remaining),
       maxAttributes: Math.min(limits.maxAttributes, remaining) };
     const parser = parseXmlSteps(chunks.join(""), { ...Object.fromEntries(Object.entries(parserLimits).filter(([, value]) => value !== Infinity)), expectedEncoding: encoding,
-      onElement: () => budget.charge("xmlNodes", 1) });
+      onElement: () => { budget.charge("xmlNodes", 1); reservations.xmlNodes++; } });
     let work = bytes.length;
     try {
       while (true) {
@@ -98,11 +101,12 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
           while (stack.length) {
             const element = stack.pop()!;
             budget.charge("xmlNodes", element.attributes.length);
+            reservations.xmlNodes += element.attributes.length;
             for (const content of [element.content, element.prolog ?? [], element.epilog ?? []]) {
               for (const node of content) {
                 if (++work > limits.maxWork) throw new ResourceLimitError("XML work limit exceeded.");
                 if (node.kind === "element") stack.push(node);
-                else budget.charge("xmlNodes", 1);
+                else { budget.charge("xmlNodes", 1); reservations.xmlNodes++; }
                 yield 1;
               }
             }
@@ -121,7 +125,7 @@ function* documentXmlSteps(input: Uint8Array, options: DocumentXmlLimits, budget
   }
 }
 
-function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget: DocumentBudget): { key?: string; document?: DocumentXml } {
+function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget: DocumentBudget, cooperative = false): { key?: string; maxNodes?: number; maxBytes?: number; document?: DocumentXml; staged?: boolean; replayWork?: number } {
   const entries = budget[documentXmlCache].entries;
   if (!entries) return {};
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected XML bytes.");
@@ -131,29 +135,49 @@ function cachedDocumentXml(input: Uint8Array, options: DocumentXmlLimits, budget
     throw new ResourceLimitError("XML byte or work limit exceeded.");
   budget.charge("work", input.length);
   let hash = 2166136261;
-  for (const byte of input) hash = Math.imul(hash ^ byte, 16777619) >>> 0;
-  const key = `${JSON.stringify(limits)}:${input.length}:${hash}`;
+  for (let index = 0; index < input.length; index++) hash = Math.imul(hash ^ input[index]!, 16777619) >>> 0;
+  // Validation has its own byte and remaining element ceilings. An immutable
+  // full parse enforces them without reconstructing retained physical nodes.
+  // All other limits remain exact, and differently bounded reads replay parsing.
+  const key = `${JSON.stringify({ ...limits, maxNodes: 0, maxBytes: 0 })}:${input.length}:${hash}`;
   for (const candidate of entries.get(key) ?? []) {
     budget.charge("work", input.length * 2);
-    if (candidate.source.every((byte, index) => byte === input[index])
-      && candidate.document.bytes.length === candidate.source.length
-      && candidate.document.bytes.every((byte, index) => byte === candidate.source[index]))
-      return { key, document: candidate.document };
+    let equal = candidate.document.bytes.length === candidate.source.length;
+    for (let index = 0; equal && index < input.length; index++)
+      equal = candidate.source[index] === input[index] && candidate.document.bytes[index] === candidate.source[index];
+    if (equal) {
+      if (candidate.elements > limits.maxNodes)
+        throw new ResourceLimitError("XML structural or text limit exceeded.");
+      const replay = candidate.replay ?? (candidate.maxNodes !== limits.maxNodes || candidate.maxBytes !== limits.maxBytes ? candidate.parseCost : undefined);
+      if (replay) {
+        budget.charge("retainedBytes", replay.retainedBytes);
+        if (!cooperative) budget.charge("work", replay.work);
+        budget.charge("xmlNodes", replay.xmlNodes);
+      }
+      return { key, document: candidate.document, ...(cooperative && replay ? { replayWork: replay.work } : {}) };
+    }
   }
-  return budget[documentXmlCache].admitted?.has(input) ? { key } : {};
+  if (budget[documentXmlCache].staged?.has(input)) return { key, maxNodes: limits.maxNodes, maxBytes: limits.maxBytes, staged: true };
+  return budget[documentXmlCache].admitted?.has(input) ? { key, maxNodes: limits.maxNodes, maxBytes: limits.maxBytes } : {};
 }
 
-function retainDocumentXml(key: string | undefined, document: DocumentXml, budget: DocumentBudget): DocumentXml {
+function retainDocumentXml(key: string | undefined, document: DocumentXml, budget: DocumentBudget, reservations: XmlParseReservations, maxNodes?: number, maxBytes?: number, staged = false): DocumentXml {
   if (key !== undefined) {
+    // Cooperative host callbacks can reserve their own resources while parsing.
+    // They belong to the host, not to a later replay of this immutable tree.
+    const beforeRetention = budget.usage;
+    const parseCost = Object.freeze({ ...reservations });
     const entries = budget[documentXmlCache].entries!;
-    budget.charge("retainedBytes", key.length * 2 + 128 + document.bytes.length);
+    budget.charge("retainedBytes", key.length * 2 + 136 + document.bytes.length);
     budget.charge("work", document.bytes.length);
     const namespaces = new Map<ReadonlyMap<string, string>, ReadonlyMap<string, string>>();
     const pending: import("@poe-code/safe-fs/xml").XmlContent[] = [document.root];
+    let elements = 0;
     while (pending.length) {
       const node = pending.pop()!;
       budget.charge("work", 1);
       if (node.kind === "element") {
+        elements++;
         let view = namespaces.get(node.namespaces);
         if (!view) {
           budget.charge("retainedBytes", 128 + node.namespaces.size * 64);
@@ -183,8 +207,15 @@ function retainDocumentXml(key: string | undefined, document: DocumentXml, budge
       Object.freeze(node);
     }
     Object.freeze(document);
+    budget.charge("retainedBytes", 64);
+    (budget[documentXmlCache].immutableRoots ??= new WeakSet()).add(document.root);
     const bucket = entries.get(key) ?? [];
-    bucket.push({ document, source: new Uint8Array(document.bytes) });
+    const usage = budget.usage;
+    bucket.push({ document, source: new Uint8Array(document.bytes), maxNodes: maxNodes!, maxBytes: maxBytes!, elements, parseCost, ...(staged ? { replay: {
+      xmlNodes: parseCost.xmlNodes + usage.xmlNodes - beforeRetention.xmlNodes,
+      work: parseCost.work + usage.work - beforeRetention.work,
+      retainedBytes: parseCost.retainedBytes + usage.retainedBytes - beforeRetention.retainedBytes
+    } } : {}) });
     entries.set(key, bucket);
   }
   return document;
@@ -193,25 +224,34 @@ function retainDocumentXml(key: string | undefined, document: DocumentXml, budge
 export function parseDocumentXml(input: Uint8Array, options: DocumentXmlLimits = {}, budget = new DocumentBudget()): DocumentXml {
   const cached = cachedDocumentXml(input, options, budget);
   if (cached.document) return cached.document;
-  const parser = documentXmlSteps(input, options, budget);
+  const reservations = { xmlNodes: 0, work: 0, retainedBytes: 0 };
+  const parser = documentXmlSteps(input, options, budget, reservations);
   try {
     while (true) {
       const step = parser.next();
-      if (step.done) return retainDocumentXml(cached.key, step.value, budget);
+      if (step.done) return retainDocumentXml(cached.key, step.value, budget, reservations, cached.maxNodes, cached.maxBytes, cached.staged);
       budget.charge("work", step.value);
+      reservations.work += step.value;
     }
   } finally { parser.return(undefined as never); }
 }
 
 export async function parseDocumentXmlAsync(input: Uint8Array, options: DocumentXmlLimits = {}, budget = new DocumentBudget()): Promise<DocumentXml> {
-  const cached = cachedDocumentXml(input, options, budget);
-  if (cached.document) return cached.document;
-  const parser = documentXmlSteps(input, options, budget);
+  const cached = cachedDocumentXml(input, options, budget, true);
+  if (cached.document) {
+    if (cached.replayWork !== undefined) await budget.checkpoint(cached.replayWork);
+    return cached.document;
+  }
+  const reservations = { xmlNodes: 0, work: 0, retainedBytes: 0 };
+  const parser = documentXmlSteps(input, options, budget, reservations);
   try {
     while (true) {
       const step = parser.next();
-      if (step.done) return retainDocumentXml(cached.key, step.value, budget);
-      await budget.checkpoint(step.value);
+      if (step.done) return retainDocumentXml(cached.key, step.value, budget, reservations, cached.maxNodes, cached.maxBytes, cached.staged);
+      budget.charge("work", step.value);
+      const pending = budget[reservedWorkTurn](step.value);
+      if (pending) await pending;
+      reservations.work += step.value;
     }
   } finally { parser.return(undefined as never); }
 }

@@ -49,7 +49,16 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   }
   if (route.startsWith("inspect")) expect(data).toMatchObject({protected: active && enforced !== false, protection: active ? [{part: "/reports/policy.xml", kind: protection, enforced, edit}] : []});
   else if (route.startsWith("settings")) {
-    expect(data).toMatchObject({items: [{details: {protection: active ? [{kind: protection, enforced, edit}] : []}}]});
+    if (route === "settings-sdk") expect(data).toMatchObject({items: [{details: {protection: active ? [{kind: protection, enforced, edit}] : []}}]});
+    else {
+      expect(data).toMatchObject({items: [expect.not.objectContaining({ details: expect.anything() })]});
+      expect(data).toMatchObject({items: [{ properties: expect.arrayContaining(active ? [
+        { name: "protection[0].kind", type: "string", value: protection, writable: false, cached: false },
+        { name: "protection[0].enforced", type: "boolean", value: enforced, writable: false, cached: false },
+        { name: "protection[0].edit", type: "string", value: edit, writable: false, cached: false }
+      ] : []) }]});
+      if (!active) expect(JSON.stringify(data)).not.toContain('"name":"protection[');
+    }
     expect(JSON.stringify(data)).not.toContain("private-hash"); expect(JSON.stringify(data)).not.toContain("private-salt");
   } else {
     const output = new Uint8Array(memory.readFileSync("/output") as Buffer);

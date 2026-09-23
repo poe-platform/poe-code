@@ -7,6 +7,23 @@ const payload: tokens.LocationPayload = { version: 1, sourceSha256: "a".repeat(6
   part: "/word/document.xml", story: "/word/document.xml#body", path: [0, 0], range: null };
 const generated = (tokens as typeof tokens & { encodeGeneratedLocation: typeof tokens.encodeLocation }).encodeGeneratedLocation;
 
+it("canonicalizes the declared own path slots without invoking inherited iteration", () => {
+  let calls = 0;
+  const path = [0, 0];
+  const prototype = Object.create(Array.prototype) as object;
+  Object.defineProperty(prototype, Symbol.iterator, { value() {
+    calls++;
+    return [41, 42][Symbol.iterator]();
+  } });
+  Object.setPrototypeOf(path, prototype);
+  const memory = Volume.fromJSON({ "/token": "" });
+  memory.writeFileSync("/token", generated({ ...payload, path }));
+  expect(tokens.decodeLocation(String(memory.readFileSync("/token"))).path).toEqual([0, 0]);
+  expect(calls).toBe(0);
+  expect(Object.getOwnPropertyDescriptor(path, "0")!.value).toBe(0);
+  expect(Object.getOwnPropertyDescriptor(path, "1")!.value).toBe(0);
+});
+
 for (const size of [24575, 24576, 24577])
 it(`preserves canonical byte capacity and raw caller policy at ${size}`, () => {
   const value = { ...payload, path: Array<number>(10000).fill(0), story: "a" };

@@ -29,7 +29,7 @@ it("executes settings list through the common command contract", async () => {
   const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["settings", "list", "/input", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal, filesystem: { async readFile() { return input; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }, stderr: { async write(bytes) { volume.appendFileSync("/err", bytes); } } });
   expect(result.exitCode).toBe(0);
   const resultJson = JSON.parse(String(volume.readFileSync("/out", "utf8")));
-  expect(resultJson.data).toEqual(await docx.inspectDocumentSettings(input, {}, textContext));
+  expect(resultJson.data).toEqual(await docx.inspectDocumentSettings(input, {}, textContext, "resource"));
   const schema = docx.getDocxDiscovery(docx.parseDocxArguments(["schema"].map(value => new TextEncoder().encode(value))))!.data;
   expect("operations" in schema && schema.operations.find(item => item.id === "settings.list")?.support).toBe("read");
 });

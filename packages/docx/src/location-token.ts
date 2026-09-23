@@ -68,7 +68,22 @@ function nonnegative(value: unknown): value is number {
 
 class LocationCapacityError extends InvalidValueError {}
 
-function checked(value: unknown): LocationPayload {
+const physicalPaths = new WeakSet<readonly number[]>();
+
+/** Internal physical indexing builds owned dense paths without caller iteration. */
+export function createPhysicalLocationPath(length: number, indexAt: (index: number) => number): readonly number[] {
+  const path = new Array<number>(length);
+  for (let index = length - 1; index >= 0; index--) {
+    const value = indexAt(index);
+    if (!nonnegative(value)) throw new InvalidValueError("Invalid physical document path.");
+    path[index] = value || 0;
+  }
+  Object.freeze(path);
+  physicalPaths.add(path);
+  return path;
+}
+
+function checked(value: unknown, generated = false): LocationPayload {
   closedRecord(value, ["version", "sourceSha256", "generation", "part", "story", "path", "range"]);
   if (Object.keys(value as object).length !== 7) throw new InvalidValueError("Location payload fields are required.");
   const { version, sourceSha256, generation, part, story, path, range } = value as Record<string, unknown>;
@@ -78,9 +93,19 @@ function checked(value: unknown): LocationPayload {
     !Array.isArray(path)) throw new InvalidValueError("Invalid document location payload.");
   if (part.length > 4096 || story.length > 8192 || path.length * 2 > 24576)
     throw new LocationCapacityError("Invalid document location payload.");
-  if (Reflect.ownKeys(path).length !== path.length + 1 ||
-    Array.from({ length: path.length }, (_, i) => Object.getOwnPropertyDescriptor(path, String(i))).some(d => !d || !("value" in d)) ||
-    Array.from(path).some(n => !nonnegative(n))) throw new InvalidValueError("Invalid document location payload.");
+  let ownedPath: readonly number[] = path;
+  if (!generated || !physicalPaths.has(path)) {
+    if (Reflect.ownKeys(path).length !== path.length + 1)
+      throw new InvalidValueError("Invalid document location payload.");
+    const copy: number[] = [];
+    for (let index = 0; index < path.length; index++) {
+      const descriptor = Object.getOwnPropertyDescriptor(path, String(index));
+      if (!descriptor || !("value" in descriptor) || !nonnegative(descriptor.value))
+        throw new InvalidValueError("Invalid document location payload.");
+      copy.push(descriptor.value || 0);
+    }
+    ownedPath = Object.freeze(copy);
+  }
   try {
     if (part !== "/[Content_Types].xml" && normalizePartName(part) !== part) throw new Error();
   } catch { throw new InvalidValueError("Expected a canonical location part name."); }
@@ -91,16 +116,45 @@ function checked(value: unknown): LocationPayload {
     if (!nonnegative(pair.start) || !nonnegative(pair.end) || pair.end < pair.start)
       throw new InvalidValueError("Invalid document location range.");
   }
-  return Object.freeze({ version, sourceSha256, generation, part, story, path: Object.freeze([...path] as number[]),
-    range: range === null ? null : Object.freeze({ start: (range as { start: number }).start, end: (range as { end: number }).end }) });
+  return Object.freeze({ version, sourceSha256, generation: generation || 0, part, story, path: Object.freeze(ownedPath),
+    range: range === null ? null : Object.freeze({ start: (range as { start: number }).start || 0, end: (range as { end: number }).end || 0 }) });
+}
+
+function canonicalEncoding(value: LocationPayload): Readonly<{ token: string; bytes: number }> {
+  const json = JSON.stringify(value);
+  // Validated numbers, hash and field names are ASCII; only these two strings
+  // can require UTF-8. Native physical addresses avoid a second byte copy.
+  let ascii = true;
+  for (const text of [value.part, value.story])
+    for (let index = 0; index < text.length; index++) if (text.charCodeAt(index) > 127) { ascii = false; break; }
+  let binary = json;
+  let length = json.length;
+  if (ascii) {
+    if (json.length > 24576) throw new LocationCapacityError("Document location token is too large.");
+  } else {
+    const bytes = new TextEncoder().encode(json);
+    if (bytes.length > 24576) throw new LocationCapacityError("Document location token is too large.");
+    length = bytes.length;
+    binary = "";
+    for (let index = 0; index < bytes.length; index += 8192)
+      binary += String.fromCharCode(...bytes.subarray(index, index + 8192));
+  }
+  return { token: "docx-loc-v1." + btoa(binary).split("+").join("-").split("/").join("_").split("=")[0]!, bytes: length };
 }
 
 export function encodeLocation(value: LocationPayload): string {
-  const bytes = new TextEncoder().encode(JSON.stringify(checked(value)));
-  if (bytes.length > 24576) throw new LocationCapacityError("Document location token is too large.");
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return "docx-loc-v1." + btoa(binary).split("+").join("-").split("/").join("_").split("=")[0]!;
+  return canonicalEncoding(checked(value)).token;
+}
+
+/** Internal minted location retains the exact validated immutable payload. */
+export function createGeneratedLocation(value: LocationPayload): Readonly<{ token: string; value: LocationPayload; bytes: number }> {
+  try {
+    const payload = checked(value, true);
+    return Object.freeze({ ...canonicalEncoding(payload), value: payload });
+  } catch (error) {
+    if (error instanceof LocationCapacityError) throw new ResourceLimitError("Document location token capacity exceeded.");
+    throw error;
+  }
 }
 
 /** Package-minted metadata exhausts resources rather than invalidating caller arguments. */

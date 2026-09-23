@@ -1,5 +1,6 @@
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
+import { documentXmlCache, type DocumentBudget } from "./budget.js";
 import { validateDocxInvocation } from "./command.js";
 import { ControlClonePlanner } from "./control-clone.js";
 import type { ControlTemplateData } from "./control-template-types.js";
@@ -20,39 +21,66 @@ import { activeXmlChildren } from "./xml-active-children.js";
 
 export const templateRepeatAdmission = Symbol("template-repeat-admission");
 const w15 = "http://schemas.microsoft.com/office/word/2012/wordml";
-function elements(node: XmlElement): XmlElement[] { return [node, ...node.children.flatMap(elements)]; }
+function elements(root: XmlElement, budget: DocumentBudget): XmlElement[] {
+  budget.charge("retainedBytes", 8); const pending = [root], result: XmlElement[] = [];
+  while (pending.length) {
+    const node = pending.pop()!; budget.charge("work", node.children.length + 1);
+    budget.charge("retainedBytes", 8 + node.children.length * 8); result.push(node);
+    for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+  }
+  return result;
+}
 function child(node: XmlElement, name: string, namespace = node.namespace): XmlElement | undefined { const result = node.children.filter(child => child.namespace === namespace && child.localName === name); if (result.length > 1) throw new UnsupportedEditError("Repeated template declarations are unsupported."); return result[0]; }
 function attr(node: XmlElement | undefined, name: string): string | undefined { return node?.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value; }
 function open(node: XmlElement): string { return `<${node.name}${node.attributes.map(attribute => ` ${attribute.name}="${xmlValue(attribute.value)}"`).join("")}>`; }
-function fields(item: XmlElement): XmlElement[] {
-  const result: XmlElement[] = [];
-  const visit = (node: XmlElement): void => {
+function fields(item: XmlElement, budget: DocumentBudget): XmlElement[] {
+  budget.charge("retainedBytes", 8); const pending = [item], result: XmlElement[] = [];
+  while (pending.length) {
+    const node = pending.pop()!; budget.charge("work", node.children.length + 1);
     if (node !== item && node.namespace === item.namespace && node.localName === "sdt") {
       const properties = child(node, "sdtPr");
-      if (properties && child(properties, "repeatingSection", w15)) return;
-      if (properties && attr(child(properties, "tag"), "val") !== undefined) result.push(node);
+      if (properties && child(properties, "repeatingSection", w15)) continue;
+      if (properties && attr(child(properties, "tag"), "val") !== undefined) { budget.charge("retainedBytes", 8); result.push(node); }
     }
-    for (const nested of node.children) visit(nested);
-  };
-  visit(item); return result;
+    budget.charge("retainedBytes", node.children.length * 8);
+    for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+  }
+  return result;
 }
-function shape(item: XmlElement): string {
-  const tagged = new Set(fields(item));
-  const read = (node: XmlElement): unknown => {
-    if (node.namespace === item.namespace && node.localName === "id" || node.namespace === item.namespace && node.localName === "showingPlcHdr") return null;
+function shape(item: XmlElement, budget: DocumentBudget): string {
+  const tagged = new Set(fields(item, budget));
+  type ShapeNode = { readonly node: XmlElement; readonly item: XmlElement; readonly tagged: ReadonlySet<XmlElement> };
+  const pending: (ShapeNode | string)[] = [{ node: item, item, tagged }], chunks: string[] = [];
+  budget.charge("retainedBytes", 32);
+  while (pending.length) {
+    const task = pending.pop()!;
+    if (typeof task === "string") { chunks.push(task); continue; }
+    const { node, item, tagged } = task;
+    budget.charge("work", node.attributes.length + node.children.length + 1);
+    budget.charge("retainedBytes", 64 + node.children.length * 40);
+    if (node.namespace === item.namespace && ["id", "showingPlcHdr"].includes(node.localName)) { chunks.push("null"); continue; }
     const names = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !(["id", "embed"].includes(attribute.localName) && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "docPr", "blip"].includes(node.localName) || node.localName === "bookmarkStart" && attribute.localName === "name" || node.localName === "hyperlink" && ["anchor", "id"].includes(attribute.localName) || ["date", "dropDownList", "comboBox"].includes(node.localName) && ["fullDate", "lastValue"].includes(attribute.localName) || node.namespace !== item.namespace && node.localName === "checked" && attribute.localName === "val")).map(attribute => [attribute.namespace, attribute.localName, attribute.value]);
+    const head = JSON.stringify([node.namespace, node.localName, names]);
+    chunks.push(head.slice(0, -1) + ",");
     if (node.localName === "sdt" && node.namespace === item.namespace && child(node, "sdtPr") && child(child(node, "sdtPr")!, "repeatingSection", w15)) {
-      const content = child(node, "sdtContent")!;
-      return [node.namespace, node.localName, names, read(child(node, "sdtPr")!), content.children[0] && JSON.parse(shape(content.children[0]!))];
+      const first = child(node, "sdtContent")!.children[0];
+      pending.push("]", first ? { node: first, item: first, tagged: new Set(fields(first, budget)) } : "null", ",", { node: child(node, "sdtPr")!, item, tagged });
+    } else if (tagged.has(node)) {
+      const content = child(node, "sdtContent")!, run = elements(content, budget).find(node => node.namespace === item.namespace && node.localName === "r"), properties = run && child(run, "rPr");
+      pending.push("]", properties ? { node: properties, item, tagged } : "null", "," + JSON.stringify(content.children[0]?.localName === "p" ? "paragraph" : "inline") + ",", { node: child(node, "sdtPr")!, item, tagged });
+    } else {
+      chunks.push("[");
+      pending.push("]," + JSON.stringify(node.children.length ? "" : node.text) + "]");
+      const children = node.children.filter(node => node.namespace !== item.namespace || !["id", "showingPlcHdr"].includes(node.localName));
+      for (let index = children.length - 1; index >= 0; index--) {
+        pending.push({ node: children[index]!, item, tagged });
+        if (index > 0) pending.push(",");
+      }
     }
-    if (tagged.has(node)) {
-      const content = child(node, "sdtContent")!, runs = elements(content).filter(node => node.namespace === item.namespace && node.localName === "r");
-      return [node.namespace, node.localName, names, read(child(node, "sdtPr")!), content.children[0]?.localName === "p" ? "paragraph" : "inline", runs[0] ? child(runs[0], "rPr") && read(child(runs[0], "rPr")!) : null];
-    }
-    return [node.namespace, node.localName, names, node.children.map(read).filter(node => node !== null), node.children.length ? "" : node.text];
-  };
-  return JSON.stringify(read(item));
+  }
+  const length = chunks.reduce((total, chunk) => total + chunk.length, 0); budget.charge("retainedBytes", length * 4); return chunks.join("");
 }
+
 function scalar(item: ControlSnapshot, value: string | number | boolean): ControlScalarInput {
   if (["plain-text", "rich-text"].includes(item.kind) && typeof value === "string") return { text: value };
   if (item.kind === "checkbox" && typeof value === "boolean") return { checked: value };
@@ -86,30 +114,44 @@ export async function editDocumentControlRepeats(input: Uint8Array, options: Doc
   assertOutsideFields(parseFields(ancestors[story.value.path.length]!, story.value.path, budget, xml.compatibility.content), location.value.path); assertOutsideRevisionRanges(xml.root, region, budget, xml.compatibility.branches);
   if (!content.children.length || content.content.some(node => node.kind !== "element" && (node.kind !== "text" || node.text.trim()))) throw new UnsupportedEditError("A region requires reusable native items.");
   const items = content.children;
+  assertDocumentEditable(archive, { ...settings, budget }, archive); const planner = new ControlClonePlanner(archive, { ...settings, budget });
+  let prototypeShape: { value: string; work: number; retainedBytes: number } | undefined;
   for (const item of items) {
     const properties = child(item, "sdtPr"), body = child(item, "sdtContent");
     if (item.namespace !== region.namespace || item.localName !== "sdt" || !properties || !body || !child(properties, "repeatingSectionItem", w15) || child(properties, "dataBinding") || attr(child(properties, "lock"), "val") && attr(child(properties, "lock"), "val") !== "unlocked") throw new UnsupportedEditError("Every item requires an unlocked, unbound native declaration.");
     if (row ? body.children.length !== 1 || body.children[0]!.namespace !== region.namespace || body.children[0]!.localName !== "tr" : !body.children.length || body.children.some(node => node.namespace !== region.namespace || !( ["p", "tbl"].includes(node.localName) || context[templateRepeatAdmission] && node.localName === "sdt" && child(node, "sdtPr") && child(child(node, "sdtPr")!, "repeatingSection", w15)))) throw new UnsupportedEditError("The native item has an unsupported row/block shape.");
-    if (elements(body).some(node => ["vMerge", "hMerge", "gridSpan", "sectPr"].includes(node.localName) || !context[templateRepeatAdmission] && node.namespace === w15 && ["repeatingSection", "repeatingSectionItem"].includes(node.localName))) throw new UnsupportedEditError("Merged, section-changing or nested repeated templates are unsupported.");
+    planner.preflight(xml, item, location.value.part);
+    if (elements(body, budget).some(node => ["vMerge", "hMerge", "gridSpan", "sectPr"].includes(node.localName) || !context[templateRepeatAdmission] && node.namespace === w15 && ["repeatingSection", "repeatingSectionItem"].includes(node.localName))) throw new UnsupportedEditError("Merged, section-changing or nested repeated templates are unsupported.");
     if (row) { const cells = body.children[0]!.children.filter(node => node.namespace === region.namespace && node.localName === "tc"); const grid = child(parent, "tblGrid")?.children.filter(node => node.namespace === region.namespace && node.localName === "gridCol") ?? []; if (!grid.length || cells.length !== grid.length || cells.some(cell => !child(cell, "p") && !cell.children.some(node => node.namespace === region.namespace && node.localName === "p"))) throw new UnsupportedEditError("A repeated row requires a complete unmerged grid."); budget.table(Math.max(1, data.length), cells.length); }
-    for (const node of elements(item).filter(node => node.namespace === region.namespace && node.localName === "sdt")) {
+    for (const node of elements(item, budget).filter(node => node.namespace === region.namespace && node.localName === "sdt")) {
       const properties = child(node, "sdtPr"); if (!properties || child(properties, "dataBinding") || attr(child(properties, "lock"), "val") && attr(child(properties, "lock"), "val") !== "unlocked") throw new UnsupportedEditError("All repeated controls must be unlocked and unbound.");
     }
-    if (shape(item) !== shape(items[0]!)) throw new UnsupportedEditError("Prior items have conflicting declaration schemas or layouts.");
+    const beforeShape = budget.usage;
+    const itemShape = shape(item, budget);
+    if (!prototypeShape) {
+      budget.charge("retainedBytes", 128);
+      const afterShape = budget.usage;
+      prototypeShape = { value: itemShape, work: afterShape.work - beforeShape.work,
+        retainedBytes: afterShape.retainedBytes - beforeShape.retainedBytes };
+    }
+    // Every comparison reserves the original prototype traversal; its frozen
+    // source cannot change between prior-item preflights.
+    budget.charge("work", prototypeShape.work);
+    budget.charge("retainedBytes", prototypeShape.retainedBytes);
+    if (itemShape !== prototypeShape.value) throw new UnsupportedEditError("Prior items have conflicting declaration schemas or layouts.");
   }
-  const prototype = items[0]!, keys = new Set(fields(prototype).map(node => attr(child(child(node, "sdtPr")!, "tag"), "val")!));
+  const prototype = items[0]!, keys = new Set(fields(prototype, budget).map(node => attr(child(child(node, "sdtPr")!, "tag"), "val")!));
   for (const record of data as readonly DocxBindingRecord[]) { const bindings = record.values.map(value => value.binding); if (bindings.length !== keys.size || new Set(bindings).size !== bindings.length || bindings.some(key => !keys.has(key))) throw new DocxUsageError("Every record must exactly match the declared scalar keys."); }
-  if (!row) for (const table of elements(prototype).filter(node => node.namespace === region.namespace && node.localName === "tbl")) {
+  if (!row) for (const table of elements(prototype, budget).filter(node => node.namespace === region.namespace && node.localName === "tbl")) {
     const rows = tableRows(table, node => node, node => node.children, budget);
     const columns = child(table, "tblGrid")?.children.filter(node => node.namespace === region.namespace && node.localName === "gridCol").length ?? 0;
     budget.table(rows.length * Math.max(1, data.length), columns);
   }
-  assertDocumentEditable(archive, { ...settings, budget }, archive); const planner = new ControlClonePlanner(archive, { ...settings, budget }); const rendered: string[] = [];
+  const rendered: string[] = [];
   for (const item of items) {
-    planner.preflight(xml, item, location.value.part);
     await planner.admitMedia(xml, item, location.value.part);
 
-    for (const node of fields(item)) {
+    for (const node of fields(item, budget)) {
       const snapshot = inspectControlSnapshot(node, location as Location<"control">, archive, { ...settings, budget }, xml);
       for (const record of data.length ? data : [null]) {
         const value = record?.values.find((entry: DocxBindingRecord["values"][number]) => entry.binding === snapshot.tag)?.value;
@@ -119,9 +161,13 @@ export async function editDocumentControlRepeats(input: Uint8Array, options: Doc
     }
   }
   for (const record of data.length ? data : [null]) {
-    budget.check("work", 0); const clone = planner.clone(xml, prototype, location.value.part); const fragment = new DocumentXmlEditor(new TextEncoder().encode(`<root>${clone.xml}</root>`), {}, undefined, budget); const item = fragment.root.children[0]!;
+    budget.check("work", 0); const clone = planner.clone(xml, prototype, location.value.part);
+    const fragmentBytes = new TextEncoder().encode(`<root>${clone.xml}</root>`);
+    // Engine-owned fragments replay full parsing reservations on every reuse.
+    (budget[documentXmlCache].staged ??= new WeakSet()).add(fragmentBytes);
+    const fragment = new DocumentXmlEditor(fragmentBytes, {}, undefined, budget); const item = fragment.root.children[0]!;
     const stages: (() => void)[] = [];
-    for (const node of fields(item)) {
+    for (const node of fields(item, budget)) {
       const snapshot = inspectControlSnapshot(node, location as Location<"control">, archive, { ...settings, budget }, fragment); if (!keys.has(snapshot.tag!)) throw new UnsupportedEditError("A clone introduced an undeclared key.");
       const value = record?.values.find((entry: DocxBindingRecord["values"][number]) => entry.binding === snapshot.tag)?.value; stages.push(record ? prepareControlValue(fragment, node, snapshot, scalar(snapshot, value!), { ...settings, budget }) : prepareControlPlaceholder(fragment, node, snapshot, { ...settings, budget }));
     }

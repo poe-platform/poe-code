@@ -1,0 +1,44 @@
+import { Volume } from "memfs";
+import { expect, it } from "vitest";
+import { MemoryFileSystem, Shell } from "virtual-bash";
+import { docxCommands } from "virtual-bash/commands/docx";
+import * as api from "./index.js";
+import { textContext, textFixture } from "../tests/fixtures/text.js";
+import { readPackage } from "../tests/assertions.js";
+const cp = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties", terms = "http://purl.org/dc/terms/", dc = "http://purl.org/dc/elements/1.1/";
+const enc = (value: string) => new TextEncoder().encode(value), dec = (value: Uint8Array) => new TextDecoder().decode(value), ref = (resultHandle: string) => ({ resultHandle });
+const cases = [
+  { raw: "2012-11-17T11:07:40-05:30", expected: "2012-11-17T16:37:40Z" },
+  { raw: "2024-03-01T00:30:00.999+01:00", expected: "2024-02-29T23:30:00Z" },
+  { raw: "1969-12-31T23:59:59.999-00:00", expected: "1969-12-31T23:59:59Z" },
+  { raw: "1900-01-01T00:00:00.0000001+00:00", expected: "1900-01-01T00:00:00Z" },
+  { raw: "2024-02-30T12:00:00+01:00", expected: null },
+  { raw: "2024-02-29T24:00:00+01:00", expected: null },
+  { raw: "2024-02-29T12:00:00+25:00", expected: null },
+  { raw: "2024-02-29T12:00:00+01:60", expected: null },
+  { raw: "2024-02-29T12:00:00", expected: null, model: "2024-02-29T12:00:00Z" },
+  { raw: "2024-02-29", expected: null, model: "2024-02-29T00:00:00Z" }
+];
+for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
+for (const key of ["created", "modified", "last_printed"] as const)
+for (const route of ["model", "model-sdk", "model-cli", "sdk", "cli", "sdk-batch", "cli-batch"] as const)
+for (const sample of cases)
+it(`native explicit-offset core dates; strict=${strict}; kind=${kind}; key=${key}; route=${route}; lexical=${sample.raw}`, async () => {
+ const utility = key === "last_printed" && sample.raw === "2024-02-29T24:00:00+01:00" ? "2024-02-29T23:00:00Z" : sample.expected;
+ const expected = route.startsWith("model") && "model" in sample ? sample.model : utility;
+ const parts = readPackage(await textFixture("<w:p><w:r><w:t>Retained 海🌊</w:t></w:r></w:p>", {}, strict, { kind })),name="meta/native-core.xml",local=key==="last_printed"?"lastPrinted":key,namespace=key==="last_printed"?cp:terms,qualified="core:"+local;
+ const source=`<p:coreProperties xmlns:p="${cp}" xmlns:t="${terms}" xmlns:d="${dc}" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><${key==="last_printed"?"p":"t"}:${local}${namespace===terms?' xsi:type="t:W3CDTF"':""}>${sample.raw}</${key==="last_printed"?"p":"t"}:${local}><d:title>Original</d:title><!--retain--><?audit exact?></p:coreProperties>`;
+ parts.set(name,enc(source));parts.set("[Content_Types].xml",enc(dec(parts.get("[Content_Types].xml")!).replace("</Types>",`<Override PartName="/${name}" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`)));parts.set("_rels/.rels",enc(dec(parts.get("_rels/.rels")!).replace("</Relationships>",`<Relationship Id="nativeMetadata" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="${name}"/></Relationships>`)));
+ const memory=Volume.fromJSON({"/input":"","/output":""}),sink={async write(bytes:Uint8Array){memory.appendFileSync("/output",bytes);}},context={...textContext,encoding:{order:"input",compression:"store"} as const};
+ await api.writeArchive({comment:new Uint8Array(),members:[...parts].map(([name,bytes])=>({name,bytes,directory:false,modified:new Date("1980-01-01T00:00:00Z")}))},{async write(bytes){memory.appendFileSync("/input",bytes);}},context.encoding,context);
+ const input=new Uint8Array(memory.readFileSync("/input") as Buffer),modelOps=[{operation:"model.document.Document.core_properties.get",receiver:ref("document"),arguments:{},resultHandle:"core"},{operation:`model.opc.coreprops.CoreProperties.${key}.get`,receiver:ref("core"),arguments:{}}],ops=route.startsWith("model")?modelOps:[{operation:"properties.get",arguments:{name:qualified}}];
+ const observe=(value:unknown)=>{if(route.startsWith("model"))expect(value).toBe(expected===null?null:expected.replace("Z",".000Z"));else expect(value).toMatchObject({name:qualified,support:expected===null?"preserve":"edit",properties:[{name:local,type:"date",value:expected,writable:expected!==null,cached:false}],details:{group:"core",storedType:{namespace,localName:local}},references:[{owner:"/",id:"nativeMetadata"}]});};
+ if(route==="model"){
+  const doc=await api.Document(input,context),value=doc.core_properties[key];observe(value?.toISOString()??null);if(value){value.setTime(0);expect(doc.core_properties[key]?.toISOString()).toBe(expected!.replace("Z",".000Z"));}expect(doc.core_properties.part.blob).toEqual(parts.get(name));await doc.save(sink);expect(new Uint8Array(memory.readFileSync("/output") as Buffer)).toEqual(input);memory.writeFileSync("/output","");
+ }else if(route==="model-sdk"){const batch=await api.applyStyleModelBatch(input,{version:1,operations:ops},context);observe(batch.results.at(-1)!.value);expect(batch.affected).toBe(0);await batch.save(sink);expect(new Uint8Array(memory.readFileSync("/output") as Buffer)).toEqual(input);memory.writeFileSync("/output","");}
+ else if(route==="sdk"){const data=await api.inspectDocumentProperties(input,{name:qualified},context);observe(data.items[0]);expect(data.warnings).toEqual(expected===null?[{code:"invalid-property",message:"Some stored metadata is invalid or unsupported and remains preserved."}]:[]);}
+ else if(route==="sdk-batch"){const batch=await api.executeDocumentBatch(input,{version:1,operations:ops},{},context);observe((batch.results[0]!.data as {item:unknown}).item);expect(batch.results[0]!.affected).toBe(0);}
+ else{const fs=new MemoryFileSystem();await fs.writeFile("/input",input);await fs.writeFile("/destination",enc("Retained destination"));const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:context.limits})}));try{const command=route==="cli"?`docx properties get /input --name ${qualified} --json`:`docx batch /input --ops-json '${JSON.stringify({version:1,operations:ops})}' ${route==="model-cli"?"--dry-run --output /destination --force":""} --json`,result=await shell.exec(command);expect(result.exitCode,result.stdout+result.stderr).toBe(0);const data=JSON.parse(result.stdout);observe(route==="cli"?data.data.item:route==="model-cli"?data.data.results.at(-1).data:data.data.results[0].data.item);expect(data.affected).toBe(0);expect(await fs.readFile("/input")).toEqual(input);expect(await fs.readFile("/destination")).toEqual(enc("Retained destination"));}finally{await shell.dispose();}}
+ expect(memory.readFileSync("/output")).toHaveLength(0);expect(new Uint8Array(memory.readFileSync("/input") as Buffer)).toEqual(input);
+ if(utility!==null){await expect(api.editDocumentProperties(input,{operation:"properties.set",name:qualified,value:sample.raw,dryRun:true},context)).rejects.toMatchObject({code:"usage"});expect(memory.readFileSync("/output")).toHaveLength(0);await api.editDocumentProperties(input,{operation:"properties.set",name:qualified,value:utility,output:"-"},{...context,stdout:sink});expect(new Uint8Array(memory.readFileSync("/output") as Buffer)).toEqual(input);memory.writeFileSync("/output","");await api.editDocumentProperties(input,{operation:"properties.set",name:"core:title",value:"Updated",output:"-"},{...context,stdout:sink});const after=readPackage(new Uint8Array(memory.readFileSync("/output") as Buffer));expect(dec(after.get(name)!)).toBe(source.replace("Original","Updated"));for(const[part,bytes]of parts)if(part!==name)expect(after.get(part),part).toEqual(bytes);}
+});

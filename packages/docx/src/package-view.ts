@@ -1,4 +1,5 @@
 import { styleAllocationIds } from "./style-allocation.js";
+import { assertLiveCommentExtensionPartPreserved } from "./comment-extensions.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { inlineImageRun } from "./inline-image-xml.js";
 import type { ModelStore } from "./model-store.js";
@@ -19,7 +20,7 @@ import { PackURI } from "./pack-uri.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
 import type { DocumentOutput, DocumentSaveOptions } from "./model-output.js";
-import { corePropertyKeys, corePropertyNamespace, readPropertyNodes, serializePropertyScalar, normalizePropertyDate } from "./property-values.js";
+import { corePropertyKeys, corePropertyNamespace, readCorePropertyDate, readPropertyNodes, serializePropertyScalar, normalizePropertyDate } from "./property-values.js";
 import { createPropertyPart } from "./property-part.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { validateDocxValue } from "./operation-schema.js";
@@ -520,6 +521,7 @@ export class PackageView {
         const xml = new DocumentXmlEditor(metadata.bytes, {}, compatibilityProfileForPart(metadata.partname), budget);
         action(xml);
         const bytes = xml.serialize();
+        assertLiveCommentExtensionPartPreserved(graph, metadata, bytes, budget);
         const candidate = { ...archive, members: archive.members.map(member => member.name === metadata.name ? { ...member, bytes } : member) };
         if (parseMediaType(metadata.content_type) === "application/vnd.openxmlformats-officedocument.wordprocessingml.fonttable+xml" &&
             embeddedFontState(graph, budget) !== embeddedFontState(new DocumentPackage(candidate, limits, budget), budget))
@@ -673,19 +675,24 @@ export class StoryPart extends XmlPartView {
   get next_id(): number {
     const { xml, budget } = this.package[packageReadXml](this);
     let maximum = 0;
+    budget.charge("retainedBytes", 8);
     const pending = [xml.root];
     while (pending.length) {
       const node = pending.pop()!;
       budget.charge("work", 1 + node.attributes.length + node.children.length);
       for (const attribute of node.attributes) {
-        if (attribute.namespace || attribute.localName !== "id" || !attribute.value.length ||
-            [...attribute.value].some(char => char < "0" || char > "9")) continue;
+        if (attribute.namespace || attribute.localName !== "id" || !attribute.value.length) continue;
+        budget.charge("work", attribute.value.length * 2);
+        let decimal = true;
+        for (const char of attribute.value) if (char < "0" || char > "9") { decimal = false; break; }
+        if (!decimal) continue;
         const value = Number(attribute.value);
         if (!Number.isSafeInteger(value) || value >= Number.MAX_SAFE_INTEGER)
           throw new ResourceLimitError("The story identifier range is exhausted.");
         maximum = Math.max(maximum, value);
       }
-      pending.push(...node.children);
+      if (node.children.length) budget.charge("retainedBytes", node.children.length * 8);
+      for (const child of node.children) pending.push(child);
     }
     return maximum + 1;
   }
@@ -762,7 +769,18 @@ export class CommentsPart extends StoryPart {
     return owner[packageAdmitPart](partname, content_type, blob) as CommentsPart;
   }
   #comments: Comments | undefined;
-  get comments(): Comments { return this.#comments ??= this.package[packageModel](this).nativeComments(this); }
+  get comments(): Comments {
+    const model = this.package[packageModel](this);
+    if (this.#comments) {
+      try {
+        model.node(this.#comments.ref);
+        return this.#comments;
+      } catch (error) {
+        if (!(error instanceof StaleHandleError)) throw error;
+      }
+    }
+    return this.#comments = model.nativeComments(this);
+  }
   static default(owner: PackageView): CommentsPart {
     if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
     return owner[packageCreateNative]("comments") as CommentsPart;
@@ -955,10 +973,9 @@ export class CoreProperties {
     const properties = readPropertyNodes(xml.root, "core", "transitional", this.#budget);
     const value = properties.find(property => property.name === key);
     if (declaration.type === "integer") {
-      const raw = value?.node.text ?? "";
-      return raw && [...raw].every(char => "0123456789".includes(char)) && Number.isSafeInteger(Number(raw)) ? Number(raw) : 0;
+      return typeof value?.value?.value === "number" ? value.value.value : 0;
     }
-    if (declaration.type === "date") return typeof value?.value?.value === "string" ? new Date(value.value.value) : null;
+    if (declaration.type === "date") return value?.valueContent ? readCorePropertyDate(value.valueContent.filter(node => node.kind === "text" || node.kind === "cdata").map(node => node.text).join(""), key) : null;
     return typeof value?.value?.value === "string" ? value.value.value : "";
   }
   [coreWrite](name: string, value: unknown): void {
@@ -974,6 +991,7 @@ export class CoreProperties {
     } else {
       if (!(value instanceof Date) || !Number.isFinite(Date.prototype.getTime.call(value))) throw new InputTypeError("Expected a valid explicit UTC Date.");
       text = normalizePropertyDate(new Date(Math.floor(Date.prototype.getTime.call(value) / 1000) * 1000).toISOString());
+      if (coreKey(name) === "lastPrinted" && text.slice(0, 4) === "0000") throw new InvalidValueError("XML dateTime properties require a nonzero native year.");
     }
     const view = this.#part.element;
     const matching = view.children.filter(node => node.tag.namespaceURI === declaration.namespace && node.tag.localName === declaration.localName);

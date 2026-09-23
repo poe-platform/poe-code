@@ -5,15 +5,17 @@ import { readDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { MarkupCompatibility } from "./compatibility.js";
 import { documentPartRole } from "./document-part-roles.js";
-import type { InspectionProtection } from "./inspection.js";
+import type { PropertyValue } from "./property-values.js";
+import type { InspectionReference, InspectionProtection } from "./inspection.js";
 import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { measurePackageResourceSerialization } from "./ancillary-resources.js";
+import { incomingResourceReferences, measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import type { DocumentBudget } from "./budget.js";
 import { activeSettingsProtection } from "./protection.js";
 import { activeXmlChildren } from "./xml-active-children.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 
 export interface SettingEntry {
   readonly path: readonly number[]; readonly namespace: string; readonly localName: string;
@@ -33,16 +35,29 @@ export interface SettingsRecord {
   readonly details: SettingsDetails;
 }
 export interface SettingsListData { readonly items: readonly SettingsRecord[] }
+export interface SettingsResourceRecord {
+  readonly kind: "settings";
+  readonly name: string;
+  readonly location: Location<"part">;
+  readonly properties: readonly PropertyValue[];
+  readonly references: readonly InspectionReference[];
+  readonly support: "read" | "preserve";
+}
+export interface SettingsResourceListData { readonly items: readonly SettingsResourceRecord[] }
+
 
 const value = (node: XmlElement, name: string) => node.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === name)?.value;
 function booleanValue(node: XmlElement | undefined): boolean | null {
   if (!node) return null;
   const stored = value(node, "val");
-  return stored === undefined || ["true", "1", "on"].includes(stored) ? true : ["false", "0", "off"].includes(stored) ? false : null;
+  return stored === undefined ? true : storedBooleanValue(stored);
 }
 
 /** Reads stored package settings without creating owners or activating resources. */
-export async function inspectDocumentSettings(input: Uint8Array, options: DocxOperationArguments<"settings.list">, context: ArchiveContext): Promise<SettingsListData> {
+export function inspectDocumentSettings(input: Uint8Array, options: DocxOperationArguments<"settings.list">, context: ArchiveContext, projection: "resource"): Promise<SettingsResourceListData>;
+export function inspectDocumentSettings(input: Uint8Array, options: DocxOperationArguments<"settings.list">, context: ArchiveContext, projection?: "snapshot"): Promise<SettingsListData>;
+export async function inspectDocumentSettings(input: Uint8Array, options: DocxOperationArguments<"settings.list">, context: ArchiveContext, projection: "snapshot" | "resource" = "snapshot"): Promise<SettingsListData | SettingsResourceListData> {
+  if (projection !== "snapshot" && projection !== "resource") throw new InputTypeError("Expected a declared settings projection.");
   const settings = archiveSettings(context), invocation = validateDocxInvocation({ operation: "settings.list", inputs: ["document"], options }, settings.budget);
   const budget = settings.budget.lower(Object.fromEntries((invocation.options.limit as readonly { name: string; value: number }[] | undefined ?? []).map(limit => [limit.name, limit.value])));
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
@@ -68,26 +83,57 @@ export async function inspectDocumentSettings(input: Uint8Array, options: DocxOp
       for (const child of children) pending.push(child);
     }
     const singleton = (name: string) => { budget.charge("work", rootChildren.length); const matches = rootChildren.filter(node => native && node.namespace === root.namespace && node.localName === name); const node = matches.length === 1 ? matches[0] : undefined; return node && view.canEdit(node) && !node.children.length && !node.text.trim() && node.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/" || attribute.namespace === node.namespace && attribute.localName === "val" && view.canEdit(attribute)) ? node : undefined; };
-    const visit = (node: XmlElement, path: number[]) => {
+    const census: { node: XmlElement; path: number[] }[] = [];
+    budget.charge("retainedBytes", root.children.length * 40);
+    for (let index = root.children.length - 1; index >= 0; index--)
+      census.push({ node: root.children[index]!, path: [index] });
+    while (census.length) {
+      const { node, path } = census.pop()!;
       budget.charge("work", node.attributes.length + node.children.length + 1);
       const protectedNode = native && node.namespace === root.namespace && ["documentProtection", "writeProtection"].includes(node.localName);
       const attributes = node.attributes.filter(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && (!protectedNode || attribute.namespace === node.namespace && ["edit", "enforcement", "recommended", "formatting"].includes(attribute.localName))).map(attribute => ({ namespace: attribute.namespace, localName: attribute.localName, value: attribute.value })).sort((a, b) => a.namespace.localeCompare(b.namespace) || a.localName.localeCompare(b.localName));
-      budget.charge("retainedBytes", 128 + path.length * 8 + attributes.reduce((total, attribute) => total + 64 + (attribute.namespace.length + attribute.localName.length + attribute.value.length) * 2, 0));
+      budget.charge("retainedBytes", 128 + attributes.reduce((total, attribute) => total + 64 + (attribute.namespace.length + attribute.localName.length + attribute.value.length) * 2, 0));
       entries.push({ path, namespace: node.namespace, localName: node.localName, attributes, status: stored.has(node) && node.namespace === root.namespace && view.canEdit(node) && node.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/" || view.canEdit(attribute)) ? "stored" : "opaque" });
       if (activeProtection.has(node)) {
         const enforcement = value(node, "enforcement");
-        protection.push({ kind: node.localName, edit: value(node, "edit") ?? null, enforced: node.localName === "writeProtection" ? true : enforcement === undefined ? false : ["true", "1", "on"].includes(enforcement) ? true : ["false", "0", "off"].includes(enforcement) ? false : null });
+        protection.push({ kind: node.localName, edit: value(node, "edit") ?? null, enforced: node.localName === "writeProtection" ? true : enforcement === undefined ? false : storedBooleanValue(enforcement) });
       }
-      node.children.forEach((child, index) => visit(child, [...path, index]));
-    };
-    root.children.forEach((node, index) => visit(node, [index]));
+      budget.charge("retainedBytes", node.children.length * (32 + (path.length + 1) * 8));
+      for (let index = node.children.length - 1; index >= 0; index--)
+        census.push({ node: node.children[index]!, path: [...path, index] });
+    }
     budget.check("matches", records.length + 1);
     const locationValue = { version: 1 as const, sourceSha256, generation: 0, part: part.partname, story: part.partname, path: [], range: null };
     const location: Location<"part"> = { kind: "part", value: locationValue, token: encodeLocation(locationValue), positions: {} };
     budget.charge("retainedBytes", location.token.length * 4 + 256);
     records.push({ kind: "settings", name: part.partname, location, properties: [], references: [], support: native ? "read" : "preserve", details: { kind: "settings", entries, updateFields: booleanValue(singleton("updateFields")), fontEmbedding: { embedTrueTypeFonts: booleanValue(singleton("embedTrueTypeFonts")), embedSystemFonts: booleanValue(singleton("embedSystemFonts")), saveSubsetFonts: booleanValue(singleton("saveSubsetFonts")) }, protection } });
   }
-  const data = { items: records.sort((left, right) => compareInventoryNames(left.name, right.name)) };
+  records.sort((left, right) => compareInventoryNames(left.name, right.name));
+  const data = projection === "snapshot" ? { items: records } : { items: records.map(record => {
+    const { details, ...item } = record;
+    const properties: PropertyValue[] = [];
+    const scalar = (name: string, type: PropertyValue["type"], value: PropertyValue["value"]) => {
+      budget.charge("retainedBytes", 128 + name.length * 2 + (typeof value === "string" ? value.length * 2 : 8));
+      properties.push({ name, type, value, writable: false, cached: false });
+    };
+    scalar("updateFields", "boolean", details.updateFields);
+    for (const [name, value] of Object.entries(details.fontEmbedding)) scalar(name, "boolean", value);
+    scalar("entryCount", "integer", details.entries.length);
+    scalar("opaqueCount", "integer", details.entries.filter(entry => entry.status === "opaque").length);
+    for (const entry of details.entries) {
+      const prefix = `settings[${entry.path.join(".")}]`;
+      scalar(prefix + ".namespace", "string", entry.namespace);
+      scalar(prefix + ".localName", "string", entry.localName);
+      scalar(prefix + ".status", "string", entry.status);
+      for (const [index, attribute] of entry.attributes.entries()) for (const [field, value] of Object.entries(attribute)) scalar(`${prefix}.attributes[${index}].${field}`, "string", value);
+    }
+    for (const [index, protection] of details.protection.entries()) {
+      scalar(`protection[${index}].kind`, "string", protection.kind);
+      scalar(`protection[${index}].enforced`, "boolean", protection.enforced);
+      scalar(`protection[${index}].edit`, "string", protection.edit);
+    }
+    return { ...item, properties, references: incomingResourceReferences(archive.package, record.name, budget) };
+  }) };
   measurePackageResourceSerialization(data, budget);
   return data;
 }

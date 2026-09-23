@@ -26,11 +26,13 @@ export async function executePropertiesCommand(invocation: DocxInvocation, bytes
   if (edit && (options.inPlace || options.output !== undefined && options.output !== "-") && invocation.inputs[0] !== "-" && !input) throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");
   if (invocation.operation === "properties.set") {
     let type = options.type, qualified = options.name as string;
-    try { const snapshot = await inspectDocumentProperties(bytes, { name: qualified }, { ...context, budget }), item = snapshot.items[0]!; qualified = item.name ?? qualified; type ??= item.properties[0]?.type; }
-    catch (error) {
-      if (!(error instanceof SelectionError) || error.code !== "missing-selection") throw error;
-      const archive = await readDocumentArchive(bytes, { ...context, budget });
-      if (!qualified.includes(":")) { const group = propertyDeclaration("core", qualified, archive.dialect) ? "core" : propertyDeclaration("extended", qualified, archive.dialect) ? "extended" : "custom"; qualified = `${group}:${qualified}`; }
+    if (type === undefined || !qualified.includes(":")) {
+      try { const snapshot = await inspectDocumentProperties(bytes, { name: qualified }, { ...context, budget }), item = snapshot.items[0]!; qualified = item.name ?? qualified; type ??= item.properties[0]?.type; }
+      catch (error) {
+        if (!(error instanceof SelectionError) || error.code !== "missing-selection") throw error;
+        const archive = await readDocumentArchive(bytes, { ...context, budget });
+        if (!qualified.includes(":")) { const group = propertyDeclaration("core", qualified, archive.dialect) ? "core" : propertyDeclaration("extended", qualified, archive.dialect) ? "extended" : "custom"; qualified = `${group}:${qualified}`; }
+      }
     }
     const normalized = normalizeDocxPropertyOptions({ name: qualified, value: options.value, ...(type === undefined ? {} : { type }) }, typeof options.value === "string");
     options.value = normalized.value;

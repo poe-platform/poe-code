@@ -104,7 +104,7 @@ it("inventories extension identifiers, unknown attributes and nested entity meta
   expect(JSON.stringify(data)).toContain("retained");
   const cli = await command(input, ["comments", "list", "/input.docx", "--json"]);
   expect(cli.result.exitCode).toBe(0);
-  expect(JSON.parse(new TextDecoder().decode(cli.bytes)).data).toEqual(data);
+  expect(JSON.parse(new TextDecoder().decode(cli.bytes)).data).toEqual(await docx.inspectDocumentComments(input, { operation: "comments.list", options: {} }, textContext, "resource"));
 });
 
 it("preserves every extension byte on unrelated text replacement", async () => {

@@ -30,7 +30,8 @@ it(`${route} ${action} preserves native comment roles with ${role} MIME ${JSON.s
     await editDocumentComments(input, action === "set" ? {operation: "comments.set", options: {comment: 2, text: "Updated", output: "-"}} : {operation: "comments.remove", options: {comment: 2, output: "-"}}, {...chartContext, encoding: {order: "input", compression: "store"}, stdout: {async write(bytes) {memory.appendFileSync("/output", bytes);}}});
   } else {
     const fs = new MemoryFileSystem(); await fs.writeFile("/input", input); const shell = new Shell({fs}).use(docxCommands({engine: createDocxInspectionCommandEngine({limits: chartContext.limits})}));
-    const read = await shell.exec("docx comments list /input --json"); expect(read.exitCode, read.stderr).toBe(0); expect(JSON.parse(read.stdout).data.extensions.map((e: {part: string}) => e.part).sort()).toEqual(["/audit/extra.xml", "/audit/ids.xml", "/audit/people.xml", "/audit/thread.xml"]);
+    const read = await shell.exec("docx comments list /input --json"); expect(read.exitCode, read.stderr).toBe(0); expect(JSON.parse(read.stdout).data).toEqual(await inspectDocumentComments(input, {operation: "comments.list", options: {}}, chartContext, "resource"));
+    expect((await inspectDocumentComments(input, {operation: "comments.list", options: {}}, chartContext)).extensions.map(e => e.part).sort()).toEqual(["/audit/extra.xml", "/audit/ids.xml", "/audit/people.xml", "/audit/thread.xml"]);
     const result = await shell.exec(`docx comments ${action} /input --comment 2 ${action === "set" ? "--text Updated " : ""}--output - > /output`); expect(result.exitCode, result.stderr).toBe(0); memory.writeFileSync("/output", await fs.readFile("/output")); expect(await fs.readFile("/input")).toEqual(input);
   }
   const saved = readPackage(new Uint8Array(memory.readFileSync("/output") as Buffer));

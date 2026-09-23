@@ -36,6 +36,7 @@ it(`${route} independently executes exact comments witness R${c.row}; ${kind}; s
     operations.push({ operation: `model.comments.Comments.${c.action === "add" ? "add_comment" : "get"}.call`, receiver: ref("comments"),
       arguments: c.action === "add" ? { ...( "text" in c ? { text: c.text } : {}), ...( "author" in c ? { author: c.author, initials: c.initials } : {}) } : { commentId: "id" in c ? c.id : 42 },
       ...(c.row === 794 ? {} : { resultHandle: "comment" }) });
+    if (c.action === "lookup" && c.expected !== null) operations.push({ operation: "model.comments.Comment.comment_id.get", receiver: ref("comment"), arguments: {} });
     if (c.action === "property" || c.action === "text") operations.push({ operation: `model.comments.Comment.${c.action === "property" ? c.field : "text"}.get`, receiver: ref("comment"), arguments: {} });
     if (c.action === "set") operations.push({ operation: `model.comments.Comment.${c.field}.set`, receiver: ref("comment"), arguments: { value: c.value } },
       { operation: `model.comments.Comment.${c.field}.get`, receiver: ref("comment"), arguments: {} });
@@ -46,7 +47,7 @@ it(`${route} independently executes exact comments witness R${c.row}; ${kind}; s
     if (c.action === "count" || c.action === "property" || c.action === "text") expect(values.at(-1)).toEqual(c.expected);
     if (c.action === "lookup") {
       if (c.expected === null) expect(values.at(-1)).toBeNull();
-      else expect(values.at(-1)).toMatchObject({ type: "Comment" });
+      else { expect(values.at(-2)).toMatchObject({ type: "Comment" }); expect(values.at(-1)).toBe(c.expected); }
     }
     if (c.action === "iterate") expect(values.at(-1)).toMatchObject([{ type: "Comment" }, { type: "Comment" }]);
     if (c.action === "paragraphs") expect(values.slice(-2)).toEqual(c.expected);

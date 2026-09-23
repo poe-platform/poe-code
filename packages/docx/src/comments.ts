@@ -1,4 +1,4 @@
-import { measurePackageResourceSerialization } from "./ancillary-resources.js";
+import { incomingResourceReferences, measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comment-extensions.js";
 import { archiveSettings, documentSession, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
@@ -13,10 +13,16 @@ import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.j
 import { relativePartTarget } from "./part-uri.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { resolveDocxSelection } from "./simple-selection.js";
-import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { DocumentXmlEditor, replaceCommentRangeXml, UnsupportedEditError } from "./xml-write.js";
+import { activeXmlChildren } from "./xml-active-children.js";
+import { compatibilityContainers } from "./compatibility.js";
 import { findRelationshipPart } from "./relationship-part.js";
 import { nextCommentId } from "./comment-id.js";
+import { openNotes } from "./notes-state.js";
 import { normalizePropertyDate } from "./property-values.js";
+import { parseStoredDateTime } from "./stored-date-time.js";
+import { InvalidValueError } from "./archive.js";
+import { reviewResourceDate, type ReviewResourceRecord, type ReviewResourceListData, type ReviewResourceData } from "./review-resources.js";
 
 export type CommentReadRequest = { [K in "comments.list" | "comments.get"]: { readonly operation: K; readonly options: DocxOperationArguments<K> } }["comments.list" | "comments.get"];
 export type CommentEditRequest = { [K in "comments.add" | "comments.set" | "comments.remove"]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }["comments.add" | "comments.set" | "comments.remove"];
@@ -51,7 +57,10 @@ function selectedComments(state: State, operation: string, options: Options) {
   return records;
 }
 
-export async function inspectDocumentComments(input: Uint8Array, request: CommentReadRequest, context: ArchiveContext): Promise<CommentReadData> {
+export function inspectDocumentComments(input: Uint8Array, request: CommentReadRequest, context: ArchiveContext, projection: "resource"): Promise<ReviewResourceListData | ReviewResourceData>;
+export function inspectDocumentComments(input: Uint8Array, request: CommentReadRequest, context: ArchiveContext, projection?: "snapshot"): Promise<CommentReadData>;
+export async function inspectDocumentComments(input: Uint8Array, request: CommentReadRequest, context: ArchiveContext, projection: "snapshot" | "resource" = "snapshot"): Promise<CommentReadData | ReviewResourceListData | ReviewResourceData> {
+  if (projection !== "snapshot" && projection !== "resource") throw new InvalidValueError("Expected a declared comment projection.");
   closedRecord(request, ["operation", "options"]);
   if (!["comments.list", "comments.get"].includes(request.operation)) throw new DocxUsageError("Expected a comment read operation.");
   const settings = archiveSettings(context);
@@ -66,9 +75,30 @@ export async function inspectDocumentComments(input: Uint8Array, request: Commen
       timestamp: commentAttribute(n.node, "date") ?? null, text: state.document.text({ select: n.location.token }).text, location: n.location,
       range: n.start && n.end && n.reference ? { start: anchor(n.start), end: anchor(n.end), reference: anchor(n.reference) } : null, issues: n.issues };
   }), issues: state.issues, modern: state.modern ? "preserve" : null, extensions: state.extensions };
-  const serializedBytes = measurePackageResourceSerialization({ version: 1, operation: request.operation, ok: true, data, affected: 0, locations: data.items.map(n => n.location), warnings: [], errors: [] }, budget) + 1;
+  let result: CommentReadData | ReviewResourceListData | ReviewResourceData = data;
+  if (projection === "resource") {
+    const references = state.part === undefined ? [] : incomingResourceReferences(state.graph, state.part, budget);
+    const annotations = state.document.list("annotation", { scope: "all-stories" });
+    const items: ReviewResourceRecord[] = data.items.map(note => {
+      budget.charge("retainedBytes", 1024);
+      return { kind: "comments", location: note.location, text: note.text,
+        properties: [
+          { name: "comment_id", type: "integer", value: note.comment_id, writable: false, cached: false },
+          { name: "author", type: "string", value: note.author, writable: true, cached: false },
+          { name: "initials", type: "string", value: note.initials, writable: true, cached: false },
+          { name: "timestamp", type: "date", value: reviewResourceDate(note.timestamp), writable: false, cached: false },
+          { name: "stored_timestamp", type: "string", value: note.timestamp, writable: false, cached: false },
+          { name: "text", type: "string", value: note.text, writable: false, cached: false }
+        ], references, support: data.modern !== null || note.issues.some(issue => issue !== "deleted-anchor") ? "preserve" : "read",
+        details: { kind: "comments", commentId: note.comment_id, author: note.author, timestamp: reviewResourceDate(note.timestamp), initials: note.initials, modern: state.modern,
+          anchors: annotations.filter(location => state.markers.some(marker => marker.id === note.comment_id && marker.node.localName === "commentRangeStart" && marker.part === location.value.part && marker.path.length === location.value.path.length && marker.path.every((index, position) => index === location.value.path[position]))) }
+      };
+    });
+    result = request.operation === "comments.get" ? { item: items[0]! } : { items };
+  }
+  const serializedBytes = measurePackageResourceSerialization({ version: 1, operation: request.operation, ok: true, data: result, affected: 0, locations: data.items.map(n => n.location), warnings: [], errors: [] }, budget) + 1;
   budget.check("serializedOutput", serializedBytes);
-  return data;
+  return result;
 }
 
 export async function editDocumentComments(input: Uint8Array, request: CommentEditRequest, context: PublicationContext): Promise<CommentEditData> {
@@ -95,43 +125,63 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     const selected = resolveDocxSelection(state.document, invocation);
     if (selected.length !== 1) throw new SelectionError("missing-selection");
     const before = selected[0]!, range = before.value.range;
-    if (!range || range.start >= range.end || before.value.story !== main + "#body") throw new UnsupportedEditError("Comment creation requires a nonempty body paragraph range at run boundaries.");
+    if (!range || range.start >= range.end) throw new UnsupportedEditError("Comment creation requires a nonempty paragraph range at run boundaries.");
     const editor = editors.get(before.value.part)!;
     let p = editor.root;
     const ancestors = [p];
     for (const i of before.value.path) { p = p.children[i]!; ancestors.push(p); }
-    if (p.localName !== "p" || ancestors.some(n => n.namespace !== w || ["sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple", "hyperlink", "customXml"].includes(n.localName))) throw new UnsupportedEditError("Comment anchors cannot cross controlled content.");
-    const owner = state.document.list("story", { scope: "body" })[0]!;
+    const containers = new Set(editor.compatibility[compatibilityContainers]);
+    if (p.namespace !== w || p.localName !== "p" || ancestors.some(n => !containers.has(n) && (n.namespace !== w || ["hdr", "ftr", "comment", "sdt", "ins", "del", "moveFrom", "moveTo", "fldSimple", "hyperlink", "customXml"].includes(n.localName)))) throw new UnsupportedEditError("Comment anchors cannot cross controlled content.");
+    const owner = state.document.list("story", { scope: "all-stories" }).find(story => story.value.story === before.value.story);
+    if (!owner) throw new UnsupportedEditError("Comment anchors require an admitted story.");
+    const story = ancestors[owner.value.path.length]!;
+    if (["footnote", "endnote"].includes(story.localName)) {
+      const notes = await openNotes(input, { ...settings, budget });
+      const note = notes.records.find(record => record.part === before.value.part && record.node.localName === story.localName && record.id === Number(commentAttribute(story, "id")));
+      if (!note || note.type !== "normal") throw new UnsupportedEditError("Comment anchors require an ordinary note story.");
+      if (note.references.length > 1) throw new SelectionError("ambiguous-selection", [before.token]);
+    }
     const fields = parseFields(ancestors[owner.value.path.length]!, owner.value.path, budget, editor.compatibility.content);
     let offset = 0;
     let first: typeof p | undefined, last: typeof p | undefined;
-    const runs = state.document.list("run", { scope: "body" }).filter(l => l.value.part === before.value.part && l.value.path.length > before.value.path.length && before.value.path.every((v, i) => l.value.path[i] === v));
-    const lengths = new Map<number, number>();
+    const runs = state.document.list("run", { scope: "all-stories" }).filter(l => l.value.story === before.value.story && l.value.part === before.value.part && l.value.path.length > before.value.path.length && before.value.path.every((v, i) => l.value.path[i] === v));
+    const children = activeXmlChildren(editor, budget), paragraphChildren = children(p);
+    budget.charge("retainedBytes", paragraphChildren.length * 24);
+    const direct = new Set(paragraphChildren), lengths = new Map<typeof p, number>();
+    const paths = new Map<typeof p, readonly number[]>();
     for (const run of runs) {
-      const child = run.value.path[before.value.path.length]!;
-      lengths.set(child, (lengths.get(child) ?? 0) + [...state.document.text({ select: run.token }).text].length);
+      let child = p;
+      for (let depth = before.value.path.length; depth < run.value.path.length; depth++) {
+        budget.charge("work", 1);
+        child = child.children[run.value.path[depth]!]!;
+        if (!direct.has(child)) continue;
+        budget.charge("retainedBytes", 64 + (depth + 1) * 8);
+        paths.set(child, run.value.path.slice(0, depth + 1));
+        lengths.set(child, (lengths.get(child) ?? 0) + [...state.document.text({ select: run.token }).text].length);
+        break;
+      }
     }
-    for (const node of p.children) {
+    for (const node of paragraphChildren) {
       budget.charge("work", 1);
       if (node.namespace === w && ["pPr", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "proofErr", "permStart", "permEnd"].includes(node.localName)) continue;
-      const count = lengths.get(p.children.indexOf(node)) ?? 0;
+      const count = lengths.get(node) ?? 0;
       if (offset === range.start && count) first = node;
       if (offset + count === range.end && count) last = node;
       if (offset < range.end && offset + count > range.start) {
-        if (node.namespace !== w || node.localName !== "r" || node.children.some(n => n.namespace !== w || !["rPr", "t", "tab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(n.localName))) throw new UnsupportedEditError("Comment range crosses unsupported run content.");
-        assertOutsideFields(fields, [...before.value.path, p.children.indexOf(node)]);
+        if (node.namespace !== w || node.localName !== "r" || children(node).some(n => n.namespace !== w || !["rPr", "t", "tab", "ptab", "br", "cr", "noBreakHyphen", "softHyphen"].includes(n.localName))) throw new UnsupportedEditError("Comment range crosses unsupported run content.");
+        assertOutsideFields(fields, paths.get(node)!);
       }
       offset += count;
     }
     if (!first || !last) throw new UnsupportedEditError("Comment endpoints must coincide with existing run boundaries.");
-    const firstPath = [...before.value.path, p.children.indexOf(first)];
-    const lastPath = [...before.value.path, p.children.indexOf(last)];
+    const firstPath = paths.get(first)!;
+    const lastPath = paths.get(last)!;
     const compare = (a: readonly number[], b: readonly number[]) => { for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i]! - b[i]!; return a.length - b.length; };
     if (state.records.some(n => n.start?.part === before.value.part && n.end && compare(n.start.path, lastPath) < 0 && compare(firstPath, n.end.path) < 0)) throw new UnsupportedEditError("Comment ranges cannot overlap existing comments.");
     const id = nextCommentId(state.records.map(n => n.id), budget);
     const patches = new Map([[first, `<cm:commentRangeStart xmlns:cm="${w}" cm:id="${id}"/>` + editor.sourceXml(first)]]);
     patches.set(last, (patches.get(last) ?? editor.sourceXml(last)) + `<cm:commentRangeEnd xmlns:cm="${w}" cm:id="${id}"/><cm:r xmlns:cm="${w}"><cm:rPr><cm:rStyle cm:val="CommentReference"/></cm:rPr><cm:commentReference cm:id="${id}"/></cm:r>`);
-    editor.replaceElement(p, editor.sourceXml(p, patches));
+    editor[replaceCommentRangeXml](p, editor.sourceXml(p, patches));
     if (!part) {
       part = graph.allocatePartName(main.slice(0, main.lastIndexOf("/") + 1) + "comments", ".xml");
       const relName = findRelationshipPart(graph, main, budget)?.partname ?? main.slice(0, main.lastIndexOf("/") + 1) + "_rels/" + main.slice(main.lastIndexOf("/") + 1) + ".rels";
@@ -142,6 +192,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
       types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(part)}" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>`);
     }
     const comments = editPart(part, `<w:comments xmlns:w="${w}"/>`);
+    parseStoredDateTime(normalizePropertyDate(options.timestamp), "xsd");
     comments.insertChildren(comments.root, `<cm:comment xmlns:cm="${w}" cm:id="${id}" cm:author="${xmlValue(options.author)}" cm:date="${normalizePropertyDate(options.timestamp)}"${options.initials === null ? "" : ` cm:initials="${xmlValue(options.initials ?? "")}"`}><cm:p>${paragraphTextRun(w, options.text ?? "")}</cm:p></cm:comment>`);
     updates.push({ before, id, kind: "insert" });
   } else {
@@ -169,8 +220,15 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
         } else paragraphs.forEach((p, i) => record.editor.replaceElement(p, replacements[i]!));
         if (!paragraphs.length) record.editor.insertChildren(record.node, `<cm:p xmlns:cm="${w}">${paragraphTextRun(w, options.text)}</cm:p>`);
       } else {
-        const annotation = (node: typeof record.node): boolean => { budget.charge("work", 1); return node.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "permStart", "permEnd"].includes(node.localName) || node.children.some(annotation); };
-        if (annotation(record.node)) throw new UnsupportedEditError("Comment removal cannot discard independently owned annotations.");
+        const pending = [record.node];
+        budget.charge("retainedBytes", 8);
+        while (pending.length) {
+          const node = pending.pop()!;
+          budget.charge("work", 1);
+          if (node.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "permStart", "permEnd"].includes(node.localName)) throw new UnsupportedEditError("Comment removal cannot discard independently owned annotations.");
+          budget.charge("retainedBytes", node.children.length * 8);
+          for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+        }
         record.editor.replaceElement(record.node, "");
         for (const marker of record.markers) {
           const parent = marker.parent;

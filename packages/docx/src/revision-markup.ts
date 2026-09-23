@@ -4,7 +4,7 @@ import type { DocumentBudget } from "./budget.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import type { XmlElement } from "./package-xml.js";
 import { documentDialects } from "./dialect.js";
-import { storedBooleanValue } from "./stored-lexical.js";
+import { storedBooleanValue, storedIntegerIdentity } from "./stored-lexical.js";
 
 export interface RevisionInfo {
   readonly id: string | null;
@@ -34,7 +34,8 @@ export function revisionInfo(node: XmlElement): RevisionInfo | undefined {
     [node, snapshot[0]!, ...snapshot[0]!.children].every(element => {
       for (const char of element.text) if (char !== " " && char !== "\t" && char !== "\r" && char !== "\n") return false;
       return true;
-    }) && snapshot[0]!.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/") &&
+    }) && snapshot[0]!.attributes.every(attribute => attribute.namespace === "http://www.w3.org/2000/xmlns/" ||
+      attribute.namespace === "http://www.w3.org/XML/1998/namespace" && (attribute.localName === "lang" || attribute.localName === "space" && ["default", "preserve"].includes(attribute.value))) &&
     snapshot[0]!.children.every(property => {
       const field = property.localName;
       if (property.namespace !== node.namespace || property.children.length || seen.has(field) ||
@@ -78,7 +79,7 @@ export function assertOutsideRevisionRanges(root: XmlElement, target: XmlElement
     }
     const info = revisionInfo(node);
     if (info && (info.markup.endsWith("RangeStart") || info.markup.endsWith("RangeEnd"))) {
-      const key = info.namespace + ":" + info.markup.slice(0, info.markup.lastIndexOf("Range")) + ":" + info.id;
+      const key = info.namespace + ":" + info.markup.slice(0, info.markup.lastIndexOf("Range")) + ":" + (storedIntegerIdentity(info.id ?? undefined) ?? info.id);
       if (info.markup.endsWith("RangeStart")) active.add(key); else active.delete(key);
     }
     if (selected.has(node)) {

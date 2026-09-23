@@ -5,7 +5,7 @@ import { documentDialects, type DocumentDialect } from "./dialect.js";
 import { InvalidValueError, type ArchiveLimits, type DocumentArchive } from "./archive.js";
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, isXmlContentType, parseDocumentXml, type XmlElement } from "./package-xml.js";
-import { SelectionError, type LocationKind, type LocationPositions } from "./location-token.js";
+import { createPhysicalLocationPath, SelectionError, type LocationKind, type LocationPositions, type LocationPayload } from "./location-token.js";
 import { tableRows } from "./table-rows.js";
 import { collectShapeCarriers, type ShapeCarrier } from "./shape-carriers.js";
 import { tableGridCount } from "./table-grid-count.js";
@@ -60,18 +60,18 @@ interface PhysicalPath {
   readonly index: number;
   readonly length: number;
   order: number;
+  end?: number;
   value?: readonly number[];
 }
 
 function materializedPath(path: PhysicalPath): readonly number[] {
   if (path.value) return path.value;
-  const value = new Array<number>(path.length);
   let current = path;
-  for (let index = value.length - 1; index >= 0; index--) {
-    value[index] = current.index;
+  return path.value = createPhysicalLocationPath(path.length, () => {
+    const value = current.index;
     current = current.parent!;
-  }
-  return path.value = Object.freeze(value);
+    return value;
+  });
 }
 
 export class LocationIndex {
@@ -124,11 +124,21 @@ export class LocationIndex {
         roots.set(part.partname, root);
         budget.charge("retainedBytes", 64);
         const raw: { node: XmlElement; path: PhysicalPath }[] = [{ node: root, path: { index: 0, length: 0, order: 0 } }];
+        let previous: PhysicalPath | undefined;
         while (raw.length) {
           const { node, path } = raw.pop()!;
+          // Preorder closes the previous leaf and completed ancestors before
+          // the next sibling. Existing parent paths replace closing frames.
+          while (previous && previous.length >= path.length) {
+            budget.charge("work", 1);
+            previous.end = physicalOrder;
+            previous = previous.parent;
+          }
           budget.charge("work", 1);
           path.order = physicalOrder++;
           this.#paths.set(node, path);
+          budget.charge("retainedBytes", 16);
+          previous = path;
           for (let i = node.children.length - 1; i >= 0; i--) {
             budget.charge("work", 1);
             // Physical paths share their parent; arrays are reserved only for
@@ -136,6 +146,11 @@ export class LocationIndex {
             budget.charge("retainedBytes", 96);
             raw.push({ node: node.children[i]!, path: { parent: path, index: i, length: path.length + 1, order: 0 } });
           }
+        }
+        while (previous) {
+          budget.charge("work", 1);
+          previous.end = physicalOrder;
+          previous = previous.parent;
         }
         const effective = (content: readonly CompatibilityContent[]): void => {
           const pending = [{ content, index: 0, owner: undefined as XmlElement | undefined, nodes: [] as XmlElement[] }];
@@ -384,6 +399,30 @@ export class LocationIndex {
     let existing = this.#nodeEntries.get(entry.node);
     if (!existing) this.#nodeEntries.set(entry.node, existing = []);
     existing.push(location);
+  }
+
+  /** Internal text ancestry uses physical intervals without minting unused paths. */
+  textSelection(selected: readonly LocationPayload[]) {
+    this.#budget.charge("retainedBytes", 192 + selected.length * 64);
+    const targets = selected.map(value => {
+      this.#budget.charge("work", value.path.length + 1);
+      let node = this.#roots.get(value.part);
+      for (const index of value.path) node = node?.children[index];
+      const path = node && this.#paths.get(node);
+      if (!path) throw new SelectionError("missing-selection");
+      return { part: value.part, story: value.story, path };
+    });
+    const path = (entry: LocationEntry) => {
+      const physical = entry.node && this.#paths.get(entry.node);
+      if (!physical) throw new SelectionError("missing-selection");
+      return physical;
+    };
+    const contains = (parent: PhysicalPath, child: PhysicalPath) => parent.order <= child.order && child.order < parent.end!;
+    return {
+      length: (entry: LocationEntry) => path(entry).length,
+      included: (entry: LocationEntry) => targets.some(target => target.part === entry.part && target.story === entry.story && contains(target.path, path(entry))),
+      relevant: (entry: LocationEntry) => targets.some(target => target.part === entry.part && target.story === entry.story && contains(path(entry), target.path))
+    };
   }
 
   attr(node: XmlElement, name: string, namespace = this.#w): string | undefined {

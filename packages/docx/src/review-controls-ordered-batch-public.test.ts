@@ -74,14 +74,14 @@ for (const scenario of cases) for (const route of ["sdk", "cli"] as const)
         expect(resultValidator.validate(schema, result), JSON.stringify(resultValidator.errors)).toBe(true);
       }
       expect(data.results.map(result => result.operation)).toEqual(operations.map(operation => operation.operation));
-      expect(data.results.at(-1)).toMatchObject({ affected: 0, data: { items: [{ details: { updateFields: false } }] } });
+      expect(data.results.at(-1)).toMatchObject({ affected: 0, data: { items: [{ properties: expect.arrayContaining([{ name: "updateFields", type: "boolean", value: false, writable: false, cached: false }]) }] } });
       const output = new Uint8Array(memory.readFileSync("/output") as Buffer), before = readPackage(input), after = readPackage(output);
       expect([...after.keys()]).toEqual([...before.keys()]);
       for (const [name, bytes] of before) if (!["word/document.xml", "word/comments.xml"].includes(name)) expect(after.get(name), name).toEqual(bytes);
       if (scenario === "comment-add") {
         expect((await api.inspectDocumentComments(output, { operation: "comments.list", options: {} }, textContext)).items).toMatchObject([{ text: "Retained note" }, { text: "Added note", author: "", initials: null, timestamp: "2026-03-04T05:06:07Z" }]);
       } else if (scenario === "comment-edit" || scenario === "comment-remove") {
-        expect(data.results[1]).toMatchObject({ data: { items: [{ text: "Changed note 海 🌊" }] } });
+        expect(data.results[1]).toMatchObject({ data: { item: { text: "Changed note 海 🌊" } } });
         expect((await api.inspectDocumentComments(output, { operation: "comments.list", options: {} }, textContext)).items.map(item => item.text)).toEqual(scenario === "comment-remove" ? [] : ["Changed note 海 🌊"]);
       } else if (scenario === "revision-accept" || scenario === "revision-reject") {
         expect((await api.inspectDocumentRevisions(output, {}, textContext)).items).toHaveLength(1);

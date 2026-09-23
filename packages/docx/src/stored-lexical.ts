@@ -8,6 +8,19 @@ export function trimXmlWhitespace(raw: string): string {
   return raw.slice(first, last);
 }
 
+/** Compare xsd:integer identities exactly without narrowing them to JS numbers. */
+export function storedIntegerIdentity(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  const token = trimXmlWhitespace(raw);
+  const sign = token[0] === "-" || token[0] === "+";
+  const digits = sign ? token.slice(1) : token;
+  if (!digits.length || [...digits].some(character => character < "0" || character > "9")) return undefined;
+  let first = 0;
+  while (first < digits.length - 1 && digits[first] === "0") first++;
+  const magnitude = digits.slice(first);
+  return token[0] === "-" && magnitude !== "0" ? "-" + magnitude : magnitude;
+}
+
 /** Decode stored on/off values; callers retain their distinct absence defaults. */
 export function storedBoolean(raw: string, message = "Invalid stored document boolean."): boolean {
   const value = storedBooleanValue(raw);

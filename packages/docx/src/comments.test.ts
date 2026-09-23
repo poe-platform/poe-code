@@ -204,7 +204,7 @@ it("reads comment JSON through the CLI with matching SDK data and stable failure
       stdout: { async write(b) { volume.appendFileSync("/out", b); } }, stderr: { async write() {} }
     });
     expect(result.exitCode).toBe(0);
-    const data = await docx.inspectDocumentComments(bytes, { operation: `comments.${action}`, options }, textContext);
+    const data = await docx.inspectDocumentComments(bytes, { operation: `comments.${action}`, options }, textContext, "resource");
     expect(JSON.parse(volume.readFileSync("/out", "utf8").toString())).toMatchObject({ version: 1, operation: `comments.${action}`, ok: true, affected: 0, data, errors: [] });
   }
   for (const options of [{ author: "" }, { author: "", timestamp: "2026-02-30T00:00:00Z" }, { author: "", timestamp, extra: true }]) {

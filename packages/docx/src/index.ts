@@ -129,7 +129,7 @@ export { executeDocumentBatch, type DocumentBatchInput, type DocumentBatchData, 
 export { WD_CELL_VERTICAL_ALIGNMENT, WD_ALIGN_VERTICAL, WD_ORIENTATION, WD_ORIENT, WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE, WD_ROW_HEIGHT, WD_SECTION_START, WD_SECTION, WD_TABLE_DIRECTION, WD_BREAK_TYPE, WD_BREAK, WD_INLINE_SHAPE_TYPE, WD_INLINE_SHAPE, WD_HEADER_FOOTER_INDEX, WD_HEADER_FOOTER, Length, Emu, Inches, Cm, Mm, Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, WD_COLOR, WD_PARAGRAPH_ALIGNMENT, WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, WD_BUILTIN_STYLE, WD_STYLE, MSO_THEME_COLOR, MSO_THEME_COLOR_INDEX, MSO_COLOR_TYPE, enumValue, enumFromValue, enumMembers, enumXml, enumFromXml, enumString } from "./formatting-values.js";
 
 export type { FontResourceData, ThemeResource, FontTableResource, ThemeReference } from "./font-resources.js";
-export { inspectDocumentSettings, type SettingEntry, type SettingsDetails, type SettingsRecord, type SettingsListData } from "./settings.js";
+export { inspectDocumentSettings, type SettingEntry, type SettingsDetails, type SettingsRecord, type SettingsListData, type SettingsResourceRecord, type SettingsResourceListData } from "./settings.js";
 export { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 
 export { editDocumentSections, inspectDocumentSections, type SectionInfo, type SectionListData, type SectionEditRequest, type SectionEditData, type SectionBinding } from "./sections.js";

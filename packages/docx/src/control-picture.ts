@@ -7,6 +7,7 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { relativePartTarget } from "./part-uri.js";
+import type { DocumentBudget } from "./budget.js";
 
 export interface ControlBinaryResolver {
   readonly capability: string;
@@ -22,7 +23,7 @@ export async function admitControlPng(input: Uint8Array, context: ArchiveContext
   if (!(input instanceof Uint8Array) || input.length > limits.maxEntryBytes) throw new InvalidValueError("Expected bounded PNG bytes.");
   budget.charge("work", input.length); budget.charge("retainedBytes", input.length); const bytes = new Uint8Array(input);
   if (bytes.length < 57 || ![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => bytes[i] === byte)) unsupported("Expected an admitted PNG picture.");
-  let offset = 8, width = 0, height = 0, channels = 0, depth = 0, interlace = 0, ended = false, sawData = false, closedData = false; const data: Uint8Array[] = []; let compressedLength = 0;
+  let offset = 8, width = 0, height = 0, channels = 0, depth = 0, interlace = 0, ended = false, sawData = false, closedData = false, sawPalette = false; const data: Uint8Array[] = []; let compressedLength = 0;
   while (offset < bytes.length) {
     budget.charge("work", 1); if (offset + 12 > bytes.length) unsupported("Truncated PNG chunk.");
     const length = u32(bytes, offset); if (length > bytes.length - offset - 12) unsupported("Invalid PNG chunk length.");
@@ -39,7 +40,7 @@ export async function admitControlPng(input: Uint8Array, context: ArchiveContext
     } else if (!width) unsupported("Missing PNG header.");
     else if (type === "IDAT") { if (closedData) unsupported("PNG data chunks must be contiguous."); data.push(payload); compressedLength += payload.length; sawData = true; }
     else if (type === "IEND") { if (length !== 0 || !sawData || offset + 12 !== bytes.length) unsupported("Invalid PNG end marker."); ended = true; }
-    else { if (sawData) closedData = true; if (type[0]! >= "A" && type[0]! <= "Z" && type !== "PLTE") unsupported("Unsupported PNG critical chunk."); if (type === "PLTE" && (sawData || length === 0 || length > 768 || length % 3 !== 0)) unsupported("Invalid PNG palette."); }
+    else { if (sawData) closedData = true; if (type[0]! >= "A" && type[0]! <= "Z" && type !== "PLTE") unsupported("Unsupported PNG critical chunk."); if (type === "PLTE") { if (sawPalette || sawData || length === 0 || length > 768 || length % 3 !== 0) unsupported("Invalid PNG palette."); sawPalette = true; } }
     offset += length + 12;
   }
   if (!ended || compressedLength < 6) unsupported("Incomplete PNG payload.");
@@ -84,14 +85,38 @@ export async function acquireControlPng(input: DocxBinaryInput, context: Archive
   } else throw new InvalidValueError("Expected explicit picture binary input.");
   budget.charge("embeddedMediaBytes", bytes.length); return admitControlPng(bytes, { limits, signal, budget });
 }
-function occurrence(content: XmlElement): { node: XmlElement; id: string; namespace: string } {
-  const all: XmlElement[] = []; const paths = new Map<XmlElement, XmlElement[]>(); const visit = (node: XmlElement, ancestors: XmlElement[]) => { all.push(node); paths.set(node, [...ancestors, node]); for (const child of node.children) visit(child, [...ancestors, node]); }; visit(content, []);
-  const drawings = all.filter(node => node.namespace === content.namespace && node.localName === "drawing");
-  const blips = all.filter(node => ["http://schemas.openxmlformats.org/drawingml/2006/main", "http://purl.oclc.org/ooxml/drawingml/main"].includes(node.namespace) && node.localName === "blip");
-  if (drawings.length !== 1 || blips.length !== 1 || all.some(node => ["AlternateContent", "imagedata", "object", "pict"].includes(node.localName))) unsupported();
-  const node = blips[0]!, embeds = node.attributes.filter(attribute => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships", "http://purl.oclc.org/ooxml/officeDocument/relationships"].includes(attribute.namespace) && attribute.localName === "embed");
-  const chain = paths.get(node)!.slice(-7);
-  if (chain.length !== 7 || chain[0] !== drawings[0] || !["inline", "anchor"].includes(chain[1]!.localName) || !["http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"].includes(chain[1]!.namespace) ||
+function occurrence(content: XmlElement, budget: DocumentBudget): { node: XmlElement; id: string; namespace: string } {
+  let drawing: XmlElement | undefined, blip: XmlElement | undefined;
+  let drawings = 0, blips = 0, forbidden = false;
+  const chain: XmlElement[] = [];
+  budget.charge("retainedBytes", 32);
+  const stack = [{ node: content, next: 0 }];
+  while (stack.length) {
+    const frame = stack[stack.length - 1]!, node = frame.node;
+    if (frame.next === 0) {
+      budget.charge("work", 1);
+      if (node.namespace === content.namespace && node.localName === "drawing") { drawings++; drawing = node; }
+      if (["http://schemas.openxmlformats.org/drawingml/2006/main", "http://purl.oclc.org/ooxml/drawingml/main"].includes(node.namespace) && node.localName === "blip") {
+        blips++;
+        if (blips === 1) {
+          blip = node;
+          budget.charge("retainedBytes", Math.min(7, stack.length) * 8);
+          for (let i = Math.max(0, stack.length - 7); i < stack.length; i++) chain.push(stack[i]!.node);
+        }
+      }
+      if (["AlternateContent", "imagedata", "object", "pict"].includes(node.localName)) forbidden = true;
+    }
+    if (frame.next < node.children.length) {
+      budget.charge("retainedBytes", 32);
+      stack.push({ node: node.children[frame.next++]!, next: 0 });
+    } else stack.pop();
+  }
+  if (drawings !== 1 || blips !== 1 || forbidden) unsupported();
+  const node = blip!;
+  budget.charge("work", node.attributes.length);
+  budget.charge("retainedBytes", node.attributes.length * 8);
+  const embeds = node.attributes.filter(attribute => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships", "http://purl.oclc.org/ooxml/officeDocument/relationships"].includes(attribute.namespace) && attribute.localName === "embed");
+  if (chain.length !== 7 || chain[0] !== drawing || !["inline", "anchor"].includes(chain[1]!.localName) || !["http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing", "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing"].includes(chain[1]!.namespace) ||
     chain[2]!.namespace !== node.namespace || chain[2]!.localName !== "graphic" || chain[3]!.namespace !== node.namespace || chain[3]!.localName !== "graphicData" ||
     !["http://schemas.openxmlformats.org/drawingml/2006/picture", "http://purl.oclc.org/ooxml/drawingml/picture"].includes(chain[4]!.namespace) || chain[4]!.localName !== "pic" || chain[5]!.namespace !== chain[4]!.namespace || chain[5]!.localName !== "blipFill" ||
     chain[3]!.attributes.find(attribute => attribute.localName === "uri" && attribute.namespace === "")?.value !== chain[4]!.namespace ||
@@ -100,13 +125,13 @@ function occurrence(content: XmlElement): { node: XmlElement; id: string; namesp
   return { node, id: embeds[0]!.value, namespace: embeds[0]!.namespace };
 }
 export function readControlPicture(archive: DocumentArchive, owner: string, content: XmlElement, context: ArchiveContext): ControlPicture {
-  const { limits, budget } = archiveSettings(context); const target = occurrence(content); const pkg = new DocumentPackage(archive, limits, budget);
+  const { limits, budget } = archiveSettings(context); const target = occurrence(content, budget); const pkg = new DocumentPackage(archive, limits, budget);
   const edge = pkg.relationships(owner).find(edge => edge.rId === target.id); if (!edge || !edge.reltype.endsWith("/image")) unsupported();
   return { relationshipId: edge.rId, target: edge.is_external ? edge.target_ref : edge.target_part.partname, external: edge.is_external, contentType: edge.is_external ? null : edge.target_part.content_type };
 }
 const staged = new WeakMap<DocumentArchiveEditor, { owner: string; id: string; media: string; bytes: Uint8Array; reltype: string }[]>();
 export function replaceControlPicture(editor: DocumentArchiveEditor, archive: DocumentArchive, owner: string, content: XmlElement, bytes: Uint8Array, context: ArchiveContext): void {
-  const { limits, budget } = archiveSettings(context); const pkg = new DocumentPackage(archive, limits, budget); const target = occurrence(content);
+  const { limits, budget } = archiveSettings(context); const pkg = new DocumentPackage(archive, limits, budget); const target = occurrence(content, budget);
   const edge = pkg.relationships(owner).find(edge => edge.rId === target.id); if (!edge || edge.is_external || !edge.reltype.endsWith("/image") || !edge.target_part.content_type.toLowerCase().startsWith("image/")) unsupported();
   const additions = staged.get(editor) ?? []; let ordinal = 1; let media: string; do { media = `/word/media/control-picture-${ordinal++}.png`; } while (pkg.parts.some(part => part.partname === media) || additions.some(item => item.media === media));
   const taken = new Set([...pkg.relationships(owner).map(edge => edge.rId), ...additions.filter(item => item.owner === owner).map(item => item.id)]); ordinal = 1; while (taken.has(`rId${ordinal}`)) ordinal++;

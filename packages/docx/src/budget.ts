@@ -1,14 +1,40 @@
 import { CancellationError, InvalidValueError, ResourceLimitError } from "./archive.js";
 import { yieldEventLoop } from "@poe-code/office-package";
 
-import type { DocumentXml } from "./package-xml.js";
+import type { DocumentXml, XmlAttribute, XmlContent, XmlElement } from "./package-xml.js";
+import type { CompatibilityBranch, CompatibilityContent } from "./compatibility.js";
 
 /** Internal reservation identity check; exposes no mutable ledger. */
 export const budgetSharesReservations = Symbol("budget-shares-reservations");
 
+/** Internal cooperative turn for work the XML parser has already reserved. */
+export const reservedWorkTurn = Symbol("reserved-work-turn");
+
 export const documentXmlCache = Symbol("document-xml-cache");
-interface CachedDocumentXml { readonly source: Uint8Array; readonly document: DocumentXml }
-interface InvocationXmlCache { entries?: Map<string, CachedDocumentXml[]>; admitted?: WeakSet<Uint8Array> }
+interface CachedDocumentXml {
+  readonly source: Uint8Array;
+  readonly document: DocumentXml;
+  readonly maxNodes: number;
+  readonly maxBytes: number;
+  readonly elements: number;
+  readonly parseCost: Readonly<Pick<DocumentLimits, "xmlNodes" | "work" | "retainedBytes">>;
+  readonly replay?: Readonly<Pick<DocumentLimits, "xmlNodes" | "work" | "retainedBytes">>;
+}
+interface CachedCompatibility {
+  readonly content: readonly CompatibilityContent[];
+  readonly branches: readonly CompatibilityBranch[];
+  readonly containers: readonly XmlElement[];
+  readonly editable: Set<XmlContent | XmlAttribute>;
+  readonly work: number;
+  readonly retainedBytes: number;
+}
+interface InvocationXmlCache {
+  entries?: Map<string, CachedDocumentXml[]>;
+  admitted?: WeakSet<Uint8Array>;
+  staged?: WeakSet<Uint8Array>;
+  immutableRoots?: WeakSet<XmlElement>;
+  compatibility?: WeakMap<XmlElement, Map<string, CachedCompatibility>>;
+}
 
 export const documentLimitDefaults = Object.freeze({
   compressedInput: Infinity,
@@ -126,7 +152,17 @@ export class DocumentBudget {
 
   async checkpoint(work = 0): Promise<void> {
     this.charge("work", work);
+    const pending = this[reservedWorkTurn](work);
+    if (pending) await pending;
+  }
+
+  [reservedWorkTurn](work: number): Promise<void> | undefined {
     this.#cooperation.work += work;
+    if (this.#cooperation.work < 4096) return undefined;
+    return this.#yieldReservedWork();
+  }
+
+  async #yieldReservedWork(): Promise<void> {
     while (this.#cooperation.work >= 4096) {
       this.#cooperation.work -= 4096;
       await this.#turn(this.signal);

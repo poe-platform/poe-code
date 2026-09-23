@@ -1,3 +1,4 @@
+import { parseStoredDateTime } from "./stored-date-time.js";
 import { requireComparisonOperand } from "./comparison-operand.js";
 import { snapshotSequence } from "./numeric-index.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
@@ -7,26 +8,26 @@ import { activeXmlChildren } from "./xml-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { sectionAttribute as commentAttribute } from "./section-properties.js";
 import { xmlValue } from "./create-content.js";
-import { validateDocxValue } from "./operation-schema.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { runElementOpen } from "./run-properties.js";
 import type { XmlElement } from "./package-xml.js";
 import { WD_STYLE_TYPE, type Length } from "./formatting-values.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
+import { commentStoryParts } from "./comment-stories.js";
 import { DocumentPackage } from "./package.js";
-import { relationshipOwner } from "./part-uri.js";
-import { nextCommentId } from "./comment-id.js";
+import { nextCommentId, storedCommentId } from "./comment-id.js";
 import { hyperlinkHistory } from "./hyperlink-history.js";
+import { provisionNamedStyles } from "./styles-model.js";
 
 function text(value: unknown): asserts value is string {
   if (typeof value !== "string") throw new InputTypeError("Expected comment text.");
 }
 function id(node: XmlElement): number {
-  const raw = commentAttribute(node, "id");
-  if (!raw || [...raw].some((c) => c < "0" || c > "9") || !Number.isSafeInteger(Number(raw)))
+  const value = storedCommentId(commentAttribute(node, "id"));
+  if (value === null)
     throw new InvalidValueError("Expected a nonnegative comment ID.");
-  return Number(raw);
+  return value;
 }
 export class Comments implements Iterable<Comment> {
   constructor(
@@ -54,19 +55,19 @@ export class Comments implements Iterable<Comment> {
   add_comment(value = "", author = "", initials: string | null = ""): Comment {
     const timestamp = this.store.context.timestamp;
     if (timestamp === undefined) throw new InputTypeError("Comment creation requires an explicit context timestamp.");
+    parseStoredDateTime(timestamp.toISOString(), "xsd");
     text(value);
     text(author);
     if (initials !== null) text(initials);
     return this.store.transaction(() => {
       const next = nextCommentId(this.nodes.map(id), this.store.context.budget);
       const styles = this.store.stylesForStory(this.ref.part);
-      const style = styles.has("Comment Text")
-        ? styles.at("Comment Text")
-        : styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
+      const [style, reference] = styles[provisionNamedStyles]([
+        { name: "Comment Text", type: WD_STYLE_TYPE.PARAGRAPH },
+        { name: "Comment Reference", type: WD_STYLE_TYPE.CHARACTER }
+      ]);
+      if (!style || !reference) throw new InvalidValueError("Comment styles require scoped definitions.");
       const paragraphStyleId = styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH) ?? style.style_id;
-      const reference = styles.has("Comment Reference")
-        ? styles.at("Comment Reference")
-        : styles.add_style("Comment Reference", WD_STYLE_TYPE.CHARACTER);
       const referenceStyleId = styles.get_style_id(reference, WD_STYLE_TYPE.CHARACTER) ?? reference.style_id;
       if (paragraphStyleId === null || referenceStyleId === null)
         throw new InvalidValueError("Comment styles require scoped definition IDs.");
@@ -108,10 +109,7 @@ export class Comment {
   get timestamp(): Date | null {
     const raw = commentAttribute(this.store.node(this.ref), "date");
     if (raw === undefined) return null;
-    const date = new Date(raw);
-    if (!validateDocxValue("UTC instant", raw) || !Number.isFinite(date.getTime()))
-      throw new InvalidValueError("Expected a valid comment timestamp.");
-    return date;
+    try { return parseStoredDateTime(raw, "xsd"); } catch (error) { if (error instanceof InvalidValueError) return null; throw error; }
   }
   get author(): string {
     return commentAttribute(this.store.node(this.ref), "author") ?? "";
@@ -153,7 +151,12 @@ export class Comment {
   }
   add_paragraph(value = "", style?: Parameters<ModelStore["addParagraph"]>[2]) {
     text(value);
-    return this.store.addParagraph(this.ref, value, style ?? "Comment Text");
+    return this.store.transaction(() => {
+      // Establish that the comment body is editable before resolving dependent styles.
+      const paragraph = this.store.addParagraph(this.ref, value);
+      paragraph.style = style ?? "Comment Text";
+      return paragraph;
+    });
   }
   add_table(rows: number, cols: number, width: Length) {
     return this.store.addTable(this.ref, rows, cols, width);
@@ -382,7 +385,11 @@ function validateCommentRange(
   }[] = [];
   let order = 0,
     fieldDepth = 0;
-  const visit = (node: XmlElement, parent: XmlElement, container: XmlElement, safe: boolean) => {
+  const pending = [{ node: xml.root, parent: xml.root, container: xml.root, safe: true }];
+  store.context.budget.charge("retainedBytes", 64);
+  while (pending.length) {
+    const { node, parent } = pending.at(-1)!;
+    let { container, safe } = pending.pop()!;
     store.context.budget?.charge("work", 1);
     if (
       ["body", "tc", "footnote", "endnote", "txbxContent", "hdr", "ftr", "comment"].includes(
@@ -410,11 +417,15 @@ function validateCommentRange(
       if (type === "begin") fieldDepth++;
       if (type === "end") fieldDepth = Math.max(0, fieldDepth - 1);
     }
+    store.context.budget.charge("retainedBytes", 64);
     ordered.push({ node, parent, container, safe: safe && !fieldDepth, order: order++ });
-    if (node.namespace === xml.root.namespace)
-      for (const child of children(node)) visit(child, node, container, safe);
-  };
-  visit(xml.root, xml.root, xml.root, true);
+    if (node.namespace === xml.root.namespace) {
+      const selected = children(node);
+      store.context.budget.charge("retainedBytes", selected.length * 64);
+      for (let index = selected.length - 1; index >= 0; index--)
+        pending.push({ node: selected[index]!, parent: node, container, safe });
+    }
+  }
   const start = ordered.find((n) => n.node === firstNode),
     end = ordered.find((n) => n.node === lastNode);
   if (
@@ -431,11 +442,16 @@ function validateCommentRange(
       "Comment endpoints require an ordered run range within one container."
     );
   const finalDescendants = new Set<XmlElement>();
-  const finalRun = (node: XmlElement): void => {
+  const finalRun = [lastNode];
+  store.context.budget.charge("retainedBytes", 8);
+  while (finalRun.length) {
+    const node = finalRun.pop()!;
+    store.context.budget.charge("work", 1);
+    const nested = children(node);
+    store.context.budget.charge("retainedBytes", 24 + nested.length * 8);
     finalDescendants.add(node);
-    for (const child of node.children) finalRun(child);
-  };
-  finalRun(lastNode);
+    for (const child of nested) finalRun.push(child);
+  }
   const endOrder = ordered.filter((n) => finalDescendants.has(n.node)).at(-1)!.order;
   const span = ordered.filter((n) => n.order >= start.order && n.order <= endOrder);
   if (
@@ -461,10 +477,33 @@ function validateCommentRange(
   if (
     !allRuns.length ||
     !allRuns.some((n) =>
-      n.node.children.some((c) => ["t", "tab", "br", "cr", "drawing", "pict"].includes(c.localName))
+      children(n.node).some((c) => c.namespace === xml.root.namespace &&
+        (c.localName === "t" ? c.text.length > 0 :
+          ["tab", "ptab", "noBreakHyphen", "softHyphen", "br", "cr", "drawing", "pict"].includes(c.localName)))
     )
   )
     throw new UnsupportedEditError("Comment anchors require nonempty run content.");
+  // Every selected run belongs to the affected anchor span, including runs
+  // between the endpoints. Preflight their physical payloads before allocating
+  // comments, relationships or styles; unselected siblings retain their owners.
+  store.context.budget.charge("retainedBytes", allRuns.length * 32);
+  const physical = allRuns.map(({ node }) => ({ node, index: -1 }));
+  while (physical.length) {
+    const frame = physical.at(-1)!;
+    if (frame.index === -1) {
+      store.context.budget.charge("work", 1 + frame.node.attributes.length);
+      if (!xml.compatibility.canEdit(frame.node) || frame.node.attributes.some(attribute =>
+        attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute)))
+        throw new UnsupportedEditError("Comment anchors cannot relocate opaque run ownership.");
+      frame.index = 0;
+    }
+    const child = frame.node.children[frame.index++];
+    if (!child) physical.pop();
+    else {
+      store.context.budget.charge("retainedBytes", 32);
+      physical.push({ node: child, index: -1 });
+    }
+  }
   return { first, last };
 }
 function applyCommentRange(
@@ -515,7 +554,7 @@ export function bindCommentRange(
   const { first, last } = validateCommentRange(store, runs);
   if (documentPart !== undefined && store.documentOwnerForStory(first.ref.part) !== documentPart)
     throw new OwnershipError("Comment endpoints require runs owned by the receiving document.");
-  const comment = new Comments(store, store.ensureComments(first.ref.part)).add_comment(value, author, initials);
+  const comment = new Comments(store, store.ensureComments(store.documentOwnerForStory(first.ref.part))).add_comment(value, author, initials);
   applyCommentRange(store, first, last, comment.comment_id);
   return comment;
 }
@@ -530,9 +569,10 @@ export function markCommentRange(
   if (!Number.isSafeInteger(comment_id) || comment_id < 0)
     throw new InputTypeError("Expected a nonnegative comment ID.");
   validateCommentRange(store, [first, last]);
-  const main = store.xml(first.ref.part).root,
+  const owner = store.documentOwnerForStory(first.ref.part),
+    main = store.xml(owner).root,
     dialect = dialectForNamespace(main.namespace)!;
-  const edges = [...store.part(first.ref.part).rels.values()].filter(
+  const edges = [...store.part(owner).rels.values()].filter(
     (edge) => edge.reltype === documentDialects[dialect].r + "/comments"
   );
   if (edges.length !== 1 || edges[0]!.is_external)
@@ -542,20 +582,22 @@ export function markCommentRange(
     comment = new Comments(store, container).get(comment_id);
   if (!comment)
     throw new UnsupportedEditError("Comment anchoring requires an existing comment body.");
-  const visit = (node: XmlElement): boolean =>
-    (node.namespace === documentDialects[dialect].w &&
-      ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
-      commentAttribute(node, "id") === String(comment_id)) ||
-    node.children.some(visit);
   const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
-  if (
-    graph.parts.some(owner => {
-      if (relationshipOwner(owner.partname) !== null) return false;
-      const ownsComments = graph.relationships(owner.partname).some(edge => !edge.is_external &&
-        edge.reltype === documentDialects[dialect].r + "/comments" && edge.target_part.partname === part);
-      return ownsComments && visit(store.xml(owner.partname).root);
-    })
-  )
-    throw new UnsupportedEditError("Comment body already has an anchor.");
+  const stories = commentStoryParts(graph, owner, part, documentDialects[dialect].w,
+    documentDialects[dialect].r, name => store.xml(name).root, store.context.budget);
+  for (const story of stories) {
+    store.context.budget.charge("retainedBytes", 8);
+    const pending = [store.xml(story).root];
+    while (pending.length) {
+      const node = pending.pop()!;
+      store.context.budget.charge("work", 1);
+      if (node.namespace === documentDialects[dialect].w &&
+        ["commentRangeStart", "commentRangeEnd", "commentReference"].includes(node.localName) &&
+        storedCommentId(commentAttribute(node, "id")) === comment_id)
+        throw new UnsupportedEditError("Comment body already has an anchor.");
+      store.context.budget.charge("retainedBytes", node.children.length * 8);
+      for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);
+    }
+  }
   applyCommentRange(store, first, last, comment_id);
 }

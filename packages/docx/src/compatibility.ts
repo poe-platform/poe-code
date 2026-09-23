@@ -1,5 +1,5 @@
 import { InvalidValueError } from "./archive.js";
-import { DocumentBudget } from "./budget.js";
+import { documentXmlCache, DocumentBudget } from "./budget.js";
 import { relationshipOwner } from "./part-uri.js";
 import { InvalidXmlError, UnsupportedProfileError, type XmlElement, type XmlContent, type XmlAttribute } from "./package-xml.js";
 
@@ -157,6 +157,25 @@ export class MarkupCompatibility {
 
   constructor(root: XmlElement, profile: CompatibilityProfile = compatibilityProfileForRoot(root), budget = new DocumentBudget()) {
     const settings = compatibilitySettings(profile);
+    const xmlCache = budget[documentXmlCache];
+    const cache = xmlCache?.immutableRoots?.has(root)
+      ? xmlCache.compatibility ??= new WeakMap() : undefined;
+    const key = cache ? JSON.stringify(settings) : undefined;
+    const cached = key === undefined ? undefined : cache!.get(root)?.get(key);
+    if (cached) {
+      budget.charge("work", cached.work);
+      budget.charge("retainedBytes", cached.retainedBytes);
+      this.content = cached.content;
+      this.branches = cached.branches;
+      this[compatibilityContainers] = cached.containers;
+      this.#editable = cached.editable;
+      return;
+    }
+    const before = cache ? budget.usage : undefined;
+    if (key !== undefined) {
+      budget.charge("work", key.length);
+      budget.charge("retainedBytes", key.length * 2 + 128);
+    }
     const understood = new Set(settings.understoodNamespaces);
     const branches: CompatibilityBranch[] = [];
     const containers: XmlElement[] = [];
@@ -166,6 +185,9 @@ export class MarkupCompatibility {
       budget.charge("work", 1 + parent.ignorable.size + parent.process.length * (element.attributes.length + 1) +
         element.attributes.reduce((sum, a) => sum + a.name.length + a.value.length * 8, 0));
       budget.charge("retainedBytes", (parent.ignorable.size + parent.process.length + element.attributes.length) * 16);
+      // Inherited declarations already contain expanded names. Native elements
+      // without MCE attributes cannot change them, including prefix rebinding.
+      if (!element.attributes.some(a => a.namespace === mc)) return parent;
       const ignorable = new Set([...parent.ignorable, ...namespaces(element, attribute(element, "Ignorable") ?? "")]);
       const process = [...parent.process, ...pairs(element, attribute(element, "ProcessContent") ?? "", ignorable)];
       // Older producers use these hints. Exact source preservation exceeds their request.
@@ -176,7 +198,8 @@ export class MarkupCompatibility {
       return { ignorable, process, alternate: parent.alternate };
     };
     const mustUnderstand = (element: XmlElement): void => {
-      if (namespaces(element, attribute(element, "MustUnderstand") ?? "").some(uri => !understood.has(uri)))
+      const required = attribute(element, "MustUnderstand");
+      if (required !== undefined && namespaces(element, required).some(uri => !understood.has(uri)))
         throw new UnsupportedProfileError("A required namespace is not understood by the declared profile.");
     };
     const controlAttributes = (element: XmlElement, scope: Scope): void => {
@@ -313,6 +336,14 @@ export class MarkupCompatibility {
     this.content = Object.freeze(content);
     this.branches = Object.freeze(branches);
     this[compatibilityContainers] = Object.freeze(containers);
+    if (key !== undefined) {
+      const usage = budget.usage;
+      const profiles = cache!.get(root) ?? new Map();
+      profiles.set(key, Object.freeze({ content: this.content, branches: this.branches,
+        containers: this[compatibilityContainers], editable: this.#editable,
+        work: usage.work - before!.work, retainedBytes: usage.retainedBytes - before!.retainedBytes }));
+      cache!.set(root, profiles);
+    }
   }
 
   canEdit(node: XmlContent | XmlAttribute): boolean { return this.#editable.has(node); }

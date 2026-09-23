@@ -32,7 +32,7 @@ export function retainedRelationshipTargets(graph: DocumentPackage, budget: Docu
     while (pending.length) {
       const node = pending.pop()!;
       budget.charge("work", 1 + node.children.length + node.attributes.reduce((sum, attribute) => sum + attribute.value.length, 0));
-      pending.push(...node.children);
+      for (const child of node.children) pending.push(child);
       if (omitted.has(node) || node.namespace !== relationshipNamespace || node.localName !== "Relationship") continue;
       const target = relationshipAttribute(node, "Target"), mode = relationshipAttribute(node, "TargetMode");
       if (target === undefined || mode !== undefined && mode !== "Internal") continue;

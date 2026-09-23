@@ -1,4 +1,5 @@
 import { Volume } from "memfs";
+import "../plain-byte-equality.js";
 import { writeArchive, type ArchiveContext } from "../../src/index.js";
 
 export const textContext = {

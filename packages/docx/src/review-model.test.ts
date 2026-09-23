@@ -222,9 +222,9 @@ it("splits a cached break in a run and returns null for paragraph boundaries", (
     new RenderedPageBreak(n.store, n.ref([0, 0]), n.root).preceding_paragraph_fragment
   ).toBeNull();
 });
-it("rejects invalid timestamp lexical data without guessing a timezone", () => {
+it("reads invalid timestamp lexical data as null without guessing a timezone", () => {
   const m = admitted(`<w:comment xmlns:w="${w}" w:id="0" w:date="2025-02-03"/>`);
-  expect(() => new Comment(m.store, m.root).timestamp).toThrow();
+  expect(new Comment(m.store, m.root).timestamp).toBeNull();
 });
 it("retains run formatting on both sides of a cached break", () => {
   const m = admitted(

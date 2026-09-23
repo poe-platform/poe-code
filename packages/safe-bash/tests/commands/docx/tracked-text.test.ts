@@ -60,7 +60,7 @@ test("docx tracked replacement preserves exact views through a VFS script and bi
     assert.ok(revisions.some(node => node.localName === "del"));
     for (const node of revisions) {
       assert.equal(node.attributes.find(attribute => attribute.namespace === w && attribute.localName === "author")?.value, "Mira & Co");
-      assert.equal(node.attributes.find(attribute => attribute.namespace === w && attribute.localName === "date")?.value, "2026-04-03T02:01:00.123Z");
+      assert.equal(node.attributes.find(attribute => attribute.namespace === w && attribute.localName === "date")?.value, "2026-04-03T02:01:00Z");
     }
     assert.ok(elements.some(node => node.namespace === w && node.localName === "delText"));
     assert.deepEqual(volume.toJSON(), before);

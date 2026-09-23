@@ -1,4 +1,5 @@
 import { assertFormattingHistoryEditable } from "./revision-markup.js";
+import { assertLiveCommentMetadataPreserved } from "./comment-extensions.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { DocumentView } from "./document-model.js";
 import { Settings } from "./settings-model.js";
@@ -118,6 +119,28 @@ export class ModelStore {
             })
             .map((member) => "/" + member.name)
         );
+        for (const member of candidate.members) {
+          const part = "/" + member.name;
+          if (current.has(part) && !unchanged.has(part))
+            this.assertCommentPartMetadataPreserved(rename && part === rename.to ? from! : part, member.bytes);
+        }
+        const rootOwners = new Map<string, { previous: XmlElement; next: DocumentXmlEditor }>();
+        for (const member of candidate.members) {
+          const part = "/" + member.name, previousPart = rename && part === rename.to ? from! : part;
+          const previous = this.editors.get(previousPart);
+          if (unchanged.has(part) || !previous) continue;
+          let retained = false;
+          for (const handle of this.handles.values()) {
+            context.budget.charge("work", 1);
+            if (handle.ref.part === previousPart && handle.node === previous.root) { retained = true; break; }
+          }
+          if (!retained) continue;
+          const next = new DocumentXmlEditor(member.bytes, {}, undefined, context.budget);
+          if (previous.root.namespace === next.root.namespace && previous.root.localName === next.root.localName) {
+            context.budget.charge("retainedBytes", 64);
+            rootOwners.set(part, { previous: previous.root, next });
+          }
+        }
         if (rename && from) {
           const editor = this.editors.get(from);
           if (editor) { this.editors.delete(from); this.editors.set(rename.to, editor); }
@@ -125,9 +148,16 @@ export class ModelStore {
           if ("/" + this.memberName(this.mainPart) === from) this.mainPartName = rename.to;
         }
         this.archive = candidate;
-        for (const part of this.editors.keys()) if (!unchanged.has(part)) this.editors.delete(part);
+        for (const part of this.editors.keys()) if (!unchanged.has(part)) {
+          const root = rootOwners.get(part);
+          if (root) this.editors.set(part, root.next);
+          else this.editors.delete(part);
+        }
         for (const handle of this.handles.values())
-          if (!unchanged.has(handle.ref.part)) handle.node = null;
+          if (!unchanged.has(handle.ref.part)) {
+            const root = rootOwners.get(handle.ref.part);
+            handle.node = root && handle.node === root.previous ? root.next.root : null;
+          }
         this.handleIndex = undefined;
         this.revision++;
       },
@@ -512,6 +542,8 @@ export class ModelStore {
       action(candidate);
       const bytes = candidate.serialize();
       const next = new DocumentXmlEditor(bytes, {}, undefined, this.context.budget);
+      assertLiveCommentMetadataPreserved(old, next, part,
+        () => new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget), this.context.budget);
       const map = new Map<XmlElement, XmlElement>();
       const budget = this.context.budget;
       const reconcile = function* (left: XmlElement, right: XmlElement): Generator<{ left: XmlElement; right: XmlElement }, void, void> {
@@ -770,6 +802,7 @@ export class ModelStore {
     this.archive = this.snapshot();
     const found = this.archive.members.find((member) => member.name === name);
     if (found) {
+      this.assertCommentPartMetadataPreserved("/" + name, bytes);
       this.archive = {
         ...this.archive,
         members: this.archive.members.map((member) =>
@@ -806,6 +839,13 @@ export class ModelStore {
             `<Override xmlns="${xml.root.namespace}" PartName="/${xmlValue(name)}" ContentType="${xmlValue(contentType)}"/>`
           );
       });
+  }
+  private assertCommentPartMetadataPreserved(part: string, bytes: Uint8Array): void {
+    if (part === "/[Content_Types].xml") return;
+    if (parseMediaType(this.part(part).content_type) !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml") return;
+    assertLiveCommentMetadataPreserved(this.xml(part),
+      new DocumentXmlEditor(bytes, {}, undefined, this.context.budget), part,
+      () => new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget), this.context.budget);
   }
   ensureComments(owner = this.mainPart): ModelRef {
     if (!this.transactionDepth) return this.transaction(() => this.ensureComments(owner));

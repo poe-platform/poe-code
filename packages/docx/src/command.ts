@@ -505,7 +505,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
       }
       return Object.freeze({ ...(typeof item.id === "string" ? { id: item.id } : {}), operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });
     } catch (error) {
-      if (error instanceof BoundsError) Object.assign(error, { operationIndex: index });
+      if (error instanceof Error) Object.assign(error, { operationIndex: index });
       throw error;
     }
   });
@@ -585,7 +585,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest, Resu
         const code = error instanceof BoundsError ? error.code : error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof PermissionError ? "permission" : error instanceof SourceError ? "source-failure" : "usage";
         const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
         try {
-          if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message, ...(error instanceof BoundsError && "operationIndex" in error ? { operationIndex: error.operationIndex } : {}) }], affected: 0, locations: [] }) + "\n"));
+          if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message, ...("operationIndex" in error ? { operationIndex: error.operationIndex } : {}) }], affected: 0, locations: [] }) + "\n"));
           if (request.signal.aborted) return { exitCode: 130 } as DocxCommandEngineResult<Result>;
           await request.stderr.write(new TextEncoder().encode(diagnostic.human));
         } catch (transportError) {

@@ -71,7 +71,12 @@ class StyleStore {
           const latent = parent.localName === "latentStyles" && node.name.localName === "lsdException";
           if (!styles && !latent) return;
           const preceding = new Set<XmlElement>(), pending = parent.children.slice(0, index);
-          while (pending.length) { const current = pending.pop()!; budget.charge("work", 1); preceding.add(current); pending.push(...current.children); }
+          while (pending.length) {
+            const current = pending.pop()!;
+            budget.charge("work", 1);
+            preceding.add(current);
+            for (const child of current.children) pending.push(child);
+          }
           const position = originalChildren(parent).filter(n => n.namespace === parent.namespace && n.localName === node.name.localName && preceding.has(n)).length;
           if (styles) this.tokens.splice(position, 0, this.nextToken++);
           else this.latentTokens.splice(position, 0, this.nextLatentToken++);
@@ -123,9 +128,11 @@ class StyleStore {
     const tokens = this.tokens.slice(), latentTokens = this.latentTokens.slice(), latentGeneration = this.latentGeneration, revision = this.revision, warningCount = this.warnings.length;
     return () => { this.tokens.splice(0, this.tokens.length, ...tokens); this.latentTokens.splice(0, this.latentTokens.length, ...latentTokens); this.latentGeneration = latentGeneration; this.revision = revision; this.warnings.length = warningCount; this.cachedEditor = undefined; };
   }
-  add(markup: string): number {
+  add(markup: string, count = 1): number {
     this.change(xml => xml.insertChildren(xml.root, markup));
-    const token = this.nextToken++; this.tokens.push(token); return token;
+    const token = this.nextToken;
+    for (let index = 0; index < count; index++) this.tokens.push(this.nextToken++);
+    return token;
   }
   remove(token: number): void {
     this.change(xml => xml[replaceActiveStyleXml](this.node(xml, token), ""));
@@ -139,6 +146,9 @@ export const styleModelMutations = new WeakMap<Styles, { readonly revision: numb
 
 /** Internal shared heading allocation; retains the live styles owner. */
 export const resolveHeadingStyle = Symbol("resolve-heading-style");
+
+/** Provision related named styles in one owned XML mutation. */
+export const provisionNamedStyles = Symbol("provision-named-styles");
 
 /** Internal declared advanced relationship operation, not a public model alias. */
 export const setStyleLinks = Symbol("set-style-links");
@@ -213,6 +223,22 @@ export class Styles implements Iterable<BaseStyle> {
     let serial = 1; while (ids.has(`Style${serial}`)) serial++;
     const namespace = this.rawElement.namespace;
     return this.wrap(this.store.add(`<st:style xmlns:st="${namespace}" st:type="${type}" st:styleId="Style${serial}"${builtin ? "" : ' st:customStyle="1"'}><st:name st:val="${xmlValue(styleStoredName(name, builtin))}"/></st:style>`));
+  }
+  [provisionNamedStyles](definitions: readonly { name: string; type: DocxEnumValue<"WD_STYLE_TYPE"> }[]): readonly BaseStyle[] {
+    const existing = definitions.map(definition => this.has(definition.name) ? this.at(definition.name) : null);
+    const missing = definitions.filter((_, index) => existing[index] === null);
+    if (!missing.length) return existing as BaseStyle[];
+    const ids = this.part.package[packageStyleAllocationIds](), namespace = this.rawElement.namespace;
+    let serial = 1;
+    const markup = missing.map(definition => {
+      while (ids.has(`Style${serial}`)) serial++;
+      const id = `Style${serial++}`;
+      ids.add(id);
+      return `<st:style xmlns:st="${namespace}" st:type="${typeName(definition.type)}" st:styleId="${id}" st:customStyle="1"><st:name st:val="${xmlValue(styleStoredName(definition.name))}"/></st:style>`;
+    }).join("");
+    const first = this.store.add(markup, missing.length);
+    let index = 0;
+    return existing.map(style => style ?? this.wrap(first + index++));
   }
   default(style_type: DocxEnumValue<"WD_STYLE_TYPE">): BaseStyle | null {
     const type = typeName(style_type);

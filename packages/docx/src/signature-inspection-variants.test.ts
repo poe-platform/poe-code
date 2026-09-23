@@ -60,7 +60,8 @@ it(`${route} inventories ${media} signature in ${owner}/${carrier}/${codec}; ${k
       const info = await inspectDocument(input, textContext), list = await inspectDocumentSignatures(input, {}, textContext);
       expect(info.signed).toBe(signed); expect(info.signatures).toEqual({ parts: signed ? ["/assets/seal.xml"] : [], verified: null });
       expect(info.features.find(feature => feature.id === "F43")?.detected).toBe(signed);
-      expect(list.verified).toBeNull(); expect(list.items.map(item => [item.name, item.details.role, item.details.verified])).toEqual(signed ? [["/assets/seal.xml", media === "native" ? "signature" : "relationship-target", null]] : []);
+      const bytes = parts.get("assets/seal.xml")!, sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes)))].map(value => value.toString(16).padStart(2, "0")).join("");
+      expect(list.verified).toBeNull(); expect(list.items.map(item => ({ name: item.name, details: item.details }))).toEqual(signed ? [{ name: "/assets/seal.xml", details: { kind: "signatures", parts: [{ name: "/assets/seal.xml", contentType: mime, bytes: bytes.length, sha256 }] } }] : []);
       expect(list.relationships).toEqual(activeSignature ? [{ owner: owner === "root" ? "/" : "/word/document.xml", id: "seal", type, target: "/assets/seal.xml", external: false }] : []);
     }
   } else {

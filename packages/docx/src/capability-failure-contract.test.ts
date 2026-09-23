@@ -5,10 +5,11 @@ import { getDocxDiscovery, type DocxSchemaData } from "./discovery.js";
 
 it.each([
   { resource: "paragraphs", reads: 1, code: "invalid-container", support: "read" },
-  { resource: "fonts", reads: 0, code: "unsupported-profile", support: "reject" }
+  { resource: "fonts", reads: 1, code: "invalid-container", support: "read" }
 ])("declares $resource list acquisition/failure according to current support", async expected => {
   let output = "", reads = 0;
   const volume = Volume.fromJSON({ "/source.docx": "unread" });
+  const before = volume.toJSON();
   const result = await createDocxInspectionCommandEngine({ limits: {
     maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536,
     maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024,
@@ -24,6 +25,7 @@ it.each([
   });
   expect(result.exitCode).toBe(1);
   expect(reads).toBe(expected.reads);
+  expect(volume.toJSON()).toEqual(before);
   const envelope = JSON.parse(output);
   expect(envelope).toMatchObject({ ok: false, data: null, errors: [{ code: expected.code }] });
   const schema = getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: `${expected.resource}.list` } })!.data as DocxSchemaData;

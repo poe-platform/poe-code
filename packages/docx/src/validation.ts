@@ -1,4 +1,4 @@
-import { storedBooleanValue, trimXmlWhitespace } from "./stored-lexical.js";
+import { storedBooleanValue, storedIntegerIdentity, trimXmlWhitespace } from "./stored-lexical.js";
 import { macroTypes } from "./admission.js";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type DocumentArchive } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
@@ -222,7 +222,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     const raw = attr(node, definitionNames[name]!);
     const specialNote = (name === "footnote" || name === "endnote") &&
       ["separator", "continuationSeparator", "continuationNotice"].includes(attr(node, "type") ?? "normal");
-    const id = name === "style" ? raw : integer(raw, specialNote ? -Number.MAX_SAFE_INTEGER : 0, name === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER);
+    const id = name === "style" ? raw : integer(raw, specialNote ? -Number.MAX_SAFE_INTEGER : 0, Number.MAX_SAFE_INTEGER);
     const key = `${node.part}:${name}`;
     const entries = definitions.get(key) ?? new Map<string, Node>();
     if (name === "style") {
@@ -399,7 +399,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (name === "abstractNumId" && !lookup("abstractNum", integer(attr(node, "val"), 0, Number.MAX_SAFE_INTEGER), node.part)) issue(node, "numbering-reference", "Abstract numbering reference has no definition.");
     if (["footnoteReference", "endnoteReference", "commentReference", "commentRangeStart", "commentRangeEnd"].includes(name)) {
       const type = name.startsWith("footnote") ? "footnote" : name.startsWith("endnote") ? "endnote" : "comment";
-      if (!lookup(type, integer(attr(node, "id"), 0, type === "comment" ? 2147483647 : Number.MAX_SAFE_INTEGER))) issue(node, type === "comment" ? "comment-reference" : "note-reference", "Annotation reference has no definition.");
+      if (!lookup(type, integer(attr(node, "id"), 0, Number.MAX_SAFE_INTEGER))) issue(node, type === "comment" ? "comment-reference" : "note-reference", "Annotation reference has no definition.");
     }
     if (name === "bookmarkStart" || name === "bookmarkEnd") {
       const id = integer(attr(node, "id"), 0, Number.MAX_SAFE_INTEGER);
@@ -410,17 +410,17 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
       } else if (id === undefined || !bookmarks.delete(key)) issue(node, "bookmark-range", "Bookmark end has no preceding start in this story.");
     }
     if (name === "commentRangeStart" || name === "commentRangeEnd") {
-      const key = node.story + ":" + integer(attr(node, "id"));
+      const key = node.story + ":" + integer(attr(node, "id"), 0, Number.MAX_SAFE_INTEGER);
       if (name === "commentRangeStart") {
         if (commentRanges.has(key)) issue(node, "comment-range", "Duplicate open comment range.");
         commentRanges.set(key, node);
       } else if (!commentRanges.delete(key)) issue(node, "comment-range", "Comment end has no preceding start.");
     }
-    if (["ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "tblPrExChange"].includes(name) && !claim("revision", integer(attr(node, "id"))))
+    if (["ins", "del", "moveFrom", "moveTo", "rPrChange", "pPrChange", "sectPrChange", "tblPrChange", "trPrChange", "tcPrChange", "tblGridChange", "numberingChange", "cellIns", "cellDel", "cellMerge", "tblPrExChange"].includes(name) && !claim("revision", storedIntegerIdentity(attr(node, "id"))))
       issue(node, "revision-id", "Invalid or duplicate tracked revision ID.");
     for (const kind of ["moveFrom", "moveTo", "customXmlIns", "customXmlDel", "customXmlMoveFrom", "customXmlMoveTo"]) {
       if (name !== kind + "RangeStart" && name !== kind + "RangeEnd") continue;
-      const id = integer(attr(node, "id"));
+      const id = storedIntegerIdentity(attr(node, "id"));
       const key = node.story + ":" + kind + ":" + id;
       if (name.endsWith("Start")) {
         if (!claim(node.story + ":" + kind, id)) issue(node, "revision-id", "Invalid or duplicate tracked range ID.");

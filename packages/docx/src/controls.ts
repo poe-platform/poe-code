@@ -1,4 +1,6 @@
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
+import { parseStoredDateTime } from "./stored-date-time.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 import { validateDocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { parseFields, assertOutsideFields } from "./field-parser.js";
@@ -8,9 +10,9 @@ import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError
 import { openDocumentLocations } from "./locations.js";
 import type { DocxOperationArguments, DocxBinaryInput } from "./operation-types.js";
 import { DocumentArchiveEditor } from "./package-write.js";
-import type { XmlElement } from "./package-xml.js";
+import type { XmlContent, XmlElement } from "./package-xml.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
-import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
+import { nativeElementSourceTokens, nativeScalarTextSource, nativeXmlTriviaSource, UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import type { DocumentBudget } from "./budget.js";
 import { replaceControlPicture, finishControlPictures, readControlPicture, acquireControlPng, type ControlBinaryResolver, type ControlPicture } from "./control-picture.js";
@@ -96,7 +98,7 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
     kind = type ? names[type.localName]! : "rich-text";
     value = logicalText(content, children, budget);
     if (["repeating-section", "repeating-item"].includes(kind)) value = null;
-    if (kind === "checkbox") { const checked = attr(child(type!, "checked", w14), "val", w14); value = checked === "1" || checked === "true"; if (!["0", "1", "true", "false"].includes(checked ?? "")) throw new UnsupportedEditError("Malformed checkbox state."); }
+    if (kind === "checkbox") { value = null; const checked = attr(child(type!, "checked", w14), "val", w14); if (!["0", "1", "true", "false"].includes(checked ?? "")) throw new UnsupportedEditError("Malformed checkbox state."); value = checked === "1" || checked === "true"; }
     if (kind === "dropdown" || kind === "combo-box") {
       for (const item of children(type!)) {
         if (item.namespace !== node.namespace || item.localName !== "listItem") throw new UnsupportedEditError("Unsupported choice declaration.");
@@ -106,15 +108,24 @@ export function inspectControlSnapshot(node: XmlElement, location: Location<"con
       }
     }
     if (kind === "date") value = attr(type!, "fullDate");
-    if (kind === "picture") value = readControlPicture(archive, location.value.part, content, context);
+    if (kind === "picture") { value = null; value = readControlPicture(archive, location.value.part, content, context); }
   } catch (error) { if (!(error instanceof UnsupportedEditError)) throw error; reason = error.message; }
-  let id: string | null = null, tag: string | null = null, alias: string | null = null, lock = "unknown", placeholder = false, binding: ControlSnapshot["binding"] = null;
-  try { if (properties) {
-    id = attr(child(properties, "id"), "val"); tag = attr(child(properties, "tag"), "val"); alias = attr(child(properties, "alias"), "val"); lock = attr(child(properties, "lock"), "val") ?? "unlocked";
-    placeholder = child(properties, "showingPlcHdr") !== undefined; const descriptor = child(properties, "dataBinding");
-    if (descriptor) binding = { storeItemId: attr(descriptor, "storeItemID"), xpath: attr(descriptor, "xpath"), prefixMappings: attr(descriptor, "prefixMappings") };
-  } } catch (error) { if (!(error instanceof UnsupportedEditError)) throw error; reason ??= error.message; }
-  return { location, kind, id, tag, alias, lock, placeholder, binding,
+  const metadata: { -readonly [Field in "id" | "tag" | "alias" | "lock"]: ControlSnapshot[Field] } = { id: null, tag: null, alias: null, lock: "unknown" };
+  let placeholder = false, binding: ControlSnapshot["binding"] = null;
+  if (properties) for (const field of ["id", "tag", "alias", "lock", "dataBinding", "showingPlcHdr"] as const) {
+    try {
+      const descriptor = child(properties, field);
+      if (field === "dataBinding") {
+        if (descriptor) binding = { storeItemId: attr(descriptor, "storeItemID"), xpath: attr(descriptor, "xpath"), prefixMappings: attr(descriptor, "prefixMappings") };
+      } else if (field === "showingPlcHdr") {
+        const stored = attr(descriptor, "val"), state = descriptor ? stored === null ? true : storedBooleanValue(stored) : false;
+        if (state === null) throw new UnsupportedEditError("Malformed control placeholder state.");
+        placeholder = state;
+      } else if (field === "lock") metadata.lock = attr(descriptor, "val") ?? "unlocked";
+      else metadata[field] = attr(descriptor, "val");
+    } catch (error) { if (!(error instanceof UnsupportedEditError)) throw error; reason ??= error.message; }
+  }
+  return { location, kind, ...metadata, placeholder, binding,
     value, choices, support: reason === null ? "supported" : "unsupported", reason };
 }
 async function inventory(input: Uint8Array, options: DocxOperationArguments<"controls.list">, context: ArchiveContext) {
@@ -141,6 +152,22 @@ export async function inspectDocumentControls(input: Uint8Array, options: DocxOp
 function opening(node: XmlElement): string {
   return `<${node.name}${node.attributes.map(a => ` ${a.name}="${xmlValue(a.value)}"`).join("")}>`;
 }
+function retainedControlTrivia(xml: DocumentXmlEditor, node: XmlElement, budget: DocumentBudget): string {
+  budget.charge("retainedBytes", 192);
+  const pending: XmlContent[] = [node], chunks: string[] = [];
+  while (pending.length) {
+    const token = pending.pop()!;
+    budget.charge("work", 1);
+    if (token.kind === "element") {
+      budget.charge("retainedBytes", token.content.length * 8);
+      for (let index = token.content.length - 1; index >= 0; index--) pending.push(token.content[index]!);
+    } else if (token.kind === "comment" || token.kind === "processing-instruction") {
+      budget.charge("retainedBytes", 8);
+      chunks.push(xml[nativeXmlTriviaSource](token));
+    }
+  }
+  return chunks.join("");
+}
 function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: string, budget: DocumentBudget, font?: string): string {
   const { one: child } = controlChildren(xml, budget);
   const w = content.namespace; const nodes = walk(content, budget);
@@ -153,10 +180,20 @@ function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: stri
   if (font) {
     const fonts = properties && child(properties, "rFonts"); const fontName = fonts?.name ?? name("rFonts");
     const retained = fonts?.attributes.filter(attribute => attribute.namespace !== w || !["ascii", "hAnsi", "eastAsia", "cs", "asciiTheme", "hAnsiTheme", "eastAsiaTheme", "cstheme"].includes(attribute.localName)).map(attribute => ` ${attribute.name}="${xmlValue(attribute.value)}"`).join("") ?? "";
-    const fontXml = `<${fontName}${retained}${["ascii", "hAnsi", "eastAsia", "cs"].map(local => ` ${prefix}${local}="${xmlValue(font)}"`).join("")}/>`;
+    const inner = fonts ? xml.sourceXml(fonts, new Map(), true) : "";
+    const fontXml = `<${fontName}${retained}${["ascii", "hAnsi", "eastAsia", "cs"].map(local => ` ${prefix}${local}="${xmlValue(font)}"`).join("")}${inner ? ">" + inner + `</${fontName}>` : "/>"}`;
     propertyXml = properties ? opening(properties) + xml.sourceXml(properties, fonts ? new Map([[fonts, fontXml]]) : new Map(), true) + (fonts ? "" : fontXml) + `</${properties.name}>` : `<${name("rPr")}>${fontXml}</${name("rPr")}>`;
   }
-  let value = "", fragment = ""; const flush = () => { if (fragment) { value += `<${name("t")} xml:space="preserve">${xmlValue(fragment)}</${name("t")}>`; fragment = ""; } };
+  const firstLeaf = first?.children.find(node => node.localName === "t") ?? first?.children.find(node => node !== properties);
+  const textLeaf = firstLeaf?.localName === "t" ? firstLeaf : undefined;
+  const textName = textLeaf?.name ?? name("t");
+  const textAttributes = textLeaf?.attributes.filter(attribute => !(attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space")).map(attribute => ` ${attribute.name}="${xmlValue(attribute.value)}"`).join("") ?? "";
+  let value = "", fragment = "", firstText: string | undefined, firstTextMarkup = "";
+  const flush = () => { if (fragment) {
+    const markup = `<${textName}${textAttributes} xml:space="preserve">${xmlValue(fragment)}</${textName}>`;
+    if (!value) { firstText = fragment; firstTextMarkup = markup; }
+    value += markup; fragment = "";
+  } };
   for (const char of text) { if (char === "\t" || char === "\n") { flush(); value += `<${name(char === "\t" ? "tab" : "br")}/>`; } else fragment += char; } flush();
   let firstOpening = first ? opening(first) : "";
   if (first) {
@@ -173,9 +210,31 @@ function textReplacement(xml: DocumentXmlEditor, content: XmlElement, text: stri
     const lifted = [...inheritance].filter(([name]) => !first.attributes.some(attribute => attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === name)).map(([name, value]) => ` xml:${name}="${xmlValue(value)}"`).join("");
     firstOpening = firstOpening.slice(0, -1) + namespaces + lifted + ">";
   }
-  const run = first ? firstOpening + propertyXml + value + `</${first.name}>` : `<${name("r")}>${propertyXml}${value}</${name("r")}>`;
-  if (content.children[0]?.localName === "p") { const paragraph = content.children[0]; const pPr = child(paragraph, "pPr"); return opening(content) + opening(paragraph) + (pPr ? xml.sourceXml(pPr) : "") + run + `</${paragraph.name}></${content.name}>`; }
-  return opening(content) + run + `</${content.name}>`;
+  let run: string;
+  if (first) {
+    const replacements = new Map<XmlElement, string>(); let filled = false;
+    for (const node of first.children) {
+      if (node === properties) replacements.set(node, propertyXml);
+      else if (node === firstLeaf) {
+        replacements.set(node, node === textLeaf
+          ? xml[nativeScalarTextSource](node, firstText ?? "", { preserveSpace: true }) + value.slice(firstTextMarkup.length)
+          : value + retainedControlTrivia(xml, node, budget));
+        filled = true;
+      } else replacements.set(node, retainedControlTrivia(xml, node, budget));
+    }
+    run = firstOpening + (properties ? "" : propertyXml) + xml.sourceXml(first, replacements, true) + (filled ? "" : value) + `</${first.name}>`;
+  } else run = `<${name("r")}>${propertyXml}${value}</${name("r")}>`;
+  const paragraph = content.children[0]?.localName === "p" ? content.children[0] : undefined;
+  const pPr = paragraph && child(paragraph, "pPr");
+  const replacements = new Map<XmlElement, string>();
+  for (const node of content.children) {
+    if (node.localName === "p") {
+      const nested = new Map(node.children.map(element => [element, element === first ? run : element === pPr ? xml.sourceXml(element) : retainedControlTrivia(xml, element, budget)]));
+      replacements.set(node, xml.sourceXml(node, nested, true));
+    } else replacements.set(node, node === first ? run : retainedControlTrivia(xml, node, budget));
+  }
+  const inner = xml.sourceXml(content, replacements, true) + (first ? "" : run);
+  return opening(content) + (paragraph ? opening(paragraph) + inner + `</${paragraph.name}>` : inner) + `</${content.name}>`;
 }
 export interface ControlScalarInput { readonly text?: string; readonly checked?: boolean; readonly choice?: string; readonly date?: string; }
 export function prepareControlPlaceholder(xml: DocumentXmlEditor, node: XmlElement, item: ControlSnapshot, context: ArchiveContext): () => void {
@@ -193,8 +252,13 @@ export function prepareControlPlaceholder(xml: DocumentXmlEditor, node: XmlEleme
   if (current && current.attributes.some(attribute => attribute.namespace === node.namespace && ["fullDate", "lastValue"].includes(attribute.localName))) currentXml = `<${current.name}${current.attributes.filter(attribute => attribute.namespace !== node.namespace || !["fullDate", "lastValue"].includes(attribute.localName)).map(attribute => ` ${attribute.name}="${xmlValue(attribute.value)}"`).join("")}>${xml.sourceXml(current, new Map(), true)}</${current.name}>`;
   const existing = child(properties, "showingPlcHdr"); const prefix = properties.name.includes(":") ? properties.name.slice(0, properties.name.indexOf(":") + 1) : "";
   const replacements = new Map<XmlElement, string>(); if (current && currentXml !== undefined) replacements.set(current, currentXml);
+  if (existing && !item.placeholder && item.kind !== "checkbox") {
+    const state = existing.attributes.find(attribute => attribute.namespace === node.namespace && attribute.localName === "val");
+    const [head, tail] = xml[nativeElementSourceTokens](existing, state);
+    replacements.set(existing, head + xml.sourceXml(existing, new Map(), true) + tail);
+  }
   const propertyXml = opening(properties) + xml.sourceXml(properties, replacements, true) + (existing ? "" : `<${prefix}showingPlcHdr/>`) + `</${properties.name}>`;
-  return () => { scalar(); if (item.kind !== "checkbox" && (!existing || currentXml !== undefined)) xml.replaceElement(properties, propertyXml); };
+  return () => { scalar(); if (item.kind !== "checkbox" && (!existing || currentXml !== undefined || !item.placeholder)) xml.replaceElement(properties, propertyXml); };
 }
 export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, item: ControlSnapshot, values: ControlScalarInput, context: ArchiveContext, clearPlaceholder = true): () => void {
   const { budget } = archiveSettings(context); const { text, checked, choice, date } = values;
@@ -223,7 +287,8 @@ export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, it
       const stored = child(properties, "date")!; const format = attr(child(stored, "dateFormat"), "val") ?? "yyyy-MM-dd", language = attr(child(stored, "lid"), "val"), calendar = attr(child(stored, "calendar"), "val");
       if (!["yyyy-MM-dd", "MM-dd-yyyy", "dd/MM/yyyy"].includes(format) || language !== null && !["en-US", "en-GB"].includes(language) || calendar !== null && calendar !== "gregorian") throw new UnsupportedEditError("Stored date formatting has no deterministic support.");
       if (date.length !== 10 || date[4] !== "-" || date[7] !== "-" || [...date].some((c, index) => index !== 4 && index !== 7 && !"0123456789".includes(c))) throw new InvalidValueError("Expected a Gregorian date yyyy-MM-dd.");
-      const canonical = date + "T00:00:00Z", parsed = new Date(canonical); if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) throw new InvalidValueError("Invalid Gregorian date.");
+      const canonical = date + "T00:00:00Z";
+      parseStoredDateTime(canonical, "xsd");
       value = format === "MM-dd-yyyy" ? date.slice(5, 7) + "-" + date.slice(8) + "-" + date.slice(0, 4) : format === "dd/MM/yyyy" ? date.slice(8) + "/" + date.slice(5, 7) + "/" + date.slice(0, 4) : date;
       if (attr(stored, "fullDate") !== null) stages.push(() => xml.setAttribute(stored, { namespace: node.namespace, localName: "fullDate" }, canonical));
       else { const prefix = stored.name.includes(":") ? stored.name.slice(0, stored.name.indexOf(":") + 1) : "";
@@ -231,7 +296,10 @@ export function prepareControlValue(xml: DocumentXmlEditor, node: XmlElement, it
         stages.push(() => xml.replaceElement(stored, replacement)); }
     } else throw new UnsupportedEditError("The explicit value does not match the control type.");
     if (value !== undefined) { const replacement = textReplacement(xml, content, value, budget, font); stages.push(() => xml.replaceElement(content, replacement)); }
-    if (placeholder && clearPlaceholder) stages.push(() => xml.replaceElement(placeholder, ""));
+    if (placeholder && clearPlaceholder) {
+      const trivia = retainedControlTrivia(xml, placeholder, budget);
+      stages.push(() => xml.replaceElement(placeholder, trivia));
+    }
   return () => { for (const stage of stages) stage(); };
 }
 export async function editDocumentControls(input: Uint8Array, options: DocxOperationArguments<"controls.set"> & { readonly input?: PublicationInput }, context: ControlContext): Promise<ControlEditData> {
@@ -266,7 +334,13 @@ export async function editDocumentControls(input: Uint8Array, options: DocxOpera
       stages.push(() => replaceControlPicture(result.editor, result.archive, location.value.part, content, picture!, { ...settings, budget }));
     } else stages.push(prepareControlValue(xml, node, item, { ...(text === undefined ? {} : { text }), ...(checked === undefined ? {} : { checked }), ...(choice === undefined ? {} : { choice }), ...(date === undefined ? {} : { date }) }, { ...settings, budget }));
 
-    if (item.kind === "picture") { const placeholder = child(properties, "showingPlcHdr"); if (placeholder) stages.push(() => xml.replaceElement(placeholder, "")); }
+    if (item.kind === "picture") {
+      const placeholder = child(properties, "showingPlcHdr");
+      if (placeholder) {
+        const trivia = retainedControlTrivia(xml, placeholder, budget);
+        stages.push(() => xml.replaceElement(placeholder, trivia));
+      }
+    }
   }
   const changes = chosen.map(before => { const value = { ...before.value, generation: 1 }; return { kind: "replace" as const, before, after: { ...before, value, token: encodeLocation(value) } }; });
   const prospective = { changed: chosen.length > 0, changes, output: dryRun ? null : { path: inPlace ? identity?.path ?? null : output ?? null, bytes: Math.min(settings.limits.maxArchiveBytes, Number.MAX_SAFE_INTEGER), sha256: "0".repeat(64) }, dryRun: dryRun ?? false };

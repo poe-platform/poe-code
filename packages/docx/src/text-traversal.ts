@@ -34,11 +34,14 @@ export interface TextData {
   readonly warnings: readonly { readonly code: string; readonly message: string }[];
 }
 interface State { entry: LocationEntry; revision: TextSegment["revision"]; revisions: readonly RevisionInfo[]; formatting: TextFormatting; originalFormatting: TextFormatting; }
-interface Piece { segments: TextSegment[]; state: State; boundary?: TextSegment["revision"]; boundaryInfo?: RevisionInfo; }
+interface SegmentBranch { readonly length: number; readonly children: readonly (SegmentBranch | TextSegment[])[]; }
+type SegmentSequence = SegmentBranch | TextSegment[];
+interface Piece { segments: SegmentSequence; state: State; boundary?: TextSegment["revision"]; boundaryInfo?: RevisionInfo; }
 
 /** Logical order only. Formatting is direct XML context, never a rendered style cascade. */
 export function readTextSegments(index: LocationIndex, selected: readonly Location[], view: TextView,
-  location: (entry: LocationEntry) => Location, budget: DocumentBudget): TextData {
+  location: (entry: LocationEntry) => Location, budget: DocumentBudget,
+  ownedLocationBytes?: (location: Location) => number | undefined): TextData {
   const segments: TextSegment[] = [];
   let segmentCount = 0;
   const byNode = new Map<XmlElement, LocationEntry>();
@@ -72,31 +75,41 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
     budget.charge("work", text.length + 1);
     return { text, kind, location: location(state.entry), revision: state.revision, revisions: state.revisions, formatting: state.formatting, originalFormatting: view === "all" ? state.originalFormatting : null };
   };
-  const join = (pieces: Piece[], separator: string, kind: TextSegment["kind"], state: State): TextSegment[] => {
-    const result: TextSegment[] = [];
+  const join = (pieces: Piece[], separator: string, kind: TextSegment["kind"], state: State): SegmentSequence => {
+    if (pieces.length === 1) {
+      budget.charge("work", pieces[0]!.segments.length);
+      return pieces[0]!.segments;
+    }
+    const children: SegmentSequence[] = [];
+    let length = 0;
     pieces.forEach((piece, i) => {
       const previous = pieces[i - 1];
-      if (previous && separator && visible(previous.boundary ?? "unchanged"))
-        result.push(make(separator, previous.boundary ? { ...previous.state, revision: previous.boundary, revisions: previous.boundaryInfo ? [...previous.state.revisions, previous.boundaryInfo] : previous.state.revisions } : state, kind));
+      if (previous && separator && visible(previous.boundary ?? "unchanged")) {
+        children.push([make(separator, previous.boundary ? { ...previous.state, revision: previous.boundary, revisions: previous.boundaryInfo ? [...previous.state.revisions, previous.boundaryInfo] : previous.state.revisions } : state, kind)]);
+        length++;
+      }
       budget.charge("work", piece.segments.length);
-      for (const segment of piece.segments) result.push(segment);
+      children.push(piece.segments);
+      length += piece.segments.length;
     });
-    return result;
+    budget.charge("retainedBytes", 64 + children.length * 8);
+    return { length, children };
   };
   let storyCount = 0;
   for (const story of index.entries.filter(e => e.kind === "story")) {
     budget.charge("work", selected.length + index.entries.length);
     const targets = selected.filter(target => target.value.story === story.story);
     if (!targets.length) continue;
+    const selection = index.textSelection(targets.map(target => target.value));
     const fields: boolean[] = [];
     const w = story.wordNamespace ?? story.node!.namespace;
     const included = (entry: LocationEntry) => {
-      budget.charge("work", targets.length * (entry.path.length + 1));
-      return targets.some(target => pathContains(target.value.path, entry.path));
+      budget.charge("work", targets.length * (selection.length(entry) + 1));
+      return selection.included(entry);
     };
     const relevant = (entry: LocationEntry) => {
-      budget.charge("work", targets.length * (entry.path.length + 1));
-      return included(entry) || targets.some(target => pathContains(entry.path, target.value.path));
+      budget.charge("work", targets.length * (selection.length(entry) + 1));
+      return included(entry) || selection.relevant(entry);
     };
     let revision: TextSegment["revision"] = "unchanged";
     const revisions: RevisionInfo[] = [];
@@ -212,7 +225,18 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
     const pieces = visit(story.node!, initial);
     if (!pieces.length) continue;
     if (storyCount++) segments.push(make("\n\n", initial, "story"));
-    for (const piece of pieces) for (const segment of piece.segments) segments.push(segment);
+    for (const piece of pieces) {
+      const pending: SegmentSequence[] = [piece.segments];
+      while (pending.length) {
+        const sequence = pending.pop()!;
+        if (Array.isArray(sequence)) {
+          for (const segment of sequence) segments.push(segment);
+        } else {
+          for (let child = sequence.children.length - 1; child >= 0; child--)
+            pending.push(sequence.children[child]!);
+        }
+      }
+    }
   }
   const range = selected.length === 1 ? selected[0]!.value.range : null;
   let result = segments;
@@ -236,7 +260,19 @@ export function readTextSegments(index: LocationIndex, selected: readonly Locati
   }
   const warnings = revisions.some(r => r.support === "opaque") ? [{ code: "opaque-revision", message: "Unsupported revision content is inventoried as opaque; its text and historical properties are not interpreted." }] : [];
   const data: TextData = { revisions, warnings, text: result.map(segment => segment.text).join(""), view, segments: result, hiddenText: "include" };
-  const bytes = new TextEncoder().encode(JSON.stringify(data)).length;
+  const encoder = new TextEncoder();
+  const locationBytes = new WeakMap<Location, number>();
+  let bytes = encoder.encode(JSON.stringify({ ...data, segments: [] })).length;
+  for (const segment of result) {
+    let size = locationBytes.get(segment.location);
+    if (size === undefined) {
+      size = ownedLocationBytes?.(segment.location) ?? encoder.encode(JSON.stringify(segment.location)).length;
+      locationBytes.set(segment.location, size);
+    }
+    // Replace the four-byte null placeholder with the exact location JSON.
+    bytes += encoder.encode(JSON.stringify({ ...segment, location: null })).length - 4 + size;
+  }
+  bytes += Math.max(0, result.length - 1);
   budget.check("serializedOutput", bytes);
   budget.charge("retainedBytes", bytes);
   return data;

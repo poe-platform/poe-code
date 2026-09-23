@@ -29,6 +29,7 @@ export function collapseRelationshipScalar(value: string): string {
 
 /** Allocators also reserve native IDs in retained, unselected storage. */
 export function relationshipXmlIds(root: XmlElement, budget: DocumentBudget): Set<string> {
+  budget.charge("retainedBytes", 8);
   const ids = new Set<string>(), pending = [root];
   while (pending.length) {
     const node = pending.pop()!;
@@ -37,6 +38,7 @@ export function relationshipXmlIds(root: XmlElement, budget: DocumentBudget): Se
       const id = relationshipAttribute(node, "Id");
       if (id !== undefined && !ids.has(id)) { budget.charge("retainedBytes", 32 + id.length * 2); ids.add(id); }
     }
+    if (node.children.length) budget.charge("retainedBytes", node.children.length * 8);
     for (const child of node.children) pending.push(child);
   }
   return ids;

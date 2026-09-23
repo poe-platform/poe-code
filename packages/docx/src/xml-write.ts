@@ -28,7 +28,7 @@ function containsMath(root: XmlElement, budget: DocumentBudget): boolean {
     budget.charge("work", 1);
     if (node.namespace === mathNamespace(false) || node.namespace === mathNamespace(true)) return true;
     budget.charge("retainedBytes", node.children.length * 8);
-    pending.push(...node.children);
+    for (const child of node.children) pending.push(child);
   }
   return false;
 }
@@ -40,6 +40,9 @@ export class UnsupportedEditError extends Error {
 
 /** Internal list-editor authority; not part of the public XML-view surface. */
 export const replaceListPropertyXml = Symbol("replace-list-property-xml");
+
+/** Internal comment-domain range insertion with preallocation ownership checks. */
+export const replaceCommentRangeXml = Symbol("replace-comment-range-xml");
 
 /** Internal tab-domain insertion/movement; generic opaque-owner guards stay closed. */
 export const replaceNativeTabCollectionXml = Symbol("replace-native-tab-collection-xml");
@@ -78,6 +81,10 @@ export const replaceSplitTextRunXml = Symbol("replace-split-text-run-xml");
 /** Internal native text fragments; retained inactive content belongs to the first fragment. */
 export const splitNativeTextRunXml = Symbol("split-native-text-run-xml");
 export const nativeElementSourceTokens = Symbol("native-element-source-tokens");
+/** Internal lexical read of owned inert XML; grants no editing authority. */
+export const nativeXmlTriviaSource = Symbol("native-xml-trivia-source");
+/** Internal scalar source assembly; projection tokens must belong to the owner. */
+export const nativeScalarTextSource = Symbol("native-scalar-text-source");
 
 /** Internal preserving caret assembly after native scalar splitting. */
 export const replaceSplitParagraphXml = Symbol("replace-split-paragraph-xml");
@@ -123,7 +130,26 @@ function unsupported(): never {
 
 // Index only XML already admitted by the namespace-aware parser. Every retained
 // token must match; no omitted subtree may be reconstructed from a partial view.
+const sourceIndexes = new WeakMap<DocumentXml, {
+  readonly source: string;
+  readonly spans: Map<Token, Span>;
+  readonly work: number;
+  readonly retainedBytes: number;
+}>();
+const editorOwners = new WeakMap<DocumentXml, {
+  readonly elements: ReadonlySet<XmlElement>;
+  readonly namespaces: ReadonlyMap<ReadonlyMap<string, string>, ReadonlyMap<string, string>>;
+}>();
 function indexSource(document: DocumentXml, source: string, budget: DocumentBudget): Map<Token, Span> {
+  const cacheable = Object.isFrozen(document);
+  if (cacheable) budget.charge("work", source.length);
+  const cached = cacheable ? sourceIndexes.get(document) : undefined;
+  if (cached?.source === source) {
+    budget.charge("work", cached.work);
+    budget.charge("retainedBytes", cached.retainedBytes);
+    return cached.spans;
+  }
+  const before = cacheable ? budget.usage : undefined;
   const spans = new Map<Token, Span>();
   let offset = source.charCodeAt(0) === 0xfeff ? 1 : 0;
   const consume = (value: string): void => {
@@ -212,6 +238,11 @@ function indexSource(document: DocumentXml, source: string, budget: DocumentBudg
   visit(document.root);
   for (const node of document.root.epilog ?? []) visit(node);
   if (offset !== source.length) unsupported();
+  if (before) {
+    budget.charge("retainedBytes", 128);
+    const after = budget.usage;
+    sourceIndexes.set(document, { source, spans, work: after.work - before.work, retainedBytes: after.retainedBytes - before.retainedBytes });
+  }
   return spans;
 }
 
@@ -241,8 +272,8 @@ export class DocumentXmlEditor {
   readonly #limits: DocumentXmlLimits;
   readonly #spans: Map<Token, Span>;
   readonly #patches = new Map<Token, string>();
-  readonly #namespaces = new Map<ReadonlyMap<string, string>, Map<string, string>>();
-  readonly #elements = new Set<XmlElement>();
+  readonly #namespaces: ReadonlyMap<ReadonlyMap<string, string>, ReadonlyMap<string, string>>;
+  readonly #elements: ReadonlySet<XmlElement>;
   readonly #dialect: DocumentDialect | undefined;
   #shapes: ShapeCarrierCensus | undefined;
   readonly #boxViews = new Map<XmlElement, MarkupCompatibility>();
@@ -258,14 +289,27 @@ export class DocumentXmlEditor {
     this.#guardCompatibility = this.#dialect !== undefined;
     this.#source = new TextDecoder(this.#document.encoding, { fatal: true, ignoreBOM: true }).decode(this.#document.bytes);
     this.#spans = indexSource(this.#document, this.#source, this.#budget);
+    const cacheable = Object.isFrozen(this.#document);
+    if (cacheable) budget.charge("retainedBytes", 128);
+    const cached = cacheable ? editorOwners.get(this.#document) : undefined;
+    if (cached) {
+      this.#elements = cached.elements;
+      this.#namespaces = cached.namespaces;
+      if (!this.#guardCompatibility) for (const node of this.#elements) {
+        if (hasCompatibilityMarkup(node, this.#profile)) { this.#guardCompatibility = true; break; }
+      }
+      return;
+    }
+    const elements = new Set<XmlElement>();
+    const namespaces = new Map<ReadonlyMap<string, string>, ReadonlyMap<string, string>>();
     const stack: XmlContent[] = [this.#document.root];
     while (stack.length) {
       const node = stack.pop()!;
       if (node.kind === "element") {
-        this.#elements.add(node);
-        if (hasCompatibilityMarkup(node, this.#profile)) this.#guardCompatibility = true;
-        if (!this.#namespaces.has(node.namespaces))
-          this.#namespaces.set(node.namespaces, new Map(node.namespaces));
+        elements.add(node);
+        if (!this.#guardCompatibility && hasCompatibilityMarkup(node, this.#profile)) this.#guardCompatibility = true;
+        if (!namespaces.has(node.namespaces))
+          namespaces.set(node.namespaces, new Map(node.namespaces));
         for (const attribute of node.attributes) Object.freeze(attribute);
         for (const children of [node.content, node.children, node.attributes, node.prolog, node.epilog])
           if (children) Object.freeze(children);
@@ -275,6 +319,9 @@ export class DocumentXmlEditor {
       }
       Object.freeze(node);
     }
+    this.#elements = elements;
+    this.#namespaces = namespaces;
+    if (cacheable) editorOwners.set(this.#document, { elements, namespaces });
   }
 
   get compatibility(): MarkupCompatibility {
@@ -338,14 +385,77 @@ export class DocumentXmlEditor {
   }
 
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
-  [nativeElementSourceTokens](node: XmlElement): readonly [string, string] {
+  [nativeElementSourceTokens](node: XmlElement, omittedAttribute?: XmlAttribute): readonly [string, string] {
     this.#assertOwnedElement(node);
     const span = this.#spans.get(node)!;
     const openingEnd = span.empty ? span.end : span.contentStart!;
     const closingStart = span.empty ? span.end : span.contentEnd!;
     this.#budget.charge("work", openingEnd - span.start + span.end - closingStart);
     this.#budget.charge("retainedBytes", (openingEnd - span.start + span.end - closingStart) * 2 + 16);
-    return [this.#source.slice(span.start, openingEnd), this.#source.slice(closingStart, span.end)];
+    let opening = this.#source.slice(span.start, openingEnd);
+    if (omittedAttribute) {
+      this.#budget.charge("work", opening.length);
+      this.#budget.charge("retainedBytes", opening.length * 4 + 24);
+      if (!node.attributes.includes(omittedAttribute)) throw new OwnershipError("Expected an attribute owned by this XML element.");
+      if (omittedAttribute.namespace === "http://www.w3.org/2000/xmlns/") unsupported();
+      const attribute = this.#spans.get(omittedAttribute)!;
+      if (attribute.attributeStart! < span.start || attribute.attributeEnd! > openingEnd) unsupported();
+      opening = this.#source.slice(span.start, attribute.attributeStart!) + this.#source.slice(attribute.attributeEnd!, openingEnd);
+    }
+    return [opening, this.#source.slice(closingStart, span.end)];
+  }
+
+  [nativeXmlTriviaSource](node: XmlContent): string {
+    if (!node || typeof node !== "object" || !["comment", "processing-instruction"].includes(node.kind))
+      throw new InputTypeError("Expected an XML comment or processing instruction.");
+    const span = this.#spans.get(node);
+    if (!span) throw new OwnershipError("Expected XML trivia owned by this editor.");
+    let start = span.start;
+    if (node.kind === "comment") start -= 4;
+    else if (node.kind === "processing-instruction") {
+      while (start > 0 && " \t\r\n".includes(this.#source[start - 1]!)) {
+        this.#budget.charge("work", 1); start--;
+      }
+      start -= node.target.length + 2;
+    }
+    const end = span.end + (node.kind === "comment" ? 3 : 2);
+    this.#budget.charge("work", end - start);
+    this.#budget.charge("retainedBytes", (end - start) * 2);
+    return this.#source.slice(start, end);
+  }
+
+  [nativeScalarTextSource](node: XmlElement, text: string, options: { readonly content?: readonly XmlContent[]; readonly preserveSpace?: true } = {}): string {
+    this.#assertOwnedElement(node);
+    if (typeof text !== "string") throw new InputTypeError("Expected XML scalar text.");
+    const content = options.content ?? node.content, span = this.#spans.get(node)!;
+    const maximum = span.end - span.start + text.length * 6 + node.name.length + 3 + (options.preserveSpace ? 24 : 0);
+    this.#budget.charge("retainedBytes", maximum * 8);
+    this.#budget.charge("work", maximum * 4);
+    const chunks: string[] = [];
+    let offset = span.contentStart!, replaced = false;
+    for (const token of content) {
+      if (token.kind !== "text" && token.kind !== "cdata") continue;
+      const scalar = this.#spans.get(token);
+      if (!scalar) throw new OwnershipError("Expected owned XML scalar content.");
+      const start = scalar.start - (token.kind === "cdata" ? 9 : 0);
+      const end = scalar.end + (token.kind === "cdata" ? 3 : 0);
+      if (start < offset || end > span.contentEnd!) unsupported();
+      chunks.push(this.#source.slice(offset, start), replaced ? "" : escapeValue(text, false));
+      offset = end; replaced = true;
+    }
+    chunks.push(this.#source.slice(offset, span.contentEnd!), replaced ? "" : escapeValue(text, false));
+    let source = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "") + chunks.join("") + (span.empty ? `</${node.name}>` : this.#source.slice(span.contentEnd!, span.end));
+    if (options.preserveSpace) {
+      const space = node.attributes.find(attribute => attribute.namespace === "http://www.w3.org/XML/1998/namespace" && attribute.localName === "space");
+      if (space) {
+        const attribute = this.#spans.get(space)!;
+        source = source.slice(0, attribute.start - span.start) + "preserve" + source.slice(attribute.end - span.start);
+      } else {
+        const index = span.contentStart! - span.start - (span.empty ? 0 : 1);
+        source = source.slice(0, index) + ' xml:space="preserve"' + source.slice(index);
+      }
+    }
+    return source;
   }
 
   /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
@@ -386,6 +496,16 @@ export class DocumentXmlEditor {
     this.assertShapeEditAllowed(node);
     if (this.#guardCompatibility && !this.#canEdit(node)) unsupported();
     this.#stageReplacement(node, xml, !this.#canReplaceSubtree(node, token => this.#canEdit(token)), true);
+  }
+
+  [replaceCommentRangeXml](paragraph: XmlElement, xml: string): void {
+    this.#assertOwnedElement(paragraph);
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    if (!this.#dialect || paragraph.namespace !== documentDialects[this.#dialect].w ||
+      paragraph.localName !== "p" || this.#patches.has(paragraph) || !this.#canEdit(paragraph)) unsupported();
+    this.assertShapeEditAllowed(paragraph);
+    this.#stageReplacement(paragraph, xml,
+      !this.#canReplaceSubtree(paragraph, token => this.#canEdit(token)), true, true);
   }
 
   [splitNativeTextRunXml](node: XmlElement, fragments: readonly { readonly properties: string; readonly content: ReadonlyMap<XmlElement, string> }[], stage = true, wrap?: (markup: string, index: number) => string): readonly string[] {
@@ -671,16 +791,30 @@ export class DocumentXmlEditor {
     this.#stageReplacement(node, xml);
   }
 
-  #stageReplacement(node:XmlElement,xml:string,preserveOpaque=false,checkMath=false):void {
+  #stageReplacement(node:XmlElement,xml:string,preserveOpaque=false,checkMath=false,preflightOwnership=false):void {
     this.#budget.charge("retainedBytes", xml.length * 8);
     this.#budget.charge("work", xml.length * 4);
     this.#patches.set(node, xml);
     try {
       const bindings = [...node.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, value]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(value, true)}"`).join("");
-      const before = this.#budget.usage.xmlNodes;
       const fragment = parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
       if (checkMath && containsMath(fragment.root, this.#budget)) preserveOpaque = true;
-      this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1 - fragment.root.attributes.length);
+      // Reused parses need not charge xmlNodes again; insertion still owns its
+      // actual fragment nodes and attributes, excluding the synthetic wrapper.
+      this.#budget.charge("retainedBytes", 64 + fragment.root.content.length * 8);
+      const pending = [...fragment.root.content];
+      let inserted = 0;
+      while (pending.length) {
+        const token = pending.pop()!;
+        this.#budget.charge("work", 1); inserted++;
+        if (token.kind === "element") {
+          inserted += token.attributes.length;
+          this.#budget.charge("work", token.attributes.length);
+          this.#budget.charge("retainedBytes", token.content.length * 8);
+          for (const child of token.content) pending.push(child);
+        }
+      }
+      if (!preflightOwnership) this.#budget.charge("insertedNodes", inserted);
       const serialized = this.serialize();
       // Full candidate parts are owned snapshots, unlike repeatable fragments.
       // Subsequent package validation can share this exact bounded parse.
@@ -688,6 +822,7 @@ export class DocumentXmlEditor {
       const candidate = parseDocumentXml(serialized, this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       if (preserveOpaque && opaqueXmlContent(this.root, this.#budget, this.#profile) !== opaqueXmlContent(candidate.root, this.#budget, this.#profile)) unsupported();
+      if (preflightOwnership) this.#budget.charge("insertedNodes", inserted);
     } catch (error) { this.#patches.delete(node); throw error; }
   }
 
@@ -833,23 +968,8 @@ export class DocumentXmlEditor {
     this.#budget.charge("retainedBytes", length * 2 + content.length * 16);
     this.#budget.charge("work", length + content.length);
     if (content.filter(token => token.kind === "text" || token.kind === "cdata").map(token => token.text).join("") === text) return;
-    const span = this.#spans.get(node)!;
-    const maximum = span.end - span.start + text.length * 6 + node.name.length + 3;
-    this.#budget.charge("retainedBytes", maximum * 8);
-    this.#budget.charge("work", maximum * 4);
     this.#budget.charge("insertedNodes", text.length ? 1 : 0);
-    const chunks: string[] = [];
-    let offset = span.contentStart!, replaced = false;
-    for (const token of content) {
-      if (token.kind !== "text" && token.kind !== "cdata") continue;
-      const scalar = this.#spans.get(token)!;
-      const start = scalar.start - (token.kind === "cdata" ? 9 : 0);
-      chunks.push(this.#source.slice(offset, start), replaced ? "" : escapeValue(text, false));
-      offset = scalar.end + (token.kind === "cdata" ? 3 : 0);
-      replaced = true;
-    }
-    chunks.push(this.#source.slice(offset, span.contentEnd!), replaced ? "" : escapeValue(text, false));
-    const patch = this.#source.slice(span.start, span.contentStart!) + (span.empty ? ">" : "") + chunks.join("") + (span.empty ? `</${node.name}>` : this.#source.slice(span.contentEnd!, span.end));
+    const patch = this[nativeScalarTextSource](node, text, { content });
     this.#patches.set(node, patch);
     try {
       const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
@@ -1012,7 +1132,14 @@ export class DocumentXmlEditor {
     if (this.#patches.has(parent)) unsupported();
     this.#patches.set(parent, patch);
     try {
-      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      const serialized = this.serialize();
+      if (this.#dialect && this.root.localName === "styles"
+        || this.#budget[documentXmlCache].immutableRoots?.has(this.root)) {
+        const cache = this.#budget[documentXmlCache];
+        cache.staged ??= new WeakSet();
+        cache.staged.add(serialized);
+      }
+      const candidate = parseDocumentXml(serialized, this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       const inserted = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
       if (checkMath && containsMath(inserted.root, this.#budget)) unsupported();
@@ -1191,7 +1318,13 @@ export class DocumentXmlEditor {
     this.#budget.charge("retainedBytes", patch.length * 8);
     this.#patches.set(element, patch);
     try {
-      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      const serialized = this.serialize();
+      if (this.#dialect && this.root.localName === "styles") {
+        const cache = this.#budget[documentXmlCache];
+        cache.staged ??= new WeakSet();
+        cache.staged.add(serialized);
+      }
+      const candidate = parseDocumentXml(serialized, this.#limits, this.#budget);
       if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
       this.#budget.charge("insertedNodes", inserted);
     } catch (error) { this.#patches.delete(element); throw error; }

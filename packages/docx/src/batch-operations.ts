@@ -34,10 +34,10 @@ import { inspectDocumentFonts } from "./font-inventory.js";
 type Action = (input: Uint8Array, item: DocxBatchOperation, context: PublicationContext & Pick<ImageInsertionContext, "binaryResolver">) => Promise<unknown>;
 export const documentBatchActions = new Map<string, Action>();
 for (const operation of ["comments.list", "comments.get"])
-  documentBatchActions.set(operation, (input, item, context) => inspectDocumentComments(input, { operation: item.operation, options: item.arguments } as CommentReadRequest, context));
+  documentBatchActions.set(operation, (input, item, context) => inspectDocumentComments(input, { operation: item.operation, options: item.arguments } as CommentReadRequest, context, "resource"));
 for (const operation of ["comments.add", "comments.set", "comments.remove"])
   documentBatchActions.set(operation, (input, item, context) => editDocumentComments(input, { operation: item.operation, options: item.arguments } as CommentEditRequest, context));
-documentBatchActions.set("revisions.list", (input, item, context) => inspectDocumentRevisions(input, item.arguments as DocxOperationArguments<"revisions.list">, context));
+documentBatchActions.set("revisions.list", (input, item, context) => inspectDocumentRevisions(input, item.arguments as DocxOperationArguments<"revisions.list">, context, "resource"));
 documentBatchActions.set("revisions.add", (input, item, context) => editDocumentRevisions(input, item.arguments as RevisionEditOptions, context));
 for (const operation of ["revisions.accept", "revisions.reject"])
   documentBatchActions.set(operation, (input, item, context) => editDocumentRevisionDecisions(input, { operation: item.operation, options: item.arguments } as RevisionDecisionRequest, context));
@@ -45,7 +45,7 @@ documentBatchActions.set("controls.list", (input, item, context) => inspectDocum
 documentBatchActions.set("controls.set", (input, item, context) => editDocumentControls(input, item.arguments as DocxOperationArguments<"controls.set">, context));
 documentBatchActions.set("controls.repeat", (input, item, context) => editDocumentControlRepeats(input, item.arguments as DocxOperationArguments<"controls.repeat">, context));
 documentBatchActions.set("template.apply", (input, item, context) => applyDocumentTemplate(input, item.arguments as DocxOperationArguments<"template.apply">, context));
-documentBatchActions.set("settings.list", (input, item, context) => inspectDocumentSettings(input, item.arguments as DocxOperationArguments<"settings.list">, context));
+documentBatchActions.set("settings.list", (input, item, context) => inspectDocumentSettings(input, item.arguments as DocxOperationArguments<"settings.list">, context, "resource"));
 documentBatchActions.set("fonts.list", (input, item, context) => inspectDocumentFonts(input, item.arguments as DocxOperationArguments<"fonts.list">, context));
 documentBatchActions.set("controls.bind", (input, item, context) => editDocumentControlBindings(input, item.arguments as DocxOperationArguments<"controls.bind">, context));
 for (const operation of ["custom-xml.list", "glossary.list"] as const)

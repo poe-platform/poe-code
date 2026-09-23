@@ -3,6 +3,8 @@ import { expect, it } from "vitest";
 import * as api from "./index.js";
 import { textFixture, textContext, w, r } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
+import { documentXmlCache } from "./budget.js";
+import { parseDocumentXml } from "./package-xml.js";
 
 for (const strict of [false, true])
 it(`removes a paragraph without charging a preserved XML part matching the synthetic wrapper; strict=${strict}`, async () => {
@@ -20,4 +22,29 @@ it(`removes a paragraph without charging a preserved XML part matching the synth
   const saved = readPackage(new Uint8Array(memory.readFileSync("/out") as Buffer));
   for (const [name, bytes] of parts) if (name !== "word/document.xml") expect(saved.get(name), name).toEqual(bytes);
   expect(document.paragraphs.map(p => p.text)).toEqual(["Retained"]);
+});
+
+for (const strict of [false, true]) for (const cached of [false, true]) for (const capacity of [0, 1])
+it(`charges actual replacement nodes independently of fragment cache; strict=${strict}; cached=${cached}; capacity=${capacity}`, () => {
+  const namespace = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+  const encode = (value: string) => new TextEncoder().encode(value);
+  const budget = new api.DocumentBudget({ insertedNodes: capacity });
+  const source = encode(`<w:document xmlns:w="${namespace}"><w:body><w:p/></w:body></w:document>`);
+  if (cached) {
+    const shadow = encode(`<fragment xmlns:w="${namespace}"><w:p/></fragment>`);
+    budget[documentXmlCache].entries = new Map();
+    budget[documentXmlCache].admitted = new WeakSet([shadow]);
+    parseDocumentXml(shadow, {}, budget);
+  }
+  const editor = new api.DocumentXmlEditor(source, {}, undefined, budget);
+  const paragraph = editor.root.children[0]!.children[0]!;
+  if (!capacity) {
+    expect(() => editor.replaceElement(paragraph, "<w:p/>")).toThrow(api.ResourceLimitError);
+    expect(editor.serialize()).toEqual(source);
+    expect(budget.usage.insertedNodes).toBe(0);
+  } else {
+    editor.replaceElement(paragraph, "<w:p/>");
+    expect(budget.usage.insertedNodes).toBe(1);
+    expect(editor.serialize()).toEqual(source);
+  }
 });

@@ -12,6 +12,7 @@ import { retainedRelationshipTargets } from "./relationship-part.js";
 import { publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import type { DocumentBudget } from "./budget.js";
+import type { InspectionPart } from "./inspection.js";
 
 export interface SignatureRelationship {
  readonly owner: string; readonly id: string; readonly type: string;
@@ -20,7 +21,7 @@ export interface SignatureRelationship {
 export interface SignatureListData {
  readonly items: readonly { readonly name: string; readonly kind: "signatures"; readonly location: Location<"part">;
   readonly support: "read"; readonly properties: readonly []; readonly references: readonly [];
-  readonly details: { readonly kind: "signatures"; readonly role: "origin" | "signature" | "certificate" | "relationship-target"; readonly verified: null } }[];
+  readonly details: { readonly kind: "signatures"; readonly parts: readonly InspectionPart[] } }[];
  readonly relationships: readonly SignatureRelationship[]; readonly verified: null;
 }
 export interface SignatureMutationData {
@@ -42,7 +43,14 @@ function relationshipPart(owner: string): string {
 function signatureGraph(archive: AdmittedDocumentArchive, budget: DocumentBudget) {
  const parts = new Set(archive.package.parts.filter(part => signatureContentTypes.includes(asciiKey(part.content_type))).map(part => part.partname));
  const all: SignatureRelationship[] = [], relationships: SignatureRelationship[] = [];
- for (const owner of ["/", ...archive.package.parts.filter(part => asciiKey(part.content_type) !== relationshipsType).map(part => part.partname)]) {
+ const owners = ["/", ...archive.package.parts.filter(part => asciiKey(part.content_type) !== relationshipsType).map(part => part.partname)];
+ budget.charge("retainedBytes", owners.length * 8);
+ owners.sort((left, right) => {
+  budget.charge("work", left.length + right.length);
+  budget.charge("retainedBytes", (left.length + right.length) * 8);
+  return compareInventoryNames(left, right);
+ });
+ for (const owner of owners) {
   for (const edge of archive.package.relationships(owner)) {
    budget.charge("work", 1); budget.charge("retainedBytes", 192 + owner.length * 2 + edge.rId.length * 2 + edge.reltype.length * 2);
    const reference = { owner, id: edge.rId, type: edge.reltype, target: edge.is_external ? null : edge.target_part.partname, external: edge.is_external };
@@ -73,9 +81,12 @@ export async function inspectDocumentSignatures(input: Uint8Array, options: Docx
   const value = {version:1 as const,sourceSha256,generation:0,part:part.partname,story:part.partname,path:[],range:null};
   const location: Location<"part"> = {kind:"part",value,token:encodeLocation(value),positions:{}};
   budget.charge("retainedBytes",location.token.length * 4 + 256);
-  const index = signatureContentTypes.indexOf(asciiKey(part.content_type));
-  const role = (["origin","signature","certificate"] as const)[index] ?? "relationship-target";
-  items.push({name:part.partname,kind:"signatures",location,support:"read",properties:[],references:[],details:{kind:"signatures",role,verified:null}});
+  budget.charge("work", part.bytes.length);
+  budget.charge("retainedBytes", part.bytes.length + 192 + (part.partname.length + part.content_type.length) * 2);
+  const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(part.bytes));
+  budget.check("work", 0);
+  const sha256 = [...new Uint8Array(digest)].map(value => value.toString(16).padStart(2,"0")).join("");
+  items.push({name:part.partname,kind:"signatures",location,support:"read",properties:[],references:[],details:{kind:"signatures",parts:[{name:part.partname,contentType:part.content_type,bytes:part.bytes.length,sha256}]}});
  }
  const data: SignatureListData = {items:items.sort((left, right) => compareInventoryNames(left.name, right.name)),relationships:graph.relationships,verified:null};
  measurePackageResourceSerialization(data,budget);

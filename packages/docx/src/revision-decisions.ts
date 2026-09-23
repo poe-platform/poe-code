@@ -10,7 +10,7 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { parseDocumentXml, type XmlElement } from "./package-xml.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { assertOutsideRevisionRanges, containsRevision, revisionInfo, type RevisionInfo } from "./revision-markup.js";
-import { inspectDocumentRevisions } from "./revisions.js";
+import { collectDocumentRevisions } from "./revisions.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
 export type RevisionDecisionRequest = { [K in "revisions.accept" | "revisions.reject"]: {
@@ -38,7 +38,7 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
   const { output, inPlace, force, dryRun, json, all, allowEmpty, ...selection } = opts;
   delete selection.limit;
   if (selection.select !== undefined && document.resolve(selection.select).value.range !== null) throw new UnsupportedEditError("Revision decisions require whole owner selections.");
-  const inventory = await inspectDocumentRevisions(input, selection, { ...settings, budget });
+  const inventory = collectDocumentRevisions(document, selection, budget);
   const selected = document.select(inventory.items.map(item => item.location), { ...(all === undefined ? {} : { all }), ...(allowEmpty === undefined ? {} : { allowEmpty }) }, "mutation");
   const archive = document.snapshot(); assertDocumentEditable(archive, { ...settings, budget });
   const editor = new DocumentArchiveEditor(archive, {}, undefined, budget);
@@ -57,18 +57,30 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
       if (["lang", "space"].includes(attribute.localName)) inherited.set(attribute.localName, attribute.value);
       else if (ancestor === node) throw new UnsupportedEditError("This revision carries unsupported inherited XML semantics.");
     }
+    if (inherited.has("space") && !["default", "preserve"].includes(inherited.get("space")!)) throw new UnsupportedEditError("This revision carries unsupported inherited XML whitespace semantics.");
     if (!info || info.support !== "supported" || !["insert", "delete", "format"].includes(info.type) ||
       ancestors.slice(0, -1).some(ancestor => revisionInfo(ancestor) || ["sdt", "fldSimple", "hyperlink", "customXml"].includes(ancestor.localName)))
       throw new UnsupportedEditError("This revision owner has no verified decision semantics.");
     const structuralReview = (current: XmlElement): boolean => {
-      budget.charge("work", 1);
-      if (current === node) return false;
-      const review = revisionInfo(current);
-      return review !== undefined && (review.type !== "format" || review.support === "opaque") || current.children.some(structuralReview);
+      budget.charge("retainedBytes", 8);
+      const pending = [current];
+      while (pending.length) {
+        const owner = pending.pop()!;
+        budget.charge("work", 1);
+        if (owner === node) continue;
+        const review = revisionInfo(owner);
+        if (review !== undefined && (review.type !== "format" || review.support === "opaque")) return true;
+        budget.charge("retainedBytes", owner.children.length * 8);
+        for (let index = owner.children.length - 1; index >= 0; index--) pending.push(owner.children[index]!);
+      }
+      return false;
     };
     if (ancestors.some(ancestor => ancestor.children.some(properties => properties.namespace === w &&
       ["pPr", "trPr", "tcPr", "tblPr", "sectPr"].includes(properties.localName) && structuralReview(properties)))) throw new UnsupportedEditError("Structural property revisions overlap this decision.");
-    const descendants = (current: XmlElement): void => {
+    budget.charge("retainedBytes", 8);
+    const descendants = [node];
+    while (descendants.length) {
+      const current = descendants.pop()!;
       budget.charge("work", 1);
       if (current !== node && revisionInfo(current)) throw new UnsupportedEditError("Nested revision owners cannot be decided implicitly.");
       if (!xml.compatibility.canEdit(current) || current.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !xml.compatibility.canEdit(attribute))) throw new UnsupportedEditError("Opaque revision content cannot be changed.");
@@ -78,9 +90,10 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
           [...content.text].some(char => char !== " " && char !== "\t" && char !== "\r" && char !== "\n") && !["t", "delText"].includes(current.localName)))
           throw new UnsupportedEditError("Revision content contains unsupported lexical boundaries.");
       }
-      for (const child of current.children) descendants(child);
-    };
-    descendants(node);
+      budget.charge("retainedBytes", current.children.length * 8);
+      for (let index = current.children.length - 1; index >= 0; index--)
+        descendants.push(current.children[index]!);
+    }
     assertOutsideRevisionRanges(xml.root, node, budget, xml.compatibility.branches);
     const story = document.list("story", { scope: "all-stories" }).filter(owner => owner.value.story === location.value.story && pathContains(owner.value.path, location.value.path)).sort((a, b) => b.value.path.length - a.value.path.length)[0];
     if (!story) throw new UnsupportedEditError("Revision decisions require an admitted story owner.");

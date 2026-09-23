@@ -3,6 +3,8 @@ import type { ArchiveLimits } from "./archive.js";
 import { DocumentPackage } from "./package.js";
 import { xmlValue } from "./create-content.js";
 import { compatibilityContainers } from "./compatibility.js";
+import { parseStoredDateTime } from "./stored-date-time.js";
+import { storedIntegerIdentity } from "./stored-lexical.js";
 import { normalizePropertyDate } from "./property-values.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
@@ -50,6 +52,7 @@ function textRun(node: XmlElement, text: string, xml: DocumentXmlEditor, budget:
 export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly TrackedTextEdit[], metadata: { readonly author: string; readonly timestamp: string }, budget: DocumentBudget, limits: ArchiveLimits): void {
   xmlValue(metadata.author);
   const timestamp = normalizePropertyDate(metadata.timestamp);
+  parseStoredDateTime(timestamp, "xsd");
   const used = new Set<number>();
   for (const part of new DocumentPackage(editor.snapshot(), limits, budget).parts) {
     if (!isXmlContentType(part.content_type)) continue;
@@ -59,9 +62,9 @@ export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly 
       const node = pending.pop()!;
       budget.charge("work", 1);
       const info = revisionInfo(node);
-      const digits = info?.id?.[0] === "+" || info?.id?.[0] === "-" ? info.id.slice(1) : info?.id;
-      if (digits !== undefined && digits !== null && digits.length && [...digits].every(c => c >= "0" && c <= "9")) {
-        const id = Number(info?.id); if (Number.isSafeInteger(id)) used.add(id);
+      const identity = storedIntegerIdentity(info?.id ?? undefined);
+      if (identity !== undefined) {
+        const id = Number(identity); if (Number.isSafeInteger(id)) used.add(id);
       }
       budget.charge("retainedBytes", node.children.length * 8);
       for (let index = node.children.length - 1; index >= 0; index--) pending.push(node.children[index]!);

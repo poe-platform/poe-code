@@ -5,6 +5,7 @@ import { chartDefinitionParts } from "./charts.js";
 import { decodeChartContent } from "./chart-values.js";
 import { readPropertyParts } from "./property-values.js";
 import { activeControlLocks, activeSettingsProtection } from "./protection.js";
+import { storedBooleanValue } from "./stored-lexical.js";
 import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { embeddedFontContentTypes, fontResourceRole, readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, documentSession, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
@@ -177,7 +178,7 @@ export async function inspectDocument(input: Uint8Array, context: InspectionCont
         if (settingsProtection.has(node) || controlLocks.has(node)) {
           const enforcement = attribute(node, "enforcement", w);
           const edit = attribute(node, name === "lock" ? "val" : "edit", w) ?? null;
-          const enforced = name === "lock" ? edit !== "unlocked" : name === "writeProtection" ? true : enforcement === undefined ? false : ["1", "true", "on"].includes(enforcement) ? true : ["0", "false", "off"].includes(enforcement) ? false : null;
+          const enforced = name === "lock" ? edit !== "unlocked" : name === "writeProtection" ? true : enforcement === undefined ? false : storedBooleanValue(enforcement);
           protection.push({ part: part.partname, kind: name, enforced, edit });
         }
       }

@@ -1,3 +1,5 @@
+import type { DocumentPackage } from "./package.js";
+import { asciiKey, relationshipOwner } from "./part-uri.js";
 import { compareInventoryNames as compare } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
@@ -73,7 +75,24 @@ function glossaryBuildingBlocks(root: XmlElement, budget: DocumentBudget): Gloss
 export function measurePackageResourceSerialization(value: unknown, budget: DocumentBudget): number {
   let bytes = 0;
   const add = (amount: number) => { bytes += amount; budget.check("serializedOutput", bytes); };
-  const string = (value: string) => { budget.charge("work", value.length + 1); add(2); for (let index = 0; index < value.length; index++) { const code = value.charCodeAt(index); if (code === 34 || code === 92) add(2); else if (code < 32) add([8,9,10,12,13].includes(code) ? 2 : 6); else if (code < 128) add(1); else if (code < 2048) add(2); else if (code >= 0xd800 && code <= 0xdbff && value.charCodeAt(index + 1) >= 0xdc00 && value.charCodeAt(index + 1) <= 0xdfff) { add(4); index++; } else add(code >= 0xd800 && code <= 0xdfff ? 6 : 3); } };
+  const string = (value: string) => {
+    budget.charge("work", value.length + 1);
+    add(2);
+    for (let index = 0; index < value.length;) {
+      const end = Math.min(value.length, index + 512);
+      let amount = 0;
+      for (; index < end; index++) {
+        const code = value.charCodeAt(index);
+        if (code === 34 || code === 92) amount += 2;
+        else if (code < 32) amount += [8,9,10,12,13].includes(code) ? 2 : 6;
+        else if (code < 128) amount++;
+        else if (code < 2048) amount += 2;
+        else if (code >= 0xd800 && code <= 0xdbff && value.charCodeAt(index + 1) >= 0xdc00 && value.charCodeAt(index + 1) <= 0xdfff) { amount += 4; index++; }
+        else amount += code >= 0xd800 && code <= 0xdfff ? 6 : 3;
+      }
+      add(amount);
+    }
+  };
   const visit = (value: unknown): void => { budget.charge("work", 1); if (typeof value === "string") string(value); else if (value === null) add(4); else if (typeof value === "boolean") add(value ? 4 : 5); else if (typeof value === "number") add(String(value).length); else if (Array.isArray(value)) { add(2); for (let index = 0; index < value.length; index++) { if (index) add(1); visit(value[index]); } } else if (value && typeof value === "object") { add(2); let count = 0; for (const key in value) if (Object.hasOwn(value, key) && (value as Record<string, unknown>)[key] !== undefined) { if (count++) add(1); string(key); add(1); visit((value as Record<string, unknown>)[key]); } } };
   visit(value); return bytes;
 }
@@ -118,4 +137,20 @@ export async function inspectDocumentPackageResources(input: Uint8Array, operati
     records.push({ kind: details.kind, name, location, properties: [], references, support: "preserve", details });
   }
   const data = { items: records }; measurePackageResourceSerialization({ version: 1, operation, ok: true, data, warnings: [], errors: [], affected: 0, locations: records.map(record => record.location) }, budget); return data;
+}
+
+/** Retain incoming OPC declarations in deterministic owner-local order. */
+export function incomingResourceReferences(graph: DocumentPackage, part: string, budget: DocumentBudget): readonly InspectionReference[] {
+  const references: InspectionReference[] = [];
+  const owners = ["/", ...graph.parts.filter(candidate => relationshipOwner(candidate.partname) === null).map(candidate => candidate.partname)];
+  owners.sort(compare);
+  for (const owner of owners) {
+    for (const edge of graph.relationships(owner)) {
+      budget.charge("work", 1);
+      if (edge.is_external || asciiKey(edge.target_part.partname) !== asciiKey(part)) continue;
+      budget.charge("retainedBytes", 160 + (owner.length + edge.rId.length + edge.reltype.length + edge.target_ref.length) * 2);
+      references.push({ owner, id: edge.rId, type: edge.reltype, target: edge.target_ref, external: false });
+    }
+  }
+  return references;
 }

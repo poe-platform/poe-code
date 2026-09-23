@@ -105,7 +105,8 @@ test("docx mixed supported and opaque revision decisions fail atomically while o
       assert.equal(selected.exitCode, 0, selected.stderr);
       const remaining = JSON.parse(selected.stdout).data.items;
       assert.equal(remaining.length, 1);
-      assert.equal(remaining[0].id, "8");
+      assert.equal(remaining[0].details.revisionId, 8);
+      assert.equal(remaining[0].properties.find((property: { name: string }) => property.name === "id").value, "8");
       assert.deepEqual(volume.toJSON(), before);
     }
   } finally { await shell.dispose(); }

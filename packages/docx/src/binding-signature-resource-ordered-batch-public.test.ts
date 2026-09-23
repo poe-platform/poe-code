@@ -99,8 +99,16 @@ for (const route of ["sdk", "cli"] as const)
       expect(data.results.at(-3)).toMatchObject({ affected: 0, data: { items: [{ kind: "custom-xml", name: "/data/item.xml", support: "preserve", details: { storeItemId: store } }] } });
       expect(data.results.at(-2)).toMatchObject({ affected: 0, data: { items: [{ kind: "glossary", details: { buildingBlocks: [{ name: "Retained block" }] } }] } });
       expect(data.results.at(-2)!.warnings).toEqual(scenario === "glossary-incomplete" ? [{ code: "unrecognized-resource-metadata", message: "Resource metadata is missing, ambiguous or unrecognized; resources remain preserved." }] : []);
-      expect(data.results.at(-1)).toMatchObject({ affected: 0, data: { items: [{ details: { updateFields: false } }] } });
-      if (scenario === "signed-read") { expect(data.publication).toBeNull(); expect(data.results[0]).toMatchObject({ affected: 0, data: { verified: null, items: [{ details: { role: "origin", verified: null } }, { details: { role: "signature", verified: null } }] } }); }
+      expect(data.results.at(-1)).toMatchObject({ affected: 0, data: { items: [{ properties: expect.arrayContaining([{ name: "updateFields", type: "boolean", value: false, writable: false, cached: false }]) }] } });
+      if (scenario === "signed-read") {
+        const parts = readPackage(input), descriptors = [];
+        for (const [name, contentType] of [["seals/origin.sigs", "application/vnd.openxmlformats-package.digital-signature-origin"], ["seals/signature.xml", "application/vnd.openxmlformats-package.digital-signature-xmlsignature+xml"]]) {
+          const bytes = parts.get(name!)!, sha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes)))].map(value => value.toString(16).padStart(2, "0")).join("");
+          descriptors.push({ name: "/" + name, contentType, bytes: bytes.length, sha256 });
+        }
+        expect(data.publication).toBeNull(); expect(data.results[0]).toMatchObject({ affected: 0, data: { verified: null } });
+        expect((data.results[0]!.data as api.SignatureListData).items.map(item => ({ name: item.name, details: item.details }))).toEqual(descriptors.map(part => ({ name: part.name, details: { kind: "signatures", parts: [part] } })));
+      }
       else {
         const output = new Uint8Array(memory.readFileSync("/output") as Buffer), before = readPackage(input), after = readPackage(output);
         assertPackageLinks(after);

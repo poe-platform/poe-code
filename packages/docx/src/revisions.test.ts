@@ -68,7 +68,7 @@ it("shares revision JSON and selectors with the command engine and advertises bo
     stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
   });
   expect(result.exitCode).toBe(0);
-  expect(JSON.parse(output)).toMatchObject({ operation: "revisions.list", ok: true, affected: 0, data: await docx.inspectDocumentRevisions(bytes, { revision: 1 }, textContext) });
+  expect(JSON.parse(output)).toMatchObject({ operation: "revisions.list", ok: true, affected: 0, data: await docx.inspectDocumentRevisions(bytes, { revision: 1 }, textContext, "resource") });
   for (const [name, support] of [["list", "read"], ["accept", "edit"], ["reject", "edit"]]) {
     const schema = docx.getDocxDiscovery(docx.parseDocxArguments(["schema", "revisions", name!].map(s => new TextEncoder().encode(s))))!;
     expect(schema.data).toMatchObject({ operations: [expect.objectContaining({ id: "revisions." + name, support })] });

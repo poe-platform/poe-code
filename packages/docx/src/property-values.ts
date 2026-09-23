@@ -1,3 +1,4 @@
+import { parseStoredDateTime } from "./stored-date-time.js";
 import { compareInventoryNames } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { InvalidValueError } from "./archive.js";
@@ -7,6 +8,7 @@ import { parseDocumentXml, type XmlElement, type XmlContent } from "./package-xm
 import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { MarkupCompatibility, type CompatibilityContent } from "./compatibility.js";
+import { trimXmlWhitespace } from "./stored-lexical.js";
 
 export type PropertyGroup = "core" | "extended" | "custom";
 export type PropertyType = "string" | "boolean" | "integer" | "number" | "date";
@@ -27,6 +29,15 @@ export function normalizePropertyDate(value: unknown): string {
   if (!validateDocxValue("UTC instant", value)) throw new InvalidValueError("Expected a valid explicit UTC property instant.");
   return (value as string).slice(0, 19) + "Z";
 }
+
+export function readCorePropertyDate(raw: string, key: string): Date | null {
+  if (raw.length === 4) raw += "-01-01T00:00:00Z";
+  else if (raw.length === 7) raw += "-01T00:00:00Z";
+  else if (raw.length === 10) raw += "T00:00:00Z";
+  else if (raw.length === 19) raw += "Z";
+  else if (raw.length > 20 && raw[19] === "." && [...raw.slice(20)].every(char => "0123456789".includes(char))) raw += "Z";
+  try { return new Date(normalizePropertyDate(parseStoredDateTime(raw, key === "lastPrinted" ? "xsd" : "w3cdtf").toISOString())); } catch { return null; }
+}
 export function propertyDeclaration(group: PropertyGroup, key: string, dialect: DocumentDialect): { namespace: string; localName: string; type: PropertyType; cached: boolean } | null {
   if (group === "core") { const entry = Object.hasOwn(corePropertyKeys, key) ? corePropertyKeys[key] : undefined; return entry ? { ...entry, cached: false } : null; }
   if (group === "extended") { const entry = Object.hasOwn(extendedPropertyKeys, key) ? extendedPropertyKeys[key] : undefined; return entry ? { ...entry, namespace: documentDialects[dialect].ep } : null; }
@@ -38,10 +49,10 @@ export function propertyGroupDefinition(group: PropertyGroup, dialect: DocumentD
 }
 const integerRanges: Readonly<Record<string, readonly [bigint, bigint]>> = { i1: [-128n, 127n], i2: [-32768n, 32767n], i4: [-2147483648n, 2147483647n], int: [-2147483648n, 2147483647n], i8: [-9223372036854775808n, 9223372036854775807n], ui1: [0n, 255n], ui2: [0n, 65535n], ui4: [0n, 4294967295n], uint: [0n, 4294967295n], ui8: [0n, 18446744073709551615n] };
 export function customPropertyType(localName: string): PropertyType | null {
-  return ["lpstr", "lpwstr", "bstr"].includes(localName) ? "string" : integerRanges[localName] ? "integer" : ["r4", "r8", "decimal"].includes(localName) ? "number" : localName === "bool" ? "boolean" : ["date", "filetime"].includes(localName) ? "date" : null;
+  return ["lpstr", "lpwstr", "bstr"].includes(localName) ? "string" : Object.hasOwn(integerRanges, localName) ? "integer" : ["r4", "r8", "decimal"].includes(localName) ? "number" : localName === "bool" ? "boolean" : ["date", "filetime"].includes(localName) ? "date" : null;
 }
 export function propertyNumberFits(value: number, variant: string): boolean {
-  const range = integerRanges[variant];
+  const range = Object.hasOwn(integerRanges, variant) ? integerRanges[variant] : undefined;
   if (range) return Number.isSafeInteger(value) && BigInt(value) >= range[0] && BigInt(value) <= range[1];
   return Number.isFinite(value) && (variant !== "r4" || Number.isFinite(Math.fround(value)));
 }
@@ -55,12 +66,13 @@ export function serializePropertyScalar(value: string | boolean | number, varian
 }
 function lexicalValue(raw: string, type: PropertyType, variant: string, group: PropertyGroup): PropertyValue["value"] {
   if (type === "string") return validateDocxValue("string", raw) && (group !== "core" || [...raw].length <= 255) ? raw : null;
+  if (type !== "date") raw = trimXmlWhitespace(raw);
   if (type === "boolean") return raw === "true" || raw === "1" ? true : raw === "false" || raw === "0" ? false : null;
-  if (type === "date") { try { return normalizePropertyDate(raw); } catch { return null; } }
+  if (type === "date") { try { return normalizePropertyDate(parseStoredDateTime(raw, group === "custom" || group === "core" && variant === "lastPrinted" ? "xsd" : "w3cdtf").toISOString()); } catch { return null; } }
   const unsigned = raw[0] === "-" || raw[0] === "+" ? raw.slice(1) : raw;
   if (!unsigned || [...unsigned].some(c => !(type === "integer" ? "0123456789" : variant === "decimal" ? "0123456789." : "0123456789.eE+-").includes(c))) return null;
   const value = Number(raw);
-  if (!Number.isFinite(value) || type === "integer" && !Number.isSafeInteger(value) || group === "core" && value < 0 || group === "extended" && value < 0 || group === "custom" && !propertyNumberFits(value, variant)) return null;
+  if (!Number.isFinite(value) || type === "integer" && !Number.isSafeInteger(value) || group === "core" && value < 0 || group === "extended" && (value < 0 || value > 2147483647) || group === "custom" && !propertyNumberFits(value, variant)) return null;
   return value;
 }
 export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialect: DocumentDialect, budget: DocumentBudget): StoredProperty[] {
@@ -98,7 +110,11 @@ export function readPropertyNodes(root: XmlElement, group: PropertyGroup, dialec
     return { node, valueNode, valueContent, name, storedType: valueNode ? { namespace: valueNode.namespace, localName: valueNode.localName } : null, id: custom ? propertyAttribute(node, "pid") : null, value: type && name ? { name, type, value, writable: !cached && value !== null, cached } : null };
   });
 }
-function validCustomId(value: string | null): boolean { return !!value && [...value].every(c => "0123456789".includes(c)) && Number.isSafeInteger(Number(value)) && Number(value) >= 2; }
+function validCustomId(value: string | null): boolean {
+  if (value === null) return false;
+  const raw = trimXmlWhitespace(value), digits = raw[0] === "+" || raw[0] === "-" ? raw.slice(1) : raw;
+  return !!digits && [...digits].every(c => "0123456789".includes(c)) && Number.isSafeInteger(Number(raw)) && Number(raw) >= 2 && Number(raw) <= 2147483647;
+}
 export function readPropertyParts(archive: AdmittedDocumentArchive, budget: DocumentBudget, roots?: ReadonlyMap<string, XmlElement>): PropertyPart[] {
   const parts: PropertyPart[] = [], edges = archive.package.relationships("/");
   for (const group of ["core", "extended", "custom"] as const) {

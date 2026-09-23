@@ -61,10 +61,12 @@ function descendant(
   name: string,
   children: (node: XmlElement) => readonly XmlElement[]
 ): XmlElement | undefined {
-  if (node.namespace === namespace && node.localName === name) return node;
-  for (const child of children(node)) {
-    const found = descendant(child, namespace, name, children);
-    if (found) return found;
+  const pending = [node];
+  while (pending.length) {
+    const current = pending.pop()!;
+    if (current.namespace === namespace && current.localName === name) return current;
+    const content = children(current);
+    for (let index = content.length - 1; index >= 0; index--) pending.push(content[index]!);
   }
   return undefined;
 }

@@ -87,6 +87,14 @@ export class Settings {
       );
       if (old.length > 1)
         throw new UnsupportedEditError("Duplicate page header policies cannot be edited.");
+      const flag = old[0];
+      if (flag && (flag.content.length || flag.attributes.some(attribute =>
+        attribute.namespace !== "http://www.w3.org/2000/xmlns/" &&
+        !(attribute.namespace === root.namespace && attribute.localName === "val")))) {
+        if (sectionBoolean(flag) === value) return;
+        xml.setQualifiedAttribute(flag, { namespace: root.namespace, localName: "val" }, value ? null : "0");
+        return;
+      }
       const markup = value ? `<ds:evenAndOddHeaders xmlns:ds="${root.namespace}"/>` : "";
       if (old[0]) xml.replaceElement(old[0], markup);
       else if (markup) {

@@ -3,6 +3,38 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 
+for (const control of ["break", "continue"]) {
+  test(`${control} 0 preserves the failed loop status`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`for item in a b; do say "$item"; ${control} 0; say BODY_AFTER; done`);
+      assert.equal(result.stdout, "a\n");
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, `${control}: invalid loop count\n`);
+      const outside = await shell.exec(`${control} 0; say "OUTSIDE:$?"`);
+      assert.equal(outside.stdout, "OUTSIDE:1\n");
+      assert.equal(outside.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+  for (const loop of [
+    'for i in 1 2; do',
+    'for ((i=1;i<=2;i++)); do',
+    'i=1; while ((i<=2)); do',
+    'i=1; until ((i>2)); do',
+  ]) test(`${loop} ${control} 0 unwinds every loop with status 1`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`${loop} say "ITER:$i"; for inner in a b; do ${control} 0; say BODY_AFTER; done; say OUTER_AFTER; ((i++)); done; say "AFTER:$?"`);
+      assert.equal(result.stdout, "ITER:1\nAFTER:1\n");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, `${control}: invalid loop count\n`);
+      const recovered = await shell.exec('for item in a b; do say "$item"; break; done; say "RECOVERED:$?"');
+      assert.equal(recovered.stdout, "a\nRECOVERED:0\n");
+      assert.equal(recovered.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [name, source, expected, status] of [
   ["three clauses", 'for ((i=0; i<3; i++)); do say "$i"; done; say "end:$i"', "0\n1\n2\nend:3\n", 0],
   ["immediate do", 'for ((i=0;i<1;i++))do say yes; done', "yes\n", 0],

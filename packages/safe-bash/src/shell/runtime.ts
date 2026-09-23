@@ -3718,6 +3718,7 @@ export class Runtime {
     catch (error) {
       if (!(error instanceof Flow) || (error.kind !== "break" && error.kind !== "continue")) throw error;
       control = error;
+      status = error.status;
     }
     if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("loop-body-complete", state, io);
     if (control && --control.levels > 0) throw control;
@@ -6655,7 +6656,12 @@ export class Runtime {
     }
     if (command === "break" || command === "continue") {
       const levels = args[0] === undefined ? 1 : Number(args[0]);
-      if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (args.length > 1 || !Number.isSafeInteger(levels)) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (levels < 1) {
+        await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
+        if (state.loopDepth) throw completedExit(1, "break", state.loopDepth);
+        return 1;
+      }
       if (!state.loopDepth) { await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`); return 0; }
       throw completedExit(0, command, Math.min(levels, state.loopDepth));
     }

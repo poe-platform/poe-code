@@ -126,7 +126,10 @@ export function createSleepCommand(configuration: Settings) {
         : "sleep (safe-bash virtual command)\n", configuration.limits);
       return 0;
     }
-    await delay(duration(context.args), context.signal, configuration);
+    const terminator = context.args.indexOf("--");
+    const operands = terminator < 0 ? context.args
+      : [...context.args.slice(0, terminator), ...context.args.slice(terminator + 1)];
+    await delay(duration(operands), context.signal, configuration);
     return 0;
   });
 }

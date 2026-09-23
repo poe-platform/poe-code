@@ -9,6 +9,21 @@ import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { timeEnvCommands, createTimeEnvCommands } from "../../../src/commands/time-env/index.js";
 import { run, Timers } from "./helpers.js";
 
+test("Shell sleep terminator preserves zero-duration operands and empty redirection", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands()).use(timeEnvCommands());
+  try {
+    for (const operands of ["0.00s", "0E-3m .00h"]) {
+      for (const redirect of ["", " > '/Sleep result.txt'"]) {
+        const result = await shell.exec(`sleep -- ${operands}${redirect}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+      }
+      assert.deepEqual(await fs.readFile("/Sleep result.txt"), new Uint8Array());
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("Shell sleep accepts native hexadecimal and leading-whitespace operands with redirection", async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs }).use(timeEnvCommands());

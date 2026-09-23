@@ -11,6 +11,8 @@ for (const [args, duration] of [
   [["0x1p-4", "0x1p-4"], 125], [[" \t\n\r\v\f+1e-3m"], 60],
   [["0X0P+4m", "0x0.00p-3h", " 0E-3m", "\t0.00h", " +0E0d"], 0],
   [["0x0p999999999999999999999", "0x1p-999999999999999999999"], 0],
+  [["--", "0"], 0], [["--", "0.00s"], 0], [["--", "0E-3m", ".00h"], 0],
+  [["--", ".001s", ".002"], 3], [[".001s", "--", ".002"], 3],
 ] as const) {
   test(`sleep summed fractional intervals ${args.join(" ")}`, async () => {
     const scheduler = new Timers();
@@ -70,7 +72,7 @@ test("sleep rejects nonmonotonic scheduler time and cleans the subscription", as
   assert.equal(getEventListeners(controller.signal, "abort").length, 0);
 });
 
-for (const args of [[], ["-1"], ["1ms"], ["NaN"], ["Infinity"], ["1e999"], ["1", "bad"], ["1,2"], ["1D"], ["--invalid"], ["--", "0"], ["-0.00"],
+for (const args of [[], ["-1"], ["1ms"], ["NaN"], ["Infinity"], ["1e999"], ["1", "bad"], ["1,2"], ["1D"], ["--invalid"], ["-0.00"],
   ["0x"], ["0x.p0"], ["0x1p"], ["0x1p+"], ["0x1p-1 "], ["0x1ps"], ["0x1g"], ["0x1P2S"], ["0 "], ["0\n"], ["0x0p0\n"], [""], [" "], ["\u00a00"], ["0x1p999999999999999999999"], ["0", "0x1p"]]) {
   test(`sleep validates all operands before waiting: ${JSON.stringify(args)}`, async () => {
     const scheduler = new Timers();
@@ -88,6 +90,23 @@ test("sleep zero does not consume stdin or write either channel", async () => {
   });
   assert.equal(result.exitCode, 0); assert.deepEqual(scheduler.scheduled, []);
 });
+
+for (const [args, message] of [
+  [["--"], "missing operand"],
+  [["--", "0", "--"], "invalid time interval: --"],
+  [["--", "--help"], "invalid time interval: --help"],
+  [["--", "--version"], "invalid time interval: --version"],
+  [["--", "-2"], "invalid time interval: -2"],
+] as const) {
+  test(`sleep preserves operands after the terminator: ${JSON.stringify(args)}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", args, { scheduler });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `sleep: ${message}\n`);
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
 
 test("sleep default scheduler waits against monotonic elapsed time", async () => {
   const started = performance.now();

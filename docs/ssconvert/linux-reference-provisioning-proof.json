@@ -149,5 +149,54 @@
       "Depends": "libc6 (>= 2.17), libgsf-1-114 (>= 1.14.8)"
     },
     "qualification": "actual install/build/runtime capture required; package-index spelling validation is not runtime activation"
+  },
+  "activationSelection": {
+    "profiles": [
+      "gnumeric-1.12.61-optional-none",
+      "gnumeric-1.12.61-optional-perl-samples",
+      "gnumeric-1.12.61-optional-python-samples",
+      "gnumeric-1.12.61-optional-python-glossary",
+      "gnumeric-1.12.61-optional-gda",
+      "gnumeric-1.12.61-optional-gnomedb-ui",
+      "gnumeric-1.12.61-optional-sample-datasource",
+      "gnumeric-1.12.61-optional-excel-formats"
+    ],
+    "policy": "Required dispatch choice is validated by exact lookup in maintained profile declarations. Configure flags and runtime HOME/XDG environment come unchanged from that declaration. Choice does not certify actual runtime inventory or matching dependency identity.",
+    "languageDevelopmentPackages": [
+      {
+        "Package": "libperl-dev",
+        "Version": "5.40.1-6+deb13u1",
+        "Architecture": "arm64",
+        "Filename": "pool/main/p/perl/libperl-dev_5.40.1-6+deb13u1_arm64.deb",
+        "SHA256": "141af4085ce44cb746fd2c6c146dd54ec9d7cb5bfb683d9c7830af3099737eb4",
+        "Depends": "perl:any (= 5.40.1-6+deb13u1), libperl5.40 (= 5.40.1-6+deb13u1), libc6-dev | libc-dev"
+      },
+      {
+        "Package": "python-gi-dev",
+        "Version": "3.50.0-4+b1",
+        "Architecture": "arm64",
+        "Filename": "pool/main/p/pygobject/python-gi-dev_3.50.0-4+b1_arm64.deb",
+        "SHA256": "fccdef04cea156851689e1fafb6a7e93ec676a13c6c05496b64625b1d7751626",
+        "Depends": "libffi-dev (>= 3.3), libglib2.0-dev (>= 2.64.0), python3-gi (= 3.50.0-4+b1)"
+      },
+      {
+        "Package": "python3-gi",
+        "Version": "3.50.0-4+b1",
+        "Architecture": "arm64",
+        "Filename": "pool/main/p/pygobject/python3-gi_3.50.0-4+b1_arm64.deb",
+        "SHA256": "ade7445a1cdef0787c8d2e3209800b0aecf7229950e0f296eee0c59bc96c6790",
+        "Depends": "gir1.2-glib-2.0 (>= 1.64.0), gir1.2-girepository-2.0, python3 (<< 3.14), python3 (>= 3.13~), python3:any, libc6 (>= 2.17), libffi8 (>= 3.4), libgirepository-1.0-1 (>= 1.71.0), libgirepository-1.0-1-with-libffi8 (>= 1.62.0-4~), libglib2.0-0t64 (>= 2.78.0)"
+      },
+      {
+        "Package": "python3-dev",
+        "Version": "3.13.5-1",
+        "Architecture": "arm64",
+        "Filename": "pool/main/p/python3-defaults/python3-dev_3.13.5-1_arm64.deb",
+        "SHA256": "3d7ef44b68d9d9cd8b33d9f1fa9238a9a608a247e9d3d1dff66699a479825f61",
+        "Depends": "python3 (= 3.13.5-1), libpython3-dev (= 3.13.5-1), python3.13-dev (>= 3.13.5-1~), libjs-sphinxdoc (>= 8.1)"
+      }
+    ],
+    "gda6": "Required libgda-6.0-dev absent in Debian trixie package index; libgda-5.0-dev is a different ABI and is not a substitute. GDA/gnomedb qualification remains unresolved.",
+    "status": "configuration-prepared-actual-selected-runs-required"
   }
 }

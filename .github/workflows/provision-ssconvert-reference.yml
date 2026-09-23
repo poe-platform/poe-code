@@ -1,6 +1,22 @@
 name: Provision Linux ssconvert reference
 on:
   workflow_dispatch:
+    inputs:
+      profile:
+        description: Declared isolated activation profile (runtime parity remains
+          separately qualified)
+        required: true
+        type: choice
+        default: gnumeric-1.12.61-optional-none
+        options:
+          - gnumeric-1.12.61-optional-none
+          - gnumeric-1.12.61-optional-perl-samples
+          - gnumeric-1.12.61-optional-python-samples
+          - gnumeric-1.12.61-optional-python-glossary
+          - gnumeric-1.12.61-optional-gda
+          - gnumeric-1.12.61-optional-gnomedb-ui
+          - gnumeric-1.12.61-optional-sample-datasource
+          - gnumeric-1.12.61-optional-excel-formats
 permissions:
   contents: read
 jobs:
@@ -22,7 +38,7 @@ jobs:
             build-essential bison ca-certificates curl git pkg-config intltool itstool libxml2-utils gettext \
             libgtk-3-dev libgsf-1-dev libxml2-dev libxslt1-dev librsvg2-dev libglib2.0-dev libbz2-dev zlib1g-dev \
             pxlib-dev libglpk-dev liblpsolve55-dev glpk-utils lp-solve \
-            fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-yaml file \
+            fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-dev python-gi-dev python3-gi libperl-dev python3-yaml file \
             >> /out/ssconvert-bootstrap.log 2>&1
       - uses: actions/checkout@v7.0.1
         with:
@@ -37,8 +53,7 @@ jobs:
           import hashlib, json, os, pathlib, shutil, subprocess, tarfile, urllib.request
           root = pathlib.Path('out/ssconvert-linux').resolve()
           reference = json.loads(pathlib.Path('docs/ssconvert/reference-profile.json').read_text())
-          profile = json.loads(pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json').read_text())['profiles'][0]
-          assert profile['id'] == 'gnumeric-1.12.61-optional-none'
+          profile = next(item for item in json.loads(pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json').read_text())['profiles'] if item['id'] == os.environ['SSCONVERT_REFERENCE_PROFILE'])
           env = dict(os.environ, **reference['build']['configureEnvironment'])
           for name, source, arguments in [
               ('goffice', reference['supplementarySource'], reference['build']['gofficeConfigure'][1:]),
@@ -62,7 +77,7 @@ jobs:
           root = pathlib.Path('out/ssconvert-linux')
           profile_path = pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json')
           reference_path = pathlib.Path('docs/ssconvert/reference-profile.json')
-          profile = json.loads(profile_path.read_text())['profiles'][0]
+          profile = next(item for item in json.loads(profile_path.read_text())['profiles'] if item['id'] == os.environ['SSCONVERT_REFERENCE_PROFILE'])
           env = dict(os.environ, **profile['env'])
           for key in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
               pathlib.Path(env[key]).mkdir(parents=True, exist_ok=True)
@@ -144,3 +159,5 @@ jobs:
             /out/ssconvert-bootstrap.log
           if-no-files-found: error
           retention-days: 7
+    env:
+      SSCONVERT_REFERENCE_PROFILE: ${{ inputs.profile }}

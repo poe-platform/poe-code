@@ -860,6 +860,11 @@
           "path": "docs/ssconvert/pdf-native-default-scale-gap-proof.json",
           "kind": "source-bound-native-font-scale-product-with-retained-exact-coordinate-failures",
           "outcome": "2red->15style/7fontcontrols;22549package tests/368files,lint/types/rootbuild. All15publiccontrols retain nativepages/text and identicalPDFbytes permodel;fivepages/dashboard inspected. Nominal7.5pt/4.75pt corrected;exactx fails2/12and widerbounds remainopen."
+        },
+        {
+          "kind": "authenticated-native-font-metric-holdouts",
+          "path": "docs/ssconvert/linux-font-metric-holdouts-native-capture.json",
+          "outcome": "Actual run35873658046 atd6fef8242d:72 strings/size/bold cases,three exit0 commands with empty streams,complete prefix/module/font/input/output bindings;three Letter pages(26/26/20cells),hard120/24 axes and byte-identical native XMLreplay PDF. Generic raw/rounded metrics and shaping are pending independent comparison;no fullpainting parity."
         }
       ],
       "delivery": {

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test, { mock } from 'node:test';
+import { EventEmitter } from 'node:events';
+import { createPlaywrightController } from '../../src/playwright/controller.js';
+import { playwrightLocatorSelector } from '../../src/playwright/locator-selector.js';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightStorageState } from '../../src/playwright/adapter.js';
@@ -121,7 +124,7 @@ test('storage-only recovery preserves context options through checkpoint and a s
     assert.equal(recovered.recovery, 'saved-storage');
     assert.equal(recovered.livePageStateLost, true);
     assert.equal(recovered.initialize, undefined);
-    assert.equal(recovered.configuration, undefined);
+    assert.deepEqual(recovered.configuration, saved.configuration);
     assert.equal(item.pages.length, 1);
     assert.equal(item.pages[0]!.url(), 'about:blank');
     assert.equal(item.navigations[0]!.mock.callCount(), 0);
@@ -130,8 +133,10 @@ test('storage-only recovery preserves context options through checkpoint and a s
       ...item.session,
       ...(recovered.selectedPage === undefined ? {} : { selectedPage: recovered.selectedPage }),
       ...(recovered.contextOptions === undefined ? {} : { contextOptions: recovered.contextOptions }),
+      ...(recovered.configuration === undefined ? {} : { configuration: recovered.configuration }),
     }, limits, item.controller.signal), limits);
     assert.deepEqual(saved.contextOptions, contextOptions);
+    assert.deepEqual(saved.configuration, { initScripts: ['globalThis.replayed = true'] });
     await recovered.lease.release();
   }
 });
@@ -392,4 +397,51 @@ test('checkpoint observes cancellation during cleanup and drains every later cle
   await assert.rejects(isolated.checkpointBrowserProfile(item.session, limits, item.controller.signal), error => error === cancellation);
   assert.equal(first.mock.callCount(), 1);
   assert.equal(second.mock.callCount(), 1);
+});
+
+test('storage recovery applies routing, timeouts and test ids without running initialization code', async () => {
+  const item = host();
+  const configuration = {
+    timeouts: { action: 123, navigation: 456 }, testIdAttribute: 'data-qa',
+    network: { allowedOrigins: ['https://allowed.test'], blockedOrigins: ['https://blocked.test'] },
+    initScripts: ['globalThis.replayed = true'],
+    initPages: [{ filename: 'init.js', source: 'export default () => { throw new Error("replayed"); }' }],
+  };
+  type Route = { request(): { url(): string }; abort(reason: string): Promise<void>; fallback(): Promise<void> };
+  let handler: ((route: Route) => Promise<void>) | undefined;
+  const action = mock.fn();
+  const navigation = mock.fn();
+  Object.assign(item.context, new EventEmitter());
+  Object.assign(item.context, {
+    on: EventEmitter.prototype.on, off: EventEmitter.prototype.off,
+    async close() {},
+    async route(_pattern: string, callback: typeof handler) { handler = callback; },
+    setDefaultTimeout: action, setDefaultNavigationTimeout: navigation,
+    async addInitScript() { assert.fail('must not register saved init scripts'); },
+  });
+  const recovered = await restoreBrowserProfile({ ...item.options, profile: { ...profile, configuration }, recovery: true, tabRestoration: 'navigate' });
+  const page = recovered.selectedPage!;
+  const locator = mock.fn((_selector: string) => ({ toString: () => "getByTestId('save')" }));
+  Object.assign(page, new EventEmitter(), { on: EventEmitter.prototype.on, off: EventEmitter.prototype.off, locator, keyboard: { async press() {} } });
+  const checkpoints: PlaywrightSessionCheckpoint[] = [];
+  const controller = createPlaywrightController({ adapter: item.options.adapter, persistence: {
+    async restore() { return recovered; },
+    async checkpoint(session) { checkpoints.push(session); }, async delete() {},
+  } });
+  try {
+    await controller.run({ args: ['-s=audit', 'press', 'Enter'], env: {}, signal: item.controller.signal, async write() {} });
+    assert.equal(action.mock.calls[0]?.arguments[0], 123);
+    assert.equal(navigation.mock.calls[0]?.arguments[0], 456);
+    assert.ok(handler);
+    for (const [url, blocked] of [['https://blocked.test/path', true], ['https://other.test/', true], ['https://allowed.test/path', false]] as const) {
+      const abort = mock.fn(async (_reason: string) => {}), fallback = mock.fn(async () => {});
+      await handler({ request: () => ({ url: () => url }), abort, fallback });
+      assert.equal(abort.mock.callCount(), blocked ? 1 : 0);
+      assert.equal(fallback.mock.callCount(), blocked ? 0 : 1);
+    }
+    playwrightLocatorSelector(page, "getByTestId('save')");
+    assert.ok(locator.mock.calls[0]!.arguments[0].includes('data-qa'));
+    assert.deepEqual(checkpoints.at(-1)?.configuration, configuration);
+    assert.equal(item.navigations[0]!.mock.callCount(), 0);
+  } finally { await controller.dispose(); }
 });

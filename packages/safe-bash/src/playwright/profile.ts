@@ -142,6 +142,7 @@ export async function restoreBrowserProfile(options: {
     signal.throwIfAborted();
     if (options.recovery) return {
       lease, selectedPage: pages[0]!, recovery: 'saved-storage', livePageStateLost: true,
+      ...(profile.configuration === undefined ? {} : { configuration: profile.configuration }),
       ...(profile.contextOptions === undefined ? {} : { contextOptions: profile.contextOptions }),
       ...(profile.expiresAt === undefined ? {} : { expiresAt: profile.expiresAt }),
       ...(profile.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: profile.idleTimeoutMs }),

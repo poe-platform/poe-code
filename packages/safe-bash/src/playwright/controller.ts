@@ -185,7 +185,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     configured.setDefaultTimeout?.(sessionActionTimeout(session));
     configured.setDefaultNavigationTimeout?.(sessionNavigationTimeout(session));
     const scripts = session.configuration?.initScripts;
-    if (!scripts?.length) return;
+    if (session.recovery === 'saved-storage' || !scripts?.length) return;
     const context = session.lease!.context;
     if (!context.addInitScript) throw new Error('Browser context init scripts unsupported');
     // One native registration preserves source order across every future page.
@@ -304,9 +304,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     }
   };
   const initializePage = async (session: Session, page: PlaywrightPage): Promise<void> => {
+    setPlaywrightTestIdAttribute(page, session.configuration?.testIdAttribute);
     if (session.recovery === 'saved-storage') return;
     const key = page.mainFrame?.() ?? page;
-    setPlaywrightTestIdAttribute(page, session.configuration?.testIdAttribute);
     session.pageInitializations ??= new WeakMap();
     let operation = session.pageInitializations.get(key);
     if (!operation) {
@@ -450,7 +450,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           || !session.lease.context || ['pages', 'newPage', 'close', 'on', 'off'].some(key => typeof Reflect.get(session.lease!.context, key) !== 'function')) throw new TypeError('Invalid restored Playwright lease');
         signal.addEventListener('abort', cancel, { once: true });
         observeSession(session);
-        if (session.recovery !== 'saved-storage') await initializeContext(session);
+        await initializeContext(session);
         const pages = [...session.lease.context.pages()];
         if (pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
         if (restored.selectedPage !== undefined) {

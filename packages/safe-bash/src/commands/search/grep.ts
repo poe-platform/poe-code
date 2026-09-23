@@ -3,6 +3,7 @@ import { bufferLimit, diagnostic, input, integer, lines, options as parseOptions
 import { AvailableRecords, RegexExecutor, RegexExecutionError, withRegexSession } from "../regex-execution/portable.js";
 import type { GrepDescriptor } from "../regex-execution/protocol.js";
 import { grepRequirements, requiredFileInput } from "./requirements.js";
+import { grepFiles } from "./grep-files.js";
 
 const maxPatternCount = 1024;
 
@@ -10,9 +11,11 @@ export function createGrepCommands(executor: RegexExecutor): CommandDefinition[]
   return [{ name: "grep", filesystemRequirements: grepRequirements, execute: context => withRegexSession(context, executor, async session => {
     try {
       const contextLengths = new Map<string, number>();
-      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C" }, false, undefined, (key, index, offset) => {
-        if (!["A", "B", "C"].includes(key)) return;
+      const filters: { key: string; pattern: string }[] = [];
+      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
         const text = context.args[index]!.slice(offset);
+        if (["I", "X", "Y"].includes(key)) filters.push({ key, pattern: text });
+        if (!["A", "B", "C"].includes(key)) return;
         try { contextLengths.set(key, integer(text)); }
         catch { throw new UsageError(`${text}: invalid context length argument`); }
       });
@@ -43,6 +46,19 @@ Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
   -s, --no-messages        Suppress file error messages
   -a, --text               Process input as text
   -z, --null-data          Use NUL-delimited records
+  -b, --byte-offset        Print byte offsets (match offsets with -o)
+  -Z, --null               Follow printed filenames with NUL
+  -r, --recursive          Search directories recursively
+  -R, --dereference-recursive Follow links during recursive search
+  -d, --directories=ACTION Read, skip or recurse into directories
+  -D, --devices=ACTION     Read or skip special files
+      --include=GLOB      Search matching basenames
+      --exclude=GLOB      Skip matching basenames
+      --exclude-from=FILE Read exclusion globs from FILE
+      --exclude-dir=GLOB  Skip matching directories
+      --no-group-separator Suppress separators between context groups
+      --no-ignore-case    Use case-sensitive matching
+      --line-buffered     Accepted; output writes are already awaited
       --help              Display this help and exit
       --                  End options
 
@@ -61,7 +77,7 @@ inspect the resulting state before repeating the action.
         if (!parsed.operands.length) throw new UsageError("missing pattern");
         positionalPattern = parsed.operands.shift()!;
       }
-      const names = parsed.operands.length ? parsed.operands : ["-"];
+      const multipleFiles = parsed.operands.length > 1;
       const patternFiles = parsed.values.get("f") ?? [];
       const patterns: string[] = [];
       let patternCount = 0;
@@ -105,7 +121,7 @@ inspect the resulting state before repeating the action.
       if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
       const descriptor: GrepDescriptor = {
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
-        insensitive: parsed.flags.has("i"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
+        insensitive: parsed.flags.has("i") && !parsed.flags.has("no-ignore-case"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),
       };
       await session.run(descriptor, []);
       const maxCount = value(parsed, "m") === undefined ? Infinity : integer(value(parsed, "m")!);
@@ -119,18 +135,20 @@ inspect the resulting state before repeating the action.
       let emittedGroup = false;
       let anySelected = false;
       let failed = false;
-      for (const name of names) {
+      for await (const { name, nested } of grepFiles(context, parsed, filters, () => { failed = true; })) {
         let count = 0;
         let number = 0;
+        let byteOffset = 0;
+        let nextOffset = 0;
         let lastCovered = 0;
         let remainingAfter = 0;
         let pendingBytes = 0;
-        const pending = new Map<number, Line>();
+        const pending = new Map<number, Line & { offset: number }>();
         const named = name === "-" ? "(standard input)" : name;
-        const prefix = (lineNumber = false, position = number, separator = ":") => `${!parsed.flags.has("h") && (parsed.flags.has("H") || names.length > 1) ? `${named}${separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}`;
-        const emitContext = async (line: Line, position: number) => {
+        const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}`;
+        const emitContext = async (line: Line, position: number, offset = byteOffset) => {
           if (!parsed.flags.has("o")) {
-            await output(context, prefix(true, position, "-"));
+            await output(context, prefix(true, position, "-", offset));
             await output(context, line.bytes);
             await output(context, delimiter);
           }
@@ -145,6 +163,8 @@ inspect the resulting state before repeating the action.
               const line = batch[index]!;
               context.signal.throwIfAborted();
               number++;
+              byteOffset = nextOffset;
+              nextOffset += line.bytes.length + (line.terminated ? 1 : 0);
               const found = results[index]!;
               const selected = count < maxCount && (found.length > 0) !== parsed.flags.has("v");
               if (!selected) {
@@ -160,7 +180,7 @@ inspect the resulting state before repeating the action.
                   }
                   const size = line.bytes.length + 1;
                   if (size > bufferLimit - pendingBytes) throw new UsageError(`context byte limit exceeded (${bufferLimit} bytes)`);
-                  pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated });
+                  pending.set(number, { bytes: Uint8Array.from(line.bytes), terminated: line.terminated, offset: byteOffset });
                   pendingBytes += size;
                 }
                 continue;
@@ -172,8 +192,8 @@ inspect the resulting state before repeating the action.
               if (!parsed.flags.has("c")) {
                 if (withContext) {
                   const first = pending.keys().next().value ?? number;
-                  if (emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, "--\n");
-                  for (const [position, previous] of pending) await emitContext(previous, position);
+                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, "--\n");
+                  for (const [position, previous] of pending) await emitContext(previous, position, previous.offset);
                   pending.clear();
                   pendingBytes = 0;
                   remainingAfter = after;
@@ -185,7 +205,7 @@ inspect the resulting state before repeating the action.
                     let end = -1;
                     for (const match of found) {
                       if (match.start === match.end || match.start < end) continue;
-                      await output(context, prefix(true));
+                      await output(context, prefix(true, number, ":", byteOffset + match.start));
                       await output(context, line.bytes.subarray(match.start, match.end));
                       await output(context, delimiter);
                       end = match.end;
@@ -199,7 +219,7 @@ inspect the resulting state before repeating the action.
             }
           }
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
-            await output(context, named + delimiter); anySelected = true;
+            await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n")); anySelected = true;
           } else if (parsed.flags.has("c") && !parsed.flags.has("l") && !parsed.flags.has("L")) await output(context, prefix() + count + delimiter);
         } catch (error) {
           context.signal.throwIfAborted();

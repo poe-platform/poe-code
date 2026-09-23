@@ -85,6 +85,7 @@ Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover support
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.
 Use `grep -A NUM`, `-B NUM` or `-C NUM` to include lines after, before or around each match; separated groups use `--`, and `-n` marks context lines with `-`.
+Use `grep -r` to search directories, with `--include`, `--exclude`, `--exclude-from` and `--exclude-dir` to filter basenames. `-R` follows nested symlinks; recursion is bounded to 128 levels and detects ancestor loops. `-b` prints byte offsets, `-Z` uses NUL after filenames, and `--no-group-separator` hides context separators. These options also work with `egrep` and `fgrep`.
 The default bounded `grep` matcher rejects BRE groups, intervals, backreferences
 and escape extensions such as `\|`. Use `grep -E 'Remove upvote|Upvoted'` for
 alternation or `grep -F -e 'Remove upvote' -e 'Upvoted'` for literal alternatives.

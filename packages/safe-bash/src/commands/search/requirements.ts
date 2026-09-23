@@ -7,6 +7,8 @@ import { inputRequirements } from "../portable-requirements.js";
 
 export const grepRequirements: readonly CommandFileSystemRequirement[] = [
   ...inputRequirements,
+  { id: "metadata", description: "Inspect recursive grep operands", capabilities: ["stat"] },
+  { id: "directory", description: "Walk grep directories", capabilities: ["readdir", "realpath"] },
   { id: "pattern-file", description: "Read grep pattern files (-f)", capabilities: [], anyOf: [["streamingRead"], ["read"]] },
 ];
 

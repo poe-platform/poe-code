@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:14:27.801103+00:00",
+  "recordedAt": "2026-09-23T10:18:43.675410+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -719,7 +719,7 @@
     {
       "id": "numeric-ln1p-log1p-acos",
       "status": "open",
-      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73\u219274\u2192120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
+      "currentFinding": "Actual Linux installed libm now independently certifies all retained private log1p3902/acos2173/pow7351 controls,13426rawbinary64 results exact with zero historical/native/product differences. Actual Linux public captures separately qualify1172general/Bessel HEXREP cases and581supplemental gamma/reflection/pole/primitive/rawgeneral cases across five public surfaces. Wider input domains,other profiles and publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -749,7 +749,10 @@
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
           "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
-        }
+        },
+        "docs/ssconvert/linux-private-scalar-native-capture.json",
+        "docs/ssconvert/linux-numeric-native-capture.json",
+        "docs/ssconvert/linux-supplemental-numeric-native-capture.json"
       ],
       "delivery": {
         "localCommit": "0d9c9dbedeffbb45d340ca8a6453f05109adb258",
@@ -760,7 +763,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "Captured historical Linux/glibc primitive repairs qualify log1p3902/3902,acos2173/2173,and quadrature powers7351/7351 native controls. All six retained Bessel cohorts match,including120/120 high-q (prior73\u219274\u2192120). PublicShell120 exact HEXREP results. Wider domains,other native profiles and final publication remain open.",
+      "currentFinding": "Actual Linux installed libm now independently certifies all retained private log1p3902/acos2173/pow7351 controls,13426rawbinary64 results exact with zero historical/native/product differences. Actual Linux public captures separately qualify1172general/Bessel HEXREP cases and581supplemental gamma/reflection/pole/primitive/rawgeneral cases across five public surfaces. Wider input domains,other profiles and publication remain open.",
       "proof": [
         {
           "kind": "fresh-mac-native",
@@ -785,7 +788,10 @@
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
           "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
-        }
+        },
+        "docs/ssconvert/linux-private-scalar-native-capture.json",
+        "docs/ssconvert/linux-numeric-native-capture.json",
+        "docs/ssconvert/linux-supplemental-numeric-native-capture.json"
       ],
       "delivery": {
         "localCommit": "0d9c9dbedeffbb45d340ca8a6453f05109adb258",
@@ -1453,6 +1459,22 @@
     "nativeStderrBytes": 0,
     "browserConsoleMessages": 0,
     "screenshotInspected": true,
+    "productCodeChangeRequired": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxPrivateScalarQualification": {
+    "evidence": "docs/ssconvert/linux-private-scalar-native-capture.json",
+    "nativeRun": 35847249153,
+    "cases": 13426,
+    "log1p": 3902,
+    "acos": 2173,
+    "pow": 7351,
+    "nativeProductDifferences": 0,
+    "historicalProfileDifferences": 0,
+    "rawIngressBitsExact": true,
+    "sourceOrderDuplicatesPreserved": true,
+    "privateOracleOnly": true,
     "productCodeChangeRequired": false,
     "publication": "unverified",
     "wholeGoalComplete": false

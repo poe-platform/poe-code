@@ -6686,7 +6686,11 @@ export class Runtime {
     }
     if (command === "break" || command === "continue") {
       const levels = args[0] === undefined ? 1 : await loopCount(args[0], this.budget, this.signal);
-      if (args.length > 1 || levels === undefined) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (levels === undefined) {
+        await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
+        throw completedExit(2, "exit");
+      }
+      if (args.length > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
         if (state.loopDepth) throw completedExit(1, "break", state.loopDepth);

@@ -15,14 +15,14 @@ for (const command of ["break", "continue"]) {
     });
   }
 
-  for (const count of ["9223372036854775808", "-9223372036854775809", "999999999999999999999999999999999999999", "2.0", "2e0", "0x2", "2x", "", "+"]) {
+  for (const count of ["9223372036854775808", "-9223372036854775809", "999999999999999999999999999999999999999", "1.0", "1e0", "0x1", "2x", "junk", "NaN", "", "+"]) {
     test(`${command} rejects invalid or out-of-range count ${JSON.stringify(count)}`, async () => {
       const { shell } = setup();
       try {
-        const result = await shell.exec(`for a in 1; do ${command} '${count}'; say "BODY:$?"; done`);
-        assert.equal(result.stdout, "BODY:1\n");
-        assert.equal(result.stderr, `${command}: invalid loop count\n`);
-        assert.equal(result.exitCode, 0);
+        const result = await shell.exec(`for a in 1 2; do say "ITER:$a"; ${command} '${count}'; say BODY_AFTER; done; say "AFTER:$?"`);
+        assert.equal(result.stdout, "ITER:1\n");
+        assert.equal(result.stderr, `${command}: ${count}: numeric argument required\n`);
+        assert.equal(result.exitCode, 2);
       } finally { await shell.dispose(); }
     });
   }

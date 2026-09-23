@@ -43,7 +43,7 @@ No product environment variables are read. All options are explicit:
 | `key` | Required nonempty dedicated manifest object key. |
 | `maxBytes` | Unlimited; optional positive safe integer for committed file-content bytes. |
 | `maxEntries` | Unlimited; optional positive safe integer for committed nodes including root. |
-| `maxManifestBytes` | Unlimited; optional positive safe integer for serialized reads and writes. A conservative encoding bound is admitted before JSON allocation. |
+| `maxManifestBytes` | 4 MiB; optional positive safe integer for serialized reads and writes. Streaming structure and graph-allocation admission precede JSON parsing; a conservative encoding bound precedes serialization. |
 | `maxAttempts` | Unlimited; optional positive safe integer for conditional commit attempts. Exhaustion returns `EAGAIN`, never an unconditional overwrite. |
 | `maxOpenFiles` | Unlimited; shared immutable descriptor admission for this adapter instance. |
 | `maxFileBytes` | Unlimited; independent descriptor file-size ceiling, also subject to an explicit namespace byte quota. |
@@ -58,6 +58,15 @@ descriptor snapshots also consume bounded host memory. Every mutation reads and
 conditionally replaces the manifest: this is intended for bounded workspaces,
 not large buckets or a substitute for a scalable transactional storage service.
 Different clients must agree on the namespace's operational limits.
+
+Manifest reads accept only the fixed namespace/node/byte-array grammar, reject
+duplicate fields and unexpected nesting, and count entries and content elements
+while streaming. Before parsing the complete JSON, graph storage is conservatively
+charged against four times `maxManifestBytes` (including array growth and validation
+tables); exceeding this admission estimate returns `EFBIG`. This estimate is not
+a process-RSS guarantee. Explicit content and entry quotas return `ENOSPC` as soon
+as streaming admission exceeds them. Increase `maxManifestBytes` explicitly for
+larger namespaces, accounting for both encoded and expanded storage.
 
 ## Filesystem and cleanup semantics
 

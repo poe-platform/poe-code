@@ -113,7 +113,7 @@ it("S3 namespace limits are independent and no longer capped by implicit maxima"
   const { createS3NamespaceFileSystem } = await import("../src/fs/s3/namespace.js");
   const { MockS3Client } = await import("../src/fs/s3/mock.js");
   const client = new MockS3Client({ buckets: ["owned"] });
-  const options = { client, bucket: "owned", key: "namespace.json" };
+  const options = { client, bucket: "owned", key: "namespace.json", maxManifestBytes: 8 * 1024 * 1024 };
   const fs = await createS3NamespaceFileSystem({ ...options, maxEntries: 10 });
   const bytes = new Uint8Array(1024 * 1024 + 1);
   await fs.writeFile("/f", bytes);

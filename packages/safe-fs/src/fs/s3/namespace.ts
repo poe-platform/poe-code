@@ -4,6 +4,7 @@ import { collectBytes } from '../../contracts/io.js';
 import { dirname, normalizePath, validatePath } from '../../contracts/virtual-path.js';
 import { withObjectFileDescriptors, type ObjectFileVersion, type ObjectFileDescriptorOptions } from '../object-publication/index.js';
 import type { S3Transport } from './transport.js';
+import { admitManifest } from './manifest-admission.js';
 
 export interface S3NamespaceOptions extends ObjectFileDescriptorOptions {
   readonly client: S3Transport;
@@ -43,7 +44,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
   if (![options.bucket, options.key].every(value => typeof value === 'string' && value.length > 0 && !value.includes('\0'))) throw new TypeError('An explicit S3 bucket and manifest key are required');
   const maxBytes = limit(options.maxBytes);
   const maxEntries = limit(options.maxEntries);
-  const maxManifestBytes = limit(options.maxManifestBytes);
+  const maxManifestBytes = limit(options.maxManifestBytes ?? 4 * 1024 * 1024);
   const maxAttempts = limit(options.maxAttempts);
   const descriptorOptions = options;
   for (const key of ['chunkBytes', 'maxStagedBytes', 'maxStagedPages', 'maxFileBytes', 'maxOpenFiles'] as const) {
@@ -93,7 +94,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
     forwarded.signal?.throwIfAborted();
     try {
       const response = await client.getObjectStream!(object, forwarded.signal ? { abortSignal: forwarded.signal } : {});
-      const body = await collectBytes(response.Body, { ...forwarded, ...(maxManifestBytes === Infinity ? {} : { maxBytes: maxManifestBytes }) });
+      const body = await collectBytes(admitManifest(response.Body, { maxManifestBytes, maxEntries, maxBytes, ...(forwarded.signal ? { signal: forwarded.signal } : {}) }), { ...forwarded, maxBytes: maxManifestBytes });
       if (typeof response.ETag !== 'string' || !response.ETag || response.ETag.startsWith('W/')) throw new FsError('EIO', { message: 'S3 namespace requires a strong object validator' });
       let decoded;
       try { decoded = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(body)); }

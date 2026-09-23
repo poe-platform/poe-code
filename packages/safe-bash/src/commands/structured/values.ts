@@ -1,6 +1,7 @@
 import { Budget, copyObject, isObject, JqError, JqLimitError, object, objectKeyIterator, objectKeys, put, type Json } from "./limits.js";
 import { compareNumbers, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { jsonFragments, renderJsonFragment } from "./input.js";
+import { splitString } from "./split.js";
 
 export function type(value: Json): string {
   return value === null ? "null" : isNumber(value) ? "number" : Array.isArray(value) ? "array" : typeof value;
@@ -237,7 +238,7 @@ export async function binary(operator: string, left: Json, right: Json, budget: 
     const result = text.repeat(Math.floor(count)); budget.text(result); return result;
   }
   if (operator === "/" && typeof left === "string" && typeof right === "string") {
-    const result = right === "" ? Array.from(left) : left.split(right); budget.collection(result.length); return result;
+    return splitString(left, right, budget);
   }
   if (isNumber(left) && isNumber(right)) {
     const first = numberValue(left);

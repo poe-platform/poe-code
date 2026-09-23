@@ -9,6 +9,43 @@ import { splitString } from "../../../src/commands/structured/split.js";
 import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { run } from "./helpers.js";
 
+test("string division rejects oversized collections without native split allocations", async context => {
+  const from = context.mock.method(Array, "from");
+  const split = context.mock.method(String.prototype, "split");
+  for (const separator of ["", ","]) {
+    const input = separator === "" ? "x".repeat(101) : "x,".repeat(100);
+    const budget = new Budget(resolveJqLimits({ maxCollectionSize: 100 }), new AbortController().signal);
+    await assert.rejects(binary("/", input, separator, budget),
+      error => error instanceof JqLimitError && error.message === "maxCollectionSize limit exceeded");
+  }
+  assert.equal(from.mock.callCount(), 0);
+  assert.equal(split.mock.callCount(), 0);
+});
+
+test("string division preserves Unicode and separator boundaries", async () => {
+  for (const [input, separator, expected] of [
+    ["😀é", "", ["😀", "é"]],
+    ["a,,b,", ",", ["a", "", "b", ""]],
+    ["aaaaa", "aa", ["", "", "a"]],
+    ["", "", []],
+    ["", ",", []]
+  ] as const) {
+    assert.deepEqual(await binary("/", input, separator,
+      new Budget(resolveJqLimits(), new AbortController().signal)), expected);
+  }
+});
+
+test("string division enforces work and aggregate byte budgets", async () => {
+  for (const [limits, limit] of [
+    [{ maxSteps: 10 }, "maxSteps"],
+    [{ maxValueBytes: 25 }, "maxValueBytes"]
+  ] as const) {
+    await assert.rejects(binary("/", "x".repeat(20), "",
+      new Budget(resolveJqLimits(limits), new AbortController().signal)),
+    error => error instanceof JqLimitError && error.message === `${limit} limit exceeded`);
+  }
+});
+
 test("split fit proof covers JSON escapes and Unicode with one structural step per operand", async context => {
   for (const input of ["", "A", "\u0000", "\u001f", "\b\t\n\f\r", "\"\\", "é", "中", "\u2028\u2029", "\ud800", "\udfff", "😀", "\ud800A\udc00"]) {
     const separator = input + "!";

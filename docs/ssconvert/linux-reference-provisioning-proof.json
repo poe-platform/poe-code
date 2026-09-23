@@ -1,6 +1,6 @@
 {
   "scope": "Linux native reference provisioning",
-  "status": "exact-paradox-compile-failure-preserved-three-corrected-profile-runs-in-progress",
+  "status": "linux-native-built-captures-exact-final-git-identity-setup-failure-corrected",
   "wholeGoalComplete": false,
   "initialRun": 35836474044,
   "initialHead": "5496dd7e634a29f97664b6505cef36af72ac2f02",
@@ -122,6 +122,38 @@
       },
       "correctionDelivered": "52c8dd425bfede79c86aca9bb8fbcf47856ce4f3 installs pxlib-dev without altering native source/profile flags.",
       "productParity": "unqualified"
+    },
+    {
+      "run": 35838516785,
+      "head": "52c8dd425bfede79c86aca9bb8fbcf47856ce4f3",
+      "goffice": "configure-make-install-success",
+      "gnumeric": "configure-make-install-success",
+      "capture": "native commands complete; final identity Git source lookup exits128 due container checkout ownership",
+      "failureLogSha256": "1af0337f0ea276e3d56185512cc8bbdfc610974f9f526fb56ab2f60e7770b0e1",
+      "failure": "fatal: detected dubious ownership in repository at /__w/poe-code/poe-code; git rev-parse HEAD exits128.",
+      "correction": "Use command-scoped git -c safe.directory=<exact cwd> rev-parse HEAD, assert revision equals GITHUB_SHA; no global/private Git configuration mutation.",
+      "observedVersions": [
+        "0.10.61",
+        "2.84.4",
+        "3.24.49",
+        "1.14.53",
+        "1.56.3",
+        "1.18.4"
+      ],
+      "actualSearchWildcardCapture": {
+        "fields": 738,
+        "bytes": 5025,
+        "sha256": "f0afa53a4bf7f50c4f877ef2876b574dea4084d39a890cf3fbe50ce287b20274",
+        "stderrHex": "",
+        "exactPriorDarwin": true
+      },
+      "actualFunctionActivation": {
+        "rows": 647,
+        "stderrHex": "",
+        "placeholders": [],
+        "missingHelp": []
+      },
+      "qualification": "native observed capture; complete identity and dynamic module closure still required; whole goal incomplete"
     }
   ],
   "artifactPackaging": {

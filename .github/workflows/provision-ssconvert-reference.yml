@@ -139,9 +139,11 @@ jobs:
           input_path.write_bytes(bytes.fromhex(source['inputHex']))
           capture('search-wildcards', [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(input_path), 'fd://1'])
           workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
+          source_revision = subprocess.check_output(['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd()), 'rev-parse', 'HEAD'], text=True).strip()
+          assert source_revision == os.environ['GITHUB_SHA']
           identity = dict(
               status='native-base-collected-product-parity-unqualified',
-              sourceRevision=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),

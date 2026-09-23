@@ -511,6 +511,49 @@ test("ln supports hardlinks and literal relative symbolic targets, replacement a
   assert.equal((await fs.stat("/work/source")).size, 4);
 });
 
+for (const option of [["-t", "target"], ["-ttarget"], ["--target-directory", "target"], ["--target-directory=target"]]) {
+  test(`ln ${option.join(" ")} links every source into the selected directory`, async () => {
+    const fs = await fixture({ input: "abc\n", "nested/other": "other" });
+    await fs.mkdir("/work/target");
+    const result = await run("ln", [...option, "input", "nested/other"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    for (const [source, destination] of [["input", "input"], ["nested/other", "other"]]) {
+      assert.deepEqual(await fs.readFile(`/work/target/${destination}`), await fs.readFile(`/work/${source}`));
+      assert.equal((await fs.stat(`/work/target/${destination}`)).ino, (await fs.stat(`/work/${source}`)).ino);
+    }
+  });
+}
+
+test("ln target-directory supports symbolic links and directory symlinks", async () => {
+  const fs = await fixture({ input: "abc\n" });
+  await fs.mkdir("/work/target");
+  await fs.symlink("target", "/work/alias");
+  const result = await run("ln", ["-sn", "-t", "alias", "missing"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await fs.readlink("/work/target/missing"), "missing");
+});
+
+test("ln target-directory refuses absent or non-directory destinations without replacing them", async () => {
+  for (const target of ["missing", "file"]) {
+    const fs = await fixture({ input: "abc\n", file: "kept" });
+    const result = await run("ln", ["-f", "-t", target, "input"], { fs });
+    assert.equal(result.exitCode, 1);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/file")), "kept");
+    await assert.rejects(fs.stat("/work/missing"), { code: "ENOENT" });
+  }
+});
+
+test("ln target-directory rejects missing arguments, missing sources and conflicting -T", async () => {
+  const fs = await fixture({ input: "abc\n" });
+  await fs.mkdir("/work/target");
+  for (const args of [["-t"], ["-t", "target"], ["-Tt", "target", "input"], ["-t", "target", "-T", "input"]]) {
+    assert.equal((await run("ln", args, { fs })).exitCode, 2);
+  }
+  assert.deepEqual(await fs.readdir("/work/target"), []);
+});
+
 test("ln numbered backups preserve replaced bytes and select the next number", async () => {
   const fs = await fixture({ input: "new\n", output: "old\n", "output.~2~": "older" });
   const result = await run("ln", ["-f", "--backup=numbered", "input", "output"], { fs });

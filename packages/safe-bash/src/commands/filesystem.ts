@@ -471,14 +471,16 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("ln", async context => {
       let ended = false;
-      let suffixValue = false;
+      let optionValue = false;
       const args = context.args.map(argument => {
-        if (suffixValue) { suffixValue = false; return argument; }
+        if (optionValue) { optionValue = false; return argument; }
         if (argument === "--") ended = true;
-        if (!ended && (argument === "-S" || argument === "--suffix")) suffixValue = true;
+        if (!ended && (argument === "-S" || argument === "--suffix" || argument === "-t" || argument === "--target-directory")) optionValue = true;
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "sfnTbB:S:", { symbolic: "s", force: "f", "no-dereference": "n", "no-target-directory": "T", backup: "B", suffix: "S" });
+      const parsed = options(args, "sfnTbB:S:t:", { symbolic: "s", force: "f", "no-dereference": "n", "no-target-directory": "T", backup: "B", suffix: "S", "target-directory": "t" });
+      const targetDirectory = value(parsed, "t");
+      if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
       const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
       const modes: Readonly<Record<string, string>> = { none: "none", off: "none", numbered: "numbered", t: "numbered", existing: "existing", nil: "existing", simple: "simple", never: "simple" };
       const backupMode = Object.hasOwn(modes, control) ? modes[control]! : undefined;
@@ -486,9 +488,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       const backupSuffix = value(parsed, "S") || context.env.SIMPLE_BACKUP_SUFFIX || "~";
       requireOperands(parsed.operands);
       if (parsed.flags.has("T")) requireOperands(parsed.operands, 2, 2);
-      const operands = parsed.operands.length === 1 ? [...parsed.operands, "."] : parsed.operands;
+      const operands = targetDirectory !== undefined ? [...parsed.operands, targetDirectory] : parsed.operands.length === 1 ? [...parsed.operands, "."] : parsed.operands;
       const target = pathOf(context, operands.at(-1)!);
-      const directory = !parsed.flags.has("T") && (await maybeStat(context, target, !parsed.flags.has("n")))?.type === "directory";
+      const directory = !parsed.flags.has("T") && (await maybeStat(context, target, targetDirectory !== undefined || !parsed.flags.has("n")))?.type === "directory";
+      if (targetDirectory !== undefined && !directory) throw new FsError("ENOTDIR", { path: target });
       if (operands.length > 2 && !directory) throw new FsError("ENOTDIR", { path: target });
       const symbolic = parsed.flags.has("s");
       needCapability(context, symbolic ? "symlink" : "link");

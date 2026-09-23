@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T11:15:28.013016+00:00",
+  "recordedAt": "2026-09-23T11:34:58.009Z",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -709,13 +709,15 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Explicit invocation-owned datasource capability now implements optional ATL_LAST,finite transport batches,partial records,tag/dependent updates and success/failure/falsey-cancel/late-acquisition cleanup. Eight reproduced memory failures repaired;13controls/22466package tests pass. All24fields/135nativeCSVbytes and per-operation lifecycle counters exact across five public surfaces. Deployed backend,wider native numeric/raw/dynamic/timing/lifecycle and publication remain open. Three additional memory controls qualify dynamic tag rebinding, old-tag invalidation removal, edited/deleted watcher-slot reuse and post-cleanup rejection;16datasource controls pass. Native five-holdout run35853830813 is in progress; no outcomes inferred. Actual explicit Darwin Node FIFO transport now matches five injected holdout CSVs:0600mode,independent Python writes,nonblocking finite reads,one descriptor close/owned-path removal per operation. Invalid model receives9host bytes but reads0. Native holdout outcomes,late-delivery/timing and production host backend defaults remain unqualified. Authenticated native holdout run35853830813 yields143fields/1019CSVbytes/41warningbytes. Four complete cases match;one numeric row differs:2.2250738585072012e-308 rounds to normal minimum but native ERANGE refuses feed. Numeric boundary TDD repair and five-surface requalification are required.",
+      "currentFinding": "Explicit invocation-owned datasource sessions implement optional ATL_LAST,finite available batches,partial/raw-tag records,watched and transitive recalculation,rebindings and owned success/failure/cancel cleanup. Authenticated native runs35853830813/35854681190 validated and repaired decimal underflow before rounding while admitting exact subnormals. Six native models/39numeric controls,176fields/1417CSVbytes/41warningbytes match five compiled public surfaces and actual explicit Darwin FIFO transport.44focused/22497package tests,lint/source/test/consumer types and maintained root build pass. Full native timing/read splitting/latefeeds/wider watch lifecycle,other libc profiles,production deployment and publication remain open.",
       "proof": [
         "docs/ssconvert/linux-datasource-live-native-capture.json",
         "docs/ssconvert/datasource-session-gap-proof.json",
         "docs/ssconvert/datasource-dynamic-lifecycle-proof.json",
         "docs/ssconvert/datasource-host-fifo-proof.json",
-        "docs/ssconvert/linux-datasource-holdout-native-capture.json"
+        "docs/ssconvert/linux-datasource-holdout-native-capture.json",
+        "docs/ssconvert/linux-datasource-boundary-native-capture.json",
+        "docs/ssconvert/datasource-underflow-boundary-gap-proof.json"
       ],
       "delivery": {
         "localCommit": null,

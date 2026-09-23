@@ -174,6 +174,11 @@ Records use `tag:number\n` bytes. Partial records carry across batches; updates
 recalculate watched formulas and their dependents. Tag, watcher, byte and work
 limits apply per session. An unavailable transport keeps `ATL_LAST` enabled but
 unfilled (`#N/A`); an absent capability leaves that optional function unregistered.
+Numeric feed parsing follows the qualified C-locale Linux AArch64 profile.
+Inexact underflow updates are ignored, including tiny decimal values that round
+to a normal double; exact subnormal values remain valid. Explicit `inf`/`nan`
+feeds evaluate as `#NUM!`. Other libc and rounding profiles need separate evidence.
+
 Combining `datasource` with an explicit `runtimeFunctions.ATL_LAST` definition is
 rejected. SDK and safe-bash `ssconvertCommands` accept the same binding. Actual
 native feed/dependent/cleanup observations and remaining numeric/raw/timing

@@ -1,0 +1,523 @@
+{
+  "scope": "Source-bound datasource decimal underflow repair with independent actual native boundaries and five public surfaces plus actual explicit host FIFO",
+  "wholeGoalComplete": false,
+  "status": "validated-underflow-repair-six-native-models-matched",
+  "productCommit": "67e3dd32818e21dba780ee952b3f5e085286cf4c",
+  "reproducedFailure": {
+    "nativeRun": 35853830813,
+    "nativeEvidence": "docs/ssconvert/linux-datasource-holdout-native-capture.json",
+    "memoryTest": "preserves native ERANGE when a tiny decimal rounds up to the normal minimum",
+    "before": "1,2,3,0x1p-1022,#VALUE!\n",
+    "after": "1,2,3,#N/A,#N/A\n"
+  },
+  "algorithm": "Independent bounded decimal-expansion comparison: detect tiny input magnitude before binary64 rounding,and admit exact integer multiples of2^-1074 without an inexact underflow. No input-sized/exponent-sized integer is constructed. Preserve decimal prefix,disabled-hex zero prefix,special inf/nan,zero normalization and invalid-update retention.",
+  "numericProfile": "Actual optional sample datasource Linux AArch64 Gnumeric1.12.61/GOffice0.10.62/libc6 2.41-12+deb13u4,binary64 and C locale. Other libc/rounding profiles remain separately qualified.",
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/datasource.ts",
+      "sha256": "7f64aedc94fe129d70816de2d92929fccbcf5190d7c7f7a1e3676e7a76202091"
+    },
+    {
+      "path": "packages/ssconvert/src/datasource-number.ts",
+      "sha256": "aa15c8cb18b3ac605e1d067d1888fd4fc786432eaf176e7893ae2075ebae9681"
+    },
+    {
+      "path": "packages/ssconvert/src/datasource.test.ts",
+      "sha256": "a15d68c3c167cf5d7ebc4dfabdc4479376dc8db812a683ecc56d9a2e9a55637d"
+    },
+    {
+      "path": "packages/ssconvert/src/datasource-number.test.ts",
+      "sha256": "e76bb95f0c3999fe4f25db7dbe3419d8f8fc90ce116088fa2e9253ec91ba607b"
+    }
+  ],
+  "nativeEvidence": "docs/ssconvert/linux-datasource-boundary-native-capture.json",
+  "nativeEvidenceSha256": "f60fd1981811aacaaa81c02443ea7632c82970cc35a1be7d7e3338e6ce592fd3",
+  "nativeRun": 35854681190,
+  "nativeRunHead": "3ad7b8ae68c4912f2a4e529d26561cb6a073de3d",
+  "nativeCases": 6,
+  "logicalFields": 176,
+  "nativeCsvBytes": 1417,
+  "nativeDiagnosticBytes": 41,
+  "independentBoundaryCases": 10,
+  "independentExactDecimalPowers": 4,
+  "remainingNumericControlCases": 29,
+  "manualChecks": {
+    "initialMemoryRegression": "failed before repair",
+    "focusedTests": 44,
+    "sessionControls": 17,
+    "numberControls": 27,
+    "packageTests": 22497,
+    "packageFiles": 363,
+    "packageLintAndSourceTestConsumerTypes": "passed",
+    "maintainedRootBuild": "passed"
+  },
+  "publicResults": {
+    "sdkShellXml": [
+      {
+        "id": "datasource-holdout-numeric",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 756,
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "xmlStderr": "",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 4,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      },
+      {
+        "id": "datasource-holdout-malformed-raw",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 170,
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "xmlStderr": "",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 4,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      },
+      {
+        "id": "datasource-holdout-nul",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 59,
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "xmlStderr": "",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 4,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      },
+      {
+        "id": "datasource-holdout-dynamic-tag",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 12,
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "xmlStderr": "",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 4,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      },
+      {
+        "id": "datasource-holdout-invalid-model",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 22,
+        "sdkDiagnostics": [
+          {
+            "code": "solver-validation",
+            "severity": "warning",
+            "message": "Solver: Input cell A1 contains a formula"
+          }
+        ],
+        "shellStderr": "Solver: Input cell A1 contains a formula\n",
+        "xmlStderr": "Solver: Input cell A1 contains a formula\n",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 0,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      },
+      {
+        "id": "datasource-holdout-range-boundary",
+        "sdkExact": true,
+        "rootShellExact": true,
+        "xmlFormulaReplayExact": true,
+        "inputUnchanged": true,
+        "outputBytes": 398,
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "xmlStderr": "",
+        "stderrExact": true,
+        "lifecycle": {
+          "opened": 4,
+          "polled": 4,
+          "closed": 4
+        },
+        "lifecycleExact": true
+      }
+    ],
+    "browser": [
+      {
+        "id": "datasource-holdout-numeric",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 756
+      },
+      {
+        "id": "datasource-holdout-malformed-raw",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 170
+      },
+      {
+        "id": "datasource-holdout-nul",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 59
+      },
+      {
+        "id": "datasource-holdout-dynamic-tag",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 12
+      },
+      {
+        "id": "datasource-holdout-invalid-model",
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "solver-validation",
+            "severity": "warning",
+            "message": "Solver: Input cell A1 contains a formula"
+          }
+        ],
+        "stderr": "Solver: Input cell A1 contains a formula\n",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 0,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 22
+      },
+      {
+        "id": "datasource-holdout-range-boundary",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 398
+      }
+    ],
+    "worker": [
+      {
+        "id": "datasource-holdout-numeric",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 756
+      },
+      {
+        "id": "datasource-holdout-malformed-raw",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 170
+      },
+      {
+        "id": "datasource-holdout-nul",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 59
+      },
+      {
+        "id": "datasource-holdout-dynamic-tag",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 12
+      },
+      {
+        "id": "datasource-holdout-invalid-model",
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "solver-validation",
+            "severity": "warning",
+            "message": "Solver: Input cell A1 contains a formula"
+          }
+        ],
+        "stderr": "Solver: Input cell A1 contains a formula\n",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 0,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 22
+      },
+      {
+        "id": "datasource-holdout-range-boundary",
+        "exitCode": 0,
+        "diagnostics": [],
+        "stderr": "",
+        "stderrExact": true,
+        "exact": true,
+        "inputUnchanged": true,
+        "lifecycle": {
+          "opened": 1,
+          "polled": 1,
+          "closed": 1
+        },
+        "lifecycleExact": true,
+        "outputBytes": 398
+      }
+    ],
+    "actualExplicitHostFifo": [
+      {
+        "id": "datasource-holdout-numeric",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-numeric.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 1,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 725,
+        "bytesRead": 725,
+        "mode": "600",
+        "stdoutHex": "312c322c330a7072656669782c31322e352c3078312e39702b330a7a65726f2d7461696c2c302c307830702b300a7a65726f2d6578706f6e656e742c302c307830702b300a7a65726f2d6e656761746976652d6578706f6e656e742c302c307830702b300a6865782c302c307830702b300a6865782d6e656761746976652c302c307830702b300a6e656761746976652d7a65726f2c302c307830702b300a696e66696e6974792c234e554d212c234e554d210a696e66696e6974792d66756c6c2c234e554d212c234e554d210a6e616e2c234e554d212c234e554d210a6f766572666c6f772c234e2f412c234e2f410a756e646572666c6f772c234e2f412c234e2f410a7375626e6f726d616c2d6d696e696d756d2c234e2f412c234e2f410a7375626e6f726d616c2d706f7765722c234e2f412c234e2f410a6e6f726d616c2d6d696e696d756d2c322e32323530373338353835303732303134452d3330382c307831702d313032320a6e6f726d616c2d626f756e646172792d726f756e64646f776e2c234e2f412c234e2f410a6e6f726d616c2d626f756e646172792d62656c6f772c234e2f412c234e2f410a6c617267652d66696e6974652c312e37393736393331333438363233313537452b3330382c3078312e66666666666666666666666666702b313032330a6c617267652d6f766572666c6f772c234e2f412c234e2f410a6261642d6578706f6e656e742c332c3078312e38702b310a6672616374696f6e2c302e32352c307831702d320a6261642d646f742c234e2f412c234e2f410a776869746573706163652c372c3078312e63702b320a756e69636f64652d73706163652c234e2f412c234e2f410a756e69636f64652d6469676974732c234e2f412c234e2f410a636f6d6d612c31372c3078312e31702b340a66697273742d636f6c6f6e2c31372c3078312e31702b340a61667465722d72616e67652d6572726f722c34312c3078312e3438702b350a76616c69642d7468656e2d696e76616c69642c31392c3078312e33702b340a",
+        "csv": "1,2,3\nprefix,12.5,0x1.9p+3\nzero-tail,0,0x0p+0\nzero-exponent,0,0x0p+0\nzero-negative-exponent,0,0x0p+0\nhex,0,0x0p+0\nhex-negative,0,0x0p+0\nnegative-zero,0,0x0p+0\ninfinity,#NUM!,#NUM!\ninfinity-full,#NUM!,#NUM!\nnan,#NUM!,#NUM!\noverflow,#N/A,#N/A\nunderflow,#N/A,#N/A\nsubnormal-minimum,#N/A,#N/A\nsubnormal-power,#N/A,#N/A\nnormal-minimum,2.2250738585072014E-308,0x1p-1022\nnormal-boundary-rounddown,#N/A,#N/A\nnormal-boundary-below,#N/A,#N/A\nlarge-finite,1.7976931348623157E+308,0x1.fffffffffffffp+1023\nlarge-overflow,#N/A,#N/A\nbad-exponent,3,0x1.8p+1\nfraction,0.25,0x1p-2\nbad-dot,#N/A,#N/A\nwhitespace,7,0x1.cp+2\nunicode-space,#N/A,#N/A\nunicode-digits,#N/A,#N/A\ncomma,17,0x1.1p+4\nfirst-colon,17,0x1.1p+4\nafter-range-error,41,0x1.48p+5\nvalid-then-invalid,19,0x1.3p+4\n",
+        "exitCode": 0,
+        "diagnostics": [],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      },
+      {
+        "id": "datasource-holdout-malformed-raw",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-malformed-raw.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 1,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 100,
+        "bytesRead": 100,
+        "mode": "600",
+        "stdoutHex": "312c322c330a6d697373696e672c234e2f412c234e2f410a696e76616c69642c234e2f412c234e2f410a2c372c3078312e63702b320a2273706163652074616720222c31312c3078312e36702b330a66697273742c31322c3078312e38702b330ac3a9f09f98802c32332c3078312e37702b340aefbfbd2c234e2f412c234e2f410a7265706c6163656d656e742c234e2f412c234e2f410a7061727469616c2c234e2f412c234e2f410a",
+        "csv": "1,2,3\nmissing,#N/A,#N/A\ninvalid,#N/A,#N/A\n,7,0x1.cp+2\n\"space tag \",11,0x1.6p+3\nfirst,12,0x1.8p+3\né😀,23,0x1.7p+4\n�,#N/A,#N/A\nreplacement,#N/A,#N/A\npartial,#N/A,#N/A\n",
+        "exitCode": 0,
+        "diagnostics": [],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      },
+      {
+        "id": "datasource-holdout-nul",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-nul.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 1,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 30,
+        "bytesRead": 30,
+        "mode": "600",
+        "stdoutHex": "312c322c330a6265666f72652c31372c3078312e31702b340a626c6f636b65642c234e2f412c234e2f410a61667465722c234e2f412c234e2f410a",
+        "csv": "1,2,3\nbefore,17,0x1.1p+4\nblocked,#N/A,#N/A\nafter,#N/A,#N/A\n",
+        "exitCode": 0,
+        "diagnostics": [],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      },
+      {
+        "id": "datasource-holdout-dynamic-tag",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-dynamic-tag.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 1,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 10,
+        "bytesRead": 10,
+        "mode": "600",
+        "stdoutHex": "312c322c332c34312c34320a",
+        "csv": "1,2,3,41,42\n",
+        "exitCode": 0,
+        "diagnostics": [],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      },
+      {
+        "id": "datasource-holdout-invalid-model",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-invalid-model.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 0,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 9,
+        "bytesRead": 0,
+        "mode": "600",
+        "stdoutHex": "312c302c310a73746f636b2c234e2f412c234e2f410a",
+        "csv": "1,0,1\nstock,#N/A,#N/A\n",
+        "exitCode": 0,
+        "diagnostics": [
+          {
+            "code": "solver-validation",
+            "severity": "warning",
+            "message": "Solver: Input cell A1 contains a formula"
+          }
+        ],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      },
+      {
+        "id": "datasource-holdout-range-boundary",
+        "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-qualification/datasource-holdout-range-boundary.fifo",
+        "platform": "darwin",
+        "opened": 1,
+        "polled": 1,
+        "descriptorClosed": 1,
+        "ownedFifoUnlinked": 1,
+        "producerBytesWritten": 3304,
+        "bytesRead": 3304,
+        "mode": "600",
+        "stdoutHex": "312c322c330a6e6f726d616c2d65786163742c322e32323530373338353835303732303134452d3330382c307831702d313032320a7375626e6f726d616c2d65786163742c35452d3332342c3078302e30303030303030303030303031702d313032320a68616c662d6e6f726d616c2d65786163742c312e31313235333639323932353336303037452d3330382c3078302e38702d313032320a6e656761746976652d7375626e6f726d616c2d65786163742c2d35452d3332342c2d3078302e30303030303030303030303031702d313032320a626f756e646172792d62656c6f772c234e2f412c234e2f410a626f756e646172792d61626f76652c322e32323530373338353835303732303134452d3330382c307831702d313032320a626f756e646172792d6e656761746976652c234e2f412c234e2f410a7363616c65642d626f756e646172792c234e2f412c234e2f410a6c6f6e672d7a65726f2d6578706f6e656e742c302c307830702b300a70726573657276652d70726576696f75732c31392c3078312e33702b340a",
+        "csv": "1,2,3\nnormal-exact,2.2250738585072014E-308,0x1p-1022\nsubnormal-exact,5E-324,0x0.0000000000001p-1022\nhalf-normal-exact,1.1125369292536007E-308,0x0.8p-1022\nnegative-subnormal-exact,-5E-324,-0x0.0000000000001p-1022\nboundary-below,#N/A,#N/A\nboundary-above,2.2250738585072014E-308,0x1p-1022\nboundary-negative,#N/A,#N/A\nscaled-boundary,#N/A,#N/A\nlong-zero-exponent,0,0x0p+0\npreserve-previous,19,0x1.3p+4\n",
+        "exitCode": 0,
+        "diagnostics": [],
+        "inputUnchanged": true,
+        "fifoPresentAfterSettlement": false
+      }
+    ]
+  },
+  "screenshot": {
+    "inspected": true,
+    "readable": true,
+    "sha256": "332a4dfbba147627c44e3a0da8eca19c24386e91f223fe917e025157c275fa32"
+  },
+  "browserConsole": {
+    "messages": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "nativeTimingVariation": {
+    "invalidModelFirstRunProducerBytes": 9,
+    "invalidModelIndependentRunProducerBytes": 0,
+    "inputFormulaWarningAndUnfilledCsvIdentical": true,
+    "noObservedModeDoesNotProveFifoAbsence": true
+  },
+  "qualifications": [
+    "SDK/root Shell/XML checkpoint formula replay/browser/dedicated worker match176fields/1417nativeCSVbytes and41warningbytes;inputs unchanged and operation lifecycle counters exact.",
+    "Real explicit Darwin host0600FIFO transport reads725/100/30/10/3304bytes on admitted models,reads0of9deliveredbytes on invalid model;all descriptor/path resources retire once.",
+    "Producer completes before open returns in the explicit Darwin host reference adapter;this is actual finite-batch FIFO ownership/data evidence,not native async scheduling."
+  ],
+  "remaining": [
+    "Native read splitting,late feeds,event timing and wider watch lifecycle",
+    "Other libc/rounding profiles and production host deployment qualification",
+    "All other original goal families,integrated gates,installed artifacts and successful containing publication"
+  ],
+  "publication": "unverified"
+}

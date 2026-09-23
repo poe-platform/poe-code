@@ -999,5 +999,29 @@
       ],
       "status": "completed"
     }
+  },
+  "latestObservedCompletedContainingRun": {
+    "run": 35796659634,
+    "head": "2b5d1bc0e5a1055bf4a90b438827037ebf6ccdc7",
+    "status": "completed",
+    "conclusion": "success",
+    "validation": "build/audit/freshunit/cachedunit/checks/allfourBashshards success",
+    "stableJob": "success",
+    "publication": "Not published. Actualsemantic-release log: The local branch main is behind the remote one, therefore a new version will not be published.",
+    "registryObservation": {
+      "latest": "17.0.34",
+      "gitHead": "ec51e54b9f8b27b13cee93b194c384dcea76efce",
+      "limits": "Older registrygitHead; no newer containing publication verified."
+    },
+    "successor": {
+      "run": 35801015836,
+      "head": "287924508405475a5079b914015a2df7fe049ae7",
+      "status": "in_progress at observation; continued monitoring required"
+    },
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/ci-35796659634-success.log",
+      "bytes": 6071364,
+      "sha256": "3274e172dc6ba2ba3bdd2de796cfcb1ffbb73ef266bd2097a2a6c14afd06b4b8"
+    }
   }
 }

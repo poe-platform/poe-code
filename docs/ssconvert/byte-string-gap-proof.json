@@ -623,11 +623,11 @@
   },
   "checks": {
     "focused": "4907earlierfocused +59quoting/textcontrols +19finalownership/array/quoting tests passed; broader frozen checks running",
-    "maintainedWorkspaceTests": "pending final frozen run",
-    "maintainedWorkspaceLint": "pending final result",
-    "rootBuild": "running",
-    "rootLint": "running",
-    "rootTests": "pending root build",
+    "maintainedWorkspaceTests": "Passed345files/12790tests on frozen text-category candidate, repeated by maintained root npmtest.",
+    "maintainedWorkspaceLint": "Passed npmrunlint --workspace=@poe-code/ssconvert including production/test/consumer types.",
+    "rootBuild": "Passed npmrunbuild including workspace closure and root suffix stages; selected metadata-correction build also passed.",
+    "rootLint": "Passed sequential npmrunlint after npmtest exit0: complete16301configured/lintedfiles,zeroerrors/warnings; roottypes/contracts/workflows passed.",
+    "rootTests": "Passed maintained npmtest with real declared workspaces/dependency closure/native pre/event/post scripts and root posttest lintstress stage. Unavailable/skipped/TODO/not-declared cases are not passes.",
     "screenshot": {
       "path": "out/ssconvert-gap-resolution/byte-string-browser.png",
       "sha256": "b2c1cc06a39e72d6c94e0b2e15fa23efe58f1c069fc063c88af6387c3ecca913",
@@ -751,5 +751,275 @@
     "Raw nonformula Gnumeric cache/XML representation; normal formula writer deliberately omits caches",
     "Wider Perl grammar/optional profiles and full plan format/rendering/solver/service obligations",
     "Frozen integrated gates, containing GitHub publication, registry and installed smoke"
-  ]
+  ],
+  "broadFrozenVerification": {
+    "recordedAt": "2026-09-23T00:55:31.268765+00:00",
+    "localHeadAfterQualificationDocs": "58f3dde0720ed54e4e14ca53b7c52ccbe80c4b6a",
+    "codeAndTestsFrozenDuringRootTestAndSequentialLint": true,
+    "documentationDuringRun": "Two case qualification commits added captured evidence; product/test files remained unchanged.",
+    "rootBuild": {
+      "command": "npm run build",
+      "exit": 0,
+      "workspaces": 127,
+      "builds": 126,
+      "limits": "Normal broad value-contract build and maintained root suffix stages passed; selected ssconvert closure was rebuilt after text-category correction."
+    },
+    "rootTests": {
+      "command": "npm test",
+      "exit": 0,
+      "coordinator": {
+        "workspaces": 127,
+        "builds": 85,
+        "tests": 95,
+        "concurrency": 1,
+        "cache": "SHARED",
+        "cacheHits": 21,
+        "cacheMisses": 0,
+        "executionMs": 5136219
+      },
+      "noDeclaredTestsNotPasses": 33,
+      "manifestlessNotPasses": [
+        "packages/braintrust",
+        "packages/safe-python",
+        "packages/safejs"
+      ],
+      "ssconvert": {
+        "filesPassed": 345,
+        "testsPassed": 12790
+      },
+      "safeBash": {
+        "passed": 44735,
+        "failed": 0,
+        "skipped": 833,
+        "todo": 2
+      },
+      "safeJs": {
+        "filesPassed": 1475,
+        "filesSkipped": 3,
+        "testsPassed": 31290,
+        "testsSkipped": 48
+      },
+      "rootPosttest": {
+        "command": "npm run test:stress:lint",
+        "filesPassed": 1,
+        "testsPassed": 2
+      }
+    },
+    "sequentialRootLint": {
+      "command": "npm run lint",
+      "exit": 0,
+      "eslint": {
+        "complete": true,
+        "exitCode": 0,
+        "errorCount": 0,
+        "warningCount": 0,
+        "scope": {
+          "configured": 16301,
+          "linted": 16301,
+          "ignored": 2241,
+          "unconfigured": 39454,
+          "ignoredDirectories": 271,
+          "heldExcluded": 5
+        },
+        "receiptCount": 25,
+        "directoryCount": 6926,
+        "timings": {
+          "traversalMs": 165487,
+          "parsingMs": 1503,
+          "initializationMs": 15151
+        },
+        "cacheHits": 16273
+      },
+      "rootTypesAndContracts": "passed",
+      "workflows": "passed"
+    },
+    "historicalIncompleteLint": "Previous zero-error/zero-warning scan exited2 with950gaps because concurrent tests changed package directory identities; retained without weakening guard.",
+    "codeAndTestFiles": [
+      {
+        "path": "README.md",
+        "sha256": "835ce46a114bca3268c8a16cebec915850cca8101f1b57dd4c3d78d9e22ac1e3"
+      },
+      {
+        "path": "packages/docx/src/operation-types.test.ts",
+        "sha256": "18d383ae0ec247ddac6e0133625261b6c25371514b5fc978a98f4e315ae9ee28"
+      },
+      {
+        "path": "packages/poe-agent-rust/tests/agent-builder-native.test.mjs",
+        "sha256": "963963b91df18814d996c2b5401442326b5824134ca4605c8b5459ffe582e679"
+      },
+      {
+        "path": "packages/poe-agent-rust/tests/model-stream-native.test.mjs",
+        "sha256": "25bacfa31142e8f1a5bff6eca25a7a604714d6a928e3861efcb302a4f49fa59a"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/docx/table-model.test.ts",
+        "sha256": "ed6dd8b44905fc965c631a58debea1db4f8d56b8e19869061147a2836a76fb22"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/zip-review.test.ts",
+        "sha256": "63cab87549de44232fd7e8f29c3ef84f2a9c5f9a687dfefa0f8b15dfb5d25560"
+      },
+      {
+        "path": "packages/ssconvert/README.md",
+        "sha256": "ae9b5fbd65d8dead88aa5b32c4ef4ac003a16a16fd672a4cd229f6cf27a2700e"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/byte-string-array-fixtures.ts",
+        "sha256": "95262b7ca6eca2e662996dcfb63222bef3479ab00ed80aec0e69ce8bc1ebce84"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/byte-string-quoting-fixtures.ts",
+        "sha256": "16118e30d5e40fc262e28f6d118b2c9e28f3fc32c6f4f686ceaf1bbaf9a068a4"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/byte-string-quoting.test.ts",
+        "sha256": "dac7bc817fb39f16e7651904bf303cf45e9b331e66b1fbc17887597c9b1b77de"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/byte-strings.ts",
+        "sha256": "34a47b99f153523550178fefe4e6b022164ef18fc6da6bd711a1d8954a67eea6"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+        "sha256": "266ead7767cde42e6f6e01d65c90214931e09bd8ac47e7784a3aec387bdfb07f"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/stf.ts",
+        "sha256": "54f989a0fd148529c54d3d2f521e60d218e33a5fcbd2d8c4ffdc8563828c3746"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/providers/xml.ts",
+        "sha256": "ae76a20e59d57f68fd869bae6490e13a03886da669dda1942bc1522cb8b1384d"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/text-export.ts",
+        "sha256": "b19c0d2e20d292335871f0adcb1c709a506eff3d48429c802c46e5ddd0674032"
+      },
+      {
+        "path": "packages/ssconvert/src/codecs/types.ts",
+        "sha256": "6f50186abea8380b430cd639aee8eb01acf8051dc43c4f8d70545ff400ada591"
+      },
+      {
+        "path": "packages/ssconvert/src/encoding/byte-text.ts",
+        "sha256": "0c47173a3d7f81819d565de97ddb25165f2c1fc5603c1fd0892756c938186a7d"
+      },
+      {
+        "path": "packages/ssconvert/src/encoding/byte-value.ts",
+        "sha256": "a60209174ba904bb9d7a068af0335177e5f6251d1d6722f799d43af77243a944"
+      },
+      {
+        "path": "packages/ssconvert/src/engine.ts",
+        "sha256": "46896d03b9b502543f3c858ecc97b407aef0e42b04beb4cbe2ef1754bf3addc0"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/byte-string-fixtures.ts",
+        "sha256": "726abe9c0baaf3db39862f1b10831bbd4dec331550a028762dcb09e6b92c1d34"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/byte-string-info-fixtures.ts",
+        "sha256": "6816eb81ed35d7d75ea232dd8a19700755ab835c0c28097445da9251b2911ea6"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/byte-string-info.test.ts",
+        "sha256": "fd40b6c61b3b012ed1d062dd869dbd7f49d416cbfbf678ca7abda867e4cc3495"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/byte-string.test.ts",
+        "sha256": "e0fe191abb73743512e7cc832358e0b1d440bfaea4fb155630798bb9ec628cf3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/evaluator.ts",
+        "sha256": "20633e6a126de85eff0d6217dcb77798161cb1c4e2feb78d56ff7fd6749ed8fe"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/common.ts",
+        "sha256": "3f3912248770e6f36640d1e6de40c2ab97c492a2f6f729bb87b355dfa6c0cba3"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/info.ts",
+        "sha256": "2d9b55434dd46438028f84dbd0234925cf6fe10950c3dd8257626bf00fcefa53"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/perl-sed.ts",
+        "sha256": "4fb555cf10248c698b87b56b183c5f74118ef20875b59e816e11507e4e87fb56"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/registry.ts",
+        "sha256": "5c4478db65b03edce0d645089fa9d9865af9a1beca05b6297928a899a38146f2"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/functions/text.ts",
+        "sha256": "27669633c368f6ba0295157a4a6d98402dceff6d3fc00e9bd268180c1abe36cf"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/perl-sed.test.ts",
+        "sha256": "e2de2273146ba6be815735cfd954f1d84c6ff655c3e01a7b5be756fa40ffa53a"
+      },
+      {
+        "path": "packages/ssconvert/src/formulas/values.ts",
+        "sha256": "df94d489cc6397c8db29734bbd8e476566acf9521defef50fbfc003fe7b83110"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook.ts",
+        "sha256": "bca37a7b4d4ad150dc74227511a42389441577b68dcb3f2cd8fda768b2b928fa"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/byte-string.test.ts",
+        "sha256": "13760198014b7cb7327c4f26f48d151666b774c0479b3243b3a9bf0d93f77865"
+      },
+      {
+        "path": "packages/ssconvert/src/workbook/model.ts",
+        "sha256": "2fb7b7803ee73b4f48bc31b28a5c75d630e992476b52635f0bdda1cc0ba938da"
+      }
+    ],
+    "receipts": [
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-root-build.log",
+        "bytes": 29300,
+        "sha256": "fdfe096fb48c6911508a97b635d68ddffb0edc6b5c5dc7a4053e6bb0fbd36006"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-info-build.log",
+        "bytes": 738,
+        "sha256": "0a576036b328f09615d167b85610051e849b89417bc11b915ddcf701d68becf0"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-root-unit.log",
+        "bytes": 1870782,
+        "sha256": "66fb2215e1ff32d4b89761d3a5491cc561365ee1ead0a11ec1adb6183df79efc"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-root-lint-frozen.log",
+        "bytes": 1747,
+        "sha256": "76038573b2d769968bb022e75c7703cf5b80944d71bfb4eeb40cd985d2451ab1"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-root-lint-green.log",
+        "bytes": 2670599,
+        "sha256": "72e2f7a888a1ef69ec33a57d4277abe5b447480394b4358aae577fddd98ec242"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-final-frozen-unit.log",
+        "bytes": 27377,
+        "sha256": "1de69e20a74758a5bd44cf7570617679e148356b7f23897fc8eb9f5e59c5076c"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-info-unit.log",
+        "bytes": 27447,
+        "sha256": "20a335dae54a2e9464f4876f6da3c002cfe17410852eccc437c6618f85e44b65"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-info-lint.log",
+        "bytes": 165,
+        "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/byte-string-lint-warnings-green.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "delivery": "Six local commits awaiting rebase/integration verification/push; broad-check receipt does not claim remote delivery or publication.",
+    "remaining": "Case implementation/locales/diagnostics/othercontexts/profiles/containingpublication and all remaining plan families."
+  }
 }

@@ -817,5 +817,13 @@
         "sha256": "8f6b28da93c3dc3391397ca48e747b3772eef50822e626a995c17f49a990b8d4"
       }
     ]
+  },
+  "byteValueBroadFrozenChecks": {
+    "status": "passed locally; rebase integration/remote delivery/publication pending",
+    "proof": "docs/ssconvert/byte-string-gap-proof.json",
+    "localHead": "58f3dde0720ed54e4e14ca53b7c52ccbe80c4b6a",
+    "build": "passed normal maintained route",
+    "tests": "passed maintained full npmtest/nativeevents/rootposttest",
+    "lint": "passed sequential rootroute complete16301files zeroerrors/warnings"
   }
 }

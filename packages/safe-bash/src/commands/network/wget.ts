@@ -47,8 +47,30 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     download: { spider: false, resume: false, noClobber: false, contentDisposition: false },
   };
   const number = (value: string, integral: boolean): number => {
-    if (!(integral ? /^\d+$/u : /^\d+(?:\.\d+)?$/u).test(value)) throw new CurlError(2, "Invalid numeric option");
-    const parsed = Number(value);
+    let start = 0;
+    let end = value.length;
+    if (!integral) {
+      while (start < end && " \t\n\r\v\f".includes(value[start]!)) start++;
+      while (end > start && " \t\n\r\v\f".includes(value[end - 1]!)) end--;
+    }
+    let multiplier = 1;
+    if (!integral) {
+      const units: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+      const unit = units[value[end - 1]!];
+      if (unit !== undefined) { multiplier = unit; end--; }
+    }
+    let position = start;
+    if (!integral && (value[position] === "+" || value[position] === "-")) position++;
+    let digits = 0;
+    let dot = false;
+    for (; position < end; position++) {
+      const character = value[position]!;
+      if (character >= "0" && character <= "9") digits++;
+      else if (!integral && character === "." && !dot) dot = true;
+      else throw new CurlError(2, "Invalid numeric option");
+    }
+    if (!digits) throw new CurlError(2, "Invalid numeric option");
+    const parsed = Number(value.slice(start, end)) * multiplier;
     if (!Number.isFinite(parsed) || parsed < 0 || parsed > Number.MAX_SAFE_INTEGER) throw new CurlError(2, "Invalid numeric option");
     return parsed;
   };

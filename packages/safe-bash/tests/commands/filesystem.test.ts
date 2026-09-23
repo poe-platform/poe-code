@@ -62,6 +62,28 @@ test("cp recursively links files and rejects relative symbolic targets outside c
   assert.equal((await run("cp", ["-ls", "tree/child", "link"], { fs })).exitCode, 2);
 });
 
+for (const option of ["-u", "--update"]) {
+  for (const targetTime of [undefined, 1000, 2000, 3000]) {
+    test(`mv ${option} updates destination with mtime ${targetTime}`, async () => {
+      const fs = await fixture({ input: "new", ...(targetTime === undefined ? {} : { output: "old" }) });
+      await fs.utimes("/work/input", 2000, 2000);
+      if (targetTime !== undefined) await fs.utimes("/work/output", targetTime, targetTime);
+      const shell = new Shell({ fs, cwd: "/work" });
+      shell.use(agentCommands());
+      const result = await shell.exec(`mv ${option} -bv input output`);
+      const skipped = targetTime !== undefined && targetTime >= 2000;
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, skipped ? "" : "renamed 'input' -> 'output'\n");
+      assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), skipped ? "old" : "new");
+      if (skipped) assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "new");
+      else await assert.rejects(fs.lstat("/work/input"), { code: "ENOENT" });
+      if (targetTime === 1000) assert.equal(Buffer.from(await fs.readFile("/work/output~")).toString(), "old");
+      else await assert.rejects(fs.lstat("/work/output~"), { code: "ENOENT" });
+    });
+  }
+}
+
 for (const option of ["--preserve=mode", "-p"]) {
   test(`cp ${option} preserves mode and copies contents`, async () => {
     const fs = await fixture({ input: "new", output: "old" });

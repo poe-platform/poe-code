@@ -451,8 +451,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         if (!ended && ["-S", "--suffix", "-t", "--target-directory"].includes(argument)) optionValue = true;
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "fnvbB:S:Tt:", {
-        force: "f", "no-clobber": "n", verbose: "v", backup: "B", suffix: "S",
+      const parsed = options(args, "fnuvbB:S:Tt:", {
+        force: "f", "no-clobber": "n", update: "u", verbose: "v", backup: "B", suffix: "S",
         "no-target-directory": "T", "target-directory": "t",
       });
       const control = value(parsed, "B") ?? (parsed.flags.has("b") ? context.env.VERSION_CONTROL || "existing" : "none");
@@ -475,17 +475,26 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         destination = { target: pathOf(context, parsed.operands[1]!), directory: false, sources: parsed.operands.slice(0, 1) };
       } else destination = await destinations(context, parsed.operands);
       const budget = new MoveBudget(context.signal);
+      const shouldSkip = async (source: string, target: string): Promise<boolean> => {
+        if (!parsed.flags.has("n") && !parsed.flags.has("u")) return false;
+        const targetStat = await maybeStat(context, target, false);
+        if (!targetStat) return false;
+        if (parsed.flags.has("n")) return true;
+        const sourceStat = await context.fs.lstat(source, { signal: context.signal });
+        return sourceStat.type !== "directory" && targetStat.type !== "directory"
+          && sourceStat.mtimeMs <= targetStat.mtimeMs;
+      };
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
-        if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
+        if (await shouldSkip(source, target)) return;
         await admitFilesystemModes(context, "mv", ["rename"], [source, target]);
         if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const target = destination.directory ? joinPath(destination.target, basename(source)) : destination.target;
-        if (parsed.flags.has("n") && await maybeStat(context, target, false)) return;
+        if (await shouldSkip(source, target)) return;
         if (parsed.flags.has("n")) await admitNoReplaceRename(context, target);
         let backup: string | undefined;
         if (backupMode !== "none") {

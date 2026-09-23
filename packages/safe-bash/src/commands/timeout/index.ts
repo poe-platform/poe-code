@@ -188,7 +188,7 @@ function definition(configuration: Settings): CommandDefinition {
         stdout: context.stdout,
         stderr: context.stderr,
       };
-      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0) {
+      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
         context.signal.throwIfAborted();
         let result: { readonly exitCode: number };
         try {
@@ -204,7 +204,7 @@ function definition(configuration: Settings): CommandDefinition {
         return result;
       }
       const selected = childInvoker(context, configuration.invoke);
-      if (parsed.milliseconds === 0) {
+      if (parsed.milliseconds === 0 || parsed.milliseconds === Infinity) {
         if (selected === undefined) return status(context, records.invokeUnavailable, 125);
         context.signal.throwIfAborted();
         let result: { readonly exitCode: number };

@@ -20,7 +20,10 @@ scaling, rounds positive fractional milliseconds up, and accepts values through
 the finite floating-point operand range. Milliseconds above
 `Number.MAX_SAFE_INTEGER` have floating-point precision; unit conversions beyond
 `Number.MAX_VALUE` milliseconds saturate at that value. Mathematical zero creates no deadline
-resources. Positive durations use one opaque timer handle at a time, clear a
+resources. Case-insensitive `inf` and `infinity` (with the same signs and units),
+and positive numeric overflow to infinity also create no deadline resources and
+preserve child output and status. NaN and negative infinity are rejected.
+Finite positive durations use one opaque timer handle at a time, clear a
 completed chunk before rearming, and retain the final handle through cooperative
 child cleanup.
 
@@ -54,7 +57,7 @@ and a policy containing `durationMilliseconds`, `killAfterMilliseconds`,
 delivery, hard escalation, status selection and child cleanup. It must honor
 `context.signal`, register cooperative cleanup before resource acquisition, and
 settle only after owned work is retired. Supplying the callback does not confer
-capabilities on a host. Duration zero bypasses the policy and invokes normally.
+capabilities on a host. Duration zero or infinity bypasses the policy and invokes normally.
 
 `--foreground` (`-f`) accepts the existing caller-scoped virtual invocation:
 the wrapper does not create a process group or change terminal ownership.

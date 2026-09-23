@@ -3,6 +3,27 @@ import test from "node:test";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { captureContext } from "./timeout-author-20260828/fixtures.js";
 
+test("infinite timeout bypasses scheduler and escalation while forwarding parent cancellation", async () => {
+  const parent = new AbortController();
+  const reason = new Error("parent cancelled");
+  const capture = captureContext(["-k1", "inf", "child"], {
+    signal: parent.signal,
+    invoke: async (_command, _args, options) => {
+      assert.equal(options!.signal, parent.signal);
+      parent.abort(reason);
+      return { exitCode: 11 };
+    },
+  });
+  await assert.rejects(async () => createTimeoutCommand({
+    scheduler: {
+      now: () => assert.fail("infinity must not sample the clock"),
+      setTimeout: () => assert.fail("infinity must not arm a timer"),
+      clearTimeout: () => assert.fail("infinity must not clear a timer"),
+    },
+    killAfterPolicy: async () => assert.fail("infinity must bypass escalation"),
+  }).execute(capture.context), error => error === reason);
+});
+
 for (const alreadyAborted of [false, true]) {
   test(`zero duration forwards parent cancellation (already aborted: ${alreadyAborted})`, async () => {
     const parent = new AbortController();

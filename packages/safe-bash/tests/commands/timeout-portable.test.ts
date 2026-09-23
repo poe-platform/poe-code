@@ -55,9 +55,32 @@ test("timeout parses finite GNU floating-point durations with millisecond roundi
   for (const token of ["", " ", ".", "+", "3 ", "3s ", "-2", "-1e-999999", "NaN", "1e", "1e+", "0x", "0xp1", "0x1p", "0x1.2.3", "1ss", "0b11", "1_0"]) {
     assert.deepEqual(parseDuration(token), { kind: "invalid" }, token);
   }
-  for (const token of ["1e999999", "0x1p999999"]) {
-    assert.deepEqual(parseDuration(token), { kind: "overflow" }, token);
-  }
+});
+
+test("timeout admits positive infinity and native numeric overflow without deadline resources", async () => {
+  const tokens = ["inf", "infinity", "INFINITY", "Inf", "infs", "infm", "+Infinityh", " infinityd", "1e1000", "2e1001", "1e999999", "0x1p999999"];
+  const fs = createMemoryFileSystem();
+  const bytes = Uint8Array.of(67, 252, 0, 13, 10);
+  await fs.writeFile("/infinite.bin", bytes);
+  const shell = new Shell({ fs });
+  await shell.use(agentCommands());
+  try {
+    for (const token of tokens) {
+      assert.deepEqual(parseDuration(token), { kind: "value", milliseconds: Infinity }, token);
+      const chunks: Uint8Array[] = [];
+      const result = await shell.exec(`timeout --verbose -- '${token}' cat /infinite.bin`, {
+        stdout: { async write(chunk) { chunks.push(Uint8Array.from(chunk)); } },
+      });
+      assert.equal(result.exitCode, 0, token);
+      assert.equal(result.stderr, "", token);
+      assert.deepEqual(Buffer.concat(chunks), Buffer.from(bytes), token);
+      assert.equal((await shell.exec(`timeout -- '${token}' sh -c 'exit 11'`)).exitCode, 11, token);
+    }
+    for (const token of ["NaN", "-inf", "-Infinity", "-1e1000", "infinite", "infss", "inf ", "infinityM"]) {
+      assert.deepEqual(parseDuration(token), { kind: "invalid" }, token);
+      assert.equal((await shell.exec(`timeout -- '${token}' echo rejected`)).exitCode, 125, token);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("timeout large finite durations preserve child bytes and status with the default scheduler", async () => {

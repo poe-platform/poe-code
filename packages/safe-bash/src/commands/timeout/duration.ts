@@ -19,6 +19,12 @@ export function parseDuration(token: string): DurationResult {
   while (index < end && (token[index] === " " || (token.charCodeAt(index) >= 9 && token.charCodeAt(index) <= 13))) index++;
   const negative = token[index] === "-";
   if (negative || token[index] === "+") index++;
+  if (token.slice(index, index + 3).toLowerCase() === "inf") {
+    index += 3;
+    if (token.slice(index, index + 5).toLowerCase() === "inity") index += 5;
+    if (negative || (index !== end && (multiplier(token.charCodeAt(index)) === undefined || index + 1 !== end))) return { kind: "invalid" };
+    return { kind: "value", milliseconds: Infinity };
+  }
   const hexadecimal = token[index] === "0" && (token[index + 1] === "x" || token[index + 1] === "X");
   if (hexadecimal) index += 2;
   const radix = hexadecimal ? 16 : 10;
@@ -67,7 +73,9 @@ export function parseDuration(token: string): DurationResult {
   let denominator = 1n;
   if (scale >= 0) numerator *= base ** BigInt(scale);
   else denominator = base ** BigInt(-scale);
-  if (numerator > maximumFiniteDuration * denominator) return { kind: "overflow" };
+  // IEEE double conversion rounds this boundary to positive infinity in seconds.
+  const infinityThreshold = (1n << 1024n) - (1n << 970n);
+  if (numerator >= infinityThreshold * denominator) return { kind: "value", milliseconds: Infinity };
   numerator *= BigInt(suffixMultiplier ?? 1000);
   const milliseconds = (numerator + denominator - 1n) / denominator;
   // Unit conversion can exceed the floating-point range even for a finite

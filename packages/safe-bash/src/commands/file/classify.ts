@@ -78,7 +78,13 @@ export function classify(bytes: Uint8Array, complete: boolean): Classification {
   else if (matches(bytes, [254, 255])) { encoding = "utf-16be"; bom = 2; }
   let text: string;
   try { text = new TextDecoder(encoding, { fatal: true }).decode(bytes, { stream: !complete }); }
-  catch { return binary; }
+  catch {
+    if (bom) return binary;
+    // WHATWG TextDecoder maps Latin-1 labels to Windows-1252. Preserve the
+    // actual ISO-8859-1 code points so C1 bytes remain disallowed controls.
+    encoding = "iso-8859-1";
+    text = Array.from(bytes, value => String.fromCharCode(value)).join("");
+  }
   if (!text.length && bytes.length > bom) return binary;
   for (const character of text) {
     const code = character.codePointAt(0)!;
@@ -88,6 +94,6 @@ export function classify(bytes: Uint8Array, complete: boolean): Classification {
   if (complete && /^[\x20\t\r\n]*(?:\{|\[)/u.test(text)) {
     try { JSON.parse(text); return result("JSON text data", "application/json", encoding); } catch {}
   }
-  const description = encoding === "us-ascii" ? "ASCII text" : encoding === "utf-8" ? "Unicode text, UTF-8" : `Unicode text, ${encoding === "utf-16le" ? "UTF-16, little-endian" : "UTF-16, big-endian"}`;
+  const description = encoding === "us-ascii" ? "ASCII text" : encoding === "iso-8859-1" ? "ISO-8859 text" : encoding === "utf-8" ? "Unicode text, UTF-8" : `Unicode text, ${encoding === "utf-16le" ? "UTF-16, little-endian" : "UTF-16, big-endian"}`;
   return result(description, "text/plain", encoding);
 }

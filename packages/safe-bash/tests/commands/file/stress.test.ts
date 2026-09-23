@@ -101,8 +101,8 @@ test("JSON requires observed complete object/array; valid prefixes and exact str
   }
 });
 
-test("invalid UTF-8, UTF-16, NUL/C1 and truncated complete encodings are binary; prefix splits are tolerated", async () => {
-  for (const bytes of [Buffer.from([192, 175]), Buffer.from([237, 160, 128]), Buffer.from([244, 144, 128, 128]), Buffer.from([226, 130]),
+test("invalid UTF-16, NUL/C1 and nonprintable invalid UTF-8 are binary; prefix splits are tolerated", async () => {
+  for (const bytes of [Buffer.from([237, 160, 128]), Buffer.from([244, 144, 128, 128]), Buffer.from([226, 130]),
     Buffer.from([255, 254, 65]), Buffer.from([255, 254, 0, 216]), Buffer.from([254, 255, 220, 0]),
     Buffer.from("hello\0world"), Buffer.from("hello\u0085world"), Buffer.from([255, 254, 0, 0, 65, 0, 0, 0])]) {
     const result = await run(["-bi", "-"], {}, { stdin: toByteSource(bytes) });

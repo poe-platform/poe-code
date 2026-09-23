@@ -8,6 +8,48 @@ import { createFileCommand, createFileCommands, fileCommands } from "../../../sr
 import { fixtures } from "./fixtures.js";
 import { proxyFs, run } from "./helpers.js";
 
+test("printable Latin-1 is text through Shell, stdin, and MIME modes", async () => {
+  const bytes = Uint8Array.from([99, 97, 102, 233, 10]);
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", bytes);
+  const shell = new Shell({ fs }); shell.use(fileCommands());
+  try {
+    const result = await shell.exec("file -bi /input");
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "text/plain; charset=iso-8859-1\n");
+    assert.deepEqual(await fs.readFile("/input"), bytes);
+  } finally { await shell.dispose(); }
+  for (const [args, expected] of [
+    [["-bi", "-"], "text/plain; charset=iso-8859-1\n"],
+    [["-b", "--mime-type", "-"], "text/plain\n"],
+    [["-b", "--mime-encoding", "-"], "iso-8859-1\n"],
+    [["-b", "-"], "ISO-8859 text\n"],
+  ] as const) {
+    assert.equal((await run(args, {}, { stdin: toByteSource(bytes) })).stdout, expected);
+  }
+});
+
+test("Latin-1 fallback decodes JSON and rejects controls without overriding Unicode", async () => {
+  const cases = [
+    [Uint8Array.from([123, 34, 233, 34, 58, 49, 125]), "application/json; charset=iso-8859-1"],
+    [Uint8Array.from([192, 175]), "text/plain; charset=iso-8859-1"],
+    [Uint8Array.from([160, 255]), "text/plain; charset=iso-8859-1"],
+    [Uint8Array.from([233, 0]), "application/octet-stream; charset=binary"],
+    [Uint8Array.from([233, 1]), "application/octet-stream; charset=binary"],
+    [Uint8Array.from([233, 127]), "application/octet-stream; charset=binary"],
+    [Uint8Array.from([233, 128]), "application/octet-stream; charset=binary"],
+    [Uint8Array.from([233, 159]), "application/octet-stream; charset=binary"],
+    [Uint8Array.from([239, 187, 191, 233]), "application/octet-stream; charset=binary"],
+    [new TextEncoder().encode("café\n"), "text/plain; charset=utf-8"],
+    [new TextEncoder().encode("cafe\n"), "text/plain; charset=us-ascii"],
+  ] as const;
+  for (const [bytes, expected] of cases) {
+    const result = await run(["-bi", "-"], {}, { stdin: toByteSource(bytes) });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${expected}\n`, Buffer.from(bytes).toString("hex"));
+  }
+});
+
 for (const specimen of fixtures) {
   test(`byte fixture: ${specimen.name} (MIME exact; human semantic)`, async () => {
     const fs = createMemoryFileSystem();

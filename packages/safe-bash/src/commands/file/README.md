@@ -62,11 +62,14 @@ No inode/device/identity assumptions, mutation or du-style allocation inference.
 ## Recognition and limits of meaning
 
 The text profile recognizes strict ASCII, UTF-8, UTF-8 BOM, and UTF-16 LE/BE with
-BOM. NUL, disallowed C0/C1 controls, malformed complete encodings, lone surrogates
-and invalid UTF-8 are binary. Common textual controls BS/TAB/LF/FF/CR/ESC are
-allowed. Prefix endings may contain an incomplete final code unit; decoding is
-not finalized unless complete input was observed. UTF-32, legacy codepages and
-BOM-less UTF-16 are not supported. Text descriptions intentionally omit native
+BOM. Without a BOM, failed UTF-8 decoding falls back to ISO-8859-1 within the
+same bounded sample, reporting `iso-8859-1` only when every decoded character
+passes the text control checks. NUL, disallowed C0/C1 controls, malformed
+BOM-selected encodings and lone surrogates are binary. Common textual controls
+BS/TAB/LF/FF/CR/ESC are allowed. Prefix endings may contain an incomplete final
+code unit; decoding is not finalized unless complete input was observed.
+UTF-32, other legacy codepages and BOM-less UTF-16 are not supported. This is
+a fixed text profile, not general encoding or locale detection. Text descriptions intentionally omit native
 line-ending counts, BOM wording, language guesses and executable permission claims.
 
 JSON requires a complete bounded object/array that successfully passes JSON.parse

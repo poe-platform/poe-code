@@ -50,6 +50,7 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "structuredClone",
   "SyntaxError",
   "Temporal",
+  "TextEncoder",
   "TypeError",
   "URIError",
   "undefined",

@@ -42,7 +42,7 @@ console.log(result.returnValue);
 
 - **JavaScript control flow:** functions and closures, classes, async/await, loops, destructuring, spread, templates, exceptions, and synchronous and asynchronous generators.
 - **Guest function objects:** own properties on functions and arrows; ordinary constructors with shared prototypes, inherited methods and `instanceof`. `Object.create`, `getPrototypeOf`, `setPrototypeOf`, own-property inspection, and data descriptors work on ordinary sandbox records.
-- **Data processing:** arrays, objects, strings, numbers, BigInt, Symbol, JSON, Math, Date, Map, Set, WeakMap, WeakSet, typed arrays, ArrayBuffer/DataView, promises, Intl APIs, and budgeted regular expressions.
+- **Data processing:** arrays, objects, strings, numbers, BigInt, Symbol, JSON, Math, Date, Map, Set, WeakMap, WeakSet, typed arrays, ArrayBuffer/DataView, UTF-8 TextEncoder, promises, Intl APIs, and budgeted regular expressions.
 - **Language and object APIs:** guest `eval`, `Function` and async/generator function constructors, `Proxy`, `Reflect`, property descriptors, accessors, and prototype mutation. Dynamically generated code executes inside the interpreter with its existing capabilities and budgets.
 - **Additional built-ins:** all eight Temporal types and `Temporal.Now`, iterator helpers, disposable stacks, `WeakRef`, `FinalizationRegistry`, `SharedArrayBuffer`, and `Atomics`. Availability does not imply complete conformance or portable recovery; see the limitations below.
 - **Explicit capabilities:** static imports and dynamic `import()` resolve against host-supplied modules, not arbitrary npm packages or files. Optional helpers cover agents, MCP tools, files, environment reads, time, logging, and metrics.

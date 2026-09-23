@@ -26,6 +26,7 @@ import { createSymbolGlobal } from "./globals/symbol.js";
 import { createBigIntGlobal } from "./globals/bigint.js";
 import { createArrayBufferGlobal } from "./globals/array-buffer.js";
 import { createDataViewGlobal } from "./globals/data-view.js";
+import { createTextEncoderGlobal } from "./globals/text-encoder.js";
 import { createReflectGlobal } from "./globals/reflect.js";
 import { createAtomicsGlobal } from "./globals/atomics.js";
 import { createSharedArrayBufferGlobal } from "./globals/shared-array-buffer.js";
@@ -74,6 +75,7 @@ export function createBuiltinBindings(
     Intl: createIntlGlobal(options.budget, date.properties!.now as SandboxClosure),
     ArrayBuffer: createArrayBufferGlobal(options.budget),
     DataView: createDataViewGlobal(options.budget),
+    TextEncoder: createTextEncoderGlobal(options.budget),
     ...createMiscGlobals({ ...options, numericParsers }),
     ...createUriGlobals(options.budget),
     ...createPromiseGlobals(options),

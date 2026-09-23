@@ -43,6 +43,8 @@ try {
 - `process.cwd()` and `process.env` expose virtual state, never host state.
   Environment edits remain local to one invocation. Set `process.exitCode` to an
   integer from 0–255; it is applied when the program finishes normally.
+- `TextEncoder` encodes UTF-8 into guest `Uint8Array` values; `encodeInto`
+  writes complete code points into a supplied byte view and reports bytes written.
 - `process.stdin.readText()` and `readBytes(size?)` read bounded input;
   `process.stdout.write(text)` and `process.stderr.write(text)` are async writes.
   Await I/O; these helpers do not implement Node's event-driven stream API.

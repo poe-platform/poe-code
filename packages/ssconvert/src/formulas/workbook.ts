@@ -4,6 +4,8 @@ export { resizeWorkbookReferences } from "../workbook/resize.js";
 import { foldSheetName } from "../workbook/case-fold.js";
 import type { FormulaDocument, ParsePosition } from "./ast.js";
 import { parseExpression } from "./parser.js";
+import { quoteFormulaString } from "./serialization.js";
+import { gnumericGrammar } from "./conventions.js";
 import { rewriteReferences, visitFormula } from "./rewriting.js";
 import { chartDataTypes } from "../objects/data.js";
 
@@ -58,6 +60,7 @@ export function renameWorkbookSheet(book: Workbook, sheetId: string, name: strin
   const sheet = book.sheets.find(sheet => sheet.id === sheetId);
   if (!sheet || !name || name.includes("\0") || book.sheets.some(s => s.id !== sheetId && foldSheetName(s.name) === foldSheetName(name)))
     throw new SsconvertError("invalid-request", "Invalid sheet rename");
+  if (sheet.name === name) return book;
   const renamed = rewriteWorkbook(book, context, document => {
     const spellings = new Map<string, string>();
     visitFormula(document.root, node => {
@@ -66,7 +69,10 @@ export function renameWorkbookSheet(book: Workbook, sheetId: string, name: strin
     });
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
   });
-  return snapshotWorkbook({ ...renamed, sheets: renamed.sheets.map(s => s.id === sheetId ? { ...s, name } : s) }, context.limits);
+  return snapshotWorkbook({ ...renamed, sheets: renamed.sheets.map(s => s.id === sheetId ? { ...s, name } : s),
+    ...(renamed.names ? { names: renamed.names.map(entry => entry.sheet === sheetId && entry.name === "Sheet_Title"
+      ? { ...entry, expression: quoteFormulaString(name, '"', gnumericGrammar) } : entry) } : {})
+  }, context.limits);
 }
 
 /** Rehome incoming sheet identities and their local expression namespace in one pass. */
@@ -83,10 +89,15 @@ export function remapWorkbookSheets(book: Workbook, mapping: ReadonlyMap<string,
     return rewriteReferences(document, { sheets: spellings, signal: context.signal });
   });
   const id = (value: string) => mapping.get(value)?.id ?? value;
+  const renamedTitles = new Map(book.sheets.flatMap(sheet => {
+    const target = mapping.get(sheet.id);
+    return target && target.name !== sheet.name ? [[sheet.id, quoteFormulaString(target.name, '"', gnumericGrammar)]] : [];
+  }));
   const range = <T extends { sheet: string; endSheet?: string }>(value: T): T => ({ ...value, sheet: id(value.sheet), ...(value.endSheet ? { endSheet: id(value.endSheet) } : {}) });
   return snapshotWorkbook({ ...rewritten, sheets: rewritten.sheets.map(sheet => ({ ...sheet, ...mapping.get(sheet.id) })),
     ...(rewritten.activeSheet ? { activeSheet: id(rewritten.activeSheet) } : {}),
     ...(rewritten.names ? { names: rewritten.names.map(name => ({ ...name, ...(name.sheet ? { sheet: id(name.sheet) } : {}),
+      ...(name.name === "Sheet_Title" && name.sheet !== undefined && renamedTitles.has(name.sheet) ? { expression: renamedTitles.get(name.sheet)! } : {}),
       ...(name.position ? { position: { ...name.position, sheet: id(name.position.sheet) } } : {}) })) } : {}),
     ...(rewritten.dependencies ? { dependencies: rewritten.dependencies.map(dep => ({ ...dep, dependent: range(dep.dependent), precedent: range(dep.precedent) })) } : {})
   }, context.limits);

@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "scope": "Reset existing local Sheet_Title definitions when a display sheet name changes through rename or import remapping.",
+  "baseline": "01c32d052b0adabab8aaf0767fcb22c1d1347b12",
+  "source": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "path": "gnumeric-1.12.61/src/sheet.c",
+    "sha256": "dd06712b10126b59b2c42601878abc12fe29f08003bcfc0c7ec36b09bcc8059b",
+    "construction": "lines 733-752: data sheets install Sheet_Title as display-name string and Print_Area as #REF!",
+    "rename": "lines 269-271 and 325-339: unchanged spelling returns; a changed data sheet name resets Sheet_Title expression"
+  },
+  "problem": "Sheet renaming rewrote references but retained the old explicit Sheet_Title expression; merge remapping did the same. Native sheet_set_name replaces that expression when the display name changes.",
+  "implementation": [
+    "Reset only the changed sheet's exact Sheet_Title expression using native formula-string escaping, preserving its parse position.",
+    "Keep global names, names on other sheets, lowercase names and Print_Area unchanged.",
+    "Return the validated snapshot for a same-spelled rename; ID-only remapping retains an edited title definition.",
+    "Merge remapping resets the title only on display-name collisions that change the imported name."
+  ],
+  "validation": {
+    "red": "Four failures / six original memory controls; two unchanged-name controls pass before repair.",
+    "focused": "24 tests / four files pass.",
+    "package": "22802 tests / 382 files pass through maintained package command.",
+    "lint": "Maintained package eslint, source/test/consumer types pass.",
+    "build": "Maintained selected @poe-code/ssconvert build closure passes.",
+    "public": {
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/formulas/workbook.ts",
+          "sha256": "a3309bd4ae2e6d86ecb6ae5614c64e5a4c1b3fbddfd2ddecbdac6644331ce98f"
+        },
+        {
+          "path": "packages/ssconvert/src/formulas/permanent-name-rename.test.ts",
+          "sha256": "53768b26daeaa0a7bc2e7c3dd89e03864cb1e27c88f7d9c6454e70ad6406b095"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "9f51cdcb29d0d2417d6cc0d7454ea6612754298bfccfd7204c37fe5cc140474e"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "results": [
+        {
+          "id": "Data-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "wanted": "Custom\n",
+          "sdk": "Custom\n",
+          "shell": "Custom\n",
+          "sha256": "7157f561d0d56ad5246039feb9067cab09247d1dc2f1611cfabb0d4ca48be36e",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "Data-replay.xlsx",
+          "filename": "replay.xlsx",
+          "wanted": "Custom\n",
+          "sdk": "Custom\n",
+          "shell": "Custom\n",
+          "sha256": "81d24d070f0eca256d793a896c2eb6ccffb3f00ef61c33f5d6ffb6814bd8d57e",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "Renamed-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "wanted": "Renamed\n",
+          "sdk": "Renamed\n",
+          "shell": "Renamed\n",
+          "sha256": "0514ff68504fc626705c715007f7c97ef66d8ca35bf3b35beeb10dbb52b6636a",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "Renamed-replay.xlsx",
+          "filename": "replay.xlsx",
+          "wanted": "Renamed\n",
+          "sdk": "Renamed\n",
+          "shell": "Renamed\n",
+          "sha256": "c57a8c206bc7e3b4d9851320961e3cd7723d17bc560f69c5e2e13b25472bc04a",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "DATA-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "wanted": "DATA\n",
+          "sdk": "DATA\n",
+          "shell": "DATA\n",
+          "sha256": "96d25d06662e68583b204e01617d7caf2492dea8c7ce8c89da73c6027f2da54e",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "DATA-replay.xlsx",
+          "filename": "replay.xlsx",
+          "wanted": "DATA\n",
+          "sdk": "DATA\n",
+          "shell": "DATA\n",
+          "sha256": "ea8abfb06fd0299cad761580c6323bd57cd22f7d62f3ef7209e20ddcc1fa2e9f",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "New \"title\"\\path-replay.gnumeric",
+          "filename": "replay.gnumeric",
+          "wanted": "\"New \"\"title\"\"\\path\"\n",
+          "sdk": "\"New \"\"title\"\"\\path\"\n",
+          "shell": "\"New \"\"title\"\"\\path\"\n",
+          "sha256": "bb6ec55d38f8da2d6f9ce44ba62276e7388f3596dbba33bd5703eda7586a94e2",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "New \"title\"\\path-replay.xlsx",
+          "filename": "replay.xlsx",
+          "wanted": "\"New \"\"title\"\"\\path\"\n",
+          "sdk": "\"New \"\"title\"\"\\path\"\n",
+          "shell": "\"New \"\"title\"\"\\path\"\n",
+          "sha256": "20a2ecee2c3f86f22b33a8047eca3f6316677f5c49a5984e8804040f05115bd1",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "sdk-merge-original",
+          "filename": "merged.gnumeric",
+          "range": "Data!A1",
+          "wanted": "Custom\n",
+          "sdk": "Custom\n",
+          "shell": "Custom\n",
+          "sha256": "e670c1d9379eea3fc737de9754f07b5c754f74850fa7c5629ca71361f353a579",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "sdk-merge-renamed",
+          "filename": "merged.gnumeric",
+          "range": "'Data(2)'!A1",
+          "wanted": "Data(2)\n",
+          "sdk": "Data(2)\n",
+          "shell": "Data(2)\n",
+          "sha256": "e670c1d9379eea3fc737de9754f07b5c754f74850fa7c5629ca71361f353a579",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "shell-merge-original",
+          "filename": "merged.gnumeric",
+          "range": "Data!A1",
+          "wanted": "Custom\n",
+          "sdk": "Custom\n",
+          "shell": "Custom\n",
+          "sha256": "e670c1d9379eea3fc737de9754f07b5c754f74850fa7c5629ca71361f353a579",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        },
+        {
+          "id": "shell-merge-renamed",
+          "filename": "merged.gnumeric",
+          "range": "'Data(2)'!A1",
+          "wanted": "Data(2)\n",
+          "sdk": "Data(2)\n",
+          "shell": "Data(2)\n",
+          "sha256": "e670c1d9379eea3fc737de9754f07b5c754f74850fa7c5629ca71361f353a579",
+          "diagnostics": [],
+          "namespaceAndInputPreserved": true
+        }
+      ],
+      "exports": [
+        {
+          "name": "Data",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "sha256": "7157f561d0d56ad5246039feb9067cab09247d1dc2f1611cfabb0d4ca48be36e"
+        },
+        {
+          "name": "Data",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "sha256": "81d24d070f0eca256d793a896c2eb6ccffb3f00ef61c33f5d6ffb6814bd8d57e"
+        },
+        {
+          "name": "Renamed",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "sha256": "0514ff68504fc626705c715007f7c97ef66d8ca35bf3b35beeb10dbb52b6636a"
+        },
+        {
+          "name": "Renamed",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "sha256": "c57a8c206bc7e3b4d9851320961e3cd7723d17bc560f69c5e2e13b25472bc04a"
+        },
+        {
+          "name": "DATA",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "sha256": "96d25d06662e68583b204e01617d7caf2492dea8c7ce8c89da73c6027f2da54e"
+        },
+        {
+          "name": "DATA",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "sha256": "ea8abfb06fd0299cad761580c6323bd57cd22f7d62f3ef7209e20ddcc1fa2e9f"
+        },
+        {
+          "name": "New \"title\"\\path",
+          "exportType": "Gnumeric_XmlIO:sax:0",
+          "sha256": "bb6ec55d38f8da2d6f9ce44ba62276e7388f3596dbba33bd5703eda7586a94e2"
+        },
+        {
+          "name": "New \"title\"\\path",
+          "exportType": "Gnumeric_Excel:xlsx",
+          "sha256": "20a2ecee2c3f86f22b33a8047eca3f6316677f5c49a5984e8804040f05115bd1"
+        }
+      ],
+      "csvExecutions": 24,
+      "mergeExecutions": 2,
+      "resolutions": 0,
+      "sourceQualification": "Authenticated Gnumeric sheet.c setter; no native rename/merge command captured"
+    },
+    "draftCorrection": "Initial scratch XML omitted the required SheetNameIndex/version envelope and was rejected before rename; corrected input passes without runtime changes. Original rejected log retained.",
+    "screenshot": {
+      "inspected": true,
+      "sha256": "ab4d5f33c9600b54b7edfe599c30cc4b45f2c607de11129806ada83f8b963971"
+    },
+    "logs": [
+      {
+        "name": "red.log",
+        "sha256": "13f646a8f5ba8adaf5e1817e828005c62c0b8b46a7665eeb0c263601b861ddcb"
+      },
+      {
+        "name": "green.log",
+        "sha256": "97e31b1063f4aa6dbab6c99d997666b04254f4a4ae56299b744b6db637d03d4e"
+      },
+      {
+        "name": "package-tests.log",
+        "sha256": "4f3a08683ba2c8b6dc9a198e1ee687d4e10fb39bf028fa29ffb495dab2afb351"
+      },
+      {
+        "name": "lint.log",
+        "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+      },
+      {
+        "name": "build.log",
+        "sha256": "f002ddcf52771e5abc9f45ec349aebdd719ac11203de2b859b25871e2a4ca138"
+      },
+      {
+        "name": "public.log",
+        "sha256": "2c7cbffcf3c161728095af7c392abd3d2113bd94be121f53556eae55f1d988bb"
+      },
+      {
+        "name": "public-final.log",
+        "sha256": "e3a33adc17fbeece9ca3a3ee5c9a6b37bc99adab08de7226b0ec51dd28c88600"
+      },
+      {
+        "name": "screenshot.log",
+        "sha256": "6969a56974223454485e21cf40d40f2855d8f2acc51a1bb8c53b2377032851fb"
+      }
+    ]
+  },
+  "delivery": {
+    "permanentNameImportCommit": "01c32d052b0adabab8aaf0767fcb22c1d1347b12",
+    "permanentNameImportRemoteMainVerified": true,
+    "runtimeCommit": "Containing commit",
+    "runtimeRemoteMain": "Verify after atomic commit and push.",
+    "publication": "No containing successful root publication verified. Root35926983365 cancelled; successor35933814676 monitored separately."
+  },
+  "limitations": [
+    "Rename/reset contract authenticated from native source; no native rename/merge invocation captured here.",
+    "Calculations in this qualification explicitly request recalculation; broader dirty-cache edit behavior is not claimed.",
+    "Missing permanent names in other importers, undefined explicit-global name recovery, qualified local implicit-sheet binding and all nineteen original gap families remain open."
+  ],
+  "wholeGoalComplete": false
+}

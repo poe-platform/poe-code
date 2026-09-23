@@ -396,6 +396,11 @@
           "path": "docs/ssconvert/gnumeric-permanent-names-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/gnumeric-permanent-names-native-capture.json",
           "outcome": "Three original failures;83focused/22796package tests,lint/types/build and44compiledSDK/Shell conversions pass. Native default names and global shadowing match; undefined explicit-global recovery and qualified local implicit-sheet binding remain different."
+        },
+        {
+          "kind": "permanent-sheet-title-rename-and-remap",
+          "path": "docs/ssconvert/gnumeric-permanent-name-rename-gap-proof.json",
+          "outcome": "Four original failures repaired against authenticated native sheet setter.24focused/22802package tests,lint/types/build,24compiledCSV conversions,8exports and2merges pass; direct native rename capture and broader cache/name semantics remain open."
         }
       ],
       "delivery": {

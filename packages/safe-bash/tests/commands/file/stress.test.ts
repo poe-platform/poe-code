@@ -166,6 +166,22 @@ test("entry and argument preflight happen before filesystem access", async () =>
   assert.equal(reads, 0);
 });
 
+test("ENOENT after a successful lookup remains a processing failure", async () => {
+  const memory = createMemoryFileSystem(); await memory.writeFile("/entry", Buffer.from("hello"));
+  const failure = new FsError("ENOENT", { message: "processing failed" });
+  for (const overrides of [
+    { async capabilitiesFor() { throw failure; } },
+    { readStream() { return (async function* () { yield Buffer.from("x"); throw failure; })(); } },
+    { readStream() { return { [Symbol.asyncIterator]() { return {
+      async next() { return { done: false, value: Buffer.from("1234") }; }, async return() { throw failure; },
+    }; } }; } },
+  ]) {
+    const result = await run(["-b", "entry"], { limits: { maxSniffBytes: 4 } }, { fs: proxyFs(memory, overrides) });
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "file: entry: ENOENT: processing failed\n");
+  }
+});
+
 test("shared input/output/chunk/step limits include multiple operands and bounded diagnostics", async () => {
   const fs = createMemoryFileSystem(); await fs.writeFile("/one", Buffer.from("hello")); await fs.writeFile("/two", Buffer.from("world"));
   const input = await run(["-b", "one", "two"], { limits: { maxInputBytes: 9 } }, { fs });
@@ -174,8 +190,10 @@ test("shared input/output/chunk/step limits include multiple operands and bounde
     const result = await run(["-b", "-"], { limits }, { stdin: toByteSource("hello") });
     assert.equal(result.exitCode, 1); assert.match(result.stderr, /chunk|step/);
   }
-  const output = await run(["one", "two"], { limits: { maxOutputBytes: 4 } }, { fs });
-  assert.equal(output.exitCode, 1); assert.ok(output.stdoutBytes.length + output.stderrBytes.length <= 4);
+  for (const args of [["one", "two"], ["missing"]]) {
+    const output = await run(args, { limits: { maxOutputBytes: 4 } }, { fs });
+    assert.equal(output.exitCode, 1); assert.ok(output.stdoutBytes.length + output.stderrBytes.length <= 4);
+  }
 });
 
 test("empty-chunk producers have finite step quotas and yield to timer cancellation", async () => {
@@ -206,7 +224,7 @@ test("abort during pending stream read returns upstream and observes late reject
 test("pending metadata and whole-file reads propagate signal and observe late rejections", async () => {
   for (const method of ["lstat", "readFile"] as const) {
     const memory = createMemoryFileSystem(); await memory.writeFile("/entry", Buffer.from("hello"));
-    const started = deferred(), controller = new AbortController(), reason = new FsError("EACCES", { message: "cancel host" });
+    const started = deferred(), controller = new AbortController(), reason = new FsError("ENOENT", { message: "cancel host" });
     let rejectHost!: (reason: unknown) => void, suppliedSignal: AbortSignal | undefined;
     const fs = proxyFs(memory, { readStream: undefined, [method](_path: string, options: { signal: AbortSignal }) {
       suppliedSignal = options.signal; started.resolve(); return new Promise<FileStat | Uint8Array>((_resolve, reject) => { rejectHost = reject; });
@@ -225,11 +243,13 @@ test("family deadline interrupts uncooperative host operations without claiming 
 });
 
 test("deadline does not retry a blocked diagnostic sink after timeout", async () => {
-  let writes = 0;
-  await assert.rejects(run(["missing"], { limits: { maxDurationMs: 5 } }, { stderr: { write() {
-    writes++; return new Promise(() => {});
-  } } }), /time limit exceeded/);
-  assert.equal(writes, 1);
+  for (const [args, destination] of [[["missing"], "stdout"], [["-f", "missing"], "stderr"]] as const) {
+    let writes = 0;
+    await assert.rejects(run(args, { limits: { maxDurationMs: 5 } }, { [destination]: { write() {
+      writes++; return new Promise(() => {});
+    } } }), /time limit exceeded/);
+    assert.equal(writes, 1);
+  }
 });
 
 test("sink backpressure blocks next operand; rejection and abort retain their identities", async () => {
@@ -245,5 +265,6 @@ test("sink backpressure blocks next operand; rejection and abort retain their id
   rejectWrite(new Error("late write failure")); await new Promise<void>(resolve => setImmediate(resolve));
   const broken = new FsError("EPIPE", { message: "sink closed" });
   await assert.rejects(run(["one"], {}, { fs, stdout: { async write() { throw broken; } } }), error => error === broken);
-  await assert.rejects(run(["missing"], {}, { fs, stderr: { async write() { throw broken; } } }), error => error === broken);
+  await assert.rejects(run(["missing"], {}, { fs, stdout: { async write() { throw broken; } } }), error => error === broken);
+  await assert.rejects(run(["-f", "missing"], {}, { fs, stderr: { async write() { throw broken; } } }), error => error === broken);
 });

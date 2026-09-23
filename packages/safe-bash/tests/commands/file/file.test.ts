@@ -138,14 +138,75 @@ test("directories, empty files, links, dangling links, errors and multiple opera
   const fs = createMemoryFileSystem(); await fs.mkdir("/dir"); await fs.writeFile("/empty", new Uint8Array());
   await fs.writeFile("/text", Buffer.from("hello\n")); await fs.symlink!("text", "/link"); await fs.symlink!("missing", "/dangling");
   const mixed = await run(["dir", "empty", "missing", "text"], {}, { fs });
-  assert.equal(mixed.exitCode, 1); assert.equal(mixed.stdout, "dir: directory\nempty: empty\ntext: ASCII text\n");
-  assert.match(mixed.stderr, /missing.*no such file/);
+  assert.equal(mixed.exitCode, 0); assert.equal(mixed.stdout, "dir: directory\nempty: empty\nmissing: cannot open `missing' (No such file or directory)\ntext: ASCII text\n");
+  assert.equal(mixed.stderr, "");
   assert.equal((await run(["-bi", "link", "dangling", "dir"], {}, { fs, env: { POSIXLY_CORRECT: "1" } })).stdout,
     "inode/symlink; charset=binary\ninode/symlink; charset=binary\ninode/directory; charset=binary\n");
   assert.equal((await run(["-bL", "link"], {}, { fs })).stdout, "ASCII text\n");
   assert.equal((await run(["-bLh", "link"], {}, { fs })).stdout, "symbolic link to text\n");
-  assert.equal((await run(["-bL", "dangling"], {}, { fs })).exitCode, 1);
+  const dangling = await run(["-bL", "dangling"], {}, { fs });
+  assert.equal(dangling.exitCode, 0); assert.equal(dangling.stderr, "");
+  assert.equal(dangling.stdout, "cannot open `dangling' (No such file or directory)\n");
   assert.equal((await run(["-b", "-", "-"], {}, { stdin: toByteSource("hello") })).stdout, "ASCII text\nempty\n");
+});
+
+test("missing operands use native stdout diagnostics through Shell pipelines and conditionals", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("hello\n"));
+  await fs.symlink!("input", "/link");
+  await fs.symlink!("absent", "/dangling");
+  const shell = new Shell({ fs }); shell.use(standardCommands()).use(fileCommands());
+  const missing = "cannot open `absent' (No such file or directory)\n";
+  try {
+    for (const [source, stdout] of [
+      ["file -b absent", missing],
+      ["file -b absent input", `${missing}ASCII text\n`],
+      ["file -b input absent", `ASCII text\n${missing}`],
+      ["file -bL dangling", "cannot open `dangling' (No such file or directory)\n"],
+      ["file -bL link", "ASCII text\n"],
+      ["file -b absent input | cat", `${missing}ASCII text\n`],
+      ["if file -b absent; then echo success; else echo failure; fi", `${missing}success\n`],
+    ] as const) {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0, source); assert.equal(result.stderr, "", source);
+      assert.equal(result.stdout, stdout, source);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("missing diagnostics retain MIME-independent text and configured record formatting", async () => {
+  const diagnostic = "cannot open `absent' (No such file or directory)";
+  for (const [args, stdout] of [
+    [["absent"], `absent: ${diagnostic}\n`],
+    [["-bi", "absent"], `${diagnostic}\n`],
+    [["--mime-type", "absent"], `absent: ${diagnostic}\n`],
+    [["-b", "--mime-encoding", "absent"], `${diagnostic}\n`],
+    [["-0", "-F=", "absent"], `absent\0= ${diagnostic}\n`],
+    [["-00", "absent"], `absent\0${diagnostic}\0`],
+    [["-b00", "absent"], `${diagnostic}\0`],
+    [[""], "cannot open `' (No such file or directory)\n"],
+    [["-00", ""], "cannot open `' (No such file or directory)\0"],
+    [["-b", "bad\nname"], "cannot open `bad\\u{a}name' (No such file or directory)\n"],
+  ] as const) {
+    const result = await run(args);
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+  }
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/names", Buffer.from("absent\n"));
+  const listed = await run(["-f", "names", "-b", "absent"], {}, { fs });
+  assert.equal(listed.exitCode, 0); assert.equal(listed.stderr, "");
+  assert.equal(listed.stdout, `absent: ${diagnostic}\n${diagnostic}\n`);
+});
+
+test("missing-file handling does not turn host faults or stdin failures into success", async () => {
+  const fault = Object.assign(new Error("host fault"), { code: "ENOENT" });
+  const fs = proxyFs(createMemoryFileSystem(), { async lstat() { throw fault; } });
+  await assert.rejects(run(["absent"], {}, { fs }), error => error === fault);
+  const stdin = { async *[Symbol.asyncIterator]() { yield Buffer.from("hello"); throw new FsError("ENOENT", { message: "input failed" }); } };
+  const result = await run(["-b", "-"], {}, { stdin });
+  assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+  assert.match(result.stderr, /input failed/);
 });
 
 test("terminal-dangerous filenames and link targets are escaped without mutating VFS paths", async () => {
@@ -168,8 +229,9 @@ test("manual plugin registration works in actual binary/stdin/output/error Shell
   const stdin = await shell.exec("file -b --mime-type -", { stdin: Buffer.from('{"a":1}\n') });
   assert.equal(stdin.stdout, "application/json\n");
   const error = await shell.exec("file /missing /image.txt 2> /errors");
-  assert.equal(error.exitCode, 1); assert.equal(error.stderr, ""); assert.match(error.stdout, /PNG image/);
-  assert.match(Buffer.from(await fs.readFile("/errors")).toString(), /no such file/);
+  assert.equal(error.exitCode, 0); assert.equal(error.stderr, ""); assert.match(error.stdout, /PNG image/);
+  assert.ok(error.stdout.startsWith("/missing: cannot open `/missing' (No such file or directory)\n"));
+  assert.equal(Buffer.from(await fs.readFile("/errors")).toString(), "");
   const binary = await shell.exec("printf '\\000\\001' | file -bi -");
   assert.equal(binary.exitCode, 0); assert.equal(binary.stdout, "application/octet-stream; charset=binary\n");
   await fs.writeFile("/names", Buffer.from("/image.txt\n"));

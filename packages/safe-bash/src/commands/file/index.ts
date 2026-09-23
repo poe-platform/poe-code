@@ -156,7 +156,7 @@ async function prefix(source: ByteSource, budget: SharedBudget, signal: AbortSig
   return { bytes, complete };
 }
 
-async function inspect(context: CommandContext, name: string, follow: boolean, describe: boolean, budget: SharedBudget, stdinUsed: boolean): Promise<Classification> {
+async function inspect(context: CommandContext, name: string, follow: boolean, describe: boolean, budget: SharedBudget, stdinUsed: boolean): Promise<Classification | string> {
   if (name === "-") {
     if (stdinUsed) return classify(new Uint8Array(), true);
     const sample = await prefix(context.stdin, budget, budget.signal);
@@ -165,10 +165,18 @@ async function inspect(context: CommandContext, name: string, follow: boolean, d
     budget.checkTime();
     return result;
   }
-  if (!name || name.includes("\0")) throw new FsError(name ? "EINVAL" : "ENOENT", { path: name });
-  const path = pathOf(context, name);
   const fs = context.fs;
-  const stat: FileStat = await budget.host(() => follow ? fs.stat(path, { signal: budget.signal }) : fs.lstat(path, { signal: budget.signal }));
+  let path: string;
+  let stat: FileStat;
+  try {
+    if (!name || name.includes("\0")) throw new FsError(name ? "EINVAL" : "ENOENT", { path: name });
+    path = pathOf(context, name);
+    stat = await budget.host(() => follow ? fs.stat(path, { signal: budget.signal }) : fs.lstat(path, { signal: budget.signal }));
+  } catch (error) {
+    budget.signal.throwIfAborted();
+    if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+    return `cannot open \`${await budget.escapeName(name)}' (No such file or directory)`;
+  }
   if (stat.type === "directory") return { description: "directory", mime: "inode/directory", encoding: "binary" };
   if (stat.type === "character") return { description: "character special", mime: "inode/chardevice", encoding: "binary" };
   if (stat.type === "symlink") {
@@ -222,7 +230,7 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
       let stdinUsed = args.stdinUsed;
       for (const { name, format } of [...args.listed, ...args.names.map(name => ({ name, format: args }))]) {
         await budget.step();
-        let detected: Classification;
+        let detected: Classification | string;
         try { detected = await inspect(context, name, format.follow, !format.mimeType && !format.mimeEncoding, budget, stdinUsed); }
         catch (error) {
           budget.signal.throwIfAborted();
@@ -235,9 +243,9 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
           writing = false;
           continue;
         } finally { if (name === "-") stdinUsed = true; }
-        const content = format.mimeType && format.mimeEncoding ? `${detected.mime}; charset=${detected.encoding}`
+        const content = typeof detected === "string" ? detected : format.mimeType && format.mimeEncoding ? `${detected.mime}; charset=${detected.encoding}`
           : format.mimeType ? detected.mime : format.mimeEncoding ? detected.encoding : detected.description;
-        const label = format.brief ? "" : `${name === "-" ? "/dev/stdin" : await budget.escapeName(name)}${format.print0 ? "\0" : ""}${format.print0 >= 2 ? "" : `${format.separator} `}`;
+        const label = format.brief || !name ? "" : `${name === "-" ? "/dev/stdin" : await budget.escapeName(name)}${format.print0 ? "\0" : ""}${format.print0 >= 2 ? "" : `${format.separator} `}`;
         writing = true;
         await budget.output(context.stdout, `${label}${content}${format.print0 >= 2 ? "\0" : "\n"}`);
         writing = false;

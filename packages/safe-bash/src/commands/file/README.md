@@ -41,18 +41,23 @@ signals and budgeted sinks remain intact, without resetting the shell budget.
   Combining type and encoding flags also selects both, regardless of order.
 - `-h` / `--no-dereference`: default, regardless of POSIXLY_CORRECT. Classify the
   symlink entry, without checking its target. `-L` / `--dereference`: follow using
-  VFS stat/read behavior. Last -h/-L wins. Loops/dangling links under -L are errors.
+  VFS stat/read behavior. Last -h/-L wins. Loops under -L are errors; dangling
+  links use the missing-path diagnostic below.
   A backend lacking readlink can still identify the entry, without a target label.
 - `-` consumes stdin once and labels it `/dev/stdin` (a display label, never a
   host/VFS path lookup). Later `-` operands produce empty. Prefix termination
   closes the upstream iterator; it does not promise to preserve unread pipe data.
   No operands is usage error, not implicit stdin. `--` ends option parsing.
 - `--help` and `--version` require no input; the version is virtual-bash-file-v1.
-- Ordinary typed VFS errors go to stderr, retain their messages/path meaning,
-  continue later operands and yield status 1. Unsupported options/usage yield 2;
-  successful classifications yield 0. This differs from native file's default
-  stdout-success treatment of some filesystem errors. Non-typed host faults,
-  sink failures and cancellation propagate to the shell; no failed sink retry.
+- Missing-path lookup errors (`ENOENT`), including dangling links followed with
+  `-L`, print `cannot open` with the original operand and `No such file or directory`
+  on stdout, continue later operands and yield status 0, matching native file's
+  default. MIME flags retain this diagnostic text; label/separator/NUL options
+  still apply. An empty operand omits the label. Missing `-f` lists, stdin/read
+  failures and other typed VFS errors retain their messages on stderr and yield
+  status 1. Unsupported options/usage yield 2; successful classifications yield 0.
+  Non-typed host faults, sink failures and cancellation propagate to the shell;
+  no failed sink retry.
 
 Directories and symlinks have inode MIME types; observed empty content uses
 inode/x-empty. Permission is determined by the actual read, never fabricated

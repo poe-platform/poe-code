@@ -73,7 +73,7 @@ import { PathLookup, pathTargets } from "./path-lookup.js";
 import { transformParameter } from "./parameter-transforms.js";
 import { creationFileSystem, umaskBuiltin } from "./umask.js";
 
-async function loopCount(argument: string, budget: Budget, signal: AbortSignal): Promise<number | undefined> {
+async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
     budget.cpuCheckpoint();
     signal.throwIfAborted();
@@ -92,15 +92,18 @@ async function loopCount(argument: string, budget: Budget, signal: AbortSignal):
   if (negative || argument[start] === "+") start++;
   if (start === end) return undefined;
   let value = 0n;
+  let overflow = false;
   for (let index = start; index < end; index++) {
     if (index % 1024 === 0) await checkpoint();
     const digit = argument.charCodeAt(index) - 48;
     if (digit < 0 || digit > 9) return undefined;
+    if (overflow) continue;
     value = value * 10n + BigInt(digit);
     // Keep arithmetic bounded even for arbitrarily long decimal arguments.
-    if (value > (negative ? 9223372036854775808n : 9223372036854775807n)) return undefined;
+    overflow = value > (negative ? 9223372036854775808n : 9223372036854775807n);
   }
-  return Number(negative ? -value : value);
+  if (overflow) return "overflow";
+  return negative ? -value : value;
 }
 
 export const defaultLimits: Required<ShellLimits> = {
@@ -6138,11 +6141,12 @@ export class Runtime {
       return 2;
     }
     if (command === "shift") {
-      const count = args[0] === undefined ? 1 : await loopCount(args[0], this.budget, this.signal);
-      if (count === undefined) {
+      const value = args[0] === undefined ? 1n : await signedLong(args[0], this.budget, this.signal);
+      if (value === undefined || value === "overflow") {
         await writeDiagnostic(stderr, `shift: ${args[0]}: numeric argument required\n`);
         return 2;
       }
+      const count = Number(value);
       if (args.length > 1 || count < 0 || count > state.positional.length) return 1;
       this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
@@ -6681,29 +6685,22 @@ export class Runtime {
     if (command === "exit" || command === "return") {
       if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
       if (args.length > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
-      let argument = args[0];
-      if (argument !== undefined) {
-        // Bash 5.3 admits ASCII whitespace around decimal statuses.
-        let start = 0, end = argument.length;
-        while (start < end && " \t\n\v\f\r".includes(argument[start]!)) start++;
-        while (end > start && " \t\n\v\f\r".includes(argument[end - 1]!)) end--;
-        argument = argument.slice(start, end);
-      }
-      const digits = argument?.startsWith("+") || argument?.startsWith("-") ? argument.slice(1) : argument;
-      if (digits !== undefined && (!digits.length || [...digits].some(character => character < "0" || character > "9"))) {
+      const value = args[0] === undefined ? BigInt(state.status) : await signedLong(args[0], this.budget, this.signal);
+      if (value === undefined || value === "overflow") {
         await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
         if (command === "exit") return 2;
         throw completedExit(2, command);
       }
-      const status = argument === undefined ? state.status : Number((BigInt(argument) % 256n + 256n) % 256n);
+      const status = args[0] === undefined ? state.status : Number((value % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
-      const levels = args[0] === undefined ? 1 : await loopCount(args[0], this.budget, this.signal);
-      if (levels === undefined) {
+      const count = args[0] === undefined ? 1n : await signedLong(args[0], this.budget, this.signal);
+      if (count === undefined || count === "overflow") {
         await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
         throw completedExit(2, "exit");
       }
+      const levels = Number(count);
       if (args.length > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);

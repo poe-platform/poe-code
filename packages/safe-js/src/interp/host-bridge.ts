@@ -106,6 +106,12 @@ type CallerInjectedFunction = {
 
 const awaitedHostOperations = new WeakSet<CallerInjectedFunction>();
 
+const budgetedHostOperations = new WeakMap<CallerInjectedFunction, (args: readonly unknown[], budget: Budget) => unknown>();
+
+export function declareBudgetedHostOperation(operation: CallerInjectedFunction, invoke: (args: readonly unknown[], budget: Budget) => unknown): void {
+  budgetedHostOperations.set(operation, invoke);
+}
+
 const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCallPolicyMode>();
 const hostOperationReplayHandlers = new WeakMap<
   CallerInjectedFunction,
@@ -255,6 +261,11 @@ function wrapCallerInjectedFunction(
         const captured = options.realm?.captureArguments(callable, args, copyArguments);
         const hostArgs = captured?.args ?? copyArguments(args);
 
+        const budgetedOperation = budgetedHostOperations.get(callable);
+        const callOperation = () => budgetedOperation === undefined
+          ? Reflect.apply(callable, undefined, hostArgs)
+          : budgetedOperation(hostArgs, options.budget);
+
         const hostCalls = options.hostCalls;
         const operation = options.operation ?? bindingName;
         const moduleId = options.moduleId ?? "<bindings>";
@@ -266,13 +277,13 @@ function wrapCallerInjectedFunction(
           let result: unknown;
           if (options.realm !== undefined) {
             try {
-              result = options.realm.invoke(callable, () => Reflect.apply(callable, undefined, hostArgs));
+              result = options.realm.invoke(callable, callOperation);
             } catch (error) {
               captured!.rollback();
               throw error;
             }
           } else {
-            result = invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options);
+            result = invokeHostCallback(callOperation, options);
           }
           if (awaitResult) {
             return wrapHostPromiseWithSignal(Promise.resolve(result), options.signal)
@@ -364,7 +375,7 @@ function wrapCallerInjectedFunction(
         const result = executeHostCall(
           issued.record,
           issued.restored,
-          () => invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
+          () => invokeHostCallback(callOperation, options),
           stackFrames,
           options,
           context?.span,

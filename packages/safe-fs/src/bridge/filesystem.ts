@@ -60,11 +60,13 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   readonly #cwd: string;
   readonly #root: string;
   readonly #signal: AbortSignal | undefined;
+  readonly #readFileMaxBytes: number | undefined;
+  readonly #reserveReadFile: (() => () => void) | undefined;
 
   readonly #primitives: BridgePrimitives<Binary>;
   readonly #codec: FsBridgeCodec;
 
-  constructor(fs: FileSystem, options: { readonly cwd?: string; readonly root?: string; readonly signal?: AbortSignal }, primitives: BridgePrimitives<Binary>) {
+  constructor(fs: FileSystem, options: { readonly cwd?: string; readonly root?: string; readonly signal?: AbortSignal; readonly readFileMaxBytes?: number; readonly reserveReadFile?: () => () => void }, primitives: BridgePrimitives<Binary>) {
     if (fs === undefined) throw new TypeError("An explicit filesystem is required");
     const cwd = options.cwd ?? "/";
     if (!primitives.paths.isAbsolute(cwd) || cwd.includes("\0")) throw new TypeError("cwd must be an absolute virtual path");
@@ -83,6 +85,11 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     this.#root = primitives.paths.resolve("/", options.root ?? cwd);
     assertBridgePath(this.#root, this.#cwd);
     this.#signal = options.signal;
+    const maximum = options.readFileMaxBytes;
+    if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new TypeError("Invalid readFileMaxBytes");
+    this.#readFileMaxBytes = maximum;
+    if (options.reserveReadFile !== undefined && typeof options.reserveReadFile !== "function") throw new TypeError("Invalid reserveReadFile");
+    this.#reserveReadFile = options.reserveReadFile;
   }
 
   #encoding(value: unknown, fallback: Encoding, names = false): string {
@@ -144,9 +151,25 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (options.flag !== undefined && options.flag !== "r") unsupported("readFile flag");
     if (options.encoding === "buffer") throw new TypeError("Invalid read encoding");
     const codec = this.#encoding(options.encoding, "buffer");
-    const bytes = await this.#call([path], (signal, resolved) => this.#fs.readFile(resolved[0]!, signal), options.signal);
-    const buffer = this.#primitives.copyBytes(bytes);
-    return codec === "buffer" ? buffer : this.#codec.decode(buffer, codec);
+    const maxBytes = this.#readFileMaxBytes;
+    const release = this.#reserveReadFile?.();
+    let pending: Promise<Uint8Array> | undefined;
+    try {
+      const bytes = await this.#call([path], (signal, resolved) => {
+        pending = this.#fs.readFile(resolved[0]!, { ...signal, ...(maxBytes === undefined ? {} : { maxBytes }) });
+        return pending;
+      }, options.signal);
+      if (maxBytes !== undefined && bytes.byteLength > maxBytes) throw fsError("EFBIG", "readFile");
+      const buffer = this.#primitives.copyBytes(bytes);
+      return codec === "buffer" ? buffer : this.#codec.decode(buffer, codec);
+    } finally {
+      // Cancellation may reject #call before a backend acknowledges it. Keep
+      // its reservation until the actual read settles, as well as through decode.
+      if (release !== undefined) {
+        if (pending === undefined) release();
+        else void pending.then(release, release);
+      }
+    }
   }
 
   async #write(path: unknown, data: unknown, value: unknown, fallback: "w" | "a"): Promise<void> {

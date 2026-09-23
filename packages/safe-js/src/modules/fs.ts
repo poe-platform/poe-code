@@ -11,8 +11,9 @@ import {
   isPathWithin
 } from "@poe-code/safe-fs/core";
 
+import type { Budget } from "../interp/budget.js";
 import { getOwnErrorCode } from "../error-codes.js";
-import { declareHostOperation } from "../interp/host-bridge.js";
+import { declareHostOperation, declareBudgetedHostOperation } from "../interp/host-bridge.js";
 import {
   type CanonicalPathFs,
   containsPath,
@@ -350,6 +351,9 @@ export type FsModule = Pick<FsImplementation, FsPassthroughName> & {
   };
 };
 
+const hostReadMemoryLimit = 16 * 1024 * 1024;
+let reservedHostReadMemory = 0;
+
 export function makeFsModule(options: FsModuleOptions = {}): FsModule {
   assertSupportedPlatform();
 
@@ -383,6 +387,40 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
       ? implementation
       : makeRootedFs(implementation, options.root, options.adapter, options.cwd, options.signal);
 
+  let readFile = bindStringResult(fs, "readFile");
+  if (options.adapter !== undefined) {
+    // Ten bytes per input byte covers the backend result, bridge/codec copies,
+    // worst-case hex UTF-16 output and guest admission. Shared by all adapter modules,
+    // including simultaneous runs and direct host calls.
+    const boundedRead = async (args: readonly unknown[], budget?: Budget): Promise<string> => {
+      FS_PATH_ARGUMENTS.readFile.forEach((argument, index) => assertSupportedPath("readFile", argument, args[index]));
+      assertSupportedOptions("readFile", args);
+      assertNoBufferResult("readFile", args[1]);
+      const maxBytes = Math.max(0, Math.floor(Math.min(
+        hostReadMemoryLimit / 40,
+        (budget?.limits.stringLength ?? Infinity) / 2,
+        ((budget?.limits.dataSize ?? Infinity) - (budget?.currentDataSize ?? 0)) / 4
+      )));
+      const reservation = maxBytes * 10;
+      const bridge = createNodeFsBridge(options.adapter!, {
+        cwd: options.root === undefined ? options.cwd : undefined,
+        signal: options.signal,
+        readFileMaxBytes: maxBytes,
+        reserveReadFile() {
+          if (reservedHostReadMemory + reservation > hostReadMemoryLimit) throw new Error("Filesystem read host memory budget exceeded");
+          reservedHostReadMemory += reservation;
+          return () => { reservedHostReadMemory -= reservation; };
+        }
+      });
+      const boundedFs = options.root === undefined ? bridge
+        : makeRootedFs(bridge, options.root, options.adapter, options.cwd, options.signal);
+      return await invoke(boundedFs, "readFile", args) as string;
+    };
+    // Direct host calls must use the same reservation pool.
+    const directRead = declare("readFile", "re-issue", (...args: readonly unknown[]) => boundedRead(args)) as FsModule["readFile"];
+    declareBudgetedHostOperation(directRead, boundedRead);
+    readFile = directRead;
+  }
   return {
     access: bind(fs, "access", "re-issue"),
     appendFile: bind(fs, "appendFile", "read-side-effect"),
@@ -396,7 +434,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModule {
     // string-result operations, but its name still crosses as a Buffer for a buffer
     // encoding and so goes through the same guard.
     mkdtemp: bindStringResult(fs, "mkdtemp", "read-side-effect"),
-    readFile: bindStringResult(fs, "readFile"),
+    readFile,
     readdir: bindReaddir(fs),
     readlink: bindStringResult(fs, "readlink"),
     realpath: bindStringResult(fs, "realpath"),

@@ -109,7 +109,7 @@ before implementing the host operation; ordinary writes do not provide it.
 | `createOverlayFileSystem({ upper, lower })` | Reading through to a lower layer and writing changes to an upper layer |
 | `withFileSystemQuota(filesystem, { maxBytes })` | Enforcing a cumulative logical-byte ceiling across every write path |
 
-`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. The portable `createFsBridge` from `@poe-platform/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
+`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. A trusted `reserveReadFile` callback can reserve host resources and return a release function; cancellation retains the reservation until the backend read settles. The portable `createFsBridge` from `@poe-platform/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
 
 ## Write an adapter
 
@@ -233,8 +233,8 @@ There are no package environment variables, implicit credentials, or automatic `
 | Mount | Required `root`: fallback filesystem. `mounts` defaults to `{}` and maps absolute virtual paths to filesystems. |
 | Overlay | Required `upper` and `lower`; `maxBufferBytes` is unlimited unless configured. |
 | Quota | `withFileSystemQuota` requires a nonnegative safe-integer `maxBytes`. It serializes mutations and counts files, symlinks, copies, hard links, truncation, and streaming writes. |
-| Node bridge | `cwd` defaults to `/`, must be an absolute virtual path; optional lifetime `signal`. |
-| Portable bridge | Same `cwd` and `signal`, plus required `codec` with `isEncoding`, `encode`, and `decode` functions. |
+| Node bridge | `cwd` defaults to `/`, must be an absolute virtual path; optional lifetime `signal` and trusted `readFileMaxBytes` cap forwarded to backend reads before copy/decode. |
+| Portable bridge | Same `cwd`, `signal` and `readFileMaxBytes`, plus required `codec` with `isEncoding`, `encode`, and `decode` functions. |
 | Catalog example | Required `files`: a plain record of single-component filenames to text strings; no other options. |
 
 ### Per-operation options

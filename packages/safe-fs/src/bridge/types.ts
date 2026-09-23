@@ -12,6 +12,10 @@ export interface FsBridgeOptions {
   /** Optional confinement boundary; defaults to cwd. */
   readonly root?: string;
   readonly signal?: AbortSignal;
+  /** Trusted per-read backend byte cap, enforced before copying or decoding. */
+  readonly readFileMaxBytes?: number;
+  /** Reserve host resources; release after decoding and actual backend settlement, including cancellation. */
+  readonly reserveReadFile?: () => () => void;
 }
 
 export interface FsBridgeFileSystem extends FileSystem {

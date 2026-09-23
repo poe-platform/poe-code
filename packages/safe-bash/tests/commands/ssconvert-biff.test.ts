@@ -77,7 +77,11 @@ test("BIFF import shares actual virtual command/SDK bytes, replay and memfs effe
     volume.writeFileSync("/names.xml", names.stdout);
     const checkpoint = await engine.readWorkbook({ kind: "stream", source: [new TextEncoder().encode(names.stdout)] }, {}, { signal });
     assert.deepEqual(JSON.parse(JSON.stringify(checkpoint.names)),
-      [{ name: "Sheet_Title_A", expression: "42", position: { sheet: "s1", row: 0, column: 0 } }]);
+      [
+        { name: "Sheet_Title_A", expression: "42", position: { sheet: "s1", row: 0, column: 0 } },
+        { name: "Sheet_Title", expression: '"Worksheet"', sheet: "s1", position: { sheet: "s1", row: 0, column: 0 } },
+        { name: "Print_Area", expression: "#REF!", sheet: "s1", position: { sheet: "s1", row: 0, column: 0 } }
+      ]);
     assert.equal(checkpoint.names?.[0]?.position?.sheet, checkpoint.sheets[0]?.id);
     const nameReplay = await shell.exec("ssconvert -T Gnumeric_XmlIO:sax:0 /names.xml fd://1");
     assert.equal(nameReplay.exitCode, 0, nameReplay.stderr); assert.equal(nameReplay.stderr, "");

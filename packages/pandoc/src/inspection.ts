@@ -15,6 +15,9 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
       "--number-sections/-N --toc (HTML standalone) --ascii (HTML)\n" +
       "--shift-heading-level-by -6..6 --strip-comments --eol=lf|crlf|native\n" +
       "--metadata/-M KEY[=VALUE] (bare KEY is true) --metadata-file FILE.json --lossy --fail-if-warnings\n" +
+      "--defaults/-d FILE.yaml --template FILE --variable/-V KEY=VALUE --variable-json KEY:JSON\n" +
+      "--include-in-header/-H FILE --include-before-body/-B FILE --include-after-body/-A FILE\n" +
+      "--file-scope --sandbox (uses explicit VFS authority; no native sandbox guarantee)\n" +
       "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n" +
       "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n" +
       "--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\n" +

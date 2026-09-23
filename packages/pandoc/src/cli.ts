@@ -17,6 +17,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   const metadataJson: MetadataObject[] = [];
   const metadataFiles: InputSource[] = [];
   const operands: InputSource[] = [];
+  const variables: Record<string, import("./types.js").MetadataValue> = {};
   let destination: string | undefined;
   let outputSeen = false;
   let yes = false;
@@ -33,6 +34,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
   for (let i = 0; i < args.length; i++) {
     let arg = args[i]!;
     if (!positional && arg === "--yes") {if (yes) fail("Repeated option: --yes"); yes = true; continue;}
+    if (!positional && (arg === "--file-scope" || arg === "--sandbox")) {options[arg === "--file-scope" ? "fileScope" : "sandbox"] = true; continue;}
     if (arg === "--" && !positional) {positional = true; continue;}
     if (arg === "-") {
       if (stdinUsed || !files.stdin) fail("Stdin may be supplied once");
@@ -70,6 +72,27 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       if (boolean && value !== "true" && value !== "false") fail(`Invalid boolean: ${name}`);
       if (Object.hasOwn(options, writerOption)) fail(`Repeated option: ${name}`);
       Object.assign(options, {[writerOption]: boolean ? value === "true" : ["columns", "shiftHeadingLevelBy"].includes(writerOption) ? Number(value) : value});
+      continue;
+    }
+    const local = new Map<string, "template" | "includeInHeader" | "includeBeforeBody" | "includeAfterBody">([["--template", "template"], ["--include-in-header", "includeInHeader"], ["-H", "includeInHeader"], ["--include-before-body", "includeBeforeBody"], ["-B", "includeBeforeBody"], ["--include-after-body", "includeAfterBody"], ["-A", "includeAfterBody"]]).get(name);
+    if (local) {
+      const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (!path || path.startsWith("-")) fail(`Missing value: ${name}`);
+      if (local === "template") {if (options.template) fail("Repeated template option"); options.template = source(path!);}
+      else options[local] = [...(options[local] ?? []), source(path!)];
+      continue;
+    }
+    if (name === "--variable" || name === "--variable-json" || arg.startsWith("-V")) {
+      const value = arg === "-V" || (equals < 0 && !arg.startsWith("-V")) ? args[++i] : arg.startsWith("-V") ? arg.slice(2) : arg.slice(equals + 1);
+      if (!value) fail("Missing variable value");
+      const split = Math.min(...[value!.indexOf("="), value!.indexOf(":")].filter(n => n >= 0));
+      const key = Number.isFinite(split) ? value!.slice(0, split) : value!;
+      if (!key || ["__proto__", "constructor", "prototype"].includes(key) || [...key].some(ch => !(ch >= "a" && ch <= "z") && !(ch >= "A" && ch <= "Z") && !(ch >= "0" && ch <= "9") && !"_-".includes(ch))) fail("Invalid variable key");
+      let content: import("./types.js").MetadataValue = Number.isFinite(split) ? value!.slice(split + 1) : true;
+      if (name === "--variable-json") {try {content = JSON.parse(String(content));} catch {fail("Invalid JSON variable value");}}
+      if (Object.hasOwn(variables, key)) {const previous = variables[key]!; variables[key] = [...(Array.isArray(previous) ? previous : [previous]), content];}
+      else variables[key] = content;
+      options.variables = variables;
       continue;
     }
     if (name === "--pdf-engine") fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");

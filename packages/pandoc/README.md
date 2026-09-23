@@ -49,7 +49,27 @@ headings, `stripComments` removes raw HTML comments while preserving code, and
 `eol` (`lf`, `crlf`, or portable `native` = LF) selects text line endings.
 The command exposes the corresponding hyphenated flags and accepts
 `--standalone=false`. These options extend the bounded writers; they do not
-imply upstream template or complete writer equivalence.
+imply complete native writer equivalence.
+
+Local HTML templates use `template` (an `InputSource`) and `variables` (a JSON
+map), with `$body$`, `$name$`, `$$`, `$if(name)$…$else$…$endif$`, and
+`$for(name)$…$endfor$`. Partials, map interpolation, loop separators and other
+template expressions are rejected. `includeInHeader`, `includeBeforeBody`, and
+`includeAfterBody` accept ordered `InputSource` arrays; includes imply standalone
+HTML unless a custom template is supplied. The corresponding flags are
+`--template`, `--variable`/`-V`, `--variable-json`, `--include-in-header`/`-H`,
+`--include-before-body`/`-B`, and `--include-after-body`/`-A`.
+
+`--defaults`/`-d` reads an explicitly named VFS YAML map. Use `from`/`reader` and
+`to`/`writer` to select formats; explicit flags override scalar defaults.
+Supported defaults cover the writer flags above, template variables, metadata,
+include arrays, `input-files`, and `output-file`. Repeated defaults combine
+ordered file lists and maps; unsafe execution keys and YAML aliases are refused.
+SDK callers can use `resolveConversionArgs(args, files, signal, context)` with
+explicit read/write callbacks, then pass its options and operands to `convert`.
+`fileScope`/`--file-scope` parses document operands separately.
+`sandbox`/`--sandbox` retains explicit VFS authority and never provides a native
+Pandoc sandbox or additional filesystem isolation.
 
 Resources use `resourcePath` (ordered VFS directories) and `extractMedia` (VFS
 output directory). No media is downloaded implicitly. PDF options are `pdf`

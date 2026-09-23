@@ -71,8 +71,8 @@ it("accepts -s, metadata colon syntax, and explicit CLI raw-content policy", asy
   expect(text(ctx.stdout)).toContain("<title>raw</title>");
   expect(text(ctx.stdout)).toContain("&lt;script&gt;x&lt;/script&gt;");
 });
-it("rejects templates and malformed metadata/options before reading stdin", async () => {
-  for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "x=y"], ["-Vx=y"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
+it("rejects unconfigured local files and malformed metadata/options before reading stdin", async () => {
+  for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "=x"], ["--variable-json=x:not-json"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
     const ctx = context(["-f", "json", "-t", "html", ...extra]);
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
     expect(await createPandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});

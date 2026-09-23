@@ -118,6 +118,14 @@ export interface EpubOptions {
   readonly chapterLevel?: number;
 }
 export interface WriteOptions {
+  readonly template?: InputSource;
+  readonly variables?: Readonly<Record<string, MetadataValue>>;
+  readonly includeInHeader?: readonly InputSource[];
+  readonly includeBeforeBody?: readonly InputSource[];
+  readonly includeAfterBody?: readonly InputSource[];
+  readonly fileScope?: boolean;
+  /** Admits only existing explicit VFS capabilities; never a native sandbox guarantee. */
+  readonly sandbox?: boolean;
   /** Opt into format metadata defaults; absent means strict explicit metadata. */
   readonly yes?: boolean;
   readonly pdf?: PdfOptions;

@@ -59,3 +59,5 @@ export { createFormatInspectionCommand, createPandocCommand } from "./safe-bash.
 export type { FormatInspectionContext, PandocCommandContext } from "./safe-bash.js";
 export { parseConversionArgs } from "./cli.js";
 export type { CommandInputs } from "./cli.js";
+
+export {resolveConversionArgs} from "./defaults.js";

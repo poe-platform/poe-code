@@ -161,3 +161,25 @@ test("pandoc preserves consumer closure while the SDK acquires input", async () 
     assert.equal(result.exitCode, 141, result.stderr);
   } finally {await shell.dispose(); await initial.dispose();}
 });
+
+test("pandoc local defaults, templates, variables and includes use the configured filesystem", async () => {
+  const {shell, volume} = fixture();
+  volume.writeFileSync("/work/settings.yaml", "from: commonmark\nto: html\ntemplate: page.html\nvariables:\n  label: Audit\ninclude-before-body: [before.html]\ninclude-after-body: [after.html]\n");
+  volume.writeFileSync("/work/page.html", "$label$\n$body$");
+  volume.writeFileSync("/work/before.html", "<p>Before</p>\n");
+  volume.writeFileSync("/work/after.html", "<p>After</p>\n");
+  try {
+    const result = await shell.exec("pandoc -d settings.yaml b.md");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "Audit\n<p>Before</p>\n<p>Beta</p>\n<p>After</p>\n");
+    for (const path of ["settings.yaml", "page.html", "before.html", "after.html"]) {
+      const original = volume.readFileSync(`/work/${path}`, "utf8");
+      const alias = await shell.exec(`pandoc -d settings.yaml b.md -o ${path}`);
+      assert.equal(alias.exitCode, 9, alias.stderr);
+      assert.equal(volume.readFileSync(`/work/${path}`, "utf8"), original);
+    }
+    const output = await shell.exec("pandoc -d settings.yaml b.md -o result.html");
+    assert.equal(output.exitCode, 0, output.stderr);
+    assert.equal(volume.readFileSync("/work/result.html", "utf8"), result.stdout);
+  } finally {await shell.dispose();}
+});

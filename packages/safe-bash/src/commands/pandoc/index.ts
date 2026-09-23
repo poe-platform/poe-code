@@ -1,4 +1,4 @@
-import {convert, parseConversionArgs, inspectCommand, PandocError, defaultLimits, type ConversionContext} from "@poe-code/pandoc";
+import {convert, resolveConversionArgs, inspectCommand, PandocError, defaultLimits, type ConversionContext} from "@poe-code/pandoc";
 import {createOutputOperation, getCommandArguments, readBytes, dirname, FsError, type CommandDefinition, type CommandContext, type OutputOperation, type FileStat, type VirtualShellPlugin} from "../../contracts/index.js";
 import {writeFileOutput} from "../../contracts/filesystem-output.js";
 import {compareObservedEntries, compareCopyIdentity} from "../copy-identity.js";
@@ -66,9 +66,9 @@ export function createPandocCommand(options: PandocCommandsOptions = {}): Comman
         // Parsing checks authority without acquiring or opening the destination.
         writeFile: async () => {}
       };
-      const parsed = parseConversionArgs(carrier.args, files, invocation.signal);
-      const protectedInputs = [...(parsed.operands ?? []), ...(parsed.options.metadataFiles ?? []), ...(parsed.options.pdfFonts ?? [])];
-      const protectedPaths = protectedInputs.filter(input => input.source && !("chunks" in input && input.chunks === files.stdin)).map(input => pathOf(context, input.source!));
+      const parsed = await resolveConversionArgs(carrier.args, files, invocation.signal, {limits});
+      const protectedInputs = [...(parsed.operands ?? []), ...(parsed.options.metadataFiles ?? []), ...(parsed.options.pdfFonts ?? []), ...(parsed.options.template ? [parsed.options.template] : []), ...(parsed.options.includeInHeader ?? []), ...(parsed.options.includeBeforeBody ?? []), ...(parsed.options.includeAfterBody ?? [])];
+      const protectedPaths = [...parsed.defaultsPaths.map(path => pathOf(context, path)), ...protectedInputs.filter(input => input.source && !("chunks" in input && input.chunks === files.stdin)).map(input => pathOf(context, input.source!))];
       const readsStdin = parsed.operands === undefined || parsed.operands.some(input => "chunks" in input && input.chunks === files.stdin);
       const destination = parsed.destination === undefined ? undefined : pathOf(context, parsed.destination);
       let expected: FileStat | null = null;

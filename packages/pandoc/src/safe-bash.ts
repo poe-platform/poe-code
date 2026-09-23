@@ -2,7 +2,7 @@ import { inspectFormats, inspectCommand } from "./inspection.js";
 import { PandocError } from "./errors.js";
 import { convert } from "./engine.js";
 import type { ConversionContext, ResourceFileSystem } from "./types.js";
-import { parseConversionArgs } from "./cli.js";
+import { resolveConversionArgs } from "./defaults.js";
 import type { CommandInputs } from "./cli.js";
 
 const errorStatuses: Readonly<Record<string, number>> = {
@@ -48,7 +48,7 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
             readFile: (path, signal) => context.fs!.readFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, {signal}),
             writeFile: (path, bytes, signal) => context.fs!.writeFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, bytes, {signal})
           } : context;
-          const {options, operands, destination} = parseConversionArgs(context.args, files, context.signal);
+          const {options, operands, destination} = await resolveConversionArgs(context.args, files, context.signal, configured);
           const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, signal: context.signal,
             ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id, base, signal) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
             ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd}),

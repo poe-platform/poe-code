@@ -22,7 +22,12 @@ import type {
   ReaderCapability
 } from "./types.js";
 
+import {LocalTemplate} from "./templates.js";
+
 class Session extends ExecutionContext {
+  localTemplate: LocalTemplate | undefined;
+  variables: WriteOptions["variables"];
+  fileScope = false;
   readonly media = new ResourceSession(this);
   sourceLocations: readonly {source: string; line: number; base?: string}[] = [];
   inputBase: string | undefined;
@@ -71,7 +76,7 @@ class Session extends ExecutionContext {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
     if (this.operation === "convert") allowed.push("filters");
-    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub");
+    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && !["none", "auto", "preserve"].includes(options.wrap!)) this.fail("E_OPTION", "Invalid wrap policy");
@@ -79,6 +84,15 @@ class Session extends ExecutionContext {
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {
+      for (const key of ["fileScope", "sandbox"] as const) if (options[key] !== undefined && typeof options[key] !== "boolean") this.fail("E_OPTION", `${key} must be boolean`);
+      this.fileScope = options.fileScope === true;
+      for (const key of ["includeInHeader", "includeBeforeBody", "includeAfterBody"] as const) if (options[key] !== undefined && !Array.isArray(options[key])) this.fail("E_OPTION", `${key} must be an array`);
+      if (options.variables !== undefined && (!options.variables || typeof options.variables !== "object" || Array.isArray(options.variables))) this.fail("E_OPTION", "variables must be a map");
+      this.variables = options.variables;
+      for (const input of [...(options.template ? [options.template] : []), ...(options.includeInHeader ?? []), ...(options.includeBeforeBody ?? []), ...(options.includeAfterBody ?? [])]) if (!input || typeof input !== "object" || (!("bytes" in input) && !("chunks" in input))) this.fail("E_OPTION", "Invalid local template/include input");
+      const local = options.template || options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length;
+      if (local && !["html", "html5"].includes(this.registry.resolve(options.to, "write").descriptor.name)) this.fail("E_OPTION", "Local templates and includes currently require HTML output");
+      if (local) this.localTemplate = new LocalTemplate(this, options);
       for (const key of ["numberSections", "toc", "ascii", "stripComments"] as const) {
         if (options[key] !== undefined && typeof options[key] !== "boolean") this.fail("E_OPTION", `${key} must be boolean`);
         this[key] = options[key] === true;
@@ -91,7 +105,7 @@ class Session extends ExecutionContext {
       this.shiftHeadingLevelBy = options.shiftHeadingLevelBy ?? 0;
       this.eol = options.eol;
       this.media.configure(options);
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key) && !(key === "standalone" && options.standalone === false)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox"].includes(key) && !(key === "standalone" && options.standalone === false)));
       if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
       this.yes = options.yes === true;
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
@@ -107,7 +121,7 @@ class Session extends ExecutionContext {
       if (options.standalone !== undefined && typeof options.standalone !== "boolean") this.fail("E_OPTION", "standalone must be boolean");
       if (options.rawContent !== undefined && !["reject", "escape", "retain"].includes(options.rawContent)) this.fail("E_OPTION", "Invalid rawContent policy");
       if (options.metadata !== undefined && (options.metadata === null || typeof options.metadata !== "object" || Array.isArray(options.metadata))) this.fail("E_OPTION", "metadata must be a map of MetaValue nodes");
-      this.standalone = options.standalone === true;
+      this.standalone = options.template ? false : options.standalone === true || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length);
       this.rawContent = options.rawContent;
       this.metadata = options.metadata;
       if (options.pdf !== undefined) {
@@ -147,6 +161,8 @@ class Session extends ExecutionContext {
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
   async preflightOptions(): Promise<void> {
+    if (this.variables) await mergeJsonMetadata({}, this.variables, this);
+    await this.localTemplate?.acquire();
     if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
     for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
     if (this.pdfFontInputs) {
@@ -317,6 +333,7 @@ class Session extends ExecutionContext {
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);
+    if (this.localTemplate) serialized = await this.localTemplate.render(serialized);
     const diagnostics = this.snapshotDiagnostics();
     if (this.failIfWarnings && diagnostics.length) {
       const first = diagnostics[0]!;
@@ -462,7 +479,7 @@ export async function convert(
     const settings: { language?: string; direction?: "ltr" | "rtl" | "auto" } = {};
     let readerInputs = ownedInputs;
     const joinedLocations: {source: string; line: number; base?: string}[] = [];
-    if (reader.descriptor.operands === "join" && ownedInputs.length) {
+    if (reader.descriptor.operands === "join" && !session.fileScope && ownedInputs.length) {
       const parts: string[] = [];
       let line = 1;
       for (const input of ownedInputs) {
@@ -488,7 +505,7 @@ export async function convert(
       readerInputs = [{text, bytes, ...(ownedInputs[0]!.base === undefined ? {} : {base: ownedInputs[0]!.base})}];
     }
     for (const [index, input] of readerInputs.entries()) {
-      const locations = reader.descriptor.operands === "join" ? joinedLocations : input.source ? [{source: input.source, line: 1, ...(input.base === undefined ? {} : {base: input.base})}] : [];
+      const locations = reader.descriptor.operands === "join" && !session.fileScope ? joinedLocations : input.source ? [{source: input.source, line: 1, ...(input.base === undefined ? {} : {base: input.base})}] : [];
       const document = await session.readOwned(input, reader, locations);
       for (const key of ["language", "direction"] as const) {
         if (Object.hasOwn(document, key)) {

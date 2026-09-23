@@ -4,6 +4,34 @@ import { setup } from "./helpers.js";
 import { getCommandArguments } from "../../src/contracts/index.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 
+for (const command of ["mapfile", "readarray"]) {
+  for (const flags of ["-u 0 -t", "-u0 -t", "-tu0"]) {
+    for (const redirected of [false, true]) test(`${command} explicit stdin: ${flags}, redirected=${redirected}`, async () => {
+      const { shell, fs } = setup();
+      try {
+        if (redirected) await fs.writeFile("/data", new TextEncoder().encode("one\ntwo\n"));
+        const result = await shell.exec(`${command} ${flags} values${redirected ? " < /data" : ""}; code=$?; args "\${values[@]}"; exit "$code"`, { stdin: redirected ? "wrong\n" : "one\ntwo\n" });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.equal(result.stdout, '["one","two"]');
+      } finally { await shell.dispose(); }
+    });
+  }
+
+  for (const operand of ["1", "9", "-1", "nope"]) test(`${command} refuses unavailable or invalid descriptor ${operand} before input or array mutation`, async () => {
+    const { shell } = setup();
+    let pulls = 0;
+    const stdin = { async *[Symbol.asyncIterator]() { pulls++; yield Uint8Array.of(97, 10); } };
+    try {
+      const result = await shell.exec(`values=(old); ${command} -u '${operand}' values; code=$?; args "\${values[@]}"; exit "$code"`, { stdin });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, '["old"]');
+      assert.notEqual(result.stderr, "");
+      assert.equal(pulls, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [label, source, stdin, expected] of [
   ["default destination", 'mapfile; args "${MAPFILE[@]}"', "a\nb\n", '["a\\n","b\\n"]'],
   ["strip delimiter", 'mapfile -t A; args "${A[@]}"', "a\nb", '["a","b"]'],

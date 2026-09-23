@@ -63,7 +63,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
       if (pending) await pending;
       const flag = option[index]!;
       if (flag === "t") { options.strip = true; continue; }
-      if (!"dnsOCc".includes(flag)) throw new MapfileUsageError(`-${flag}: invalid option`, 2);
+      if (!"dnsOCcu".includes(flag)) throw new MapfileUsageError(`-${flag}: invalid option`, 2);
       const attached = index + 1 < option.length;
       const operandIndex = attached ? cursor - 1 : cursor++;
       const operand = attached ? option.slice(index + 1) : context.args[operandIndex];
@@ -74,7 +74,9 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
       } else if (flag === "C") options.callback = operand;
       else {
         const value = await numeric(operand, flag === "O" ? 2147483647 : Number.MAX_SAFE_INTEGER);
-        if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }
+        if (flag === "u") {
+          if (value !== 0) throw new MapfileUsageError(`${operand}: invalid file descriptor: Bad file descriptor`, 1);
+        } else if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }
         else if (flag === "n") options.count = value;
         else if (flag === "s") options.skip = value;
         else { options.origin = value; options.preserve = true; }

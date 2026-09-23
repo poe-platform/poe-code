@@ -1,11 +1,11 @@
-import { isUnicodeAlpha } from "../../workbook/unicode-sheet-name.js";
 import { foldSheetName } from "../../workbook/case-fold.js";
-import { isUnicodePrintable, simpleUnicodeCase } from "./unicode.js";
+import { isUnicodePrintable } from "./unicode.js";
 import { SsconvertError } from "../../contracts.js";
 import { byteTextLength, readByteTextCharacter, sliceByteText } from "../../encoding/byte-text.js";
 import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
 import { trimByteText } from "./byte-trim.js";
+import { properByteText } from "./byte-proper.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
 import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
@@ -294,14 +294,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     }
     return str(result);
   },
-  PROPER: (args, host) => {
-    let result = "", inword = false;
-    for (const c of textArg(args, 0, host)) {
-      host.tick(); const point = c.codePointAt(0)!, letter = isUnicodeAlpha(point);
-      result += letter ? simpleUnicodeCase(point, !inword) : c; inword = letter;
-    }
-    return boundedText(result, host);
-  },
+  PROPER: (args, host) => byteStringValue(properByteText(byteTextArg(args, 0, host), host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   TRIM: (args, host) => byteStringValue(trimByteText(byteTextArg(args, 0, host), host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes),
   REPT: (args, host) => {
     const source = textArg(args, 0, host), count = numberArg(args, 1, host), length = byteLength(source);

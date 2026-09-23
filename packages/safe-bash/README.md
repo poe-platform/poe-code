@@ -73,6 +73,10 @@ Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`
 `exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
 `eval`. `pwd`, `true`, and `false` also work without a command bundle.
 `read -a NAME` replaces an indexed array with the record's IFS-separated fields.
+`export -n NAME` removes a variable's export attribute while keeping its value;
+`export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
+stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists
+exported functions.
 `declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
 name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
 global declarations (`-g`), inherited locals (`-I`), and function inspection (`-f`/`-F`).

@@ -459,6 +459,7 @@ export interface State {
   variables: Record<string, string>;
   exported: Set<string>;
   functions: Map<string, Command>;
+  exportedFunctions?: Set<string>;
   positional: string[];
   positionalSetVersion?: number;
   sourceDepth?: number;
@@ -853,6 +854,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
+    exportedFunctions: new Set(state.exportedFunctions),
     readonlyVariables: new Set(state.readonlyVariables),
     readonlyFunctions: new Set(state.readonlyFunctions),
     variableAttributes: new Map(state.variableAttributes),
@@ -4192,6 +4194,10 @@ export class Runtime {
       const value = state.variables[key];
       if (value !== undefined) env[key] = value;
     }
+    for (const key of state.exportedFunctions ?? []) {
+      const body = state.functions.get(key);
+      if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+    }
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
@@ -4637,6 +4643,18 @@ export class Runtime {
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
     }, this.budget, io[invocationScope]);
+    // Carry owned syntax only when the function's environment entry survives
+    // middleware and env replacement. Never evaluate environment text as code.
+    for (const name of state.exportedFunctions ?? []) {
+      const body = state.functions.get(name);
+      const key = `BASH_FUNC_${name}%%`;
+      if (body && context.env[key] === functionDisplay(name, body).slice(name.length + 1).trimEnd()) {
+        child.functions.set(name, body);
+        (child.exportedFunctions ??= new Set()).add(name);
+        delete child.variables[key];
+        child.exported.delete(key);
+      }
+    }
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);
     return child;
   }
@@ -4781,6 +4799,10 @@ export class Runtime {
   private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
+    for (const key of child.exportedFunctions ?? []) {
+      const body = child.functions.get(key);
+      if (!body || context.env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
+    }
     if (guestArrays(child) || Object.keys(context.env).some(key => arrayStore(child)?.get(key))) {
       await this.indexedEnvironment(child, context.env);
       this.reconcileGetopts(child, state.variables.OPTIND);
@@ -5285,7 +5307,7 @@ export class Runtime {
     const child = await cloneState(state, this.signal, scope, false);
     child.extensions = forkExtensions(state.extensions, "invocation");
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
-    const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
+    const env: Record<string, string> = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
     if (guestArrays(child) || Object.keys(env).some(key => arrayStore(child)?.get(key))) await this.indexedEnvironment(child, env);
     else {
     for (const key of child.exported) delete child.variables[key];
@@ -5294,6 +5316,10 @@ export class Runtime {
       publishVariable(child, key, value);
     }
     child.exported = new Set(Object.keys(env));
+    }
+    for (const key of child.exportedFunctions ?? []) {
+      const body = child.functions.get(key);
+      if (!body || env[`BASH_FUNC_${key}%%`] !== functionDisplay(key, body).slice(key.length + 1).trimEnd()) child.exportedFunctions?.delete(key);
     }
     this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
@@ -6069,6 +6095,39 @@ export class Runtime {
         || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
       let indexedReadonly = false;
       let functionReadonly = false;
+      if (command === "export") {
+        while (declarationArgs[0]?.startsWith("-") && declarationArgs[0] !== "-") {
+          const option = declarationArgs.shift()!;
+          if (option === "--") break;
+          for (const flag of option.slice(1)) {
+            if (!"fnp".includes(flag)) {
+              await this.diagnostic(context, `export: -${flag}: invalid option`);
+              await writeText(stderr, "export: usage: export [-fn] [name[=value] ...] or export -p\n");
+              return 2;
+            }
+            enabled.add(flag);
+          }
+        }
+        if (enabled.has("f")) {
+          let status = 0;
+          if (!declarationArgs.length) {
+            for (const name of [...state.exportedFunctions ?? []].sort()) {
+              const body = state.functions.get(name);
+              if (!body) continue;
+              await writeText(stdout, functionDisplay(name, body));
+              await writeText(stdout, `declare -fx ${name}\n`);
+            }
+          }
+          for (const name of declarationArgs) {
+            if (!state.functions.has(name)) {
+              await this.diagnostic(context, `export: ${name}: not a function`);
+              status = 1;
+            } else if (enabled.has("n")) state.exportedFunctions?.delete(name);
+            else (state.exportedFunctions ??= new Set()).add(name);
+          }
+          return status;
+        }
+      }
       if (command === "declare") {
         while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
           const option = declarationArgs.shift()!;
@@ -6189,7 +6248,15 @@ export class Runtime {
         }
         for (const name of names) if (arrayStore(state)?.get(name)) { await this.diagnostic(context, "indexed array: listing indexed bindings is unsupported"); return 2; }
         const prefix = state.profile === "sh" ? command : command === "readonly" ? "declare -r" : "declare -x";
-        for (const name of [...names].sort()) await writeText(stdout, `${prefix} ${name}=${JSON.stringify(state.variables[name] ?? "")}\n`);
+        for (const name of [...names].sort()) {
+          await writeText(stdout, `${prefix} ${name}`);
+          if (command !== "export" || Object.hasOwn(state.variables, name)) {
+            await writeText(stdout, "=");
+            if (command === "export") await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
+            else await writeText(stdout, JSON.stringify(state.variables[name] ?? ""));
+          }
+          await writeText(stdout, "\n");
+        }
       }
       const declarationValues = getCommandArguments(context).values;
       const declarationOffset = args.length - declarationArgs.length;
@@ -6396,7 +6463,8 @@ export class Runtime {
           else this.writeVariable(state, name, append ? concatShellValues([stateMonitor(state)?.values.get(name, state.variables[name] ?? "") ?? state.variables[name] ?? "", assignedValue()], context[valueScope]) : assignedValue());
         }
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
-        if (command === "export" || enabled.has("x")) state.exported.add(name);
+        if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(name);
+        if (command === "export" && enabled.has("n")) state.exported.delete(name);
         if (disabled.has("x")) state.exported.delete(name);
         if (command === "readonly" || enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
         const previous = assignments.get(name);

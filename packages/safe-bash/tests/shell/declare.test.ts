@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
+import { createStandardCommands } from "../../src/commands/index.js";
 
 for (const [source, expected, diagnostic] of [
   ['f(){ printf hello; }; readonly -f f; f(){ printf changed; }; f', 'hello', 'f: readonly function'],
@@ -55,4 +56,50 @@ for (const [source, expected] of [
     else assert.ok(result.stderr.includes("readonly variable"));
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
+});
+
+for (const [source, expected] of [
+  ['VALUE=hello; export VALUE; export -n VALUE; sh -c \'printf %s "${VALUE-unset}"\'; printf ":%s" "$VALUE"', 'unset:hello'],
+  ['export VALUE=old; export -n VALUE=new; bash -c \'printf %s "${VALUE-unset}"\'; printf ":%s" "$VALUE"', 'unset:new'],
+  ['readonly VALUE=hello; export VALUE; export -n VALUE; envget VALUE; printf ":%s" "$VALUE"', '<unset>:hello'],
+  ['f(){ printf hello; }; export -f f; bash -c f', 'hello'],
+  ['f(){ printf hello; }; export -f f; bash -c \'bash -c f\'', 'hello'],
+  ['f(){ printf old; }; export -f f; f(){ printf new; }; bash -c f', 'new'],
+  ['f(){ printf hello; }; export -f f; export -fn f; bash -c \'type -t f\'; f', 'hello'],
+  ['f(){ printf hello; }; export -f f; (export -fn f); bash -c f', 'hello'],
+  ['f(){ printf hello; }; export -f f; env -i bash -c \'type -t f\'; printf %s "$?"', '1'],
+  ['export AUDIT=SYNTHETIC; export -p', 'declare -x AUDIT="SYNTHETIC"\ndeclare -x PWD="/"\n'],
+  ['export AUDIT=\'a"b\\c$`\'; export -p', 'declare -x AUDIT="a\\"b\\\\c\\$\\`"\ndeclare -x PWD="/"\n'],
+  ["export AUDIT='a\nb'; export -p", "declare -x AUDIT=$'a\\nb'\ndeclare -x PWD=\"/\"\n"],
+  ['export ABSENT; export -p', 'declare -x ABSENT\ndeclare -x PWD="/"\n'],
+  ['export -p AUDIT=hello; envget AUDIT', 'hello'],
+  ['f(){ printf hello; }; export -f f; export -fp', 'f () \n{ \n    printf hello\n}\ndeclare -fx f\n'],
+  ['f(){ printf hello; }; export -f f; export -f', 'f () \n{ \n    printf hello\n}\ndeclare -fx f\n'],
+  ['f(){ printf hello; }; export -f f; printf "f\\n" > script.sh; bash script.sh', 'hello'],
+  ['f(){ printf hello; }; g(){ printf private; }; export -f f; bash -c \'type -t g\'; printf %s "$?"', '1'],
+  ['export -- VALUE=hello; export -np VALUE; envget VALUE', '<unset>'],
+  ['export -f missing; printf %s "$?"', '1'],
+  ['export -z; printf %s "$?"', '2'],
+] as const) test(`export: ${source}`, async () => {
+  const { shell, commands } = setup();
+  for (const command of createStandardCommands()) commands.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, expected);
+    if (source.startsWith('export -f missing')) assert.ok(result.stderr.includes('not a function'));
+    else if (source.startsWith('export -z')) assert.ok(result.stderr.includes('invalid option'));
+    else assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test('exported functions respect env -i in script shebangs', async t => {
+  const { shell, fs, commands } = setup();
+  for (const command of basicCommands()) commands.register(command);
+  t.after(() => shell.dispose());
+  await fs.writeFile('/script.sh', new TextEncoder().encode('#!/usr/bin/env -S -i bash\ntype -t f\n'), { mode: 0o755 });
+  const result = await shell.exec('f(){ printf hello; }; export -f f; ./script.sh; printf %s "$?"');
+  assert.equal(result.stdout, '1');
+  assert.equal(result.stderr, '');
+  assert.equal(result.exitCode, 0);
 });

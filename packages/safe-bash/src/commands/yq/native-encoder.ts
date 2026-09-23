@@ -2,7 +2,7 @@ import type { Node } from "yaml";
 import { cloneNode, dereference, inspectNode, type Candidate, type YamlModule } from "./nodes.js";
 import { mikeLimits, MikeError, type NativeWork } from "./native-work.js";
 
-export interface EncodeOptions { format: "yaml" | "json"; indent: number; unwrap: boolean; compactSequence: boolean }
+export interface EncodeOptions { format: "yaml" | "json"; indent: number; unwrap: boolean; compactSequence: boolean; prettyPrint?: boolean }
 
 export async function encodeNative(candidate: Candidate, options: EncodeOptions, yaml: YamlModule, work: NativeWork): Promise<string> {
   await inspectNode(candidate.node, yaml, work);
@@ -104,6 +104,10 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
     const node = formatting.pop()!;
     await work.tick();
     if (work.implicitTags.has(node) && node.tag?.startsWith("tag:yaml.org,2002:")) delete node.tag;
+    if (options.prettyPrint) {
+      if (yaml.isScalar(node)) node.type = "PLAIN";
+      else if (yaml.isCollection(node)) node.flow = false;
+    }
     if (yaml.isScalar(node) && (node.type === "QUOTE_DOUBLE" || node.type === "QUOTE_SINGLE")) node.value = node.source ?? String(node.value);
     else if (yaml.isMap(node)) for (const pair of node.items) { if (yaml.isNode(pair.key)) formatting.push(pair.key); if (yaml.isNode(pair.value)) formatting.push(pair.value); }
     else if (yaml.isSeq(node)) for (const child of node.items) if (yaml.isNode(child)) formatting.push(child);

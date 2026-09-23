@@ -245,6 +245,14 @@ the command waits for it and cleans staging, but does not claim rollback.
 
 ## Open compatibility boundaries
 
+Output supports `-0`/`--nul-output` and `-P`/`--prettyPrint`, including explicit
+boolean values and combined short flags. NUL output replaces one final EOL per
+value with a literal NUL and refuses values whose encoded output contains NUL.
+Pretty printing clears scalar quote/block and collection flow styles on the
+output clone while retaining comments. Both options use the existing byte sinks,
+output limits and in-place publication path. Forced colored output remains
+outside this bounded profile.
+
 Full requested yq remains open. Preserved boundary case 0 (outdented multiline
 quotes) is now repaired by the admitted lexical adapter; its old mismatch capture
 remains unchanged. Cases 1 and 4 still demonstrate non-native malformed-JSON

@@ -58,7 +58,14 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
         const separator = previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
-        const text = separator + await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence }, yaml, work);
+        let encoded = await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint }, yaml, work);
+        if (options.nulOutput) {
+          if (encoded.endsWith("\r\n")) encoded = encoded.slice(0, -2);
+          else if (encoded.endsWith("\n") || encoded.endsWith("\r")) encoded = encoded.slice(0, -1);
+          if (encoded.includes("\0")) throw new MikeError("can't serialise value because it contains NUL char and you are using NUL separated output");
+          encoded += "\0";
+        }
+        const text = separator + encoded;
         work.output(Buffer.byteLength(text));
         if (options.inplace) results.push(text);
         else await work.write(Buffer.from(text));

@@ -5,6 +5,66 @@ import { mikeYqCommands } from "../../../src/commands/yq/mike.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { native, nativeOptions, run } from "./helpers.js";
 
+const outputCases = [
+  [["--nul-output", ".a"], "a: 1\n", "1\0"],
+  [["-0", ".[]"], "[one, two]\n", "one\0two\0"],
+  [["--nul-output=false", ".a"], "a: 1\n", "1\n"],
+  [["-0", "-o=json", "."], "{a: 1}\n", '{\n  "a": 1\n}\0'],
+  [["-0", ".a"], 'a: "line\\n"\n', "line\n\0"],
+  [["-0", ".a"], "a: 1\n---\na: 2\n", "1\0---\n2\0"],
+  [["--prettyPrint", "."], "{a: 1}\n", "a: 1\n"],
+  [["-P", "."], "{a: ['one', {b: 2}]}\n", "a:\n  - one\n  - b: 2\n"],
+  [["--prettyPrint=false", "."], "{a: 1}\n", "{a: 1}\n"],
+  [["-P0", "."], "{a: 1}\n", "a: 1\0"],
+  [["-P", "."], "a: 'one' # keep\n", "a: one # keep\n"],
+] as const;
+
+for (const [args, input, stdout] of outputCases) test(`Mike yq output options: ${args.join(" ")} on ${input.trim()}`, async () => {
+  assert.deepEqual(await run(args, input), { status: 0, stdout, stderr: "" });
+});
+
+test("Mike yq NUL output rejects embedded NUL before writing the value", async () => {
+  assert.deepEqual(await run(["-0", ".[]"], '["ok", "bad\\0value"]\n'), {
+    status: 1, stdout: "ok\0",
+    stderr: "Error: can't serialise value because it contains NUL char and you are using NUL separated output\n",
+  });
+  assert.deepEqual(await run(["-0", "--unwrapScalar=false", "."], '"bad\\0value"\n'), {
+    status: 0, stdout: '"bad\\0value"\0', stderr: "",
+  });
+});
+
+test("Mike yq output flags preserve bytes through shell redirection", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from("{a: 1}\n"));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("yq --prettyPrint --nul-output . input.yaml > output.yaml");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.deepEqual(Buffer.from(await fs.readFile("/output.yaml")), Buffer.from("a: 1\0"));
+  assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), "{a: 1}\n");
+});
+
+test("output options match pinned Mike yq v4.53.3", nativeOptions, async () => {
+  for (const [args, input] of outputCases) assert.deepEqual(await run(args, input), await native(args, input));
+  for (const args of [["-0", ".[]"], ["-0", "--unwrapScalar=false", "."]]) {
+    assert.deepEqual(await run(args, '["ok", "bad\\0value"]\n'), await native(args, '["ok", "bad\\0value"]\n'));
+  }
+});
+
+test("Mike yq output flags retain output limits and in-place publication", async () => {
+  const result = await run(["-P0", "."], "{a: 1}\n", {}, { limits: { maxOutputBytes: 4 } });
+  assert.deepEqual(result, { status: 1, stdout: "", stderr: "Error: yq limit exceeded: maxOutputBytes\n" });
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/tmp");
+  await fs.writeFile("/input.yaml", Buffer.from("{a: 1}\n"));
+  assert.deepEqual(await run(["-iP0", ".", "input.yaml"], "", { fs, env: { TMPDIR: "/tmp" } }), {
+    status: 0, stdout: "", stderr: "",
+  });
+  assert.deepEqual(Buffer.from(await fs.readFile("/input.yaml")), Buffer.from("a: 1\0"));
+  assert.deepEqual(await fs.readdir("/tmp"), []);
+});
+
 const cases = [
   ["sort", "[2,1]\n", "[1, 2]\n"],
   ["reverse", "[2,1]\n", "[1, 2]\n"],

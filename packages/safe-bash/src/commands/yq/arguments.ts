@@ -19,6 +19,8 @@ export interface MikeArguments {
   indent: number;
   unwrap: boolean | undefined;
   noDoc: boolean;
+  nulOutput: boolean;
+  prettyPrint: boolean;
   compactSequence: boolean;
   mergeSpec: boolean;
   expression: string | undefined;
@@ -30,6 +32,7 @@ const booleans: Readonly<Record<string, keyof MikeArguments>> = {
   e: "exitStatus", "exit-status": "exitStatus", r: "unwrap", unwrapScalar: "unwrap",
   h: "help", help: "help", V: "version", version: "version", N: "noDoc", "no-doc": "noDoc",
   c: "compactSequence", "yaml-compact-seq-indent": "compactSequence", "yaml-fix-merge-anchor-to-spec": "mergeSpec",
+  "0": "nulOutput", "nul-output": "nulOutput", P: "prettyPrint", prettyPrint: "prettyPrint",
 };
 const values: Readonly<Record<string, "input" | "output" | "indent" | "expression">> = {
   p: "input", "input-format": "input", o: "output", "output-format": "output", I: "indent", indent: "indent", expression: "expression",
@@ -102,7 +105,7 @@ export function parseMikeArguments(context: CommandContext): MikeArguments {
   }
   const result: MikeArguments = { all: false, help: false, version: false, nullInput: false, inplace: false,
     exitStatus: false, input: "auto", output: "auto", indent: 2, unwrap: undefined, noDoc: false,
-    compactSequence: false, mergeSpec: false, expression: undefined, operands: [] };
+    compactSequence: false, mergeSpec: false, nulOutput: false, prettyPrint: false, expression: undefined, operands: [] };
   let ended = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;

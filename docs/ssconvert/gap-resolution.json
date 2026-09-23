@@ -1048,5 +1048,17 @@
     "remainingDescriptorEofDocxFailures": 10,
     "remainingGlobFailures": 1,
     "publication": "unverified"
+  },
+  "byteStringReplaceFollowup": {
+    "proof": "docs/ssconvert/byte-string-replace-gap-proof.json",
+    "implementationCommit": "35b78dc81350acaf0d80d20518cafdcdb84a9413",
+    "remoteMainVerified": true,
+    "redFailures": 231,
+    "reptSubstituteReplaceFocusedTests": 772,
+    "maintainedFiles": 357,
+    "maintainedTests": 14400,
+    "publicFieldsEachSurface": 304,
+    "guardedLintSubjects": 16410,
+    "publication": "unverified"
   }
 }

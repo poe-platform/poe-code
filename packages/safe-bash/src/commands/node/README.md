@@ -14,11 +14,11 @@ factories without the native provider implementation.
 
 ```ts
 import { Shell, createMemoryFileSystem, nodeCommands } from "poe-code/safe-bash";
-import { Budget, run, makeFsModule, declareHostOperation } from "poe-code/safe-js";
+import { Budget, run, makeFsModule, declareHostOperation, parseSourceModule } from "poe-code/safe-js";
 
 const shell = new Shell({ fs: createMemoryFileSystem() }).use(nodeCommands({
   runtime: {
-    run, makeFsModule, declareHostOperation,
+    run, makeFsModule, declareHostOperation, parseSourceModule,
     createBudget: options => new Budget(options),
   },
 }));
@@ -35,6 +35,11 @@ try {
 - `node -e SOURCE` / `--eval` evaluates JavaScript; `node -p EXPRESSION` /
   `--print` prints the expression, including `undefined`. Objects print as JSON,
   not Node's inspection format. Console formatting uses SafeJS, not Node format strings.
+- `node --check FILE` / `node -c FILE` checks the complete source without running
+  statements or resolving imports. Omit `FILE` or use `-` to check stdin;
+  `--input-type=module` and `--` remain available. Inject `parseSourceModule` as
+  shown above. Valid syntax returns 0 with no output; invalid syntax returns 1
+  with a diagnostic. Check mode cannot be combined with eval or print.
 - `node FILE` reads a virtual file, including `.js` files. `node -` and bare
   `node` read source from stdin once, leaving no guest input. File and inline
   programs retain stdin for data. `--` ends command-option parsing.
@@ -107,7 +112,13 @@ remain rejected. Runtime hooks and filesystem adapters are trusted host code.
 registries. All three execute the same runner.
 
 The `SafeJsRuntime<Budget>` contract requires `run`, `createBudget`, `makeFsModule`,
-and `declareHostOperation`. `run` receives injected `bindings` for the virtual
+and `declareHostOperation`. Optional `parseSourceModule(source, filename)` enables
+syntax checking; it must parse all supplied source, throw on invalid syntax, and
+never execute code or resolve imports. The public SafeJS parser checks its module
+syntax subset, including strict module grammar; this is not full native Node
+CommonJS syntax validation. Source byte limits and cancellation/deadline checks
+still apply; the synchronous parser is trusted host work and is not preemptible
+or charged to the interpreter execution-step budget. `run` receives injected `bindings` for the virtual
 process and virtual JSON/builtin require helpers, guest modules, an `importSpecifiers`
 allowlist for the filesystem promise and path names, a fresh budget, signal,
 filename, and console sink. Use SafeJS's public factories as shown, or provide an
@@ -127,7 +138,7 @@ without exposing a guest Promise. There are no runtime environment switches.
 | `arrayLength` | 100,000 |
 | `dataSize` | 16 MiB |
 
-Invalid options and parse failures return status 2; guest failures return 1;
+Invalid options and execution parse failures return status 2; syntax-check failures return 1; guest failures return 1;
 command/interpreter limits return 124. Successful programs return their virtual
 exit code, initially 0. Parent cancellation follows the shell's rejection contract.
 Shell limits still apply independently. Cancellation is cooperative and cannot

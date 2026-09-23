@@ -33,6 +33,7 @@ export function safeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOptions<Bu
 function invocation(args: readonly string[]): Invocation {
   let source: string | undefined;
   let print = false;
+  let check = false;
   let inputType: "module" | undefined;
   let index = 0;
   for (; index < args.length; index++) {
@@ -45,10 +46,15 @@ function invocation(args: readonly string[]): Invocation {
       inputType = value;
       continue;
     }
+    if (argument === "--check" || argument === "-c") {
+      if (source !== undefined) throw new UsageError("conflicting source selectors");
+      check = true;
+      continue;
+    }
     const mode = argument === "--eval" || argument.startsWith("--eval=") || argument.startsWith("-e") ? "eval"
       : argument === "--print" || argument.startsWith("--print=") || argument.startsWith("-p") ? "print" : undefined;
     if (mode) {
-      if (source !== undefined) throw new UsageError("conflicting source selectors");
+      if (source !== undefined || check) throw new UsageError("conflicting source selectors");
       print = mode === "print";
       const equal = argument.indexOf("=");
       source = argument.startsWith("--") ? equal >= 0 ? argument.slice(equal + 1) : args[++index]
@@ -60,7 +66,7 @@ function invocation(args: readonly string[]): Invocation {
     break;
   }
   if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, ...(inputType ? { inputType } : {}) };
-  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, ...(inputType ? { inputType } : {}) };
+  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, ...(inputType ? { inputType } : {}) };
 }
 
 export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
@@ -71,7 +77,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse require(\"./data.json\") for virtual JSON modules.\nNative modules and local JavaScript module loading are not supported.\n",
+    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse require(\"./data.json\") for virtual JSON modules.\nNative modules and local JavaScript module loading are not supported.\n",
     invocation,
     prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;

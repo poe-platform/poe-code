@@ -198,7 +198,7 @@ runtime automatically. SafeJS is the execution engine, not a separate shell comm
 
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "@poe-platform/safe-bash";
-import { Budget, run, makeFsModule, declareHostOperation } from "@poe-platform/safe-js";
+import { Budget, run, makeFsModule, declareHostOperation, parseSourceModule } from "@poe-platform/safe-js";
 
 const fs = createMemoryFileSystem();
 await fs.writeFile("/transform.js", new TextEncoder().encode(`
@@ -210,7 +210,7 @@ await fs.writeFile("/transform.js", new TextEncoder().encode(`
 
 const shell = new Shell({ fs }).use(agentCommands()).use(nodeCommands({
   runtime: {
-    run, makeFsModule, declareHostOperation,
+    run, makeFsModule, declareHostOperation, parseSourceModule,
     createBudget: options => new Budget(options),
   },
 }));

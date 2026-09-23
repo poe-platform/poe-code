@@ -28,6 +28,8 @@ export type SafeJsRunResult = { readonly ok: true; readonly returnValue?: unknow
   | { readonly ok: false; readonly error: unknown };
 
 export interface SafeJsRuntime<Budget> {
+  /** Parse the complete source without evaluating it or resolving imports; throw on invalid syntax. */
+  readonly parseSourceModule?: (source: string, filename: string) => unknown;
   readonly run: (source: string, options: SafeJsRunOptions<Budget>) => Promise<SafeJsRunResult>;
   readonly createBudget: (options: SafeJsBudgetOptions) => Budget;
   readonly makeFsModule: (options: { adapter: FileSystem } & Pick<FsBridgeOptions, "cwd" | "signal">) => SafeJsModule;

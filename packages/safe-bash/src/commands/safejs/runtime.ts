@@ -45,6 +45,7 @@ function statusField(error: unknown, name: "name" | "code"): string {
 
 function validateRuntime<Budget>(runtime: SafeJsRuntime<Budget> | undefined): void {
   if (runtime === undefined) return;
+  if (runtime.parseSourceModule !== undefined && typeof runtime.parseSourceModule !== "function") throw new TypeError("SafeJS runtime.parseSourceModule must be a function");
   for (const key of ["run", "createBudget", "makeFsModule", "declareHostOperation"] as const) {
     if (typeof runtime[key] !== "function") throw new TypeError(`SafeJS runtime.${key} must be injected`);
   }
@@ -101,44 +102,57 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         try { source = await reader.readText(); } finally { await reader.close(); }
       } else if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
       if (source.startsWith("\uFEFF")) source = source.slice(1);
-      input = new GuestInput(fromStdin ? toByteSource("") : context.stdin, limits.maxInputBytes, signal, fail);
-      const guestInput = input;
-      const declare = runtime.declareHostOperation;
-      const stdio: SafeJsModule = {
-        readBytes: declare(async (size?: unknown) => guestInput.readBytes(size), "read-side-effect"),
-        readText: declare(async () => guestInput.readText(), "read-side-effect"),
-        write: declare(async (text: unknown) => output.text(text), "read-side-effect"),
-        writeBytes: declare(async (bytes: unknown) => output.bytes(bytes), "read-side-effect"),
-        error: declare(async (text: unknown) => output.text(text, true), "read-side-effect"),
-        errorBytes: declare(async (bytes: unknown) => output.bytes(bytes, true), "read-side-effect"),
-      };
-      const env: Record<string, string> = Object.create(null);
-      for (const [key, value] of Object.entries(context.env)) env[key] = value;
-      const command: SafeJsModule = {
-        args: [...parsed.args], cwd: context.cwd, env,
-        setExitCode: declare((value: unknown) => {
-          signal.throwIfAborted();
-          if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 255) throw new TypeError("exit code must be an integer from 0 through 255");
-          exitCode = value;
-        }, "read-side-effect"),
-      };
-      const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
-        maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
-      const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
-      const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail });
-      const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
-        budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
-          ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
-        sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
-      })), "SafeJS run result");
-      signal.throwIfAborted();
-      if (result.ok !== true && result.ok !== false) throw new TypeError("Invalid SafeJS run result.ok");
-      if (!result.ok) {
-        const info = errorInfo(result.error);
-        throw new GuestDiagnostic(info);
+      if (parsed.check) {
+        const parse = runtime.parseSourceModule;
+        if (!parse) throw new UsageError("syntax checking requires an injected runtime.parseSourceModule");
+        try {
+          await withSignal(signal, async () => { await parse(source, filename); });
+        } catch (error) {
+          if (error instanceof SafeJsCommandLimitError || statusField(error, "code") === "budgetExceeded" || signal.aborted) throw error;
+          throw new GuestDiagnostic(errorInfo(error));
+        }
+        signal.throwIfAborted();
+        if (Date.now() >= deadline) throw new SafeJsCommandLimitError("timeoutMs");
+      } else {
+        input = new GuestInput(fromStdin ? toByteSource("") : context.stdin, limits.maxInputBytes, signal, fail);
+        const guestInput = input;
+        const declare = runtime.declareHostOperation;
+        const stdio: SafeJsModule = {
+          readBytes: declare(async (size?: unknown) => guestInput.readBytes(size), "read-side-effect"),
+          readText: declare(async () => guestInput.readText(), "read-side-effect"),
+          write: declare(async (text: unknown) => output.text(text), "read-side-effect"),
+          writeBytes: declare(async (bytes: unknown) => output.bytes(bytes), "read-side-effect"),
+          error: declare(async (text: unknown) => output.text(text, true), "read-side-effect"),
+          errorBytes: declare(async (bytes: unknown) => output.bytes(bytes, true), "read-side-effect"),
+        };
+        const env: Record<string, string> = Object.create(null);
+        for (const [key, value] of Object.entries(context.env)) env[key] = value;
+        const command: SafeJsModule = {
+          args: [...parsed.args], cwd: context.cwd, env,
+          setExitCode: declare((value: unknown) => {
+            signal.throwIfAborted();
+            if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 255) throw new TypeError("exit code must be an integer from 0 through 255");
+            exitCode = value;
+          }, "read-side-effect"),
+        };
+        const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
+          maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
+        const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
+        const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail });
+        const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
+          budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
+            ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
+          sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
+        })), "SafeJS run result");
+        signal.throwIfAborted();
+        if (result.ok !== true && result.ok !== false) throw new TypeError("Invalid SafeJS run result.ok");
+        if (!result.ok) {
+          const info = errorInfo(result.error);
+          throw new GuestDiagnostic(info);
+        }
+        if (parsed.print && result.returnValue !== undefined) await output.result(result.returnValue);
+        await output.drain();
       }
-      if (parsed.print && result.returnValue !== undefined) await output.result(result.returnValue);
-      await output.drain();
     } catch (error) { thrown = hasFailure ? failure : error; failed = true; }
     finally {
       try { await output.drain(); } catch (error) { thrown = hasFailure ? failure : error; failed = true; }
@@ -152,7 +166,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
       const detail = thrown instanceof SafeJsCommandLimitError ? thrown.message : publicDiagnosticMessage(thrown, context.onInternalError);
       if (!output.stderrFailed) await diagnose(detail);
       return { exitCode: thrown instanceof SafeJsCommandLimitError || info.code === "budgetExceeded" ? 124
-        : thrown instanceof UsageError || info.name === "ParseError" ? 2 : 1 };
+        : thrown instanceof UsageError || !parsed.check && info.name === "ParseError" ? 2 : 1 };
     }
     return { exitCode };
   } }];

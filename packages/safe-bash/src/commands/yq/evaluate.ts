@@ -1,4 +1,4 @@
-import type { Node, YAMLMap, YAMLSeq } from "yaml";
+import type { Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import type { Expression } from "./expression.js";
 import { cloneNode, decodeDocuments, dereference, nodeTag, replace, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
 import { MikeError, type NativeWork } from "./native-work.js";
@@ -58,6 +58,115 @@ export class Evaluator {
   child(node: Node, parent: Candidate, collection?: YAMLMap | YAMLSeq, slot?: number): Candidate {
     this.work.node();
     return { node, document: parent.document, isDerived: collection === undefined || parent.isDerived === true, ...(collection === undefined ? {} : { parent: collection, slot: slot! }) };
+  }
+
+  async toEntries(input: Candidate): Promise<YAMLSeq> {
+    const yaml = this.yaml;
+    const base = dereference(input, yaml, this.work);
+    if (!yaml.isCollection(base.node)) throw new MikeError(`to_entries only supports maps and arrays, got ${nodeTag(base.node, yaml)}`);
+    this.work.node();
+    const result = new yaml.YAMLSeq();
+    if (base.node.commentBefore !== undefined) result.commentBefore = base.node.commentBefore;
+    if (base.node.comment !== undefined) result.comment = base.node.comment;
+    for (let index = 0; index < base.node.items.length; index++) {
+      await this.work.tick();
+      const item = base.node.items[index]!;
+      const key = yaml.isMap(base.node) ? (item as Pair).key as Node : scalar(yaml, this.work, BigInt(index));
+      const member = yaml.isMap(base.node) ? (item as Pair).value as Node : item as Node;
+      this.work.node();
+      const entry = new yaml.YAMLMap();
+      const copiedKey = await cloneNode(key, yaml, this.work);
+      if (index === 0 && yaml.isMap(base.node) && copiedKey.commentBefore !== undefined) {
+        result.commentBefore = copiedKey.commentBefore;
+        delete copiedKey.commentBefore;
+      }
+      entry.items.push(new yaml.Pair(scalar(yaml, this.work, "key"), copiedKey));
+      entry.items.push(new yaml.Pair(scalar(yaml, this.work, "value"), await cloneNode(member, yaml, this.work)));
+      result.items.push(entry);
+    }
+    return result;
+  }
+
+  async fromEntries(input: Candidate): Promise<YAMLMap> {
+    const yaml = this.yaml;
+    const base = dereference(input, yaml, this.work);
+    if (!yaml.isSeq(base.node)) throw new MikeError("from_entries only supports arrays");
+    this.work.node();
+    const result = new yaml.YAMLMap();
+    if (base.node.flow !== undefined) result.flow = base.node.flow;
+    if (base.node.commentBefore !== undefined) result.commentBefore = base.node.commentBefore;
+    if (base.node.comment !== undefined) result.comment = base.node.comment;
+    for (const item of base.node.items) {
+      await this.work.tick();
+      if (!yaml.isNode(item)) throw new MikeError("from_entries expects key/value entries");
+      const entry = dereference(this.child(item, base), yaml, this.work);
+      const fields = await this.entries(entry);
+      const key = fields.get("key");
+      const member = fields.get("value");
+      if (!key || !member) throw new MikeError("from_entries expects key/value entries");
+      result.items.push(new yaml.Pair(await cloneNode(key.node, yaml, this.work), await cloneNode(member.node, yaml, this.work)));
+    }
+    return result;
+  }
+
+  async sort(input: Candidate, expression: Expression, depth: number): Promise<YAMLSeq | YAMLMap> {
+    const yaml = this.yaml;
+    const base = dereference(input, yaml, this.work);
+    if (!yaml.isCollection(base.node)) throw new MikeError(`cannot sort ${nodeTag(base.node, yaml)}, can only sort arrays or maps`);
+    const result = await cloneNode(base.node, yaml, this.work) as YAMLSeq | YAMLMap;
+    const members: { item: Node | Pair; keys: Node[] }[] = [];
+    for (const item of result.items) {
+      await this.work.tick();
+      const candidate = this.child(yaml.isMap(result) ? (item as Pair).value as Node : item as Node, base);
+      const keys = await this.run(expression, [candidate], false, depth + 1);
+      this.work.node(keys.length);
+      members.push({ item: item as Node | Pair, keys: keys.map(key => dereference(key, yaml, this.work).node) });
+    }
+    const compare = async (first: typeof members[number], second: typeof members[number]): Promise<number> => {
+      for (let index = 0; index < Math.min(first.keys.length, second.keys.length); index++) {
+        await this.work.tick();
+        const leftNode = first.keys[index]!;
+        const rightNode = second.keys[index]!;
+        const left = yaml.isScalar(leftNode) ? value(leftNode, yaml) : "";
+        const right = yaml.isScalar(rightNode) ? value(rightNode, yaml) : "";
+        if (left === null && right === null) continue;
+        if (left === null) return -1;
+        if (right === null) return 1;
+        if (typeof left === "boolean" && typeof right !== "boolean") return -1;
+        if (typeof left !== "boolean" && typeof right === "boolean") return 1;
+        if (typeof left === "boolean" && typeof right === "boolean" ||
+          (typeof left === "number" || typeof left === "bigint") && (typeof right === "number" || typeof right === "bigint")) {
+          if (left < right) return -1;
+          if (left > right) return 1;
+        } else {
+          const leftText = yaml.isScalar(leftNode) ? scalarText(leftNode, yaml) : "";
+          const rightText = yaml.isScalar(rightNode) ? scalarText(rightNode, yaml) : "";
+          await this.work.tick(leftText.length + rightText.length);
+          const compared = Buffer.compare(Buffer.from(leftText), Buffer.from(rightText));
+          if (compared) return compared;
+        }
+      }
+      return first.keys.length - second.keys.length;
+    };
+    // A cooperative stable merge sort charges every comparison and move.
+    for (let width = 1; width < members.length; width *= 2) {
+      for (let start = 0; start < members.length; start += width * 2) {
+        const end = Math.min(start + width * 2, members.length);
+        const middle = Math.min(start + width, end);
+        this.work.node(end - start);
+        const merged: typeof members = [];
+        let left = start;
+        let right = middle;
+        while (left < middle || right < end) {
+          await this.work.tick();
+          merged.push(right >= end || left < middle && await compare(members[left]!, members[right]!) <= 0 ? members[left++]! : members[right++]!);
+        }
+        for (let index = 0; index < merged.length; index++) { await this.work.tick(); members[start + index] = merged[index]!; }
+      }
+    }
+    if (yaml.isMap(result)) result.items = members.map(member => member.item as Pair);
+    else result.items = members.map(member => member.item as Node);
+    return result;
   }
 
   async entries(input: Candidate, depth = 0): Promise<Map<string, Candidate>> {
@@ -370,6 +479,67 @@ export class Evaluator {
     for (const input of inputs) {
       const base = dereference(input, yaml, this.work);
       const name = expression.name;
+      if (name === "sort" || name === "sort_by") {
+        output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth), input)); continue;
+      }
+      if (name === "reverse") {
+        if (!yaml.isSeq(base.node)) throw new MikeError(`cannot reverse ${nodeTag(base.node, yaml)}, can only reverse arrays`);
+        const node = await cloneNode(base.node, yaml, this.work) as YAMLSeq;
+        await this.work.tick(node.items.length);
+        node.items.reverse();
+        output.push(this.child(node, input)); continue;
+      }
+      if (name === "to_entries" || name === "from_entries") {
+        if (name === "to_entries" && nodeTag(base.node, yaml) === "!!null") continue;
+        output.push(this.child(name === "to_entries" ? await this.toEntries(base) : await this.fromEntries(base), input)); continue;
+      }
+      if (name === "with_entries") {
+        if (nodeTag(base.node, yaml) === "!!null") continue;
+        const entries = this.child(await this.toEntries(base), input);
+        const transformed = new yaml.YAMLSeq(); this.work.node();
+        if (entries.node.commentBefore !== undefined) transformed.commentBefore = entries.node.commentBefore;
+        if (entries.node.comment !== undefined) transformed.comment = entries.node.comment;
+        for (const entry of await next({ kind: "iterate" }, [entries], false)) {
+          for (const candidate of await next(expression.args[0]!, [entry], false)) transformed.items.push(await cloneNode(candidate.node, yaml, this.work));
+        }
+        const node = await this.fromEntries(this.child(transformed, input));
+        output.push(this.child(node, input));
+        continue;
+      }
+      if (name === "pick") {
+        if (!yaml.isCollection(base.node)) throw new MikeError("pick only supports maps and arrays");
+        for (const selected of await next(expression.args[0]!, [input], false)) {
+          const keys = dereference(selected, yaml, this.work);
+          if (!yaml.isSeq(keys.node)) throw new MikeError("pick expects an array of keys");
+          const node = await cloneNode(base.node, yaml, this.work) as YAMLMap | YAMLSeq;
+          node.items = [];
+          for (const key of keys.node.items) {
+            await this.work.tick();
+            const requested = value(key as Node, yaml);
+            if (yaml.isMap(base.node) && yaml.isMap(node)) {
+              for (const pair of base.node.items) {
+                await this.work.tick();
+                if (yaml.isScalar(pair.key) && value(pair.key, yaml) === requested) node.items.push(new yaml.Pair(await cloneNode(pair.key, yaml, this.work), await cloneNode(pair.value as Node, yaml, this.work)));
+              }
+            } else if (yaml.isSeq(base.node) && yaml.isSeq(node)) {
+              const index = Number(requested);
+              if (Number.isSafeInteger(index) && index >= 0 && index < base.node.items.length) node.items.push(await cloneNode(base.node.items[index] as Node, yaml, this.work));
+            }
+          }
+          output.push(this.child(node, input));
+        }
+        continue;
+      }
+      if (name === "upcase") {
+        const text = value(base.node, yaml);
+        if (typeof text !== "string") throw new MikeError("upcase only supports strings");
+        await this.work.tick(text.length);
+        const upper = text.toUpperCase();
+        const node = await cloneNode(base.node, yaml, this.work);
+        if (Buffer.byteLength(upper) > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+        if (yaml.isScalar(node)) { node.value = upper; node.source = upper; }
+        output.push(this.child(node, input)); continue;
+      }
       if (name === "select") { if (!expression.args[0]) throw new MikeError("bad expression, please check expression syntax"); if ((await next(expression.args[0], [input], false)).some(candidate => truth(candidate.node, yaml))) output.push(input); continue; }
       if (name === "map") {
         const members = await next({ kind: "iterate" }, [input], false);

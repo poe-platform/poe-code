@@ -586,6 +586,7 @@ function assertSource7Discovery(files) {
     "tests/commands/yq-native/lifecycle.test.ts",
     "tests/commands/yq-native/review.test.ts",
     "tests/commands/yq-native/next-review.test.ts",
+    "tests/commands/yq-native/collections.test.ts",
     "tests/plugins/yq-native-runtime.test.ts",
   ]) assert.ok(files.includes(path), "native-profile yq test is missing: " + path);
   for (const path of [

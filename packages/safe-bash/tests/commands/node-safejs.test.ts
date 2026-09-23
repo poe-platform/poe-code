@@ -276,7 +276,7 @@ for (const [source, exitCode] of [["const =", 2], ["while (true) {}", 124], ['th
         try { return await run(...args); }
         catch (error) { rejections.push(error); throw error; }
       } },
-      limits: { maxSteps: 30 },
+      limits: { maxSteps: 100 },
     }));
     try {
       const result = await shell.exec(`node -e ${quote(source)}`);

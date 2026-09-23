@@ -228,7 +228,8 @@ Output: `done\nHELLO\n3\n`.
 `node -e SOURCE` evaluates a program; `node -p EXPRESSION` prints an expression.
 `node FILE`, `node -`, and bare `node` accept virtual-file or stdin source.
 Programs get `console`, virtual `process.argv`, `process.env`, `process.cwd()`,
-`process.exitCode`, and shell streams. Await `process.stdout.write(text)` and
+`process.exitCode`, guest-owned `Buffer` bytes with string encodings and shared
+views, and shell streams. Await `process.stdout.write(text)` and
 `process.stderr.write(text)`; read input with `process.stdin.readText()` or
 `readBytes(size?)`. These are bounded async helpers, not native Node streams.
 

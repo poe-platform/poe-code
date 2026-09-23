@@ -45,6 +45,12 @@ try {
   integer from 0–255; it is applied when the program finishes normally.
 - `TextEncoder` encodes UTF-8 into guest `Uint8Array` values; `encodeInto`
   writes complete code points into a supplied byte view and reports bytes written.
+- `Buffer` provides guest-owned bytes with `from`, `alloc`, `concat`, `byteLength`,
+  `isBuffer`, and `isEncoding`, plus encoding-aware `toString`, shared `slice` /
+  `subarray` views, `equals`, and `toJSON`. String encodings follow Node, including
+  UTF-8, hex, base64, base64url, ASCII, Latin-1, and UTF-16LE. Copies and views
+  remain inside the interpreter and obey its array, string, and data limits.
+  Native Buffer capabilities and the remaining Node Buffer methods are not supplied.
 - `process.stdin.readText()` and `readBytes(size?)` read bounded input;
   `process.stdout.write(text)` and `process.stderr.write(text)` are async writes.
   Await I/O; these helpers do not implement Node's event-driven stream API.

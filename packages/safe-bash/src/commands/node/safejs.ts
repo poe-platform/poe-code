@@ -2,6 +2,7 @@ import type { CommandDefinition } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
 import { onlyKeys, record } from "../../integrations/safejs/values.js";
 import { UsageError } from "../internal.js";
+import { bufferBindings, bufferSource } from "./buffer.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
 import type { Invocation } from "../safejs/options.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
@@ -82,8 +83,9 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       modules.fs = { ...fs, default: fs };
       const requiredModules = new Map([["fs/promises", fs], ["node:fs/promises", fs]]);
       return {
-        source: (selected.print ? `console.log((\n${source}\n));` : source) + "\n;__safeBashSetExitCode(process.exitCode);",
+        source: bufferSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;__safeBashSetExitCode(process.exitCode);",
         bindings: {
+          __safeBashBuffer: bufferBindings(options),
           process: processModule, __safeBashSetExitCode: command.setExitCode,
           require: options.runtime.declareHostOperation((name: unknown) => {
             const module = typeof name === "string" ? requiredModules.get(name) : undefined;

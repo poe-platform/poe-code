@@ -258,7 +258,20 @@ jobs:
               assert executable is not None
               program_path = pathlib.Path(executable).resolve(strict=True)
               capture(program['id'] + '-version', [str(program_path), *program['versionArguments']])
-              external_programs.append(dict(id=program['id'], name=program['name'], resolvedPath=str(program_path), bytes=program_path.stat().st_size, sha256=hashlib.sha256(program_path.read_bytes()).hexdigest()))
+              capture(program['id'] + '-libraries', ['ldd', str(program_path)])
+              dependency_output = (root / (program['id'] + '-libraries.stdout')).read_text()
+              assert 'not found' not in dependency_output
+              dependencies = []
+              for word in dependency_output.split():
+                  if word.startswith('/'):
+                      dependency = pathlib.Path(word).resolve(strict=True)
+                      assert dependency.is_file()
+                      dependencies.append(dict(path=str(dependency), bytes=dependency.stat().st_size,
+                          sha256=hashlib.sha256(dependency.read_bytes()).hexdigest()))
+              assert dependencies
+              external_programs.append(dict(id=program['id'], name=program['name'], resolvedPath=str(program_path),
+                  bytes=program_path.stat().st_size, sha256=hashlib.sha256(program_path.read_bytes()).hexdigest(),
+                  linkedLibraries=dependencies, dependencyCaptureLabel=program['id'] + '-libraries'))
           service_inputs = []
           for fixture in json.loads(service_path.read_text())['inputs']:
               if fixture['profileId'] != profile['id']:

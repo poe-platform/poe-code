@@ -20717,6 +20717,147 @@
           }
         }
       ]
+    },
+    {
+      "id": "solver-followup-program-report",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "solver-followup-program-report.input",
+      "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c536f6c766572205461726765743d22244324312220496e707574733d22244124313a2442243122204d6f64656c547970653d2230222050726f626c656d547970653d223022204e6f6e4e65673d223122204d617854696d653d223522204d6178497465723d22313030222050726f6772616d523d2231222053656e7369746976697479523d2230223e3c436f6e73747220547970653d223222206c68733d22413122207268733d2231222f3e3c436f6e73747220547970653d223222206c68733d22423122207268733d2232222f3e3c2f536f6c7665723e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2232223e3d41312b42313c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+      "inputSha256": "23924eb7569ac28d78899015ace785c8f873c7f79f7f39512aa9519e4dea9926",
+      "scope": "Actual default native solver report/nonlinear effects. Observe complete XML checkpoint and CSV with real process diagnostics before candidate comparison or mathematical accuracy claims. No fabricated saved Algorithm attribute: native XML does not persist factory choice.",
+      "sourceControl": {
+        "inputId": "linear-solver-continuous-minimum",
+        "inputSha256": "1e0ad5146e3038939321b71880ba879d7024aff6a4e0424115ed366af37ba0fb",
+        "nonlinearKnownUniqueMinimum": null
+      },
+      "captures": [
+        {
+          "label": "solver-followup-program-report-csv",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        },
+        {
+          "label": "solver-followup-program-report-xml",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "solver-followup-sensitivity-report",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "solver-followup-sensitivity-report.input",
+      "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c536f6c766572205461726765743d22244324312220496e707574733d22244124313a2442243122204d6f64656c547970653d2230222050726f626c656d547970653d223022204e6f6e4e65673d223122204d617854696d653d223522204d6178497465723d22313030222050726f6772616d523d2231222053656e7369746976697479523d2231223e3c436f6e73747220547970653d223222206c68733d22413122207268733d2231222f3e3c436f6e73747220547970653d223222206c68733d22423122207268733d2232222f3e3c2f536f6c7665723e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2232223e3d41312b42313c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+      "inputSha256": "e2395d5cd0136daed09899e6a168e8f060111bb6a16cc0256f8b5e9b7ae3f800",
+      "scope": "Actual default native solver report/nonlinear effects. Observe complete XML checkpoint and CSV with real process diagnostics before candidate comparison or mathematical accuracy claims. No fabricated saved Algorithm attribute: native XML does not persist factory choice.",
+      "sourceControl": {
+        "inputId": "linear-solver-continuous-minimum",
+        "inputSha256": "1e0ad5146e3038939321b71880ba879d7024aff6a4e0424115ed366af37ba0fb",
+        "nonlinearKnownUniqueMinimum": null
+      },
+      "captures": [
+        {
+          "label": "solver-followup-sensitivity-report-csv",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        },
+        {
+          "label": "solver-followup-sensitivity-report-xml",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "solver-followup-nonlinear-quadratic",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "solver-followup-nonlinear-quadratic.input",
+      "inputHex": "3c576f726b626f6f6b20786d6c6e733d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c5368656574733e3c53686565743e3c4e616d653e533c2f4e616d653e3c536f6c766572205461726765743d22244324312220496e707574733d22244124313a2442243122204d6f64656c547970653d2232222050726f626c656d547970653d223022204e6f6e4e65673d223122204d617854696d653d223522204d6178497465723d22313030222050726f6772616d523d2231222053656e7369746976697479523d2230222f3e3c43656c6c733e3c43656c6c20526f773d22302220436f6c3d2230222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2231222056616c7565547970653d223430223e303c2f43656c6c3e3c43656c6c20526f773d22302220436f6c3d2232223e3d2841312d33295e322b2842312d32295e323c2f43656c6c3e3c2f43656c6c733e3c2f53686565743e3c2f5368656574733e3c2f576f726b626f6f6b3e",
+      "inputSha256": "de2eb0f57b02fee3280f184ca383fb094de236f368c792e2bbf083c9c7884d45",
+      "scope": "Actual default native solver report/nonlinear effects. Observe complete XML checkpoint and CSV with real process diagnostics before candidate comparison or mathematical accuracy claims. No fabricated saved Algorithm attribute: native XML does not persist factory choice.",
+      "sourceControl": {
+        "inputId": "linear-solver-continuous-minimum",
+        "inputSha256": "1e0ad5146e3038939321b71880ba879d7024aff6a4e0424115ed366af37ba0fb",
+        "nonlinearKnownUniqueMinimum": {
+          "inputs": [
+            3,
+            2
+          ],
+          "objective": 0
+        }
+      },
+      "captures": [
+        {
+          "label": "solver-followup-nonlinear-quadratic-csv",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        },
+        {
+          "label": "solver-followup-nonlinear-quadratic-xml",
+          "argv": [
+            "--solve",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0,
+            1
+          ]
+        }
+      ]
     }
   ],
   "numericSourceBindings": [

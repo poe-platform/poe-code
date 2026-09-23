@@ -74,8 +74,10 @@ export function predicateCommands(): CommandDefinition[] {
         return async () => {
           if (operator === "=" || operator === "==") return token === right;
           if (operator === "!=") return token !== right;
-          if (operator === "<") return token < right;
-          if (operator === ">") return token > right;
+          if (operator === "<" || operator === ">") {
+            const order = Buffer.compare(Buffer.from(token), Buffer.from(right));
+            return operator === "<" ? order < 0 : order > 0;
+          }
           if (["-nt", "-ot", "-ef"].includes(operator)) {
             const leftStat = await metadata(context, token);
             const rightStat = await metadata(context, right);

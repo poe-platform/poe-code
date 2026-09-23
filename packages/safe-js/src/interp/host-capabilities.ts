@@ -46,6 +46,7 @@ export type HostObjectController = {
 };
 type HostObjectState = {
   controller: HostObjectController;
+  memberDataUnits: number;
   host: HostObject;
   guest: SandboxObject;
   properties: Map<string, { get?: () => unknown; set?: (value: unknown) => void }>;
@@ -60,6 +61,54 @@ const MAX_NAMED_KEY_CODE_UNITS = 1_048_576;
 type GuestCallbackState = { owner: object; closure?: SandboxClosure; assertActive(): void };
 const hostObjects = new WeakMap<object, HostObjectState>();
 const guestObjects = new WeakMap<object, HostObjectState>();
+const readHostObject = WeakMap.prototype.get.bind(hostObjects) as (
+  value: object
+) => HostObjectState | undefined;
+const writeHostObject = WeakMap.prototype.set.bind(hostObjects) as (
+  value: object,
+  state: HostObjectState
+) => unknown;
+const hasHostObject = WeakMap.prototype.has.bind(hostObjects) as (value: object) => boolean;
+const readGuestObject = WeakMap.prototype.get.bind(guestObjects) as (
+  value: object
+) => HostObjectState | undefined;
+const writeGuestObject = WeakMap.prototype.set.bind(guestObjects) as (
+  value: object,
+  state: HostObjectState
+) => unknown;
+const hasGuestObject = WeakMap.prototype.has.bind(guestObjects) as (value: object) => boolean;
+const MemberMap = Map;
+const nativeMemberMap = {
+  get: Function.prototype.call.bind(Map.prototype.get) as <K, V>(
+    map: Map<K, V>,
+    key: K
+  ) => V | undefined,
+  set: Function.prototype.call.bind(Map.prototype.set) as <K, V>(
+    map: Map<K, V>,
+    key: K,
+    value: V
+  ) => Map<K, V>,
+  has: Function.prototype.call.bind(Map.prototype.has) as <K, V>(map: Map<K, V>, key: K) => boolean,
+  keys: Function.prototype.call.bind(Map.prototype.keys) as <K, V>(
+    map: Map<K, V>
+  ) => MapIterator<K>,
+  clear: Function.prototype.call.bind(Map.prototype.clear) as <K, V>(map: Map<K, V>) => void,
+  size: Function.prototype.call.bind(
+    Object.getOwnPropertyDescriptor(Map.prototype, "size")!.get!
+  ) as <K, V>(map: Map<K, V>) => number,
+  next: Function.prototype.call.bind(Object.getPrototypeOf(new Map().keys()).next) as <K>(
+    iterator: MapIterator<K>
+  ) => IteratorResult<K>
+};
+
+function memberNameUnits(map: Map<string, unknown>): number {
+  const keys = nativeMemberMap.keys(map);
+  let units = 0;
+  for (let key = nativeMemberMap.next(keys); !key.done; key = nativeMemberMap.next(keys))
+    units += key.value.length + 1;
+  return units;
+}
+
 const guestCallbacks = new WeakMap<object, GuestCallbackState>();
 const guestReferences = new WeakMap<
   object,
@@ -192,7 +241,10 @@ export function createLiveHostObject(
   }
   if (expandos !== undefined && named !== undefined)
     throw new TypeError("Guest expandos cannot be combined with named host properties.");
-  const properties = new Map<string, { get?: () => unknown; set?: (value: unknown) => void }>();
+  const properties = new MemberMap<
+    string,
+    { get?: () => unknown; set?: (value: unknown) => void }
+  >();
   for (const [name, inputProperty] of Object.entries(
     readDataRecord(input.properties ?? {}, "Host properties")
   )) {
@@ -206,7 +258,7 @@ export function createLiveHostObject(
       throw new TypeError("Host property operations must be functions.");
     // Retain fixed slots instead of the validator's dictionary-backed record.
     // Both slots are own fields, including absent operations.
-    properties.set(name, {
+    nativeMemberMap.set(properties, name, {
       get: property.get as (() => unknown) | undefined,
       set: property.set as ((value: unknown) => void) | undefined
     });
@@ -214,39 +266,53 @@ export function createLiveHostObject(
   const operations = readDataRecord(input.methods ?? {}, "Host methods");
   for (const [name, operation] of Object.entries(operations)) {
     if (typeof operation !== "function") throw new TypeError("Host methods must be functions.");
-    if (properties.has(name)) throw new TypeError(`Conflicting host member '${name}'.`);
+    if (nativeMemberMap.has(properties, name))
+      throw new TypeError(`Conflicting host member '${name}'.`);
   }
-  for (const name of [...properties.keys(), ...Object.keys(operations)]) {
+  for (const name of [...nativeMemberMap.keys(properties), ...Object.keys(operations)]) {
     if (["constructor", "prototype", "__proto__"].includes(name))
       throw new TypeError(`Reserved host member '${name}'.`);
     if (indexed !== undefined && (name === "length" || canonicalIndex(name) !== undefined))
       throw new TypeError(`Conflicting indexed host member '${name}'.`);
   }
   controller.assertActive();
-  controller.chargeWork(properties.size + Object.keys(operations).length + 1);
+  controller.chargeWork(nativeMemberMap.size(properties) + Object.keys(operations).length + 1);
   const host = Object.freeze(Object.create(null)) as HostObject;
   const guest = Object.freeze(Object.create(null)) as SandboxObject;
-  const methods = new Map(
-    Object.entries(operations).map(([name, operation]) => [
-      name,
-      controller.method(operation as HostOperation)
-    ])
-  );
-  const state = { host, guest, controller, properties, methods, indexed, named, expandos };
-  hostObjects.set(host, state);
-  guestObjects.set(guest, state);
+  const methods = new MemberMap<string, SandboxClosure>();
+  for (const [name, operation] of Object.entries(operations))
+    nativeMemberMap.set(methods, name, controller.method(operation as HostOperation));
+  // Private member maps do not change until owned revocation.
+  const memberDataUnits =
+    (indexed === undefined ? 0 : 16) +
+    (named === undefined ? 0 : 24) +
+    memberNameUnits(properties) +
+    memberNameUnits(methods);
+  const state = {
+    host,
+    guest,
+    controller,
+    properties,
+    methods,
+    indexed,
+    named,
+    expandos,
+    memberDataUnits
+  };
+  writeHostObject(host, state);
+  writeGuestObject(guest, state);
   return host;
 }
 
 export function isGuestHostObject(value: unknown): value is SandboxHostObject {
-  return typeof value === "object" && value !== null && guestObjects.has(value);
+  return typeof value === "object" && value !== null && hasGuestObject(value);
 }
 
 export function isLiveCapability(value: unknown): boolean {
   return (
     ((typeof value === "object" && value !== null) || typeof value === "function") &&
-    (hostObjects.has(value) ||
-      guestObjects.has(value) ||
+    (hasHostObject(value) ||
+      hasGuestObject(value) ||
       guestCallbacks.has(value) ||
       guestReferences.has(value))
   );
@@ -254,7 +320,7 @@ export function isLiveCapability(value: unknown): boolean {
 
 export function importHostCapability(value: object, owner: object): SandboxValue {
   if (guestReferences.has(value)) return readGuestReference(value, owner);
-  const object = hostObjects.get(value);
+  const object = readHostObject(value);
   if (object !== undefined) {
     if (object.controller.owner !== owner) throw new TypeError("Foreign realm host capability.");
     object.controller.assertActive();
@@ -271,7 +337,7 @@ export function importHostCapability(value: object, owner: object): SandboxValue
 }
 
 export function exportHostCapability(value: object, owner: object): HostObject {
-  const state = guestObjects.get(value);
+  const state = readGuestObject(value);
   if (state === undefined || state.controller.owner !== owner)
     throw new TypeError("Foreign realm host capability.");
   state.controller.assertActive();
@@ -298,18 +364,19 @@ export function revokeGuestCallback(callback: object, owner: object): void {
 }
 
 export function revokeHostObject(value: HostObject, owner: object): void {
-  const state = hostObjects.get(value);
+  const state = readHostObject(value);
   if (state === undefined || state.controller.owner !== owner)
     throw new TypeError("Foreign host object.");
-  state.properties.clear();
-  state.methods.clear();
+  nativeMemberMap.clear(state.properties);
+  nativeMemberMap.clear(state.methods);
   state.indexed = undefined;
   state.named = undefined;
   state.expandos = undefined;
+  state.memberDataUnits = 0;
 }
 
 export function getHostObjectMember(value: SandboxObject, key: string | symbol): SandboxValue {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);
@@ -324,10 +391,10 @@ export function getHostObjectMember(value: SandboxObject, key: string | symbol):
       return state.controller.read(() => state.indexed!.get(index));
     }
   }
-  const property = state.properties.get(key);
+  const property = nativeMemberMap.get(state.properties, key);
   if (property !== undefined)
     return property.get === undefined ? undefined : state.controller.read(property.get);
-  const method = state.methods.get(key);
+  const method = nativeMemberMap.get(state.methods, key);
   if (method !== undefined) return method;
   if (state.named !== undefined && namedKeys(state).includes(key))
     return state.controller.read(() => state.named!.get(key));
@@ -335,11 +402,11 @@ export function getHostObjectMember(value: SandboxObject, key: string | symbol):
 }
 
 export function setHostObjectMember(value: SandboxObject, key: string | symbol, entry: SandboxValue): void {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);
-  const property = typeof key === "string" ? state.properties.get(key) : undefined;
+  const property = typeof key === "string" ? nativeMemberMap.get(state.properties, key) : undefined;
   if (property !== undefined) {
     if (property.set === undefined) throw new TypeError(`Host property '${String(key)}' is not writable.`);
     state.controller.write(property.set, entry);
@@ -363,7 +430,7 @@ export function setHostObjectMember(value: SandboxObject, key: string | symbol, 
 }
 
 export function deleteHostObjectMember(value: SandboxObject, key: string | symbol): boolean {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);
@@ -383,7 +450,7 @@ export function deleteHostObjectMember(value: SandboxObject, key: string | symbo
 }
 
 export function getHostObjectKeys(value: SandboxObject): string[] {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   assertExpandoActive(state);
   const length = state.indexed === undefined ? 0 : indexedLength(state);
@@ -392,21 +459,26 @@ export function getHostObjectKeys(value: SandboxObject): string[] {
       ? []
       : namedKeys(state).filter(
           (key) =>
-            !state.properties.has(key) &&
-            !state.methods.has(key) &&
+            !nativeMemberMap.has(state.properties, key) &&
+            !nativeMemberMap.has(state.methods, key) &&
             !(
               state.indexed !== undefined &&
               (key === "length" || canonicalIndex(key) !== undefined)
             )
         );
   const expandos = state.expandos ? Object.keys(state.expandos.values) : [];
-  const size = expandos.length + length + state.properties.size + state.methods.size + names.length;
+  const size =
+    expandos.length +
+    length +
+    nativeMemberMap.size(state.properties) +
+    nativeMemberMap.size(state.methods) +
+    names.length;
   state.controller.checkLength(size);
   state.controller.chargeWork(size + 1);
   return [
     ...Array.from({ length }, (_entry, index) => String(index)),
-    ...state.properties.keys(),
-    ...state.methods.keys(),
+    ...nativeMemberMap.keys(state.properties),
+    ...nativeMemberMap.keys(state.methods),
     ...names,
     ...expandos
   ];
@@ -417,7 +489,7 @@ export function hasHostObjectMember(
   key: string | symbol,
   enumerableOnly = false
 ): boolean {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   state.controller.chargeWork();
   assertExpandoActive(state);
@@ -429,7 +501,8 @@ export function hasHostObjectMember(
     const index = canonicalIndex(key);
     if (index !== undefined) return index < state.indexed.maxLength && index < indexedLength(state);
   }
-  if (state.properties.has(key) || state.methods.has(key)) return true;
+  if (nativeMemberMap.has(state.properties, key) || nativeMemberMap.has(state.methods, key))
+    return true;
   return (
     state.named !== undefined &&
     !(enumerableOnly && state.named.enumerable === false) &&
@@ -438,16 +511,11 @@ export function hasHostObjectMember(
 }
 
 export function measureHostObjectData(value: SandboxObject): number {
-  const state = guestObjects.get(value)!;
-  let size = state.indexed === undefined ? 0 : 16;
-  if (state.named !== undefined) size += 24;
-  for (const key of state.properties.keys()) size += key.length + 1;
-  for (const key of state.methods.keys()) size += key.length + 1;
-  return size;
+  return readGuestObject(value)!.memberDataUnits;
 }
 
 export function getHostObjectIterator(value: SandboxObject): SandboxIterator | undefined {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   if (state.indexed === undefined) return undefined;
   let index = 0;
@@ -493,7 +561,8 @@ function namedMutationKeys(state: HostObjectState, key: string, create: boolean)
   state.controller.checkString(key);
   if (
     ["constructor", "prototype", "__proto__"].includes(key) ||
-    state.properties.has(key) || state.methods.has(key) ||
+    nativeMemberMap.has(state.properties, key) ||
+    nativeMemberMap.has(state.methods, key) ||
     (state.indexed !== undefined && (key === "length" || canonicalIndex(key) !== undefined))
   )
     throw new TypeError(`Host member '${key}' is protected from named mutation.`);
@@ -565,11 +634,13 @@ function assertExpandoActive(state: HostObjectState): void {
 }
 
 function validateExpandoKey(state: HostObjectState, key: string | symbol, create = true): void {
-  if (typeof key === "string" && (
-    ["constructor", "prototype", "__proto__"].includes(key) ||
-    state.properties.has(key) || state.methods.has(key) ||
-    (state.indexed && (key === "length" || canonicalIndex(key) !== undefined))
-  ))
+  if (
+    typeof key === "string" &&
+    (["constructor", "prototype", "__proto__"].includes(key) ||
+      nativeMemberMap.has(state.properties, key) ||
+      nativeMemberMap.has(state.methods, key) ||
+      (state.indexed && (key === "length" || canonicalIndex(key) !== undefined)))
+  )
     throw new TypeError("Host member is protected from guest expando mutation.");
   const expandos = state.expandos!;
   const keys = Reflect.ownKeys(expandos.values);
@@ -584,7 +655,7 @@ function validateExpandoKey(state: HostObjectState, key: string | symbol, create
 }
 
 export function getHostObjectSymbolKeys(value: SandboxObject): symbol[] {
-  const state = guestObjects.get(value)!;
+  const state = readGuestObject(value)!;
   state.controller.assertActive();
   assertExpandoActive(state);
   state.controller.chargeWork((state.expandos ? Reflect.ownKeys(state.expandos.values).length : 0) + 1);
@@ -592,6 +663,6 @@ export function getHostObjectSymbolKeys(value: SandboxObject): symbol[] {
 }
 
 export function hostObjectGuestRoots(value: HostObject | SandboxObject): SandboxValue[] {
-  const state = hostObjects.get(value) ?? guestObjects.get(value)!;
+  const state = readHostObject(value) ?? readGuestObject(value)!;
   return state.expandos ? [state.expandos.values] : [];
 }

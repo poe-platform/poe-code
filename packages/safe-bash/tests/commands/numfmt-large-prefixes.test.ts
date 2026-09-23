@@ -11,7 +11,7 @@ for (const [prefix, zeros, operand] of [["Y", 24, "3500000"], ["R", 27, "3500000
     ["suffix", "--from=auto", `3.5${prefix}\n-8.5${prefix}\n`],
     ["unit multiplier", "--from-unit=1000000000000000000", `${operand}\n-${operand.replace("35", "85")}\n`],
     ["literal", "", `35${"0".repeat(zeros - 1)}\n-85${"0".repeat(zeros - 1)}\n`],
-  ]) test(`numfmt ${prefix} ${name} through Shell and redirected VFS output`, async () => {
+  ] as const) test(`numfmt ${prefix} ${name} through Shell and redirected VFS output`, async () => {
     const fs = new MemoryFileSystem();
     const shell = new Shell({ fs, commands: new CommandRegistry([numfmtCommand()]), env: { LC_ALL: "C" } });
     try {

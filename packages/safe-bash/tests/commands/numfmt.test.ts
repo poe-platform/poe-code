@@ -73,7 +73,7 @@ for (const [mode, suffix, output] of [
   ["auto", "k", "3500\n-8500\n"], ["si", "k", "3500\n-8500\n"],
   ["iec", "k", "3584\n-8704\n"], ["iec-i", "ki", "3584\n-8704\n"],
   ["auto", "ki", "3584\n-8704\n"],
-]) test(`numfmt GNU 9.10 lowercase kilo input ${mode} ${suffix}`, async () => {
+] as const) test(`numfmt GNU 9.10 lowercase kilo input ${mode} ${suffix}`, async () => {
   for (const unit of [suffix, suffix.replace("k", "K")]) {
     assert.deepEqual(await format([`--from=${mode}`], `3.5${unit}\n-8.5${unit}\n`), {
       exitCode: 0, stdoutHex: Buffer.from(output!).toString("hex"), stderrHex: "",

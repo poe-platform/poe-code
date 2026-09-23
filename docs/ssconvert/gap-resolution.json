@@ -709,7 +709,7 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Explicit invocation-owned datasource sessions implement optional ATL_LAST,finite available batches,partial/raw-tag records,watched and transitive recalculation,rebindings and owned success/failure/cancel cleanup. Authenticated native runs35853830813/35854681190 validated and repaired decimal underflow before rounding while admitting exact subnormals. Six native models/39numeric controls,176fields/1417CSVbytes/41warningbytes match five compiled public surfaces and actual explicit Darwin FIFO transport.44focused/22497package tests,lint/source/test/consumer types and maintained root build pass. Full native timing/read splitting/latefeeds/wider watch lifecycle,other libc profiles,production deployment and publication remain open.",
+      "currentFinding": "Explicit invocation-owned datasource sessions implement optional ATL_LAST,finite available batches,partial/raw-tag records,watched and transitive recalculation,rebindings and owned success/failure/cancel cleanup. Authenticated native runs35853830813/35854681190 validated and repaired decimal underflow before rounding while admitting exact subnormals. Six native models/39numeric controls,176fields/1417CSVbytes/41warningbytes match five compiled public surfaces and actual explicit Darwin FIFO transport.44focused/22497package tests,lint/source/test/consumer types and maintained root build pass. Full native timing/read splitting/latefeeds/wider watch lifecycle,other libc profiles,production deployment and publication remain open. Actual explicit host FIFO now qualifies three custom event phases:6byte unfinishedstock prefix staysunfilled,3byte completion yields17/dependent18,and later9byte update yields23/dependent24,with oneclose/ownedunlink. Native asynchronous scheduling remains separate.",
       "proof": [
         "docs/ssconvert/linux-datasource-live-native-capture.json",
         "docs/ssconvert/datasource-session-gap-proof.json",
@@ -717,7 +717,8 @@
         "docs/ssconvert/datasource-host-fifo-proof.json",
         "docs/ssconvert/linux-datasource-holdout-native-capture.json",
         "docs/ssconvert/linux-datasource-boundary-native-capture.json",
-        "docs/ssconvert/datasource-underflow-boundary-gap-proof.json"
+        "docs/ssconvert/datasource-underflow-boundary-gap-proof.json",
+        "docs/ssconvert/datasource-host-fifo-partial-proof.json"
       ],
       "delivery": {
         "localCommit": null,

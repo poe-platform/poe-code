@@ -1,0 +1,136 @@
+{
+  "scope": "Actual explicit host FIFO partial record and subsequent updates across three custom host event phases",
+  "wholeGoalComplete": false,
+  "productCommit": "67e3dd32818e21dba780ee952b3f5e085286cf4c",
+  "inputControl": "datasource-live-solver in linux-optional-service-native-probes.json",
+  "host": {
+    "platform": "darwin",
+    "node": "v22.23.2",
+    "mode": "0600",
+    "explicitOwnedPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-partial-qualification/datasource-live-solver.fifo",
+    "ambientHomeAtlAccess": false
+  },
+  "receipt": {
+    "id": "datasource-live-solver",
+    "explicitPath": "/Users/kjopek/Workspace/poe-code/out/ssconvert-gap-resolution/host-fifo-partial-qualification/datasource-live-solver.fifo",
+    "platform": "darwin",
+    "opened": 1,
+    "polled": 3,
+    "descriptorClosed": 1,
+    "ownedFifoUnlinked": 1,
+    "producerBytesWritten": 6,
+    "bytesRead": 18,
+    "mode": "600",
+    "firstPollValues": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      },
+      {
+        "kind": "error",
+        "value": "#N/A"
+      }
+    ],
+    "secondProducerBytesWritten": 3,
+    "secondPollValues": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 17
+      },
+      {
+        "kind": "number",
+        "value": 18
+      }
+    ],
+    "thirdProducerBytesWritten": 9,
+    "thirdPollValues": [
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 0
+      },
+      {
+        "kind": "number",
+        "value": 23
+      },
+      {
+        "kind": "number",
+        "value": 24
+      }
+    ],
+    "stdoutHex": "302c302c302c32332c32340a",
+    "csv": "0,0,0,23,24\n",
+    "exitCode": 0,
+    "diagnostics": [],
+    "inputUnchanged": true,
+    "fifoPresentAfterSettlement": false
+  },
+  "phaseEffects": [
+    {
+      "producerBytes": 6,
+      "payload": "stock:",
+      "tag": "#N/A",
+      "dependent": "#N/A"
+    },
+    {
+      "producerBytes": 3,
+      "payload": "17\n",
+      "tag": 17,
+      "dependent": 18
+    },
+    {
+      "producerBytes": 9,
+      "payload": "stock:23\n",
+      "tag": 23,
+      "dependent": 24
+    }
+  ],
+  "sourceApplicability": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "path": "plugins/sample_datasource/sample_datasource.c",
+    "behavior": "cb_atl_input retains unfinished buffer suffix,queues dependent recalculation for completed records and calls gnm_app_recalc"
+  },
+  "adapterExecutionSource": {
+    "sha256": "90f8aa093c0c89f8af607a27ece2a6a7c239696e42a06a5483cc85acccd33a4e",
+    "source": "import { mkdir, lstat, unlink, open, readFile, writeFile, rm } from 'node:fs/promises';\nimport { constants } from 'node:fs';\nimport { resolve } from 'node:path';\nimport { promisify } from 'node:util';\nimport { execFile as run } from 'node:child_process';\nimport { createHash } from 'node:crypto';\nimport { createEngine } from '../../packages/ssconvert/dist/index.js';\nconst execFile=promisify(run);\nconst root=resolve('out/ssconvert-gap-resolution/host-fifo-partial-qualification');\nawait mkdir(root,{recursive:false,mode:0o700});\nconst fixture=JSON.parse(await readFile('docs/ssconvert/linux-optional-service-native-probes.json','utf8'));\nconst cases=[];\ntry{\n for(const test of fixture.inputs.filter(i=>i.id==='datasource-live-solver')){\n  const path=resolve(root,test.id+'.fifo');\n  const receipt={id:test.id,explicitPath:path,platform:process.platform,opened:0,polled:0,descriptorClosed:0,ownedFifoUnlinked:0,producerBytesWritten:0,bytesRead:0};\n  const engine=createEngine({codecs:[],environment:{env:{},locale:'C',timezone:'UTC'},limits:{inputBytes:100000,outputBytes:100000,cells:1000,sheets:4,operations:10000,workbookWork:1000000},\n   solver:{async goalSeek(book){return book;},async solve(book,context){\n    const first=await context.datasource.poll(book);\n    receipt.firstPollValues=first.sheets[0].cells.map(cell=>cell.value);\n    if(first.sheets[0].cells[3].value.kind!=='error'||first.sheets[0].cells[3].value.value!=='#N/A')throw new Error('Partial record was prematurely published');\n    const delivered=await execFile('python3',['-c','import os,sys;fd=os.open(sys.argv[1],os.O_WRONLY|os.O_NONBLOCK|os.O_NOFOLLOW);print(os.write(fd,bytes.fromhex(sys.argv[2])));os.close(fd)',path,Buffer.from('17\\n').toString('hex')]);\n    receipt.secondProducerBytesWritten=Number(delivered.stdout.trim());\n    const second=await context.datasource.poll(first);\n    receipt.secondPollValues=second.sheets[0].cells.map(cell=>cell.value);\n    if(second.sheets[0].cells[3].value.value!==17||second.sheets[0].cells[4].value.value!==18)throw new Error('Partial record/dependent failed');\n    const updated=await execFile('python3',['-c','import os,sys;fd=os.open(sys.argv[1],os.O_WRONLY|os.O_NONBLOCK|os.O_NOFOLLOW);print(os.write(fd,bytes.fromhex(sys.argv[2])));os.close(fd)',path,Buffer.from('stock:23\\n').toString('hex')]);\n    receipt.thirdProducerBytesWritten=Number(updated.stdout.trim());\n    const third=await context.datasource.poll(second);\n    receipt.thirdPollValues=third.sheets[0].cells.map(cell=>cell.value);\n    if(third.sheets[0].cells[3].value.value!==23||third.sheets[0].cells[4].value.value!==24)throw new Error('Later tag/dependent failed');\n    return third;\n   }},datasource:{async open(context){\n    receipt.opened++;\n    let handle,owned=false,released=false;\n    const release=async()=>{\n     if(released)return;released=true;\n     if(handle){await handle.close();receipt.descriptorClosed++;handle=undefined;}\n     if(owned){await unlink(path);receipt.ownedFifoUnlinked++;owned=false;}\n    };\n    context.own(release);\n    // This explicit host adapter owns only this scratch FIFO. No ambient HOME/atl.\n    try{\n     await execFile('python3',['-c','import os,sys;os.mkfifo(sys.argv[1],0o600)',path]);owned=true;\n     context.signal.throwIfAborted();\n     const status=await lstat(path);if(!status.isFIFO())throw new Error('Owned path is not a FIFO');\n     receipt.mode=(status.mode&0o777).toString(8);\n     handle=await open(path,constants.O_RDWR|constants.O_NONBLOCK|constants.O_NOFOLLOW);\n     context.signal.throwIfAborted();\n     const delivered=await execFile('python3',['-c','import os,sys;fd=os.open(sys.argv[1],os.O_WRONLY|os.O_NONBLOCK|os.O_NOFOLLOW);print(os.write(fd,bytes.fromhex(sys.argv[2])));os.close(fd)',path,Buffer.from('stock:').toString('hex')]);\n     receipt.producerBytesWritten=Number(delivered.stdout.trim());\n     context.signal.throwIfAborted();\n     return {async poll(signal){\n      receipt.polled++;const chunks=[];\n      while(true){\n       signal.throwIfAborted();\n       const buffer=new Uint8Array(4096);\n       try{\n        const result=await handle.read(buffer,0,buffer.length,null);\n        if(!result.bytesRead)break;\n        receipt.bytesRead+=result.bytesRead;\n        if(receipt.bytesRead>context.limits.inputBytes)throw new Error('Host transport byte budget exceeded');\n        chunks.push(buffer.slice(0,result.bytesRead));\n       }catch(error){if(error.code==='EAGAIN'||error.code==='EWOULDBLOCK')break;throw error;}\n      }\n      return chunks;\n     },close:release};\n    }catch(error){await release();throw error;}\n   }}});\n  try{\n   const input=new Uint8Array(Buffer.from(test.inputHex,'hex'));const chunks=[];\n   const result=await engine.convert({input:{kind:'stream',filename:test.filename,source:[input]},solve:true,recalc:true,exportType:'Gnumeric_stf:stf_csv',destination:{kind:'stream',sink:{async write(bytes){chunks.push(Buffer.from(bytes));}}}}, {signal:new AbortController().signal});\n   receipt.stdoutHex=Buffer.concat(chunks).toString('hex');receipt.csv=Buffer.concat(chunks).toString();receipt.exitCode=result.exitCode;receipt.diagnostics=result.diagnostics;\n   receipt.inputUnchanged=createHash('sha256').update(input).digest('hex')===test.inputSha256;\n  }finally{await engine.dispose();}\n  try{await lstat(path);receipt.fifoPresentAfterSettlement=true;}catch(error){if(error.code!=='ENOENT')throw error;receipt.fifoPresentAfterSettlement=false;}\n  if(receipt.csv!=='0,0,0,23,24\\n')throw new Error('Unexpected host event-only callback result');\n  if(receipt.descriptorClosed!==1||receipt.ownedFifoUnlinked!==1||receipt.fifoPresentAfterSettlement)throw new Error('Host resources retained');\n  cases.push(receipt);\n }\n await writeFile('out/ssconvert-gap-resolution/datasource-host-fifo-partial-results.json',JSON.stringify(cases,null,2)+'\\n');\n for(const c of cases)process.stdout.write(c.id+' write'+c.producerBytesWritten+'/read'+c.bytesRead+' close'+c.descriptorClosed+' unlink'+c.ownedFifoUnlinked+'\\n');\n}finally{await rm(root,{recursive:true});}\n"
+  },
+  "qualificationLimits": [
+    "Actual separate Python writer processes and nonblocking available reads prove portable record retention and tag/dependent updates across three serviced event phases.",
+    "Custom host solve callback services events only and leaves the original model inputs0/0. This is not a native/default solver accuracy claim.",
+    "Each producer phase finishes before the corresponding explicit poll; native asynchronous scheduling/read splitting remains separately required."
+  ],
+  "cleanup": "One descriptor close and one removal of the ownedFIFO before settlement;explicit root removed after receipt.",
+  "productRepairRequired": false,
+  "publication": "unverified"
+}

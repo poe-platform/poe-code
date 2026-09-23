@@ -168,11 +168,14 @@ export function createHistoricalCompilerHost(options, admission, baseHost = ts.c
   return host;
 }
 
-export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem) } = {}) {
+const buildFirstConfig = "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json";
+
+export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys, baseHost, boundaries = loadBoundaries(root, fileSystem), config = "tsconfig.json" } = {}) {
   root = resolve(root);
+  assert.ok(["tsconfig.json", buildFirstConfig].includes(config), "historical checker requires an exact maintained configuration");
   const admission = admitHistoricalTypeModels(root, fileSystem, boundaries);
-  const configPath = join(root, "tsconfig.json");
-  const configText = readRegularInput(root, "tsconfig.json", 100000, fileSystem, boundaries).toString("utf8");
+  const configPath = join(root, config);
+  const configText = readRegularInput(root, config, 100000, fileSystem, boundaries).toString("utf8");
   const configDiagnostics = [];
   const parsed = ts.getParsedCommandLineOfConfigFile(configPath, { noEmit: true }, {
     ...system,
@@ -194,12 +197,35 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
   const compilerOptions = parsed.options.paths ? { ...parsed.options, paths: { ...parsed.options.paths,
     ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(parsed.options.paths, specifier))),
   } } : parsed.options;
+  const host = createHistoricalCompilerHost(compilerOptions, admission, baseHost);
+  const filesystemRoot = resolve(root, "../safe-fs");
+  const sourceCore = join(filesystemRoot, "src/core.ts");
+  const sourceFilesystem = ["poe-code/safe-fs/core", "@poe-code/safe-fs/core"]
+    .some(specifier => parsed.options.paths?.[specifier]?.some(path => resolve(root, path) === sourceCore));
+  if (sourceFilesystem) {
+    const owners = new Map(["core", "index", "xml", "contracts/object"].map(name => [
+      join(filesystemRoot, "dist", `${name}.d.ts`), join(filesystemRoot, "src", `${name}.ts`),
+    ]));
+    const originalResolve = host.resolveModuleNameLiterals;
+    host.resolveModuleNameLiterals = (...args) => originalResolve(...args).map(resolution => {
+      const declaration = resolution.resolvedModule?.resolvedFileName;
+      const source = owners.get(declaration);
+      if (!source) return resolution;
+      for (const path of [declaration, source]) {
+        const stat = fileSystem.lstatSync(path);
+        assert.ok(stat.isFile() && !stat.isSymbolicLink() && fileSystem.realpathSync(path) === path, `source filesystem owner must be a canonical regular file: ${path}`);
+      }
+      return { ...resolution, resolvedModule: { ...resolution.resolvedModule,
+        resolvedFileName: source, extension: ts.Extension.Ts, isExternalLibraryImport: false,
+      } };
+    });
+  }
   const program = ts.createProgram({
     rootNames: parsed.fileNames,
     options: compilerOptions,
     projectReferences: parsed.projectReferences,
     configFileParsingDiagnostics: parsed.errors,
-    host: createHistoricalCompilerHost(compilerOptions, admission, baseHost),
+    host,
   });
   const diagnostics = [...configDiagnostics, ...ts.getPreEmitDiagnostics(program)];
   return { status: diagnostics.length === 0 ? 0 : 1, program, diagnostics };
@@ -207,9 +233,11 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    assert.deepEqual(process.argv.slice(2), ["--noEmit"], "historical source driver accepts only --noEmit");
+    const args = process.argv.slice(2);
+    assert.ok(JSON.stringify(args) === JSON.stringify(["--noEmit"]) ||
+      JSON.stringify(args) === JSON.stringify(["--noEmit", "-p", buildFirstConfig]), "historical checker accepts only maintained source or build-first configurations");
     const root = fileURLToPath(new URL("../", import.meta.url));
-    const result = checkHistoricalSources(root);
+    const result = checkHistoricalSources(root, { config: args[2] ?? "tsconfig.json" });
     process.stdout.write(ts.formatDiagnostics(result.diagnostics, {
       getCanonicalFileName: path => path,
       getCurrentDirectory: () => root,

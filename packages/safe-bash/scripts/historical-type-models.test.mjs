@@ -460,6 +460,35 @@ test("source checking consumes built engine declarations without changing runtim
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
 });
 
+for (const graph of ["workspace-package", "root-rewritten"]) test(`source filesystem ownership stays coherent with ${graph} engine declarations`, () => {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  specimen.fileSystem.mkdirSync("/safe-js/dist", { recursive: true });
+  specimen.fileSystem.mkdirSync("/safe-fs/src/contracts", { recursive: true });
+  specimen.fileSystem.mkdirSync("/safe-fs/dist/contracts", { recursive: true });
+  for (const directory of ["safe-js", "safe-fs"]) specimen.fileSystem.writeFileSync(`/${directory}/package.json`, '{"type":"module"}');
+  specimen.fileSystem.writeFileSync("/safe-fs/src/contracts/object.ts", "export class BytePath { private identity = 1; }\n");
+  specimen.fileSystem.writeFileSync("/safe-fs/dist/contracts/object.d.ts", "export declare class BytePath { private identity; }\n");
+  for (const name of ["core", "index", "xml"]) {
+    const source = 'export { BytePath } from "./contracts/object.js";\n';
+    specimen.fileSystem.writeFileSync(`/safe-fs/src/${name}.ts`, source);
+    specimen.fileSystem.writeFileSync(`/safe-fs/dist/${name}.d.ts`, source);
+  }
+  const imports = graph === "workspace-package" ? ['@poe-code/safe-fs/core'] : ["../../safe-fs/dist/core.js", "../../safe-fs/dist/index.js", "../../safe-fs/dist/xml.js", "../../safe-fs/dist/contracts/object.js"];
+  specimen.fileSystem.writeFileSync("/safe-js/dist/index.d.ts", imports.map((specifier, index) => `export declare function accept${index}(path: import(${JSON.stringify(specifier)}).BytePath): void;`).join("\n"));
+  const paths = { "@poe-code/safe-js": ["../safe-js/src/index.ts"], "@poe-code/safe-fs/core": ["../safe-fs/src/core.ts"] };
+  const config = { compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true, paths }, files: ["tests/check.ts"] };
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), `import * as engine from "@poe-code/safe-js";\nimport { BytePath } from "@poe-code/safe-fs/core";\n${imports.map((_, index) => `engine.accept${index}(new BytePath());`).join("\n")}\n`);
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.equal(result.status, 0, ts.formatDiagnostics(result.diagnostics, { getCanonicalFileName: value => value, getCurrentDirectory: () => root, getNewLine: () => "\n" }));
+  assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
+  assert.equal(result.program.getCompilerOptions().exactOptionalPropertyTypes, true);
+  assert.equal(result.program.getCompilerOptions().noUncheckedIndexedAccess, true);
+  for (const name of ["core", "index", "xml", "contracts/object"]) assert.equal(result.program.getSourceFile(`/safe-fs/dist/${name}.d.ts`), undefined);
+  assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
+});
+
 test("maintained reporting exposes only successful source-phase stdout and preserves failure routing", () => {
   const text = readRegularInput(packageRoot, "scripts/typecheck.mjs", 20000, fs, actualBoundaries).toString("utf8");
   const source = ts.createSourceFile("typecheck.mjs", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -487,7 +516,30 @@ test("maintained reporting exposes only successful source-phase stdout and prese
       assert.deepEqual(messages, label.startsWith("resolution-") ? [] : [`typecheck: ${label}: exit ${status}`]);
       assert.equal(record, phases[0]);
       assert.equal(record.stdout, classification);
-      assert.equal(launches[0][1][0], label === "source-and-tests" ? "/historical-models" : "/tsc");
+      assert.equal(launches[0][1][0], ["source-and-tests", "historical-build-first-consumer"].includes(label) ? "/historical-models" : "/tsc");
     }
   }
+});
+
+test("historical build-first checking retains exact consumer roots and strict inherited options", () => {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  const consumerConfig = "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json";
+  specimen.fileSystem.mkdirSync(dirname(join(root, consumerConfig)), { recursive: true });
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: {
+    strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true,
+    module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
+  }, files: ["tests/check.ts"] }));
+  const config = JSON.stringify({ extends: "../../../../tsconfig.json", compilerOptions: { noEmit: true, skipLibCheck: false }, files: ["selected-gnu.ts"], include: [], exclude: [] });
+  specimen.fileSystem.writeFileSync(join(root, consumerConfig), config);
+  const consumer = join(dirname(join(root, consumerConfig)), "selected-gnu.ts");
+  specimen.fileSystem.writeFileSync(consumer, "export const optional: { value?: string } = { value: undefined };\nexport const indexed: string = ['value'][0];\n");
+  const result = checkHistoricalSources(root, { ...specimen, boundaries, config: consumerConfig });
+  assert.deepEqual(result.program.getRootFileNames(), [consumer]);
+  assert.equal(result.program.getCompilerOptions().skipLibCheck, false);
+  assert.equal(result.program.getCompilerOptions().exactOptionalPropertyTypes, true);
+  assert.equal(result.program.getCompilerOptions().noUncheckedIndexedAccess, true);
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2375, 2322]);
+  assert.equal(specimen.fileSystem.readFileSync(join(root, consumerConfig), "utf8"), config);
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries, config: "tests/arbitrary.json" }), /exact maintained configuration/);
 });

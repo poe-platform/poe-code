@@ -3,11 +3,33 @@ import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefin
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
-import { loadYaml, root, scalar, truth, type Candidate } from "./nodes.js";
+import { loadYaml, nodeTag, root, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
 import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
 import { publishInPlace } from "./inplace.js";
+
+async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: NativeWork): Promise<string> {
+  const node = candidate.node;
+  const kind = yaml.isMap(node) ? "MappingNode" : yaml.isSeq(node) ? "SequenceNode" : yaml.isAlias(node) ? "AliasNode" : "ScalarNode";
+  const styles: Readonly<Record<string, string>> = { QUOTE_DOUBLE: "DoubleQuotedStyle", QUOTE_SINGLE: "SingleQuotedStyle", BLOCK_LITERAL: "LiteralStyle", BLOCK_FOLDED: "FoldedStyle" };
+  const style = yaml.isScalar(node) ? styles[node.type ?? ""] ?? "" : !yaml.isAlias(node) && node.flow ? "FlowStyle" : "";
+  const location = candidate.isDerived ? undefined : work.positions.get(node);
+  const info = {
+    kind, style, anchor: "anchor" in node ? node.anchor ?? "" : "", tag: nodeTag(node, yaml),
+    value: yaml.isScalar(node) ? String(node.value ?? "") : yaml.isAlias(node) ? node.source : "",
+    line: location?.line ?? 0, column: location?.column ?? 0,
+  };
+  await work.tick();
+  work.node(17);
+  return yaml.stringify(info, { singleQuote: true }) + "\n";
+}
+
+async function writeVerbose(message: string, work: NativeWork): Promise<void> {
+  const text = `time=${new Date().toISOString()} level=DEBUG source=safe-bash/yq msg=${JSON.stringify(message)}\n`;
+  work.output(Buffer.byteLength(text));
+  await work.write(Buffer.from(text), true);
+}
 
 export interface MikeYqOptions {
   readonly limits?: Partial<MikeLimits>;
@@ -23,6 +45,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
   const commandMode = mikeCommandMode(context.args);
   try {
     const options = parseMikeArguments(context);
+    work.capturePositions = options.verbose || options.debugNodeInfo;
     if (options.help || options.version) {
       const text = options.help ? commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : mikeHelp : "yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n";
       work.output(Buffer.byteLength(text));
@@ -58,6 +81,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const format = inputOption === "auto" ? inferred : inputOption;
     const output = outputOption === "auto" ? inputOption === "auto" ? inferred : "yaml" : outputOption;
     const program = compileExpression(expression, options);
+    if (options.verbose) await writeVerbose(`Compiled expression ${expression}; input=${format}; output=${output}`, work);
     const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression, options) : undefined;
     const yaml = await work.track(loadYaml());
     work.assertOpen();
@@ -74,7 +98,8 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
         const separator = !splitProgram && previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
-        let encoded = output !== "yaml" && output !== "json" ? await encodeFormat(candidate, output, yaml, work) : await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
+        let encoded = options.debugNodeInfo ? await encodeNodeInfo(candidate, yaml, work) : output !== "yaml" && output !== "json" ? await encodeFormat(candidate, output, yaml, work) : await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
+        if (options.verbose) await writeVerbose(`Selected node from ${candidate.document.filename || "stdin"}, document ${candidate.document.documentIndex}: ${await encodeNodeInfo(candidate, yaml, work)}`, work);
         if (options.nulOutput) {
           if (encoded.endsWith("\r\n")) encoded = encoded.slice(0, -2);
           else if (encoded.endsWith("\n") || encoded.endsWith("\r")) encoded = encoded.slice(0, -1);
@@ -148,6 +173,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
           }
         }
         await decodeFormat(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, async document => {
+          if (options.verbose) await writeVerbose(`Parsed ${filename}, document ${document.documentIndex}`, work);
           if (options.all) { if (all.length >= limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments"); all.push(root(document)); }
           else await print(await evaluator.run(program, [root(document)]));
         });

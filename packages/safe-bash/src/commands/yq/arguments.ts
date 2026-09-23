@@ -9,6 +9,8 @@ export const mikeHelp = "yq is a portable command-line data file processor (http
 export const mikeUsage = mikeHelp.slice(mikeHelp.indexOf("Usage:")) + "\n";
 
 export interface MikeArguments {
+  verbose: boolean;
+  debugNodeInfo: boolean;
   all: boolean;
   help: boolean;
   version: boolean;
@@ -36,6 +38,7 @@ export interface MikeArguments {
 }
 
 const booleans: Readonly<Record<string, keyof MikeArguments>> = {
+  v: "verbose", verbose: "verbose", "debug-node-info": "debugNodeInfo",
   "header-preprocess": "headerPreprocess",
   n: "nullInput", "null-input": "nullInput", i: "inplace", inplace: "inplace",
   e: "exitStatus", "exit-status": "exitStatus", r: "unwrap", unwrapScalar: "unwrap",
@@ -115,7 +118,7 @@ export function parseMikeArguments(context: CommandContext): MikeArguments {
     try { new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(carrier.bytes(index)); }
     catch { throw new MikeError("yq filename/expression bytes must be valid UTF-8"); }
   }
-  const result: MikeArguments = { all: false, help: false, version: false, nullInput: false, inplace: false,
+  const result: MikeArguments = { verbose: false, debugNodeInfo: false, all: false, help: false, version: false, nullInput: false, inplace: false,
     exitStatus: false, input: "auto", output: "auto", indent: 2, unwrap: undefined, noDoc: false,
     compactSequence: false, mergeSpec: false, disableEnvOps: false, disableFileOps: false, nulOutput: false, prettyPrint: false, expression: undefined, fromFile: undefined, frontMatter: undefined, splitExpression: undefined, splitFile: undefined, headerPreprocess: true, operands: [] };
   let ended = false;

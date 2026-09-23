@@ -98,6 +98,8 @@ export async function cloneNode(node: Node, yaml: YamlModule, work: NativeWork):
     const current = pending.pop()!;
     await work.tick();
     if (work.implicitTags.has(current.original)) work.implicitTags.add(current.cloned);
+    const position = work.positions.get(current.original);
+    if (position) work.positions.set(current.cloned, position);
     const head = work.headComments.get(current.original);
     if (head !== undefined) work.headComments.set(current.cloned, head);
     if (yaml.isMap(current.original) && yaml.isMap(current.cloned)) for (let index = 0; index < current.original.items.length; index++) {
@@ -392,6 +394,15 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     while (pending.length) {
       await work.tick();
       const node = pending.pop()!;
+      if (work.capturePositions && node.range && format === "yaml") {
+        await work.tick(node.range[0] + 1);
+        let offset = node.range[0];
+        if ("anchor" in node && node.anchor) {
+          const anchorOffset = text.lastIndexOf(`&${node.anchor}`, offset);
+          if (anchorOffset >= startOffset) offset = anchorOffset;
+        }
+        work.positions.set(node, position(offset));
+      }
       if ("anchor" in node && node.anchor) anchors.add(node.anchor);
       if (yaml.isAlias(node)) {
         work.alias();

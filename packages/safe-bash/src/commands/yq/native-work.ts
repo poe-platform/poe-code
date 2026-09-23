@@ -26,6 +26,8 @@ export function limitsFor(options: Partial<MikeLimits> = {}): MikeLimits {
 }
 
 export class NativeWork {
+  capturePositions = false;
+  readonly positions = new WeakMap<object, { line: number; column: number }>();
   readonly implicitTags = new WeakSet<object>();
   readonly headComments = new WeakMap<object, string>();
   readonly controller = new AbortController();

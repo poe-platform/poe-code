@@ -179,3 +179,65 @@ test("review: ordinary Shell stdout is not double charged by yq family accountin
   assert.equal(result.stdout, "a: 1\n");
   assert.equal(result.stderr, "");
 });
+
+test("diagnostic flags report actual selected nodes and keep verbose output on stderr", async () => {
+  const input = 'changed: &ChangedAnchor "ChangedMarker"\n';
+  for (const flag of ["-v", "--verbose"]) {
+    const result = await run([flag, ".changed"], input);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "ChangedMarker\n");
+    assert.ok(result.stderr.includes("level=DEBUG"));
+    assert.ok(result.stderr.includes(".changed"));
+    assert.ok(result.stderr.includes("ChangedMarker"));
+    assert.ok(!result.stderr.includes("/home/runner/work/yq"));
+  }
+  assert.deepEqual(await run(["--debug-node-info", ".changed"], input), {
+    status: 0, stderr: "",
+    stdout: "kind: ScalarNode\nstyle: DoubleQuotedStyle\nanchor: ChangedAnchor\ntag: '!!str'\nvalue: ChangedMarker\nline: 1\ncolumn: 10\n\n",
+  });
+  assert.deepEqual(await run(["--verbose=false", "--debug-node-info=false", ".changed"], input), { status: 0, stdout: "ChangedMarker\n", stderr: "" });
+});
+
+test("node diagnostics retain collection style and original multi-document locations", async () => {
+  const input = 'first: unused\n---\nchanged: &ListAnchor [one, two]\n';
+  const result = await run(["eval-all", "--debug-node-info", ".changed | select(. != null)"], input);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "kind: SequenceNode\nstyle: FlowStyle\nanchor: ListAnchor\ntag: '!!seq'\nvalue: ''\nline: 3\ncolumn: 10\n\n");
+  const computed = await run(["-n", "--debug-node-info", '"fresh"']);
+  assert.equal(computed.status, 0, computed.stderr);
+  assert.ok(computed.stdout.includes("value: fresh\nline: 0\ncolumn: 0\n"));
+});
+
+test("diagnostics obey node/output quotas and await owned stderr writes", async () => {
+  for (const flag of ["--debug-node-info", "--verbose"]) {
+    for (const limits of [{ maxOutputBytes: 10 }, { maxNodes: 10 }]) {
+      const result = await run([flag, ".changed"], 'changed: "Marker"\n', {}, { limits });
+      assert.equal(result.status, 1);
+      assert.ok(result.stderr.includes("limit exceeded"), result.stderr);
+    }
+  }
+  let complete = false;
+  const result = await run(["--verbose", ".changed"], "changed: Marker\n", {
+    stderr: { async write() { await Promise.resolve(); complete = true; } },
+    stdout: { async write() { assert.equal(complete, true); } },
+  });
+  assert.equal(result.status, 0);
+});
+
+test("Shell diagnostic flags read virtual files and remain local to the invocation", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/changed.yaml", Buffer.from('changed: &ChangedAnchor "ChangedMarker"\n'));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const selected = await shell.exec("yq -v .changed /changed.yaml");
+    assert.equal(selected.exitCode, 0, selected.stderr);
+    assert.equal(selected.stdout, "ChangedMarker\n");
+    assert.ok(selected.stderr.includes("Parsed /changed.yaml"));
+    const debug = await shell.exec("yq --debug-node-info .changed /changed.yaml");
+    assert.equal(debug.exitCode, 0, debug.stderr);
+    assert.ok(debug.stdout.includes("anchor: ChangedAnchor\n"));
+    const plain = await shell.exec("yq .changed /changed.yaml");
+    assert.equal(plain.stdout, "ChangedMarker\n");
+    assert.equal(plain.stderr, "");
+  } finally { await shell.dispose(); }
+});

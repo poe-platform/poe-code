@@ -366,3 +366,14 @@ No host-file or native-process fallback is used. The reported issue 302 cases,
 plus processing and expression-file split output, were compared with native
 v4.53.3 on memory and explicitly rooted real filesystems. This does not establish
 full expression-language or flag compatibility.
+
+## Diagnostic actions
+
+The explicit Mike profile accepts `-v`/`--verbose` and `--debug-node-info`,
+including explicit boolean values. Verbose output goes to stderr with the actual
+safe-bash clock, source identity, compiled expression, parsed documents and
+selected node observations; it does not reproduce native engine log records.
+Debug output describes the selected node's kind, style, anchor, tag, value and
+original YAML line/column. Computed nodes and inputs without retained YAML source
+positions use zero coordinates. Metadata allocations and both diagnostic sinks
+share the existing node/output quotas and awaited output ownership.

@@ -31,7 +31,7 @@ import { registerIndexedClosureCaptures } from "./indexed-closure-captures.js";
 import { hoistVarDeclarations } from "./var-hoist.js";
 import { prepareLegacyBlockFunctions } from "./legacy-block-functions.js";
 import { createCoercionContext, createPatternContext } from "./interpreter.js";
-import { getGuestFunctionProperty, getSandboxPrototype, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
+import { createIntrinsicObject, getGuestFunctionProperty, getSandboxPrototype, markDescriptorObject, materializeFunctionProperties, setSandboxPrototype } from "./object-model.js";
 import { getFunctionRealmPrototype } from "./function-realm.js";
 import { generatorPrototypes } from "./generator-prototypes.js";
 import { retainValues, runResources } from "./resources.js";
@@ -217,7 +217,7 @@ export function createInterpretedClosure(
     !(node.type === "FunctionExpression" && node.method === true) &&
     !node.async
       ? async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
-          const thisValue = {};
+          const thisValue = createIntrinsicObject({});
           const newTarget = callContext?.newTarget ?? closure;
           const prototype = callContext?.getProperty === undefined
             ? getGuestFunctionProperty(newTarget, "prototype")

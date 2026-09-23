@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T12:13:21.510978+00:00",
+  "recordedAt": "2026-09-23T12:15:14.494387+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1628,5 +1628,13 @@
       "csvBytes": 10,
       "publication": "unverified"
     }
+  },
+  "runtimeHostInstalledArtifactQualification": {
+    "evidence": "docs/ssconvert/runtime-host-installed-artifact-proof.json",
+    "publicModels": 6,
+    "nativeDatasourceCases": 6,
+    "installedStrictPublicTypes": "passed",
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

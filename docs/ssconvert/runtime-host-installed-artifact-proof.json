@@ -1,0 +1,192 @@
+{
+  "scope": "Installed final local packed artifact qualification for cooperative structured results,database host ports,wide matrix boundaries and native datasource captures",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "artifact": {
+    "name": "poe-code",
+    "version": "0.0.0-dev",
+    "filename": "poe-code-0.0.0-dev.tgz",
+    "size": 42142178,
+    "unpackedSize": 211672188,
+    "shasum": "690e630c2514994ccb2b9948fa650069e923e2c3",
+    "integrity": "sha512-VBTGUfvx3niXYOp2eUndgummoxVkkD2djOYeX0vzl3Fc6w+ebnvYKdZ1iNxaLDQRtw42pQ9Bugry3ogjXY8LxQ=="
+  },
+  "artifactSha256": "5bd737a6f6796aba10d14cf2961b1d4d192b73a09bdc2edd745273d49511801d",
+  "installedLockIntegrityExact": true,
+  "sourceHead": "a8f796c8a493894fab630b98ba3dcd2312772df7",
+  "productCommits": {
+    "structuredResults": "40d66769f6e27d7eb05fe20f592669952a80f915",
+    "datasourceUnderflow": "67e3dd32818e21dba780ee952b3f5e085286cf4c",
+    "databaseHostFunctions": "9c2d2b9d341d56bf167e7fea1c5a985762b32148",
+    "wideMatrixAdmission": "4f403ab1287d0e355e7785bfc95a3d413a8a8b5e"
+  },
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-functions.ts",
+      "sha256": "4c962f614ccb933e7da5077ec21e876cabf540649992ed2955ed6fc308f7cd97"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-result.ts",
+      "sha256": "f6932ae9cc18b0c1fdb0f565dcc442b408e2efcdc3604538e6dda2464b964443"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/runtime-results.test.ts",
+      "sha256": "6eb4eb2aa7b661145408f6361a3ebff216c9b92d72d9038a033f635d699d00e5"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/database-functions.ts",
+      "sha256": "e30883d6ca825e22c903d7baaaf989f43b096e46d30837098c31c7e4b60b8a23"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/database-functions.test.ts",
+      "sha256": "0f5692d25992e4c8f8cabd578b7ee06fcef0620947598d27fd76541ee1e81b9e"
+    },
+    {
+      "path": "packages/ssconvert/src/index.ts",
+      "sha256": "7edc058f0e4dacec109aa16d35f5cbcfde927571285e2fb6dc09b99495f5be3b"
+    },
+    {
+      "path": "packages/ssconvert/tests/public-consumer.mts",
+      "sha256": "8c997ee5d7d4d8efebc5bbb0594f8ec83bbc7e27bbe4751ec06c9fe0a90f063f"
+    }
+  ],
+  "maintainedRootBuild": "passed before packing",
+  "packageTests": 22520,
+  "packageFiles": 365,
+  "packageLintAndSourceTestConsumerTypes": "passed",
+  "installedStrictPublicConsumerTypecheck": "passed",
+  "publicImports": {
+    "poe-code/ssconvert": {
+      "relativePath": "packages/ssconvert/dist/index.js",
+      "insideInstalledPackage": true
+    },
+    "poe-code/safe-bash": {
+      "relativePath": "dist/safe-bash.js",
+      "insideInstalledPackage": true
+    }
+  },
+  "publicModels": [
+    {
+      "id": "aggregate-reference-ownership",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 19
+    },
+    {
+      "id": "mixed-array-group",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 17
+    },
+    {
+      "id": "database-query-and-diagnostics",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 121
+    },
+    {
+      "id": "database-mixed-array",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 21
+    },
+    {
+      "id": "runtime-wide-257",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 4
+    },
+    {
+      "id": "database-wide-16384",
+      "sdkExact": true,
+      "installedShellExact": true,
+      "xmlReplayExact": true,
+      "inputUnchanged": true,
+      "bytes": 6
+    }
+  ],
+  "datasourceNativeCases": [
+    {
+      "id": "datasource-holdout-numeric",
+      "exact": true,
+      "bytes": 756,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 1,
+        "closed": 1
+      }
+    },
+    {
+      "id": "datasource-holdout-malformed-raw",
+      "exact": true,
+      "bytes": 170,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 1,
+        "closed": 1
+      }
+    },
+    {
+      "id": "datasource-holdout-nul",
+      "exact": true,
+      "bytes": 59,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 1,
+        "closed": 1
+      }
+    },
+    {
+      "id": "datasource-holdout-dynamic-tag",
+      "exact": true,
+      "bytes": 12,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 1,
+        "closed": 1
+      }
+    },
+    {
+      "id": "datasource-holdout-invalid-model",
+      "exact": true,
+      "bytes": 22,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 0,
+        "closed": 1
+      }
+    },
+    {
+      "id": "datasource-holdout-range-boundary",
+      "exact": true,
+      "bytes": 398,
+      "lifecycle": {
+        "opened": 1,
+        "polled": 1,
+        "closed": 1
+      }
+    }
+  ],
+  "fixtureProofs": [
+    "docs/ssconvert/runtime-array-reference-result-gap-proof.json",
+    "docs/ssconvert/database-host-functions-gap-proof.json",
+    "docs/ssconvert/runtime-result-wide-matrix-gap-proof.json",
+    "docs/ssconvert/linux-datasource-boundary-native-capture.json"
+  ],
+  "qualificationLimits": [
+    "This is a locally built/installed tarball,not an npm-published artifact.",
+    "Six public models qualify installed SDK,Shell and XML formula replay; six actual native datasource captures qualify installed SDK and conversion session lifecycle counts.",
+    "Browser/worker and actual host FIFO qualification are separate retained proofs.",
+    "No actual native custom Python module or successful GTK database query execution is claimed. Full original family requirements remain open."
+  ]
+}

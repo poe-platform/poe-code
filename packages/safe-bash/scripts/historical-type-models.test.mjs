@@ -434,6 +434,32 @@ test("ordinary triple-slash file references still use the unchanged compiler hos
   assert.deepEqual(result.program.getRootFileNames(), [join(root, "tests/check.ts")]);
 });
 
+test("source checking consumes built engine declarations without changing runtime aliases or strict caller diagnostics", () => {
+  const specimen = fixture();
+  addStandardLibrary(specimen.fileSystem);
+  specimen.fileSystem.mkdirSync("/safe-js/dist", { recursive: true });
+  specimen.fileSystem.mkdirSync("/safe-js/src", { recursive: true });
+  specimen.fileSystem.writeFileSync("/safe-js/package.json", '{"type":"module"}');
+  specimen.fileSystem.writeFileSync("/safe-js/src/index.ts", "export function run(value) { return value; }\n");
+  specimen.fileSystem.writeFileSync("/safe-js/dist/index.d.ts", "export interface EngineOptions { value?: string; }\nexport declare function run(value: string): string;\n");
+  specimen.fileSystem.writeFileSync("/package/src/filesystem.ts", "export const filesystem = 1;\n");
+  const config = {
+    compilerOptions: { strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, module: "NodeNext", target: "ES2023", types: [], skipLibCheck: true,
+      paths: { "@poe-code/safe-js": ["../safe-js/src/index.ts"], "fixture-fs": ["./src/filesystem.ts"] } },
+    files: ["tests/check.ts"],
+  };
+  specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(config));
+  specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), 'import { run, type EngineOptions } from "@poe-code/safe-js";\nimport { filesystem } from "fixture-fs";\nexport const options: EngineOptions = { value: undefined };\nexport const indexed: string = [run(String(filesystem))][0];\n');
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.ok(result.program.getSourceFile("/safe-js/dist/index.d.ts"));
+  assert.equal(result.program.getSourceFile("/safe-js/src/index.ts"), undefined);
+  assert.ok(result.program.getSourceFile("/package/src/filesystem.ts"));
+  assert.equal(result.program.getCompilerOptions().exactOptionalPropertyTypes, true);
+  assert.equal(result.program.getCompilerOptions().noUncheckedIndexedAccess, true);
+  assert.deepEqual(result.diagnostics.map(diagnostic => diagnostic.code), [2375, 2322]);
+  assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), config);
+});
+
 test("maintained reporting exposes only successful source-phase stdout and preserves failure routing", () => {
   const text = readRegularInput(packageRoot, "scripts/typecheck.mjs", 20000, fs, actualBoundaries).toString("utf8");
   const source = ts.createSourceFile("typecheck.mjs", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);

@@ -182,12 +182,24 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
   if (!parsed) return { status: 1, diagnostics: configDiagnostics };
   assert.equal(parsed.options.strict, true, "historical source typecheck requires existing strict configuration");
   for (const path of parsed.fileNames) assert.ok(!admission.models.has(resolve(path)), `historical model cannot be a source root: ${path}`);
+  const engineIndex = [resolve(root, "../safe-js/dist/index.d.ts")];
+  const engineCore = [resolve(root, "../safe-js/dist/core.d.ts")];
+  const engineAliases = {
+    "poe-code/safe-js": engineIndex,
+    "poe-code/safejs": engineIndex,
+    "poe-code/safe-js/core": engineCore,
+    "poe-code/safejs/core": engineCore,
+    "@poe-code/safe-js": engineIndex,
+  };
+  const compilerOptions = parsed.options.paths ? { ...parsed.options, paths: { ...parsed.options.paths,
+    ...Object.fromEntries(Object.entries(engineAliases).filter(([specifier]) => Object.hasOwn(parsed.options.paths, specifier))),
+  } } : parsed.options;
   const program = ts.createProgram({
     rootNames: parsed.fileNames,
-    options: parsed.options,
+    options: compilerOptions,
     projectReferences: parsed.projectReferences,
     configFileParsingDiagnostics: parsed.errors,
-    host: createHistoricalCompilerHost(parsed.options, admission, baseHost),
+    host: createHistoricalCompilerHost(compilerOptions, admission, baseHost),
   });
   const diagnostics = [...configDiagnostics, ...ts.getPreEmitDiagnostics(program)];
   return { status: diagnostics.length === 0 ? 0 : 1, program, diagnostics };

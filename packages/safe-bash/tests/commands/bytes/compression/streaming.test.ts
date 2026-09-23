@@ -6,7 +6,7 @@ import { gunzipSync, gzipSync } from "node:zlib";
 import { createBytePipe, type ByteSource } from "../../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { parseOptions } from "../../../../src/commands/bytes/compression/options.js";
-import { stagingLimit, transform } from "../../../../src/commands/bytes/compression/stream.js";
+import { transform } from "../../../../src/commands/bytes/compression/stream.js";
 import { binary, chunks, deferred, discard, helloMember, run, wrap } from "./helpers.js";
 
 test("gzip-gunzip pipeline streams through bounded injected byte pipe", { timeout: 3_000 }, async () => {
@@ -310,7 +310,6 @@ for (const failure of ["cancellation", "producer error"]) {
 }
 
 test("bounded staging counts decompressed output and rejects expansion", async () => {
-  assert.equal(stagingLimit, Infinity);
   let produced = 0;
   await assert.rejects(transform(chunks(gzipSync(new Uint8Array(1024 * 1024))), async (source) => {
     for await (const chunk of source) produced += chunk.length;

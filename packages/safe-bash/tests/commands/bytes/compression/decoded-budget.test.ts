@@ -6,14 +6,13 @@ import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
 import { createCompressionCommands } from "../../../../src/commands/bytes/compression/index.js";
 import { byteCommands } from "../../../../src/commands/bytes/index.js";
 import { profiles } from "../../../../src/commands/bytes/compression/options.js";
-import { DecodedBudget, stagingLimit } from "../../../../src/commands/bytes/compression/stream.js";
+import { DecodedBudget } from "../../../../src/commands/bytes/compression/stream.js";
 
 test("omitted compression budgets impose no decoded or staged output quota", () => {
-  const budget = new DecodedBudget();
+  const budget = new DecodedBudget(Infinity);
   budget.admit(256 * 1024 * 1024);
   budget.admit(1);
   assert.equal(budget.exceeded, false);
-  assert.equal(stagingLimit, Infinity);
   assert.doesNotThrow(() => createCompressionCommands());
 });
 

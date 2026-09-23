@@ -90,7 +90,7 @@ it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node throu
         declareHostOperation: operation => operation,
         async run(source, options) {
           sources.push(source);
-          imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.readFile) });
+          imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.promises.readFile) });
           options.sink.log(3);
           return { ok: true };
         },

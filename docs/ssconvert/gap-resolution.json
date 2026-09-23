@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T12:28:21.151444+00:00",
+  "recordedAt": "2026-09-23T13:06:29.042264+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -415,12 +415,12 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4\u201356byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open.",
+      "currentFinding": "Requested AES-CBC and Blowfish-CFB8 ODF imports implemented through once-per-package strictUTF8 host password authority.24AES+12Blowfish vectors exact on SDK/Shell/browser/worker; complete independent native decrypt/inflate and plaintext ODF readbacks.61independent primitive controls cover4–56byte keys and boundaries.145focused/7598maintained tests,lint/types/build and inspected screenshots pass. Blowfish delivery verified on remote main as12329f88d; encrypted writing,broader profiles and final publication remain open.",
       "proof": [
         {
           "kind": "primary-spec-and-native-applicability",
           "path": "docs/ssconvert/encrypted-odf-applicability.json",
-          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0\u219242, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
+          "outcome": "ODF1.2 primary package spec captured; deterministic owned encryption fixture independently decrypts/inflates byte-identical content.xml; native plaintext exit0→42, encrypted exit1, no output. Source plugin reads raw content.xml without manifest encryption/password handler. Reference configuration warnings preserved separately."
         },
         {
           "kind": "red-public-sdk",
@@ -627,7 +627,7 @@
     {
       "id": "python-printf",
       "status": "open",
-      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7. Eighteen precision-bounded RangeRef formats now match both native profiles and builtSDK/Shell/checkpoint/browser/worker bytes exactly; precision<=22 excludes every address digit. Address-bearing RangeRef representation and wider-profile qualification remain unresolved. Generic cooperative runtime results now support bounded owned rectangular matrices and invocation-owned normalized references,including in-memory dynamic dependencies and formula replay across five public interfaces.82focused/22508package tests,lint/types and maintained root build pass. Raw Python RangeRef/CellRef tuple/relative-axis/sheet behavior and actual source-language result conversion remain open;new host cohort is source-contract evidence,not native module execution. Authenticated released reference API distinguishes active RangeRef.get_tuple returning two CellRef wrappers from commented-out CellRef.get_tuple;raw CellRef exposes col,row,sheet,col_relative,row_relative. Standalone CellRef has no native range-return conversion. Raw RangeRef endpoints,relative offsets,sheet operations and actual native loader invocation remain open. Original native custommodule run35859733087 actually returns2,3/5,8 for column-oriented arrays and12for returned RangeRef,then aborts unexpectedly while invoking raw get_tuple. This first workflow did not persist the exact exit before its exception,so signal is unknown and full identity is missing. Repeat capture now checkpoints every invocation and separates start/end attribute control from explicit negative tuple-method lookup,retaining failure evidence. Repeat run35861270172 persists actual SIGSEGV-11 on combined start/end,col/row,relative flags and sheet-is-None;individual crashing attribute is unidentified. Four registrations now have empty help stderr;array/range-return controls still exit0. Tuple negative fixture was not reached and final identity is absent. New exploratory axis-only control separates col/row/relative flags from sheet access;declared native signals remain failure evidence. Axes run35862415017 stopped at registration assertion before any original invocation:owned Python/expected list added axes,but plugin.xml omitted its service declaration. This setup defect is separately authenticated and repaired through parsed XML;five advertised/module/expected names now match. No actual axes result or new product failure is inferred. Two actual successful original native array/reference outputs replay exactly on SDK/Shell/XMLformula checkpoint/browser/dedicatedworker through explicit cooperative JS host bindings:16CSVbytes,total10interface controls,immutable inputs,zero diagnostics/console and inspected readable screenshot. This qualifies declared host outputs against actual native module effects;no Python interpreter/module-loader/raw axes/sheet or full source-language conversion claim.",
+      "currentFinding": "Bounded optional scalar/column-major-array port and native exception wrapping match784/784 on activated Python3.12.13 and3.14.7. Eighteen precision-bounded RangeRef formats now match both native profiles and builtSDK/Shell/checkpoint/browser/worker bytes exactly; precision<=22 excludes every address digit. Address-bearing RangeRef representation and wider-profile qualification remain unresolved. Generic cooperative runtime results now support bounded owned rectangular matrices and invocation-owned normalized references,including in-memory dynamic dependencies and formula replay across five public interfaces.82focused/22508package tests,lint/types and maintained root build pass. Raw Python RangeRef/CellRef tuple/relative-axis/sheet behavior and actual source-language result conversion remain open;new host cohort is source-contract evidence,not native module execution. Authenticated released reference API distinguishes active RangeRef.get_tuple returning two CellRef wrappers from commented-out CellRef.get_tuple;raw CellRef exposes col,row,sheet,col_relative,row_relative. Standalone CellRef has no native range-return conversion. Raw RangeRef endpoints,relative offsets,sheet operations and actual native loader invocation remain open. Original native custommodule run35859733087 actually returns2,3/5,8 for column-oriented arrays and12for returned RangeRef,then aborts unexpectedly while invoking raw get_tuple. This first workflow did not persist the exact exit before its exception,so signal is unknown and full identity is missing. Repeat capture now checkpoints every invocation and separates start/end attribute control from explicit negative tuple-method lookup,retaining failure evidence. Repeat run35861270172 persists actual SIGSEGV-11 on combined start/end,col/row,relative flags and sheet-is-None;individual crashing attribute is unidentified. Four registrations now have empty help stderr;array/range-return controls still exit0. Tuple negative fixture was not reached and final identity is absent. New exploratory axis-only control separates col/row/relative flags from sheet access;declared native signals remain failure evidence. Axes run35862415017 stopped at registration assertion before any original invocation:owned Python/expected list added axes,but plugin.xml omitted its service declaration. This setup defect is separately authenticated and repaired through parsed XML;five advertised/module/expected names now match. No actual axes result or new product failure is inferred. Two actual successful original native array/reference outputs replay exactly on SDK/Shell/XMLformula checkpoint/browser/dedicatedworker through explicit cooperative JS host bindings:16CSVbytes,total10interface controls,immutable inputs,zero diagnostics/console and inspected readable screenshot. This qualifies declared host outputs against actual native module effects;no Python interpreter/module-loader/raw axes/sheet or full source-language conversion claim. Corrected actual native run35863876037 now has final identity/activation closure:50 prefix modules and eight retained fonts authenticated;array/range-return/axis-only exit0 with empty stderr. All three relative/absolute/explicit-sheet reference forms expose normalized endpoints(0,0)/(0,1) and false relativeflags across70fields. Combined sheet probe and tuple/sheet probe each SIGSEGV-11 with empty streams;workflowsuccess includes declared failure signals and does not establish those APIs. No individual crashing attribute/method root cause or portable raw API qualification is inferred.",
       "proof": [
         {
           "path": "docs/ssconvert/python-printf-gap-proof.json",
@@ -649,7 +649,12 @@
         "docs/ssconvert/linux-python-reference-first-failure.json",
         "docs/ssconvert/linux-python-reference-repeat-failure.json",
         "docs/ssconvert/linux-python-reference-axis-setup-failure.json",
-        "docs/ssconvert/native-python-structured-public-proof.json"
+        "docs/ssconvert/native-python-structured-public-proof.json",
+        {
+          "path": "docs/ssconvert/linux-python-reference-complete-native-capture.json",
+          "kind": "authenticated-actual-native-final-closure-and-failure-signals",
+          "outcome": "Five module/input bindings,all five callable registrations,AArch64/0755 prefix,50modules/eightfonts verified;three successful outputs and two actualSIGSEGV-11 failures. Axis70fields normalized across three referenceforms;rawsheet/tuple/rootcause/public API parity open."
+        }
       ],
       "delivery": {
         "localCommit": "b4bc4acc667e42b2ac8adf2dc30c5b7da266024b",
@@ -684,7 +689,7 @@
         },
         {
           "kind": "public-shell-visible-qa",
-          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+          "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Straße Sseta Ος, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
         },
         {
           "path": "docs/ssconvert/capwords-native-loader-gap-proof.json",
@@ -770,7 +775,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         },
         "docs/ssconvert/linux-private-scalar-native-capture.json",
         "docs/ssconvert/linux-numeric-native-capture.json",
@@ -809,7 +814,7 @@
         {
           "kind": "executed-native-quadrature-power-and-public-regressions",
           "path": "docs/ssconvert/bessel-pow-native-gap-proof.json",
-          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red\u2192green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
+          "outcome": "452/5880 traced JS/native power discrepancies drive captured compiled-operation repair;784 binary/source words exact,7351/7351 primitive controls;46 original product regressions red→green,97focused/7456workspace tests,lint/types/build. Six historical Bessel cohorts exact and120 publicShell HEXREP bytes exact,screenshot inspected. Wider profiles remain required."
         },
         "docs/ssconvert/linux-private-scalar-native-capture.json",
         "docs/ssconvert/linux-numeric-native-capture.json",
@@ -892,12 +897,12 @@
       "proof": [
         {
           "kind": "release-safe-artifact-vs-private-fixture",
-          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV\u2192XLSX\u2192CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
+          "outcome": "actual scripts/package-safe.mjs vendors private contract declarations. Initial fresh actual safe-fs/safe-bash tarball strict compile and public Shell edited CSV→XLSX→CSV plus wrong-PWD diagnostics pass. Failed maintained packed consumers copied private checkout manifest/dist and omitted release closure; this is not a validated published product defect. Trace-origin controls underway."
         },
         {
           "kind": "independent-isolated-installed-safe-bash-ssconvert",
           "path": "docs/ssconvert/packed-safe-bash-gap-qualification.json",
-          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV\u2192XLSX\u2192CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
+          "outcome": "strict advertised plugin consumer skipLibCheck=false passes; 878 package resolutions confined to isolated node_modules, zero foreign/private workspace fallback; tarball SHA512 matches pack receipts/installed lock. Actual edited CSV→XLSX→CSV yields Ada,17 and wrong PWD diagnostics use /work. Original and unrelated VFS bytes preserved."
         }
       ],
       "delivery": {

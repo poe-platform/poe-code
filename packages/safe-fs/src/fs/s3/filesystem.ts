@@ -29,6 +29,12 @@ export interface S3FileSystemOptions {
   readonly maxReadBytes?: number;
   readonly maxStreamBytes?: number;
   readonly maxListEntries?: number;
+  /** Aggregate budgets for each rm operation, including ancestor inspection. */
+  readonly removalLimits?: {
+    readonly maxRequests?: number;
+    readonly maxListEntries?: number;
+    readonly maxDeleteObjects?: number;
+  };
 }
 
 interface NodeInfo {
@@ -109,6 +115,8 @@ export class S3FileSystem implements FileSystem {
   private readonly maxReadBytes: number;
   private readonly maxStreamBytes: number;
   private readonly maxListEntries: number;
+  private readonly removalLimits: { maxRequests: number; maxListEntries: number; maxDeleteObjects: number };
+  private readonly removalBudgets = new WeakMap<FsOptions, { requests: number; entries: number }>();
 
   constructor(options: S3FileSystemOptions) {
     if (!options?.transport || ["headObject", "getObject", "putObject", "deleteObject", "copyObject", "listObjectsV2"]
@@ -135,6 +143,11 @@ export class S3FileSystem implements FileSystem {
     this.maxReadBytes = options.maxReadBytes === undefined ? Infinity : validateLimit(options.maxReadBytes, "maxReadBytes", 0);
     this.maxStreamBytes = options.maxStreamBytes === undefined ? Infinity : validateLimit(options.maxStreamBytes, "maxStreamBytes", 0);
     this.maxListEntries = options.maxListEntries === undefined ? Infinity : validateLimit(options.maxListEntries, "maxListEntries", 1);
+    this.removalLimits = {
+      maxRequests: validateLimit(options.removalLimits?.maxRequests ?? 32, "removalLimits.maxRequests", 1),
+      maxListEntries: validateLimit(options.removalLimits?.maxListEntries ?? 32, "removalLimits.maxListEntries", 1),
+      maxDeleteObjects: validateLimit(options.removalLimits?.maxDeleteObjects ?? 16, "removalLimits.maxDeleteObjects", 1),
+    };
     this.capabilities = Object.freeze({
       open: false,
       read: true, stat: true, readdir: true, realpath: true, access: true,
@@ -206,6 +219,10 @@ export class S3FileSystem implements FileSystem {
 
   private async call<Result>(syscall: string, path: string, options: FsOptions, action: () => Promise<Result>, precondition?: ErrnoCode): Promise<Result> {
     this.checkAbort(options, syscall, path);
+    const budget = this.removalBudgets.get(options);
+    if (budget && ++budget.requests > this.removalLimits.maxRequests) {
+      fail("EFBIG", "rm", path, "S3 removal request budget exceeded");
+    }
     let onAbort: (() => void) | undefined;
     try {
       const pending = action();
@@ -268,11 +285,17 @@ export class S3FileSystem implements FileSystem {
   }
 
   private async page(prefix: string, path: string, options: FsOptions, delimiter?: string, token?: string, maxKeys = this.pageSize): Promise<S3ListOutput> {
+    const budget = this.removalBudgets.get(options);
+    if (budget) maxKeys = Math.min(maxKeys, this.removalLimits.maxListEntries - budget.entries + 1);
     const result = await this.call("listObjectsV2", path, options, () => this.transport.listObjectsV2({
       Bucket: this.bucket, Prefix: prefix, MaxKeys: maxKeys,
       ...(delimiter === undefined ? {} : { Delimiter: delimiter }),
       ...(token === undefined ? {} : { ContinuationToken: token }),
     }, this.requestOptions(options)));
+    if (budget) {
+      budget.entries += (result.Contents?.length ?? 0) + (result.CommonPrefixes?.length ?? 0);
+      if (budget.entries > this.removalLimits.maxListEntries) fail("EFBIG", "rm", path, "S3 removal listing budget exceeded");
+    }
     for (const item of result.Contents ?? []) {
       if (typeof item.Key !== "string" || !item.Key.startsWith(prefix)) fail("EIO", "listObjectsV2", path, "transport returned an object outside the requested prefix");
       this.validateObject(item, path);
@@ -569,6 +592,10 @@ export class S3FileSystem implements FileSystem {
   }
 
   async rm(input: string, options: RemoveOptions = {}): Promise<void> {
+    // A distinct options object keeps concurrent and nested operations isolated.
+    options = { ...options };
+    const budget = { requests: 0, entries: 0 };
+    this.removalBudgets.set(options, budget);
     const path = this.path(input);
     this.writable(path);
     if (path === "/") fail("EBUSY", "rm", path, "cannot remove the mounted root");
@@ -584,8 +611,22 @@ export class S3FileSystem implements FileSystem {
       if (options.force) return;
       fail("ENOENT", "rm", path);
     }
-    const objects = info.stat.type === "directory" ? await this.tree(path, options) : [{ Key: this.key(path) }];
-    if (info.stat.type === "directory" && !options.recursive && objects.some((item) => item.Key !== this.directoryKey(path))) fail("ENOTEMPTY", "rm", path);
+    let objects: S3ObjectSummary[];
+    if (info.stat.type === "directory" && !options.recursive) {
+      const prefix = this.directoryKey(path);
+      objects = [];
+      for await (const page of this.pages(prefix, path, options, undefined, 2)) {
+        if (page.Contents?.some(item => item.Key !== prefix)) fail("ENOTEMPTY", "rm", path);
+        if (page.Contents?.length) objects = [{ Key: prefix }];
+      }
+    } else {
+      objects = info.stat.type === "directory" ? await this.tree(path, options) : [{ Key: this.key(path) }];
+    }
+    // Reserve the complete mutation phase before issuing any deletes.
+    if (objects.length > this.removalLimits.maxDeleteObjects
+      || budget.requests + objects.length > this.removalLimits.maxRequests) {
+      fail("EFBIG", "rm", path, "S3 removal delete or request budget exceeded; use bounded batches");
+    }
     for (const item of objects) {
       await this.call("deleteObject", path, options, () => this.transport.deleteObject({ Bucket: this.bucket, Key: item.Key! }, this.requestOptions(options)));
     }

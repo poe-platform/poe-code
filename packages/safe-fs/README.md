@@ -273,7 +273,35 @@ For in-memory S3 simulations, `new MockS3Client({ buckets, pageSize?, now?, auth
 | `maxReadBytes` | Unlimited unless configured |
 | `maxStreamBytes` | Unlimited unless configured |
 | `maxListEntries` | Unlimited unless configured |
+| `removalLimits.maxRequests` | 32 transport calls per `rm`, including lookup, listing, and deletes |
+| `removalLimits.maxListEntries` | 32 returned listing entries in aggregate per `rm`, including lookup |
+| `removalLimits.maxDeleteObjects` | 16 objects per `rm` |
 | `compareEntry` | Optional trusted backing-identity callback |
+
+Removal limits apply even when shell filesystem-call limits admit a recursive `rm` as one operation. Each limit accepts a positive safe integer. Traversal stops at the listing/request cap and rejects with `EFBIG`; all delete requests must fit the remaining request budget before the first mutation. Nonrecursive removal checks for children using pages of at most two entries. Configure larger `removalLimits` only where the deployment can afford the corresponding work. These limits count adapter transport calls; retries inside a supplied transport need their own limit. Remote failures or concurrent writers can still cause partial deletion after preflight.
+
+For larger trees, a trusted integration can process one bounded batch per request/job using its explicitly supplied transport. This example uses at most 17 transport calls and retains at most 16 summaries; repeat in a later job until `done`. The prefix must come from trusted deployment configuration, include the filesystem's configured prefix, and end in `/`. This deliberately bypasses filesystem collision checks and deletes directory markers as well as files; serialize it with writers when complete removal is required.
+
+```ts
+async function removeBatch(transport, bucket, trustedDirectoryPrefix, abortSignal) {
+  const options = { abortSignal };
+  const page = await transport.listObjectsV2({
+    Bucket: bucket, Prefix: trustedDirectoryPrefix, MaxKeys: 16,
+  }, options);
+  const objects = page.Contents ?? [];
+  if (objects.length > 16 || page.CommonPrefixes?.length
+    || objects.some(object => !object.Key?.startsWith(trustedDirectoryPrefix))
+    || typeof page.IsTruncated !== "boolean") {
+    throw new Error("Invalid batch listing");
+  }
+  for (const object of objects) {
+    await transport.deleteObject({ Bucket: bucket, Key: object.Key }, options);
+  }
+  return { deleted: objects.length, done: !page.IsTruncated };
+}
+```
+
+Each batch lists from the beginning because previous keys have been deleted; it does not reuse continuation tokens across mutations. A job runner should cap the number of batches and schedule remaining work separately.
 
 `createS3HttpTransport` requires `endpoint` (an origin without path or credentials), `region`, and `credentials`. Credentials contain `accessKeyId`, `secretAccessKey`, and optional `sessionToken`, or come from an async provider receiving `{ signal }`.
 

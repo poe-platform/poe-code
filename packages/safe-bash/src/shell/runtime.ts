@@ -1923,6 +1923,22 @@ export class Runtime {
     }, prepared => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine), this.budget.parsing));
   }
 
+  private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
+    const allocation = this.budget.values.scope();
+    try {
+      if (program.error) {
+        const word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
+          state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
+        const operandIO = this.parameterOperandIO(word, state, { ...io, [valueScope]: allocation });
+        const fields = await this.valueWord(word, state, operandIO, false, false, true);
+        const source = shellValueText(concatShellValues(fields, allocation));
+        this.signal.throwIfAborted();
+        program = prepareArithmetic(source, this.budget.parsing);
+      }
+      return evaluateArithmetic(program, this.arithmeticVariables(state, io.diagnosticLine), this.budget.parsing);
+    } finally { allocation.close(); }
+  }
+
   arithmeticVariables(state: State, line?: number): Record<string, string> {
     return new Proxy(state.variables, {
       get: (target, key) => {
@@ -3519,7 +3535,7 @@ export class Runtime {
       if (command.kind === "arithmetic") {
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = "((";
         try {
-          return Number(this.arithmeticValue(command.expression, state, io) === 0n);
+          return Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
         }
         catch (error) { this.rethrowArithmeticControl(error); throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
       }
@@ -3594,7 +3610,7 @@ export class Runtime {
         } else if (command.kind === "arithmetic-for") {
           const evaluate = async (program: ArithmeticProgram | undefined): Promise<bigint | undefined> => {
             if (!program) return 1n;
-            try { return this.arithmeticValue(program, state, io); }
+            try { return await this.expandedArithmeticValue(program, state, io); }
             catch (error) {
               this.rethrowArithmeticControl(error);
               await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
@@ -6998,22 +7014,8 @@ export class Runtime {
       return "";
     }
     if (part.kind === "arithmetic") {
-      const allocation = this.budget.values.scope();
-      try {
-        let program = part.expression;
-        if (program.error) {
-          const word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables),
-            state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? part.line, state.extensions?.syntax);
-          const operandIO = this.parameterOperandIO(word, state, { ...io, [valueScope]: allocation });
-          const fields = await this.valueWord(word, state, operandIO, false, false, true);
-          const source = shellValueText(concatShellValues(fields, allocation));
-          this.signal.throwIfAborted();
-          program = prepareArithmetic(source, this.budget.parsing);
-        }
-        return String(evaluateArithmetic(program, this.arithmeticVariables(state, io.diagnosticLine ?? part.line), this.budget.parsing));
-      }
+      try { return String(await this.expandedArithmeticValue(part.expression, state, { ...io, diagnosticLine: io.diagnosticLine ?? part.line })); }
       catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
-      finally { allocation.close(); }
     }
     if (part.kind === "substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");

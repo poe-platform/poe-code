@@ -52,9 +52,15 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | Option | Meaning |
 | --- | --- |
 | `-r`, `--raw-output` | Emit strings without JSON quotes; other values remain JSON. |
-| `-j`, `--join-output` | Imply raw output and omit the trailing LF for every output value, including nonstrings. |
+| `-j`, `--join-output` | Imply raw output and omit the trailing LF for every output value, including nonstrings; `--raw-output0` takes precedence. |
+| `--raw-output0` | Imply raw output and terminate every result with NUL; reject raw strings containing NUL. |
 | `-R`, `--raw-input` | Read LF-delimited strings instead of JSON; preserve CR, BOM, and final partial records. |
 | `-c`, `--compact-output` | Compact JSON instead of two-space pretty JSON. |
+| `-a`, `--ascii-output` | Escape non-ASCII characters in JSON keys and strings as Unicode escapes. |
+| `--indent N`, `--tab` | Use 0–7 spaces (`0` is compact), or tabs (`--tab` or `--indent -1`). |
+| `-C`, `--color-output` | Emit ANSI colors using jq's default palette. |
+| `-M`, `--monochrome-output` | Disable color, even when `-C` is also supplied. |
+| `--unbuffered` | Write each completed result immediately through the awaited output sink. |
 | `-S`, `--sort-keys` | Sort object keys recursively by Unicode code point, without changing filter traversal order. |
 | `--stream` | Read JSON as `[path, leaf]` and `[path]` container-end events; empty arrays and objects are leaves. |
 | `--stream-errors` | Imply streaming and emit `[message, path]` parse-error events; resume on the next input line. |
@@ -95,7 +101,18 @@ Definitions are lexical, nonrecursive and zero-argument; parameterized functions
 module metadata, data imports and import search metadata remain unsupported.
 Modules contain imports followed by definitions, with no executable filter body.
 
-Every output value ends in LF unless `-j` is set. Embedded newlines in raw strings are preserved.
+Every output value ends in LF unless `-j` or `--raw-output0` is set. Embedded
+newlines in raw strings are preserved. `--raw-output0` takes precedence over `-j`
+and terminates nonstrings with NUL too. A raw string containing NUL stops the
+current filter invocation with a runtime error; later inputs are still processed.
+With `-a`, raw strings instead use quoted ASCII JSON, including escaped NUL,
+without color or a sequence RS prefix.
+
+The last of `-c`, `--indent`, and `--tab` selects indentation. Color is explicit:
+there is no terminal detection or `JQ_COLORS` customization. ASCII escapes,
+indentation, ANSI sequences, and output delimiters all count toward
+`maxOutputBytes`; the existing value, work, depth, and result limits still apply.
+`--unbuffered` uses the existing result-by-result writes and backpressure.
 Ordinary successful execution returns 0. With `-e`, no emitted result returns 4,
 last result null/false returns 1, and any other last result returns 0. Empty
 strings, zero, and empty containers are true-valued. A later input that emits no
@@ -320,8 +337,7 @@ should supply a deadline signal when they require a wall-clock deadline.
   numeric parity across jq builds, arbitrary exponent workloads or all math.
 - Invalid input syntax stops the command, unlike recoverable filter errors.
   Diagnostic and exit-state parity is limited to the pinned, recorded profile.
-- No streaming path-event mode, colors, sorted-output flag,
-  file-variable flags, jq environment builtins, or host process/file access.
+- No file-variable flags, jq environment builtins, or host process/file access.
 
 ## Source-author verification evidence
 

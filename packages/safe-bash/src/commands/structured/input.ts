@@ -381,15 +381,22 @@ export async function* rawValues(sources: AsyncIterable<ByteSource>, budget: Bud
   if (slurp || buffer) { budget.value(buffer); yield buffer; }
 }
 
+export interface JsonFormat {
+  indent: string;
+  ascii: boolean;
+  color: boolean;
+}
+
 export type JsonFragment = { readonly bytes: number; readonly text: string } | {
   readonly bytes: number;
   readonly value: string;
   readonly start: number;
   readonly end: number;
   readonly quoted: boolean;
+  readonly ascii?: boolean;
 };
 
-function* quotedFragments(value: string, budget: Budget): Generator<JsonFragment> {
+function* quotedFragments(value: string, budget: Budget, ascii = false): Generator<JsonFragment> {
   yield { text: '"', bytes: 1 };
   let offset = 0;
   while (offset < value.length) {
@@ -402,14 +409,14 @@ function* quotedFragments(value: string, budget: Budget): Generator<JsonFragment
       if (code >= 0xd800 && code <= 0xdbff && offset + 1 === limit && limit < value.length) break;
       if (code >= 0xd800 && code <= 0xdbff && offset + 1 < limit) {
         const next = value.charCodeAt(offset + 1);
-        if (next >= 0xdc00 && next <= 0xdfff) { bytes += 4; offset += 2; continue; }
+        if (next >= 0xdc00 && next <= 0xdfff) { bytes += ascii ? 12 : 4; offset += 2; continue; }
       }
       if (code === 34 || code === 92 || code === 8 || code === 9 || code === 10 || code === 12 || code === 13) bytes += 2;
-      else if (code < 32 || (code >= 0xd800 && code <= 0xdfff)) bytes += 6;
+      else if (code < 32 || code === 127 || (ascii && code > 127) || (code >= 0xd800 && code <= 0xdfff)) bytes += 6;
       else bytes += code < 128 ? 1 : code < 2048 ? 2 : 3;
       offset++;
     }
-    yield { value, start, end: offset, bytes, quoted: true };
+    yield { value, start, end: offset, bytes, quoted: true, ascii };
   }
   yield { text: '"', bytes: 1 };
 }
@@ -418,20 +425,43 @@ export function renderJsonFragment(fragment: JsonFragment, budget: Budget): stri
   if ("text" in fragment) return fragment.text;
   budget.step(fragment.end - fragment.start);
   const text = fragment.value.slice(fragment.start, fragment.end);
-  return fragment.quoted ? JSON.stringify(text).slice(1, -1) : text;
+  if (!fragment.quoted) return text;
+  const quoted = JSON.stringify(text).slice(1, -1);
+  if (!fragment.ascii && !text.includes("\x7f")) return quoted;
+  let escaped = "";
+  for (let index = 0; index < quoted.length; index++) {
+    const code = quoted.charCodeAt(index);
+    escaped += code === 127 || (fragment.ascii && code > 127) ? "\\u" + code.toString(16).padStart(4, "0") : quoted[index];
+  }
+  return escaped;
 }
 
-export function* jsonFragments(value: Json, budget: Budget, pretty = false, depth = 0): Generator<JsonFragment> {
+export function* jsonFragments(value: Json, budget: Budget, format: boolean | JsonFormat = false, depth = 0): Generator<JsonFragment> {
   budget.step();
   if (depth > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-  if (typeof value === "string") { yield* quotedFragments(value, budget); return; }
+  const indent = typeof format === "boolean" ? format ? "  " : "" : format.indent;
+  const ascii = typeof format !== "boolean" && format.ascii;
+  const color = typeof format !== "boolean" && format.color;
+  if (color) {
+    const code = value === null ? "0;90" : typeof value === "string" ? "0;32" : typeof value !== "object" || isNumber(value) ? "0;39" : "1;39";
+    yield { text: "\x1b[" + code + "m", bytes: 7 };
+  }
+  if (typeof value === "string") {
+    yield* quotedFragments(value, budget, ascii);
+    if (color) yield { text: "\x1b[0m", bytes: 4 };
+    return;
+  }
   if (value === null || typeof value !== "object" || isNumber(value)) {
     const text = scalarJson(value, budget);
+    const nan = color && value !== null && text === "null";
+    if (nan) yield { text: "\x1b[0;90m", bytes: 7 };
     for (let start = 0; start < text.length; start += 32) {
       const end = Math.min(start + 32, text.length);
       budget.step(end - start);
       yield { value: text, start, end, bytes: end - start, quoted: false };
     }
+    if (nan) yield { text: "\x1b[0m", bytes: 4 };
+    if (color) yield { text: "\x1b[0m", bytes: 4 };
     return;
   }
   if (depth + 1 > budget.limits.maxDepth) throw new JqLimitError("maxDepth");
@@ -444,23 +474,29 @@ export function* jsonFragments(value: Json, budget: Budget, pretty = false, dept
     budget.step();
     budget.collection(count + 1);
     if (count++) yield { text: ",", bytes: 1 };
-    if (pretty) {
-      const bytes = 1 + 2 * (depth + 1);
+    if (indent) {
+      const bytes = 1 + indent.length * (depth + 1);
       budget.step(bytes);
-      yield { text: `\n${"  ".repeat(depth + 1)}`, bytes };
+      yield { text: `\n${indent.repeat(depth + 1)}`, bytes };
     }
     if (!array) {
-      yield* quotedFragments(String(key), budget);
-      yield { text: pretty ? ": " : ":", bytes: pretty ? 2 : 1 };
+      if (color) yield { text: "\x1b[0m\x1b[1;34m", bytes: 11 };
+      yield* quotedFragments(String(key), budget, ascii);
+      if (color) yield { text: "\x1b[0m\x1b[1;39m", bytes: 11 };
+      yield { text: indent ? ": " : ":", bytes: indent ? 2 : 1 };
+      if (color) yield { text: "\x1b[0m", bytes: 4 };
     }
-    yield* jsonFragments((value as Record<string | number, Json>)[key]!, budget, pretty, depth + 1);
+    yield* jsonFragments((value as Record<string | number, Json>)[key]!, budget, format, depth + 1);
+    if (color) yield { text: "\x1b[1;39m", bytes: 7 };
   }
-  if (pretty && count) {
-    const bytes = 1 + 2 * depth;
+  if (indent && count) {
+    const bytes = 1 + indent.length * depth;
     budget.step(bytes);
-    yield { text: `\n${"  ".repeat(depth)}`, bytes };
+    yield { text: `\n${indent.repeat(depth)}`, bytes };
   }
+  if (color && count) yield { text: "\x1b[1;39m", bytes: 7 };
   yield { text: array ? "]" : "}", bytes: 1 };
+  if (color) yield { text: "\x1b[0m", bytes: 4 };
 }
 
 export async function measureValue(value: Json, budget: Budget, depth = 0, maxBytes = budget.limits.maxValueBytes): Promise<number> {
@@ -474,13 +510,13 @@ export async function measureValue(value: Json, budget: Budget, depth = 0, maxBy
   return bytes;
 }
 
-export async function stringify(value: Json, budget: Budget, pretty = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes", asStringValue = false): Promise<string> {
+export async function stringify(value: Json, budget: Budget, format: boolean | JsonFormat = false, maxBytes = budget.limits.maxValueBytes, limitName: "maxValueBytes" | "maxOutputBytes" = "maxValueBytes", asStringValue = false): Promise<string> {
   await budget.tick(0);
   const parts: string[] = [];
   let bytes = 0;
   let units = 0;
   let stringBytes = 2;
-  for (const fragment of jsonFragments(value, budget, pretty)) {
+  for (const fragment of jsonFragments(value, budget, format)) {
     await budget.tick(0);
     bytes += fragment.bytes;
     if (bytes > maxBytes) throw new JqLimitError(limitName);

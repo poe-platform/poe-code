@@ -3,7 +3,7 @@ import { pathOf } from "../internal.js";
 import { joinPath } from "../../contracts/path.js";
 import { escapeText, writeDiagnostic } from "../../escaping.js";
 import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
-import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
+import { jsonValues, parseJson, rawValues, stringify, type JsonFormat } from "./input.js";
 import { Interpreter } from "./interpreter.js";
 import { moduleProgram, parse, type Ast } from "./parser.js";
 import { sortObjectKeys } from "./values.js";
@@ -15,7 +15,9 @@ interface Options {
   raw: boolean;
   rawInput: boolean;
   joinOutput: boolean;
-  compact: boolean;
+  rawOutput0: boolean;
+  monochrome: boolean;
+  format: JsonFormat;
   sortKeys: boolean;
   slurp: boolean;
   nullInput: boolean;
@@ -33,7 +35,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     argumentBytes += Buffer.byteLength(argument);
     if (argumentBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
   }
-  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, compact: false, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], moduleDirectories: [], variables: new Map() };
+  const options: Options = { stream: false, streamErrors: false, sequence: false, raw: false, rawInput: false, joinOutput: false, rawOutput0: false, monochrome: false, format: { indent: "  ", ascii: false, color: false }, sortKeys: false, slurp: false, nullInput: false, exitStatus: false, source: undefined, programFile: undefined, files: [], moduleDirectories: [], variables: new Map() };
   const named = object();
   let ended = false;
   let variableBytes = 0;
@@ -66,15 +68,28 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
       else { options.stream = true; options.streamErrors ||= argument === "--stream-errors"; }
       continue;
     }
-    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e" };
+    if (!ended && argument === "--indent") {
+      const value = Number.parseInt(operand(), 10) || 0;
+      if (value < -1 || value > 7) throw new JqError("--indent takes a number between -1 and 7", 2);
+      options.format.indent = value === -1 ? "\t" : " ".repeat(value);
+      continue;
+    }
+    if (!ended && argument === "--tab") { options.format.indent = "\t"; continue; }
+    if (!ended && argument === "--raw-output0") { options.rawOutput0 = true; options.raw = true; continue; }
+    // Each result already reaches the awaited sink before the next input is read.
+    if (!ended && argument === "--unbuffered") continue;
+    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e", "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M" };
     if (!ended && argument.startsWith("-") && argument !== "-") {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
-      if (!flags || [...flags].some(flag => !"rRjcSsne".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
+      if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
         if (flag === "r") options.raw = true;
         else if (flag === "R") options.rawInput = true;
         else if (flag === "j") { options.joinOutput = true; options.raw = true; }
-        else if (flag === "c") options.compact = true;
+        else if (flag === "c") options.format.indent = "";
+        else if (flag === "a") options.format.ascii = true;
+        else if (flag === "C") options.format.color = true;
+        else if (flag === "M") options.monochrome = true;
         else if (flag === "S") options.sortKeys = true;
         else if (flag === "s") options.slurp = true;
         else if (flag === "n") options.nullInput = true;
@@ -85,6 +100,7 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
     if (options.source === undefined && options.programFile === undefined) options.source = argument;
     else options.files.push(argument);
   }
+  options.format.color &&= !options.monochrome;
   options.variables.set("ARGS", copyObject({ positional: [], named }));
   options.source ??= options.programFile === undefined ? "." : undefined;
   return options;
@@ -235,7 +251,13 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
       try {
         while (true) {
           let next: IteratorResult<Json>;
-          try { next = await iterator.next(); }
+          try {
+            next = await iterator.next();
+            if (!next.done && options.rawOutput0 && !options.format.ascii && typeof next.value === "string") {
+              await budget.tick(next.value.length);
+              if (next.value.includes("\0")) throw new JqError("Cannot dump a string containing NUL with --raw-output0 option");
+            }
+          }
           catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof JqError) || error instanceof JqLimitError) throw error;
@@ -251,12 +273,14 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
           await budget.tick(); budget.value(result);
           if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
           const remaining = limits.maxOutputBytes - budget.outputBytes;
-          const suffix = options.joinOutput ? "" : "\n";
+          const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
           const prefix = options.sequence && !(options.raw && typeof result === "string") ? "\x1e" : "";
           const output = options.sortKeys ? await sortObjectKeys(result, budget) : result;
-          const text = options.raw && typeof output === "string" ? output : await stringify(output, budget, !options.compact, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
+          const rawString = options.raw && typeof output === "string";
+          const format = rawString ? { ...options.format, color: false } : options.format;
+          const text = rawString && !format.ascii ? output : await stringify(output, budget, format, Math.max(0, remaining - suffix.length - prefix.length), "maxOutputBytes");
+          if (prefix.length + Buffer.byteLength(text) + suffix.length > remaining) throw new JqLimitError("maxOutputBytes");
           const bytes = Buffer.from(`${prefix}${text}${suffix}`);
-          if (bytes.byteLength > remaining) throw new JqLimitError("maxOutputBytes");
           budget.outputBytes += bytes.byteLength;
           try { await writeBytes(context.stdout, bytes, context.signal); }
           catch (error) { stdoutWriteFailed = true; throw error; }

@@ -4604,7 +4604,7 @@ export class Runtime {
       dotglob: false,
       globstar: false,
       positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
-      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, umask: state.umask ?? 0o022,
+      loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
     }, this.budget, io[invocationScope]);
     this.replacePositionals(child, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, arg0);

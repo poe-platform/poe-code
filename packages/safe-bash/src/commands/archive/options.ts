@@ -5,7 +5,7 @@ export interface Operand { readonly name: string; readonly cwd: string }
 export interface TarOptions {
   mode: "c" | "t" | "x";
   archive: string;
-  gzip: boolean;
+  compression?: "gzip" | "bzip2" | "xz";
   verbose: boolean;
   strip: number;
   format: "pax" | "ustar";
@@ -18,7 +18,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   if (context.args.reduce((total, argument) => total + Buffer.byteLength(argument), 0) > limits.maxArgumentBytes) fail("argument byte limit exceeded");
   let mode: TarOptions["mode"] | undefined;
   let archive = "-";
-  let gzip = false;
+  let compression: TarOptions["compression"];
+  let autoCompress = false;
   let verbose = false;
   let strip = 0;
   let format: TarOptions["format"] = "pax";
@@ -76,7 +77,11 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     if (flag === "c" || flag === "t" || flag === "x") {
       if (mode) fail("exactly one of -c, -t, -x is required");
       mode = flag;
-    } else if (flag === "z") gzip = true;
+    } else if (flag === "z" || flag === "j" || flag === "J") {
+      const selected = flag === "z" ? "gzip" : flag === "j" ? "bzip2" : "xz";
+      if (compression && compression !== selected) fail("conflicting compression options");
+      compression = selected;
+    } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
     else if (flag === "f") { if (!value) fail("empty archive name"); archive = value; }
     else if (flag === "C") await directory(value!);
@@ -94,7 +99,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "no-verbatim-files-from") verbatim = false;
     else fail(`unsupported option: ${flag}`);
   };
-  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", verbose: "v", directory: "C", "files-from": "T" };
+  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T" };
   const values = new Set(["f", "C", "T", "exclude", "strip-components", "format"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
@@ -110,7 +115,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && /^[ctxzvfCT]+$/u.test(argument)))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCT".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -131,7 +136,12 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   if (mode === "c" && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
   if (mode === "c" && !operands.length && !filesFrom) fail("refusing to create an empty archive without -T");
   if (archive !== "-") checkPath(archive, limits);
-  return { mode, archive, gzip, verbose, strip, format, cwd, operands, excludes };
+  if (mode === "c" && autoCompress) {
+    compression = archive.endsWith(".gz") || archive.endsWith(".tgz") ? "gzip"
+      : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
+      : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
+  }
+  return { mode, archive, ...(compression ? { compression } : {}), verbose, strip, format, cwd, operands, excludes };
 }
 
 type Token = { kind: "star" } | { kind: "any" } | { kind: "literal"; value: string }

@@ -4,6 +4,58 @@ import { CommandRegistry, type PluginHost } from "../../../src/contracts/index.j
 import { archiveCommands, createArchiveCommands, DEFAULT_ARCHIVE_LIMITS } from "../../../src/commands/archive/index.js";
 import { archive, binary, direct, fixture, member, source, wrapped } from "./helpers.js";
 
+// Independently created ustar fixtures retained in issue 255.
+for (const [format, encoded] of [
+  ["gzip", "H4sIAAAAAAACA+3UMQ6CQBAF0K09hSdAghv3PEtoaChwSbi9rlZGazGG95o/mWaqP8M4n3JT1hK+p60uMT6zes+qe5kf+xRTDMc2bGC5ljzXk2Gf8iGwY0Ptf9/04/TT/p8/+t8l/d/EzQMAAAAAAAAAAPhnd3F+DiQAKAAA"],
+  ["bzip2", "QlpoOTFBWSZTWaqHy+IAAIz7gMmQAAhAAd2AAIB0IR5ADAigAHISkTQMmgaMmh6gSRJoNTajaQ8pkw52tmEEAYjRSQj1T8OZBSkyRiIQwHVYKzyNS8FEYEVHEOazby41Rok7ryAc2+jUpztU7kMPRVMVMsxED78XckU4UJCqh8vi"],
+  ["xz", "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHJdADIaSqclTMpPo7bATGveCyhE1/WBN+rYIlXrBZjZVKPjGbxIrBjCnyTiKSaXLftcBnazZ1tZjqrQe3gs+aBFGe8+QGuyvS7QtK/XvZbyAGUmKqzK7aUybTMcrTySNuRc0LdJoVAWEPEtzqsdSHHSOCKuAAAAAMQ5vPKpC3AcAAGOAYBQAABOEGpbscRn+wIAAAAABFla"],
+] as const) test(`independent ${format} fixture reads by bytes and long option`, async () => {
+  const { fs, shell } = await fixture();
+  try {
+    const bytes = Buffer.from(encoded, "base64");
+    await fs.writeFile("/work/misleading.tar", bytes);
+    for (const flags of ["", `--${format}`]) {
+      const listed = await shell.exec(`tar -tf misleading.tar ${flags}`);
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      assert.equal(listed.stdout, "dir/a.txt\ndir/b.bin\n");
+      const extracted = await shell.exec(`tar -xf misleading.tar ${flags} -C /out`);
+      assert.equal(extracted.exitCode, 0, extracted.stderr);
+      assert.deepEqual(await fs.readFile("/out/dir/a.txt"), Uint8Array.of(97, 10));
+      assert.deepEqual(await fs.readFile("/out/dir/b.bin"), Uint8Array.of(0, 255, 10));
+    }
+    const truncated = await shell.exec("tar -tf -", { stdin: bytes.subarray(0, bytes.length - 8) });
+    assert.equal(truncated.exitCode, 2);
+    assert.notEqual(truncated.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+for (const [flag, extension, magic] of [
+  ["z", "gz", [31, 139]], ["j", "bz2", [66, 90, 104]], ["J", "xz", [253, 55, 122, 88, 90, 0]],
+] as const) test(`tar ${extension} creation, explicit reading and header autodetection`, async () => {
+  const { fs, shell } = await fixture();
+  try {
+    await fs.writeFile("/work/data", binary);
+    for (const options of [`-c${flag}f archive`, `c${flag}f archive`, `-caf archive.tar.${extension}`, `-cf archive.tar.${extension} --auto-compress`]) {
+      const name = options.includes("archive.tar.") ? `archive.tar.${extension}` : "archive";
+      const created = await shell.exec(`tar ${options} data`);
+      assert.equal(created.exitCode, 0, created.stderr);
+      const bytes = await fs.readFile(`/work/${name}`);
+      assert.deepEqual([...bytes.subarray(0, magic.length)], [...magic]);
+      for (const command of [`tar -t${flag}f ${name}`, `tar -tf ${name}`]) {
+        const result = await shell.exec(command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "data\n");
+      }
+      const extracted = await direct(["-xf", "-", "-C", "/out"], fs, { stdin: source(bytes, 1) });
+      assert.equal(extracted.exitCode, 0, extracted.stderr);
+      assert.deepEqual(await fs.readFile("/out/data"), binary);
+    }
+    const plain = await shell.exec("tar -caf plain.tar data; tar -tf plain.tar");
+    assert.equal(plain.exitCode, 0, plain.stderr);
+    assert.equal(plain.stdout, "data\n");
+  } finally { await shell.dispose(); }
+});
+
 test("archive plugin is explicit, collision-atomic, and validates limits", async () => {
   assert.deepEqual(createArchiveCommands().map(command => command.name), ["tar", "zip", "unzip"]);
   const registry = new CommandRegistry([{ name: "tar", execute: () => ({ exitCode: 19 }) }]);

@@ -78,7 +78,7 @@ filesystem and byte streams, not host executables.
 | Format/combine | `nl`, `seq`, `rev`, `tac`, `expand`, `unexpand`, `fold`, `fmt`, `strings`, `paste`, `comm`, `join`, `column`, `split` |
 | Structured text | `jq`, `html-to-markdown`, `xq`, `xmllint`. `xq` converts XML to JSON and applies jq filters. `xmllint` supports `--xpath`, `--noout` well-formedness checks, `--format`, and `--c14n` with comments; DTDs and schema validation are unsupported. [XML modes and limits](docs/XML_QUERY.md). `jq -S` / `--sort-keys` sorts object keys recursively in JSON output. |
 | Bytes/checksums | `base64`, `base32`, `xxd`, `od`, `md5sum`, `sha1sum`, `sha256sum`, `cksum`. `od --strings[=MIN]` / `-S[MIN]` prints NUL-terminated strings with at least MIN characters (default 3). |
-| Archives | `gzip`, `gunzip`, `zcat`, `tar` |
+| Archives | `gzip`, `gunzip`, `zcat`, `tar`. Tar supports gzip (`-z`), bzip2 (`-j`), xz (`-J`), suffix-selected creation (`-a`), and compression detection when reading. |
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout` |
 | Changes/review | `diff`, `patch`, `apply_patch` |
 

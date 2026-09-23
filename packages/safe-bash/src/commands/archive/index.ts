@@ -5,7 +5,7 @@ import { createArchive, manifest } from "./create.js";
 import { readArchive } from "./extract.js";
 import { Budget, bounded, display, fail, fileSource, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { parseOptions } from "./options.js";
-import { compressed } from "./stream.js";
+import { autodetected, compressed } from "./stream.js";
 import { createZipCommand } from "./zip.js";
 import { createUnzipCommand } from "./unzip.js";
 
@@ -32,6 +32,9 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
   -x, --extract, --get      Extract archive members
   -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)
   -z, --gzip               Use gzip compression
+  -j, --bzip2              Use bzip2 compression
+  -J, --xz                 Use xz compression
+  -a, --auto-compress      Select output compression by archive suffix
   -v, --verbose            List processed members
   -C, --directory=DIR      Change directory for subsequent operands
   -T, --files-from=FILE    Read filenames from FILE (- for standard input)
@@ -46,6 +49,7 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --                  End options; remaining arguments are filenames
 
 Exactly one of -c, -t or -x is required for archive operations.
+When reading, gzip, bzip2 and xz compression is detected from archive bytes.
 Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory
 `), signal);
         return { exitCode: 0 };
@@ -54,7 +58,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
       if (parsed.mode === "c") {
         const prepared = await manifest(context, parsed, budget);
         let source: ByteSource = bounded(createArchive(context, prepared.entries, parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
-        if (parsed.gzip) source = compressed(source, false, signal, limits);
+        if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression);
         if (prepared.output) {
           const existing = await maybeStat(context, prepared.output);
           if (existing && existing.type !== "file") fail("output archive changed to a non-file");
@@ -66,7 +70,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
         }
       } else {
         let source = bounded(parsed.archive === "-" ? context.stdin : fileSource(context, vfsPath(context.cwd, parsed.archive), limits), limits.maxArchiveBytes, signal, limits.chunkSize);
-        if (parsed.gzip) source = compressed(source, true, signal, limits);
+        source = parsed.compression ? compressed(source, true, signal, limits, parsed.compression) : autodetected(source, signal, limits);
         await readArchive(context, source, parsed, budget);
       }
       return { exitCode: 0 };

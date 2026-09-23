@@ -1,9 +1,12 @@
 import { readBytes, type ByteSource } from "../../contracts/index.js";
 import { compressionDiagnostic } from "../bytes/compression/errors.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
+import { boundedCodec } from "../bytes/compression/bounded-codec.js";
+import { profiles } from "../bytes/compression/options.js";
+import type { TarOptions } from "./options.js";
 import { bounded, fail, type ArchiveLimits } from "./internal.js";
 
-export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits): ByteSource {
+export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits, format: NonNullable<TarOptions["compression"]> = "gzip"): ByteSource {
   signal.throwIfAborted();
   const controller = new AbortController();
   const combined = AbortSignal.any([signal, controller.signal]);
@@ -11,12 +14,13 @@ export async function* compressed(source: ByteSource, decode: boolean, signal: A
   let hasFailure = false;
   let failure: unknown;
   try {
-    yield* bounded(codec(reader, {
-      mode: decode ? "gunzip" : "gzip", chunkSize: limits.chunkSize,
-      onFailure(error) {
+    const onFailure = (error: unknown) => {
         if (!hasFailure) { hasFailure = true; failure = error; controller.abort(error); }
-      },
-    }, combined), limits.maxArchiveBytes, combined, limits.chunkSize);
+    };
+    const output = format === "gzip"
+      ? codec(reader, { mode: decode ? "gunzip" : "gzip", chunkSize: limits.chunkSize, onFailure }, combined)
+      : boundedCodec(reader, { format, decompress: decode, level: profiles.find(profile => profile.format === format)!.level, onFailure }, combined);
+    yield* bounded(output, limits.maxArchiveBytes, combined, limits.chunkSize);
   } catch (error) {
     signal.throwIfAborted();
     throw compressionDiagnostic(hasFailure ? failure : error);
@@ -24,6 +28,32 @@ export async function* compressed(source: ByteSource, decode: boolean, signal: A
     controller.abort(new Error("archive compression finished"));
     await reader.close();
   }
+}
+
+export async function* autodetected(source: ByteSource, signal: AbortSignal, limits: ArchiveLimits): ByteSource {
+  const reader = new Reader(source, signal);
+  try {
+    const prefix = new Uint8Array(6);
+    let size = 0;
+    while (size < prefix.length) {
+      const bytes = await reader.take(prefix.length - size);
+      if (!bytes) break;
+      prefix.set(bytes, size);
+      size += bytes.length;
+    }
+    const replay = (async function* (): ByteSource {
+      yield prefix.subarray(0, size);
+      for (;;) {
+        const bytes = await reader.take(limits.chunkSize);
+        if (!bytes) return;
+        yield bytes;
+      }
+    })();
+    const format = size >= 2 && prefix[0] === 31 && prefix[1] === 139 ? "gzip"
+      : size >= 3 && prefix[0] === 66 && prefix[1] === 90 && prefix[2] === 104 ? "bzip2"
+      : size === 6 && [253, 55, 122, 88, 90, 0].every((byte, index) => prefix[index] === byte) ? "xz" : undefined;
+    yield* format ? compressed(replay, true, signal, limits, format) : replay;
+  } finally { await reader.close(); }
 }
 
 export class Reader {

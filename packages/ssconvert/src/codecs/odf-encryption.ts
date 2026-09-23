@@ -50,7 +50,7 @@ function binary(value: string | undefined, size?: number): Uint8Array {
 }
 /** RFC2898 PBKDF2-HMAC-SHA1, using the vetted HMAC implementation with
  * per-round cancellation and bounded scheduler yields. Work is admitted first. */
-async function derive(start: Uint8Array, salt: Uint8Array, iterations: number, size: number, context: CapabilityContext): Promise<Uint8Array> {
+export async function deriveOdfKey(start: Uint8Array, salt: Uint8Array, iterations: number, size: number, context: CapabilityContext): Promise<Uint8Array> {
   const key = new Uint8Array(size), input = new Uint8Array(salt.length + 4), counter = new DataView(input.buffer);
   input.set(salt);
   const prf = hmac.create(sha1, start);
@@ -156,7 +156,7 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
     for (const profile of profiles) {
       const start = profile.startHash(password); let key: Uint8Array | undefined, compressed: Uint8Array | undefined;
       try {
-        key = await derive(start, profile.salt, profile.iterations, profile.keyBytes, context);
+        key = await deriveOdfKey(start, profile.salt, profile.iterations, profile.keyBytes, context);
         const ciphertext = await read(profile.path);
         let padding = 0;
         if (profile.cipher === "blowfish-cfb8") compressed = await decryptOdfBlowfish(key, profile.iv, ciphertext, context.signal);

@@ -51,6 +51,7 @@ function bounded(value: number, maximum: number, name: string) {
 export function createEngine(supplied: EngineConfig): Engine {
   const config = {
     ...supplied,
+    ...(supplied.entropy === undefined ? {} : { entropy: Object.freeze({ read: supplied.entropy.read.bind(supplied.entropy) }) }),
     ...(supplied.datasource === undefined ? {} : { datasource: Object.freeze({ open: supplied.datasource.open.bind(supplied.datasource) }) }),
     ...(supplied.fonts === undefined ? {} : { fonts: Object.freeze({ resolve: supplied.fonts.resolve.bind(supplied.fonts) }) }),
     ...(supplied.password === undefined ? {} : { password: Object.freeze({ read: supplied.password.read.bind(supplied.password) }) }),
@@ -130,6 +131,7 @@ export function createEngine(supplied: EngineConfig): Engine {
       ...(operation.stdinIsDefault === undefined ? {} : { stdinIsDefault: operation.stdinIsDefault }),
       environment: runtimeEnvironment(config.environment),
       limits: config.limits,
+      ...(config.entropy === undefined ? {} : { entropy: config.entropy }),
       formatting,
       ...(config.clock === undefined ? {} : { clock: config.clock }),
       ...(config.random === undefined ? {} : { random: config.random }),

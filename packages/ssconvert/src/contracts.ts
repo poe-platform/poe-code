@@ -69,6 +69,9 @@ export interface PasswordCapability {
   read(request: Readonly<{
     maxBytes: number;
     inputFilename?: string;
+    /** Absent on existing import requests; encrypt requests identify the destination. */
+    purpose?: "encrypt";
+    outputFilename?: string;
     signal: AbortSignal;
   } & ({
     format: "biff";
@@ -84,6 +87,10 @@ export interface PasswordCapability {
     encoding: "utf8";
   })>): Promise<string | Uint8Array | undefined>;
 }
+/** Trusted cryptographic randomness. The host must provide fresh, unpredictable bytes. */
+export interface CryptographicEntropyCapability {
+  read(request: Readonly<{ length: number; signal: AbortSignal }>): Promise<Uint8Array | undefined>;
+}
 /** Explicit host font selection; no system-font or filesystem discovery. */
 export interface FontCapability {
   resolve(request: Readonly<{
@@ -96,6 +103,7 @@ export interface FontCapability {
   }>): Promise<Uint8Array | undefined>;
 }
 export interface CapabilityContext {
+  readonly entropy?: CryptographicEntropyCapability;
   readonly fonts?: FontCapability;
   readonly datasource?: import("./datasource.js").DatasourceSession;
   readonly stdinIsDefault?: boolean;
@@ -117,6 +125,8 @@ export interface CapabilityContext {
   readonly diagnostic?: (diagnostic: Diagnostic) => Promise<void>;
 }
 export interface EngineConfig {
+  /** Required only for explicitly requested encrypted exports; never uses random.next. */
+  readonly entropy?: CryptographicEntropyCapability;
   /** Explicit supplied fonts for the PDF painter. Undefined retains the packaged default. */
   readonly fonts?: FontCapability;
   /** Explicit optional sample datasource transport, owned per operation. */

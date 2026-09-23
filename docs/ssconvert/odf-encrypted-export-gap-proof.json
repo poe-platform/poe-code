@@ -1,0 +1,315 @@
+{
+  "scope": "Explicit legacy ODF1.2 AES256-CBC encrypted export extension; native Gnumeric does not implement this encrypted writer. Other profiles and all original gap families remain open.",
+  "option": "encryption=odf12-aes256-cbc",
+  "hostCapabilities": [
+    "password.read with purpose encrypt and destination identity",
+    "entropy.read with exact48 fresh cryptographically random bytes per member; independent of random.next"
+  ],
+  "profile": {
+    "cipher": "AES256-CBC with XML Encryption random padding",
+    "startKey": "SHA256 of strict UTF8 password",
+    "kdf": "PBKDF2-HMAC-SHA1",
+    "iterations": 1024,
+    "checksum": "SHA256 first1024 compressed bytes",
+    "compression": "raw deflate before encryption; ZIP store for ciphertext"
+  },
+  "specification": {
+    "url": "https://docs.oasis-open.org/office/v1.2/os/OpenDocument-v1.2-os-part3.html",
+    "retrievedSha256": "170dc78baa56a545aa005c3d0a9d2e0b742921b3a9069bad9210c693ace49ff5",
+    "priorReceipt": "docs/ssconvert/encrypted-odf-applicability.json",
+    "sections": [
+      "3.4",
+      "4.8.1",
+      "4.8.3",
+      "4.8.6",
+      "4.8.9"
+    ]
+  },
+  "baseline": {
+    "publicDefaultOutputBytes": 3185,
+    "publicProposedOption": "invalid-request, zero output chunks",
+    "originalMemoryControls": {
+      "failed": 15,
+      "passed": 1
+    }
+  },
+  "validation": {
+    "wholePackage": {
+      "tests": 22584,
+      "files": 372,
+      "exitCode": 0
+    },
+    "finalFocusedAfterDestinationTypeCorrection": {
+      "tests": 22,
+      "exitCode": 0
+    },
+    "packageLintAndSourceTestConsumerTypes": {
+      "exitCode": 0
+    },
+    "selectedBuild": {
+      "workspace": "@poe-code/ssconvert",
+      "builds": 4,
+      "layers": 11,
+      "exitCode": 0
+    },
+    "independentMemberChecks": {
+      "tool": "OpenSSL 3.6.4 25 Aug 2026 (Library: OpenSSL 3.6.4 25 Aug 2026)",
+      "pythonZlib": "1.2.12",
+      "members": [
+        {
+          "profile": "openoffice",
+          "member": "content.xml",
+          "plainBytes": 2714,
+          "plaintextSha256": "b7de6f2f9da19d4375c6e785689c7646c39b80656af08f440ef54480f48f656b",
+          "ciphertextSha256": "98d9a22e42b1f576a4aec8d06250245d0011f8c6f68d135124f7749745560f8d",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "openoffice",
+          "member": "styles.xml",
+          "plainBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "4a801929736f3c7552d7f90b13806eadf5bcf71bc66849e819059ba17e55c9b7",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "openoffice",
+          "member": "meta.xml",
+          "plainBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "dc97c2b8f9e032f1b8a658921d6d0a902395fc03976c781c934bc650f82a96ad",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "openoffice",
+          "member": "settings.xml",
+          "plainBytes": 1652,
+          "plaintextSha256": "1fa29143848d3b4abf41a977f7a91087eeee4d630a439894457721dac62eb313",
+          "ciphertextSha256": "9586abede26507b7af95f755fce864450eb5103e14671b9c5ddebe5984b8aef2",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "odf",
+          "member": "content.xml",
+          "plainBytes": 2803,
+          "plaintextSha256": "022ec54f8547a25a0ca84ca7b5c60985a9bde4f147fc7551ebeb19099ca8fcad",
+          "ciphertextSha256": "27f2c66f9bf871ac5c8285101e083ddc51a809c5e71ded5e15eea7d3b0b5fa5b",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "odf",
+          "member": "styles.xml",
+          "plainBytes": 1664,
+          "plaintextSha256": "2198e75e38ee3894049fc6df270807fdad6f1e24e486c9eb3ad607533aec868e",
+          "ciphertextSha256": "4a801929736f3c7552d7f90b13806eadf5bcf71bc66849e819059ba17e55c9b7",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "odf",
+          "member": "meta.xml",
+          "plainBytes": 1408,
+          "plaintextSha256": "1a0a27df304071eabc56c9223d36504cfa8889b00ed5099e6c022ad7f60f8cdd",
+          "ciphertextSha256": "dc97c2b8f9e032f1b8a658921d6d0a902395fc03976c781c934bc650f82a96ad",
+          "exactPlaintext": true
+        },
+        {
+          "profile": "odf",
+          "member": "settings.xml",
+          "plainBytes": 1651,
+          "plaintextSha256": "e2a7b9de8e8f06a96f949fe99a9e61f2caee8fb3a269d57306d600cd3bb28569",
+          "ciphertextSha256": "889b1ca74cdf347e13943cf2ccf817b370308b96780f3c34fb35e4f100b0e58c",
+          "exactPlaintext": true
+        }
+      ]
+    },
+    "outputLimits": [
+      {
+        "outputBytes": 1000,
+        "code": "resource-limit",
+        "writes": 0,
+        "passwordRequests": 0,
+        "entropyRequests": 0
+      },
+      {
+        "outputBytes": 3300,
+        "code": "resource-limit",
+        "writes": 0,
+        "passwordRequests": 0,
+        "entropyRequests": 0
+      }
+    ],
+    "publicNode": [
+      {
+        "profile": "openoffice",
+        "csv": "private,42\n",
+        "xmlReplay": true,
+        "requests": [
+          {
+            "purpose": "encrypt",
+            "algorithm": "aes-cbc",
+            "encoding": "utf8",
+            "outputFilename": null
+          },
+          {
+            "purpose": "decrypt",
+            "algorithm": "aes-cbc",
+            "encoding": "utf8",
+            "outputFilename": null
+          }
+        ],
+        "entropyCalls": 4,
+        "borrowedImmutable": true,
+        "shellBytesExact": true,
+        "sha256": "2a259453c9068a492102b9329cef0b7d55e0f562fdaaa0771e13568d332a3956",
+        "outputBytes": 3772
+      },
+      {
+        "profile": "odf",
+        "csv": "private,42\n",
+        "xmlReplay": true,
+        "requests": [
+          {
+            "purpose": "encrypt",
+            "algorithm": "aes-cbc",
+            "encoding": "utf8",
+            "outputFilename": null
+          },
+          {
+            "purpose": "decrypt",
+            "algorithm": "aes-cbc",
+            "encoding": "utf8",
+            "outputFilename": null
+          }
+        ],
+        "entropyCalls": 4,
+        "borrowedImmutable": true,
+        "shellBytesExact": true,
+        "sha256": "8590223fd66624cbdebaee2df06d80d99158c920e116384e55acb8090ff6ba78",
+        "outputBytes": 3805
+      }
+    ],
+    "browserAndWorker": {
+      "browser": [
+        {
+          "profile": "openoffice",
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ],
+          "entropyCalls": 4,
+          "borrowedImmutable": true,
+          "bytes": 3772,
+          "sha256": "2a259453c9068a492102b9329cef0b7d55e0f562fdaaa0771e13568d332a3956"
+        },
+        {
+          "profile": "odf",
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ],
+          "entropyCalls": 4,
+          "borrowedImmutable": true,
+          "bytes": 3805,
+          "sha256": "8590223fd66624cbdebaee2df06d80d99158c920e116384e55acb8090ff6ba78"
+        }
+      ],
+      "worker": [
+        {
+          "profile": "openoffice",
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ],
+          "entropyCalls": 4,
+          "borrowedImmutable": true,
+          "bytes": 3772,
+          "sha256": "2a259453c9068a492102b9329cef0b7d55e0f562fdaaa0771e13568d332a3956"
+        },
+        {
+          "profile": "odf",
+          "csv": "private,42\n",
+          "xmlReplay": true,
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ],
+          "entropyCalls": 4,
+          "borrowedImmutable": true,
+          "bytes": 3805,
+          "sha256": "8590223fd66624cbdebaee2df06d80d99158c920e116384e55acb8090ff6ba78"
+        }
+      ]
+    },
+    "finalBrowserConsole": {
+      "messages": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "initialHarnessFavicon404": "Recorded separately; fixed local harness icon before fresh browser rerun, outputs unchanged.",
+    "screenshotInspected": {
+      "sha256": "1a9ef0cf878fbb8806ae765fe7b43876eb1807747c178fe7930fb926bfcfd294",
+      "result": "Two readable profile rows; browser/worker bytes exact; CSV and XML replay pass."
+    }
+  },
+  "sourceHashes": {
+    "packages/ssconvert/src/codecs/odf-encrypted-write.ts": "989ad5cca26c88bf57f95a1aa1771a801fb6a2eee4f835eaf44efe263c57815b",
+    "packages/ssconvert/src/codecs/odf-encrypted-write.test.ts": "9d49c6308a5ef9467db972a7a8648e745071cd133388454dad94fa7d38bec0b1",
+    "packages/ssconvert/src/codecs/odf-encryption.ts": "79b07197ae8f5d5f48da169b4ef33ada3156116f58502810aaa358f3e9701c92",
+    "packages/ssconvert/src/codecs/odf.ts": "5d3e3ce5a029d391b2bfd0ec9c05ecda59aa0cf46c18b4cbeec68e3354b18d88",
+    "packages/ssconvert/src/codecs/providers/openoffice.ts": "8de342610a695b3bd64962235a1c0a2ab143fedae22a8ea7d4a38fb4db8f5cd8",
+    "packages/ssconvert/src/contracts.ts": "f5f508cc7fb4053dd6016d2766d2bf15d209e9227cd05e50bf2bfcda30ef00e0",
+    "packages/ssconvert/src/engine.ts": "e8b88c02fa62d2742bd41470d4e20edb0a9c3e475d1a17b889302fe489f25748"
+  },
+  "delivery": {
+    "localCommit": "pending at record creation",
+    "remoteMain": "pending",
+    "publication": "pending"
+  },
+  "wholeGoalComplete": false
+}

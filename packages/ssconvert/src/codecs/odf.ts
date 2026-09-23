@@ -13,6 +13,8 @@ import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
 import { odfCellStyle, odfSheetMetadata, odfDatabaseRanges } from "./odf-metadata.js";
 import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, type OdfAttributes } from "./odf-write-support.js";
+import { encryptOdfParts } from "./odf-encrypted-write.js";
+import { exportOptionPairs } from "../cli/export-options.js";
 import { renderCellText } from "../formatting/cell-text.js";
 import { createOdfStyles, odfPrintStyles } from "./odf-write-styles.js";
 import { odfWriterFunctionNames } from "./odf-function-names.js";
@@ -572,8 +574,13 @@ function numberFormat(node: XmlElement, charge: (n?: number) => void): string {
 
 /** Released savers share OpenFormula conventions, but only odf emits extensions. */
 export function createOdfWriter(profile: "strict" | "extended") {
-  return async (book: Workbook, _options: readonly string[], context: CapabilityContext): Promise<Uint8Array> => {
+  return async (book: Workbook, options: readonly string[], context: CapabilityContext): Promise<Uint8Array> => {
     context.signal.throwIfAborted();
+    let encrypted = false;
+    for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
+      if (value !== "odf12-aes256-cbc") throw new SsconvertError("invalid-request", "Invalid OpenDocument encryption profile");
+      encrypted = true;
+    }
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
     const cellStyles = createOdfStyles(xml, extended, book, context);
     const zip = createZipCodec(), zipLimits = { ...bounds(context), maxArchiveBytes: context.limits.outputBytes,
@@ -874,6 +881,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.document("office:" + record.kind, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
       }
     }
+    const protectedParts = encrypted ? await encryptOdfParts(parts, context, xml) : undefined;
     part("META-INF/manifest.xml", '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
       "xmlns:manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0", "manifest:version": "1.2" },
     e("manifest:file-entry", { "manifest:full-path": "/", "manifest:media-type": "application/vnd.oasis.opendocument.spreadsheet", "manifest:version": "1.2" }) +
@@ -881,13 +889,15 @@ export function createOdfWriter(profile: "strict" | "extended") {
         const v = odfObject(r.data); return typeof v?.path === "string" && v.path.endsWith("/content.xml") ? [e("manifest:file-entry", {
           "manifest:full-path": v.path.slice(0,-"content.xml".length), "manifest:media-type": "application/vnd.oasis.opendocument.chart" })] : [];
       }).join("") +
-      [...parts.keys()].filter(n => n !== "mimetype").map(n => e("manifest:file-entry", { "manifest:full-path": n, "manifest:media-type": n.endsWith(".xml") ? "text/xml" : n.endsWith(".png") ? "image/png" : n.endsWith(".jpg") || n.endsWith(".jpeg") ? "image/jpeg" : "" })).join("")));
+      [...parts.keys()].filter(n => n !== "mimetype").map(n => e("manifest:file-entry", { "manifest:full-path": n, "manifest:media-type": n.endsWith(".xml") ? "text/xml" : n.endsWith(".png") ? "image/png" : n.endsWith(".jpg") || n.endsWith(".jpeg") ? "image/jpeg" : "",
+        "manifest:size": protectedParts?.get(n)?.size }, protectedParts?.get(n)?.declaration ?? "")).join("")));
     const entries = []; let bytes = 0;
     try {
       for (const [name, value] of parts) {
-        xml.charge(value.length); bytes += value.length; if (bytes > context.limits.outputBytes) limit("output bytes");
-        entries.push(await zip.makeZipEntry(name, value, { modified: new Date("2000-01-01Z"), mode: 0o644,
-          directory: false, symlink: false, compression: name === "mimetype" ? "store" : "deflate" }, zipLimits, context.signal));
+        const payload = protectedParts?.get(name)?.bytes ?? value;
+        xml.charge(payload.length); bytes += payload.length; if (bytes > context.limits.outputBytes) limit("output bytes");
+        entries.push(await zip.makeZipEntry(name, payload, { modified: new Date("2000-01-01Z"), mode: 0o644,
+          directory: false, symlink: false, compression: name === "mimetype" || protectedParts?.has(name) ? "store" : "deflate" }, zipLimits, context.signal));
       }
       return await zip.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, context.signal);
     } catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }

@@ -9,7 +9,7 @@ import {
   restore,
   run
 } from "@poe-code/safe-js";
-import { bounded, deferred } from "../../test/fixtures/final-async-proof.js";
+import { deferred } from "../../test/fixtures/final-async-proof.js";
 
 const minimalSource = `const values = await host(() => {
   const values = [1];
@@ -366,40 +366,46 @@ return [values.compute(1), values.compute.length, values.compute === values.alia
         }, "re-issue")
       }
     });
-    await bounded(entered.promise, "array callback entered");
+    await Promise.race([
+      entered.promise,
+      execution.then((result) => {
+        throw new Error(
+          result.ok
+            ? "Array callback completed before entering its gate"
+            : "Array callback failed before entering its gate: " + result.error.code
+        );
+      })
+    ]);
     let serialized: string;
     try {
-      serialized = await bounded(dump(execution, { mode: "replay" }), "array callback capture");
+      serialized = await dump(execution, { mode: "replay" });
     } finally {
       gate.release();
-      await bounded(execution, "array callback completion");
+      await execution;
     }
     const native = vi.fn(() => 7);
     const invalid = [1];
     Object.defineProperty(invalid, "metadata", { value: native, enumerable: true });
-    const result = await bounded(
-      run(source, {
-        snapshot: restore(JSON.parse(serialized), { source }),
-        bindings: {
-          host: declareHostOperation(() => {
-            throw new Error("Proof must not reissue host");
-          }, "read-side-effect"),
-          gate: declareHostOperation(async () => undefined, "re-issue")
-        },
-        hostCallResumeProvider: async (request, context) => {
-          if (context === undefined) throw new Error("Expected callback proof context");
-          const value = await context.replayed[0].result;
-          expect(() => context.toSandboxValue(invalid)).toThrow("function");
-          expect(() => deepCopyToSandbox(value)).toThrow("function");
-          return {
-            ...request,
-            callbackDisposition: "joined",
-            outcome: { status: "fulfilled", value: context.toSandboxValue(value) }
-          };
-        }
-      }),
-      "array metadata proof conversion"
-    );
+    const result = await run(source, {
+      snapshot: restore(JSON.parse(serialized), { source }),
+      bindings: {
+        host: declareHostOperation(() => {
+          throw new Error("Proof must not reissue host");
+        }, "read-side-effect"),
+        gate: declareHostOperation(async () => undefined, "re-issue")
+      },
+      hostCallResumeProvider: async (request, context) => {
+        if (context === undefined) throw new Error("Expected callback proof context");
+        const value = await context.replayed[0].result;
+        expect(() => context.toSandboxValue(invalid)).toThrow("function");
+        expect(() => deepCopyToSandbox(value)).toThrow("function");
+        return {
+          ...request,
+          callbackDisposition: "joined",
+          outcome: { status: "fulfilled", value: context.toSandboxValue(value) }
+        };
+      }
+    });
     expect(result).toMatchObject({ ok: true, returnValue: [8, 1, true, true] });
     expect(native).not.toHaveBeenCalled();
   });

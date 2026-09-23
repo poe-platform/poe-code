@@ -146,6 +146,47 @@ test("uniq groups adjacent records and supports counts, repeated/unique selectio
   assert.equal((await run("uniq", ["-z"], { stdin: "a\0a\0b\0" })).stdout, "a\0b\0");
 });
 
+test("uniq emits every repeated record and separates selected groups", async () => {
+  const fs = await fixture({ input: "a\na\nb\nc\nc\n" });
+  for (const [option, expected] of [
+    ["-D", "a\na\nc\nc\n"],
+    ["--all-repeated", "a\na\nc\nc\n"],
+    ["--all-repeated=none", "a\na\nc\nc\n"],
+    ["--all-repeated=separate", "a\na\n\nc\nc\n"],
+    ["--all-repeated=prepend", "\na\na\n\nc\nc\n"],
+    ["--group", "a\na\n\nb\n\nc\nc\n"],
+    ["--group=separate", "a\na\n\nb\n\nc\nc\n"],
+    ["--group=prepend", "\na\na\n\nb\n\nc\nc\n"],
+    ["--group=append", "a\na\n\nb\n\nc\nc\n\n"],
+    ["--group=both", "\na\na\n\nb\n\nc\nc\n\n"],
+  ]) {
+    const result = await run("uniq", [option!, "input"], { fs });
+    assert.equal(result.exitCode, 0, option);
+    assert.equal(result.stdout, expected, option);
+    assert.equal(result.stderr, "", option);
+  }
+  assert.equal((await run("uniq", ["-iD"], { stdin: chunks("A\na\na\nb\n") })).stdout, "A\na\na\n");
+  assert.equal((await run("uniq", ["-uD"], { stdin: "a\na\nb\n" })).stdout, "");
+  assert.deepEqual((await run("uniq", ["-D"], { stdin: chunks(Uint8Array.of(255, 10, 255, 10, 254, 10)) })).stdoutBytes, Buffer.from([255, 10, 255, 10]));
+  assert.equal((await run("uniq", ["-z", "--group=both"], { stdin: chunks("a\0a\0b") })).stdout, "\0a\0a\0\0b\0\0");
+  assert.equal((await run("uniq", ["--group=both"], { stdin: "" })).stdout, "");
+  assert.equal((await run("uniq", ["--", "--group"], { fs: await fixture({ "--group": "a\na\n" }) })).stdout, "a\n");
+  for (const stdin of ["", "only\n"]) {
+    assert.equal((await run("uniq", ["--all-repeated=prepend"], { stdin })).stdout, "");
+  }
+  const result = await run("uniq", ["--group=append", "input", "output"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "a\na\n\nb\n\nc\nc\n\n");
+});
+
+test("uniq rejects invalid group methods and incompatible selections", async () => {
+  for (const args of [["--all-repeated=append"], ["--group=none"], ["--group="], ["-cD"], ["--group", "-d"], ["--group", "-u"], ["--group", "-c"], ["--group", "-D"]]) {
+    const result = await run("uniq", args, { stdin: "a\na\n" });
+    assert.equal(result.exitCode, 2, args.join(" "));
+    assert.equal(result.stdout, "");
+  }
+});
+
 test("cut supports overlapping/open ranges, complement, literal fields and UTF-8 characters", async () => {
   assert.equal((await run("cut", ["-b", "1-2,2-3,5-"], { stdin: chunks("abcdef\n") })).stdout, "abcef\n");
   assert.equal((await run("cut", ["--complement", "-b", "2-4"], { stdin: "abcdef" })).stdout, "aef\n");

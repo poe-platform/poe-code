@@ -622,7 +622,29 @@ export function textCommands(): CommandDefinition[] {
       return { exitCode };
     }),
     define("uniq", async context => {
-      const parsed = options(context.args, "cduif:s:w:z", { count: "c", repeated: "d", unique: "u", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" });
+      // Optional long arguments are accepted only after '=', never as operands.
+      let ended = false;
+      let repeatedMethod = "none";
+      let groupMethod: string | undefined;
+      const args = context.args.map(argument => {
+        if (ended) return argument;
+        if (argument === "--") ended = true;
+        if (argument === "--all-repeated" || argument.startsWith("--all-repeated=")) {
+          repeatedMethod = argument === "--all-repeated" ? "none" : argument.slice("--all-repeated=".length);
+          if (!["none", "prepend", "separate"].includes(repeatedMethod)) throw new UsageError(`invalid argument '${repeatedMethod}' for 'all-repeated'`);
+          return "--all-repeated";
+        }
+        if (argument === "--group" || argument.startsWith("--group=")) {
+          groupMethod = argument === "--group" ? "separate" : argument.slice("--group=".length);
+          if (!["separate", "prepend", "append", "both"].includes(groupMethod)) throw new UsageError(`invalid argument '${groupMethod}' for 'group'`);
+          return "--group";
+        }
+        return argument;
+      });
+      const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "D", group: false, "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" });
+      const allRepeated = parsed.flags.has("D");
+      if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
+      if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
       requireOperands(parsed.operands, 0, 2);
       await assertInputRequirements(context, parsed.operands.slice(0, 1));
       await admitTextOutput(context, parsed.operands[1]);
@@ -644,18 +666,37 @@ export function textCommands(): CommandDefinition[] {
         let previous: Uint8Array | undefined;
         let previousKey: Uint8Array | undefined;
         let count = 0;
+        let emittedGroup = false;
+        const expanded = allRepeated || groupMethod !== undefined;
+        const method = groupMethod ?? repeatedMethod;
         const selected = () => (!parsed.flags.has("d") || count > 1) && (!parsed.flags.has("u") || count === 1);
         const record = () => concatenate([...(parsed.flags.has("c") ? [encoder.encode(`${String(count).padStart(7)} `)] : []), previous!, Uint8Array.of(delimiter)]);
         for await (const line of lines(input(context, parsed.operands[0]), delimiter)) {
           context.signal.throwIfAborted();
           const currentKey = key(line.bytes);
-          if (previousKey && compareBytes(previousKey, currentKey) === 0) count++;
+          if (previousKey && compareBytes(previousKey, currentKey) === 0) {
+            count++;
+            if (expanded && !parsed.flags.has("u")) {
+              if (allRepeated && count === 2) {
+                if (method === "prepend" || (method === "separate" && emittedGroup)) yield Uint8Array.of(delimiter);
+                yield record();
+                emittedGroup = true;
+              }
+              yield concatenate([line.bytes, Uint8Array.of(delimiter)]);
+            }
+          }
           else {
-            if (previous !== undefined && selected()) yield record();
+            if (!expanded && previous !== undefined && selected()) yield record();
             previous = line.bytes; previousKey = currentKey; count = 1;
+            if (groupMethod !== undefined) {
+              if (method === "prepend" || method === "both" || emittedGroup) yield Uint8Array.of(delimiter);
+              yield record();
+              emittedGroup = true;
+            }
           }
         }
-        if (previous !== undefined && selected()) yield record();
+        if (!expanded && previous !== undefined && selected()) yield record();
+        if (emittedGroup && (method === "append" || method === "both")) yield Uint8Array.of(delimiter);
       })();
       if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-"
         && pathOf(context, parsed.operands[0]!) === pathOf(context, parsed.operands[1])) throw new UsageError("input and output must be different files");

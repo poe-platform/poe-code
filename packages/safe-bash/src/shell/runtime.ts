@@ -24,7 +24,7 @@ import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { scopeFileSystem } from "@poe-code/safe-fs/core";
-import { evaluateArithmetic, prepareArithmetic, type ArithmeticProgram } from "./arithmetic.js";
+import { evaluateArithmetic, evaluateArithmeticReferences, prepareArithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces } from "./brace-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
@@ -1912,7 +1912,7 @@ export class Runtime {
     if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
   }
 
-  private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): bigint {
+  private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
     return evaluatePositionalArithmetic(program, {
       parseBudget: this.budget.parsing,
       positional: state.positional, arg0: state.arg0 ?? "virtual-bash", owner: arrayStore(state)?.owner,
@@ -1920,7 +1920,67 @@ export class Runtime {
       checkpoint: () => this.signal.throwIfAborted(),
       requireParameter: (name, value) => this.requireParameter(value, name, state, io),
       limit: () => this.budget.fail("maxExpansionBytes"),
-    }, prepared => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine), this.budget.parsing));
+    }, prepared => this.shellArithmetic(prepared, state, io));
+  }
+
+  private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables = this.arithmeticVariables(state, io.diagnosticLine)): Promise<bigint> {
+    let depth = 0;
+    const references: ArithmeticReferences = {
+      resolve: (variable, subscript) => {
+        this.signal.throwIfAborted();
+        const name = this.referenceName(state, variable);
+        const binding = arrayStore(state)?.get(name);
+        if (subscript === undefined && !binding) return name;
+        return (async () => {
+          let index: number | undefined;
+          let key: string | undefined;
+          if (binding?.associative) {
+            const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth);
+            const fields = await this.valueWord(word, state, io, false);
+            const value = concatShellValues(fields, io[valueScope]);
+            key = shellValueText(value);
+            const identity = await binding.keyIdentity(value, binding.owner, this.signal);
+            index = binding.keys.get(identity)?.index;
+          } else {
+            if (++depth > 64) throw new PublicDiagnostic("Arithmetic subscript nesting exceeds 64");
+            let number: bigint;
+            try {
+              let operand = prepareArithmetic(subscript ?? "0", this.budget.parsing);
+              if (operand.error) {
+                const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth);
+                const fields = await this.valueWord(word, state, io, false);
+                operand = prepareArithmetic(shellValueText(concatShellValues(fields, io[valueScope])), this.budget.parsing);
+              }
+              number = await evaluateArithmeticReferences(operand, references, this.budget.parsing);
+            } finally { depth--; }
+            if (number < 0n) number += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
+            if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");
+            index = Number(number);
+          }
+          return JSON.stringify([name, index ?? null, key]);
+        })();
+      },
+      read: reference => {
+        this.signal.throwIfAborted();
+        if (!reference.startsWith("[")) return variables[reference];
+        const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
+        const binding = arrayStore(state)?.get(name);
+        const value = binding ? binding.get(index ?? -1) : index === 0 ? state.variables[name] : undefined;
+        if (state.nounset && value === undefined) throw new NounsetFailure(`${name}[${key ?? index}]: unbound variable`, io.diagnosticLine);
+        if (value !== undefined && Buffer.byteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+        return value;
+      },
+      write: (reference, value) => {
+        if (!reference.startsWith("[")) { variables[reference] = value; return; }
+        const [name, index, key] = JSON.parse(reference) as [string, number | null, string?];
+        return this.arrayAssignment({
+          kind: "element", name, append: false,
+          index: { decimal: String(index ?? 0), ...(key == null ? {} : { word: { offset: 0, parts: [{ kind: "text", value: key, quoted: true }] } }) },
+          value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] },
+        }, state, io);
+      },
+    };
+    return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
 
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
@@ -1935,7 +1995,7 @@ export class Runtime {
         this.signal.throwIfAborted();
         program = prepareArithmetic(source, this.budget.parsing);
       }
-      return evaluateArithmetic(program, this.arithmeticVariables(state, io.diagnosticLine), this.budget.parsing);
+      return await this.shellArithmetic(program, state, { ...io, [valueScope]: allocation });
     } finally { allocation.close(); }
   }
 
@@ -2193,7 +2253,7 @@ export class Runtime {
       const fields = await this.valueWord(word, state, io, false);
       const source = shellValueText(concatShellValues(fields, io[valueScope]));
       owner.reserve({ work: source.length + 1 }).release();
-      let number = this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
+      let number = await this.arithmeticValue(prepareArithmetic(source || "0", this.budget.parsing), state, io);
       if (number < 0n) number += BigInt(relativeMaximum + 1);
       const maximum = create ? 2147483647 : 4294967295;
       if (number < 0n || number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
@@ -5568,7 +5628,7 @@ export class Runtime {
     let value = 0n;
     for (let index = offset; index < args.length; index++) {
       this.signal.throwIfAborted();
-      try { value = evaluateArithmetic(prepareArithmetic(args[index]!, this.budget.parsing), variables, this.budget.parsing); }
+      try { value = await this.shellArithmetic(prepareArithmetic(args[index]!, this.budget.parsing), state, context, variables); }
       catch (error) {
         this.rethrowArithmeticControl(error);
         throw new PublicDiagnostic(`let: ${message(error, this.budget.onInternalError)}`);
@@ -7230,7 +7290,7 @@ export class Runtime {
         retained = next;
       }
       this.signal.throwIfAborted();
-      try { return { value: evaluateArithmetic(prepareArithmetic(source, this.budget.parsing), variables, this.budget.parsing), source }; }
+      try { return { value: await this.shellArithmetic(prepareArithmetic(source, this.budget.parsing), state, io, variables), source }; }
       catch (error) {
         this.rethrowArithmeticControl(error);
         throw new ExpansionFailure(`${part.name}: ${message(error, this.budget.onInternalError)}`, line);

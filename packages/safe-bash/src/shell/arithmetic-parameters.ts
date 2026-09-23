@@ -54,11 +54,11 @@ function positionalValue(name: string, options: PositionalArithmeticOptions): st
   return outside ? undefined : index === 0 ? options.arg0 : options.positional[index - 1];
 }
 
-export function evaluatePositionalArithmetic(
+export function evaluatePositionalArithmetic<T>(
   program: ArithmeticProgram,
   options: PositionalArithmeticOptions,
-  evaluate: (prepared: ArithmeticProgram) => bigint,
-): bigint {
+  evaluate: (prepared: ArithmeticProgram) => T,
+): T {
   const source = program.source;
   if (!source.includes("$")) return evaluate(program);
   options.checkpoint();

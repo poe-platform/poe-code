@@ -27,7 +27,7 @@ interface ConditionalContext {
   readonly work: StringWork;
   readonly ignoreCase?: boolean;
   expand(word: Word, pattern?: boolean): Promise<string>;
-  arithmetic(value: string): bigint;
+  arithmetic(value: string): bigint | Promise<bigint>;
   regex?(subject: string, pattern: Word): Promise<number>;
   present(name: string): boolean;
   option(name: string): boolean;
@@ -135,7 +135,7 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
     return node.operator === "<" ? order < 0 : order > 0;
   }
   await charge(context, left.length + right.length);
-  const first = context.arithmetic(left), second = context.arithmetic(right);
+  const first = await context.arithmetic(left), second = await context.arithmetic(right);
   switch (node.operator) {
     case "-eq": return first === second;
     case "-ne": return first !== second;

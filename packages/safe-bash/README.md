@@ -58,7 +58,9 @@ physical permissions, and the host process mask remains unchanged.
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
   `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays with arithmetic
   and relative negative element indices, including `declare -a`, `local -a`,
-  and `readonly -a` array literals. The optional arrays extension adds
+  and `readonly -a` array literals. Arithmetic array operands such as `a[i]`
+  support reads, assignments, and increments in `$(( … ))`, `(( … ))`,
+  `for (( … ))`, and `let`, including associative keys. The optional arrays extension adds
   member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks

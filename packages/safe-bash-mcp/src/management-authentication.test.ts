@@ -40,13 +40,13 @@ it("authenticates a named supplied-schema server using shell credential referenc
   } finally { await f.shell.dispose(); }
 });
 
-it.each(["--max-response-bytes 4096", "--max-response-bytes=4096"])("overrides auth response policy with %s", async flag => {
+it.each(["--max-response-bytes 4096", "--max-response-bytes=4096"])("keeps the host auth response ceiling with %s", async flag => {
   const f = fixture({ maxResponseBytes: 1 });
   try {
     const result = await f.shell.exec(`mcp auth catalog --json ${flag}`);
-    expect(result.exitCode).toBe(0); expect(result.stderr).toBe("");
-    expect(JSON.parse(result.stdout)).toEqual({ name: "catalog", url: server.url, connected: true });
-    expect(f.requests).toEqual(["initialize", "notifications/initialized"]);
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("1 bytes");
+    expect(f.requests).toEqual(["initialize"]);
     expect(f.fetch.mock.calls.filter(([, init]) => init?.method === "DELETE")).toHaveLength(1);
   } finally { await f.shell.dispose(); }
 });
@@ -74,15 +74,16 @@ it.each(["--max-response-bytes=0", "--max-response-bytes=1.5", "--max-response-b
   }
 );
 
-it("selects a literal leading-dash server name and overrides a host request deadline", async () => {
+it("selects a literal leading-dash server name while retaining the host request deadline", async () => {
   const f = fixture();
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { TOKEN: "private-token" }, commands: new CommandRegistry([
-    createRemoteMcpManagementCommand([{ ...server, name: "-catalog" }], { authentication: { fetch: f.fetch, requestTimeoutMs: 1 } }) ]) });
+    createRemoteMcpManagementCommand([{ ...server, name: "-catalog" }], { authentication: { fetch: f.fetch, requestTimeoutMs: 100 } }) ]) });
+  const deadline = vi.spyOn(AbortSignal, "timeout");
   try {
     const result = await shell.exec("mcp auth --json --timeout-ms=1000 -- -catalog");
-    expect(result.exitCode).toBe(0);
+    expect(result.exitCode).toBe(0); expect(deadline).toHaveBeenCalledWith(100);
     expect(JSON.parse(result.stdout)).toEqual({ name: "-catalog", url: server.url, connected: true });
-  } finally { await shell.dispose(); await f.shell.dispose(); }
+  } finally { deadline.mockRestore(); await shell.dispose(); await f.shell.dispose(); }
 });
 
 it("fails missing credentials before making a connection", async () => {

@@ -173,8 +173,9 @@ control characters escaped. Artifact loading preserves archived instructions.
 For tool names beginning with a dash, use `catalog -- '--tool' [arguments]`.
 Place execution settings before the tool name:
 `catalog --timeout-ms 1000 --max-response-bytes=4194304 search_items --query example`.
-`--timeout-ms` overrides `requestTimeoutMs` for each native request, including
-connection setup; `--max-response-bytes` overrides the HTTP response budget.
+`--timeout-ms` selects `requestTimeoutMs` for each native request, including
+connection setup; `--max-response-bytes` selects the HTTP response budget.
+Both retain configured host ceilings.
 `--max-input-bytes` and `--max-output-bytes` can tighten the corresponding host
 ceilings. All four accept positive integers, separated or with `=`, and repeated
 settings fail before connecting. Flags after the tool name belong to its schema;
@@ -220,10 +221,10 @@ selected credentials and provider through negotiated HTTP/SSE fallback.
 The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 `{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
 (default 1 MiB); `requestTimeoutMs` bounds the complete resource operation.
-Management `--timeout-ms <milliseconds>` overrides that SDK/host setting
+Management `--timeout-ms <milliseconds>` can tighten that SDK/host setting
 (default 30,000 ms), including initialization and the resource request.
-`--max-input-bytes <bytes>` overrides the resource request limit, and
-`--max-response-bytes <bytes>` overrides the native transport response limit
+`--max-input-bytes <bytes>` can tighten the resource request limit, and
+`--max-response-bytes <bytes>` can tighten the native transport response limit
 (default 16 MiB). Both accept positive integers, separated or with `=`. The
 host's management input limit also applies. Oversized request JSON fails before
 credential binding; response failures return nonzero status and no result JSON.
@@ -387,7 +388,8 @@ attempt. After any URL output, the connection summary goes to stderr; otherwise
 stdout contains `{ name, url, connected: true }`. Summaries omit remote server
 metadata and credentials. Use `--timeout-ms <milliseconds>` or SDK
 `requestTimeoutMs` to bound the complete operation (default 120,000 ms).
-`--max-response-bytes <bytes>` overrides the SDK's `maxResponseBytes` transport
+CLI timeouts retain the configured host ceiling.
+`--max-response-bytes <bytes>` can tighten the SDK's `maxResponseBytes` transport
 limit (default 16 MiB), separated or with `=`. Invalid/repeated values fail before
 credential binding. OAuth metadata and token responses keep their own byte limits.
 Authentication verifies initialization, establishes the configured OAuth grant
@@ -414,8 +416,8 @@ Use `mcp auth catalog --reset` or SDK `{ reset: true }` to retire old OAuth toke
 and registrations before new consent. `mcp reset catalog` performs reset alone,
 without reading credential environment values or connecting. `--json` emits
 `{ name, url, reset: true }`; `--timeout-ms` controls the lock wait (default
-30,000 ms). The SDK counterpart is `resetRemoteMcpAuthentication(server, {
-binding: { oauth: { authStore } }, timeoutMs })`; its binding does not require an
+30,000 ms), retaining the configured host ceiling. The SDK counterpart is
+`resetRemoteMcpAuthentication(server, { binding: { oauth: { authStore } }, timeoutMs })`; its binding does not require an
 environment. Management `options.reset` accepts these settings and otherwise
 uses the authentication binding's persistence.
 
@@ -442,13 +444,13 @@ await importRemoteMcpAuthentication(server, {
 Use `mcp import catalog < /credentials.json` or
 `mcp import catalog --file /credentials.json --json` for the same operation.
 Paths belong to the safe-bash virtual filesystem; `--file -` explicitly selects
-stdin. `--json` emits the public import summary. `--timeout-ms` bounds input,
-discovery and persistence (default 30,000 ms), including stalled host metadata
+stdin. `--json` emits the public import summary. `--timeout-ms` retains the host
+deadline and bounds input, discovery and persistence (default 30,000 ms), including stalled host metadata
 cache and atomic import callbacks. `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
-`--max-import-bytes <bytes>` overrides the import budget (default 1 MiB),
-and `--lock-timeout-ms <milliseconds>` overrides the separate persistence lock
+`--max-import-bytes <bytes>` can tighten the import budget (default 1 MiB),
+and `--lock-timeout-ms <milliseconds>` can tighten the separate persistence lock
 wait (default 30,000 ms). Both accept separated or inline positive values. Input
 collection stops at the smaller of the selected import budget and the host's
 `maxInputBytes` ceiling, before JSON parsing or OAuth discovery. A smaller host
@@ -501,13 +503,13 @@ shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
 
 `mcp generate` prints the JSON artifact. Use `--format config` for resolved
 configuration or `--format module` for an ESM data module that exports the
-artifact as default. `--timeout-ms <milliseconds>` overrides the SDK's
+artifact as default. `--timeout-ms <milliseconds>` can tighten the SDK's
 `schema.requestTimeoutMs` for each discovery request (default 30,000 ms).
 Supplied schemas remain offline. Generation also accepts `--max-pages` (default
 100), `--max-tools` (10,000 per server), `--max-response-bytes` (16 MiB),
 `--max-configuration-bytes` (16 MiB) and `--max-artifact-bytes` (32 MiB).
-Each takes a positive integer, separated or with `=`. CLI values override the
-corresponding `options.generation` settings; `--max-tools` applies to discovery
+Each takes a positive integer, separated or with `=`. CLI values retain the
+corresponding `options.generation` ceilings; `--max-tools` applies to discovery
 and the resolved configuration, including supplied snapshots. Byte limits apply
 before output, while the host's command output limit still bounds stdout.
 Shell redirection works for all formats. Host-selected SDK

@@ -20,6 +20,13 @@ export function commandLimit(value: number, name: string): number {
   return value;
 }
 
+/** Shell policies may tighten a configured host budget, never raise it. */
+export function callerLimit(caller: number | undefined, host: number | undefined, name: string): number | undefined {
+  if (host === undefined) return caller;
+  commandLimit(host, name);
+  return Math.min(host, caller ?? host);
+}
+
 export function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
   if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
     throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
@@ -274,7 +281,10 @@ export async function createRemoteMcpCommands(
           const selected = entry!;
           let result: CallToolResult;
           try {
-            result = await withRemoteMcpClient(server, { ...settings, ...policy, signal: operation.signal },
+            result = await withRemoteMcpClient(server, { ...settings,
+              requestTimeoutMs: callerLimit(policy.requestTimeoutMs, settings.requestTimeoutMs, "requestTimeoutMs"),
+              maxResponseBytes: callerLimit(policy.maxResponseBytes, settings.maxResponseBytes, "maxResponseBytes"),
+              signal: operation.signal },
               client => client.callTool({ name: selected.tool.name, arguments: argumentsValue }, { signal: operation.signal }));
           } catch (error) {
             operation.signal.throwIfAborted();

@@ -268,14 +268,14 @@ it("routes resource list/read/templates through management SDK parity and virtua
   } finally { await shell.dispose(); }
 });
 
-it.each([" ", "="])("overrides host resource input/response limits using %j", async separator => {
+it.each([" ", "="])("keeps host resource input limits using %j", async separator => {
   const f = remote();
   const definition = createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch, maxInputBytes: 1, maxResponseBytes: 1 } });
   const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([definition]) });
   try {
     const result = await shell.exec(`mcp resource docs memo://one --max-input-bytes${separator}100 --max-response-bytes${separator}4096`);
-    expect(result.exitCode).toBe(0); expect(result.stderr).toBe(""); expect(JSON.parse(result.stdout)).toEqual(read);
-    expect(f.requests.some(request => request.method === "tools/list")).toBe(false);
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe(""); expect(result.stderr).toContain("input byte limit");
+    expect(f.fetch).not.toHaveBeenCalled();
   } finally { await shell.dispose(); }
 });
 it("rejects a resource request exceeding the selected UTF-8 input limit before credential binding", async () => {
@@ -289,12 +289,12 @@ it("rejects a resource request exceeding the selected UTF-8 input limit before c
     expect(readToken).not.toHaveBeenCalled(); expect(f.fetch).not.toHaveBeenCalled();
   } finally { await shell.dispose(); }
 });
-it("enforces a CLI resource response budget and retires initialization ownership", async () => {
+it.each(["CLI", "host"])("enforces the %s resource response budget and retires initialization ownership", async owner => {
   const f = remote(), shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry([
-    createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch } })
+    createRemoteMcpManagementCommand([server], { resources: { fetch: f.fetch, ...(owner === "host" ? { maxResponseBytes: 1 } : {}) } })
   ]) });
   try {
-    const result = await shell.exec("mcp resource docs memo://one --max-response-bytes=1");
+    const result = await shell.exec(`mcp resource docs memo://one --max-response-bytes=${owner === "host" ? 4096 : 1}`);
     expect(result.exitCode).toBe(1); expect(result.stdout).toBe(""); expect(result.stderr).toContain("byte");
     expect(f.requests.some(request => request.method === "resources/read")).toBe(false);
     expect(f.fetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(true);

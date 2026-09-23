@@ -108,13 +108,13 @@ it("bounds stalled credential input with the command deadline and cleans up its 
     await operation; deadline.mockRestore(); await f.shell.dispose();
   }
 });
-it.each([" ", "="])("passes separate CLI import byte/lock limits over host settings using %j", async separator => {
+it.each([" ", "="])("keeps host import byte limits despite larger CLI settings using %j", async separator => {
   const f = fixture("catalog", undefined, { maxImportBytes: 1, timeoutMs: 1 });
   await f.fs.writeFile("/credentials.json", new TextEncoder().encode(JSON.stringify(payload)));
   try {
     const result = await f.shell.exec(`mcp import catalog --file /credentials.json --max-import-bytes${separator}4096 --lock-timeout-ms${separator}1000 --timeout-ms=2000 --json`);
-    expect(result.exitCode).toBe(0); expect(result.stderr).toBe(""); expect(JSON.parse(result.stdout).imported).toBe(true);
-    expect(f.importSession).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ timeoutMs: 1000 }));
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(f.fetch).not.toHaveBeenCalled(); expect(f.importSession).not.toHaveBeenCalled();
   } finally { await f.shell.dispose(); }
 });
 it("stops oversized virtual-file credential input at the CLI byte budget without reading later chunks", async () => {

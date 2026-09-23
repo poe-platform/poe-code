@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import type { HttpTransportFetch } from "tiny-mcp-client";
-import { createRemoteMcpManagementCommand, parseRemoteMcpArtifact, type RemoteMcpManagementOptions } from "./index.js";
+import { createRemoteMcpManagementCommand, type RemoteMcpManagementOptions } from "./index.js";
 
 const tools = ["one", "two"].map(name => ({ name, inputSchema: { type: "object" } }));
 const server = { name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26" as const };
@@ -27,14 +27,16 @@ async function run(script: string, options: RemoteMcpManagementOptions = {}, sup
   try { return await shell.exec(script); } finally { await shell.dispose(); }
 }
 
-it.each([" ", "="])("applies CLI discovery limits over stricter host policies using %j", async separator => {
+it.each([
+  [{ maxPages: 1 }, "page limit", [undefined]],
+  [{ maxTools: 1 }, "tool limit", [undefined, "next"]],
+  [{ maxResponseBytes: 1 }, "byte", []]
+])("keeps host discovery ceilings %j when CLI requests more", async (policy, message, cursors) => {
   const f = fixture();
-  const result = await run(`mcp generate --max-pages${separator}2 --max-tools${separator}2 --max-response-bytes${separator}4096`,
-    { generation: { maxTools: 1, schema: { fetch: f.fetch, maxPages: 1, maxTools: 1, maxResponseBytes: 1 } } });
-  expect(result.exitCode).toBe(0);
-  expect(result.stderr).toBe("");
-  expect(parseRemoteMcpArtifact(result.stdout).schemas[0].tools).toEqual(tools);
-  expect(f.cursors).toEqual([undefined, "next"]);
+  const result = await run("mcp generate --max-pages=2 --max-tools=2 --max-response-bytes=4096",
+    { generation: { schema: { fetch: f.fetch, ...policy } } });
+  expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+  expect(result.stderr.toLowerCase()).toContain(message); expect(f.cursors).toEqual(cursors);
 });
 
 it.each([
@@ -55,8 +57,8 @@ it.each(["--max-configuration-bytes", "--max-artifact-bytes"])("exposes offline 
   const fetch = vi.fn<HttpTransportFetch>();
   const rejected = await run(`mcp generate ${flag}=1`, { generation: { schema: { fetch } } }, true);
   expect(rejected.exitCode).toBe(1); expect(rejected.stdout).toBe(""); expect(rejected.stderr).toContain("byte limit");
-  const accepted = await run(`mcp generate ${flag} 10000`, { generation: { [flag === "--max-artifact-bytes" ? "maxArtifactBytes" : "maxConfigurationBytes"]: 1, schema: { fetch } } }, true);
-  expect(accepted.exitCode).toBe(0); expect(parseRemoteMcpArtifact(accepted.stdout).schemas[0].tools).toEqual(tools);
+  const hostRejected = await run(`mcp generate ${flag} 10000`, { generation: { [flag === "--max-artifact-bytes" ? "maxArtifactBytes" : "maxConfigurationBytes"]: 1, schema: { fetch } } }, true);
+  expect(hostRejected.exitCode).toBe(1); expect(hostRejected.stdout).toBe(""); expect(hostRejected.stderr).toContain("byte limit");
   expect(fetch).not.toHaveBeenCalled();
 });
 

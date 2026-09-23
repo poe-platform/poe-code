@@ -32,7 +32,7 @@ async function fixture(options: RemoteMcpCommandOptions = {}, selected = tool, l
 }
 
 it.each(["separated", "inline"])("accepts %s execution policies before the tool", async syntax => {
-  const host = await fixture({ maxResponseBytes: 1 });
+  const host = await fixture();
   try {
     const flags = syntax === "inline" ? "--timeout-ms=100 --max-response-bytes=4096 --max-input-bytes=1024 --max-output-bytes=4096"
       : "--timeout-ms 100 --max-response-bytes 4096 --max-input-bytes 1024 --max-output-bytes 4096";
@@ -96,6 +96,16 @@ it.each(["CLI", "host"])("enforces the %s output ceiling without writing partial
   } finally { await host.shell.dispose(); }
 });
 
+it("keeps the host response ceiling when CLI requests more", async () => {
+  const host = await fixture({ maxResponseBytes: 8 });
+  try {
+    const result = await host.shell.exec("catalog --max-response-bytes=4096 echo --query bounded");
+    expect(result.exitCode).toBe(1); expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("8 bytes"); expect(host.inputs).toEqual([]);
+    expect(host.methods.at(-1)).toBe("DELETE");
+  } finally { await host.shell.dispose(); }
+});
+
 it("applies a CLI response budget and retires initialization sessions on failure", async () => {
   const host = await fixture();
   try {
@@ -106,11 +116,11 @@ it("applies a CLI response budget and retires initialization sessions on failure
   } finally { await host.shell.dispose(); }
 });
 
-it("overrides the RPC deadline and cancels a stalled call", async () => {
-  const host = await fixture({ requestTimeoutMs: 30_000 });
+it.each(["CLI", "host"])("enforces the %s RPC deadline and cancels a stalled call", async owner => {
+  const host = await fixture({ requestTimeoutMs: owner === "host" ? 100 : 30_000 });
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
   try {
-    const pending = host.shell.exec("catalog --timeout-ms=100 echo --query stall");
+    const pending = host.shell.exec(`catalog --timeout-ms=${owner === "host" ? 30000 : 100} echo --query stall`);
     await Promise.race([host.called, pending.then(() => { throw new Error("Command ended before tools/call"); })]);
     await vi.advanceTimersByTimeAsync(101);
     const result = await pending;

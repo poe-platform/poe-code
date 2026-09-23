@@ -2,7 +2,7 @@ import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { posix } from "node:path";
 import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
-import { argumentText, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
+import { argumentText, callerLimit, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
 import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
 import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
 import { authenticateRemoteMcpServer, type RemoteMcpAuthenticationOptions, type RemoteMcpAuthenticationResult } from "./authentication.js";
@@ -292,13 +292,13 @@ export function createRemoteMcpManagementCommand(
             const signal = resourceSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resourceSignal]);
             signal.throwIfAborted();
             const maxResourceInputBytes = Math.min(maxInputBytes,
-              commandLimit(selected.maxInputBytes ?? settings.maxInputBytes ?? maxInputBytes, "maxInputBytes"));
+              commandLimit(callerLimit(selected.maxInputBytes, settings.maxInputBytes, "maxInputBytes") ?? maxInputBytes, "maxInputBytes"));
             const request = snapshotRemoteMcpResourceRequest(selected.request, maxResourceInputBytes);
             const server = initialization.configuration.servers.find(server => server.name === selected.name)!;
             const [bound] = bindRemoteMcpConfiguration({ version: 1, servers: [server] }, settings?.binding ?? { env: context.env });
             const result = await accessRemoteMcpResources(bound, request, { ...settings,
-              requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
-              maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
+              requestTimeoutMs: callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs"),
+              maxResponseBytes: callerLimit(selected.maxResponseBytes, settings?.maxResponseBytes, "maxResponseBytes"),
               maxInputBytes: maxResourceInputBytes, signal });
             output = `${JSON.stringify(result)}\n`;
           } catch (error) {
@@ -316,11 +316,11 @@ export function createRemoteMcpManagementCommand(
           let result: RemoteMcpCredentialImportResult;
           try {
             parentSignal.throwIfAborted();
-            const requestTimeoutMs = selected.requestTimeoutMs ?? settings?.requestTimeoutMs ?? 30_000;
+            const requestTimeoutMs = callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs") ?? 30_000;
             if (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647)
               throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
             const signal = AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);
-            const maxImportBytes = Math.min(maxInputBytes, commandLimit(selected.maxImportBytes ?? settings?.maxImportBytes ?? maxInputBytes, "maxImportBytes"));
+            const maxImportBytes = Math.min(maxInputBytes, commandLimit(callerLimit(selected.maxImportBytes, settings?.maxImportBytes, "maxImportBytes") ?? maxInputBytes, "maxImportBytes"));
             const file = selected.file;
             let source = context.stdin;
             if (file !== undefined && file !== "-") {
@@ -340,7 +340,7 @@ export function createRemoteMcpManagementCommand(
               binding: settings?.binding ?? options.authentication?.binding ?? { env: context.env },
               fetch: settings?.fetch ?? options.authentication?.fetch,
               requestTimeoutMs,
-              timeoutMs: selected.timeoutMs ?? settings?.timeoutMs,
+              timeoutMs: callerLimit(selected.timeoutMs, settings?.timeoutMs, "timeoutMs"),
               maxImportBytes, signal
             });
           } catch (error) {
@@ -363,7 +363,7 @@ export function createRemoteMcpManagementCommand(
               maxConfigurationBytes: settings?.maxConfigurationBytes ?? options.maxConfigurationBytes,
               maxTools: settings?.maxTools ?? options.maxTools,
               binding: settings?.binding ?? options.authentication?.binding,
-              timeoutMs: selected.requestTimeoutMs ?? settings?.timeoutMs,
+              timeoutMs: callerLimit(selected.requestTimeoutMs, settings?.timeoutMs, "timeoutMs"),
               signal: resetSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, resetSignal])
             });
           } catch (error) {
@@ -389,8 +389,8 @@ export function createRemoteMcpManagementCommand(
               ...snapshotRemoteMcpSchemaOptions(settings ?? {}), binding: settings?.binding ?? { env: context.env },
               noBrowser: selected.noBrowser ?? settings?.noBrowser ?? true,
               reset: selected.reset || settings?.reset,
-              requestTimeoutMs: selected.requestTimeoutMs ?? settings?.requestTimeoutMs,
-              maxResponseBytes: selected.maxResponseBytes ?? settings?.maxResponseBytes,
+              requestTimeoutMs: callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs"),
+              maxResponseBytes: callerLimit(selected.maxResponseBytes, settings?.maxResponseBytes, "maxResponseBytes"),
               signal: authSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, authSignal]),
               async onAuthorizationUrl(request) {
                 const text = selected.json ? `${JSON.stringify(request)}\n` : `Authorization URL: ${textLine(request.authorizationUrl)}\nRedirect URI: ${textLine(request.redirectUri)}\n`;
@@ -417,16 +417,16 @@ export function createRemoteMcpManagementCommand(
             const schemaSignal = generation?.schema?.signal;
             const generated = await generateRemoteMcpArtifact(initialization.configuration, {
               ...options, ...generation,
-              maxTools: generationPolicy.maxTools ?? generation?.maxTools ?? options.maxTools,
-              maxConfigurationBytes: generationPolicy.maxConfigurationBytes ?? generation?.maxConfigurationBytes ?? options.maxConfigurationBytes,
-              maxArtifactBytes: generationPolicy.maxArtifactBytes ?? generation?.maxArtifactBytes,
+              maxTools: callerLimit(generationPolicy.maxTools, generation?.maxTools ?? options.maxTools, "maxTools"),
+              maxConfigurationBytes: callerLimit(generationPolicy.maxConfigurationBytes, generation?.maxConfigurationBytes ?? options.maxConfigurationBytes, "maxConfigurationBytes"),
+              maxArtifactBytes: callerLimit(generationPolicy.maxArtifactBytes, generation?.maxArtifactBytes, "maxArtifactBytes"),
               schemaRegistry: generation?.schemaRegistry,
               binding: generation?.binding ?? { env: context.env },
               schema: { ...snapshotRemoteMcpSchemaOptions(generation?.schema ?? {}),
-                requestTimeoutMs: generationPolicy.requestTimeoutMs ?? generation?.schema?.requestTimeoutMs,
-                maxPages: generationPolicy.maxPages ?? generation?.schema?.maxPages,
-                maxTools: generationPolicy.maxTools ?? generation?.schema?.maxTools,
-                maxResponseBytes: generationPolicy.maxResponseBytes ?? generation?.schema?.maxResponseBytes,
+                requestTimeoutMs: callerLimit(generationPolicy.requestTimeoutMs, generation?.schema?.requestTimeoutMs, "requestTimeoutMs"),
+                maxPages: callerLimit(generationPolicy.maxPages, generation?.schema?.maxPages, "maxPages"),
+                maxTools: callerLimit(generationPolicy.maxTools, generation?.schema?.maxTools, "maxTools"),
+                maxResponseBytes: callerLimit(generationPolicy.maxResponseBytes, generation?.schema?.maxResponseBytes, "maxResponseBytes"),
                 signal: schemaSignal === undefined ? operation.signal : AbortSignal.any([operation.signal, schemaSignal]) }
             });
             output = generationFormat === "module" ? generated.module : generationFormat === "config" ? `${JSON.stringify(generated.artifact.configuration, null, 2)}\n` : generated.json;

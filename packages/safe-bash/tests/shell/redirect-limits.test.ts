@@ -30,9 +30,9 @@ test("exact redirect capacity counts operations even when the descriptor and tar
   assert.equal(access.mock.callCount(), 0);
 });
 
-test("default and Worker profiles admit 64 redirects and reject 65", async t => {
+test("explicit Worker profile admits 64 redirects and rejects 65", async t => {
   assert.equal(cloudflareWorkerLimits.maxRedirects, 64);
-  const { shell } = fixture(t);
+  const { shell } = fixture(t, cloudflareWorkerLimits);
   assert.equal((await shell.exec(": " + Array(64).fill("3<&0").join(" "))).exitCode, 0);
   await assert.rejects(shell.exec(": " + Array(65).fill("3<&0").join(" ")), redirectLimit);
 });

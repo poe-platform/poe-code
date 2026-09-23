@@ -66,12 +66,68 @@ jobs:
           # The same-run build above was digest-verified.
           # Preserve it instead of rebuilding through npm's prepack lifecycle.
           NPM_CONFIG_IGNORE_SCRIPTS: "true"
-        run: npm exec --no -- semantic-release
+        run: |-
+          gh auth setup-git
+          # This ref only advances to same-run validated main commits. It is never forced.
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          publication_ref=refs/heads/stable-publication
+          remote_head=$(git ls-remote --heads origin "$publication_ref" | cut -f1)
+          if [ -n "$remote_head" ]; then
+            git fetch origin "$publication_ref"
+            if [ "$remote_head" != "$GITHUB_SHA" ] && git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "Publication superseded by validated commit $remote_head; this run did not publish." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            git merge-base --is-ancestor "$remote_head" "$GITHUB_SHA"
+          fi
+          git checkout -B stable-publication "$GITHUB_SHA"
+          git push origin "HEAD:$publication_ref"
+          node --input-type=module <<'JS'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          import semanticRelease from 'semantic-release';
+          const config = JSON.parse(readFileSync('.releaserc.json', 'utf8'));
+          let analyzed = false;
+          let releaseType;
+          let npmPublished = false;
+          const hooks = new Set(['verifyConditions', 'analyzeCommits', 'verifyRelease', 'generateNotes', 'prepare', 'publish', 'addChannel', 'success', 'fail']);
+          const plugins = await Promise.all(config.plugins.map(async (entry) => {
+            const [name, options = {}] = Array.isArray(entry) ? entry : [entry];
+            const imported = await import(name);
+            const plugin = imported.default ?? imported;
+            const wrapped = Object.fromEntries(Object.entries(plugin).filter(([hook]) => hooks.has(hook)).map(([hook, fn]) => [hook, async (settings, context) => {
+              // env-ci uses the real checked-out publication branch. Plugins keep the
+              // authentic Actions context, including main's ref/SHA and OIDC provenance.
+              const result = await fn(settings, { ...context, env: { ...context.env, GITHUB_ACTIONS: process.env.GITHUB_ACTIONS } });
+              if (hook === 'analyzeCommits') {
+                analyzed = true;
+                releaseType = result;
+              }
+              if (name === '@semantic-release/npm' && hook === 'publish' && result) npmPublished = true;
+              return result;
+            }]));
+            return [wrapped, options];
+          }));
+          const result = await semanticRelease({ ...config, branches: [{ name: 'stable-publication' }], plugins }, {
+            env: { ...process.env, GITHUB_ACTIONS: '', CI: 'true' }
+          });
+          let summary;
+          if (!result && analyzed && !releaseType) {
+            summary = 'No releasable changes; this run did not publish.';
+          } else if (result?.nextRelease?.gitHead === process.env.GITHUB_SHA && npmPublished) {
+            summary = `Published poe-code@${result.nextRelease.version} from validated commit ${process.env.GITHUB_SHA}.`;
+          } else {
+            throw new Error('Stable publication did not complete for the validated commit.');
+          }
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + '\n');
+          JS
     needs:
       - validate
     concurrency:
       group: release-${{ github.ref }}
       cancel-in-progress: false
+    if: github.ref == 'refs/heads/main'
   validate:
     uses: ./.github/workflows/release-validation.yml
     permissions:

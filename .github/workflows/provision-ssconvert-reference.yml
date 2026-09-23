@@ -138,6 +138,16 @@ jobs:
           input_path = root / 'search-wildcards.gnumeric'
           input_path.write_bytes(bytes.fromhex(source['inputHex']))
           capture('search-wildcards', [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(input_path), 'fd://1'])
+          language_fixture_path = pathlib.Path('docs/ssconvert/linux-language-native-probes.json')
+          language_inputs = []
+          for fixture in json.loads(language_fixture_path.read_text())['inputs']:
+              if fixture['profileId'] != profile['id']:
+                  continue
+              path = root / (fixture['label'] + '.gnumeric')
+              path.write_bytes(bytes.fromhex(fixture['inputHex']))
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
+              capture(fixture['label'], [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'])
+              language_inputs.append(dict(label=fixture['label'], inputSha256=fixture['inputSha256'], caseCount=fixture['caseCount'], logicalFields=fixture['logicalFields']))
           workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
           source_revision = subprocess.check_output(['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd()), 'rev-parse', 'HEAD'], text=True).strip()
           assert source_revision == os.environ['GITHUB_SHA']
@@ -146,6 +156,7 @@ jobs:
               sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
+              languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs,
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),
               optionalProfileSha256=hashlib.sha256(profile_path.read_bytes()).hexdigest(),
               binarySha256=hashlib.sha256(binary.read_bytes()).hexdigest(),

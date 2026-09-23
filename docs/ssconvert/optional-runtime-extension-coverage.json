@@ -78,7 +78,7 @@
             "probe": "TRUE"
           },
           "functions": [],
-          "declaration": "<service type=\"file_opener\" id=\"excel\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ (*.xls)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xls</suffix>\n\t\t\t\t<suffix>xlw</suffix>\n\t\t\t\t<suffix>xlt</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.ms-excel</mime-type>\n\t\t\t\t<mime-type>application/excel</mime-type>\n\t\t\t\t<mime-type>application/msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-excel</mime-type>\n\t\t\t\t<mime-type>application/x-ms-excel</mime-type>\n\t\t\t\t<mime-type>application/x-msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-xls</mime-type>\n\t\t\t\t<mime-type>application/xls</mime-type>\n\t\t\t\t<mime-type>application/x-dos_ms_excel</mime-type>\n\t\t\t\t<mime-type>zz-application/zz-winassoc-xls</mime-type>\n\t\t\t</mime-types>\n\t\t</service>\n\n\t\t"
+          "declaration": "<service type=\"file_opener\" id=\"excel\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 (*.xls)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xls</suffix>\n\t\t\t\t<suffix>xlw</suffix>\n\t\t\t\t<suffix>xlt</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.ms-excel</mime-type>\n\t\t\t\t<mime-type>application/excel</mime-type>\n\t\t\t\t<mime-type>application/msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-excel</mime-type>\n\t\t\t\t<mime-type>application/x-ms-excel</mime-type>\n\t\t\t\t<mime-type>application/x-msexcel</mime-type>\n\t\t\t\t<mime-type>application/x-xls</mime-type>\n\t\t\t\t<mime-type>application/xls</mime-type>\n\t\t\t\t<mime-type>application/x-dos_ms_excel</mime-type>\n\t\t\t\t<mime-type>zz-application/zz-winassoc-xls</mime-type>\n\t\t\t</mime-types>\n\t\t</service>\n\n\t\t"
         },
         {
           "attributes": {
@@ -91,7 +91,7 @@
             "mime_type": "application/vnd.ms-excel"
           },
           "functions": [],
-          "declaration": "<service type=\"file_saver\" id=\"excel_biff8\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" default_saver_priority=\"1\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t     \n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 97/2000/XP</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+          "declaration": "<service type=\"file_saver\" id=\"excel_biff8\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" default_saver_priority=\"1\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t     \n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 97/2000/XP</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
         },
         {
           "attributes": {
@@ -103,7 +103,7 @@
             "mime_type": "application/vnd.ms-excel"
           },
           "functions": [],
-          "declaration": "<service type=\"file_saver\" id=\"excel_biff7\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+          "declaration": "<service type=\"file_saver\" id=\"excel_biff7\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
         },
         {
           "attributes": {
@@ -115,7 +115,7 @@
             "mime_type": "application/vnd.ms-excel"
           },
           "functions": [],
-          "declaration": "<service type=\"file_saver\" id=\"excel_dsf\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 97/2000/XP &amp; 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t\n\t\t"
+          "declaration": "<service type=\"file_saver\" id=\"excel_dsf\" file_extension=\"xls\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.ms-excel\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 97/2000/XP &amp; 5.0/95</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t\n\t\t"
         },
         {
           "attributes": {
@@ -125,7 +125,7 @@
             "probe": "TRUE"
           },
           "functions": [],
-          "declaration": "<service type=\"file_opener\" id=\"excel_xml\" priority=\"1\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ 2003 SpreadsheetML</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xml</suffix>\n\t\t\t</suffixes>\n\t\t</service>\n\n\t\t\n\t\t"
+          "declaration": "<service type=\"file_opener\" id=\"excel_xml\" priority=\"1\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 2003 SpreadsheetML</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xml</suffix>\n\t\t\t</suffixes>\n\t\t</service>\n\n\t\t\n\t\t"
         },
         {
           "attributes": {
@@ -135,7 +135,7 @@
             "probe": "TRUE"
           },
           "functions": [],
-          "declaration": "<service type=\"file_opener\" id=\"xlsx\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>ECMA 376 / Office Open XML [MS Excel™ 2007/2010] (*.xlsx)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xlsx</suffix>\n\t\t\t\t<suffix>xltx</suffix>\n\t\t\t\t<suffix>xlsb</suffix>\n\t\t\t\t<suffix>xlsm</suffix>\n\t\t\t\t<suffix>xltm</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</mime-type>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.template</mime-type>\n\n\t\t\t</mime-types>\n \t\t</service>\n\n\t\t"
+          "declaration": "<service type=\"file_opener\" id=\"xlsx\" priority=\"100\" probe=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>ECMA 376 / Office Open XML [MS Excel\u2122 2007/2010] (*.xlsx)</_description>\n\t\t\t</information>\n\t\t\t<suffixes>\n\t\t\t\t<suffix>xlsx</suffix>\n\t\t\t\t<suffix>xltx</suffix>\n\t\t\t\t<suffix>xlsb</suffix>\n\t\t\t\t<suffix>xlsm</suffix>\n\t\t\t\t<suffix>xltm</suffix>\n\t\t\t</suffixes>\n\t\t\t<mime-types>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</mime-type>\n\t\t\t\t<mime-type>application/vnd.openxmlformats-officedocument.spreadsheetml.template</mime-type>\n\n\t\t\t</mime-types>\n \t\t</service>\n\n\t\t"
         },
         {
           "attributes": {
@@ -147,7 +147,7 @@
             "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           },
           "functions": [],
-          "declaration": "<service type=\"file_saver\" id=\"xlsx\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description> ECMA 376 1st edition (2006); [MS Excel™ 2007]</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t"
+          "declaration": "<service type=\"file_saver\" id=\"xlsx\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description> ECMA 376 1st edition (2006); [MS Excel\u2122 2007]</_description>\n\t\t\t</information>\n\t\t</service>\n\n\t\t"
         },
         {
           "attributes": {
@@ -159,7 +159,7 @@
             "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           },
           "functions": [],
-          "declaration": "<service type=\"file_saver\" id=\"xlsx2\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description>ISO/IEC 29500:2008 &amp; ECMA 376 2nd edition (2008); [MS Excel™ 2010]</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
+          "declaration": "<service type=\"file_saver\" id=\"xlsx2\" file_extension=\"xlsx\" format_level=\"auto\" overwrite_files=\"TRUE\" mime_type=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\">\n\t\t\t<information>\n\t\t\t\t<_description>ISO/IEC 29500:2008 &amp; ECMA 376 2nd edition (2008); [MS Excel\u2122 2010]</_description>\n\t\t\t</information>\n\t\t</service>\n\t\t"
         },
         {
           "attributes": {
@@ -170,7 +170,7 @@
             "encoding_dependent": "TRUE"
           },
           "functions": [],
-          "declaration": "<service type=\"file_opener\" id=\"excel_enc\" priority=\"200\" probe=\"FALSE\" encoding_dependent=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel™ (*.xls) requiring encoding specification</_description>\n\t\t\t</information>\n\t\t</service>\n\t"
+          "declaration": "<service type=\"file_opener\" id=\"excel_enc\" priority=\"200\" probe=\"FALSE\" encoding_dependent=\"TRUE\">\n\t\t\t<information>\n\t\t\t\t<_description>MS Excel\u2122 (*.xls) requiring encoding specification</_description>\n\t\t\t</information>\n\t\t</service>\n\t"
         }
       ],
       "archiveMemberSha256": "c816444d2c8359a245d63f8c0810f6b48228b8e2f851fdef3b94bb70b71194d3",
@@ -2356,113 +2356,160 @@
     "scratchCleanup": "Only explicitly task-created out logs/control/screenshot directory removed after durable reduction; authenticated pre-existing source/oracle artifacts and other workers logs retained."
   },
   "currentCapwordsVerification": {
-    "date": "2026-09-21",
-    "status": "partial; Unicode and matching activated optional oracle unresolved",
-    "candidate": {
-      "identity": "exact content hashes; uncommitted worktree, no new Git revision",
-      "sourceBindings": [
-        {
-          "path": "packages/ssconvert/src/formulas/optional-providers.ts",
-          "sha256": "4a330eea5da466dc6458ecdb7f08787cb2557af2c8b47b4b0db9273b54dd385a"
-        },
-        {
-          "path": "packages/ssconvert/src/formulas/python-capwords.test.ts",
-          "sha256": "6aac17681476674268f3a5671b932d43efb414ce5efcd4f171790053d4ec936f"
-        },
-        {
-          "path": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
-          "sha256": "e8ca153739b8e36d0d70e4c09678d0ccc1f60650bc1ed8159d3184c160978ef7"
-        },
-        {
-          "path": "packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
-          "sha256": "f1b288a711e0c7b4edf0015db20bfcc50ded6e20d74e77a50378ffbe245dd8d9"
-        }
-      ]
-    },
-    "failingRegression": "Before implementation all three python-capwords tests failed: missing dispatch produced #NAME? and unsupported/budget execution checks failed.",
-    "implementation": "Original JS ASCII capwords port with cooperative work and output bounds; non-ASCII explicitly unsupported.",
+    "date": "2026-09-22",
+    "status": "partial; activated scalar/Unicode16/array qualification delivered, bridge and exact profiles open",
+    "proof": "docs/ssconvert/capwords-native-loader-gap-proof.json",
+    "candidateCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+    "implementation": "Frozen Unicode16 JS capitalization; native typed split exceptions preserved",
     "passes": {
-      "unit": {
-        "command": "npm test --workspace=@poe-code/ssconvert",
-        "execution": "fresh maintained package route",
-        "testFiles": 304,
-        "passed": 6186,
-        "skipped": 0,
+      "focused": {
+        "passed": 17,
         "exitCode": 0
       },
-      "lint": {
-        "command": "npm run lint --workspace=@poe-code/ssconvert",
-        "execution": "fresh ESLint and source/test TypeScript",
+      "maintained": {
+        "files": 352,
+        "tests": 13284,
         "exitCode": 0
       },
-      "integrationLint": {
-        "command": "npx eslint --no-cache packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
+      "lintProductionTestPublicConsumerTypes": {
         "exitCode": 0
       },
-      "build": {
-        "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
-        "scope": "18 selected builds with maintained dependencies and root stages",
+      "selectedBuild": {
         "exitCode": 0
       },
-      "integration": {
-        "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
-        "passed": 70,
-        "skipped": 0,
+      "safeBashOptionalSourceIntegration": {
+        "passed": 1,
         "exitCode": 0
-      },
-      "independentAgent": {
-        "file": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
-        "passed": 5,
-        "coverage": "All ASCII codepoints, typed/namespace controls, punctuation/digits, text/work bounds, cancellation identity, Unicode/surrogate refusal; no defect found"
-      },
-      "screenshot": {
-        "command": "Repository screenshot tool invoking built virtual command",
-        "sha256": "f29ad192892b352b61aabf04ed5e304c239a6f63a69437e2b5eecb36db61c2bf",
-        "inspected": true,
-        "observation": "Enabled sample prints quoted Hello World; absent sample #NAME?; both status 0 empty stderr"
       }
     },
-    "failures": [],
-    "incompleteRuns": [],
+    "native": {
+      "scalar153": "exact on Python3.12.13 and3.14.7",
+      "unicode10488": "exact on Python3.14.7/Unicode16",
+      "validArrays": 3,
+      "sdkShellBrowserWorkerReplay": "exact"
+    },
     "unverified": [
-      "Activated Perl/Python/GDA optional runtime oracle cells and mapped interpreter versions",
-      "PY_CAPWORDS Unicode whitespace/capitalization",
-      "PY_PRINTF percent-format interpreter",
-      "PERL_DATE time/zone/result conversion",
-      "PERL_SED substitution interpreter",
-      "EXECSQL/READDBTABLE arrays/errors",
-      "ATL_LAST FIFO/watch lifecycle",
-      "Optional glossary activation and environment effects",
-      "Native/Guile/Excel/GOffice external JS ports and per-port effects",
-      "Untrusted realm isolation and arbitrary-provider replay/authority revocation"
-    ],
-    "notRun": [
-      "Repository-wide npm test/lint/build: current provider change uses selected cross-workspace build and command integration; no broad pass claimed",
-      "Native optional QA: no newly qualified dependency/plugin runtime; historical blocked captures retained"
+      "Native byte-string PyUnicode_FromString acquisition, embedded NUL and malformed host UTF16/result boundaries",
+      "Wide Python3.12/Unicode15 differences and versioned compatibility policy",
+      "Exact14 optional Linux profiles with complete plugin/runtime/environment closure",
+      "Remaining optional functions, services, all ledger families and final frozen/packed/installed/registry publication qualification"
     ],
     "delivery": {
-      "localCommits": 0,
-      "push": false,
-      "publish": false,
-      "readmeEdits": false
-    },
-    "reducedLogs": [
-      {
-        "path": "out/optional-profiles-current-final-unit.log",
-        "sha256": "2f162f006c25e2b83a1cac9d26880aceb45462709ed907003d401fc70367e553"
+      "localCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+      "remoteMain": "commit ancestry verified on origin/main",
+      "publication": "Not yet verified;35811017099 cancelled, older containing35809183777 has failed Bash shards; registry17.0.34 historical gitHead ec51e54b9"
+    }
+  },
+  "capwordsVerificationHistory": [
+    {
+      "date": "2026-09-21",
+      "status": "partial; Unicode and matching activated optional oracle unresolved",
+      "candidate": {
+        "identity": "exact content hashes; uncommitted worktree, no new Git revision",
+        "sourceBindings": [
+          {
+            "path": "packages/ssconvert/src/formulas/optional-providers.ts",
+            "sha256": "4a330eea5da466dc6458ecdb7f08787cb2557af2c8b47b4b0db9273b54dd385a"
+          },
+          {
+            "path": "packages/ssconvert/src/formulas/python-capwords.test.ts",
+            "sha256": "6aac17681476674268f3a5671b932d43efb414ce5efcd4f171790053d4ec936f"
+          },
+          {
+            "path": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+            "sha256": "e8ca153739b8e36d0d70e4c09678d0ccc1f60650bc1ed8159d3184c160978ef7"
+          },
+          {
+            "path": "packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
+            "sha256": "f1b288a711e0c7b4edf0015db20bfcc50ded6e20d74e77a50378ffbe245dd8d9"
+          }
+        ]
       },
-      {
-        "path": "out/optional-profiles-current-final-lint.log",
-        "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+      "failingRegression": "Before implementation all three python-capwords tests failed: missing dispatch produced #NAME? and unsupported/budget execution checks failed.",
+      "implementation": "Original JS ASCII capwords port with cooperative work and output bounds; non-ASCII explicitly unsupported.",
+      "passes": {
+        "unit": {
+          "command": "npm test --workspace=@poe-code/ssconvert",
+          "execution": "fresh maintained package route",
+          "testFiles": 304,
+          "passed": 6186,
+          "skipped": 0,
+          "exitCode": 0
+        },
+        "lint": {
+          "command": "npm run lint --workspace=@poe-code/ssconvert",
+          "execution": "fresh ESLint and source/test TypeScript",
+          "exitCode": 0
+        },
+        "integrationLint": {
+          "command": "npx eslint --no-cache packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts",
+          "exitCode": 0
+        },
+        "build": {
+          "command": "npm run build:workspaces -- --workspace=@poe-platform/safe-bash --no-cache",
+          "scope": "18 selected builds with maintained dependencies and root stages",
+          "exitCode": 0
+        },
+        "integration": {
+          "command": "node --import tsx --test packages/safe-bash/tests/commands/ssconvert-optional-capwords.test.ts packages/safe-bash/tests/commands/ssconvert.test.ts",
+          "passed": 70,
+          "skipped": 0,
+          "exitCode": 0
+        },
+        "independentAgent": {
+          "file": "packages/ssconvert/src/formulas/python-capwords-independent.test.ts",
+          "passed": 5,
+          "coverage": "All ASCII codepoints, typed/namespace controls, punctuation/digits, text/work bounds, cancellation identity, Unicode/surrogate refusal; no defect found"
+        },
+        "screenshot": {
+          "command": "Repository screenshot tool invoking built virtual command",
+          "sha256": "f29ad192892b352b61aabf04ed5e304c239a6f63a69437e2b5eecb36db61c2bf",
+          "inspected": true,
+          "observation": "Enabled sample prints quoted Hello World; absent sample #NAME?; both status 0 empty stderr"
+        }
       },
-      {
-        "path": "out/optional-profiles-current-integration-build.log",
-        "sha256": "e2d3b16cc16518f047a1b55dab71183926f381090c5583c14f6e8fc5f01e8f85"
+      "failures": [],
+      "incompleteRuns": [],
+      "unverified": [
+        "Activated Perl/Python/GDA optional runtime oracle cells and mapped interpreter versions",
+        "PY_CAPWORDS Unicode whitespace/capitalization",
+        "PY_PRINTF percent-format interpreter",
+        "PERL_DATE time/zone/result conversion",
+        "PERL_SED substitution interpreter",
+        "EXECSQL/READDBTABLE arrays/errors",
+        "ATL_LAST FIFO/watch lifecycle",
+        "Optional glossary activation and environment effects",
+        "Native/Guile/Excel/GOffice external JS ports and per-port effects",
+        "Untrusted realm isolation and arbitrary-provider replay/authority revocation"
+      ],
+      "notRun": [
+        "Repository-wide npm test/lint/build: current provider change uses selected cross-workspace build and command integration; no broad pass claimed",
+        "Native optional QA: no newly qualified dependency/plugin runtime; historical blocked captures retained"
+      ],
+      "delivery": {
+        "localCommits": 0,
+        "push": false,
+        "publish": false,
+        "readmeEdits": false
       },
-      {
-        "path": "out/optional-profiles-current-integration.log",
-        "sha256": "896cf0bb11dbff517b153f0b21a941a004eb4a18d577b986733f14f5ce02df93"
-      }
-    ]
-  }
+      "reducedLogs": [
+        {
+          "path": "out/optional-profiles-current-final-unit.log",
+          "sha256": "2f162f006c25e2b83a1cac9d26880aceb45462709ed907003d401fc70367e553"
+        },
+        {
+          "path": "out/optional-profiles-current-final-lint.log",
+          "sha256": "c4d01086f7d2047ba347cb7ac01f353e5ab2bc83fc8844becd30dce5d2fee2c1"
+        },
+        {
+          "path": "out/optional-profiles-current-integration-build.log",
+          "sha256": "e2d3b16cc16518f047a1b55dab71183926f381090c5583c14f6e8fc5f01e8f85"
+        },
+        {
+          "path": "out/optional-profiles-current-integration.log",
+          "sha256": "896cf0bb11dbff517b153f0b21a941a004eb4a18d577b986733f14f5ce02df93"
+        }
+      ]
+    }
+  ]
 }

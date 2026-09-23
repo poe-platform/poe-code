@@ -631,7 +631,7 @@
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "frozen Unicode16 optional JS implementation delivered; activated native Python-loader/result-conversion profile qualification remains open",
+      "currentFinding": "Frozen Unicode16 and native scalar split exceptions delivered.153scalar controls match activated Python3.12/3.14;10488Unicode16 contexts and3arrays match SDK/Shell/browser/worker/replay. Native byte bridge,versioned wide profiles and exact optional Linux closure remain open.",
       "proof": [
         {
           "kind": "red-public-calculation",
@@ -656,12 +656,17 @@
         {
           "kind": "public-shell-visible-qa",
           "outcome": "explicit UTF8 command profile and enabled pythonSampleFunctions, CSV --set/recalc yields quoted Stra\u00dfe Sseta \u039f\u03c2, exit 0; screenshot inspected. Initial QA used captured default ASCII argument profile and later incorrect CSV quote expectation; corrected harness controls retained separately."
+        },
+        {
+          "path": "docs/ssconvert/capwords-native-loader-gap-proof.json",
+          "kind": "activated-native-loader-and-public-surfaces",
+          "outcome": "7original red,17focused,13284maintained tests;153on2native profiles,10488Unicode16 and12array fields exact;lint/types/build and inspected screenshot. Original invalid-array and browser-sink fixture failures preserved."
         }
       ],
       "delivery": {
-        "localCommit": "be35054adff617ae155a3edb87a71db817963550",
-        "remoteMain": "verified origin/main be35054adff617ae155a3edb87a71db817963550",
-        "publication": "Release 35754105899 pending; monitor containing successor"
+        "localCommit": "ec3212c77da89120e8ca585bd94461a45483cbbc",
+        "remoteMain": "commit ancestry verified on origin/main",
+        "publication": "Not yet verified;35811017099 cancelled, older containing35809183777 has failed Bash shards; registry17.0.34 historical gitHead ec51e54b9"
       }
     },
     {

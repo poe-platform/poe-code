@@ -377,6 +377,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     for (const value of state.positional) { await textToken(owner, value, signal); check(); }
     for (const key of state.exported) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
     for (const key of state.readonlyVariables ?? []) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
+    for (const key of state.readonlyFunctions ?? []) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
     for (const key of state.functions.keys()) { owner.reserve({ slots: 1, metadata: 32, work: 4 }); await textToken(owner, key, signal); check(); }
     for (const value of state.directoryStack?.entries ?? []) { await textToken(owner, value, signal); check(); }
     for (const frame of state.locals) {

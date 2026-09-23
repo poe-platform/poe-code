@@ -3,6 +3,28 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
+for (const [source, expected, diagnostic] of [
+  ['f(){ printf hello; }; readonly -f f; f(){ printf changed; }; f', 'hello', 'f: readonly function'],
+  ['f(){ printf hello; }; readonly -f f; f(){ printf changed; }; printf "%s:" "$?"; f', '1:hello', 'f: readonly function'],
+  ['f(){ printf hello; }; readonly -f f; unset -f f; printf "%s:" "$?"; f', '1:hello', 'unset: f: cannot unset: readonly function'],
+  ['readonly -f missing; printf %s "$?"', '1', 'readonly: missing: not a function'],
+  ['f(){ printf hello; }; readonly -f f; (f(){ printf changed; }; f); f', 'hellohello', 'f: readonly function'],
+  ['f(){ printf hello; }; (readonly -f f); f(){ printf changed; }; f', 'changed', ''],
+  ['f=variable; f(){ printf hello; }; readonly -f f; unset -v f; f', 'hello', ''],
+  ['f(){ printf hello; }; unset -f f; declare -F f; printf %s "$?"', '1', ''],
+  ['f(){ printf hello; }; readonly -fp f; readonly -f', 'f () \n{ \n    printf hello\n}\ndeclare -fr f\n', ''],
+] as const) test(`readonly functions: ${source}`, async () => {
+  const { shell, commands } = setup();
+  for (const command of basicCommands()) commands.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.exitCode, 0);
+    if (diagnostic) assert.ok(result.stderr.includes(diagnostic), result.stderr);
+    else assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 for (const [source, expected] of [
   ['declare a=hello; printf %s "$a"', 'hello'],
   ['declare -i a=1; a="2+3"; printf %s "$a"', '5'],

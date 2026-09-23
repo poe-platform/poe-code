@@ -465,6 +465,7 @@ export interface State {
   arg0?: string;
   profile?: "bash" | "sh";
   readonlyVariables?: Set<string>;
+  readonlyFunctions?: Set<string>;
   pathUnset?: boolean;
   status: number;
   substitutionStatus: number;
@@ -853,6 +854,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
     readonlyVariables: new Set(state.readonlyVariables),
+    readonlyFunctions: new Set(state.readonlyFunctions),
     variableAttributes: new Map(state.variableAttributes),
     getopts: cloneGetoptsBinding(state),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
@@ -3373,6 +3375,10 @@ export class Runtime {
     try {
       const execute = async (): Promise<number> => {
       if (command.kind === "function") {
+        if (state.readonlyFunctions?.has(command.name)) {
+          await this.diagnostic(io, `${command.name}: readonly function`);
+          return 1;
+        }
         if (state.profile === "sh" && (specialBuiltinNames.has(command.name) || state.extensions?.builtins.get(command.name)?.special)) {
           await this.diagnostic(io, `\`${command.name}': is a special builtin`);
           throw new Flow("exit", 2);
@@ -6062,6 +6068,7 @@ export class Runtime {
       const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true
         || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
       let indexedReadonly = false;
+      let functionReadonly = false;
       if (command === "declare") {
         while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
           const option = declarationArgs.shift()!;
@@ -6102,19 +6109,42 @@ export class Runtime {
         while (declarationArgs[0]?.startsWith("-")) {
           const option = declarationArgs.shift()!;
           if (option === "--") break;
-          if (!readonlySyntax) {
-            if (option !== "-p") { await writeDiagnostic(stderr, `readonly: ${option}: unsupported option\n`); return 2; }
-          } else {
-            if (option === "-") { declarationArgs.unshift(option); break; }
-            for (const flag of option.slice(1)) {
-              if (flag === "a") indexedReadonly = true;
-              else if (flag !== "p") {
-                await this.diagnostic(context, `readonly: -${flag}: invalid option`);
-                await writeText(stderr, "readonly: usage: readonly [-aAf] [name[=value] ...] or readonly -p\n");
-                return 2;
-              }
+          if (!readonlySyntax && [...option.slice(1)].some(flag => flag !== "f" && flag !== "p")) {
+            await writeDiagnostic(stderr, `readonly: ${option}: unsupported option\n`);
+            return 2;
+          }
+          if (option === "-") { declarationArgs.unshift(option); break; }
+          for (const flag of option.slice(1)) {
+            if (flag === "f") functionReadonly = true;
+            else if (flag === "p") continue;
+            else if (flag === "a" && readonlySyntax) indexedReadonly = true;
+            else {
+              await this.diagnostic(context, `readonly: -${flag}: invalid option`);
+              await writeText(stderr, "readonly: usage: readonly [-aAf] [name[=value] ...] or readonly -p\n");
+              return 2;
             }
           }
+        }
+        if (functionReadonly) {
+          let status = 0;
+          const names = declarationArgs.length ? declarationArgs : [...state.readonlyFunctions ?? []].sort();
+          for (const name of names) {
+            this.signal.throwIfAborted();
+            const body = state.functions.get(name);
+            if (!body) {
+              await this.diagnostic(context, `readonly: ${name}: not a function`);
+              status = 1;
+              continue;
+            }
+            if (!declarationArgs.length) {
+              await writeText(stdout, functionDisplay(name, body));
+              await writeText(stdout, `declare -fr ${name}\n`);
+            } else {
+              state.readonlyFunctions ??= new Set();
+              state.readonlyFunctions.add(name);
+            }
+          }
+          return status;
         }
       }
       const locals = command === "declare" && enabled.has("g") ? undefined : state.locals.at(-1);
@@ -6377,8 +6407,26 @@ export class Runtime {
     }
     if (command === "unset") {
       let status = 0;
-      for (let argument = 0; argument < args.length; argument++) {
+      let offset = 0;
+      let functions = false;
+      while (args[offset]?.startsWith("-")) {
+        const option = args[offset++]!;
+        if (option === "--") break;
+        for (const flag of option.slice(1)) {
+          if (flag === "f") functions = true;
+          else if (flag === "v") functions = false;
+          else { await this.diagnostic(context, `unset: -${flag}: invalid option`); return 2; }
+        }
+      }
+      for (let argument = offset; argument < args.length; argument++) {
         const name = args[argument]!;
+        if (functions) {
+          if (state.readonlyFunctions?.has(name)) {
+            await this.diagnostic(context, `unset: ${name}: cannot unset: readonly function`);
+            status = 1;
+          } else state.functions.delete(name);
+          continue;
+        }
         const selected = /^([a-zA-Z_][a-zA-Z_0-9]*)\[(.*)\]$/su.exec(name);
         if (selected) {
           const base = selected[1]!;

@@ -82,6 +82,8 @@ beginning with a dash.
 Each invocation starts with `umask 0022`; numeric and symbolic masks affect new
 files and default directory modes through the supplied filesystem. Host umask
 is unchanged and may further restrict real file modes; remote modes can be advisory.
+`readonly -f name` protects a function from redefinition and `unset -f`;
+`readonly -f` lists protected functions. `unset -v` removes variables independently.
 
 ### Command bundle
 

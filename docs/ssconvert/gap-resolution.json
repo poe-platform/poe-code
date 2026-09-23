@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:55:05.993387+00:00",
+  "recordedAt": "2026-09-23T11:15:28.013016+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -709,9 +709,10 @@
     {
       "id": "atl-last",
       "status": "open",
-      "currentFinding": "Actual standalone Linux --solve pumps sample datasource FIFO events:18owned bytes stock17/23 yield tag23 and dependent24,0600FIFO removed at native exit. PreexistingFIFO is not opened,stays unfilled and needs harness cleanup. Ordinary conversion delivered0bytes and remains unqualified for feed effects. Explicit portable session/transport/watchers/cleanup implementation and wider lifecycle/publication remain open.",
+      "currentFinding": "Explicit invocation-owned datasource capability now implements optional ATL_LAST,finite transport batches,partial records,tag/dependent updates and success/failure/falsey-cancel/late-acquisition cleanup. Eight reproduced memory failures repaired;13controls/22466package tests pass. All24fields/135nativeCSVbytes and per-operation lifecycle counters exact across five public surfaces. Deployed backend,wider native numeric/raw/dynamic/timing/lifecycle and publication remain open.",
       "proof": [
-        "docs/ssconvert/linux-datasource-live-native-capture.json"
+        "docs/ssconvert/linux-datasource-live-native-capture.json",
+        "docs/ssconvert/datasource-session-gap-proof.json"
       ],
       "delivery": {
         "localCommit": null,
@@ -1569,6 +1570,28 @@
     "preexistingNotWatched": true,
     "normalProducerWriteExecuted": false,
     "portableLifecycleQualified": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "portableDatasourceSessionQualification": {
+    "evidence": "docs/ssconvert/datasource-session-gap-proof.json",
+    "productCommit": "e76142f674a41da2917e0ecf239fafbb7ac1d116",
+    "nativeRun": 35850753532,
+    "unitControls": 13,
+    "packageTests": 22466,
+    "logicalFields": 24,
+    "stdoutBytes": 135,
+    "exactSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "worker"
+    ],
+    "invocationOwned": true,
+    "closedLateAcquisition": true,
+    "serializedPolls": true,
+    "nativeOsTransportQualified": false,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

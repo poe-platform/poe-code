@@ -157,6 +157,28 @@ clipboard, solver and analysis bindings supply trusted host implementations.
 Their presence does not establish full source parity. Matching time/random state
 is required for reproducible dependent operations.
 
+`EngineConfig.datasource` enables the sample `ATL_LAST(tag)` namespace through an
+explicit `DatasourceCapability`. Its async `open(context)` returns an owned
+`DatasourceTransport` or `undefined` when unavailable. A transport supplies
+`poll(signal): Promise<ByteSource>` for a finite batch already available and
+`close()` for cleanup. Each operation opens a fresh session; the engine closes a
+returned transport once on completion, failure or cancellation, including late
+acquisition. Register temporary acquisition cleanup through `context.own` before
+acquiring resources; transfer ownership to the returned transport on success.
+Ordinary conversion opens/closes without polling. Default successful solver
+processing polls once after model computation and before applying results;
+custom solvers explicitly call `context.datasource.poll(book)` at their event
+phase. Never return a stream that waits indefinitely for EOF.
+
+Records use `tag:number\n` bytes. Partial records carry across batches; updates
+recalculate watched formulas and their dependents. Tag, watcher, byte and work
+limits apply per session. An unavailable transport keeps `ATL_LAST` enabled but
+unfilled (`#N/A`); an absent capability leaves that optional function unregistered.
+Combining `datasource` with an explicit `runtimeFunctions.ATL_LAST` definition is
+rejected. SDK and safe-bash `ssconvertCommands` accept the same binding. Actual
+native feed/dependent/cleanup observations and remaining numeric/raw/timing
+qualification are recorded in the gap-resolution ledger.
+
 The exported `perlSampleFunctions` binding includes `PERL_ADDER`, `PERL_DATE`
 and `PERL_SED`. `PERL_DATE` returns `YYYYMMDD` using the injected clock and
 timezone. `PERL_SED("abc","b","d")` returns `adc`; replacement text stays

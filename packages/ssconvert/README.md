@@ -40,6 +40,14 @@ uses a native spreadsheet converter as a fallback. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.
+The optional `datasource` binding enables `ATL_LAST(tag)` through an owned host
+transport. Each operation opens a separate session; successful default solver
+processing polls one finite available byte batch and closes the transport after
+the operation. Custom solvers can process additional batches through
+`context.datasource.poll(book)`. Supply `tag:number\n` byte records; partial
+records carry across batches. Transport acquisition and OS timing belong to the
+host binding.
+
 Configurable text export (`Gnumeric_stf:stf_assistant`) remembers a text input's
 unique LF, CRLF or CR terminator unless an explicit `eol` option overrides it;
 plain CSV export continues to use LF.

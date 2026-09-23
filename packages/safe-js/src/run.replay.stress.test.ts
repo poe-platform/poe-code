@@ -63,20 +63,47 @@ async function captureRun(
 }
 
 async function finishReplay(execution: Promise<RunResult>): Promise<RunResult> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
+  let turn: ReturnType<typeof setImmediate> | undefined;
   try {
     return await Promise.race([
       execution,
       new Promise<never>((_, reject) => {
-        timeout = setTimeout(() => reject(new Error("Callback replay stalled")), 100);
+        // Bound runnable host turns rather than worker scheduling latency. The owning
+        // test deadline still bounds wall time if a host turn itself cannot run.
+        let remaining = 1000;
+        const check = () => {
+          if (--remaining === 0) reject(new Error("Callback replay stalled"));
+          else turn = setImmediate(check);
+        };
+        turn = setImmediate(check);
       })
     ]);
   } finally {
-    clearTimeout(timeout);
+    clearImmediate(turn);
   }
 }
 
 describe("checkpoint interaction stress", () => {
+  it("allows replay progress after a delayed host turn", async () => {
+    const result = await run("return 1;");
+    const execution = new Promise<RunResult>((resolve) => {
+      setImmediate(() => {
+        const started = performance.now();
+        while (performance.now() - started < 120) {
+          // Model a busy release worker without adding asynchronous replay turns.
+        }
+        setImmediate(() => resolve(result));
+      });
+    });
+    await expect(finishReplay(execution)).resolves.toMatchObject({ ok: true });
+  });
+
+  it("rejects replay that never makes progress", async () => {
+    await expect(finishReplay(new Promise(() => undefined))).rejects.toThrow(
+      "Callback replay stalled"
+    );
+  });
+
   it.each(["throw", "promise"] as const)(
     "rejects a replay state hook that returns %s without stalling",
     async (behavior) => {

@@ -33,7 +33,7 @@ function deferred() {
 async function format(input: ByteSource, overrides: Partial<CommandContext> = {}, profile?: FmtProfile) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
-  const result = await fmtCommand({ profile }).execute({
+  const result = await fmtCommand(profile === undefined ? {} : { profile }).execute({
     command: "fmt", args: [], cwd: "/", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
     stdin: input, signal: new AbortController().signal,
     stdout: { async write(bytes) { stdout.push(new Uint8Array(bytes)); } },

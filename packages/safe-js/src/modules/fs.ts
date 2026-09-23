@@ -505,6 +505,10 @@ function invoke(fs: FsImplementation, name: FsOperationName, args: readonly unkn
 // Wraps every operation so its path arguments resolve against root and are proven
 // to stay inside it. The wrapped operations keep node's own signatures and
 // results, so the bindings above are unaware a root is in play.
+// Share the queue across rooted modules using the same backend, including roots
+// that overlap. External host mutations still require backend-level confinement.
+const rootedFsOperations = new WeakMap<object, Promise<void>>();
+
 function makeRootedFs(
   fs: FsImplementation,
   root: string,
@@ -518,16 +522,30 @@ function makeRootedFs(
 
   const resolvedRoot = adapter === undefined ? root : resolve("/", root);
   const rooted: Record<string, FsHostOperation> = {};
+  const backend = adapter ?? fs;
 
   for (const name of Object.keys(FS_SYSCALLS) as FsOperationName[]) {
     rooted[name] = async (...args: readonly unknown[]) => {
       assertRootCanConfineOptions(name, args);
-
-      return invoke(
-        fs,
-        name,
-        await resolvePathArguments(fs, resolvedRoot, name, args, adapter, cwd, signal)
-      );
+      const previous = rootedFsOperations.get(backend);
+      let release!: () => void;
+      const pending = new Promise<void>((resolve) => { release = resolve; });
+      rootedFsOperations.set(backend, pending);
+      await previous;
+      try {
+        // Hold the queue through the backend promise, not just path admission:
+        // a relative symlink can change targets when another guest renames it.
+        return await invoke(
+          fs,
+          name,
+          await resolvePathArguments(fs, resolvedRoot, name, args, adapter, cwd, signal)
+        );
+      } finally {
+        release();
+        if (rootedFsOperations.get(backend) === pending) {
+          rootedFsOperations.delete(backend);
+        }
+      }
     };
   }
 

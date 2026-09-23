@@ -2,7 +2,18 @@ import type { CommandDefinition } from "../../contracts/command.js";
 import type { SafeJsCommandLimits, SafeJsRuntime } from "../safejs/types.js";
 
 export const NODE_PROFILE = "NP1-CJS-WRQ-L-SYNC-1" as const;
-export const nodeLimits = Object.freeze({ sourceBytes: 262144, contextBytes: 65536, pathBytes: 1024, metadataBytes: 8192, errorBytes: 1024, operations: 128, frames: 4096, wakes: 8192, operationBytes: 1048576, readBytes: 4194304, writeBytes: 4194304, outputBytes: 1048576, jsonBytes: 1048576, jsonEntries: 32, memoryBytes: 16777216, diagnosticReserve: 1048576, sabBytes: 197056, admissionMs: 5000, steps: 100000, callDepth: 128, oldGenerationMiB: 32, youngGenerationMiB: 8, codeMiB: 8, stackMiB: 4 });
+/** Resolved quotas: Infinity means no caller budget. sabBytes is transfer storage, not a quota. */
+export const nodeLimits = Object.freeze({ sourceBytes: Infinity, contextBytes: Infinity, pathBytes: Infinity, metadataBytes: Infinity, errorBytes: Infinity, operations: Infinity, frames: Infinity, wakes: Infinity, operationBytes: Infinity, readBytes: Infinity, writeBytes: Infinity, outputBytes: Infinity, jsonBytes: Infinity, jsonEntries: Infinity, memoryBytes: Infinity, diagnosticReserve: Infinity, sabBytes: 197056, admissionMs: Infinity, steps: Infinity, callDepth: Infinity, oldGenerationMiB: Infinity, youngGenerationMiB: Infinity, codeMiB: Infinity, stackMiB: Infinity });
+export type NodeLimits = typeof nodeLimits;
+export type NodeLimitOptions = Partial<Omit<NodeLimits, "sabBytes">>;
+
+export function resolveNodeLimits(options: NodeLimitOptions = {}): NodeLimits {
+  for (const [name, value] of Object.entries(options)) {
+    if (name === "sabBytes" || !Object.hasOwn(nodeLimits, name)) throw new TypeError(`Unknown Node limit: ${name}`);
+    if (!Number.isSafeInteger(value) || value < 0 || ["admissionMs", "oldGenerationMiB", "youngGenerationMiB", "codeMiB", "stackMiB"].includes(name) && value < 1) throw new RangeError(`Invalid Node limit: ${name}`);
+  }
+  return Object.freeze({ ...nodeLimits, ...options });
+}
 
 export interface NodeGrants {
   readonly sourceRead?: boolean;
@@ -24,7 +35,7 @@ export interface NodeSourceRequest {
   readonly argv: readonly string[];
   readonly env: Readonly<Record<string, string>>;
   readonly grants: Readonly<Required<NodeGrants>>;
-  readonly limits: typeof nodeLimits;
+  readonly limits: Readonly<NodeLimitOptions>;
 }
 export type NodeOperation = "authorizeModule" | "authorizeJson" | "readText" | "writeText" | "writeOutput" | "path";
 export interface NodeHostRequest {
@@ -92,7 +103,7 @@ export interface NodeProviderCommandOptions {
   readonly provider: NodeRuntimeProvider;
   readonly grants?: NodeGrants;
   readonly runtime?: never;
-  readonly limits?: never;
+  readonly limits?: NodeLimitOptions;
 }
 export interface NodeSafeJsCommandOptions<Budget = unknown> {
   readonly runtime: SafeJsRuntime<Budget>;

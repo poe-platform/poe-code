@@ -1,4 +1,4 @@
-import { NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
+import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits } from "./types.js";
 import { text } from "./values.js";
 
 export type NodeToken = { value: string; kind: "word" | "string" | "number" | "operator" | "end"; line: boolean };
@@ -96,7 +96,7 @@ class Parser {
   #functions = 0;
   #async = false;
   #loops = 0;
-  constructor(readonly tokens: readonly Token[]) {}
+  constructor(readonly tokens: readonly Token[], readonly limits: NodeLimits) {}
   current(): Token { return this.tokens[this.#index]!; }
   at(value: string): boolean { return this.current().value === value && this.current().kind !== "string"; }
   take(value: string): boolean { if (!this.at(value)) return false; this.#index += 1; return true; }
@@ -104,7 +104,7 @@ class Parser {
   word(): string { const token = this.current(); if (token.kind !== "word" || words.has(token.value)) refusal(); this.#index += 1; return token.value; }
   nested<Value>(body: () => Value): Value {
     this.#depth += 1;
-    if (this.#depth > nodeLimits.callDepth) throw new NodeProfileError("source nesting");
+    if (this.#depth > this.limits.callDepth) throw new NodeProfileError("source nesting");
     try { return body(); } finally { this.#depth -= 1; }
   }
   endStatement(): void { if (!this.take(";") && !this.at("}") && this.current().kind !== "end" && !this.current().line) refusal(); }
@@ -221,7 +221,7 @@ class Parser {
     if (this.current().kind !== "end") refusal();
   }
 }
-export function admitSource(source: string, print: boolean): void {
-  text(source, nodeLimits.sourceBytes, "source bytes");
-  new Parser(tokenizeNodeSource(source)).parse(print);
+export function admitSource(source: string, print: boolean, limits: NodeLimits = nodeLimits): void {
+  text(source, limits.sourceBytes, "source bytes");
+  new Parser(tokenizeNodeSource(source), limits).parse(print);
 }

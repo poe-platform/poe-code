@@ -6,12 +6,12 @@ export type SafeJsHostValue = string | number | boolean | null | undefined | Saf
 export type SafeJsModule = Record<string, SafeJsHostValue>;
 
 export interface SafeJsBudgetOptions {
-  readonly maxSteps: number;
-  readonly deadline: number;
-  readonly maxCallDepth: number;
-  readonly stringLength: number;
-  readonly arrayLength: number;
-  readonly dataSize: number;
+  readonly maxSteps?: number;
+  readonly deadline?: number;
+  readonly maxCallDepth?: number;
+  readonly stringLength?: number;
+  readonly arrayLength?: number;
+  readonly dataSize?: number;
 }
 
 export interface SafeJsRunOptions<Budget> {

@@ -6,7 +6,7 @@ import { record, withSignal } from "../../integrations/safejs/values.js";
 import { pathOf, UsageError } from "../internal.js";
 import { GuestInput, GuestOutput } from "./io.js";
 import { commandLimits, type Invocation } from "./options.js";
-import { SafeJsCommandLimitError, type SafeJsCommandsOptions, type SafeJsModule, type SafeJsRuntime } from "./types.js";
+import { SafeJsCommandLimitError, type SafeJsBudgetOptions, type SafeJsCommandsOptions, type SafeJsModule, type SafeJsRuntime } from "./types.js";
 
 export interface SafeJsCommandDialect {
   readonly name: string;
@@ -63,12 +63,22 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
   validateRuntime(runtime);
   return [{ name: dialect.name, description: dialect.description, async execute(context) {
     const deadline = Date.now() + limits.timeoutMs;
+    const schedule = (callback: () => void, end: number): (() => void) => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const tick = (): void => {
+        const remaining = end - Date.now();
+        if (remaining <= 0) callback();
+        else timer = setTimeout(tick, Math.min(2_147_483_647, remaining));
+      };
+      if (Number.isFinite(end)) tick();
+      return () => { if (timer !== undefined) clearTimeout(timer); };
+    };
     const diagnose = async (message: string): Promise<void> => {
       const diagnostic = new AbortController();
-      const timer = setTimeout(() => diagnostic.abort(), Math.max(1, Math.min(limits.timeoutMs, deadline - Date.now())));
-      try { await writeDiagnostic(context.stderr, `${dialect.name}: ${message.slice(0, 4096)}\n`, AbortSignal.any([context.signal, diagnostic.signal])); }
+      const cancel = schedule(() => diagnostic.abort(), Math.max(Date.now() + 1, deadline));
+      try { await writeDiagnostic(context.stderr, `${dialect.name}: ${message}\n`, AbortSignal.any([context.signal, diagnostic.signal])); }
       catch (error) { context.signal.throwIfAborted(); if (!diagnostic.signal.aborted) throw error; }
-      finally { clearTimeout(timer); }
+      finally { cancel(); }
     };
     let parsed;
     try { parsed = dialect.invocation(context.args); }
@@ -91,7 +101,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         queueMicrotask(() => controller.abort(error));
       }
     };
-    const timeout = setTimeout(() => fail(new SafeJsCommandLimitError("timeoutMs")), limits.timeoutMs);
+    const cancelTimeout = schedule(() => fail(new SafeJsCommandLimitError("timeoutMs")), deadline);
     let input: GuestInput | undefined;
     const output = new GuestOutput(context.stdout, context.stderr, limits.maxOutputBytes, signal, fail);
     let exitCode = 0;
@@ -107,7 +117,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
           await context.fs.capabilitiesFor?.(filename, { signal }) ?? context.fs.capabilities);
         const bytes = fromStdin ? context.stdin : context.fs.readStream && capabilities?.streamingRead !== false
           ? context.fs.readStream(filename, { signal, chunkSize: 65536 })
-          : toByteSource(await withSignal(signal, () => context.fs.readFile(filename, { signal, maxBytes: limits.maxSourceBytes })));
+          : toByteSource(await withSignal(signal, () => context.fs.readFile(filename, { signal, ...Number.isFinite(limits.maxSourceBytes) ? { maxBytes: limits.maxSourceBytes } : {} })));
         const reader = new GuestInput(bytes, limits.maxSourceBytes, signal, fail, "maxSourceBytes");
         try { source = await reader.readText(); } finally { await reader.close(); }
       } else if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new SafeJsCommandLimitError("maxSourceBytes");
@@ -147,8 +157,12 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
             exitCode = value;
           }, "read-side-effect"),
         };
-        const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
-          maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
+        const budgetOptions: { -readonly [Key in keyof SafeJsBudgetOptions]: SafeJsBudgetOptions[Key] } = {};
+        for (const name of ["maxSteps", "maxCallDepth", "stringLength", "arrayLength", "dataSize"] as const) {
+          if (Number.isFinite(limits[name])) budgetOptions[name] = limits[name];
+        }
+        if (Number.isFinite(deadline)) budgetOptions.deadline = deadline;
+        const budget = runtime.createBudget(budgetOptions);
         const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
         const prepared = await dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail, sourceBytes,
           async readSource(path, maxBytes = limits.maxSourceBytes) {
@@ -156,7 +170,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
               await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities);
             const reader = new GuestInput(context.fs.readStream && capabilities?.streamingRead !== false
               ? context.fs.readStream(path, { signal, chunkSize: 65536 })
-              : toByteSource(await withSignal(signal, () => context.fs.readFile(path, { signal, maxBytes }))),
+              : toByteSource(await withSignal(signal, () => context.fs.readFile(path, { signal, ...Number.isFinite(maxBytes) ? { maxBytes } : {} }))),
               maxBytes, signal, fail, "maxSourceBytes");
             try { return await reader.readText(); } finally { await reader.close(); }
           },
@@ -181,7 +195,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     finally {
       try { await output.drain(); } catch (error) { thrown = hasFailure ? failure : error; failed = true; }
       controller.abort();
-      clearTimeout(timeout);
+      cancelTimeout();
       await input?.close().catch(() => {});
     }
     context.signal.throwIfAborted();

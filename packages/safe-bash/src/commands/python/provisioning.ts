@@ -26,6 +26,9 @@ export interface PythonPackageOptions {
  /** Canonical filesystem directory, scoped to this package environment. */
  readonly cacheDirectory?: string;
  readonly maxDownloadBytes?: number;
+ readonly maxManifestBytes?: number;
+ readonly maxMetadataBytes?: number;
+ readonly maxRequirementBytes?: number;
  /** Byte budget for the built-in memory cache; external cache retention belongs to its owner. */
  readonly maxCacheBytes?: number;
  readonly onProgress?: (event: PythonPackageProgress) => void;
@@ -84,11 +87,17 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  if (options.scope !== undefined && !options.manifestStore) throw new TypeError('Python scope requires a manifestStore');
  const manifestKey = options.manifestStore ? runtimeKey+'-environment-'+digest(encoder.encode(JSON.stringify(options.scope))) : runtimeKey+'-environment';
  if (options.profile !== undefined && options.profile !== 'documents') throw new TypeError('Unknown Python package profile');
- const maxBytes = options.maxDownloadBytes ?? 64 * 1024 * 1024;
- if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new RangeError('maxDownloadBytes must be a positive integer');
- const maxCacheBytes = options.maxCacheBytes ?? 128 * 1024 * 1024;
- if (!Number.isSafeInteger(maxCacheBytes) || maxCacheBytes < 1) throw new RangeError('maxCacheBytes must be a positive integer');
- const defaultCache = createPythonPackageCache({maxBytes:maxCacheBytes});
+ const maxBytes = options.maxDownloadBytes ?? Infinity;
+ if (options.maxDownloadBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new RangeError('maxDownloadBytes must be a positive integer');
+ const maxManifestBytes = options.maxManifestBytes ?? Infinity;
+ const maxMetadataBytes = options.maxMetadataBytes ?? Infinity;
+ for (const name of ['maxManifestBytes', 'maxMetadataBytes', 'maxRequirementBytes'] as const) {
+  const value = options[name];
+  if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
+ }
+ const maxCacheBytes = options.maxCacheBytes;
+ if (maxCacheBytes !== undefined && (!Number.isSafeInteger(maxCacheBytes) || maxCacheBytes < 1)) throw new RangeError('maxCacheBytes must be a positive integer');
+ const defaultCache = createPythonPackageCache(maxCacheBytes === undefined ? {} : {maxBytes:maxCacheBytes});
  const sessions = new Map<string,Session>();
  const controller = new AbortController();
  const pending = new Set<Promise<unknown>>();
@@ -111,7 +120,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   context.signal.throwIfAborted();
   const directory = options.cacheDirectory === undefined ? undefined : resolve(context.cwd,options.cacheDirectory,runtimeKey);
   const cache = options.cache ?? (directory === undefined ? defaultCache : {
-   async get(key: string) { try { return await context.fs.readFile(resolve(directory,key),{signal:context.signal,maxBytes}); } catch(error) { if(missing(error))return undefined;throw error; } },
+   async get(key: string) { try { return await context.fs.readFile(resolve(directory,key),{signal:context.signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(directory,{recursive:true,signal:context.signal});await context.fs.writeFile(resolve(directory,key),bytes,{signal:context.signal}); },
   });
   const manifestCache = options.cacheDirectory === undefined ? defaultCache : cache;
@@ -125,7 +134,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const manifestRevision = snapshot?.revision;
   const stored = options.manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   context.signal.throwIfAborted();
-  if(stored && stored.length>maxBytes)throw failure('Python package manifest exceeds maxDownloadBytes');
+  if(stored && stored.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
   const manifest = stored === undefined ? '' : decoder.decode(stored);
   let previous: unknown;
   try { previous = stored === undefined ? [] : JSON.parse(manifest); } catch { throw failure('Invalid Python package environment manifest'); }
@@ -134,7 +143,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   for (const file of [...options.requirementFiles??[],...context.requirementFiles??[]]) {
    const path = resolve(context.cwd,file);
    let source: string;
-   try { source = decoder.decode(await context.fs.readFile(path,{signal:context.signal,maxBytes:1024*1024})); } catch(error) { context.signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
+   try { source = decoder.decode(await context.fs.readFile(path,{signal:context.signal,...options.maxRequirementBytes === undefined ? {} : {maxBytes:options.maxRequirementBytes}})); } catch(error) { context.signal.throwIfAborted();throw failure(`Cannot read Python requirements ${path}: ${error instanceof Error ? error.message : String(error)}`); }
    for (const line of source.split('\n')) {
     // Only whitespace-delimited hashes begin comments; URL integrity fragments survive.
     const comment=line.split('').findIndex((character,index)=>character==='#' && (index===0 || line[index-1]!.trim()===''));
@@ -162,7 +171,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    // Pins supplement the original sources (including canonical local wheels).
    const merged=[...new Set([...session.requirements,...pinned as string[]])];
    const manifestBytes=encoder.encode(JSON.stringify(merged));
-   if(manifestBytes.length>maxBytes)throw failure('Python package manifest exceeds maxDownloadBytes');
+   if(manifestBytes.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
    const commit = committing.then(async()=>{
     checkSession(session);
     if(options.manifestStore) {
@@ -173,7 +182,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     } else {
      const current = await session.manifestCache.get(manifestKey);
      checkSession(session);
-     if(current && current.length>maxBytes)throw failure('Python package manifest exceeds maxDownloadBytes');
+     if(current && current.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
      if ((current===undefined?'':decoder.decode(current))!==session.manifest) throw new PythonPackageConflictError();
      await session.manifestCache.set(manifestKey,manifestBytes);
     }
@@ -203,7 +212,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   checkSession(session);
   let bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   if(metadata){
-   if(metadata.length>maxBytes)throw failure('Python package cache metadata exceeds maxDownloadBytes');
+   if(metadata.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    let record: {digest:string,headers:readonly(readonly[string,string])[]};
    try { record=JSON.parse(decoder.decode(metadata)) as typeof record; } catch { throw failure(`Invalid package cache metadata: ${url}`); }
    if(typeof record!=='object'||record===null||typeof record.digest!=='string'||record.digest.length!==64||Array.from(record.digest).some(char=>!'0123456789abcdef'.includes(char))||!Array.isArray(record.headers)||record.headers.some(pair=>!Array.isArray(pair)||pair.length!==2||pair.some(value=>typeof value!=='string')))throw failure(`Invalid package cache metadata: ${url}`);
@@ -219,7 +228,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    if(canonicalWheel){
     const path = new URL(url);
     if(path.host && path.host!=='localhost')throw failure('Local wheels must use the canonical filesystem');
-    try { bytes=await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,maxBytes}); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
+    try { bytes=await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,...Number.isFinite(maxBytes)?{maxBytes}:{} }); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
    }else{
     if(session.offline)throw failure(`Offline package cache miss: ${url}`);
     if(!options.transport||!options.authorize)throw failure('Python package download requires configured transport and authorization');
@@ -257,7 +266,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    if(expected&&digest(bytes)!==expected)throw failure(`Package integrity mismatch: ${url}`);
    const hash=digest(bytes);
    const metadataBytes=encoder.encode(JSON.stringify({digest:hash,headers}));
-   if(metadataBytes.length>maxBytes)throw failure('Python package cache metadata exceeds maxDownloadBytes');
+   if(metadataBytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
    await session.cache.set(runtimeKey+'-sha256-'+hash,Uint8Array.from(bytes));
    checkSession(session);
    if(!canonicalWheel)await session.cache.set(address,metadataBytes);

@@ -3,7 +3,7 @@ import { PythonFailure } from './diagnostics.js';
 
 export interface PythonExecutorPoolOptions {
   readonly createExecutor: () => PythonAsyncExecutor;
-  readonly maxConcurrentExecutors: number;
+  readonly maxConcurrentExecutors?: number;
 }
 
 export interface PythonExecutorPool {
@@ -15,8 +15,8 @@ export interface PythonExecutorPool {
 export function createPythonExecutorPool(options: PythonExecutorPoolOptions): PythonExecutorPool {
   if (typeof options?.createExecutor !== 'function') throw new TypeError('Python executor pool requires a factory');
   const factory = options.createExecutor;
-  const capacity = options.maxConcurrentExecutors;
-  if (!Number.isSafeInteger(capacity) || capacity < 1) throw new RangeError('Invalid Python executor pool capacity');
+  const capacity = options.maxConcurrentExecutors ?? Infinity;
+  if (options.maxConcurrentExecutors !== undefined && (!Number.isSafeInteger(capacity) || capacity < 1)) throw new RangeError('Invalid Python executor pool capacity');
   const entries = new Set<{ retire(): Promise<void> }>();
   let closed = false;
   let disposal: Promise<void> | undefined;

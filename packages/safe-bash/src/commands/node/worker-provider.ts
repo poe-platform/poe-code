@@ -5,11 +5,12 @@ import { readNodeHostRequest } from "./host.js";
 import { completion } from "./lifecycle.js";
 import { observeNodeFailure } from "./diagnostics.js";
 import { integer, record, text } from "./values.js";
-import { NODE_PROFILE, NodeProfileError, nodeLimits, type NodeCompletion, type NodeHostRequest, type NodeHostResponse, type NodeHostServices, type NodeReason, type NodeRetirement, type NodeRuntimeProvider, type NodeSession, type NodeSourceRequest } from "./types.js";
+import { NODE_PROFILE, NodeProfileError, nodeLimits, resolveNodeLimits, type NodeLimits, type NodeCompletion, type NodeHostRequest, type NodeHostResponse, type NodeHostServices, type NodeReason, type NodeRetirement, type NodeRuntimeProvider, type NodeSession, type NodeSourceRequest } from "./types.js";
 import type { NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
 
 const empty = new Uint8Array(0);
 class WorkerSession {
+  readonly limits: NodeLimits;
   #worker: Worker | undefined;
   #channel: NodeChannel | undefined;
   #started = false;
@@ -31,6 +32,9 @@ class WorkerSession {
   #nativeBytes = 0;
   #baseRelease: (() => void) | undefined;
   #credits: (() => void)[] = [];
+  #metadata: { bytes: Uint8Array; offset: number; sequence: number } | undefined;
+  #responseMetadata: Uint8Array | undefined;
+  #metadataCopied = 0;
   #incoming: { request: NodeHostRequest; total: number; offset: number; bytes: Uint8Array } | undefined;
   #result: NodeHostResponse | undefined;
   #outgoing: Uint8Array | undefined;
@@ -40,7 +44,7 @@ class WorkerSession {
   #frame = 0;
   #entries = 0;
   #attempts = 0;
-  constructor(readonly request: NodeSourceRequest, readonly services: NodeHostServices, readonly entry: string, readonly identity: string, readonly observer: NodeWorkerProviderOptions["observe"]) {}
+  constructor(readonly request: NodeSourceRequest, readonly services: NodeHostServices, readonly entry: string, readonly identity: string, readonly observer: NodeWorkerProviderOptions["observe"]) { this.limits = resolveNodeLimits(request.limits); }
   #event(kind: NodeWorkerEvent["kind"], sequence: number | null = null, exitCode: number | null = null): Promise<void> {
     if (!this.observer) return Promise.resolve();
     const event = Object.freeze({ kind, sequence, exitCode });
@@ -54,7 +58,7 @@ class WorkerSession {
     this.services.fail(this.#escaping);
     this.cancel(this.#escaping);
   };
-  #protocolFailure = (reason: unknown): void => { this.#resolve?.({ kind: "profileFailure", observation: observeNodeFailure(reason) }); this.services.stopProfile({ present: true, value: reason }); this.cancel({ present: true, value: reason }); };
+  #protocolFailure = (reason: unknown): void => { this.#resolve?.({ kind: "profileFailure", observation: observeNodeFailure(reason, this.limits) }); this.services.stopProfile({ present: true, value: reason }); this.cancel({ present: true, value: reason }); };
   #abort = (): void => this.cancel({ present: true, value: this.services.signal.reason });
   #drain(stream: NonNullable<Worker["stdout"]>): void {
     let finish!: () => void;
@@ -70,7 +74,7 @@ class WorkerSession {
     stream.on("data", (value: unknown) => {
       if (types.isProxy(value) || !types.isUint8Array(value)) { this.#protocolFailure(new NodeProfileError("native diagnostic chunk")); return; }
       this.#nativeBytes += value.byteLength;
-      if (this.#nativeBytes > nodeLimits.diagnosticReserve) this.#protocolFailure(new NodeProfileError("native diagnostic bytes"));
+      if (this.#nativeBytes > this.limits.diagnosticReserve) this.#protocolFailure(new NodeProfileError("native diagnostic bytes"));
     });
   }
   #finish(result: NodeCompletion): void {
@@ -80,15 +84,26 @@ class WorkerSession {
     );
   }
   #reply(input: NodeFrame, phase: number, total = 0, offset = 0, bytes: Uint8Array = empty): void { publish(this.#channel!, 2, { frame: input.frame, sequence: input.sequence, phase, total, offset, bytes }); }
-  #reserve(label: string, bytes: number): void { if (bytes > nodeLimits.memoryBytes) throw new NodeProfileError("transport reservation"); this.#credits.push(this.services.reserve(label + "-" + this.#sequence, bytes)); }
+  #reserve(label: string, bytes: number): void { if (bytes > this.limits.memoryBytes) throw new NodeProfileError("transport reservation"); this.#credits.push(this.services.reserve(label + "-" + this.#sequence, bytes)); }
   async #request(input: NodeFrame): Promise<void> {
     if (input.phase === phases.metadata) {
-      if (this.#incoming || this.#result || this.#sequence !== this.#delivered || input.sequence !== this.#sequence + 1 || input.offset !== 0 || input.total !== 0) throw new NodeProfileError("request frame order");
-      const data = record(decodeMetadata(input.bytes), ["sequence", "op", "authority", "path", "flag", "moduleKey", "hasText", "total"]);
+      if (this.#incoming || this.#result || this.#sequence !== this.#delivered || input.sequence !== this.#sequence + 1) throw new NodeProfileError("request frame order");
+      if (!this.#metadata) {
+        if (input.offset !== 0 || input.total === 0) throw new NodeProfileError("initial metadata frame");
+        integer(input.total, this.limits.metadataBytes, "metadata total");
+        this.#reserve("metadata", input.total);
+        this.#metadata = { bytes: new Uint8Array(input.total), offset: 0, sequence: input.sequence };
+      }
+      const incomingMetadata = this.#metadata;
+      if (input.sequence !== incomingMetadata.sequence || input.total !== incomingMetadata.bytes.length || input.offset !== incomingMetadata.offset || input.bytes.length !== Math.min(65536, input.total - input.offset) || input.bytes.length === 0) throw new NodeProfileError("metadata frame order");
+      incomingMetadata.bytes.set(input.bytes, input.offset); incomingMetadata.offset += input.bytes.length;
+      if (incomingMetadata.offset < input.total) { this.#reply(input, phases.metadataCredit, input.total, incomingMetadata.offset); return; }
+      const data = record(decodeMetadata(incomingMetadata.bytes, this.limits), ["sequence", "op", "authority", "path", "flag", "moduleKey", "hasText", "total"]);
+      this.#metadata = undefined;
       if (typeof data.hasText !== "boolean") throw new TypeError("wire body presence");
-      const total = integer(data.total, nodeLimits.operationBytes, "upload bytes");
+      const total = integer(data.total, this.limits.operationBytes, "upload bytes");
       if (!data.hasText && total !== 0) throw new TypeError("null body bytes");
-      const request = readNodeHostRequest({ sequence: data.sequence, op: data.op, authority: data.authority, path: data.path, flag: data.flag, moduleKey: data.moduleKey, text: data.hasText ? "" : null });
+      const request = readNodeHostRequest({ sequence: data.sequence, op: data.op, authority: data.authority, path: data.path, flag: data.flag, moduleKey: data.moduleKey, text: data.hasText ? "" : null }, this.limits);
       if (request.sequence !== input.sequence) throw new NodeProfileError("wire sequence");
       this.#sequence = input.sequence;
       this.#reserve("upload", 65536 + total * 16);
@@ -104,8 +119,17 @@ class WorkerSession {
       if (incoming.offset < incoming.total) { this.#reply(input, phases.uploadCredit, incoming.total, incoming.offset); return; }
       await this.#perform(input); return;
     }
+    if (input.phase === phases.resultCredit) {
+      const metadata = this.#responseMetadata;
+      if (!metadata || input.total !== metadata.length || input.offset !== this.#metadataCopied || input.bytes.length !== 0 || input.offset >= metadata.length) throw new NodeProfileError("result metadata credit");
+      const end = Math.min(input.offset + 65536, metadata.length);
+      this.#metadataCopied = end;
+      this.#reply(input, phases.result, metadata.length, input.offset, metadata.subarray(input.offset, end));
+      if (end === metadata.length) this.#responseMetadata = undefined;
+      return;
+    }
     if (input.phase === phases.dataCredit) {
-      if (!this.#outgoing || !this.#result || input.bytes.length !== 0 || input.total !== this.#outgoing.length || input.offset !== this.#copied || this.#copied >= this.#outgoing.length) throw new NodeProfileError("result credit");
+      if (this.#responseMetadata || !this.#outgoing || !this.#result || input.bytes.length !== 0 || input.total !== this.#outgoing.length || input.offset !== this.#copied || this.#copied >= this.#outgoing.length) throw new NodeProfileError("result credit");
       const offset = this.#copied; const end = Math.min(offset + 65536, this.#outgoing.length); this.#copied = end;
       this.#reply(input, phases.data, this.#outgoing.length, offset, this.#outgoing.subarray(offset, end)); return;
     }
@@ -127,8 +151,11 @@ class WorkerSession {
     this.#reserve("response", 65536 + total * 16);
     this.#outgoing = this.#result.text === null ? empty : new TextEncoder().encode(this.#result.text);
     this.#copied = 0;
-    const metadata = encodeMetadata({ sequence: this.#sequence, kind: this.#result.kind, error: this.#result.error, cacheKey: this.#result.cacheKey, total });
-    this.#reply(input, phases.result, total, 0, metadata);
+    const metadata = encodeMetadata({ sequence: this.#sequence, kind: this.#result.kind, error: this.#result.error, cacheKey: this.#result.cacheKey, total }, this.limits);
+    this.#reserve("response-metadata", metadata.length);
+    this.#metadataCopied = Math.min(65536, metadata.length);
+    this.#responseMetadata = metadata.length > 65536 ? metadata : undefined;
+    this.#reply(input, phases.result, metadata.length, 0, metadata.subarray(0, 65536));
   }
   async #message(value: unknown): Promise<void> {
     const item = record(value, ["kind"], ["frame", "sequence", "completion", "observation"]);
@@ -139,11 +166,11 @@ class WorkerSession {
     }
     if (item.kind === "observation") {
       if (Object.keys(item).length !== 2) throw new TypeError("observation message shape");
-      completion({ kind: "guestFailure", observation: item.observation }); return;
+      completion({ kind: "guestFailure", observation: item.observation }, this.limits); return;
     }
     if (item.kind === "frame") {
       if (Object.keys(item).length !== 3 || this.#closed) throw new NodeProfileError("closed or malformed doorbell");
-      const frame = integer(item.frame, nodeLimits.frames, "doorbell frame"); const sequence = integer(item.sequence, nodeLimits.operations, "doorbell sequence");
+      const frame = integer(item.frame, this.limits.frames, "doorbell frame"); const sequence = integer(item.sequence, this.limits.operations, "doorbell sequence");
       if (frame !== this.#frame + 1) throw new NodeProfileError("doorbell ordering");
       this.#frame = frame; await this.#request(acquire(this.#channel!, 1, frame, sequence)); return;
     }
@@ -159,7 +186,7 @@ class WorkerSession {
     }
     if (item.kind === "terminal") {
       if (Object.keys(item).length !== 2 || this.#terminal) throw new NodeProfileError("duplicate terminal");
-      const result = completion(item.completion);
+      const result = completion(item.completion, this.limits);
       if (result.kind === "entryReturned" && (this.#entries !== 1 || this.#incoming || this.#result || this.#sequence !== this.#delivered)) throw new NodeProfileError("terminal contradicts pending work/entry");
       this.#terminal = result; this.services.cutoff(); this.#closed = true; this.#event("terminal");
       if (result.kind === "profileFailure") this.services.stopProfile({ present: true, value: new NodeProfileError("Worker-selected profile stop") });
@@ -174,11 +201,11 @@ class WorkerSession {
     try {
       this.services.signal.throwIfAborted();
       const contextBytes = Buffer.byteLength(JSON.stringify({ cwd: this.request.cwd, filename: this.request.filename, argv: this.request.argv, env: this.request.env }));
-      this.#baseRelease = this.services.reserve("worker-static", nodeLimits.sabBytes + 65536 + 2 * (Buffer.byteLength(this.request.program) + Buffer.byteLength(this.request.source) + contextBytes));
-      const sab = new SharedArrayBuffer(nodeLimits.sabBytes); this.#channel = channel(sab);
+      this.#baseRelease = this.services.reserve("worker-static", this.limits.sabBytes + 65536 + 2 * (Buffer.byteLength(this.request.program) + Buffer.byteLength(this.request.source) + contextBytes));
+      const sab = new SharedArrayBuffer(this.limits.sabBytes); this.#channel = channel(sab, this.limits);
       this.#exited = new Promise<void>(resolve => { this.#exit = resolve; });
       this.#acquisitionAttempted = true;
-      try { this.#worker = new Worker(new URL("./worker-main.js", import.meta.url), { workerData: { request: this.request, entry: this.entry, identity: this.identity, sab }, env: {}, argv: [], stdout: true, stderr: true, resourceLimits: { maxOldGenerationSizeMb: nodeLimits.oldGenerationMiB, maxYoungGenerationSizeMb: nodeLimits.youngGenerationMiB, codeRangeSizeMb: nodeLimits.codeMiB, stackSizeMb: nodeLimits.stackMiB } }); }
+      try { this.#worker = new Worker(new URL("./worker-main.js", import.meta.url), { workerData: { request: this.request, entry: this.entry, identity: this.identity, sab }, env: {}, argv: [], stdout: true, stderr: true, resourceLimits: Object.fromEntries(Object.entries({ maxOldGenerationSizeMb: this.limits.oldGenerationMiB, maxYoungGenerationSizeMb: this.limits.youngGenerationMiB, codeRangeSizeMb: this.limits.codeMiB, stackSizeMb: this.limits.stackMiB }).filter(([, value]) => Number.isFinite(value))) }); }
       catch (error) { this.#failure(error); return result; }
       this.#worker.once("error", this.#failure);
       this.#worker.once("exit", code => { this.#exitCode = code; this.#exit(); try { this.#event("workerExit", null, code); } catch (error) { this.#failure(error); } void this.#chain.then(() => { if (!this.#terminal && !this.#primary) this.#failure(new NodeProfileError("Worker exited without terminal")); }); });
@@ -217,7 +244,7 @@ class WorkerSession {
       if (this.#acquisitionAttempted && this.#exitCode === undefined) throw new NodeProfileError("Worker acquisition/exit unconfirmed");
       if (this.#cleanup) throw this.#cleanup.value;
       this.services.signal.removeEventListener("abort", this.#abort);
-      this.#incoming = undefined; this.#result = undefined; this.#outgoing = undefined; this.#channel = undefined; this.#worker = undefined;
+      this.#metadata = undefined; this.#responseMetadata = undefined; this.#incoming = undefined; this.#result = undefined; this.#outgoing = undefined; this.#channel = undefined; this.#worker = undefined;
       this.#nativeJobs = [];
       for (const release of this.#credits.splice(0)) release(); this.#baseRelease?.(); this.#baseRelease = undefined;
       const retirement: NodeRetirement = this.#exitCode === undefined ? { acquisition: "none", exitCode: null } : { acquisition: "exited", exitCode: this.#exitCode };

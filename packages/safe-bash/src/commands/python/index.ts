@@ -39,6 +39,7 @@ export interface PythonCommandsOptions {
   readonly runtimeMount?: string;
   readonly maxTransferBytes?: number;
   readonly maxOpenFiles?: number;
+  readonly maxDirectoryEntries?: number;
   /** Fail immediately at capacity; queued pipeline stages can deadlock. Shared by both aliases. */
   readonly maxConcurrentWorkers?: number;
   /** Largest upstream stdin fragment retained by the bridge, independent of transfer size. */
@@ -73,13 +74,13 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? 65536;
-  const maxOpenFiles = options.maxOpenFiles ?? 256;
-  const maxConcurrentWorkers = options.maxConcurrentWorkers ?? 4;
-  const maxInputChunkBytes = options.maxInputChunkBytes ?? 1048576;
-  if (!Number.isSafeInteger(maxConcurrentWorkers) || maxConcurrentWorkers < 1 || maxConcurrentWorkers > 64) throw new RangeError('Invalid Python worker concurrency limit');
-  if (!Number.isSafeInteger(maxInputChunkBytes) || maxInputChunkBytes < 1 || maxInputChunkBytes > 16777216) throw new RangeError('Invalid Python input chunk limit');
+  const maxOpenFiles = options.maxOpenFiles;
+  const maxConcurrentWorkers = options.maxConcurrentWorkers ?? Infinity;
+  const maxInputChunkBytes = options.maxInputChunkBytes ?? Infinity;
+  if (options.maxConcurrentWorkers !== undefined && (!Number.isSafeInteger(maxConcurrentWorkers) || maxConcurrentWorkers < 1)) throw new RangeError('Invalid Python worker concurrency limit');
+  if (options.maxInputChunkBytes !== undefined && (!Number.isSafeInteger(maxInputChunkBytes) || maxInputChunkBytes < 1)) throw new RangeError('Invalid Python input chunk limit');
   let activeWorkers = 0;
-  for (const size of [maxTransferBytes, maxOpenFiles]) if (!Number.isSafeInteger(size) || size < 1 || size > 1048576) throw new RangeError('Invalid Python resource limit');
+  for (const size of [maxTransferBytes, maxOpenFiles, options.maxDirectoryEntries]) if (size !== undefined && (!Number.isSafeInteger(size) || size < 1)) throw new RangeError('Invalid Python resource limit');
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
@@ -109,7 +110,8 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
     // The service is the single registered owner of descriptors and late acquisition.
     const fileContext = { ...context, descriptorCleanup: "caller" as const };
     const metadata = new PythonStatTranslator();
-    const service = new PythonFileSystem(context.fs, { cwd: context.cwd, signal, maxTransferBytes, maxOpenFiles,
+    const service = new PythonFileSystem(context.fs, { cwd: context.cwd, signal, maxTransferBytes, ...maxOpenFiles === undefined ? {} : { maxOpenFiles },
+      ...options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries },
       open: (path, settings) => openCommandFile(fileContext, path, settings) });
     let stdoutOperation: OutputOperation | undefined;
     let stderrOperation: OutputOperation | undefined;

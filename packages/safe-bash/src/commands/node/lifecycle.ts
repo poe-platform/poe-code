@@ -1,14 +1,14 @@
 import type { CommandContext } from "../../contracts/command.js";
-import { NodeProfileError, nodeLimits, type NodeCompletion, type NodeObservation, type NodeReason, type NodeRetirement, type NodeSession } from "./types.js";
+import { NodeProfileError, nodeLimits, type NodeLimits, type NodeCompletion, type NodeObservation, type NodeReason, type NodeRetirement, type NodeSession } from "./types.js";
 import { integer, NodeLedger, record, text } from "./values.js";
 import { NodeHost, type HostOwner } from "./host.js";
 
-export function completion(value: unknown): NodeCompletion {
+export function completion(value: unknown, limits: NodeLimits = nodeLimits): NodeCompletion {
   const result = record(value, ["kind", "observation"]);
   if (!["entryReturned", "guestFailure", "profileFailure"].includes(result.kind as string)) throw new TypeError("node provider completion kind");
   const observation = record(result.observation, ["state", "fault", "name", "message", "code"]);
   if (!["captured", "unknown"].includes(observation.state as string) || typeof observation.fault !== "boolean") throw new TypeError("node provider observation");
-  for (const field of ["name", "message", "code"] as const) if (observation[field] !== null) text(observation[field], nodeLimits.errorBytes, "observation");
+  for (const field of ["name", "message", "code"] as const) if (observation[field] !== null) text(observation[field], limits.errorBytes, "observation");
   const empty = observation.name === null && observation.message === null && observation.code === null;
   if ((observation.state === "unknown") !== empty || result.kind === "entryReturned" && (!empty || observation.fault)) throw new TypeError("node provider contradictory observation");
   return { kind: result.kind as NodeCompletion["kind"], observation: observation as unknown as NodeObservation };
@@ -20,7 +20,7 @@ function retirement(value: unknown): NodeRetirement {
   throw new TypeError("node provider retirement is unconfirmed");
 }
 export class NodeOwner implements HostOwner {
-  readonly ledger = new NodeLedger();
+  readonly ledger: NodeLedger;
   readonly #controller = new AbortController();
   readonly #jobs = new Set<Promise<unknown>>();
   #session: NodeSession | undefined;
@@ -38,7 +38,7 @@ export class NodeOwner implements HostOwner {
   #listening = false;
   #retired: NodeRetirement | undefined;
   #completion: NodeCompletion | undefined;
-  constructor(readonly context: CommandContext) {}
+  constructor(readonly context: CommandContext, readonly limits: NodeLimits = nodeLimits) { this.ledger = new NodeLedger(limits); }
   get signal(): AbortSignal { return this.#controller.signal; }
   isClosed = (): boolean => this.#closed || this.#cutoff;
   get started(): boolean { return this.#started; }
@@ -50,10 +50,15 @@ export class NodeOwner implements HostOwner {
   open(): void {
     if (this.#closed) throw new NodeProfileError("closed before admission");
     this.context.signal.throwIfAborted();
-    this.#deadline = performance.now() + nodeLimits.admissionMs;
+    this.#deadline = performance.now() + this.limits.admissionMs;
     this.#listening = true;
     this.context.signal.addEventListener("abort", this.#onAbort, { once: true });
-    this.#timer = setTimeout(() => { const reason = new NodeProfileError("admission deadline"); this.capture(reason, "profile"); this.#abort(reason); }, nodeLimits.admissionMs);
+    const tick = (): void => {
+      const remaining = this.#deadline - performance.now();
+      if (remaining <= 0) { const reason = new NodeProfileError("admission deadline"); this.capture(reason, "profile"); this.#abort(reason); }
+      else this.#timer = setTimeout(tick, Math.min(2_147_483_647, remaining));
+    };
+    if (Number.isFinite(this.#deadline)) tick();
     this.context.signal.throwIfAborted();
   }
   check(): void {
@@ -85,7 +90,7 @@ export class NodeOwner implements HostOwner {
     let value: unknown;
     try { value = await this.job(start); }
     catch (error) { this.failure(error, "execution"); throw error; }
-    this.#completion = completion(value);
+    this.#completion = completion(value, this.limits);
     if (this.#completion.kind === "profileFailure") this.failure(new NodeProfileError("provider-selected profile stop"), "profile");
     if (this.#retired?.acquisition === "none" && this.#completion.kind !== "profileFailure") throw new TypeError("node provider completion without acquired Worker");
     return this.#completion;

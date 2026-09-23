@@ -1,9 +1,8 @@
-export const nodeValueRules = String.raw`
+export const nodeValueRules = (callDepth: number): string => String.raw`
   const valueRecords = [];
   function remember(value, kind, locked) {
     if (value === null || typeof value !== 'object') return value;
     for (let index = 0; index < valueRecords.length; index = index + 1) if (valueRecords[index].value === value) return value;
-    if (valueRecords.length >= 100000) unsupported();
     valueRecords.push({value: value, kind: kind, locked: locked});
     return value;
   }
@@ -17,7 +16,7 @@ export const nodeValueRules = String.raw`
   }
   function recordTree(value, depth) {
     if (value === null || typeof value !== 'object') return value;
-    if (depth > 128) unsupported();
+    if (depth > ${callDepth}) unsupported();
     remember(value, nativeArray.isArray(value) ? 'array' : 'record', false);
     const keys = nativeObject.keys(value);
     for (let index = 0; index < keys.length; index = index + 1) recordTree(value[keys[index]], depth + 1);
@@ -92,9 +91,9 @@ export const nodeValueRules = String.raw`
   function callable(value) { if (typeof value !== 'function') unsupported(); return value; }
   function adopt(value) { if (value !== null && typeof value === 'object' && category(value).kind !== 'promise' && typeof value.then === 'function') unsupported(); return value; }
   function reaction(callback, noArguments) { if (callback === undefined) return undefined; callable(callback); return function (value) { return adopt(noArguments ? callback() : callback(value)); }; }
-  function callValue(callback, args) { if (args.length > 16) unsupported(); return callable(callback)(...args); }
+  function callValue(callback, args) { return callable(callback)(...args); }
   function method(object, rawKey, args) {
-    const key = propertyKey(rawKey); if (args.length > 16) unsupported();
+    const key = propertyKey(rawKey);
     if (object === null || object === undefined) throw new TypeError('Cannot call a nullish value');
     const record = category(object);
     if (typeof object === 'string') {

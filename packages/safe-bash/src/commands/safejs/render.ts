@@ -20,7 +20,6 @@ class Text {
     this.append(JSON.stringify(value));
   }
   json(value: unknown, depth = 0): void {
-    if (depth > 64) throw new TypeError("output JSON exceeds depth 64");
     if (value === null || value === undefined) { this.append("null"); return; }
     if (typeof value === "string") { this.quoted(value); return; }
     if (typeof value === "boolean" || typeof value === "number") { this.append(JSON.stringify(value)); return; }

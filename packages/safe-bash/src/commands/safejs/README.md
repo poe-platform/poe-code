@@ -190,24 +190,18 @@ reissue pending stdio by copying a snapshot into a custom runner wrapper.
 
 ## Budgets and exit statuses
 
-| Host limit | Default |
-| --- | ---: |
-| `maxSourceBytes` | 1 MiB |
-| `maxInputBytes` | 8 MiB, cumulative guest stdin consumption |
-| `maxOutputBytes` | 8 MiB, combined guest stdout + stderr + printed return |
-| `timeoutMs` | 5000 |
-| `maxSteps` | 100000 |
-| `maxCallDepth` | 128 |
-| `stringLength` | 1048576 |
-| `arrayLength` | 100000 |
-| `dataSize` | 16777216 |
+All host quotas are omitted by default. Set only the budgets you need through
+`limits`: `maxSourceBytes`, `maxInputBytes`, `maxOutputBytes`, `timeoutMs`,
+`maxSteps`, `maxCallDepth`, `stringLength`, `arrayLength`, or `dataSize`.
+Input and output byte budgets are cumulative; output combines stdout, stderr,
+and the printed return value. Supplying one budget leaves the others unlimited.
 
-Values must be nonnegative safe integers; timeout is 1..2147483647 ms. All
-interpreter fields are supplied to the actual Budget, including an absolute
-deadline covering source loading plus execution. A timer also interrupts
-blocked host work. This is cooperative cancellation plus SafeJS's interpreter
-budget checks, not hard preemption of synchronous parsing, a hostile injected
-runner, arbitrary native regex work, or a backend which ignores its signal.
+Values must be nonnegative safe integers; timeout must be positive. Only explicit
+interpreter fields are supplied to the actual Budget. An explicit timeout adds
+an absolute deadline covering source loading plus execution and a timer that
+interrupts blocked host work. Longer timeouts are scheduled without the native
+timer's signed 32-bit ceiling. Cancellation remains cooperative; it does not
+preempt synchronous parsing or a backend that ignores its signal.
 
 Input/output quota violations remain fatal even when the guest catches an I/O
 rejection. Command-originated abort is published one microtask after recording
@@ -227,7 +221,7 @@ Parent signal reaches the runner, VFS bridge and byte I/O. Pending source/sink
 rejections are observed, source iterators are released, and stale callbacks
 cannot emit after invocation completion. An operation already performing an
 uncooperative external side effect cannot be undone. Diagnostics are outside
-guest output caps, limited to 4096 message characters, and bounded by the
+guest output caps, preserve the complete guest message, and are bounded by an explicit
 remaining deadline (one millisecond grace after expiry). A failed stderr is
 not written again; a blocked diagnostic can be dropped. Host help/not-installed
 messages are control output, not guest-budget output.

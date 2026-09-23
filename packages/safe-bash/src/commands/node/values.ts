@@ -1,5 +1,5 @@
 import { types } from "node:util";
-import { NodeProfileError, NodeUsageError, nodeLimits, type NodeGrants } from "./types.js";
+import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits, type NodeGrants } from "./types.js";
 
 function inherited(value: object): void {
   let prototype: unknown = Object.getPrototypeOf(value);
@@ -59,13 +59,12 @@ export function grants(value: unknown): Required<NodeGrants> {
   for (const name of grantKeys) if (Object.hasOwn(input, name)) { if (typeof input[name] !== "boolean") throw new TypeError("node grant must be boolean"); result[name] = input[name] as boolean; }
   return Object.freeze(result);
 }
-export function environment(value: unknown): Readonly<Record<string, string>> {
+export function environment(value: unknown, limits: NodeLimits = nodeLimits): Readonly<Record<string, string>> {
   if (value === null || typeof value !== "object" || types.isProxy(value) || Array.isArray(value)) throw new TypeError("node environment");
   inherited(value);
   const keys = Reflect.ownKeys(value);
-  if (keys.length > 128) throw new NodeProfileError("environment entries");
   const result: Record<string, string> = Object.create(null) as Record<string, string>;
-  let remaining = nodeLimits.contextBytes;
+  let remaining = limits.contextBytes;
   for (const key of keys) {
     if (typeof key !== "string") throw new TypeError("node environment key");
     const name = text(key, remaining, "environment key");
@@ -84,9 +83,10 @@ export class NodeLedger {
   #used = 0;
   #peak = 0;
   #labels = new Set<string>();
+  constructor(readonly limits: NodeLimits = nodeLimits) {}
   reserve(label: string, bytes: number): () => void {
-    text(label, 128, "reservation name"); integer(bytes, nodeLimits.memoryBytes, "reservation bytes");
-    if (this.#labels.size >= 512 || this.#labels.has(label) || bytes > nodeLimits.memoryBytes - this.#used) throw new NodeProfileError("command-owned memory");
+    text(label, Infinity, "reservation name"); integer(bytes, this.limits.memoryBytes, "reservation bytes");
+    if (this.#labels.has(label) || bytes > this.limits.memoryBytes - this.#used) throw new NodeProfileError("command-owned memory");
     this.#labels.add(label); this.#used += bytes; this.#peak = Math.max(this.#peak, this.#used);
     let active = true;
     return () => { if (active) { active = false; this.#labels.delete(label); this.#used -= bytes; } };

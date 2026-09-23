@@ -1,20 +1,22 @@
 import { UsageError } from "../internal.js";
 import type { SafeJsCommandLimits } from "./types.js";
 
-export const defaultSafeJsLimits: Readonly<SafeJsCommandLimits> = Object.freeze({
-  maxSourceBytes: 1024 * 1024, maxInputBytes: 8 * 1024 * 1024, maxOutputBytes: 8 * 1024 * 1024,
-  timeoutMs: 5000, maxSteps: 100_000, maxCallDepth: 128, stringLength: 1024 * 1024,
-  arrayLength: 100_000, dataSize: 16 * 1024 * 1024,
+/** No quotas are enabled by default. */
+export const defaultSafeJsLimits: Readonly<Partial<SafeJsCommandLimits>> = Object.freeze({});
+
+/** Internal arithmetic uses Infinity for omitted quotas; runtime budgets remain optional. */
+const unlimitedLimits: Readonly<SafeJsCommandLimits> = Object.freeze({
+  maxSourceBytes: Infinity, maxInputBytes: Infinity, maxOutputBytes: Infinity,
+  timeoutMs: Infinity, maxSteps: Infinity, maxCallDepth: Infinity, stringLength: Infinity,
+  arrayLength: Infinity, dataSize: Infinity,
 });
 
 export function commandLimits(options: Partial<SafeJsCommandLimits> = {}): SafeJsCommandLimits {
-  const result = { ...defaultSafeJsLimits, ...options };
-  for (const [name, value] of Object.entries(result)) {
-    if (!Object.hasOwn(defaultSafeJsLimits, name)) throw new TypeError(`Unknown SafeJS limit: ${name}`);
+  for (const [name, value] of Object.entries(options)) {
+    if (!Object.hasOwn(unlimitedLimits, name)) throw new TypeError(`Unknown SafeJS limit: ${name}`);
     if (!Number.isSafeInteger(value) || value < (name === "timeoutMs" ? 1 : 0)) throw new RangeError(`Invalid SafeJS limit: ${name}`);
   }
-  if (result.timeoutMs > 2_147_483_647) throw new RangeError("SafeJS timeoutMs exceeds timer range");
-  return Object.freeze(result);
+  return Object.freeze({ ...unlimitedLimits, ...options });
 }
 
 export interface Invocation { readonly source?: string; readonly file: string; readonly args: readonly string[]; readonly print: boolean; readonly help: boolean; readonly inputType?: "module" | "commonjs"; readonly check?: boolean; readonly preloads?: readonly string[]; readonly sourceMaps?: boolean; readonly output?: string; readonly nodeOptions?: readonly string[]; readonly envFiles?: readonly { path: string; optional: boolean }[] }

@@ -235,16 +235,16 @@ test('empty download fragments do not accumulate retained chunks or emit byte pr
 });
 test('oversized external manifest and cache metadata are rejected before decoding',async()=>{
  const ctx=context();const oversized=new TextEncoder().encode('[]        ');
- await assert.rejects(createPythonPackageEnvironment({maxDownloadBytes:4,scope:'test',manifestStore:{async get(){return {revision:'1',bytes:oversized};},async compareAndSet(){return false;}}}).prepare(ctx),/manifest exceeds maxDownloadBytes/);
- const env=createPythonPackageEnvironment({maxDownloadBytes:4,cache:{async get(){return oversized;},async set(){}}});const start=await env.prepare(ctx);
- await assert.rejects(env.dispatch('package-open',[start.session,'https://example.org/metadata'],ctx),/metadata exceeds maxDownloadBytes/);
+ await assert.rejects(createPythonPackageEnvironment({maxManifestBytes:4,scope:'test',manifestStore:{async get(){return {revision:'1',bytes:oversized};},async compareAndSet(){return false;}}}).prepare(ctx),/manifest exceeds maxManifestBytes/);
+ const env=createPythonPackageEnvironment({maxMetadataBytes:4,cache:{async get(){return oversized;},async set(){}}});const start=await env.prepare(ctx);
+ await assert.rejects(env.dispatch('package-open',[start.session,'https://example.org/metadata'],ctx),/metadata exceeds maxMetadataBytes/);
 });
 test('oversized manifest commits preserve the last usable environment and allow retry',async()=>{
- const ctx=context();const env=createPythonPackageEnvironment({maxDownloadBytes:32});
+ const ctx=context();const env=createPythonPackageEnvironment({maxManifestBytes:32});
  const first=await env.prepare(ctx);
  await env.dispatch('package-commit',[first.session,['one==1']],ctx);env.finish(first);
  const next=await env.prepare(ctx);
- await assert.rejects(env.dispatch('package-commit',[next.session,['oversized-package-name-for-this-budget==1']],ctx),/manifest exceeds maxDownloadBytes/);
+ await assert.rejects(env.dispatch('package-commit',[next.session,['oversized-package-name-for-this-budget==1']],ctx),/manifest exceeds maxManifestBytes/);
  env.finish(next);
  const retry=await env.prepare(ctx);
  assert.deepEqual(retry.requirements,['one==1']);
@@ -254,12 +254,12 @@ test('oversized manifest commits preserve the last usable environment and allow 
 });
 test('oversized download metadata is rejected before cache publication and can be retried',async()=>{
  const ctx=context();const entries=new Map<string,Uint8Array>();let oversized=true;let requests=0;
- const env=createPythonPackageEnvironment({maxDownloadBytes:256,authorize:()=>true,
+ const env=createPythonPackageEnvironment({maxMetadataBytes:256,authorize:()=>true,
   cache:{async get(key){return entries.get(key);},async set(key,value){entries.set(key,value);}},
   transport:async()=>{requests++;return {status:200,statusText:'OK',headers:oversized?[['x-large','x'.repeat(300)]]:[],body:(async function*(){yield bytes;})(),async dispose(){}};},
  });
  const start=await env.prepare(ctx);
- await assert.rejects(env.dispatch('package-open',[start.session,'https://example.org/wheel'],ctx),/metadata exceeds maxDownloadBytes/);
+ await assert.rejects(env.dispatch('package-open',[start.session,'https://example.org/wheel'],ctx),/metadata exceeds maxMetadataBytes/);
  assert.equal(entries.size,0);
  oversized=false;
  const opened=await env.dispatch('package-open',[start.session,'https://example.org/wheel'],ctx) as {key:string};

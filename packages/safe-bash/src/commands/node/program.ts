@@ -1,9 +1,9 @@
-import { nodeLimits, type NodeSelector } from "./types.js";
+import { nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { text } from "./values.js";
 import { lowerNodeSource } from "./lower.js";
 import { nodeValueRules } from "./rules.js";
 
-const library = String.raw`
+const library = (limits: NodeLimits): string => String.raw`
 
 (function (__vnodeRaw, __vnodeContext, __vnodeGuest) {
   const nativeJSON = JSON;
@@ -12,7 +12,7 @@ const library = String.raw`
   const nativePromise = Promise;
   const nativeString = String;
   const nativeError = Error;
-${nodeValueRules}
+${nodeValueRules(limits.callDepth)}
   function unsupported() { const error = new nativeError('Unsupported restricted Node operation'); error.code = 'ERR_VNODE_UNSUPPORTED'; throw error; }
   function utf8(value, maximum) {
     if (typeof value !== 'string' || value.length > maximum) unsupported();
@@ -37,7 +37,7 @@ ${nodeValueRules}
     for (let index = 0; index < argumentsValue.length; index = index + 1) result.push(argumentsValue[index]);
     return result;
   }
-  function pathValue(value) { utf8(value, 1024); if (value.indexOf('\u0000') !== -1) unsupported(); return value; }
+  function pathValue(value) { utf8(value, ${limits.pathBytes}); if (value.indexOf('\u0000') !== -1) unsupported(); return value; }
   function call(op, authority, path, flag, body, moduleKey) {
     const envelope = nativeJSON.parse(__vnodeRaw(op, authority, path, flag, body, moduleKey));
     let failure;
@@ -77,13 +77,13 @@ ${nodeValueRules}
     writeFileSync: function (path, value, encoding) {
       if (arguments.length !== 2 && arguments.length !== 3) unsupported();
       const filename = pathValue(path);
-      utf8(value, 1048576);
+      utf8(value, ${limits.operationBytes});
       const flag = arguments.length === 2 ? 'w' : options(encoding, true, false);
       call('writeText', 'data', filename, flag, value, null);
       return undefined;
     }
   });
-  function write(channel, value) { utf8(value, 1048576); call('writeOutput', channel, null, null, value, null); return true; }
+  function write(channel, value) { utf8(value, ${limits.operationBytes}); call('writeOutput', channel, null, null, value, null); return true; }
   const process = nativeObject.freeze({
     argv: __vnodeContext.argv,
     env: __vnodeContext.env,
@@ -97,17 +97,17 @@ ${nodeValueRules}
     let output = '';
     for (let index = 0; index < values.length; index = index + 1) {
       const current = primitive(values[index]);
-      utf8(current, 1048576);
-      if (output.length + current.length + 2 > 1048576) unsupported();
+      utf8(current, ${limits.operationBytes});
+      if (output.length + current.length + 2 > ${limits.operationBytes}) unsupported();
       if (index > 0) output = output + ' ';
       output = output + current;
     }
-    utf8(output, 1048575);
+    utf8(output, ${limits.outputBytes === Infinity ? Infinity : Math.max(0, limits.outputBytes - 1)});
     write(channel, output + '\n');
   }
   const console = nativeObject.freeze({
-    log: function () { logging('stdout', tuple(arguments, 16)); },
-    error: function () { logging('stderr', tuple(arguments, 16)); }
+    log: function () { logging('stdout', tuple(arguments, Infinity)); },
+    error: function () { logging('stderr', tuple(arguments, Infinity)); }
   });
   function pathMethod(method, minimum, maximum) {
     return function () {
@@ -119,7 +119,7 @@ ${nodeValueRules}
     };
   }
   const path = {
-    join: pathMethod('join', 0, 16), resolve: pathMethod('resolve', 0, 16),
+    join: pathMethod('join', 0, Infinity), resolve: pathMethod('resolve', 0, Infinity),
     normalize: pathMethod('normalize', 1, 1), dirname: pathMethod('dirname', 1, 1),
     basename: pathMethod('basename', 1, 2), extname: pathMethod('extname', 1, 1),
     relative: pathMethod('relative', 2, 2), isAbsolute: pathMethod('isAbsolute', 1, 1),
@@ -132,7 +132,7 @@ ${nodeValueRules}
   let jsonBytes = 0;
   function require(target) {
     if (arguments.length !== 1 || typeof target !== 'string') unsupported();
-    utf8(target, 1024);
+    utf8(target, ${limits.pathBytes});
     const name = target.slice(0, 5) === 'node:' ? target.slice(5) : target;
     if (name === 'fs' || name === 'path' || name === 'process') {
       call('authorizeModule', 'module', null, null, null, name);
@@ -142,11 +142,11 @@ ${nodeValueRules}
     const authorized = call('authorizeJson', 'json', pathValue(target), 'r', null, null).cacheKey;
     const key = nativeJSON.stringify([authorized.namespace, authorized.path]);
     if (nativeObject.hasOwn(cache, key)) return cache[key];
-    if (roots >= 32) unsupported();
+    if (roots >= ${limits.jsonEntries}) unsupported();
     const result = call('readText', 'json', authorized.path, 'r', null, null);
     if (result.cacheKey.namespace !== authorized.namespace || result.cacheKey.path !== authorized.path) unsupported();
-    const size = utf8(result.text, 1048576);
-    if (size > 1048576 - jsonBytes) unsupported();
+    const size = utf8(result.text, ${limits.operationBytes});
+    if (size > ${limits.jsonBytes} - jsonBytes) unsupported();
     jsonBytes = jsonBytes + size;
     const parsed = recordTree(nativeJSON.parse(result.text), 0);
     cache[key] = parsed;
@@ -158,7 +158,7 @@ ${nodeValueRules}
     if (value === null || kind === 'string' || kind === 'number' || kind === 'boolean' || kind === 'undefined') return;
     if (kind !== 'object') unsupported();
     if (category(value).kind === 'error' || category(value).kind === 'promise') unsupported();
-    if (ancestors.length >= 128) unsupported();
+    if (ancestors.length >= ${limits.callDepth}) unsupported();
     for (let index = 0; index < ancestors.length; index = index + 1) if (ancestors[index] === value) throw new TypeError('Cyclic JSON value');
     const path = ancestors.slice(); path.push(value);
     const keys = nativeObject.keys(value);
@@ -168,13 +168,13 @@ ${nodeValueRules}
     } else for (let index = 0; index < keys.length; index = index + 1) jsonValue(value[keys[index]], path);
   }
   const safeJSON = nativeObject.freeze({
-    parse: function (value) { if (arguments.length !== 1) unsupported(); utf8(value, 1048576); return recordTree(nativeJSON.parse(value), 0); },
+    parse: function (value) { if (arguments.length !== 1) unsupported(); utf8(value, ${limits.operationBytes}); return recordTree(nativeJSON.parse(value), 0); },
     stringify: function (value, replacer, space) {
       if (arguments.length !== 1 && arguments.length !== 3) unsupported();
       if (arguments.length === 3 && (replacer !== undefined || typeof space !== 'number' || space < 0 || space > 10 || space % 1 !== 0)) unsupported();
       jsonValue(value, []);
       const result = arguments.length === 1 ? nativeJSON.stringify(value) : nativeJSON.stringify(value, undefined, space);
-      if (result !== undefined) utf8(result, 1048576);
+      if (result !== undefined) utf8(result, ${limits.operationBytes});
       return result;
     }
   });
@@ -206,12 +206,12 @@ ${nodeValueRules}
 })(__vnodeBridge, __vnodeContext, __vnodeEntry);
 `;
 
-export function buildNodeProgram(source: string, selector: NodeSelector): string {
+export function buildNodeProgram(source: string, selector: NodeSelector, limits: NodeLimits = nodeLimits): string {
   const names = "require,console,process,JSON,Object,Array,Promise,Error,TypeError,RangeError,SyntaxError,ReferenceError,String,__vnodeFilename,__vnodeDirectory,__vnodeRules";
-  const lowered = lowerNodeSource(source, selector);
+  const lowered = lowerNodeSource(source, selector, limits);
   const body = selector === "print" ? "return (\n" + lowered + "\n);" : lowered;
   const bindings = selector === "file" ? "const __filename = __vnodeFilename; const __dirname = __vnodeDirectory;\n" : "";
   const marker = "__vnodeBridge('entry', null, null, null, null, null);\n";
-  const program = "const __vnodeEntry = function(" + names + ") {\n" + marker + bindings + body + "\n};\n" + library;
-  return text(program, nodeLimits.sourceBytes, "combined interpreted source");
+  const program = "const __vnodeEntry = function(" + names + ") {\n" + marker + bindings + body + "\n};\n" + library(limits);
+  return text(program, limits.sourceBytes, "combined interpreted source");
 }

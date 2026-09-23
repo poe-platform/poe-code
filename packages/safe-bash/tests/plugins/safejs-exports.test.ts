@@ -80,7 +80,7 @@ test("explicit optional plugin replacement changes no aggregate command", async 
 });
 
 test("root exports structural limit defaults and typed errors", () => {
-  assert.ok(defaultSafeJsLimits.maxSourceBytes > 0);
+  assert.deepEqual(defaultSafeJsLimits, {});
   const error = new SafeJsCommandLimitError("maxSourceBytes");
   assert.equal(error.code, "SAFEJS_LIMIT");
   assert.equal(error.resource, "maxSourceBytes");

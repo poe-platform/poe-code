@@ -1,4 +1,4 @@
-import { NodeProfileError, NodeUsageError, nodeLimits, type NodeSelector } from "./types.js";
+import { NodeProfileError, NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { tokenizeNodeSource, type NodeToken } from "./admission.js";
 
 type Scope = { parent?: Scope; functionScope: boolean; names: Set<string> };
@@ -17,7 +17,7 @@ class Lowerer {
   #depth = 0;
   #asynchronous = false;
   #scope: Scope = { functionScope: true, names: new Set() };
-  constructor(readonly tokens: readonly NodeToken[], readonly selector: NodeSelector) {}
+  constructor(readonly tokens: readonly NodeToken[], readonly selector: NodeSelector, readonly limits: NodeLimits) {}
   current(): NodeToken { return this.tokens[this.#index]!; }
   at(value: string): boolean { return this.current().value === value && this.current().kind !== "string"; }
   take(value: string): boolean { if (!this.at(value)) return false; this.#index += 1; return true; }
@@ -52,7 +52,7 @@ class Lowerer {
     return [asynchronous ? "async function " : "function ", name, "(", names.join(","), ")", body];
   }
   statement(): Code {
-    if (++this.#depth > nodeLimits.callDepth) throw new NodeProfileError("lowering nesting");
+    if (++this.#depth > this.limits.callDepth) throw new NodeProfileError("lowering nesting");
     try {
       if (this.take(";")) return ";";
       if (this.at("{")) return this.block();
@@ -96,7 +96,7 @@ class Lowerer {
     return { target: value.name, bound: invoke("updateVariable", ["()=>", value.name], ["(__vnodeValue)=>", value.name, "=__vnodeValue"], delta, prefix ? "true" : "false"), missing: invoke("unbound", quote(value.name.name)) };
   }
   expression(minimum = 1): Expression {
-    if (++this.#depth > nodeLimits.callDepth) throw new NodeProfileError("lowering nesting");
+    if (++this.#depth > this.limits.callDepth) throw new NodeProfileError("lowering nesting");
     try {
       let left = this.primary();
       while (true) {
@@ -162,7 +162,7 @@ class Lowerer {
       let fragment: string;
       if (typeof item === "string") fragment = item;
       else fragment = this.available(item) ? item.name : item.query ? "undefined" : "__vnodeRules.unbound(" + quote(item.name) + ")";
-      bytes += Buffer.byteLength(fragment); if (bytes > nodeLimits.sourceBytes) throw new NodeProfileError("lowered source bytes"); chunks.push(fragment);
+      bytes += Buffer.byteLength(fragment); if (bytes > this.limits.sourceBytes) throw new NodeProfileError("lowered source bytes"); chunks.push(fragment);
     }
     return chunks.join("");
   }
@@ -173,4 +173,4 @@ class Lowerer {
     if (this.current().kind !== "end") invalid(); return this.render(body);
   }
 }
-export function lowerNodeSource(source: string, selector: NodeSelector): string { return new Lowerer(tokenizeNodeSource(source), selector).lower(); }
+export function lowerNodeSource(source: string, selector: NodeSelector, limits: NodeLimits = nodeLimits): string { return new Lowerer(tokenizeNodeSource(source), selector, limits).lower(); }

@@ -86,15 +86,20 @@ subtree removal or a separately qualified retained-directory implementation.
   top-level path. Bootstrap stdlib/site-packages storage is mounted separately
   there. An existing caller entry at that path prevents startup. Runtime storage
   is read-only to application filesystem operations.
-- `maxTransferBytes` defaults to 65536; `maxOpenFiles` defaults to 256. Both must
-  be positive safe integers no greater than 1048576. Transfers are incremental;
-  these limits are not total interpreter memory or instruction budgets.
-- `maxConcurrentWorkers` defaults to 4 and accepts integers 1–64. Both aliases
-  share this per-plugin limit. Capacity exhaustion returns status 1 immediately;
-  workers are never queued behind running pipeline stages.
-- `maxInputChunkBytes` defaults to 1 MiB and accepts integers 1–16 MiB. An
-  oversized upstream stdin fragment returns status 1 before the bridge retains
-  a copy. This bounds bridge retention, not allocation already made by its producer.
+- `maxTransferBytes` defaults to 65536 and controls incremental transfer size,
+  not total interpreter work. Configured sizes must be positive safe integers.
+- `maxOpenFiles` and `maxDirectoryEntries` are optional positive safe integers;
+  omitted handle and directory quotas are unlimited.
+- `maxConcurrentWorkers` is optional and shared by both aliases. Configured
+  capacity must be a positive safe integer. Capacity exhaustion returns status 1
+  immediately; workers are never queued behind running pipeline stages.
+- `maxInputChunkBytes` optionally bounds an upstream stdin fragment before the
+  bridge retains a copy. Its value must be a positive safe integer; omission
+  leaves fragment size unlimited. Producer allocation belongs to the producer.
+- Provisioning byte budgets are independent: `maxDownloadBytes` bounds wheel
+  content, `maxManifestBytes` bounds environment manifests, `maxMetadataBytes`
+  bounds cache metadata, and `maxRequirementBytes` bounds requirements files.
+  Each is omitted by default and accepts a positive safe integer.
 - `replace` defaults to false and controls command-registration collisions.
 - `onDiagnostic` is an optional host-only callback receiving `{ failure, cause }`.
   `failure` is a `PythonFailure` with a stable `category` and fixed safe message;
@@ -292,13 +297,13 @@ not forced cancellation of an arbitrary backend promise that never settles.
 ## Command launcher and host configuration
 
 `pythonCommands({ createWorker, runtimeMount?, maxTransferBytes?, maxOpenFiles?,
-maxConcurrentWorkers?, maxInputChunkBytes?,
+maxConcurrentWorkers?, maxInputChunkBytes?, maxDirectoryEntries?,
 onProgress?, onDiagnostic?, packages?, requirements?, packageProfile?, provisioning?, environment?, replace? })` registers both `python` and `python3`. Registration
 creates no interpreter. Each command creates and terminates its own dedicated
 worker; interpreter instances are not pooled. `onProgress` reports `initializing`,
 `ready`, and `finished` for the host UI, separately from guest output streams.
 The default runtime mount is `/.pyodide-runtime`, transfer limit is 65,536 bytes,
-and open-file limit is 256. The injected loader must honor the startup
+and open-file, directory, and concurrency budgets are omitted by default. The injected loader must honor the startup
 configuration passed to `loadRuntime`; accepting it and loading an unconfigured
 interpreter would not satisfy native flag semantics.
 

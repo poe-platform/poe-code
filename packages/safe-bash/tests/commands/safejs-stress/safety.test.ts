@@ -80,11 +80,11 @@ test("fixture: all engine budgets are forwarded exactly and mutable budgets are 
   const seen = new Set<object>();
   const runtime = contractRuntime(async (_source, options) => {
     assert(!seen.has(options.budget)); seen.add(options.budget);
-    assert.deepEqual(Object.keys(options.budget).sort(), ["arrayLength", "dataSize", "deadline", "maxCallDepth", "maxSteps", "stringLength"]);
+    assert.deepEqual(Object.keys(options.budget).sort(), ["arrayLength", "dataSize", "maxCallDepth", "maxSteps", "stringLength"]);
     for (const [key, value] of Object.entries({ maxSteps: 51, maxCallDepth: 7, stringLength: 120, arrayLength: 24, dataSize: 500 })) {
       assert.equal(Reflect.get(options.budget, key), value);
     }
-    assert(Reflect.get(options.budget, "deadline") > Date.now());
+    assert.equal(Reflect.get(options.budget, "deadline"), undefined);
   });
   for (let index = 0; index < 3; index++) {
     const result = await execute(["-e", "fixture"], { runtime, limits: { maxSteps: 51, maxCallDepth: 7, stringLength: 120, arrayLength: 24, dataSize: 500 } });

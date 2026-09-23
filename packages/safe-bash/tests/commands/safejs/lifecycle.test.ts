@@ -19,7 +19,7 @@ test("JavaScript plugin collision is explicit and only node is registered", asyn
   assert.notEqual(commands.get("node"), first);
 });
 
-for (const limits of [{ timeoutMs: 0 }, { maxInputBytes: -1 }, { maxSteps: NaN }, { dataSize: 1.5 }, { timeoutMs: 2_147_483_648 }]) {
+for (const limits of [{ timeoutMs: 0 }, { maxInputBytes: -1 }, { maxSteps: NaN }, { dataSize: 1.5 }]) {
   test(`invalid host limits reject before registration: ${JSON.stringify(limits)}`, () => {
     assert.throws(() => createSafeJsCommands({ runtime: contractRuntime(async () => {}), limits }), RangeError);
   });

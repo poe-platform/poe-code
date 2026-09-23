@@ -1,13 +1,14 @@
 import { posix } from "node:path";
+import { yieldTurn } from "../../contracts/yield.js";
 import { escapeText } from "../../escaping.js";
 import { types } from "node:util";
 import type { CommandContext } from "../../contracts/command.js";
 import { isErrnoCode, isFsError } from "../../contracts/errors.js";
 import type { ByteSink } from "../../contracts/io.js";
-import { NodeProfileError, nodeLimits, type NodeGrants, type NodeGuestError, type NodeHostRequest, type NodeHostResponse, type NodeReason } from "./types.js";
+import { NodeProfileError, nodeLimits, type NodeLimits, type NodeGrants, type NodeGuestError, type NodeHostRequest, type NodeHostResponse, type NodeReason } from "./types.js";
 import { integer, NodeLedger, record, strings, text } from "./values.js";
 
-export function fsDescriptor(error: unknown): NodeGuestError | undefined {
+export function fsDescriptor(error: unknown, limits: NodeLimits = nodeLimits): NodeGuestError | undefined {
   try {
     if (error === null || typeof error !== "object" || types.isProxy(error) || Array.isArray(error)) return undefined;
     let prototype: object | null = error;
@@ -27,23 +28,23 @@ export function fsDescriptor(error: unknown): NodeGuestError | undefined {
     }
     const value = record(fields, ["name", "message", "code", "errno"], ["path", "syscall", "dest"]);
     if (value.name !== "FsError" || !isErrnoCode(value.code) || typeof value.errno !== "number" || !Number.isSafeInteger(value.errno) || value.errno >= 0) return undefined;
-    const optional = (name: string): string | null => value[name] === undefined ? null : text(value[name], nodeLimits.errorBytes, "FS error field");
-    return { name: "FsError", message: text(value.message, nodeLimits.errorBytes, "FS error message"), code: value.code, errno: value.errno, path: optional("path"), syscall: optional("syscall"), dest: optional("dest") };
+    const optional = (name: string): string | null => value[name] === undefined ? null : text(value[name], limits.errorBytes, "FS error field");
+    return { name: "FsError", message: text(value.message, limits.errorBytes, "FS error message"), code: value.code, errno: value.errno, path: optional("path"), syscall: optional("syscall"), dest: optional("dest") };
   } catch { return undefined; }
 }
 function localError(code: string): NodeGuestError { return { name: "Error", message: code === "ERR_VNODE_DENIED" ? "Virtual capability denied" : "Unsupported restricted Node operation", code, errno: null, path: null, syscall: null, dest: null }; }
 class FsOperationFailure { constructor(readonly reason: unknown) {} }
 function response(sequence: number, kind: NodeHostResponse["kind"], value: string | null = null, cacheKey: NodeHostResponse["cacheKey"] = null, error: NodeGuestError | null = null): NodeHostResponse { return { sequence, kind, text: value, error, cacheKey }; }
-export function readNodeHostRequest(value: unknown): NodeHostRequest {
+export function readNodeHostRequest(value: unknown, limits: NodeLimits = nodeLimits): NodeHostRequest {
   const item = record(value, ["sequence", "op", "authority", "path", "flag", "text", "moduleKey"]);
-  const sequence = integer(item.sequence, nodeLimits.operations, "sequence");
+  const sequence = integer(item.sequence, limits.operations, "sequence");
   if (sequence === 0) throw new NodeProfileError("request sequence");
   let bytes = 0;
   for (const field of ["op", "authority", "path", "flag", "moduleKey"] as const) {
-    if (item[field] !== null) { const entry = text(item[field], field === "path" ? nodeLimits.pathBytes : nodeLimits.metadataBytes, "request metadata"); bytes += Buffer.byteLength(entry); }
+    if (item[field] !== null) { const entry = text(item[field], field === "path" ? limits.pathBytes : limits.metadataBytes, "request metadata"); bytes += Buffer.byteLength(entry); }
   }
-  if (bytes > nodeLimits.metadataBytes) throw new NodeProfileError("request metadata");
-  if (item.text !== null) text(item.text, nodeLimits.operationBytes, "request payload");
+  if (bytes > limits.metadataBytes) throw new NodeProfileError("request metadata");
+  if (item.text !== null) text(item.text, limits.operationBytes, "request payload");
   const empty = item.path === null && item.flag === null;
   const noBody = item.text === null;
   const noModule = item.moduleKey === null;
@@ -59,6 +60,7 @@ export function readNodeHostRequest(value: unknown): NodeHostRequest {
 }
 export interface HostOwner {
   readonly signal: AbortSignal;
+  readonly limits?: NodeLimits;
   readonly ledger: NodeLedger;
   readonly context: CommandContext;
   readonly isClosed: () => boolean;
@@ -67,6 +69,7 @@ export interface HostOwner {
   readonly job: <Value>(start: () => Value | PromiseLike<Value>) => Promise<Value>;
 }
 export class NodeHost {
+  readonly limits: NodeLimits;
   #sequence = 0;
   #active = false;
   #pending: { sequence: number; release: () => void; response: NodeHostResponse | undefined; failure: NodeReason | undefined } | undefined;
@@ -79,16 +82,16 @@ export class NodeHost {
   #authorized: string | undefined;
   #authorizationSequence = 0;
   #pulls = 0;
-  constructor(readonly owner: HostOwner, readonly grants: Readonly<Required<NodeGrants>>, readonly cwd: string, readonly directory: string) {}
+  constructor(readonly owner: HostOwner, readonly grants: Readonly<Required<NodeGrants>>, readonly cwd: string, readonly directory: string) { this.limits = owner.limits ?? nodeLimits; }
   #path(value: unknown, base = this.cwd): string {
-    const source = text(value, nodeLimits.pathBytes, "path");
+    const source = text(value, this.limits.pathBytes, "path");
     if (source.includes("\0")) throw new TypeError("node protocol: NUL path");
-    return text(posix.resolve(base, source), nodeLimits.pathBytes, "resolved path");
+    return text(posix.resolve(base, source), this.limits.pathBytes, "resolved path");
   }
   #check(): void { this.owner.check(); }
   #settled(): void { this.owner.context.signal.throwIfAborted(); this.owner.signal.throwIfAborted(); }
   #admit(value: unknown): NodeHostRequest {
-    const item = readNodeHostRequest(value);
+    const item = readNodeHostRequest(value, this.limits);
     if (item.sequence !== this.#sequence + 1 || this.#active || this.#pending) throw new NodeProfileError("request sequence/delivery");
     return item;
   }
@@ -96,17 +99,17 @@ export class NodeHost {
     if (this.#stdinActive) throw new NodeProfileError("concurrent stdin");
     if (this.#stdinUsed) return new Uint8Array(0);
     this.#stdinUsed = true; this.#stdinActive = true;
-    let storage: Uint8Array | undefined;
-    const release = this.owner.ledger.reserve("stdin-collection", maximum);
+    const pieces: Uint8Array[] = [];
+    const releases: (() => void)[] = [];
     try {
-      storage = new Uint8Array(maximum);
       let iterator: AsyncIterator<Uint8Array>;
       try { iterator = this.owner.context.stdin[Symbol.asyncIterator](); }
       catch (error) { this.owner.failure(error, "execution"); throw error; }
       let offset = 0;
       while (true) {
         this.#check();
-        if (++this.#pulls > nodeLimits.steps) throw new NodeProfileError("stdin producer work");
+        if (++this.#pulls > this.limits.steps) throw new NodeProfileError("stdin producer work");
+        if (this.#pulls % 64 === 0) await yieldTurn(this.owner.signal);
         let item: IteratorResult<Uint8Array>;
         try { item = await this.owner.job(() => iterator.next()); }
         catch (error) { this.owner.failure(error, "execution"); throw error; }
@@ -115,28 +118,28 @@ export class NodeHost {
         const fragment = item.value;
         if (types.isProxy(fragment) || !types.isUint8Array(fragment)) throw new TypeError("node stdin requires bytes");
         if (fragment.byteLength > maximum - offset) throw new NodeProfileError("stdin bytes");
-        storage.set(fragment, offset); offset += fragment.byteLength;
+        releases.push(this.owner.ledger.reserve("stdin-" + this.#pulls, fragment.byteLength));
+        pieces.push(fragment.slice()); offset += fragment.byteLength;
       }
-      return storage.subarray(0, offset);
-    } finally { storage = undefined; this.#stdinActive = false; release(); }
+      return Buffer.concat(pieces);
+    } finally { this.#stdinActive = false; for (const release of releases) release(); }
   }
   async source(filename: string | null): Promise<string> {
     if (!this.grants.sourceRead || filename === null && !this.grants.stdinRead) throw new NodeProfileError("source read grant");
-    const release = this.owner.ledger.reserve("source-acquisition", nodeLimits.sourceBytes * 5);
     let bytes: Uint8Array | undefined;
     try {
       this.#check();
-      if (filename === null) bytes = await this.#stdin(nodeLimits.sourceBytes);
+      if (filename === null) bytes = await this.#stdin(this.limits.sourceBytes);
       else {
         const selected = this.#path(filename);
-        try { bytes = await this.owner.job(() => this.owner.context.fs.readFile(selected, { signal: this.owner.signal, maxBytes: nodeLimits.sourceBytes })); }
+        try { bytes = await this.owner.job(() => this.owner.context.fs.readFile(selected, { signal: this.owner.signal, ...Number.isFinite(this.limits.sourceBytes) ? { maxBytes: this.limits.sourceBytes } : {} })); }
         catch (error) { this.owner.failure(error, "execution"); throw error; }
       }
       this.#check();
-      if (types.isProxy(bytes) || !types.isUint8Array(bytes) || bytes.byteLength > nodeLimits.sourceBytes) throw new NodeProfileError("source bytes");
+      if (types.isProxy(bytes) || !types.isUint8Array(bytes) || bytes.byteLength > this.limits.sourceBytes) throw new NodeProfileError("source bytes");
       const source = new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
-      return text(source.startsWith("\ufeff") ? source.slice(1) : source, nodeLimits.sourceBytes, "decoded source");
-    } finally { bytes = undefined; release(); }
+      return text(source.startsWith("\ufeff") ? source.slice(1) : source, this.limits.sourceBytes, "decoded source");
+    } finally { bytes = undefined; }
   }
   async #fs<Value>(start: () => Promise<Value>): Promise<Value> { try { return await this.owner.job(start); } catch (error) { throw new FsOperationFailure(error); } }
   async #perform(item: NodeHostRequest): Promise<NodeHostResponse> {
@@ -145,7 +148,7 @@ export class NodeHost {
     if (item.op === "authorizeModule") return response(item.sequence, "void");
     if (item.op === "path") {
       const argumentsValue: unknown = JSON.parse(item.text!);
-      const argumentsList = strings(argumentsValue, 16, nodeLimits.metadataBytes);
+      const argumentsList = strings(argumentsValue, Infinity, this.limits.metadataBytes);
       if (argumentsList.some(value => value.includes("\0"))) throw new TypeError("node protocol: path NUL");
       const method = item.moduleKey!;
       const count = argumentsList.length;
@@ -159,7 +162,7 @@ export class NodeHost {
       else if (count === 1 && method === "extname") output = posix.extname(argumentsList[0]!);
       else if (count === 1 && method === "isAbsolute") output = posix.isAbsolute(argumentsList[0]!) ? "true" : "false";
       else return response(item.sequence, "unsupported", null, null, localError("ERR_VNODE_UNSUPPORTED"));
-      return response(item.sequence, "text", text(output, nodeLimits.pathBytes, "path result"));
+      return response(item.sequence, "text", text(output, this.limits.pathBytes, "path result"));
     }
     if (item.op === "authorizeJson") {
       if (!this.grants.dataRead || !this.grants.jsonModules) return deny();
@@ -177,10 +180,10 @@ export class NodeHost {
       const filename = item.path === null ? null : this.#path(item.path);
       if (item.authority === "json" && (filename !== this.#authorized || item.sequence !== this.#authorizationSequence + 1)) throw new NodeProfileError("JSON authorization");
       if (item.authority === "json") this.#authorized = undefined;
-      const remaining = Math.min(nodeLimits.operationBytes, nodeLimits.readBytes - this.#read, item.authority === "json" ? nodeLimits.jsonBytes - this.#jsonBytes : nodeLimits.operationBytes);
+      const remaining = Math.min(this.limits.operationBytes, this.limits.readBytes - this.#read, item.authority === "json" ? this.limits.jsonBytes - this.#jsonBytes : this.limits.operationBytes);
       let bytes: Uint8Array | undefined;
       try {
-        bytes = filename === null ? await this.#stdin(remaining) : await this.#fs(() => this.owner.context.fs.readFile(filename, { signal: this.owner.signal, maxBytes: remaining }));
+        bytes = filename === null ? await this.#stdin(remaining) : await this.#fs(() => this.owner.context.fs.readFile(filename, { signal: this.owner.signal, ...Number.isFinite(remaining) ? { maxBytes: remaining } : {} }));
         this.#settled();
         if (types.isProxy(bytes) || !types.isUint8Array(bytes) || bytes.byteLength > remaining) throw new NodeProfileError("read bytes");
         this.#read += bytes.byteLength;
@@ -189,7 +192,7 @@ export class NodeHost {
         }
         let decoded = new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
         if (item.authority === "json" && decoded.startsWith("\ufeff")) decoded = decoded.slice(1);
-        text(decoded, nodeLimits.operationBytes, "decoded read result");
+        text(decoded, this.limits.operationBytes, "decoded read result");
         return response(item.sequence, "text", decoded, item.authority === "json" ? key(filename!) : null);
       } finally { bytes = undefined; }
     }
@@ -197,7 +200,7 @@ export class NodeHost {
     const size = Buffer.byteLength(payload);
     if (item.op === "writeText") {
       if (!this.grants.dataWrite) return deny();
-      if (size > nodeLimits.writeBytes - this.#written) throw new NodeProfileError("write bytes");
+      if (size > this.limits.writeBytes - this.#written) throw new NodeProfileError("write bytes");
       const filename = this.#path(item.path);
       this.#written += size;
       let owned: Uint8Array | undefined = new TextEncoder().encode(payload);
@@ -206,7 +209,7 @@ export class NodeHost {
       return response(item.sequence, "void");
     }
     if (item.authority === "stdout" ? !this.grants.stdoutWrite : !this.grants.stderrWrite) return deny();
-    if (size > nodeLimits.outputBytes - this.#output) throw new NodeProfileError("output bytes");
+    if (size > this.limits.outputBytes - this.#output) throw new NodeProfileError("output bytes");
     this.#output += size;
     await this.write(item.authority === "stdout" ? this.owner.context.stdout : this.owner.context.stderr, payload);
     return response(item.sequence, "void");
@@ -232,7 +235,7 @@ export class NodeHost {
     if (!this.grants.stderrWrite) return;
     const escaped = escapeText(value, "diagnostic");
     const count = Buffer.byteLength(escaped);
-    if (count > nodeLimits.outputBytes - this.#output) throw new NodeProfileError("diagnostic output bytes");
+    if (count > this.limits.outputBytes - this.#output) throw new NodeProfileError("diagnostic output bytes");
     this.#output += count;
     await this.write(this.owner.context.stderr, escaped);
   }
@@ -241,15 +244,16 @@ export class NodeHost {
     try { this.#check(); item = this.#admit(value); } catch (error) { this.owner.failure(error, "profile"); throw error; }
     this.#active = true; this.#sequence = item.sequence;
     let release: (() => void) | undefined;
+    let resultRelease: (() => void) | undefined;
     try {
-      release = this.owner.ledger.reserve("operation-" + item.sequence, nodeLimits.operationBytes * 6 + nodeLimits.metadataBytes * 2);
+      release = this.owner.ledger.reserve("operation-" + item.sequence, Buffer.byteLength(JSON.stringify(item)) * 6);
       let result: NodeHostResponse;
       let failure: NodeReason | undefined;
       try { result = await this.#perform(item); }
       catch (error) {
         this.owner.context.signal.throwIfAborted(); this.owner.signal.throwIfAborted();
         const actual = error instanceof FsOperationFailure ? error.reason : error;
-        const descriptor = error instanceof FsOperationFailure ? fsDescriptor(actual) : undefined;
+        const descriptor = error instanceof FsOperationFailure ? fsDescriptor(actual, this.limits) : undefined;
         if (!descriptor) {
           if (error instanceof FsOperationFailure) this.owner.failure(actual, "execution");
           throw actual;
@@ -257,11 +261,14 @@ export class NodeHost {
         failure = { present: true, value: actual };
         result = response(item.sequence, "fsError", null, null, descriptor);
       }
-      this.#pending = { sequence: item.sequence, response: result, failure, release };
-      release = undefined;
+      resultRelease = this.owner.ledger.reserve("result-" + item.sequence, Buffer.byteLength(JSON.stringify(result)) * 2);
+      const acquiredRequest = release;
+      const acquiredResult = resultRelease;
+      this.#pending = { sequence: item.sequence, response: result, failure, release: () => { acquiredRequest(); acquiredResult(); } };
+      release = undefined; resultRelease = undefined;
       return result;
     } catch (error) { this.owner.failure(error, "profile"); throw error; }
-    finally { this.#active = false; release?.(); }
+    finally { this.#active = false; release?.(); resultRelease?.(); }
   }
   delivered(sequence: number): void {
     const pending = this.#pending;

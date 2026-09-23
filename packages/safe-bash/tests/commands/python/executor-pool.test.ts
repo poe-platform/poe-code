@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { MemoryFileSystem } from 'poe-code/safe-fs/core';
+import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { Shell } from '../../../src/core.js';
 import { createPythonExecutorPool, pythonCommands, type PythonAsyncExecutor, type PythonExecutorStart } from '../../../src/commands/python/index.js';
 

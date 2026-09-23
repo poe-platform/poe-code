@@ -6,8 +6,8 @@ export interface PythonPackageCache {
 }
 
 export function createPythonPackageCache(options: { readonly maxBytes?: number } = {}): PythonPackageCache & { dispose(): void } {
-  const maxBytes = options.maxBytes ?? 128 * 1024 * 1024;
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new RangeError('Python cache maxBytes must be a positive integer');
+  const maxBytes = options.maxBytes ?? Infinity;
+  if (options.maxBytes !== undefined && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new RangeError('Python cache maxBytes must be a positive integer');
   const values = new Map<string, Uint8Array>();
   const manifestKey = pythonPackageRuntimeKey + '-environment';
   let retainedBytes = 0;
@@ -23,7 +23,7 @@ export function createPythonPackageCache(options: { readonly maxBytes?: number }
       const previous = values.get(key);
       if (previous) { retainedBytes -= previous.length; values.delete(key); }
       if (bytes.length > maxBytes) return;
-      while (values.size && (retainedBytes + bytes.length > maxBytes || values.size >= 1024)) {
+      while (values.size && (retainedBytes + bytes.length > maxBytes)) {
         const oldest = [...values.keys()].find(entry => entry !== manifestKey);
         if (oldest === undefined) return;
         retainedBytes -= values.get(oldest)!.length;

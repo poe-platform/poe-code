@@ -181,16 +181,10 @@ Undeclared flags remain refused. Runtime flags never replace command budgets or
 authorize host filesystem access; a V8 heap limit is not a SafeJS memory or CPU
 limit. `--` and script operands stop option parsing as usual.
 
-| `limits` option | Default |
-| --- | --- |
-| `maxSourceBytes` | 1 MiB of supplied source |
-| `maxInputBytes`, `maxOutputBytes` | 8 MiB each; output combines stdout/stderr |
-| `timeoutMs` | 5,000 |
-| `maxSteps` | 100,000 |
-| `maxCallDepth` | 128 |
-| `stringLength` | 1 MiB |
-| `arrayLength` | 100,000 |
-| `dataSize` | 16 MiB |
+All `limits` fields are optional and omitted by default: `maxSourceBytes`,
+`maxInputBytes`, `maxOutputBytes`, `timeoutMs`, `maxSteps`, `maxCallDepth`,
+`stringLength`, `arrayLength`, and `dataSize`. Supplying one field leaves the
+others unlimited. Only explicit interpreter budgets reach the injected runtime.
 
 Invalid options and execution parse failures return status 2; syntax-check failures return 1; guest failures return 1;
 command/interpreter limits return 124. Successful programs return their virtual
@@ -200,9 +194,13 @@ undo completed effects or stop uncooperative host work; budgets do not bound RSS
 
 ## Explicit worker provider
 
-The separate `nodeCommands({ provider, grants?, replace? })` API remains available
+The separate `nodeCommands({ provider, grants?, limits?, replace? })` API remains available
 for hosts supplying a `NodeRuntimeProvider` for the restricted synchronous profile
-below. Do not combine `provider`/`grants` with `runtime`/`limits`.
+below. Do not combine `provider`/`grants` with `runtime`. Provider `limits` use the
+restricted profile fields, such as `sourceBytes`, `operations`, `outputBytes`,
+`admissionMs`, `memoryBytes`, `steps`, and individual Worker heap/stack budgets.
+Each is optional; an omitted field is unlimited. Transfer chunks remain 64 KiB
+while total payloads, metadata, operations, and frame counts have no default cap.
 `createNodeWorkerProvider` accepts an explicitly authorized static engine adapter;
 it never discovers or loads SafeJS automatically. Entry URLs and identity strings
 are configuration, not byte authentication or host authorization. Guest code does
@@ -218,6 +216,11 @@ The owner registers cleanup before acquisition. Provider prepare is inert. A sta
 
 Status0/1/2 means clean entry return / guest failure / private profile failure only after confirmed provider retirement and owned parent cleanup. Unknown acquisition/exit or failed cleanup is not clean. Raw command invocation preserves actual reasons; enclosing public Shell applies its existing error mapping. Bounded diagnostic publication is awaited, including publisher cleanup, and records undefined fault presence without replacing the primary reason. It may report diagnosis unavailable; it does not serialize arbitrary errors.
 
-The fixed16MiB command-owned logical ledger includes a1MiB diagnostic reserve. The reference transport uses a197056-byte SAB;5s is admission-only, not a whole invocation or cleanup bound. V8 old32/young8/code8/stack4MiB limits are separate from the logical ledger and not RSS. Source256KiB bounds the combined trusted facade and interpreted user program, not every raw256KiB input. Separate operation/read/write/output quotas can make individual maxima unreachable together. Providers must honor their declared VFS/source bounds; these checks do not promise preallocation control over arbitrary host providers or all native guest allocations.
+The command-owned logical memory ledger is unlimited unless `memoryBytes` is
+configured. The reference transport uses a 197056-byte SAB for transfer chunks.
+`admissionMs` optionally bounds admission and execution until the entry returns;
+cleanup remains independently owned. Worker heap/stack fields are supplied only
+when configured, and do not bound RSS. Providers receive only explicit caller budgets in `request.limits` and must
+honor them; these checks do not preempt arbitrary host code or native allocations.
 
 The reference owner closes admission at the actual entry-return marker after required output, wakes blocked sync transport on cancellation and confirms Worker exit. This lifetime-retirement profile can abandon guest continuations; it is not all-jobs-settled semantics. Node-local services and errors do not add fields to shared ShellLimits, Budget or AST contracts. No shared budget is reset.

@@ -1,11 +1,11 @@
 import { posix } from "node:path";
-import { NodeUsageError, nodeLimits, type NodeSelector } from "./types.js";
+import { NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { strings, text } from "./values.js";
 
 export interface NodeInvocation { readonly selector: NodeSelector; readonly source: string | null; readonly filename: string; readonly argv: readonly string[]; }
-export function invocation(values: readonly string[], cwd: string): NodeInvocation {
-  const args = strings(values, 132, nodeLimits.sourceBytes + nodeLimits.contextBytes + 128);
-  text(cwd, nodeLimits.pathBytes, "cwd");
+export function invocation(values: readonly string[], cwd: string, limits: NodeLimits = nodeLimits): NodeInvocation {
+  const args = strings(values, Infinity, limits.sourceBytes + limits.contextBytes + 128);
+  text(cwd, limits.pathBytes, "cwd");
   if (!cwd.startsWith("/") || cwd.includes("\0")) throw new NodeUsageError("cwd must be an absolute virtual path");
   let selector: "eval" | "print" | undefined;
   let source: string | null = null;
@@ -28,7 +28,7 @@ export function invocation(values: readonly string[], cwd: string): NodeInvocati
       const equal = argument.indexOf("=");
       const value = equal >= 0 ? argument.slice(equal + 1) : args[++index];
       if (value === undefined) throw new NodeUsageError("missing source operand");
-      source = text(value, nodeLimits.sourceBytes, "source bytes"); continue;
+      source = text(value, limits.sourceBytes, "source bytes"); continue;
     }
     if (argument.startsWith("-") && argument !== "-") throw new NodeUsageError("unsupported node option");
     break;
@@ -37,6 +37,6 @@ export function invocation(values: readonly string[], cwd: string): NodeInvocati
   const file = args[index];
   if (file === undefined || file === "-") return { selector: "stdin", source: null, filename: "/[stdin]", argv: Object.freeze(["/virtual/bin/node", "-", ...args.slice(file === undefined ? index : index + 1)]) };
   if (inputType || !file.endsWith(".cjs") || file.includes("\0")) throw new NodeUsageError("only explicit .cjs file entries are supported");
-  const filename = text(posix.resolve(cwd, file), nodeLimits.pathBytes, "entry path");
+  const filename = text(posix.resolve(cwd, file), limits.pathBytes, "entry path");
   return { selector: "file", source: null, filename, argv: Object.freeze(["/virtual/bin/node", filename, ...args.slice(index + 1)]) };
 }

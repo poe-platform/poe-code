@@ -8,11 +8,11 @@ import { NodeOwner } from "./lifecycle.js";
 import { buildNodeProgram } from "./program.js";
 import { createSafeJsNodeCommand } from "./safejs.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
-import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
+import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, resolveNodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
 import { environment, grants, record, text } from "./values.js";
 
 export { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits } from "./types.js";
-export type { NodeCommandOptions, NodeProviderCommandOptions, NodeSafeJsCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
+export type { NodeLimits, NodeLimitOptions, NodeCommandOptions, NodeProviderCommandOptions, NodeSafeJsCommandOptions, NodeCompletion, NodeGrants, NodeGuestError, NodeHostRequest, NodeHostResponse, NodeHostServices, NodeObservation, NodeReason, NodeRetirement, NodeRuntimeProvider, NodeSelector, NodeSession, NodeSourceRequest } from "./types.js";
 export { NODE_ENGINE_ABI } from "./worker-types.js";
 export type { NodeBridge, NodeEngineAdapter, NodeEngineInput, NodeEngineResult, NodeWorkerEvent, NodeWorkerProviderOptions } from "./worker-types.js";
 
@@ -56,15 +56,18 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
     if (settings.runtime === undefined || settings.runtime === null) throw new TypeError("node requires an injected SafeJS runtime");
     return createSafeJsNodeCommand(settings as unknown as NodeSafeJsCommandOptions<Budget>);
   }
-  const settings = record(options, ["provider"], ["grants"]);
+  const settings = record(options, ["provider"], ["grants", "limits"]);
+  const limits = resolveNodeLimits(settings.limits as import("./types.js").NodeLimitOptions | undefined);
+  const configuredLimits = Object.freeze({ ...settings.limits as import("./types.js").NodeLimitOptions | undefined });
   const provider = providerValue(settings.provider);
   const allowed = grants(Object.hasOwn(settings, "grants") ? settings.grants : {});
   return Object.freeze({
     name: "node",
     description: "Explicit-provider restricted synchronous virtual Node profile",
     execute: async (context: CommandContext): Promise<CommandResult> => {
-      const owner = new NodeOwner(context);
+      const owner = new NodeOwner(context, limits);
       let hold: (() => void) | undefined;
+      let programHold: (() => void) | undefined;
       let request: NodeSourceRequest | undefined;
       let source: string | undefined;
       let host: NodeHost | undefined;
@@ -74,7 +77,7 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
       context.registerCleanup?.(owner.close);
       const diagnose = async (message: string): Promise<void> => {
         if (!allowed.stderrWrite || owner.retiring || owner.signal.aborted || context.signal.aborted) return;
-        const bounded = text(message, nodeLimits.errorBytes, "diagnostic");
+        const bounded = text(message, limits.errorBytes, "diagnostic");
         const output = "node: " + bounded + "\n";
         if (host) await host.diagnostic(output);
         else {
@@ -84,15 +87,15 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
       };
       try {
         owner.open();
-        hold = owner.ledger.reserve("source-context-diagnostics", nodeLimits.sourceBytes * 6 + nodeLimits.contextBytes * 4 + nodeLimits.diagnosticReserve);
-        const selected = invocation(context.args, context.cwd);
-        const env = environment(context.env);
+        hold = owner.ledger.reserve("source-context-diagnostics", Buffer.byteLength(JSON.stringify({ args: context.args, env: context.env, cwd: context.cwd })) * 4);
+        const selected = invocation(context.args, context.cwd, limits);
+        const env = environment(context.env, limits);
         const argv = Object.freeze(selected.argv);
         let contextBytes = Buffer.byteLength(context.cwd) + Buffer.byteLength(selected.filename);
         for (const argument of argv) { if (argument.includes("\0")) throw new NodeUsageError("NUL in argument"); contextBytes += Buffer.byteLength(argument); }
         for (const [name, value] of Object.entries(env)) contextBytes += Buffer.byteLength(name) + Buffer.byteLength(value);
-        if (argv.length > 128 || contextBytes > nodeLimits.contextBytes) throw new NodeProfileError("context bytes/entries");
-        const cwd = text(context.cwd, nodeLimits.pathBytes, "cwd");
+        if (contextBytes > limits.contextBytes) throw new NodeProfileError("context bytes/entries");
+        const cwd = text(context.cwd, limits.pathBytes, "cwd");
         host = new NodeHost(owner, allowed, cwd, selected.selector === "file" ? posix.dirname(selected.filename) : cwd);
         owner.attachHost(host);
         if (selected.source === null) source = await host.source(selected.selector === "file" ? selected.filename : null);
@@ -100,11 +103,13 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
           source = new TextDecoder("utf-8", { ignoreBOM: true }).decode(new TextEncoder().encode(selected.source));
           if (source.startsWith("\ufeff")) source = source.slice(1);
         }
-        text(source, nodeLimits.sourceBytes, "source bytes");
+        text(source, limits.sourceBytes, "source bytes");
         const parseRelease = owner.ledger.reserve("source-admission", source.length * 32);
-        try { admitSource(source, selected.selector === "print"); } finally { parseRelease(); }
+        try { admitSource(source, selected.selector === "print", limits); } finally { parseRelease(); }
         owner.check();
-        request = Object.freeze({ profile: NODE_PROFILE, selector: selected.selector, source, program: buildNodeProgram(source, selected.selector), filename: selected.filename, cwd, argv, env, grants: allowed, limits: nodeLimits });
+        const program = buildNodeProgram(source, selected.selector, limits);
+        programHold = owner.ledger.reserve("source-program", 2 * (Buffer.byteLength(source) + Buffer.byteLength(program)));
+        request = Object.freeze({ profile: NODE_PROFILE, selector: selected.selector, source, program, filename: selected.filename, cwd, argv, env, grants: allowed, limits: configuredLimits });
         const sessionHost = (): NodeHost => {
           if (!owner.started || !host) { const error = new NodeProfileError("inactive provider session"); owner.failure(error, "profile"); throw error; }
           return host;
@@ -118,7 +123,7 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
           delivered: sequence => sessionHost().delivered(sequence),
           reserve: (label, bytes) => {
             sessionHost();
-            try { owner.check(); return owner.ledger.reserve("provider:" + text(label, 119, "provider reservation name"), bytes); }
+            try { owner.check(); return owner.ledger.reserve("provider:" + text(label, Infinity, "provider reservation name"), bytes); }
             catch (error) { owner.failure(error, "profile"); throw error; }
           },
           cutoff: () => { sessionHost(); owner.cutoff(); },
@@ -153,7 +158,7 @@ export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<
         owner.capture(escaping.value, "profile");
       } finally {
         try { await owner.close(); } catch (error) { cleanup = { present: true, value: error }; }
-        source = undefined; request = undefined; host = undefined; hold?.(); hold = undefined;
+        source = undefined; request = undefined; host = undefined; hold?.(); hold = undefined; programHold?.(); programHold = undefined;
       }
       context.signal.throwIfAborted();
       const primary = owner.primary ?? escaping;

@@ -90,52 +90,63 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   const equals = argument.value.indexOf("=");
   if (equals < 1) throw new CurlError(2, "Multipart form requires name=value");
   const name = quoted(argument.value.slice(0, equals));
-  let value = argument.value.slice(equals + 1);
-  let type: string | undefined;
-  let filename: string | undefined;
-  let encoder: string | undefined;
-  let file: string | undefined;
-  if (argument.kind === "form") {
-    const input = value;
-    const isFile = input.startsWith("@") || input.startsWith("<");
-    const word = formWord(input, isFile ? 1 : 0, isFile);
+  const input = argument.value.slice(equals + 1);
+  const upload = argument.kind === "form" && input.startsWith("@");
+  const isFile = argument.kind === "form" && (upload || input.startsWith("<"));
+  const entries: { value: string; file?: string; filename?: string; type?: string; encoder?: string }[] = [];
+  let start = isFile ? 1 : 0;
+  do {
+    const word = argument.kind === "form" ? formWord(input, start, isFile) : { value: input, end: input.length };
+    const entry: { value: string; file?: string; filename?: string; type?: string; encoder?: string } = { value: word.value };
     if (isFile) {
-      file = word.value;
-      if (!file || input[word.end] === ",") throw new CurlError(2, "Unsupported multipart file list");
-      if (input.startsWith("@")) filename = posix.basename(file);
-    } else value = word.value;
+      if (!word.value) throw new CurlError(2, "Empty multipart file operand");
+      entry.file = word.value;
+      if (upload) entry.filename = posix.basename(word.value);
+    }
     let end = word.end;
-    while (end < input.length) {
-      const start = end + 1;
-      if (input.startsWith("type=", start)) {
-        const attribute = formWord(input, start + 5, false);
-        type = attribute.value;
+    while (end < input.length && input[end] !== ",") {
+      const attributeStart = end + 1;
+      if (input.startsWith("type=", attributeStart)) {
+        const attribute = formWord(input, attributeStart + 5, upload);
+        entry.type = attribute.value;
         end = attribute.end;
-      } else if (input.startsWith("filename=", start)) {
-        const attribute = formWord(input, start + 9, false);
-        filename = attribute.value;
+      } else if (input.startsWith("filename=", attributeStart)) {
+        const attribute = formWord(input, attributeStart + 9, upload);
+        entry.filename = attribute.value;
         end = attribute.end;
-      } else if (input.startsWith("encoder=", start)) {
-        const attribute = formWord(input, start + 8, false);
-        encoder = attribute.value.toLowerCase();
+      } else if (input.startsWith("encoder=", attributeStart)) {
+        const attribute = formWord(input, attributeStart + 8, upload);
+        entry.encoder = attribute.value.toLowerCase();
         end = attribute.end;
-        if (!["binary", "8bit", "7bit", "base64", "quoted-printable"].includes(encoder))
+        if (!["binary", "8bit", "7bit", "base64", "quoted-printable"].includes(entry.encoder))
           throw new CurlError(2, "Unsupported multipart transfer encoder");
       } else throw new CurlError(2, "Unsupported multipart form attribute");
     }
+    if (entry.type !== undefined && !/^[\w!#$&^_.+-]+\/[\w!#$&^_.+-]+$/.test(entry.type)) throw new CurlError(2, "Invalid multipart content type");
+    entries.push(entry);
+    if (end === input.length) break;
+    if (!upload) throw new CurlError(2, "Unsupported multipart file list");
+    start = end + 1;
+  } while (start <= input.length);
+  const mixed = entries.length > 1;
+  const childBoundary = mixed ? `virtual-bash-${randomBytes(18).toString("hex")}` : boundary;
+  const parts: Part[] = [];
+  if (mixed) parts.push({ bytes: encode(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\nContent-Type: multipart/mixed; boundary=${childBoundary}\r\n\r\n`) });
+  for (const entry of entries) {
+    let preamble = `--${childBoundary}\r\nContent-Disposition: ${mixed ? "attachment" : `form-data; name="${name}"`}`;
+    if (entry.filename !== undefined) preamble += `; filename="${quoted(entry.filename)}"`;
+    preamble += "\r\n";
+    if (entry.type || entry.filename !== undefined) {
+      const inferred = entry.filename === undefined ? undefined : filenameContentType(entry.filename) ??
+        (entry.file === undefined ? undefined : filenameContentType(entry.file));
+      preamble += `Content-Type: ${entry.type ?? inferred ?? "application/octet-stream"}\r\n`;
+    }
+    if (entry.encoder) preamble += `Content-Transfer-Encoding: ${entry.encoder}\r\n`;
+    preamble += "\r\n";
+    parts.push({ bytes: encode(preamble) }, entry.file !== undefined ? { file: entry.file, encoder: entry.encoder } : { bytes: encode(entry.value), encoder: entry.encoder }, { bytes: encode("\r\n") });
   }
-  if (type !== undefined && !/^[\w!#$&^_.+-]+\/[\w!#$&^_.+-]+$/.test(type)) throw new CurlError(2, "Invalid multipart content type");
-  let preamble = `--${boundary}\r\nContent-Disposition: form-data; name="${name}"`;
-  if (filename !== undefined) preamble += `; filename="${quoted(filename)}"`;
-  preamble += "\r\n";
-  if (type || filename !== undefined) {
-    const inferred = filename === undefined ? undefined : filenameContentType(filename) ??
-      (file === undefined ? undefined : filenameContentType(file));
-    preamble += `Content-Type: ${type ?? inferred ?? "application/octet-stream"}\r\n`;
-  }
-  if (encoder) preamble += `Content-Transfer-Encoding: ${encoder}\r\n`;
-  preamble += "\r\n";
-  return [{ bytes: encode(preamble) }, file !== undefined ? { file, encoder } : { bytes: encode(value), encoder }, { bytes: encode("\r\n") }];
+  if (mixed) parts.push({ bytes: encode(`--${childBoundary}--\r\n\r\n`) });
+  return parts;
 }
 
 async function* transfer(source: ByteSource, encoder: string | undefined, signal: AbortSignal): ByteSource {

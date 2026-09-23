@@ -339,9 +339,14 @@ for (const source of ["join /input /input", "diff /input /input", "html-to-markd
         return typeof member === "function" ? member.bind(target) : member;
       },
     });
-    const shell = new Shell({ fs }).use(agentCommands()).use(safeJsCommands({ runtime: contractRuntime(async value => {
-      assert.ok(value.endsWith("a\nb\n\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
-    }) })).use(networkCommands({
+    const runtime = {
+      ...contractRuntime(async value => {
+        assert.ok(value.endsWith("a\nb\n\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);"));
+        assert.ok(value.includes("\na\nb\n"), "the injected runtime receives the file contents");
+      }),
+      makeFsModule() { return { readFile() { assert.fail("the guest must not read files"); } }; },
+    };
+    const shell = new Shell({ fs }).use(agentCommands()).use(safeJsCommands({ runtime })).use(networkCommands({
       authorize: () => true,
       async transport(request) {
         assert.equal(new TextDecoder().decode(await collectBytes(request.body!, { signal: request.signal, maxBytes: 16 })), "a\nb\n");

@@ -64,7 +64,7 @@ options. Invalid options and malformed operands produce diagnostics and status
 | `mkdir` | Multiple directories, recursive parents `-p`, octal mode `-m`, verbose `-v`. |
 | `touch` | Create without truncation; `-c`, `-a`, `-m`, reference times `-r`. New files without `-r` retain filesystem-assigned creation timestamps; existing files and reference times require provider timestamp support. |
 | `cp` | Multiple sources, `-r`/`-R`, `-n`, `-f`, `-v`, `-P`, `-L`; `-i`/`--interactive` reads stdin confirmation before overwriting; nested symlink preservation by default; same-file, descendant-copy and cycle checks. |
-| `mv` | Virtual rename, multiple sources into directories; `-n`, `-f`, `-v`. |
+| `mv` | Virtual rename, multiple sources into directories; `-n`, `-f`, `-v`; `-i`/`--interactive` reads stdin confirmation before replacement, with the last `-i`/`-f`/`-n` taking precedence. |
 | `rm` | Files and links; `-r`/`-R`, `-f`, empty directories `-d`, `-v`; root and dot-entry protection. |
 | `rmdir` | Directory/type/emptiness checks, parent removal `-p`, `-v`. |
 | `ln` | Hard and literal symbolic links, `-s`, `-f`, `-n`, `-T`; multiple sources into target directories. |

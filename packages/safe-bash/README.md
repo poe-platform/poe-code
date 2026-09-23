@@ -130,6 +130,11 @@ Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
+`mv -i` / `--interactive` asks on stderr before replacing an existing destination
+and reads one response from stdin. A response beginning with `y` or `Y` allows
+the move; refusal or EOF keeps both paths and returns status 1. The last of
+`-i`, `-f`, and `-n` wins. Skipped updates and missing destinations do not prompt,
+and backups are created only after confirmation.
 `cp -i` / `--interactive` prompts on stderr before overwriting each existing file
 and reads one response from stdin. Responses beginning with `y` or `Y` allow
 replacement; refusal or EOF preserves the destination and returns status 1.

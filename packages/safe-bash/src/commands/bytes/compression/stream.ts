@@ -132,7 +132,7 @@ export async function transform(
   const nativeTransform = options.decompress && !options.test && (options.passthrough || (options.force && options.stdout && options.passthrough !== false))
     ? passthroughStream : options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec;
   const transformed = options.format !== "gzip"
-    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, xzFormat: options.xzFormat, xzDecompressMemory: options.xzDecompressMemory, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
+    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, xzFormat: options.xzFormat, xzCheck: options.xzCheck, xzIgnoreCheck: options.xzIgnoreCheck, xzDecompressMemory: options.xzDecompressMemory, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {

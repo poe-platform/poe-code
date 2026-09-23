@@ -2,6 +2,8 @@ import { UsageError } from "../../internal.js";
 
 export interface CompressionOptions {
   format: CompressionFormat;
+  xzCheck?: number;
+  xzIgnoreCheck?: boolean;
   xzFormat?: "auto" | "xz";
   decompress: boolean;
   stdout: boolean;
@@ -122,6 +124,11 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         if (name === "memlimit-decompress") result.xzDecompressMemory = memory;
         continue;
       }
+      if (argument === "--ignore-check") { result.xzIgnoreCheck = true; continue; }
+      if (argument === "--check" || argument.startsWith("--check=")) {
+        result.xzCheck = parseXzCheck(argument === "--check" ? args[++index] : argument.slice("--check=".length));
+        continue;
+      }
       if (argument === "--single-stream") { result.singleStream = true; continue; }
       // The frontend already writes dense output and emits no XZ warnings.
       if (argument === "--no-sparse" || argument === "--no-warn") continue;
@@ -159,6 +166,12 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         continue;
       }
       switch (flag) {
+        case "C": {
+          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          result.xzCheck = parseXzCheck(flags.slice(offset + 1) || args[++index]);
+          offset = flags.length;
+          break;
+        }
         case "F": {
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const format = flags.slice(offset + 1) || args[++index];
@@ -241,4 +254,11 @@ function parseXzMemory(value: string | undefined): number {
   if (bytes > 0xffffffffffffffffn) throw new UsageError("memory limit exceeds the XZ uint64 limit");
   // Zero disables the caller limit, never the codec's existing allocation ceiling.
   return bytes === 0n ? 64 * 1024 * 1024 : Number(bytes > 67108864n ? 67108864n : bytes);
+}
+
+function parseXzCheck(value: string | undefined): number {
+  const checks: Readonly<Record<string, number>> = { none: 0, crc32: 1, crc64: 4, sha256: 10 };
+  const check = value !== undefined && Object.hasOwn(checks, value) ? checks[value] : undefined;
+  if (check === undefined) throw new UsageError(`unsupported XZ integrity check '${value ?? ""}'`);
+  return check;
 }

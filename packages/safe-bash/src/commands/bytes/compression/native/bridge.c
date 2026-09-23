@@ -51,13 +51,15 @@ API void bridge_destroy(void) {
 API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window_log
 #if defined(BZ)
  ,int small
+#elif defined(XZ)
+ ,int check,int ignore_check
 #endif
 ) {
 #if defined(BZ)
  if(small!=0&&small!=1)return -1;
 #endif
 #if defined(XZ)
- if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9)return -1;
+ if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9||!lzma_check_is_supported(check)||(ignore_check!=0&&ignore_check!=1))return -1;
 #else
  if(level<1)return -1;
 #endif
@@ -68,7 +70,7 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
  ok=(decode?BZ2_bzDecompressInit(&s,0,small):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
 #elif defined(XZ)
  s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;
- ok=(decode?lzma_auto_decoder(&s,memory_limit,0):lzma_easy_encoder(&s,level,LZMA_CHECK_CRC64))==LZMA_OK;
+ ok=(decode?lzma_auto_decoder(&s,memory_limit,ignore_check?LZMA_IGNORE_CHECK:0):lzma_easy_encoder(&s,level,check))==LZMA_OK;
 #else
  ZSTD_customMem mem={allocate,release,NULL};
  if(decode){dec=ZSTD_createDCtx_advanced(mem);ok=dec&&!ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_windowLogMax,window_log));}

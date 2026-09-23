@@ -115,7 +115,11 @@ fail earlier than native XZ. Compression is unaffected.
 on the single-threaded decoder, matching native XZ's soft MT limit behavior.
 Host-RAM percentages remain unsupported.
 Errors still fail and are reported unless quiet is repeated.
-Other forced formats, checksum controls, memory adjustment, custom filters, block
+`--check=none|crc32|crc64|sha256` (also `-C` or a separate argument) selects
+the encoded integrity check; CRC64 remains the default. `--ignore-check` skips
+data checksum verification during decompression and test mode while still
+validating stream headers and structure. Both controls apply to all XZ aliases.
+Other forced formats, memory adjustment, custom filters, block
 controls and listing remain unsupported; these options do not lift codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and

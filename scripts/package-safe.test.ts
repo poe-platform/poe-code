@@ -826,6 +826,34 @@ function optionalArtifact() {
 }
 
 describe("explicit optional safe package artifact", () => {
+  it("embeds YAML used by core tools without installing the optional yq peer", async () => {
+    const { volume, options } = optionalArtifact();
+    const root = JSON.parse(volume.readFileSync("/repo/package.json", "utf8").toString());
+    volume.writeFileSync("/repo/package.json", JSON.stringify({ ...root, dependencies: { yaml: "2.9.0" } }));
+    volume.mkdirSync("/repo/node_modules/yaml", { recursive: true });
+    volume.writeFileSync("/repo/node_modules/yaml/package.json", JSON.stringify({ name: "yaml", version: "2.9.0" }));
+    volume.writeFileSync("/repo/node_modules/yaml/LICENSE", "YAML fixture license");
+    volume.mkdirSync("/repo/packages/pandoc/dist", { recursive: true });
+    volume.writeFileSync("/repo/packages/pandoc/dist/defaults.js", 'export { parseDocument } from "yaml";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { parseDocument } from "yaml"; export * from "../../pandoc/dist/defaults.js";');
+    const bundle = vi.fn(async (recipe: BuildOptions) => recipe.outfile?.endsWith("/bundled-yaml/index.js")
+      ? build({ ...recipe, absWorkingDir: path.resolve(import.meta.dirname, ".."),
+        stdin: { ...recipe.stdin!, resolveDir: path.resolve(import.meta.dirname, "..") } })
+      : options.bundle(recipe));
+    await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
+    const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+    expect(manifest.dependencies.yaml).toBeUndefined();
+    expect(manifest.peerDependencies.yaml).toBe("2.9.0");
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.js", "utf8")).toContain('"./bundled-yaml/index.js"');
+    expect(volume.readFileSync("/output/safe-bash/dist/pandoc/defaults.js", "utf8")).toContain('"../safe-bash/bundled-yaml/index.js"');
+    const parser = volume.readFileSync("/output/safe-bash/dist/safe-bash/bundled-yaml/index.js", "utf8").toString();
+    const embedded = await import("data:text/javascript;base64," + Buffer.from(parser).toString("base64"));
+    expect(embedded.parseDocument("from: markdown\nto: html").toJS()).toEqual({ from: "markdown", to: "html" });
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/bundled-yaml/LICENSE", "utf8")).toBe("YAML fixture license");
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/opt-in/commands/yq/mike.js", "utf8")).toContain('import("yaml")');
+    expect(bundle).toHaveBeenCalledWith(expect.objectContaining({ bundle: true, platform: "browser", write: false }));
+  });
+
   it("rejects explicitly blocked optional peer declaration conditions", async () => {
     const { volume, options } = optionalArtifact();
     const manifest = JSON.parse(volume.readFileSync("/repo/packages/safe-bash/package.json", "utf8").toString());

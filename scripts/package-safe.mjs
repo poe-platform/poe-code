@@ -452,11 +452,27 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         }
       }
     }
+    // Core tools may need YAML internally, while yq must still require its
+    // explicitly installed optional peer. Keep that parser outside node resolution.
+    const bundledYaml = path.join(rootDir, "packages/safe-bash/dist/bundled-yaml/index.js");
     while (pending.length) {
       const filename = pending.pop();
       if (excluded(filename)) throw new Error(`Excluded package file referenced: ${path.relative(packageDir, filename)}`);
       if (copied.has(filename)) continue;
       copied.add(filename);
+      if (name === "safe-bash" && filename === bundledYaml) {
+        const yamlRoot = path.join(rootDir, "node_modules/yaml");
+        const yaml = await readJson(path.join(yamlRoot, "package.json"));
+        if (yaml.name !== "yaml" || yaml.version !== source.peerDependencies.yaml) throw new Error("Bundled YAML must match the qualified optional peer version");
+        const result = await bundle({ absWorkingDir: rootDir,
+          stdin: { contents: 'export * from "yaml";', resolveDir: rootDir },
+          outfile: bundledYaml, bundle: true, platform: "browser", format: "esm", target: "es2022", write: false });
+        for (const output of result.outputFiles) bundled.set(output.path, output.contents);
+        if (!bundled.has(bundledYaml)) throw new Error("Bundled YAML output missing");
+        const license = path.join(path.dirname(bundledYaml), "LICENSE");
+        bundled.set(license, await files.readFile(path.join(yamlRoot, "LICENSE")));
+        pending.push(license);
+      }
       if (!excluded(filename + ".map") && (bundled.has(filename + ".map") || await exists(filename + ".map"))) pending.push(filename + ".map");
       const destination = path.join(directory, artifactPath(rootDir, filename));
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(filename);
@@ -482,6 +498,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
             return specifier;
           }
           let publicName = publicSpecifier(specifier);
+          if (name === "safe-bash" && optional && !declaration && publicName === "yaml") {
+            pending.push(bundledYaml);
+            const relative = path.relative(path.dirname(destination), path.join(directory, artifactPath(rootDir, bundledYaml))).split(path.sep).join("/");
+            return relative.startsWith(".") ? relative : "./" + relative;
+          }
           if (publicName === `@poe-platform/${name}` || publicName.startsWith(`@poe-platform/${name}/`)) return publicName;
           const qualifiedName = name === "safe-bash" && Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {})
             .find(candidate => publicName === candidate || publicName.startsWith(candidate + "/"));

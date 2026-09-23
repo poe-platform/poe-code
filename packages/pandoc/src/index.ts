@@ -35,6 +35,8 @@ export type {
 
 export {createJsonFilterCapability} from "./json-filters.js";
 export type {JsonFilterRuntime} from "./json-filters.js";
+export {createLuaFilterCapability} from "./lua-filters.js";
+export type {LuaScriptLoader} from "./lua-filters.js";
 
 export { normalizeDocument, normalizeDocumentCooperatively, AstError } from "./ast.js";
 export { createExecutionContext, ExecutionContext, defaultLimits } from "./execution.js";

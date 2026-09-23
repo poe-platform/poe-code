@@ -1,4 +1,4 @@
-import {convert, createJsonFilterCapability, resolveConversionArgs, type JsonFilterRuntime, type ConversionOptions} from "@poe-code/pandoc";
+import {convert, createJsonFilterCapability, createLuaFilterCapability, resolveConversionArgs, type LuaScriptLoader, type JsonFilterRuntime, type ConversionOptions} from "@poe-code/pandoc";
 import {pandocCommands, type PandocCommandsOptions} from "@poe-platform/safe-bash/commands/pandoc";
 const options: ConversionOptions = {from: "commonmark", to: "plain"};
 const plugin: PandocCommandsOptions = {replace: true, limits: {inputBytes: 100}};
@@ -9,6 +9,10 @@ void convert([], {...options, filters: [{kind: "json", path: "filter.py"}]}, {fi
 void pandocCommands({filters});
 const parsed = await resolveConversionArgs([], {}, new AbortController().signal);
 void convert(parsed.operands ?? [], parsed.options, {limits: parsed.limits});
+declare const loadScript: LuaScriptLoader;
+const luaFilters = createLuaFilterCapability(loadScript);
+void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: luaFilters});
+void pandocCommands({filters: luaFilters});
 // @ts-expect-error Native engine configuration is not a public conversion option.
 void convert([], {from: "commonmark", to: "plain", nativeEngine: "pandoc"}, {});
 

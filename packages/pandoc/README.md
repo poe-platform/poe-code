@@ -157,6 +157,28 @@ calls are not isolated or individually metered. Only global `Str` callbacks
 returning a `Str` element or nil are supported; other callbacks, Pandoc
 constructors, filter tables and citeproc remain unsupported.
 
+`createLuaFilterCapability(loadScript)` executes genuine Lua 5.3 using Fengari.
+Supply an explicit `(path, signal) => Promise<Uint8Array>` loader and pass the
+returned capability as `filters` in the SDK, `createPandocCommand`, or
+`pandocCommands`. It supports the reported uppercase filter:
+
+```lua
+function Str(el)
+  el.text = string.upper(el.text)
+  return el
+end
+```
+
+This profile supports only `Str` callbacks, either global or returned in a
+`{Str = function(el) ... end}` table; helpers must be local. Return a Str with
+string `text` and `tag = "Str"`, or nil to preserve the original. Other callbacks,
+filter lists, Pandoc constructors, and citeproc are unsupported and fail explicitly.
+The VM has no file, process, module-loading, or printing APIs. Basic string
+operations are available; patterns, repetition, formatting, and bytecode loading
+are disabled. Scripts run in a fresh VM with conversion instruction checks;
+script bytes and returned text share the conversion budgets. Use trusted scripts
+only: VM allocations are not isolated or bounded by the SDK retained-byte limit.
+
 `limits` can lower the exported `defaultLimits` ceilings: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,
 `attributes`, `tableCells`, `tableFieldText`, `tableRows`, `tableColumns`,

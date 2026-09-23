@@ -56,18 +56,22 @@ function outputPath(source: string, options: CompressionOptions): string {
     if (!options.force && source.endsWith(suffix)) throw new FsError("EINVAL", { path: source, message: `already has a ${options.format} suffix (use -f to compress again)` });
     return source + suffix;
   }
+  const suffix = options.suffix ?? ".gz";
+  const name = source.toLowerCase();
+  const standardSuffixes = [".gz", ".z", "-gz", "-z", "_z"];
   if (options.decompress) {
-    if (/\.(?:tgz|taz)$/iu.test(source)) return source.slice(0, -4) + ".tar";
-    const suffix = /(?:\.gz|\.z|-gz|-z|_z)$/iu.exec(source);
-    if (!suffix) throw new FsError("EINVAL", { path: source, message: "unknown gzip suffix (use -c for stdout)" });
-    const destination = source.slice(0, -suffix[0].length);
+    const custom = suffix.length > 0 && name.endsWith(suffix.toLowerCase());
+    if (!custom && (name.endsWith(".tgz") || name.endsWith(".taz"))) return source.slice(0, -4) + ".tar";
+    const matched = custom ? suffix : standardSuffixes.find(value => name.endsWith(value));
+    if (!matched) throw new FsError("EINVAL", { path: source, message: "unknown gzip suffix (use -c for stdout)" });
+    const destination = source.slice(0, -matched.length);
     if (destination === dirname(source) || destination.endsWith("/")) throw new FsError("EINVAL", { path: source, message: "empty output filename" });
     return destination;
   }
-  if (!options.force && /(?:\.gz|\.z|-gz|-z|_z|\.tgz|\.taz)$/iu.test(source)) {
+  if (!options.force && [suffix.toLowerCase(), ...standardSuffixes, ".tgz", ".taz"].some(value => name.endsWith(value))) {
     throw new FsError("EINVAL", { path: source, message: "already has a gzip suffix (use -f to compress again)" });
   }
-  return source + ".gz";
+  return source + suffix;
 }
 
 export async function planOperands(context: CommandContext, options: CompressionOptions): Promise<Operand[]> {

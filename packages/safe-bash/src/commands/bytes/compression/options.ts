@@ -12,6 +12,7 @@ export interface CompressionOptions {
   recursive: boolean;
   level: number;
   extreme?: boolean;
+  suffix?: string;
   operands: string[];
 }
 
@@ -54,6 +55,12 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         continue;
       }
     }
+    if (profile.format === "gzip" && (argument === "--suffix" || argument.startsWith("--suffix="))) {
+      const suffix = argument === "--suffix" ? args[++index] : argument.slice("--suffix=".length);
+      if (suffix === undefined) throw new UsageError("option '--suffix' requires an argument");
+      result.suffix = suffix;
+      continue;
+    }
     const flags = argument === "--fast" ? String(profile.minimumLevel)
       : argument.startsWith("--") ? aliases[argument.slice(2)] : argument.slice(1);
     if (!flags) throw new UsageError(`unrecognized option '${argument}'`);
@@ -68,6 +75,14 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const threads = flags.slice(offset + 1) || args[++index];
           if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
+          offset = flags.length;
+          break;
+        }
+        case "S": {
+          if (profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
+          const suffix = flags.slice(offset + 1) || args[++index];
+          if (suffix === undefined) throw new UsageError("option '-S' requires an argument");
+          result.suffix = suffix;
           offset = flags.length;
           break;
         }
@@ -94,6 +109,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       }
     }
   }
+  if (result.suffix === "" && !result.decompress) throw new UsageError("invalid suffix ''");
   if (!result.operands.length) result.operands.push("-");
   return result;
 }

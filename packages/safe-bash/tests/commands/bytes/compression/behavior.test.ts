@@ -12,6 +12,27 @@ import { compressed } from "../../../../src/commands/archive/stream.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../../src/commands/archive/internal.js";
 import { binary, chunks, emptyMember, helloMember, run } from "./helpers.js";
 
+test("gzip custom suffix replaces input and decodes through Shell", async () => {
+  for (const option of ["--suffix=.gz2", "--suffix .gz2", "-S .gz2", "-S.gz2", "-kS.gz2"]) {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from("abc\n"));
+    const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+    try {
+      const result = await shell.exec(`gzip ${option} input; gzip -dc input.gz2`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "abc\n");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(gunzipSync(await fs.readFile("/input.gz2")), Buffer.from("abc\n"));
+      if (option.startsWith("-k")) await fs.rm("/input");
+      else await assert.rejects(fs.stat("/input"), { code: "ENOENT" });
+      const decoded = await shell.exec("gunzip --suffix=.gz2 input.gz2");
+      assert.equal(decoded.exitCode, 0, decoded.stderr);
+      assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from("abc\n"));
+      await assert.rejects(fs.stat("/input.gz2"), { code: "ENOENT" });
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("gzip quiet and recursive aliases round trip through Shell pipelines", async () => {
   const fs = createMemoryFileSystem();
   const input = new TextEncoder().encode("abc\n");
@@ -292,8 +313,8 @@ for (const [name, bytes] of [
   });
 }
 
-for (const flag of ["-0", "-x", "--unknown", "--stdout=yes", "--suffix", "-N"]) {
-  test(`rejects unsupported option ${flag} before mutation`, async () => {
+for (const flag of ["-0", "-x", "--unknown", "--stdout=yes", "--suffix", "-S", "--suffix=", "-N"]) {
+  test(`rejects invalid option ${flag} before mutation`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input", binary);
     const result = await run("gzip", ["input", flag], undefined, { fs });

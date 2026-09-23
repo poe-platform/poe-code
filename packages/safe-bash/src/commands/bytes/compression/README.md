@@ -27,12 +27,13 @@ it. Named files resolve relative to the injected virtual cwd.
 | `-q` | `--quiet` | Suppress warnings; errors remain visible even when repeated. |
 | `-r` | `--recursive` | Traverse virtual directories, processing regular files without following symlinks. |
 | `-n` | `--no-name` | Accepted; the no-name/no-timestamp header policy is always enabled. |
+| `-S SUFFIX` | `--suffix=SUFFIX`, `--suffix SUFFIX` | Use a custom compressed-file suffix. |
 | `-1` through `-9` | `--fast` (`-1`), `--best` (`-9`) | Compression level; default `6`, last level wins. |
 | `-h` | `--help` | Print usage to stdout without reading operands. |
 
 Short options combine, including `-9ck`. Options can follow operands until `--`;
 after `--`, dash-leading names are operands. Long options must match exactly and
-take no values. Unsupported flags, abbreviated long options, `--flag=value`,
+take no values except `--suffix`. Unsupported flags, abbreviated long options, unsupported `--flag=value`,
 and `-0` fail rather than silently doing something else. Levels are accepted but
 have no effect during decompression. `-t` selects decompression regardless of
 argument order and suppresses stdout even with `-c`; help takes precedence over
@@ -61,7 +62,9 @@ File-output decompression never uses this passthrough. No option switches
 
 ## Names, metadata, and format
 
-Named compression appends `.gz`. Without `-f`, file-output compression rejects
+Named compression appends `.gz`, or the suffix supplied with `-S`/`--suffix`.
+Decompression recognizes the custom suffix before the standard suffixes.
+Without `-f`, file-output compression rejects the custom suffix and
 names already ending in `.gz`, `.z`, `-gz`, `-z`, `_z`, `.tgz`, or `.taz`.
 File-output decompression removes `.gz`, `.z`, `-gz`, `-z`, or `_z`; `.tgz` and
 `.taz` become `.tar`. These suffix checks are case-insensitive. Unknown suffixes

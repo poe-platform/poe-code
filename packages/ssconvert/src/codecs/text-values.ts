@@ -178,6 +178,8 @@ export function inferTextColumns(cells: readonly Cell[], book: Workbook, context
       if (text.toUpperCase() === locale.trueText || text.toUpperCase() === locale.falseText)
         inferred = { value: { kind: "boolean", value: text.toUpperCase() === locale.trueText } };
     }
-    return { ...cell, ...inferred, ...(format.format === undefined ? {} : { format: format.format }) };
+    return { ...cell, ...inferred,
+      ...(format.format === undefined && inferred.format !== undefined ? { inferredValueFormat: inferred.format } : {}),
+      ...(format.format === undefined ? {} : { format: format.format }) };
   });
 }

@@ -1,4 +1,4 @@
-import type { ImportedValue } from "../workbook.js";
+import type { Cell, ImportedValue } from "../workbook.js";
 import type { MetadataNode } from "./xlsx-write-support.js";
 
 export type SylkStyle = Record<string, ImportedValue>;
@@ -19,7 +19,9 @@ export function sylkMergeStyle(a: SylkStyle, b: SylkStyle): SylkStyle {
   for (const key of ["Font", "StyleBorder"]) if (a[key] || b[key]) result[key] = { ...(a[key] as SylkStyle ?? {}), ...(b[key] as SylkStyle ?? {}) };
   return result;
 }
-export function sylkOutputStyle(node: MetadataNode | undefined, format?: string) {
+export function sylkOutputStyle(node: MetadataNode | undefined, cell?: Cell) {
+  // Native SYLK writes effective styles, rather than text-entry value formats.
+  const format = cell?.format === cell?.inferredValueFormat ? undefined : cell?.format;
   const font = node?.children.find(n => n.name === "Font");
   const border = node?.children.find(n => n.name === "StyleBorder");
   return { format: format ?? node?.attributes.Format ?? "General", name: font?.text ?? "Sans", size: Number(font?.attributes.Unit ?? 10),

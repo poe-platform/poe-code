@@ -42,6 +42,11 @@ Configurable text export (`Gnumeric_stf:stf_assistant`) remembers a text input's
 unique LF, CRLF or CR terminator unless an explicit `eol` option overrides it;
 plain CSV export continues to use LF.
 
+SYLK export preserves explicit cell and column formats. CSV text-entry formats
+(such as inferred times and month/day/year dates) export as General, matching
+Gnumeric; their numeric values and imported display formats remain intact.
+Set a cell's `format` and clear `inferredValueFormat` to make that format explicit.
+
 This workspace is private and is distributed through the `poe-code` SDK subpath.
 
 For encrypted BIFF imports, `createEngine({ ...config, password: { read: readWorkbookPassword } })` asks only after the built-in password fails. The callback receives the algorithm, revision, input filename when available, encoding, maximum byte length and invocation cancellation signal. Return a string or UTF-16LE bytes for RC4 (up to 255 UTF-16 code units); XOR requires explicitly encoded bytes (0–15). Return `undefined` to decline. Passwords never come from command arguments or guest environment variables, and callback failures produce a sanitized diagnostic. OpenDocument AES-CBC and Blowfish-CFB8 imports accept UTF-8 strings or bytes through this callback, supporting AES128/192/256 and Blowfish4–56-byte keys, SHA1/SHA256 start keys and prefix/full checksums. The callback runs once after every encrypted member is admitted; malformed Unicode is rejected. All encrypted members are verified before conversion. Encryption is read-only; exports contain plaintext. BIFF ciphers and ODF encryption checksums do not authenticate workbook data; ODF prefix checksums cover only the first 1024 compressed bytes. Mixed AES/Blowfish packages are supported; the callback request identifies `mixed`.

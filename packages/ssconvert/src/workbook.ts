@@ -13,6 +13,9 @@ export interface Cell {
   readonly value: CellValue;
   readonly formula?: string;
   readonly format?: string;
+  /** Text-entry value format, distinct from an explicit cell or column style.
+   * A changed format overrides this inference. */
+  readonly inferredValueFormat?: string;
   readonly displayedText?: string;
   readonly style?: Readonly<Record<string, ImportedValue>>;
   readonly richText?: readonly RichTextRun[];

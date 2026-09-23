@@ -2,6 +2,8 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createEngine } from "../engine.js";
 import { runCommand } from "../index.js";
+import { readSylk, writeSylk } from "./sylk.js";
+import type { CapabilityContext } from "../contracts.js";
 
 function fixture(text: string | Uint8Array, filename = "/original.csv") {
   const volume = new Volume();
@@ -48,6 +50,31 @@ it.each(["a,b", "a,b\r\n1,2\n3,4\r\n", "a,b\r1,2\n3,4\r"])(
     try { expect((await f.read()).textExportEol).toBeUndefined(); }
     finally { await f.engine.dispose(); }
   });
+
+it.each(["12:34:56", "1/2/2025"])("exports value-inferred CSV format as SYLK General for %s while retaining explicit formats", async input => {
+  const book = await fixture(input + "\n").read();
+  const cell = book.sheets[0]!.cells[0]!;
+  expect(cell.format).toBeDefined();
+  const context: CapabilityContext = { signal: new AbortController().signal, own() {},
+    environment: { env: {}, locale: "C", timezone: "UTC" },
+    limits: { inputBytes: 100000, outputBytes: 100000, cells: 1000, sheets: 2, operations: 1000 } };
+  const output = new TextDecoder().decode(await writeSylk(book, [], context));
+  expect(output).toContain("P;PGeneral\r\n");
+  expect(output).not.toContain(`P;P${cell.format}\r\n`);
+  expect((await readSylk(new TextEncoder().encode(output), context)).sheets[0]!.cells[0]!.value).toEqual(cell.value);
+  const explicit = { ...book, sheets: [{ ...book.sheets[0]!, cells: [{ ...cell, format: "0.000" }] }] };
+  expect(new TextDecoder().decode(await writeSylk(explicit, [], context))).toContain("P;P0.000\r\n");
+  const authored = { ...book, sheets: [{ ...book.sheets[0]!, cells: [{ row: 0, column: 0, value: cell.value, format: cell.format! }] }] };
+  expect(new TextDecoder().decode(await writeSylk(authored, [], context))).toContain(`P;P${cell.format}\r\n`);
+});
+
+it("preserves column-inferred ISO date styles in SYLK", async () => {
+  const book = await fixture("2025-01-02\n").read();
+  const context: CapabilityContext = { signal: new AbortController().signal, own() {},
+    environment: { env: {}, locale: "C", timezone: "UTC" },
+    limits: { inputBytes: 100000, outputBytes: 100000, cells: 1000, sheets: 2, operations: 1000 } };
+  expect(new TextDecoder().decode(await writeSylk(book, [], context))).toContain("P;Pyyyy-mm-dd\r\n");
+});
 
 it("imports multiline CSV and tolerates garbage after closing quotes and missing quotes", async () => {
   const f = fixture('name,value\r\n"a\r\nb"junk,2\r\n"c""d",3\r\n"unfinished');

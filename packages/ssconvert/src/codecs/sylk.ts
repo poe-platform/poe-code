@@ -247,7 +247,7 @@ export async function writeSylk(book: Workbook, _options: readonly string[], con
     if (v.kind === "string" && !v.value) { if (!hasContent) { r.startRow = r.endRow = cell.row; r.startColumn = r.endColumn = cell.column; hasContent = true; }
       r.startRow = Math.min(r.startRow, cell.row); r.endRow = Math.max(r.endRow, cell.row);
       r.startColumn = Math.min(r.startColumn, cell.column); r.endColumn = Math.max(r.endColumn, cell.column); } }
-  for (const cell of cells) { out.tick(); collect(sylkOutputStyle(doc.styleAt(cell.row, cell.column, cell), cell.format)); }
+  for (const cell of cells) { out.tick(); collect(sylkOutputStyle(doc.styleAt(cell.row, cell.column, cell), cell)); }
   const columnStyles = new Map<number, Style>(), regions = doc.records.get("Styles") ?? [];
   const maximumRows = sheet.size?.rows ?? 65536, maximumColumns = sheet.size?.columns ?? 256;
   const cellsByColumn = new Map<number, Cell[]>();
@@ -271,7 +271,7 @@ export async function writeSylk(book: Workbook, _options: readonly string[], con
     let most: { count: number; style: Style } | undefined;
     for (let i = 0; i + 1 < breaks.length; i++) {
       out.tick(); const row = breaks[i]!, endRow = breaks[i + 1]! - 1, cell = doc.cells.get(`${row}:${column}`);
-      const style = sylkOutputStyle(doc.styleAt(row, column, cell), cell?.format), key = JSON.stringify(style);
+      const style = sylkOutputStyle(doc.styleAt(row, column, cell), cell), key = JSON.stringify(style);
       collect(style); const count = counts.get(key) ?? { count: 0, style }; count.count += endRow - row + 1; counts.set(key, count);
       bands.push({ row, endRow, key });
     }
@@ -287,7 +287,7 @@ export async function writeSylk(book: Workbook, _options: readonly string[], con
   // effective style before emitting the format/font tables that reference it.
   for (let row = r.startRow; row <= r.endRow; row++) for (let column = r.startColumn; column <= r.endColumn; column++) {
     out.tick(); const cell = doc.cells.get(`${row}:${column}`);
-    collect(sylkOutputStyle(doc.styleAt(row, column, cell), cell?.format));
+    collect(sylkOutputStyle(doc.styleAt(row, column, cell), cell));
   }
   // Order represented style properties before format/font table enumeration.
   const sortedStyles = [...outputStyles.values()].sort((a, b) => {
@@ -314,7 +314,7 @@ export async function writeSylk(book: Workbook, _options: readonly string[], con
   let currentRow = -1;
   // Native emits a style for every position in the content rectangle.
   for (let row = r.startRow; row <= r.endRow; row++) for (let column = r.startColumn; column <= r.endColumn; column++) {
-    out.tick(); const cell = doc.cells.get(`${row}:${column}`), style = sylkOutputStyle(doc.styleAt(row, column, cell), cell?.format);
+    out.tick(); const cell = doc.cells.get(`${row}:${column}`), style = sylkOutputStyle(doc.styleAt(row, column, cell), cell);
     out.put(styleLine(style) + (row !== currentRow ? `;Y${row + 1}` : "") + `;X${column + 1}\r\n`); currentRow = row;
   }
   for (const axis of sheet.columns ?? []) if (axis.index >= r.startColumn && axis.index <= r.endColumn && axis.sizePoints !== undefined && axis.sizePoints !== 48) out.put(`F;W${axis.index + 1} ${axis.index + 1} ${Math.floor(axis.sizePoints / 7.45 + 0.5)}\r\n`);

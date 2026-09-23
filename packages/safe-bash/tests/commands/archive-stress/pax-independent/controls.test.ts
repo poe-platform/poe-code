@@ -176,13 +176,14 @@ test("I06 opaque PAX hardlinks share writes and unsupported publication never co
     const fs = await filesystem();
     await fs.writeFile("/output/b", Buffer.from("keep b"));
     let linkCalls = 0;
-    const wrapped = new Proxy(fs, { get(target, key) {
+    const restrictHardlinks = (fs: FileSystem): FileSystem => new Proxy(fs, { get(target, key) {
       if (key === "capabilities") return { ...target.capabilities, hardlinks: missing };
       if (key === "link") return missing ? undefined : async () => { linkCalls++; throw new Error("forbidden link invocation"); };
+      if (key === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem['confineExtraction']>>) => restrictHardlinks(await target.confineExtraction!(...args));
       const value: unknown = Reflect.get(target, key);
       return typeof value === "function" ? value.bind(target) : value;
     } });
-    const result = await execute(wrapped, bytes, missing);
+    const result = await execute(restrictHardlinks(fs), bytes, missing);
     assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr, /support.*hardlink/i);
     assert.equal(linkCalls, 0);

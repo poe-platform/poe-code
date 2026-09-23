@@ -339,3 +339,22 @@ skips. Source and all seven test files pass strict types; declaration-only emiss
 into memory succeeds for all eight native-profile modules. These are not a new root compiled/public, whole-package,
 lint or release gate. Reviewer assertions, shared helpers and sealed captures are
 unchanged. The complete user-requested yq remains the goal, not this tested subset.
+
+## Expression files, front matter and split output
+
+The explicit Mike-profile plugin accepts `--from-file`, `--header-preprocess`,
+`-f` / `--front-matter`, `-s` / `--split-exp`, and `--split-exp-file`.
+Expression files are read through the supplied VFS with the existing input and
+expression limits. Front-matter extraction retains the opening YAML separator;
+processing evaluates the YAML and retains the body. Disabling header preprocessing
+omits opening document separators, while retaining comments. `--no-doc` also
+suppresses those separators.
+
+Split filename expressions use the existing bounded expression syntax and must
+return one string. YAML and JSON results receive `.yml` and `.json` extensions;
+parent directories are created in the VFS and repeated names overwrite earlier
+results. Combining split output with in-place editing fails before publication.
+No host-file or native-process fallback is used. The reported issue 302 cases,
+plus processing and expression-file split output, were compared with native
+v4.53.3 on memory and explicitly rooted real filesystems. This does not establish
+full expression-language or flag compatibility.

@@ -3,6 +3,7 @@ import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAll
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
 import { decodeDocuments, loadYaml, root, scalar, truth, type Candidate } from "./nodes.js";
+import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
 import { publishInPlace } from "./inplace.js";
@@ -27,7 +28,19 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       await work.write(Buffer.from(text));
       return { exitCode: 0 };
     }
-    let expression = options.expression;
+    const readText = async (filename: string): Promise<string> => {
+      const path = pathOf(context, filename);
+      const bytes = context.fs.readStream
+        ? await work.collect(() => context.fs.readStream!(path, { signal: work.signal }))
+        : await work.track(context.fs.readFile(path, { signal: work.signal, maxBytes: limits.maxInputBytes }));
+      if (!context.fs.readStream) work.input(bytes.length);
+      work.assertOpen();
+      try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+      catch { throw new MikeError(`bad file '${filename}': invalid UTF-8`); }
+    };
+    let expression = options.fromFile !== undefined ? await readText(options.fromFile) : options.expression;
+    const splitExpression = options.splitFile !== undefined ? await readText(options.splitFile) : options.splitExpression;
+    if (options.inplace && splitExpression !== undefined) throw new MikeError("write in place cannot be used with split file");
     const operands = [...options.operands];
     if (expression === undefined && operands.length && operands[0] !== "-") {
       let exists = false;
@@ -44,11 +57,13 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const format = inputOption === "auto" ? inferred : inputOption;
     const output = outputOption === "auto" ? inputOption === "auto" ? inferred : "yaml" : outputOption;
     const program = compileExpression(expression);
+    const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression) : undefined;
     const yaml = await work.track(loadYaml());
     work.assertOpen();
     const evaluator = new Evaluator(yaml, work, options.mergeSpec);
     const results: string[] = [];
     let qualified = false;
+    const frontMatterBodies = new Map<number, string>();
     let previous: { fileIndex: number; documentIndex: number } | undefined;
     let original: FileStat | undefined;
     if (options.inplace) { original = await work.track(context.fs.stat(pathOf(context, operands[0]!), { signal: work.signal })); work.assertOpen(); }
@@ -57,17 +72,32 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         await work.tick();
         // Computed nodes have yq's default output origin, while projections keep their source origin.
         const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
-        const separator = previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
-        let encoded = await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint }, yaml, work);
+        const separator = !splitProgram && previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
+        let encoded = await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence, prettyPrint: options.prettyPrint, preserveDocumentStart: options.headerPreprocess && !options.noDoc }, yaml, work);
         if (options.nulOutput) {
           if (encoded.endsWith("\r\n")) encoded = encoded.slice(0, -2);
           else if (encoded.endsWith("\n") || encoded.endsWith("\r")) encoded = encoded.slice(0, -1);
           if (encoded.includes("\0")) throw new MikeError("can't serialise value because it contains NUL char and you are using NUL separated output");
           encoded += "\0";
         }
-        const text = separator + encoded;
+        let text = separator + encoded;
+        const frontMatterBody = frontMatterBodies.get(candidate.document.fileIndex);
+        if (frontMatterBody !== undefined && options.frontMatter === "process") text = `${text}---\n${frontMatterBody}`;
         work.output(Buffer.byteLength(text));
-        if (options.inplace) results.push(text);
+        if (splitProgram) {
+          const names = await evaluator.run(splitProgram, [candidate]);
+          if (names.length !== 1 || !yaml.isScalar(names[0]!.node) || typeof names[0]!.node.value !== "string") throw new MikeError("split expression must return a string");
+          const path = pathOf(context, `${names[0]!.node.value}.${output === "yaml" ? "yml" : "json"}`);
+          const parent = path.slice(0, path.lastIndexOf("/")) || "/";
+          await work.track(context.fs.mkdir(parent, { recursive: true, signal: work.signal }));
+          work.assertOpen();
+          const data = Buffer.from(text);
+          await work.track(writeFileOutputCounted({ signal: work.signal, ...(context.registerCleanup ? { registerCleanup: context.registerCleanup } : {}) }, data, async () => {
+            await context.fs.writeFile(path, data, { flag: "w", signal: work.signal });
+            return data.length;
+          }));
+          work.assertOpen();
+        } else if (options.inplace) results.push(text);
         else await work.write(Buffer.from(text));
         qualified ||= truth(candidate.node, yaml);
         previous = origin;
@@ -100,7 +130,23 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         let text: string;
         try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
         catch { throw new MikeError(`bad file '${filename}': invalid UTF-8`); }
-        await decodeDocuments(text, filename, fileIndex, format, yaml, work, async document => {
+        if (options.frontMatter !== undefined && fileIndex === 0) {
+          const firstEnd = text.indexOf("\n");
+          let end = firstEnd >= 0 && text.slice(0, firstEnd).trimEnd() === "---" ? firstEnd + 1 : 0;
+          while (end < text.length) {
+            await work.tick();
+            const newline = text.indexOf("\n", end);
+            const lineEnd = newline < 0 ? text.length : newline;
+            const line = text.slice(end, lineEnd).trimEnd();
+            if (line === "---" || line === "...") {
+              frontMatterBodies.set(fileIndex, text.slice(newline < 0 ? text.length : newline + 1));
+              text = text.slice(0, end);
+              break;
+            }
+            end = newline < 0 ? text.length : newline + 1;
+          }
+        }
+        await decodeDocuments(text, filename, fileIndex, options.frontMatter !== undefined && fileIndex === 0 ? "yaml" : format, yaml, work, async document => {
           if (options.all) { if (all.length >= limits.maxDocuments) throw new MikeError("yq limit exceeded: maxDocuments"); all.push(root(document)); }
           else await print(await evaluator.run(program, [root(document)]));
         });

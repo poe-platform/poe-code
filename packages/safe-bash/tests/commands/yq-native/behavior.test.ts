@@ -251,3 +251,68 @@ test("path traversal retains symlink/.. ordering", async () => {
   await fs.writeFile("/a/data", Buffer.from("wrong\n")); await fs.writeFile("/b/data", Buffer.from("right\n"));
   assert.equal((await run([".", "link/../data"], "", { fs, cwd: "/a" })).stdout, "right\n");
 });
+
+for (const fixture of [
+  { command: 'yq --from-file=expression.yq input.yaml', stdout: '1\n' },
+  { command: 'yq --header-preprocess=false . input.yaml', stdout: 'a: 1\n' },
+  { command: 'yq --front-matter=extract . post.md', stdout: '---\na: 1\n' },
+  { command: "yq -f process '.a = 2' post.md", stdout: '---\na: 2\n---\nBody\n' },
+  { command: `yq --split-exp='"part"' . input.yaml`, stdout: '', file: 'part.yml' },
+  { command: 'yq --split-exp-file=split.yq . input.yaml', stdout: '', file: 'nested/part.yml' },
+]) test(`Mike yq issue 302: ${fixture.command}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/work');
+  for (const [name, text] of Object.entries({ 'input.yaml': 'a: 1\n', 'expression.yq': '.a', 'post.md': '---\na: 1\n---\nBody\n', 'split.yq': '"nested/part"' })) {
+    await fs.writeFile(`/work/${name}`, Buffer.from(text));
+  }
+  const shell = new Shell({ fs, cwd: '/work' }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec(fixture.command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, fixture.stdout);
+    assert.equal(result.stderr, '');
+    if (fixture.file) assert.equal(Buffer.from(await fs.readFile(`/work/${fixture.file}`)).toString(), 'a: 1\n');
+  } finally { await shell.dispose(); }
+});
+
+for (const enabled of [true, false]) test(`Mike yq issue 302 header preprocessing ${enabled}`, async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec(`yq --header-preprocess=${enabled} .`, { stdin: '# header\n---\na: 1\n' });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, enabled ? '# header\n---\na: 1\n' : '# header\na: 1\n');
+  } finally { await shell.dispose(); }
+});
+
+test('Mike yq issue 302 repeated split names overwrite previous results', async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec(`yq -s '"part"' '.[]'`, { stdin: '- a\n- b\n' });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '');
+    assert.equal(Buffer.from(await fs.readFile('/part.yml')).toString(), 'b\n');
+  } finally { await shell.dispose(); }
+});
+
+test('Mike yq issue 302 refuses split output with inplace without changing input', async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/input.yaml', Buffer.from('a: 1\n'));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec(`yq -i -s '"part"' '.a = 2' input.yaml`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, 'Error: write in place cannot be used with split file\n');
+    assert.equal(Buffer.from(await fs.readFile('/input.yaml')).toString(), 'a: 1\n');
+    assert.deepEqual((await fs.readdir('/')).map(entry => entry.name), ['input.yaml']);
+  } finally { await shell.dispose(); }
+});
+
+test('Mike yq issue 302 no-doc suppresses front matter opening separator', async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec('yq -N -f extract .', { stdin: '---\na: 1\n---\nBody\n' });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, 'a: 1\n');
+  } finally { await shell.dispose(); }
+});

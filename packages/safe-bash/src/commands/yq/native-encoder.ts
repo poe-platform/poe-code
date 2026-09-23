@@ -2,7 +2,7 @@ import type { Node } from "yaml";
 import { cloneNode, dereference, inspectNode, type Candidate, type YamlModule } from "./nodes.js";
 import { mikeLimits, MikeError, type NativeWork } from "./native-work.js";
 
-export interface EncodeOptions { format: "yaml" | "json"; indent: number; unwrap: boolean; compactSequence: boolean; prettyPrint?: boolean }
+export interface EncodeOptions { format: "yaml" | "json"; indent: number; unwrap: boolean; compactSequence: boolean; prettyPrint?: boolean; preserveDocumentStart?: boolean }
 
 export async function encodeNative(candidate: Candidate, options: EncodeOptions, yaml: YamlModule, work: NativeWork): Promise<string> {
   await inspectNode(candidate.node, yaml, work);
@@ -113,7 +113,10 @@ export async function encodeNative(candidate: Candidate, options: EncodeOptions,
     else if (yaml.isSeq(node)) for (const child of node.items) if (yaml.isNode(child)) formatting.push(child);
   }
   if (candidate.node === candidate.document.doc.contents) {
-    doc.commentBefore = candidate.document.doc.commentBefore;
+    if (options.preserveDocumentStart && doc.directives) doc.directives.docStart = candidate.document.doc.directives?.docStart ?? null;
+    if (!options.preserveDocumentStart && candidate.document.doc.directives?.docStart && candidate.document.doc.commentBefore != null) {
+      doc.contents.commentBefore = candidate.document.doc.commentBefore + (doc.contents.commentBefore ?? "");
+    } else doc.commentBefore = candidate.document.doc.commentBefore;
     doc.comment = candidate.document.doc.comment;
   }
   const text = doc.toString({ indent: options.indent === 0 ? 4 : Math.max(2, options.indent), indentSeq: !options.compactSequence, flowCollectionPadding: false, lineWidth: 0, verifyAliasOrder: false });

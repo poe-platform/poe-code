@@ -589,7 +589,9 @@ export class AwkRuntime {
         let file: string | undefined;
         while (this.argument < number(this.getScalar("ARGC"))) {
           this.budget.step();
-          if (this.argument > (this.budget.options.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
+          const argumentOptions = (this.budget as Budget & { readonly options?: { readonly maxArguments?: number } }).options;
+          if (this.argument > (argumentOptions?.maxArguments ?? Infinity)) throw new ProgramError("argument count limit exceeded");
+          await this.budget.checkpoint();
           const next = this.asText(this.array("ARGV").entries.get(String(this.argument++)) ?? unset);
           if (!next) continue;
           if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }

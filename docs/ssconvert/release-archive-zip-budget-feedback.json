@@ -187,5 +187,28 @@
     "queuedSuccessor": 35911257148,
     "lastRootLatest": "17.0.34"
   },
-  "delivery": "B02 supplementary and CGJ-delivery documentation are local pending commits4aeabda72e and0ea60233ef before final rebase. ZIP test correction is not yet committed at this evidence capture. Remote delivery is recorded separately after push."
+  "delivery": {
+    "commits": [
+      "411028caeb",
+      "c689ac3247",
+      "0b2a72a6605d74eb248137e284c9af2572736089"
+    ],
+    "remoteMainExactVerified": "0b2a72a6605d74eb248137e284c9af2572736089\trefs/heads/main",
+    "all11IndependentBindingsUnchangedAfterRebase": true,
+    "publication": "pending"
+  },
+  "subsequentUpstreamRepairs": {
+    "commits": [
+      "3d9e959fdd",
+      "7a18534893",
+      "0c7b59bcbe"
+    ],
+    "scope": "PAX explicit budgets, supported GIF, remote overlay restrictions",
+    "integratedAt": "77bfc208a16c1dfd8b4a187aeaf5a9a90aa30d52",
+    "tests": 60,
+    "pass": 60,
+    "skipped": 0,
+    "runtimeChangesByThisAgent": false,
+    "logSha256": "162e3a71c902fbc0fb93c624c3ce7802d86f9074297bd47f882e3548a4e42fda"
+  }
 }

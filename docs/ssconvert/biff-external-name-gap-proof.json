@@ -1,7 +1,7 @@
 {
   "scope": "BIFF8 ordinary external SUPBOOK NameX declaration resolution; source-derived qualification, not a new native execution capture.",
   "baseline": "0b2a72a6605d74eb248137e284c9af2572736089",
-  "status": "implemented and locally qualified; remote delivery and publication pending",
+  "status": "implemented, locally qualified and verified on remote main; publication pending",
   "source": {
     "archive": {
       "version": "1.12.61",
@@ -945,5 +945,13 @@
     "External workbook filename/binding/writer,legacy namespaces,flagged DDE/OLE declarations and wider name ordering/profiles remain separate.",
     "Raw SUPBOOK/EXTERNNAME records and existing retention warnings persist. Linked workbooks are never fetched.",
     "Full package tests preceded only a test parameter annotation; final focused tests and maintained complete lint/type route cover the final source."
-  ]
+  ],
+  "delivery": {
+    "commit": "77bfc208a16c1dfd8b4a187aeaf5a9a90aa30d52",
+    "remoteMainExactVerified": "77bfc208a16c1dfd8b4a187aeaf5a9a90aa30d52\trefs/heads/main",
+    "finalAdditionalRebase": "429c3c8c6 changes only scripts/package-safe.mjs and its tests",
+    "qualifiedBiffSourceTestBindingsUnchanged": true,
+    "release": 35913530251,
+    "publication": "pending"
+  }
 }

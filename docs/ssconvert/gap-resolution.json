@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:04:10.141983+00:00",
+  "recordedAt": "2026-09-23T10:08:16.907190+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -1399,6 +1399,37 @@
     ],
     "nativeCandidateDifferences": 0,
     "productCodeChangeRequired": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxGnomeDbCommandExecution": {
+    "evidence": "docs/ssconvert/linux-gnomedb-native-command-capture.json",
+    "nativeRun": 35846129784,
+    "activationComplete": false,
+    "gnomeDbActive": false,
+    "collectorExits": [
+      1,
+      1
+    ],
+    "normalCommandExits": [
+      0,
+      0
+    ],
+    "normalCommandStderrRetained": true,
+    "controlCases": 7,
+    "controlBytes": 178,
+    "wildcardBytes": 5025,
+    "wildcardEqualsQualifiedBase": true,
+    "sourceUiXmlMissing": true,
+    "libgnomedbUnavailable": true,
+    "exactOutputSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "worker"
+    ],
+    "diagnosticParity": false,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

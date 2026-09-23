@@ -21,6 +21,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   const resolveAddress = options.resolveAddress ?? (async (hostname: string) => lookup(hostname, { all: false }));
   const transport: HttpTransport = async input => {
     input.signal.throwIfAborted();
+    const requestCa = input.ca === undefined ? ca : Buffer.from(input.ca);
     const url = new URL(input.url);
     if (!["http:", "https:"].includes(url.protocol)) throw new CurlError(1, "Unsupported protocol");
     const headers: Record<string, string[]> = Object.create(null) as Record<string, string[]>;
@@ -88,7 +89,8 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
         method: input.method,
         headers: pinned && headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
         signal, maxHeaderSize, agent: false,
-        ...(ca === undefined ? {} : { ca: ca as string | Buffer | (string | Buffer)[] }),
+        ...(requestCa === undefined ? {} : { ca: requestCa as string | Buffer | (string | Buffer)[] }),
+        ...(input.ca === undefined ? {} : { rejectUnauthorized: true }),
         ...pinned,
         ...(pinned && url.protocol === "https:" ? {
           servername: isIP(hostname) ? "" : hostname,
@@ -139,5 +141,6 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   };
   Object.defineProperty(transport, "supportsPrivateNetworkDeny", { value: true });
   Object.defineProperty(transport, "supportsConnectTimeout", { value: true });
+  Object.defineProperty(transport, "supportsRequestCa", { value: true });
   return transport;
 }

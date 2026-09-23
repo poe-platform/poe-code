@@ -7,6 +7,7 @@ export interface DataArgument {
 }
 
 export interface CurlArguments {
+  caFile?: string;
   agent?: string;
   retryTransport?: boolean;
   directoryIndex?: string;
@@ -56,7 +57,7 @@ const flags: Readonly<Record<string, string>> = {
   h: "help", V: "version",
 };
 const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode",
-  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir"]);
+  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir", "cacert"]);
 
 function number(value: string, integral = false): number {
   if (!(integral ? /^\d+$/ : /^\d+(?:\.\d+)?$/).test(value)) throw new CurlError(2, "Invalid numeric option");
@@ -92,6 +93,7 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
   };
   const apply = (option: string, value?: string): void => {
     switch (option) {
+      case "cacert": result.caFile = value!; break;
       case "request":
         if (!value || !/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/.test(value) || ["CONNECT", "TRACE"].includes(value.toUpperCase())) {
           throw new CurlError(2, "Invalid or unsupported HTTP method");

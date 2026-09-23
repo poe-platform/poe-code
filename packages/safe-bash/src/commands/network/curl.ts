@@ -124,6 +124,9 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
         if (args.connectTimeoutMs !== undefined && transport.supportsConnectTimeout !== true) {
           throw new CurlError(2, "Transport cannot enforce connection timeout");
         }
+        if (args.caFile !== undefined && transport.supportsRequestCa !== true) {
+          throw new CurlError(2, "Transport cannot enforce request CA trust");
+        }
         for (const url of args.urls) parseUrl(url, args.globoff);
         if (!args.download && args.urls.length > 1 && (args.output !== undefined || args.remoteName || args.dumpHeader !== undefined)) {
           throw new CurlError(2, "Multiple URLs with file/header outputs are unsupported");
@@ -187,6 +190,18 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     } finally { await writing.close(); }
   };
   try {
+    let ca: Uint8Array | undefined;
+    if (args.caFile !== undefined) {
+      try {
+        const bytes = await withSignal(() => context.fs.readFile(pathOf(context, args.caFile!), { signal, maxBytes: limits.maxBufferBytes }), signal);
+        signal.throwIfAborted();
+        if (bytes.length > limits.maxBufferBytes) throw new CurlError(77, "CA certificate exceeds host buffer limit");
+        ca = new Uint8Array(bytes);
+      } catch {
+        signal.throwIfAborted();
+        throw new CurlError(77, "Failed reading virtual CA certificate file");
+      }
+    }
     if (format?.startsWith("@")) {
       try {
         const bytes = format === "@-"
@@ -262,6 +277,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         response = await operation.acquire(async () => {
           const acquired = await transport({ url: current.href, method, headers, signal, responseBodyMode: args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
+            ...(ca === undefined ? {} : { ca }),
             ...(args.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: args.connectTimeoutMs }) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };

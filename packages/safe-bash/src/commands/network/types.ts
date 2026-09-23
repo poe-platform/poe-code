@@ -3,6 +3,8 @@ import type { ByteSource, InvocationCleanup } from "../../contracts/index.js";
 export type HttpHeaders = readonly (readonly [string, string])[];
 
 export interface HttpRequest {
+  /** Explicit VFS PEM trust for this request; replaces transport-default CAs. */
+  readonly ca?: Uint8Array;
   readonly url: string;
   readonly method: string;
   readonly headers: HttpHeaders;
@@ -30,6 +32,7 @@ export interface HttpResponse {
 }
 
 export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & {
+  readonly supportsRequestCa?: true;
   readonly supportsPrivateNetworkDeny?: true;
   readonly supportsConnectTimeout?: true;
 };

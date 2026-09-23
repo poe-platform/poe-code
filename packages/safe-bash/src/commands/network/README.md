@@ -43,6 +43,15 @@ backpressure and cancellation, and release resources in `dispose`. Late response
 after timeout are disposed; rejected late promises are observed. A transport
 ignoring its signal cannot be forcibly stopped by this plugin.
 
+`curl --cacert VFSFILE` (or `--cacert=VFSFILE`) reads an explicit PEM CA bundle
+relative to the virtual working directory, bounded by `maxBufferBytes` and the
+transfer deadline. The Node transport replaces its default CA trust for these
+requests only, including redirects and retries; certificate and hostname
+verification remain enabled. Custom transports must advertise
+`supportsRequestCa: true` and enforce `HttpRequest.ca` bytes. Fetch rejects this
+option because it cannot configure request trust. Unreadable or oversized CA
+files return 77; untrusted certificates and hostname mismatches return 60.
+
 Cloudflare Workers and browsers can inject `createFetchTransport()`. It uses the
 host `fetch`, forces manual redirects so each hop returns to the authorizer,
 omits ambient credentials, and streams request and response bodies. Pass a
@@ -95,7 +104,7 @@ The total transfer deadline still applies. Custom transports must advertise
 Fetch cannot expose connection completion and rejects positive connection timeouts.
 
 Unknown flags fail, including proxy/config/netrc, `-k`,
-CA/cert file flags, cookie-jar, HTTP/2/3, ranges, resume, parallel,
+other CA/client-cert file flags, cookie-jar, HTTP/2/3, resume, parallel,
 `--location-trusted`, `--retry-all-errors`, and non-HTTP protocols.
 
 ## Streaming, quotas and failure state
@@ -159,7 +168,7 @@ Exit codes include 1 unsupported protocol, 2 invalid/unsupported option,
 3 malformed URL, 6 DNS, 7 connection/policy rejection, 18 partial body,
 22 HTTP failure, 23 output failure, 26 upload/read failure, 28 timeout,
 35 TLS negotiation, 47 redirect limit, 56 transfer failure, 60 TLS verification,
-63 byte quota and 65 unavailable replay. Caller abort propagates the original
+63 byte quota, 65 unavailable replay and 77 CA-file read failure. Caller abort propagates the original
 signal reason to the shell instead of masquerading as an ordinary HTTP result.
 
 ## Author evidence and independent review boundary

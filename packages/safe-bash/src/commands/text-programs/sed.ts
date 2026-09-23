@@ -212,7 +212,7 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
   }
 }
 
-async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState): Promise<{ status: number; quit: boolean }> {
+async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const source = separator === "\0" ? nullRecords(context, files, budget) : lineRecords(context, files, budget);
   let current = await source.next();
   let following: IteratorResult<RecordLine, void> | undefined;
@@ -332,7 +332,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
               const lineEnd = character === "\n" && separator === "\n";
               const token = character === undefined || lineEnd ? "$" : escapes[character] ?? (character.charCodeAt(0) < 32 || character.charCodeAt(0) >= 127 ? `\\${character.charCodeAt(0).toString(8).padStart(3, "0")}` : character);
               // GNU sed reserves a column for continuation but appends the end marker without wrapping.
-              if (character !== undefined && !lineEnd && line.length + token.length >= 70) { await emit(line + "\\" + separator); line = ""; }
+              if (lineLength > 0 && character !== undefined && !lineEnd && line.length + token.length >= lineLength) { await emit(line + "\\" + separator); line = ""; }
               line = budget.check(line + token);
               if (lineEnd) { await emit(line + separator); line = ""; }
             }
@@ -427,6 +427,13 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     let quiet = false;
     let extended = false;
     let separate = false;
+    let lineLength = 70;
+    const setLineLength = (value: string | undefined): void => {
+      if (value === undefined || !value.length || [...value].some(character => character < "0" || character > "9") || !Number.isSafeInteger(Number(value))) {
+        throw new ProgramError("line length must be a nonnegative safe integer");
+      }
+      lineLength = Number(value);
+    };
     let separator = "\n";
     let inPlace: string | undefined;
     let ended = false;
@@ -441,6 +448,11 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);
         continue;
       }
+      if (argument === "--separate") { separate = true; continue; }
+      if (argument === "--line-length" || argument.startsWith("--line-length=")) {
+        setLineLength(argument === "--line-length" ? context.args[++index] : argument.slice("--line-length=".length));
+        continue;
+      }
       if (argument.startsWith("--")) throw new ProgramError(`unsupported option '${argument}'`);
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;
@@ -448,6 +460,10 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         else if (flag === "z") separator = "\0";
         else if (flag === "E" || flag === "r") extended = true;
         else if (flag === "s") separate = true;
+        else if (flag === "l") {
+          setLineLength(argument.slice(position + 1) || context.args[++index]);
+          position = argument.length;
+        }
         else if (flag === "i") {
           inPlace = argument.slice(position + 1);
           if (!inPlace && context.args[index + 1] === "") index++;
@@ -493,7 +509,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
         let rewritten = "";
         const child = { ...context, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
         outputState.stdoutUnterminated = false;
-        const result = await execute(program, child, [file], quiet, budget, separator, outputState);
+        const result = await execute(program, child, [file], quiet, budget, separator, outputState, lineLength);
         const path = virtualPath(context, file);
         if (inPlace) await context.fs.copyFile(path, path + inPlace, { signal: context.signal });
         await writeFileOutput(context, bytes(rewritten), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
@@ -503,10 +519,10 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
     }
     await prepareOutputs();
     if (separate) {
-      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState); if (result.quit || result.status) return result.status; }
+      for (const file of files.length ? files : ["-"]) { const result = await execute(program, context, [file], quiet, budget, separator, outputState, lineLength); if (result.quit || result.status) return result.status; }
       return 0;
     }
-    return (await execute(program, context, files, quiet, budget, separator, outputState)).status;
+    return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
   });
   return { ...definition, filesystemRequirements: sedRequirements };
 }

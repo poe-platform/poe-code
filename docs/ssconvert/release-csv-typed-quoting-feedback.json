@@ -1,0 +1,62 @@
+{
+  "failedRelease": 35897322426,
+  "scope": "Update stale CSV typed quoting expectations after current csvkit support; no product changes.",
+  "independentReview": {
+    "files": [
+      {
+        "path": "packages/safe-bash/tests/commands/csvkit-request-stress.test.ts",
+        "sha256": "d9c5361cfa8731155752907dc628c4d7be51be175f21e4cf0089a3cd6b4382f4"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/csvkit-writer-stress.test.ts",
+        "sha256": "a6cade0b93a9b97ad314640296528879cf5c7da991eb32ab34ac516095794111"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/csvkit-continuation-independent.test.ts",
+        "sha256": "7d1431f2960c957eff5196e2900fbe2cc9f770c3065ac2d3901921563d3d20ec"
+      },
+      {
+        "path": "docs/csvkit/csvformat-reference.json",
+        "sha256": "4edf2001cf7fe9fb9968571887549d6855d4ad72443df657fee629daf55f0704"
+      }
+    ],
+    "referenceCases": 11,
+    "referenceUnchangedSince": "c07d3f50e917da168e7f07601bb338c0e796ce50",
+    "retainedRefusalCases": 9,
+    "supportedProjectionCases": 3,
+    "originalAttachedMode2InvocationRetained": true,
+    "review": "Only obsolete refusal override/TODO and stale typed CSV expectations changed; all original inputs, exact bytes/status, producer lifecycle, VFS preservation and remaining refusal controls retained.",
+    "validation": "Prior independent source replay red; root maintained built three-file replay46/46; final original attached-u2 writer control independently rerun."
+  },
+  "validation": {
+    "tests": 46,
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "todo": 0,
+    "maintainedBuild": "Selected @poe-code/csvkit closure: 2 builds passed."
+  },
+  "nativeEvidence": "Original frozen case9 directly authenticated; other mode controls reflect current source/reader contract, not a new full native qualification.",
+  "delivery": "Local candidate; remote-main delivery and containing release pending.",
+  "guardedRootLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16640,
+      "linted": 16640,
+      "ignored": 2241,
+      "unconfigured": 39650,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "timings": {
+      "traversalMs": 521810,
+      "parsingMs": 126220,
+      "initializationMs": 26442
+    },
+    "cacheHits": 0,
+    "sha256": "69a51af768bc8f7b4aeda25883cd8a7247ad11f7b90cd67234235dfe896d2386"
+  }
+}

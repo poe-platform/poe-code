@@ -62,15 +62,13 @@ test("csvkit universal input normalization and LF output bytes remain intact thr
   } finally { await shell.dispose(); }
 });
 
-test("csvformat unquoted empty fields stay strings in mode 2 and block nulls in modes 4/5", async () => {
+test("csvformat preserves empty fields from input quoting modes 2/4/5", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
   try {
     exact(await shell.exec("csvformat -u2", { stdin: '"a","b"\n,""\n' }), "a,b\n,\n");
     for (const quoting of [4, 5]) {
       const result = await shell.exec(`csvformat -u ${quoting}`, { stdin: '"a","b"\n,""\n' });
-      assert.deepEqual(bytes(result.stdout), bytes("a,b\n"));
-      assert.deepEqual(bytes(result.stderr), bytes(`csvkit: unsupported or unqualified: input quoting mode ${quoting} numeric/null operation cells\n`));
-      assert.equal(result.exitCode, 78);
+      exact(result, "a,b\n,\n");
     }
   } finally { await shell.dispose(); }
 });

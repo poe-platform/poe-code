@@ -14,12 +14,8 @@ const bindings = {
 };
 
 for (const [index, capture] of reference.cases.entries()) {
-  // Case 9's native capture remains unchanged; current numeric input fails closed.
-  const expected = index === 9 ? {
-    status: 78, stdout: "a\n",
-    stderr: "csvkit: unsupported or unqualified: input quoting mode 2 numeric/null operation cells\n"
-  } : { status: capture.status, stdout: capture.stdout, stderr: capture.stderr };
-  test(`request stress: csvformat direct argv frozen case ${index} owns recycled Buffer bytes${index === 9 ? " (unsupported numeric quoting fails closed)" : ""}`, async () => {
+  const expected = { status: capture.status, stdout: capture.stdout, stderr: capture.stderr };
+  test(`request stress: csvformat direct argv frozen case ${index} owns recycled Buffer bytes`, async () => {
     const command = createCsvkitCommands({ ...bindings,
       ...(capture.stderr.includes("DuplicateColumnWarning") ? {
         columnWarnings: { utilsPath: capture.stderr.slice(0, capture.stderr.indexOf(":288:")) }
@@ -57,8 +53,6 @@ for (const [index, capture] of reference.cases.entries()) {
     assert.equal(finalized, 1, "registered cleanup must not finalize borrowed input twice");
   });
 }
-
-test.todo("request stress: csvformat frozen case 9 native numeric/null float serialization remains unsupported (see csvformat-reference.json)");
 
 test("request stress: string-only typed quoting modes execute from immutable VFS scripts", async () => {
   for (const mode of [2, 4, 5]) {

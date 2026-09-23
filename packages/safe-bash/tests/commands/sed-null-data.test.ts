@@ -5,7 +5,47 @@ import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { Budget } from "../../src/commands/text-programs/shared.js";
 import { toByteSource, type ByteSource } from "../../src/contracts/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./text-programs/helpers.js";
+
+for (const separator of ["\n", "\0"]) {
+  for (const input of [Buffer.from("OwnedTail"), Buffer.from("Owned\xffTail", "latin1")]) {
+    for (const terminated of [false, true]) {
+      const source = terminated ? Buffer.concat([input, Buffer.from(separator)]) : input;
+      for (const [program, quiet, status, copies, finalSeparator] of [
+        ["p;p", true, 0, 2, terminated],
+        ["P;P", true, 0, 2, terminated],
+        ["p", false, 0, 2, terminated],
+        ["p", true, 0, 1, terminated],
+        ["", false, 0, 1, terminated],
+        ["q", false, 0, 1, true],
+        ["q7", false, 7, 1, true],
+        ["p;q7", true, 7, 1, true],
+      ] as const) {
+        test(`sed output boundary ${JSON.stringify(separator)} ${input.toString("hex")} terminated=${terminated} quiet=${quiet} ${program}`, async () => {
+          const fs = await makeFileSystem({ input: source, program });
+          const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+          const options = `${separator === "\0" ? "-z " : ""}${quiet ? "-n " : ""}`;
+          const expected = Buffer.concat([
+            ...Array.from({ length: copies }, (_, index) => Buffer.concat([input, Buffer.from(index < copies - 1 || finalSeparator ? separator : "")])),
+          ]);
+          for (const command of [
+            `sed ${options}'${program}' input`,
+            `cat input | sed ${options}'${program}'`,
+            `sed ${options}-f program input`,
+          ]) {
+            const result = await shell.exec(`${command} > actual; result=$?; cat actual; exit "$result"`);
+            assert.equal(result.exitCode, status, result.stderr);
+            assert.equal(result.stderr, "");
+            assert.deepEqual(Buffer.from(result.stdoutBytes), expected);
+            assert.deepEqual(Buffer.from(await fs.readFile("/work/actual")), expected);
+            assert.deepEqual(Buffer.from(await fs.readFile("/work/input")), source);
+          }
+        });
+      }
+    }
+  }
+}
 
 for (const option of ["-z", "--null-data"]) {
   test(`sed ${option} selects NUL records without splitting filename newlines`, async () => {
@@ -81,12 +121,12 @@ for (const length of [61, 69, 70]) {
 }
 
 for (const separator of ["\n", "\0"]) {
-  test(`sed preserves final termination with mode-specific repeated printing: ${JSON.stringify(separator)}`, async () => {
+  test(`sed preserves final termination with separated repeated printing: ${JSON.stringify(separator)}`, async () => {
     const mode = separator === "\0" ? ["-z"] : [];
     for (const tail of ["", separator]) {
       const result = await runVirtual("sed", { args: [...mode, "-n", "p;p"], stdin: "a" + tail });
       assert.equal(result.exitCode, 0, result.stderr.toString());
-      assert.deepEqual(result.stdout, Buffer.from(separator === "\0" && !tail ? "a\0a" : ("a" + tail).repeat(2)));
+      assert.deepEqual(result.stdout, Buffer.from("a" + separator + "a" + tail));
     }
   });
 }

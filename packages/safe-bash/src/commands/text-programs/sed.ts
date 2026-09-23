@@ -236,7 +236,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   };
   const emit = async (text: string, terminated = true): Promise<void> => {
     await write(context, (outputState.stdoutUnterminated ? separator : "") + text);
-    outputState.stdoutUnterminated = separator === "\0" && !terminated;
+    outputState.stdoutUnterminated = !terminated;
   };
   let lastPattern: Pattern | undefined;
   const active = new Set<number>();

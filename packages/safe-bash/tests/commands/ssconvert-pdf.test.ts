@@ -62,7 +62,7 @@ test("ssconvert PDF shares SDK bytes, first-object geometry and replay namespace
 test("PDF persisted print geometry survives XML checkpoint and command/SDK replay", async () => {
   const input = '<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>One</g:Name><g:PrintInformation><g:paper>na_letter</g:paper><g:orientation>landscape</g:orientation><g:Scale type="percentage" percentage="50"/></g:PrintInformation><g:Cells>' + Array.from({ length: 90 }, (_, row) => `<g:Cell Row="${row}" Col="0" ValueType="60">row ${row}</g:Cell>`).join("") + '</g:Cells></g:Sheet></g:Sheets></g:Workbook>';
   const volume = Volume.fromJSON({ "/input.gnumeric": input, "/keep": "untouched" });
-  const configuration = { ...binding, limits: { ...binding.limits, workbookWork: 2000000 } };
+  const configuration = { ...binding, limits: { ...binding.limits, inputBytes: 1000000, workbookWork: 2000000 } };
   const shell = new Shell({ fs: filesystem(volume) }).use(ssconvertCommands(configuration));
   const engine = createEngine(configuration);
   try {

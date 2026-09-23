@@ -52,6 +52,202 @@
       ]
     },
     {
+      "id": "gnumeric-local-placeholder-late-global",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-local-placeholder-late-global.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d4461746121526174652b313c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e526174653c2f676e6d3a6e616d653e3c676e6d3a76616c75653e31313c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e41313c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "4359c539a5234c85df900002f1db701d342512bcfee5ab136a6c39981e3ee40a",
+      "scope": "Original source-backed XML placeholder binding probe; actual native values and placeholder name records must be retained separately from product expectations",
+      "captures": [
+        {
+          "label": "gnumeric-local-placeholder-late-global",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-late-global-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-local-placeholder-late-global-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-late-global-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-local-placeholder-late-global-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-local-placeholder-filled-local",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-local-placeholder-filled-local.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d4461746121526174652b313c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e526174653c2f676e6d3a6e616d653e3c676e6d3a76616c75653e323c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e41313c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e526174653c2f676e6d3a6e616d653e3c676e6d3a76616c75653e31313c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e41313c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "32e0cb44f4d802ba41f996f069f31aa8da43a45a9b0ebc98fa7082643eb8bade",
+      "scope": "Original source-backed XML placeholder binding probe; actual native values and placeholder name records must be retained separately from product expectations",
+      "captures": [
+        {
+          "label": "gnumeric-local-placeholder-filled-local",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-filled-local-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-local-placeholder-filled-local-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-filled-local-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-local-placeholder-filled-local-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-local-placeholder-early-global",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-local-placeholder-early-global.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a4e616d65733e3c676e6d3a4e616d653e3c676e6d3a6e616d653e526174653c2f676e6d3a6e616d653e3c676e6d3a76616c75653e31313c2f676e6d3a76616c75653e3c676e6d3a706f736974696f6e3e41313c2f676e6d3a706f736974696f6e3e3c2f676e6d3a4e616d653e3c2f676e6d3a4e616d65733e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d4461746121526174652b313c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "6850ef797d2c9d8b9d96c2248b6215737f1f00265d55abef7493498a1037a1ef",
+      "scope": "Original source-backed XML placeholder binding probe; actual native values and placeholder name records must be retained separately from product expectations",
+      "captures": [
+        {
+          "label": "gnumeric-local-placeholder-early-global",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-early-global-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-local-placeholder-early-global-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-early-global-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-local-placeholder-early-global-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnumeric-local-placeholder-no-global",
+      "profileId": "gnumeric-1.12.61-optional-none",
+      "filename": "gnumeric-local-placeholder-no-global.gnumeric",
+      "inputHex": "3c676e6d3a576f726b626f6f6b20786d6c6e733a676e6d3d22687474703a2f2f7777772e676e756d657269632e6f72672f7631302e647464223e3c676e6d3a56657273696f6e2045706f63683d223122204d616a6f723d22313222204d696e6f723d223631222f3e3c676e6d3a53686565744e616d65496e6465783e3c676e6d3a53686565744e616d653e486572653c2f676e6d3a53686565744e616d653e3c676e6d3a53686565744e616d653e446174613c2f676e6d3a53686565744e616d653e3c2f676e6d3a53686565744e616d65496e6465783e3c676e6d3a5368656574733e3c676e6d3a53686565743e3c676e6d3a4e616d653e486572653c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d4461746121526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22312220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c676e6d3a43656c6c20526f773d22322220436f6c3d2230223e3d4461746121526174652b313c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c676e6d3a53686565743e3c676e6d3a4e616d653e446174613c2f676e6d3a4e616d653e3c676e6d3a43656c6c733e3c676e6d3a43656c6c20526f773d22302220436f6c3d2230223e3d526174653c2f676e6d3a43656c6c3e3c2f676e6d3a43656c6c733e3c2f676e6d3a53686565743e3c2f676e6d3a5368656574733e3c2f676e6d3a576f726b626f6f6b3e",
+      "inputSha256": "aec189f16ade48af57a78d40cbe0a41aef0168fdf4631d51e60eff5aae35b834",
+      "scope": "Original source-backed XML placeholder binding probe; actual native values and placeholder name records must be retained separately from product expectations",
+      "captures": [
+        {
+          "label": "gnumeric-local-placeholder-no-global",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{input}",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-no-global-xml",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "{input}",
+            "{root}/gnumeric-local-placeholder-no-global-replay.gnumeric"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        },
+        {
+          "label": "gnumeric-local-placeholder-no-global-replay",
+          "argv": [
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "{root}/gnumeric-local-placeholder-no-global-replay.gnumeric",
+            "fd://1"
+          ],
+          "expectedExitCodes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
       "id": "excel-format-roundtrips",
       "profileId": "gnumeric-1.12.61-optional-excel-formats",
       "filename": "excel-input.gnumeric",

@@ -206,7 +206,6 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
       }
       return;
     }
-    const width = Math.max(4, String(Math.max(0, maximum - 1)).length);
     const counts = new Map<string, { count: number; bytes: Uint8Array; display: string }>();
     for (let file = 0; file < headers.length; file++) {
       const header = headers[file]!;
@@ -218,7 +217,7 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
           if (previous) previous.count++;
           else { budget.hold(32); counts.set(name, { count: 1, bytes: header.row!.cells[index]!.decoded.view(), display: header.display[index]! }); }
         }
-        const prefix = args.justNames ? "" : checkedAdd(args.start, BigInt(index)).toString().padEnd(width, " ");
+        const prefix = args.justNames ? "" : `${checkedAdd(args.start, BigInt(index))} `;
         yield* emitted(await writer.text(`${prefix}${header.display[index]}\n`), budget);
       }
     }

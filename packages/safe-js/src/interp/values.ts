@@ -3,7 +3,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { scopeDataRoots } from "./scope-data-roots.js";
+import { scopeDataRoots, type DeferredArgumentsData } from "./scope-data-roots.js";
 import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -97,6 +97,7 @@ import {
   getSandboxArgumentEntries,
   mappedArgumentStates,
   unrestrictedArgumentObjects,
+  sandboxArgumentsBrand,
   isSandboxArguments
 } from "./arguments.js";
 
@@ -868,6 +869,7 @@ function measureSandboxDataWithSeen(
   const seenSymbols = new Set<symbol>();
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
+  let pendingArguments: Array<{ state: DeferredArgumentsData; units: number | undefined; depth: number }> | undefined;
   type WeakContribution = { value: unknown; depth: number };
   let waiting: Map<object | symbol, WeakContribution[]> | undefined;
   let ready: WeakContribution[] | undefined;
@@ -985,6 +987,27 @@ function measureSandboxDataWithSeen(
         const bindingRoot = scopeDataRoots.get(value);
         if (bindingRoot !== undefined) {
           seen.add(value);
+          if ("arguments" in bindingRoot) {
+            const state = bindingRoot.arguments;
+            const current = state.read();
+            if (current !== undefined) { value = current; continue walk; }
+            assertSandboxDataDepth(depth);
+            const snapshot = state.capture()!;
+            const includeIterator = !internalSymbols.has(snapshot.iterator);
+            const includeBrand = !internalSymbols.has(sandboxArgumentsBrand);
+            const units = snapshot.units + (includeIterator ? 1 : 0) + (includeBrand ? 1 : 0);
+            usage += units;
+            pendingArguments ??= nativeDataArraySetPrototype([], null);
+            nativeDataArrayAppend(pendingArguments, { state, units, depth });
+            if (includeIterator) visit(snapshot.iterator, depth + 1);
+            if (includeBrand) visit(sandboxArgumentsBrand, depth + 1);
+            const references = snapshot.references;
+            if (references.length === 0) break entry;
+            if (references.length > 1) appendContinuation(references, depth + 1);
+            value = references[0];
+            depth++;
+            continue walk;
+          }
           if ("deferred" in bindingRoot) {
             const deferred = bindingRoot.deferred;
             const current = deferred.read();
@@ -1677,16 +1700,43 @@ function measureSandboxDataWithSeen(
     for (const value of values) visit(value);
     // Weak values may expose further keys or collections. Newly unlocked entries
     // append to this worklist, so unrooted cycles never bootstrap themselves.
-    for (let index = 0; index < (ready?.length ?? 0); index++) {
-      const contribution = ready![index]!;
-      usage += 1;
-      visit(contribution.value, contribution.depth);
-    }
-    for (const projection of projectedPrimitives) {
-      if (seen.has(projection.target)) continue;
-      for (const item of projection.values)
-        if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
-    }
+    let readyIndex = 0;
+    let primitiveIndex = 0;
+    let materialized: boolean;
+    do {
+      materialized = false;
+      for (; readyIndex < (ready?.length ?? 0); readyIndex++) {
+        const contribution = ready![readyIndex]!;
+        usage += 1;
+        visit(contribution.value, contribution.depth);
+      }
+      // A native retained callback can force a previously captured binding.
+      // Replace its initial scalar/layout charge with the real object's fresh
+      // descriptors, without double-charging aliases or dropping new fields.
+      for (let index = 0; index < (pendingArguments?.length ?? 0); index++) {
+        const projection = pendingArguments![index]!;
+        if (projection.units === undefined) continue;
+        const current = projection.state.read();
+        if (current === undefined) continue;
+        usage -= projection.units;
+        projection.units = undefined;
+        if (!seen.has(current)) {
+          visit(current, projection.depth);
+          materialized = true;
+        }
+      }
+      const previousPrimitiveIndex = primitiveIndex;
+      for (; primitiveIndex < projectedPrimitives.length; primitiveIndex++) {
+        const projection = projectedPrimitives[primitiveIndex]!;
+        if (seen.has(projection.target)) continue;
+        for (const item of projection.values)
+          if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
+      }
+      // Primitive conversion hooks can also force an earlier arguments binding.
+      if (pendingArguments !== undefined && primitiveIndex !== previousPrimitiveIndex) materialized = true;
+      // Visiting a materialized object may force an earlier binding or expose
+      // another weak key. Drain those additions before returning the charge.
+    } while (pendingArguments !== undefined && (materialized || readyIndex < (ready?.length ?? 0)));
     return usage;
   } finally {
     firstSeenCapture = undefined;

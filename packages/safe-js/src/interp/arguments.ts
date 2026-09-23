@@ -2,7 +2,7 @@ import type { SandboxObject, SandboxValue } from "./values.js";
 import { internalSymbols } from "./internal-symbols.js";
 import type { Scope } from "./scope.js";
 
-const sandboxArgumentsBrand = Symbol("SandboxArguments");
+export const sandboxArgumentsBrand = Symbol("SandboxArguments");
 internalSymbols.add(sandboxArgumentsBrand);
 
 export type SandboxArguments = SandboxObject & { readonly [sandboxArgumentsBrand]: true };

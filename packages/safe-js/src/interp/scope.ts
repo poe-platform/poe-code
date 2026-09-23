@@ -6,6 +6,7 @@ import { builtinGlobalObjects, getIntrinsicIdentity, mutableBuiltinBindings } fr
 import { getSandboxPropertyDescriptor } from "./object-model.js";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 import { DeferredFunction } from "./deferred-function.js";
+import { DeferredArguments } from "./deferred-arguments.js";
 import type { ModuleEnvironment } from "../modules/registry.js";
 import { hasImmutableEmptyModuleEnvironment } from "../modules/empty-environment.js";
 import { appendScopeDataRoot, ScopeDataRootList, scopeDataRoots } from "./scope-data-roots.js";
@@ -19,7 +20,7 @@ type ScopeBinding = {
   silentImmutable?: true;
   importTarget?: {scope: Scope; name: string};
   value: InterpreterValue | typeof uninitialized;
-  deferred?: DeferredFunction;
+  deferred?: DeferredFunction | DeferredArguments;
   accounting?: { value: InterpreterValue; root: SandboxObject };
 };
 
@@ -414,6 +415,16 @@ export class Scope {
   ): void {
     this.declare(name, kind, undefined);
     this.#bindings.get(name)!.deferred = new DeferredFunction(create, collect);
+    this.#bindingDataRoot = undefined;
+  }
+
+  declareDeferredArguments(name: string, kind: VariableDeclarationKind, values: readonly SandboxValue[]): void {
+    const deferred = new DeferredArguments(values);
+    // Bigint accounting has observable conversion hooks; keep its existing
+    // eager descriptor traversal and callback order.
+    if (!deferred.eligible) { this.declare(name, kind, deferred.resolve()); return; }
+    this.declare(name, kind, undefined);
+    this.#bindings.get(name)!.deferred = deferred;
     this.#bindingDataRoot = undefined;
   }
 

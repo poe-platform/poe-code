@@ -646,7 +646,12 @@ async function createClosureScope(
     else scope.declare("this", "const", thisValue);
     if (needsArguments) {
       context.budget.allocateArrayLength(args.length);
-      if (!mapped) scope.declare("arguments", functionStrictness.get(node) === false && !separateParameters ? "var" : "let", createSandboxArguments(args));
+      if (!mapped) {
+        const kind = functionStrictness.get(node) === false && !separateParameters ? "var" : "let";
+        if (context.scriptScope !== undefined || context.moduleInstantiated !== undefined)
+          scope.declareDeferredArguments("arguments", kind, args);
+        else scope.declare("arguments", kind, createSandboxArguments(args));
+      }
     }
     await construction?.initialize(scope);
   }

@@ -428,7 +428,7 @@ import type { Runtime } from "../runtime.js";
 import { ResourceScope } from "../resources.js";
 import { CsvkitBlocked } from "../errors.js";
 import { readTable } from "../table/index.js";
-import { readCsv, type CsvDialect } from "../csv.js";
+import { readCsvRecoverable, type CsvDialect } from "../csv.js";
 import { fileException } from "../diagnostics/index.js";
 
 /** A compatible guest reader and terminal are host capabilities, never native fallbacks. */
@@ -465,14 +465,14 @@ export async function executeCsvpy(runtime: Runtime): Promise<number> {
           fieldBudget: runtime.context.limits.maxFieldCharacters,
           ...(o.escapechar === null || o.escapechar === undefined ? {} : { escapechar: String(o.escapechar) })
         };
-        // Reader construction validates the dialect; record errors remain lazy.
-        readCsv("", dialect, runtime.step).next();
-        return (function* () {
-          for (const record of readCsv(text, dialect, runtime.step)) {
-            runtime.admitRecord(record);
-            yield record;
+        const reader = readCsvRecoverable(text, dialect, runtime.step);
+        return {
+          next() {
+            const next = reader.next();
+            if (!next.done) runtime.admitRecord(next.value);
+            return next;
           }
-        })();
+        };
       },
       table: () => readTable(runtime, String(o.input_path)), settings: o }, runtime.context.signal, work) :
       provider.load(mode, runtime.bytes(String(o.input_path), true), o, runtime.context.signal, work), session => session.close());

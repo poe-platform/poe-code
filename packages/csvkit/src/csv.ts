@@ -181,6 +181,56 @@ export function* readCsv(text: string, dialect: CsvDialect = {}, step: () => voi
   if (!end.done && end.value) yield end.value;
 }
 
+/** Interactive readers discard the failing physical line and allow another next().
+ * Keep the iterator outside the parser generator so a row diagnostic cannot close it. */
+export function readCsvRecoverable(text: string, dialect: CsvDialect, step: () => void): Iterator<CsvRecord<CsvCell>> {
+  let offset = 0;
+  let lineEnd = 0;
+  let line = 0;
+  let done = false;
+  let parser = parseCsv(dialect, step, true, () => line);
+  parser.next();
+  return {
+    next(): IteratorResult<CsvRecord<CsvCell>> {
+      if (done) return { done: true, value: undefined };
+      try {
+        while (offset < text.length) {
+          if (offset === lineEnd) {
+            line++;
+            lineEnd = offset;
+            while (lineEnd < text.length && text[lineEnd] !== "\n" && text[lineEnd] !== "\r") { step(); lineEnd++; }
+            if (text[lineEnd] === "\r") lineEnd++;
+            if (text[lineEnd] === "\n") lineEnd++;
+          }
+          const char = String.fromCodePoint(text.codePointAt(offset)!);
+          offset += char.length;
+          const next = parser.next(char);
+          if (!next.done && next.value) {
+            offset = lineEnd;
+            parser.next(null);
+            return { done: false, value: next.value };
+          }
+        }
+        done = true;
+        const end = parser.next(null);
+        return !end.done && end.value ? { done: false, value: end.value } : { done: true, value: undefined };
+      } catch (failure) {
+        if (failure instanceof CsvkitDiagnostic && !(failure instanceof CsvkitBlocked)) {
+          offset = lineEnd;
+          parser = parseCsv(dialect, step, true, () => line);
+          parser.next();
+        } else done = true;
+        throw failure;
+      }
+    },
+    return() {
+      done = true;
+      parser.return();
+      return { done: true, value: undefined };
+    }
+  };
+}
+
 /** Feed physical lines without collecting input; each yielded row pauses upstream.
  * Reserve a row before accumulating its fields, including empty physical rows.
  * Quoted/escaped continuations keep that reservation across physical lines. */

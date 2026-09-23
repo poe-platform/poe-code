@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, type PDFPage, type PDFFont } from "pdf-lib";
-import fontkit from "@pdf-lib/fontkit";
+import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { createFormattingCapability } from "../formatting.js";
@@ -82,7 +82,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   tick();
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  const fonts = new Map<boolean, {font: PDFFont; ascentRatio: number; descentRatio: number}>();
+  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
   const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle }) => {
     tick(value.length);
@@ -108,7 +108,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         const parsed = fontkit.create(bytes);
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
         pdf.registerFontkit({ create: () => parsed });
-        selected = {font: await pdf.embedFont(bytes, { subset: true }),
+        selected = {font: await pdf.embedFont(bytes, { subset: true }), metrics: parsed,
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
         fonts.set(bold, selected);
       }
@@ -119,20 +119,30 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       tick();
     }
-    const {font, ascentRatio, descentRatio} = selected;
+    const {font, metrics, ascentRatio, descentRatio} = selected;
     if (cellBox && (value.includes("\n") || value.includes("\r"))) unsupported("default-style text layout");
     const supported = new Set(font.getCharacterSet());
     for (const scalar of value) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     let baseline = page.getHeight() - y - size;
+    let width = font.widthOfTextAtSize(value, size);
     if (cellBox) {
       const ascent = ascentRatio * size, height = ascent + descentRatio * size;
-      const width = font.widthOfTextAtSize(value, size);
-      if (width > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
+      const rawWidth = width;
+      width = 0;
+      // Pango rounds shaped advances in display pixels before print scaling.
+      // Glyph positions remain a separate painting obligation.
+      for (const position of metrics.layout(value).positions) {
+        tick();
+        const advance = position.xAdvance * cellBox.style.size / metrics.unitsPerEm;
+        if (!Number.isFinite(advance) || advance < 0) unsupported("supplied font advances");
+        width += Math.round(advance) * printDisplayScale;
+      }
+      if (Math.max(rawWidth, width) > cellBox.width - 5 || height > cellBox.height - (1 - printDisplayScale)) unsupported("default-style text layout");
       // print_page_cells adds 2pt;the cell painter adds half a grid plus its scaled 3px text margin.
       x += 2 + 0.5 + 3 * printDisplayScale + (alignment === "left" ? 0 : (cellBox.width - 5) / (alignment === "center" ? 2 : 1));
       baseline = page.getHeight() - y - cellBox.height + (1 - printDisplayScale) + height - ascent;
     }
-    page.drawText(value, { x: x - (alignment === "left" ? 0 : font.widthOfTextAtSize(value, size) / (alignment === "center" ? 2 : 1)), y: baseline, size, font, ...(cellBox ? {color: rgb(...cellBox.style.foreground)} : {}) });
+    page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font, ...(cellBox ? {color: rgb(...cellBox.style.foreground)} : {}) });
   };
   const metrics = (sheet: Sheet) => {
     const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {

@@ -49,7 +49,8 @@ and single-line values that fit the selected font and cell: General or explicit
 left/right/center alignment, regular or bold, sizes
 8/10/14, black or red text, and solid white or yellow backgrounds. Font selections
 share one invocation byte budget. This profile uses the captured native 96-DPI
-scale and print insets, so size 10 paints at 7.5 points. Other styles,
+scale and print insets, so size 10 paints at 7.5 points. Cell alignment and fit
+account for rounded shaped advances; exact glyph placement remains unqualified. Other styles,
 merges and text layouts retain explicit refusals. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,

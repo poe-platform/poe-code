@@ -865,6 +865,11 @@
           "kind": "authenticated-native-font-metric-holdouts",
           "path": "docs/ssconvert/linux-font-metric-holdouts-native-capture.json",
           "outcome": "Actual run35873658046 atd6fef8242d:72 strings/size/bold cases,three exit0 commands with empty streams,complete prefix/module/font/input/output bindings;three Letter pages(26/26/20cells),hard120/24 axes and byte-identical native XMLreplay PDF. Generic raw/rounded metrics and shaping are pending independent comparison;no fullpainting parity."
+        },
+        {
+          "kind": "rounded-shaped-cell-alignment-and-fit",
+          "path": "docs/ssconvert/pdf-rounded-shaped-advance-gap-proof.json",
+          "outcome": "Fourvalidated redmemory controls followedby31focused/22558package units,lint/source/test/consumer types and15publicsurface controls;portablebytes exactpermodel,immutableinputs/fonts,zero diagnostics/console andfivePDFpages/dashboard inspected. PinnedPango source confirmsrounded shapedadvances. Exactbodyleading9/22/fullbounds0/22;geometry/serialization/Arabic/markpositions/fullpainting remainopen. Normalbuild stillrunning,notclaimed;delivery/publication trackedseparately."
         }
       ],
       "delivery": {

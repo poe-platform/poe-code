@@ -83,6 +83,8 @@ const nativePropertyFreeze = Object.freeze;
 const nativePropertyWrite = Reflect.defineProperty;
 const nativePropertyDelete = Reflect.deleteProperty;
 const trackedIntrinsicObjects = new WeakSet<object>();
+const nativeIntrinsicObjectHas = WeakSet.prototype.has.bind(trackedIntrinsicObjects);
+const nativeIntrinsicObjectAdd = WeakSet.prototype.add.bind(trackedIntrinsicObjects);
 // Only captured intrinsic tables invalidate retention caches. Other tables
 // still update their own revisions for descriptor measurement.
 const intrinsicRetentionTables = new WeakSet<object>();
@@ -254,12 +256,12 @@ export function materializeFunctionProperties(closure: SandboxClosure, initialPr
 export function createIntrinsicObject(initial: SandboxObject = Object.create(null)): SandboxObject {
   // Copy first so no caller retains an untracked alias to the backing table.
   const tracked = trackPropertyTable(nativePropertyCreate(nativePropertyPrototype(initial), nativePropertyDescriptors(initial)));
-  trackedIntrinsicObjects.add(tracked);
+  nativeIntrinsicObjectAdd(tracked);
   return tracked;
 }
 
 export function isTrackedIntrinsicObject(value: object): boolean {
-  return trackedIntrinsicObjects.has(value);
+  return nativeIntrinsicObjectHas(value);
 }
 
 function trackPropertyTable(properties: SandboxObject): SandboxObject {

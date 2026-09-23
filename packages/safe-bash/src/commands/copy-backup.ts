@@ -22,10 +22,15 @@ export function copyOptions(context: CommandContext) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
-  const parsed = options(args, "rRfnvPLbB:S:t:T", {
+  const parsed = options(args, "arRfnvPLbB:S:t:T", {
+    archive: "a",
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T",
   });
+  if (parsed.flags.has("a")) {
+    parsed.flags.add("R");
+    parsed.flags.add("P");
+  }
   let backup: CopyBackup | undefined;
   if (parsed.flags.has("b") || parsed.flags.has("B")) {
     const control = value(parsed, "B") ?? context.env.VERSION_CONTROL ?? "existing";

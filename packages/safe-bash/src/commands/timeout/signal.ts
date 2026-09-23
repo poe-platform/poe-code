@@ -2,12 +2,13 @@
 const signalNames = ["HUP", "INT", "QUIT", "ILL", "TRAP", "ABRT", "BUS", "FPE", "KILL", "USR1", "SEGV", "USR2", "PIPE", "ALRM", "TERM", "STKFLT", "CHLD", "CONT", "STOP", "TSTP", "TTIN", "TTOU", "URG", "XCPU", "XFSZ", "VTALRM", "PROF", "WINCH", "IO", "PWR", "SYS"];
 
 export function parseSignal(value: string): number | undefined {
-  if (value.length > 0 && [...value].every(character => character >= "0" && character <= "9")) {
-    const number = Number(value);
-    return number <= 64 ? number : undefined;
-  }
   let name = value.toUpperCase();
   if (name.startsWith("SIG")) name = name.slice(3);
+  if (name === "EXIT") return 0;
+  if (name.length > 0 && [...name].every(character => character >= "0" && character <= "9")) {
+    const number = Number(name);
+    return number <= 64 ? number : undefined;
+  }
   if (name === "IOT") name = "ABRT";
   if (name === "CLD") name = "CHLD";
   if (name === "POLL") name = "IO";

@@ -84,6 +84,25 @@ test("timeout accepts preserve-status and named, numeric, attached signal option
   } finally { await shell.dispose(); }
 });
 
+test("timeout accepts zero and SIG-prefixed numeric aliases through Shell", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = Uint8Array.of(83, 252, 0, 13, 10);
+  await fs.writeFile("/Changed signal.bin", bytes);
+  const shell = new Shell({ fs });
+  await shell.use(agentCommands());
+  try {
+    for (const signal of ["SIG0", "sig0", "EXIT", "exit", "SIGEXIT", "sigexit", "SIG15", "sig15", "SIG9", "SIG34", "SIG64", "0", "15", "9", "34", "64", "TERM"]) {
+      for (const option of [`-s${signal}`, `--signal=${signal}`]) {
+        const result = await shell.exec(`timeout ${option} 4 sh -c 'exit 19'`);
+        assert.equal(result.exitCode, 19, option);
+        assert.equal(result.stdout, "", option);
+        assert.equal(result.stderr, "", option);
+        assert.deepEqual(await fs.readFile("/Changed signal.bin"), bytes, option);
+      }
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("timeout deadline status reflects preserve-status and selected signal", async () => {
   for (const [options, expected] of [
     [[], 124], [["--preserve-status"], 143], [["-p"], 143], [["-p", "-s", "INT"], 130], [["--preserve-status", "-s", "INT"], 130],
@@ -138,7 +157,7 @@ test("timeout signal parsing is portable for aliases and realtime boundaries", (
   for (const [name, number] of [["sigterm", 15], ["IOT", 6], ["CLD", 17], ["POLL", 29], ["RTMIN", 34], ["SIGRTMIN+30", 64], ["RTMAX-30", 34], ["0", 0], ["64", 64]] as const) {
     assert.equal(parseSignal(name), number, name);
   }
-  for (const name of ["", "-1", "65", "1.5", "RTMIN+31", "RTMAX-31", "RTMIN+", " TERM"]) {
+  for (const name of ["", "-1", "65", "+15", "SIG", "SIG65", "SIG-1", "SIG+15", "SIG1.5", "SIGSIG15", "1.5", "RTMIN+31", "RTMAX-31", "RTMIN+", " TERM"]) {
     assert.equal(parseSignal(name), undefined, name);
   }
 });

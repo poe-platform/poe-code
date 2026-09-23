@@ -373,7 +373,24 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       return { exitCode };
     }),
     define("tee", async context => {
-      const parsed = options(context.args, "a", { append: "a" });
+      const args: string[] = [];
+      let ended = false;
+      for (const argument of context.args) {
+        if (argument === "--") ended = true;
+        if (!ended && argument === "--output-error") args.push("--output-error=warn-nopipe");
+        else if (!ended && argument.startsWith("-") && !argument.startsWith("--") && argument.includes("p")) {
+          for (const flag of argument.slice(1)) args.push(flag === "p" ? "--output-error=warn-nopipe" : `-${flag}`);
+        } else args.push(argument);
+      }
+      const parsed = options(args, "ai", { append: "a", "ignore-interrupts": "i", "output-error": "output-error:" });
+      const errorMode = value(parsed, "output-error");
+      for (const mode of parsed.values.get("output-error") ?? []) {
+        if (!["warn", "warn-nopipe", "exit", "exit-nopipe"].includes(mode)) {
+          throw new UsageError(`invalid argument '${mode}' for '--output-error'`);
+        }
+      }
+      // Virtual commands have no process SIGINT handler; host cancellation remains authoritative.
+      const exitOnError = errorMode === "exit" || errorMode === "exit-nopipe";
       if (parsed.operands.length > maxTeeTargets) {
         throw new UsageError(`too many tee targets (limit ${maxTeeTargets})`);
       }
@@ -404,6 +421,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
               targets.delete(target);
               exitCode = 1;
               await diagnostic(context, error);
+              if (exitOnError) return { exitCode };
             }
           }
         }

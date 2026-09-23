@@ -137,6 +137,8 @@ alternation or `grep -F -e 'Remove upvote' -e 'Upvoted'` for literal alternative
 Exit 1 means no match; exit 2 means filtering failed. If a preceding action
 succeeded, inspect its resulting state and retry only the read-only verification
 before repeating the action. A configured regex executor may support more syntax.
+`tee` accepts `-i` / `--ignore-interrupts`, `-p`, and `--output-error[=warn|warn-nopipe|exit|exit-nopipe]` alongside `-a` / `--append`. File write failures continue with the remaining destinations in warn modes and stop in exit modes; the last error option wins. Bare `--output-error` and `-p` select `warn-nopipe`. Virtual commands have no native signal handlers or OS pipes: host cancellation and shell downstream-failure handling remain in effect.
+
 Use `grep -w` or `--word-regexp` to match whole words with C-locale byte matching (word characters are ASCII letters, digits and underscore), including fixed strings and `-o` output.
 
 Use `strings -s ':'` or `--output-separator=:` to separate extracted strings with custom text, including after the final string. An empty separator joins the strings.

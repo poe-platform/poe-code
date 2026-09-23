@@ -18,6 +18,81 @@ const routes: { name: string; create(maxTeeTargets?: number): readonly CommandDe
   { name: "default plugin", create: limit => defaultCommands(limit === undefined ? {} : { maxTeeTargets: limit }) },
 ];
 
+for (const option of ["-i", "--ignore-interrupts", "-p", "--output-error", "--output-error=warn", "--output-error=exit", "--output-error=warn-nopipe", "--output-error=exit-nopipe", "-aip"]) {
+  test(`tee compatibility: ${option} preserves stdout and file bytes`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/result", new TextEncoder().encode("before\n"));
+    const shell = new Shell({ fs });
+    shell.use(standardCommands());
+    try {
+      const result = await shell.exec(`tee ${option} /result`, { stdin: new Uint8Array([65, 0, 255, 10]) });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, new Uint8Array([65, 0, 255, 10]));
+      assert.deepEqual(await fs.readFile("/result"), new Uint8Array(option === "-aip" ? [98, 101, 102, 111, 114, 101, 10, 65, 0, 255, 10] : [65, 0, 255, 10]));
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const options of ["--output-error=invalid", "--output-error=invalid -p", "--output-error="]) test(`tee compatibility: invalid output-error modes fail before modifying files (${options})`, async () => {
+  const setup = await fixture(["/first"]);
+  setup.shell.use(standardCommands());
+  try {
+    const result = await setup.shell.exec(`tee ${options} /first`, { stdin: setup.stdin });
+    assert.equal(result.exitCode, 2);
+    assert.match(result.stderr, /invalid.*output-error/);
+    assert.equal(setup.state.pulls, 0);
+    assert.equal(new TextDecoder().decode(await setup.backing.readFile("/first")), "Q");
+  } finally { await setup.shell.dispose(); }
+});
+
+for (const mode of ["warn", "exit", "warn-nopipe", "exit-nopipe"]) {
+  test(`tee compatibility: ${mode} handles file write failures`, async () => {
+    const setup = await fixture(["/first", "/second"], { writeFailure: "/first", secondChunk: true });
+    setup.shell.use(standardCommands());
+    try {
+      const result = await setup.shell.exec(`tee --output-error=${mode} /first /second`, { stdin: setup.stdin });
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /tee:/);
+      assert.equal(result.stdout, mode.startsWith("exit") ? "A" : "AB");
+      assert.equal(new TextDecoder().decode(await setup.backing.readFile("/second")), mode.startsWith("exit") ? "" : "AB");
+      assert.equal(setup.state.active, 0);
+    } finally { await setup.shell.dispose(); }
+  });
+}
+
+for (const [options, expected] of [["--output-error=exit -p", "AB"], ["-p --output-error=exit", "A"]]) {
+  test(`tee compatibility: last error option wins (${options})`, async () => {
+    const setup = await fixture(["/first"], { writeFailure: "/first", secondChunk: true });
+    setup.shell.use(standardCommands());
+    try {
+      const result = await setup.shell.exec(`tee ${options} /first`, { stdin: setup.stdin });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, expected);
+    } finally { await setup.shell.dispose(); }
+  });
+}
+
+test("tee compatibility: end of options preserves option-shaped filenames", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs });
+  shell.use(standardCommands());
+  try {
+    const result = await shell.exec("tee -- -p --output-error", { stdin: "A" });
+    assert.equal(result.exitCode, 0);
+    for (const path of ["/-p", "/--output-error"]) assert.equal(new TextDecoder().decode(await fs.readFile(path)), "A");
+  } finally { await shell.dispose(); }
+});
+
+test("tee compatibility: ignore-interrupts preserves host cancellation", async () => {
+  const setup = await fixture(["/first"], { abortReason: false });
+  setup.shell.use(standardCommands());
+  try {
+    await assert.rejects(setup.shell.exec("tee -i -p /first", { stdin: setup.stdin, signal: setup.controller.signal }), reason => reason === false);
+    assert.equal(setup.state.active, 0);
+  } finally { await setup.shell.dispose(); }
+});
+
 function install(shell: Shell, route: typeof routes[number], limit?: number): void {
   const registration = route.create(limit);
   if ("setup" in registration) shell.use(registration);

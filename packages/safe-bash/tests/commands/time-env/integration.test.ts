@@ -9,6 +9,23 @@ import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { timeEnvCommands, createTimeEnvCommands } from "../../../src/commands/time-env/index.js";
 import { run, Timers } from "./helpers.js";
 
+test("Shell sleep accepts native hexadecimal and leading-whitespace operands with redirection", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(timeEnvCommands());
+  try {
+    for (const operand of ["0x0p0", "0x0p0s", "0X0P+4m", "0x0.00p-3h", " 0E-3m", "\t0.00h", " +0E0d"]) {
+      for (const redirect of ["", " > '/Sleep result.txt'"]) {
+        const result = await shell.exec(`sleep '${operand}'${redirect}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+      }
+      assert.deepEqual(await fs.readFile("/Sleep result.txt"), new Uint8Array());
+    }
+    const result = await shell.exec("sleep 0x1p-10s");
+    assert.equal(result.exitCode, 0); assert.equal(result.stdout, ""); assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
 test("Shell date file input works with virtual files and pipelines", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("@0\n@1\n"));

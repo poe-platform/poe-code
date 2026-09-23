@@ -59,8 +59,10 @@ stdin; these commands do not mutate command.env, cwd or filesystem contents.
 
 ## sleep
 
-- One or more nonnegative C-decimal operands, optional leading `+`, decimal
-  fraction/exponent, and optional lowercase `s`, `m`, `h`, `d` suffix.
+- One or more nonnegative C-decimal or hexadecimal operands, optional leading
+  ASCII whitespace and `+`, fraction/exponent, and optional lowercase `s`, `m`,
+  `h`, `d` suffix. Hexadecimal operands use `0x`/`0X` and an optional binary
+  `p`/`P` exponent (for example `0x1p-10s`); trailing whitespace is invalid.
   Durations sum as exact finite decimal quantities, then round upward **once**
   to whole milliseconds for timers. Sparse base-billion columns retain carries
   even below nanoseconds without allocating buffers proportional to exponent
@@ -70,8 +72,9 @@ stdin; these commands do not mutate command.env, cwd or filesystem contents.
   remains milliseconds; no nanosecond wake-up accuracy is claimed.
 - Total is bounded by Number.MAX_SAFE_INTEGER milliseconds. No operands,
   negative operands (including `-0` option syntax), malformed/overflowing values,
-  locale decimal commas, hex floats, NaN and infinity fail with status1 before
-  any timer. Hex/infinite GNU forms are explicit unsupported scope, not emulated.
+  locale decimal commas, NaN and infinity fail with status1 before any timer.
+  Infinite GNU forms remain unsupported. Hexadecimal quantities below the C
+  subnormal range become zero; supported quantities otherwise use exact arithmetic.
 - `--help`/`--version` are informational options. A standalone `--` is rejected
   as an interval, matching the pinned GNU9.7 **Darwin build** used here. Do not
   infer that delimiter behavior for every GNU platform; no Linux control ran.

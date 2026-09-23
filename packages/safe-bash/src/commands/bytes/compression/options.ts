@@ -14,6 +14,7 @@ export interface CompressionOptions {
   small?: boolean;
   level: number;
   extreme?: boolean;
+  singleStream?: boolean;
   suffix?: string;
   zstd?: ZstdOptions;
   excludeCompressed?: boolean;
@@ -109,6 +110,14 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (profile.format === "xz") {
+      if (argument === "--single-stream") { result.singleStream = true; continue; }
+      // The frontend already writes dense output and emits no XZ warnings.
+      if (argument === "--no-sparse" || argument === "--no-warn") continue;
+      if (argument === "--format" || argument.startsWith("--format=")) {
+        const format = argument === "--format" ? args[++index] : argument.slice("--format=".length);
+        if (format !== "auto") throw new UsageError("only --format=auto is supported by the XZ frontend");
+        continue;
+      }
       if (argument === "--compress") { result.decompress = false; result.test = false; continue; }
       if (argument === "--extreme") { result.extreme = true; continue; }
       if (argument === "--threads" || argument.startsWith("--threads=")) {
@@ -137,6 +146,13 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         continue;
       }
       switch (flag) {
+        case "F": {
+          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          const format = flags.slice(offset + 1) || args[++index];
+          if (format !== "auto") throw new UsageError("only --format=auto is supported by the XZ frontend");
+          offset = flags.length;
+          break;
+        }
         case "e":
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.extreme = true;
@@ -171,7 +187,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "t": result.test = true; result.decompress = true; break;
         case "h": result.help = true; break;
         case "q":
-          if (profile.format !== "zstd" && profile.format !== "gzip") throw new UsageError(`invalid option -- '${flag}'`);
+          if (profile.format !== "zstd" && profile.format !== "gzip" && profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.quiet = profile.format === "gzip" ? 1 : result.quiet + 1;
           break;
         case "r":

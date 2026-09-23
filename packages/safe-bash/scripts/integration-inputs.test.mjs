@@ -518,6 +518,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/wget.test.ts",
     "tests/commands/bytes-stress/portable-compression.test.ts",
     "tests/commands/bytes/compression/bounded-codec.test.ts",
+    "tests/commands/bytes/compression/xz-stream-controls.test.ts",
     "tests/commands/bytes/compression/bzip2-options.test.ts",
     "tests/commands/bytes/compression/zstd-options.test.ts",
     "tests/commands/bytes/compression/checkpoint-propagation.test.ts",

@@ -94,7 +94,19 @@ compression, including when invoked through a decompression alias. `-e` and
 `-T 1`, `--threads=1` and `--threads 1` select the codec's single-threaded
 execution; other counts, including automatic selection (`0`), fail explicitly.
 The existing 64 MiB codec allocation cap still applies, including to extreme
-presets. These options do not establish support for other native XZ controls.
+presets.
+
+`-q` and `--quiet` suppress warnings; repeating them also suppresses processing
+and filesystem error diagnostics, preserving failure status. `--single-stream`
+decodes and validates only the first stream, ignoring subsequent streams,
+padding and trailing bytes; it also applies to file output and test mode.
+Compression still consumes all input. `--format=auto`, `--format auto`,
+`-Fauto` and `-F auto` explicitly select the existing XZ/LZMA-alone decoder
+and XZ encoder. `--no-sparse` selects the existing dense-output behavior;
+`--no-warn` selects the existing frontend profile without XZ warnings.
+Errors still fail and are reported unless quiet is repeated.
+Forced formats, checksum controls, memory adjustment, custom filters, block
+controls and listing remain unsupported; these options do not lift codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and
 `--compress` to select compression, including on decompression aliases. The last

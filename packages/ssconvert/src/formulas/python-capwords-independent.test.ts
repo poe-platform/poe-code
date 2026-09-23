@@ -24,7 +24,7 @@ it("independently distinguishes every ASCII whitespace from retained control cha
     // Literal test expectations cover the ASCII partition, without Python/native execution.
     const middle = code >= 65 && code <= 90 ? String.fromCharCode(code + 32) : character;
     expect(calculate({ kind: "string", value: `LEFT${character}RIGHT` }))
-      .toEqual({ kind: "string", value: whitespace.has(code) ? "Left Right" : `Left${middle}right` });
+      .toEqual({ kind: "string", value: code === 0 ? "Left" : whitespace.has(code) ? "Left Right" : `Left${middle}right` });
   }
 });
 
@@ -33,7 +33,7 @@ it("capitalizes the first character even when a word begins with punctuation or 
     ["'HELLO \"WORLD 9LIVES _NAME .TITLE", "'hello \"world 9lives _name .title"],
     ["a.BC A/BC A\\BC A:BC A_BC A-Bc", "A.bc A/bc A\\bc A:bc A_bc A-bc"],
     ["\t\n\v\f\r\u001c\u001d\u001e\u001f ", ""],
-    ["A\u0000B\u007fC", "A\u0000b\u007fc"]
+    ["A\u0000B\u007fC", "A"]
   ]) expect(calculate({ kind: "string", value: value! })).toEqual({ kind: "string", value: expected });
 });
 
@@ -67,7 +67,7 @@ it("preserves caller cancellation reason and handles Unicode scalar and whitespa
   } catch (error) { expect(error).toBe(reason); }
   for (const [value, expected] of [
     ["\u0085", ""], ["\u00a0", ""], ["\u2003", ""],
-    ["\u0130", "İ"], ["\u00df", "Ss"], ["\ud800", "\ud800"],
+    ["\u0130", "İ"], ["\u00df", "Ss"],
     ["Α'Σ", "Α'ς"], ["1'Σ", "1'σ"], ["Α'Σ'Α", "Α'σ'α"]
   ]) expect(calculate({ kind: "string", value: value! })).toEqual({ kind: "string", value: expected });
 });

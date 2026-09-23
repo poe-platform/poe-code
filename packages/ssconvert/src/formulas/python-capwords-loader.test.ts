@@ -21,3 +21,20 @@ it.each(cases)("matches the activated Python loader for %s", (_name, value, type
   ] }] }, context);
   expect(result.sheets[0]?.cells[1]?.value).toEqual({ kind: "error", value: `Python exception (<class 'AttributeError'>: '${type}' object has no attribute 'split')` });
 });
+
+it.each([
+  ["hELLO\0wORLD", "Hello"], ["\0wORLD", ""], ["A\0\ud800", "A"]
+])("clips Python C-string input %s at the native NUL boundary", (value, expected) => {
+  const result = recalculateWorkbook({ sheets: [{ id: "s", name: "Sheet1", cells: [
+    { row: 0, column: 0, value: { kind: "string", value: value! } },
+    { row: 0, column: 1, formula: "=PY_CAPWORDS(A1)", formulaDirty: true, value: { kind: "blank" } }
+  ] }] }, context);
+  expect(result.sheets[0]?.cells[1]?.value).toEqual({ kind: "string", value: expected });
+});
+
+it.each(["\ud800", "a\udc00"])("refuses malformed visible host UTF-16 %s before Python capitalization", value => {
+  expect(() => recalculateWorkbook({ sheets: [{ id: "s", name: "Sheet1", cells: [
+    { row: 0, column: 0, value: { kind: "string", value } },
+    { row: 0, column: 1, formula: "=PY_CAPWORDS(A1)", formulaDirty: true, value: { kind: "blank" } }
+  ] }] }, context)).toThrow("Malformed host UTF-16");
+});

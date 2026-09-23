@@ -62,6 +62,9 @@ export function pythonCapwords(args: readonly (Value | undefined)[], host: Funct
   for (const char of source) {
     host.tick();
     const code = char.codePointAt(0)!;
+    if (code === 0) break;
+    if (code >= 0xd800 && code <= 0xdfff)
+      throw new SsconvertError("unsupported-feature", "Malformed host UTF-16 has no lossless text byte representation");
     if (within(code, whitespace)) flush();
     else word.push(code);
   }

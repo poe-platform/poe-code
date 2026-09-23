@@ -4,7 +4,8 @@ Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer
 The engine provides spreadsheet import and export, recalculation, workbook updates,
 and chart and print rendering. Lotus WK1/WK3 named-range records import as workbook names; WK3 formulas resolve named ranges with relative and absolute references. The optional `pythonSampleFunctions` binding adds
 percent formatting through `PY_PRINTF` and Unicode 16 capitalization through `PY_CAPWORDS`; supply it as `runtimeFunctions` to enable
-the sample functions. The optional `perlSampleFunctions` binding adds clock-based dates
+the sample functions. `PY_CAPWORDS` stops at the first NUL and refuses malformed visible Unicode.
+The optional `perlSampleFunctions` binding adds clock-based dates
 and bounded pattern substitution with literal replacements. Native byte results
 use an explicit `byte-string` value with lowercase hex, preserving invalid UTF-8
 through qualified text formulas, arrays and CSV output. LOWER/UPPER use captured

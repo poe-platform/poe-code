@@ -8,3 +8,8 @@ export {configure,unconfigure,installSkill,UnsupportedAgentError}from'./apply.js
 export type {InstallSkillOptions,InstallSkillResult}from'./apply.js';
 export type {BridgeEntry,BridgeManifest,BridgeWarning,BridgeWarningKind}from'./bridge-active-skills.js';
 export {bridgeActiveSkills,cleanupBridgedSkills}from'./bridge-active-skills.js';
+
+export { resolveSkillReferenceAsync, appendExcludeBlockAsync, removeExcludeBlockAsync,
+  bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync, discoverSkillsAsync
+} from "@poe-code/agent-skill-config";
+export type { SkillRuntimeOptions, DiscoveredSkill } from "@poe-code/agent-skill-config";

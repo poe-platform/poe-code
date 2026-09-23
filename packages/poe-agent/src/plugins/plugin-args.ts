@@ -1,4 +1,5 @@
-import path from "node:path";
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
+import nativePath from "node:path";
 import { hasOwnErrorCode } from "../error-codes.js";
 
 type PathInspectionFileSystem = {
@@ -107,13 +108,13 @@ export function assertAllowedPathEntries(
   }
 }
 
-export function normalizeAllowedPaths(cwd: string, allowedPaths: string[] | undefined): string[] {
+export function normalizeAllowedPaths(cwd: string, allowedPaths: string[] | undefined, path = nativePath): string[] {
   const entries = allowedPaths ?? [cwd];
   assertAllowedPathEntries(entries);
   return entries.map((allowedPath) => path.resolve(cwd, allowedPath));
 }
 
-export function resolveAllowedPath(cwd: string, allowedPaths: string[], inputPath: string): string {
+export function resolveAllowedPath(cwd: string, allowedPaths: string[], inputPath: string, path = nativePath): string {
   const resolvedPath = path.resolve(cwd, inputPath);
   const isAllowed = allowedPaths.some(allowedPath => {
     if (allowedPath === resolvedPath) {
@@ -135,6 +136,7 @@ export async function assertNoSymbolicLinkPath(
   fs: PathInspectionFileSystem,
   filePath: string
 ): Promise<void> {
+  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const absolutePath = path.resolve(filePath);
   const root = path.parse(absolutePath).root;
   let inspectedPath = root;

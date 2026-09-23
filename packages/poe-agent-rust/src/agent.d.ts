@@ -1,3 +1,4 @@
+import type { AgentOptions } from "@poe-code/poe-agent";
 import type { McpSpawnConfig } from "./spawn-types.js";
 import type { AcpModel } from "./acp-model.js";
 import { type AgentHostOptions } from "./agent-host.js";
@@ -38,7 +39,7 @@ export type AgentBuilder = {
   run(prompt: string, options?: AgentRunOptions): Promise<RunResult>;
   stream(prompt: string, options?: AgentRunOptions): AsyncIterable<AcpEvent>;
 };
-export declare function agent(): AgentBuilder;
+export declare function agent(options?: AgentOptions): AgentBuilder;
 export declare function normalizeNonEmptyString(
   value: string | null | undefined
 ): string | undefined;

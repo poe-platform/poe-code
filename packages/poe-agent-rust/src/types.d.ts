@@ -1,3 +1,4 @@
+import type { AgentRuntime } from "@poe-code/poe-agent";
 import type { SpawnMode } from "./spawn-types.js";
 export type ToolResultTextPart = {
   type: "text";
@@ -147,7 +148,7 @@ export type AcpHost = {
   fork(request: ForkRequest): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;
 };
-export type ToolContext = {
+export type ToolContext = { runtime?: AgentRuntime;
   fork(prompt: string): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;
   signal: AbortSignal;

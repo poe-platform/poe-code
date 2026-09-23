@@ -1,6 +1,10 @@
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
+import { resolvePluginFileSystem, type AgentRuntime } from "../runtime/filesystem.js";
+import { globFileSystem, searchFileSystem } from "../runtime/filesystem-search.js";
 import { execFile as execFileCallback } from "node:child_process";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
+import nativePath from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import fastGlob from "fast-glob";
@@ -64,12 +68,25 @@ export type FilesPluginConfigOptions = Pick<FilesPluginOptions, "cwd" | "allowed
 const execFile = promisify(execFileCallback);
 
 const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
-  const cwd = path.resolve(options.cwd ?? process.cwd());
-  const allowedPaths = normalizeAllowedPaths(cwd, options.allowedPaths);
-  const fs = options.fs ?? fsPromises;
-  const searchContent =
-    options.searchContent ?? ((searchOptions) => defaultSearchContent(searchOptions, fs));
-  const globFiles = options.globFiles ?? defaultGlobFiles;
+  if (options.allowedPaths) assertAllowedPathEntries(options.allowedPaths);
+  function services(runtime?: AgentRuntime) {
+    const path = runtime?.customFs || (options.fs && getNodeFsBridgeProvider(options.fs)) ? nativePath.posix : nativePath;
+    const cwd = path.resolve(runtime?.cwd ?? options.cwd ?? process.cwd(), options.cwd ?? ".");
+    const fs = resolvePluginFileSystem(runtime, options.fs, fsPromises);
+    const searchFs = runtime?.customFs ? runtime.fs : options.fs && getNodeFsBridgeProvider(options.fs);
+    if (runtime?.customFs && (options.searchContent || options.globFiles)) {
+      throw new Error("Search overrides conflict with the configured agent filesystem.");
+    }
+    return {
+      cwd, fs, path, allowedPaths: normalizeAllowedPaths(cwd, options.allowedPaths, path),
+      searchContent: options.searchContent ?? (searchFs
+        ? (searchOptions: SearchContentOptions) => searchFileSystem(searchOptions, searchFs)
+        : (searchOptions: SearchContentOptions) => defaultSearchContent(searchOptions, fs)),
+      globFiles: options.globFiles ?? (options.fs || runtime?.customFs
+        ? (globOptions: GlobFilesOptions) => globFileSystem(globOptions, fs)
+        : defaultGlobFiles),
+    };
+  }
 
   const readFileTool = {
     name: "read_file",
@@ -98,8 +115,9 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       },
       required: ["path"]
     },
-    async call(args: unknown) {
-      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
+    async call(args: unknown, ctx?: { runtime?: AgentRuntime }) {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
+      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"), path);
       await assertNoSymbolicLinkPath(fs, filePath);
       const imageMimeType = detectImageMimeType(filePath);
       if (imageMimeType !== undefined) {
@@ -160,10 +178,11 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       },
       required: ["command", "path"]
     },
-    async call(args: unknown): Promise<string> {
+    async call(args: unknown, ctx?: { runtime?: AgentRuntime }): Promise<string> {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
       const command = getRequiredString(args, "command");
-      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
-      const displayedPath = formatDisplayPath(cwd, filePath);
+      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"), path);
+      const displayedPath = formatDisplayPath(cwd, filePath, path);
       await assertNoSymbolicLinkPath(fs, filePath);
 
       if (command === "str_replace") {
@@ -240,9 +259,10 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         }
       }
     },
-    async call(args: unknown): Promise<string> {
+    async call(args: unknown, ctx?: { runtime?: AgentRuntime }): Promise<string> {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
       const rawPath = getOptionalString(args, "path") ?? ".";
-      const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath);
+      const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath, path);
       await assertNoSymbolicLinkPath(fs, directoryPath);
       const entries = await fs.readdir(directoryPath);
       const names = entries.sort((left, right) => left.localeCompare(right));
@@ -294,11 +314,13 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       },
       required: ["pattern"]
     },
-    async call(args: unknown, ctx: { signal: AbortSignal }): Promise<string> {
+    async call(args: unknown, ctx: { signal: AbortSignal; runtime?: AgentRuntime }): Promise<string> {
+      const { cwd, fs, path, allowedPaths, searchContent } = services(ctx?.runtime);
       const searchPath = resolveAllowedPath(
         cwd,
         allowedPaths,
-        getOptionalString(args, "path") ?? "."
+        getOptionalString(args, "path") ?? ".",
+        path
       );
       await assertNoSymbolicLinkPath(fs, searchPath);
 
@@ -335,11 +357,13 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       },
       required: ["pattern"]
     },
-    async call(args: unknown): Promise<string> {
+    async call(args: unknown, ctx?: { runtime?: AgentRuntime }): Promise<string> {
+      const { cwd, fs, path, allowedPaths, globFiles } = services(ctx?.runtime);
       const searchPath = resolveAllowedPath(
         cwd,
         allowedPaths,
-        getOptionalString(args, "path") ?? "."
+        getOptionalString(args, "path") ?? ".",
+        path
       );
       await assertNoSymbolicLinkPath(fs, searchPath);
       const matches = await globFiles({
@@ -349,7 +373,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
 
       const resolvedMatches = await Promise.all(
         matches.map(async (match) => {
-          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match);
+          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match, path);
           await assertNoSymbolicLinkPath(fs, resolvedMatch);
           return resolvedMatch;
         })
@@ -360,12 +384,13 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         return "(no matches)";
       }
 
-      return sortedMatches.map((match) => formatDisplayPath(cwd, match)).join("\n");
+      return sortedMatches.map((match) => formatDisplayPath(cwd, match, path)).join("\n");
     }
   };
 
   return {
     name: "poe-agent-plugin-files",
+    setup(api) { services(api.runtime); },
     tools: [readFileTool, editFileTool, listFilesTool, grepTool, globTool]
   };
 };
@@ -375,6 +400,7 @@ async function replaceFileAtomically(
   filePath: string,
   content: string
 ): Promise<void> {
+  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const temporaryPath = path.join(
     path.dirname(filePath),
     `.${path.basename(filePath)}.${randomUUID()}.tmp`
@@ -435,7 +461,7 @@ function getOptionalGrepOutputMode(args: unknown, key: string): GrepOutputMode |
   );
 }
 
-function formatDisplayPath(cwd: string, filePath: string): string {
+function formatDisplayPath(cwd: string, filePath: string, path = nativePath): string {
   return path.relative(cwd, filePath) || path.basename(filePath);
 }
 

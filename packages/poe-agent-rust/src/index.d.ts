@@ -99,3 +99,8 @@ export { default as gitContextPlugin } from "./plugin-git-context.js";
 
 export type { AgentRunOptions as RunOptions } from "./agent.js";
 export type { PluginSpec } from "./plugin-spec.js";
+
+export { createAgentRuntime, resolvePluginFileSystem, globFileSystem, searchFileSystem } from "@poe-code/poe-agent";
+export type { AgentOptions, AgentRuntime } from "@poe-code/poe-agent";
+
+export type { SkillsPluginOptions } from "./plugin-skills.js";

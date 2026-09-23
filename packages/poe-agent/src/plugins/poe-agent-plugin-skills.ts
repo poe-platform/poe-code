@@ -1,3 +1,4 @@
+import { discoverSkillsAsync } from "@poe-code/agent-skill-config";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import type { ToolRegistry } from "../runtime/tools.js";
 
@@ -8,8 +9,9 @@ type SkillDefinition =
       tags?: string[];
     };
 
-type SkillsPluginOptions = {
-  definitions: Record<string, SkillDefinition>;
+export type SkillsPluginOptions = {
+  definitions?: Record<string, SkillDefinition>;
+  directories?: string[];
   skills?: string[] | (() => string[] | undefined);
   toolRegistry?: Pick<ToolRegistry, "getActiveTools">;
 };
@@ -20,12 +22,12 @@ type NormalizedSkillDefinition = {
   tags: string[];
 };
 
-const skills = (options: SkillsPluginOptions): AgentPlugin => {
-  const definitions = normalizeDefinitions(options.definitions);
+const skills = (options: SkillsPluginOptions = {}): AgentPlugin => {
+  const definitions = normalizeDefinitions(options.definitions ?? {});
 
   return {
     name: "skills",
-    prompt(ctx) {
+    async prompt(ctx, runtime) {
       const activeSkills = normalizeStringList(
         typeof options.skills === "function" ? options.skills() : options.skills,
       );
@@ -37,12 +39,21 @@ const skills = (options: SkillsPluginOptions): AgentPlugin => {
 
       const guidance = buildSkillGuidance(activeDefinitions, activeTools);
 
+      const catalog = options.directories?.length
+        ? await discoverSkillsAsync(options.directories, requireRuntime(runtime))
+        : [];
+      const catalogGuidance = catalog.length === 0 ? undefined : [
+        "Available file skills:",
+        ...catalog.map(skill => `- ${skill.name}: ${skill.file}`),
+        "Read the full SKILL.md through the configured filesystem before using a skill."
+      ].join("\n");
+      const system = [ctx.system, guidance, catalogGuidance].filter(Boolean).join("\n\n");
       return {
         ...ctx,
-        ...(guidance === undefined
+        ...(guidance === undefined && catalogGuidance === undefined
           ? {}
           : {
-              system: [ctx.system, guidance].filter(Boolean).join("\n\n"),
+              system,
             }),
         metadata: {
           ...ctx.metadata,
@@ -91,7 +102,7 @@ function buildSkillGuidance(
 }
 
 function normalizeDefinitions(
-  definitions: SkillsPluginOptions["definitions"],
+  definitions: NonNullable<SkillsPluginOptions["definitions"]>,
 ): Map<string, NormalizedSkillDefinition> {
   const normalized = new Map<string, NormalizedSkillDefinition>();
 
@@ -131,6 +142,12 @@ function normalizeStringList(values: string[] | undefined): string[] {
   }
 
   return normalized;
+}
+
+function requireRuntime(runtime: import("../runtime/filesystem.js").AgentRuntime | undefined) {
+  if (!runtime) throw new Error("File skills require an agent runtime filesystem.");
+  return { fs: runtime.fs, cwd: runtime.cwd, homeDir: runtime.homeDir,
+    signal: runtime.signal, nativePaths: !runtime.customFs };
 }
 
 export default skills;

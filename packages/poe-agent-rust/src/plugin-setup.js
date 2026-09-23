@@ -21,9 +21,9 @@ export async function runPluginSetup(plugins, runContext) {
             break;
           case "prompt":
             if (plugin.prompt)
-              runContext.prompts.addTransform(async (context) => {
+              runContext.prompts.addTransform(async (context, runtime) => {
                 try {
-                  return await plugin.prompt(context);
+                  return await plugin.prompt(context, runtime);
                 } catch (error) {
                   throw new PromptTransformError(plugin.name, error);
                 }
@@ -41,7 +41,7 @@ export async function runPluginSetup(plugins, runContext) {
           case "dispose":
             if (plugin.dispose)
               runContext.registerDisposeHook(async () => {
-                await plugin.dispose();
+                await plugin.dispose(runContext.runtime);
               });
             break;
         }

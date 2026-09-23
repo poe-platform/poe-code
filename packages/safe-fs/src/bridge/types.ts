@@ -9,6 +9,8 @@ export interface FsBridgeCodec {
 export interface FsBridgeOptions {
   readonly codec: FsBridgeCodec;
   readonly cwd?: string;
+  /** Optional confinement boundary; defaults to cwd. */
+  readonly root?: string;
   readonly signal?: AbortSignal;
 }
 

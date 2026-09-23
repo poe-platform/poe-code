@@ -37,13 +37,25 @@ console.log(result.output);
 
 ## Runtime requirements
 
-- `grep` in `filesPlugin()` shells out to `rg` (ripgrep). Install ripgrep and make sure `rg` is on `PATH`.
+- `grep` in a default host-backed `filesPlugin()` uses `rg` (ripgrep) on `PATH`. With an agent filesystem, it uses safe-bash’s bounded search over that provider.
 - `fetch_url`, `search_web`, and Poe model calls need network access.
 - `createAgentSession()` only supports stdio MCP servers.
 
 ## Public API
 
-### `agent()`
+### `agent(options?)`
+
+Configure filesystem access once with `agent({ fs, cwd, homeDir })`. `fs` accepts a canonical safe-fs `FileSystem`; setup receives `api.fs`, `api.cwd`, `api.homeDir`, `api.signal`, and `api.runtime`. Tools receive the same services through `ctx.runtime`; prompt transforms and hooks receive an optional second runtime argument, and disposal receives it as its argument. These capabilities stay outside prompt metadata and transcripts.
+
+```ts
+const bot = agent({ fs: workspaceFs, cwd: "/workspace", homeDir: "/home/agent" })
+  .use(memoryPlugin())
+  .use(filesPlugin());
+```
+
+File reads, edits, glob, grep, memory imports, audit logs, run transcripts, and session persistence use this view. Forks and internal children inherit it; disposing an agent leaves the caller-owned provider usable. Custom filesystem paths use the provider's POSIX namespace, with `/` as the default cwd and home. Omitting `fs` preserves native host paths and Node behavior.
+
+Per-plugin filesystem overrides remain compatible with host-backed agents. An explicitly configured agent rejects conflicting overrides; a Node bridge of the same provider is accepted. Host shell commands and Git context fail explicitly with custom filesystems. External MCP servers require `trustedHost: true` on each granted server; their host access is separate from the filesystem capability. Built-in OpenAI providers require an explicit `apiKey` with custom filesystems so they cannot read host credential storage. Applications can use safe-bash with `runtime.fs` for virtual shell commands; filesystem injection does not sandbox trusted JavaScript plugins or imports.
 
 Returns a fluent builder:
 
@@ -305,11 +317,12 @@ Tools:
 
 Options:
 
-- `definitions: Record<string, string[] | { tools?: string[]; tags?: string[] }>`
+- `definitions?: Record<string, string[] | { tools?: string[]; tags?: string[] }>`
+- `directories?: string[]` — catalog child `SKILL.md` files from the shared filesystem.
 - `skills?: string[] | (() => string[] | undefined)`
 - `toolRegistry?`
 
-Adds active-skill guidance and metadata to the prompt.
+Adds active-skill guidance and metadata to the prompt. `skillsPlugin({ directories: ["/.poe-code/skills"] })` loads a catalog through `runtime.fs` and directs the agent to read each full skill before using it. It is also exported from `poe-code/agent`.
 
 ### `spawnPlugin()`
 

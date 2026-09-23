@@ -1,3 +1,4 @@
+import { createHostFileSystem } from "@poe-code/safe-fs";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./poe-agent-rust.node");
 function unwrap(result) {
@@ -67,6 +68,8 @@ export function createResolvedAgentConfig(input = {}) {
       ? undefined
       : native.trimConfigString(stringInput(supplied));
   return Object.freeze({
+    fs: input.fs ?? createHostFileSystem(),
+    cwd: input.cwd, homeDir: input.homeDir, customFs: input.customFs ?? input.fs !== undefined,
     ...(!model ? {} : { model }),
     plugins: Object.freeze((input.plugins ?? []).map(cloneAgentPlugin))
   });

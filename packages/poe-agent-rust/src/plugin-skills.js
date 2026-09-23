@@ -1,9 +1,10 @@
+import { discoverSkillsAsync } from "@poe-code/agent-skill-config";
 import { native } from "./native.js";
-const skills = (options) => {
-  const definitions = normalizeDefinitions(options.definitions);
+const skills = (options = {}) => {
+  const definitions = normalizeDefinitions(options.definitions ?? {});
   return {
     name: "skills",
-    prompt(ctx) {
+    async prompt(ctx, runtime) {
       const activeSkills = normalizeStringList(
         typeof options.skills === "function" ? options.skills() : options.skills
       );
@@ -13,12 +14,21 @@ const skills = (options) => {
         activeTools.length > 0 ? activeTools.join(", ") : null
       );
       const guidance = nativeGuidance === null ? undefined : nativeGuidance;
+      const catalog = options.directories?.length
+        ? await discoverSkillsAsync(options.directories, requireRuntime(runtime))
+        : [];
+      const catalogGuidance = catalog.length === 0 ? undefined : [
+        "Available file skills:",
+        ...catalog.map(skill => `- ${skill.name}: ${skill.file}`),
+        "Read the full SKILL.md through the configured filesystem before using a skill."
+      ].join("\n");
+      const system = [ctx.system, guidance, catalogGuidance].filter(Boolean).join("\n\n");
       return {
         ...ctx,
-        ...(guidance === undefined
+        ...(guidance === undefined && catalogGuidance === undefined
           ? {}
           : {
-              system: [ctx.system, guidance].filter(Boolean).join("\n\n")
+              system
             }),
         metadata: {
           ...ctx.metadata,
@@ -59,4 +69,10 @@ function normalizeStringList(values) {
   }
   return normalized;
 }
+function requireRuntime(runtime) {
+  if (!runtime) throw new Error("File skills require an agent runtime filesystem.");
+  return { fs: runtime.fs, cwd: runtime.cwd, homeDir: runtime.homeDir,
+    signal: runtime.signal, nativePaths: !runtime.customFs };
+}
+
 export default skills;

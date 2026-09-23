@@ -23,7 +23,7 @@ await fs.appendFile("note.txt", " world", "utf8");
 console.log(await fs.readFile("note.txt", "utf8"));
 ```
 
-Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw adapters exchange `Uint8Array` values; the Node bridge adds strings, encodings, `Buffer` results, and stat predicates. Its `cwd` is both the relative-path base and the confinement boundary.
+Output: `hello`, then `hello world`. Nothing touches the host filesystem. Raw adapters exchange `Uint8Array` values; the Node bridge adds strings, encodings, `Buffer` results, and stat predicates. Its `cwd` is the relative-path base and, by default, the confinement boundary. Set an explicit `root` to use a different boundary, for example `{ cwd: "/work", root: "/" }` to address a complete provider namespace. The bridge supports `unlink` when the provider offers atomic file removal; unsupported methods fail without host fallback. `createHostFileSystem()` provides trusted, unrestricted native host access when a rooted adapter is not desired.
 
 For host storage, use `await createRealFileSystem({ root: "/absolute/existing/directory" })` instead. The root must already exist; virtual `/` maps to that directory. ZIP creation, updates, and extraction can use this adapter's private owned staging in an isolated host tree. Its `trustedOwnedStaging` capability checks original entries before publication and cleanup, and preserves foreign staging children. It does not advertise atomic conditional mutations: keep external writers and other in-flight writes away from the tree during these operations. Read the safety boundary below before exposing it to untrusted code.
 

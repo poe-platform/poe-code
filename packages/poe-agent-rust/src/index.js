@@ -84,3 +84,5 @@ export * from "./agent-session.js";
 export { createProcessSpawnSession, createInMemorySpawnSession, createInMemoryAcpTransport } from "./agent-host.js";
 
 export { default as gitContextPlugin } from "./plugin-git-context.js";
+
+export { createAgentRuntime, resolvePluginFileSystem, globFileSystem, searchFileSystem } from "@poe-code/poe-agent";

@@ -1,8 +1,11 @@
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
+import { resolvePluginFileSystem, searchFileSystem } from "@poe-code/poe-agent";
 import { native } from "./native.js";
 import { globFiles as defaultGlobFiles } from "./file-glob.js";
 import { execFile as execFileCallback } from "node:child_process";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
+import nativePath from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import { hasOwnErrorCode } from "./error-codes.js";
@@ -25,12 +28,19 @@ import {
 } from "./plugin-args.js";
 const execFile = promisify(execFileCallback);
 const filesPlugin = (options = {}) => {
-  const cwd = path.resolve(options.cwd ?? process.cwd());
-  const allowedPaths = normalizeAllowedPaths(cwd, options.allowedPaths);
-  const fs = options.fs ?? fsPromises;
-  const searchContent =
-    options.searchContent ?? ((searchOptions) => defaultSearchContent(searchOptions, fs));
-  const globFiles = options.globFiles ?? defaultGlobFiles;
+  if (options.allowedPaths) assertAllowedPathEntries(options.allowedPaths);
+  function services(runtime) {
+    const path = runtime?.customFs || (options.fs && getNodeFsBridgeProvider(options.fs)) ? nativePath.posix : nativePath;
+    const cwd = path.resolve(runtime?.cwd ?? options.cwd ?? process.cwd(), options.cwd ?? ".");
+    const fs = resolvePluginFileSystem(runtime, options.fs, fsPromises);
+    const searchFs = runtime?.customFs ? runtime.fs : options.fs && getNodeFsBridgeProvider(options.fs);
+    if (runtime?.customFs && (options.searchContent || options.globFiles)) throw new Error("Search overrides conflict with the configured agent filesystem.");
+    return { cwd, fs, path, allowedPaths: normalizeAllowedPaths(cwd, options.allowedPaths, path),
+      searchContent: options.searchContent ?? (searchFs
+        ? searchOptions => searchFileSystem(searchOptions, searchFs)
+        : searchOptions => defaultSearchContent(searchOptions, fs)),
+      globFiles: options.globFiles ?? (globOptions => defaultGlobFiles({ ...globOptions, fs })) };
+  }
   const readFileTool = {
     name: "read_file",
     description: "Read UTF-8 content from a file.",
@@ -58,8 +68,9 @@ const filesPlugin = (options = {}) => {
       },
       required: ["path"]
     },
-    async call(args) {
-      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
+    async call(args, ctx) {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
+      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"), path);
       await assertNoSymbolicLinkPath(fs, filePath);
       const imageMimeType =
         native.agentImageMime(path.extname(filePath).toLowerCase()) ?? undefined;
@@ -119,10 +130,11 @@ const filesPlugin = (options = {}) => {
       },
       required: ["command", "path"]
     },
-    async call(args) {
+    async call(args, ctx) {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
       const command = getRequiredString(args, "command");
-      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
-      const displayedPath = formatDisplayPath(cwd, filePath);
+      const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"), path);
+      const displayedPath = formatDisplayPath(cwd, filePath, path);
       await assertNoSymbolicLinkPath(fs, filePath);
       if (command === "str_replace") {
         const oldStr = getRequiredString(args, "old_str", true);
@@ -187,9 +199,10 @@ const filesPlugin = (options = {}) => {
         }
       }
     },
-    async call(args) {
+    async call(args, ctx) {
+      const { cwd, fs, path, allowedPaths } = services(ctx?.runtime);
       const rawPath = getOptionalString(args, "path") ?? ".";
-      const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath);
+      const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath, path);
       await assertNoSymbolicLinkPath(fs, directoryPath);
       const entries = await fs.readdir(directoryPath);
       const names = entries.sort((left, right) => left.localeCompare(right));
@@ -239,10 +252,12 @@ const filesPlugin = (options = {}) => {
       required: ["pattern"]
     },
     async call(args, ctx) {
+      const { cwd, fs, path, allowedPaths, searchContent } = services(ctx?.runtime);
       const searchPath = resolveAllowedPath(
         cwd,
         allowedPaths,
-        getOptionalString(args, "path") ?? "."
+        getOptionalString(args, "path") ?? ".",
+        path
       );
       await assertNoSymbolicLinkPath(fs, searchPath);
       return searchContent({
@@ -277,11 +292,13 @@ const filesPlugin = (options = {}) => {
       },
       required: ["pattern"]
     },
-    async call(args) {
+    async call(args, ctx) {
+      const { cwd, fs, path, allowedPaths, globFiles } = services(ctx?.runtime);
       const searchPath = resolveAllowedPath(
         cwd,
         allowedPaths,
-        getOptionalString(args, "path") ?? "."
+        getOptionalString(args, "path") ?? ".",
+        path
       );
       await assertNoSymbolicLinkPath(fs, searchPath);
       const matches = await globFiles({
@@ -290,7 +307,7 @@ const filesPlugin = (options = {}) => {
       });
       const resolvedMatches = await Promise.all(
         matches.map(async (match) => {
-          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match);
+          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match, path);
           await assertNoSymbolicLinkPath(fs, resolvedMatch);
           return resolvedMatch;
         })
@@ -299,15 +316,17 @@ const filesPlugin = (options = {}) => {
       if (sortedMatches.length === 0) {
         return "(no matches)";
       }
-      return sortedMatches.map((match) => formatDisplayPath(cwd, match)).join("\n");
+      return sortedMatches.map((match) => formatDisplayPath(cwd, match, path)).join("\n");
     }
   };
   return {
     name: "poe-agent-plugin-files",
+    setup(api) { services(api.runtime); },
     tools: [readFileTool, editFileTool, listFilesTool, grepTool, globTool]
   };
 };
 async function replaceFileAtomically(fs, filePath, content) {
+  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const temporaryPath = path.join(
     path.dirname(filePath),
     `.${path.basename(filePath)}.${randomUUID()}.tmp`
@@ -345,7 +364,7 @@ function getOptionalGrepOutputMode(args, key) {
     `Tool argument "${key}" must be one of "files_with_matches", "content", or "count"`
   );
 }
-function formatDisplayPath(cwd, filePath) {
+function formatDisplayPath(cwd, filePath, path = nativePath) {
   return path.relative(cwd, filePath) || path.basename(filePath);
 }
 async function sortPathsByModifiedTime(matches, fs) {

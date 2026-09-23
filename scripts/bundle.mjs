@@ -113,7 +113,7 @@ async function getProviderEntryPoints(root) {
   };
 }
 
-const mainEntryPoints = ["index", "safe-bash", "safe-bash-media", "media", "remote-execution", "media-server", "remote-execution-server"]
+const mainEntryPoints = ["index", "cli-entry", "safe-bash", "safe-bash-media", "media", "remote-execution", "media-server", "remote-execution-server"]
   .map(entry => path.join(rootDir, `src/${entry}.ts`));
 const mainBuild = await esbuild.build({
   entryPoints: mainEntryPoints,
@@ -371,7 +371,7 @@ const wrapperPath = path.join(rootDir, "dist/bin.cjs");
 const wrapper = [
   "#!/usr/bin/env node",
   versionGateSnippet("poe-code"),
-  'import("./index.js").then(function (m) { m.main(); }).catch(function (err) { console.error(err); process.exit(1); });',
+  'import("./cli-entry.js").then(function (m) { m.main(); }).catch(function (err) { console.error(err); process.exit(1); });',
   ""
 ].join("\n");
 await writeFile(wrapperPath, wrapper, { encoding: "utf8" });

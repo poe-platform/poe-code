@@ -6,10 +6,11 @@ type SkillDefinition =
       tools?: string[];
       tags?: string[];
     };
-type SkillsPluginOptions = {
-  definitions: Record<string, SkillDefinition>;
+export type SkillsPluginOptions = {
+  definitions?: Record<string, SkillDefinition>;
+  directories?: string[];
   skills?: string[] | (() => string[] | undefined);
   toolRegistry?: Pick<ToolRegistry, "getActiveTools">;
 };
-declare const skills: (options: SkillsPluginOptions) => AgentPlugin;
+declare const skills: (options?: SkillsPluginOptions) => AgentPlugin;
 export default skills;

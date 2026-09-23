@@ -2,7 +2,8 @@ import { runCommand } from "./spawn-run-command.js";
 import { native } from "./native.js";
 const gitContext = (cwd) => ({
   name: "git-context",
-  async prompt(ctx) {
+  async prompt(ctx, runtime) {
+    if (runtime?.customFs) throw new Error("Host Git context cannot use a custom filesystem.");
     const [status, log] = await Promise.all([
       runCommand("git", ["status", "--short"], { cwd })
         .then((result) => result.stdout)

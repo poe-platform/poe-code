@@ -1,3 +1,4 @@
+import { createNodeFsBridge, getNodeFsBridgeProvider, type FileSystem } from "@poe-code/safe-fs";
 import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -32,16 +33,18 @@ export interface AgentSessionStore {
 export function createAgentSessionStore(
   options: {
     homeDir?: string;
-    fs?: SessionStoreFs;
+    fs?: SessionStoreFs | FileSystem;
+    signal?: AbortSignal;
   } = {}
 ): AgentSessionStore {
-  const fs = options.fs ?? fsPromises;
-  const sessionsDir = path.join(options.homeDir ?? os.homedir(), ".poe-code", "sessions");
+  const fs = options.fs && "capabilities" in options.fs ? createNodeFsBridge(options.fs, { signal: options.signal }) : options.fs ?? fsPromises;
+  const paths = getNodeFsBridgeProvider(fs) ? path.posix : path;
+  const sessionsDir = paths.join(options.homeDir ?? (options.fs && "capabilities" in options.fs ? "/" : os.homedir()), ".poe-code", "sessions");
 
   return {
     async load(threadId: string): Promise<PersistedAgentSession | undefined> {
       assertSafeSessionId(threadId);
-      const filePath = path.join(sessionsDir, `${threadId}.json`);
+      const filePath = paths.join(sessionsDir, `${threadId}.json`);
       let serialized: string;
       try {
         serialized = String(await fs.readFile(filePath, "utf8"));
@@ -77,7 +80,7 @@ export function createAgentSessionStore(
     async save(session: PersistedAgentSession): Promise<void> {
       assertSafeSessionId(session.threadId);
       await fs.mkdir(sessionsDir, { recursive: true });
-      const filePath = path.join(sessionsDir, `${session.threadId}.json`);
+      const filePath = paths.join(sessionsDir, `${session.threadId}.json`);
       await fs.writeFile(filePath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
     }
   };

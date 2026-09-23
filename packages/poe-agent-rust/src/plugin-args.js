@@ -1,5 +1,6 @@
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
 import { native } from "./native.js";
-import path from "node:path";
+import nativePath from "node:path";
 import { hasOwnErrorCode } from "./error-codes.js";
 export function isObjectRecord(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -48,12 +49,12 @@ export function assertAllowedPathEntries(allowedPaths, key = "allowedPaths") {
     }
   }
 }
-export function normalizeAllowedPaths(cwd, allowedPaths) {
+export function normalizeAllowedPaths(cwd, allowedPaths, path = nativePath) {
   const entries = allowedPaths ?? [cwd];
   assertAllowedPathEntries(entries);
   return entries.map((allowedPath) => path.resolve(cwd, allowedPath));
 }
-export function resolveAllowedPath(cwd, allowedPaths, inputPath) {
+export function resolveAllowedPath(cwd, allowedPaths, inputPath, path = nativePath) {
   const resolvedPath = path.resolve(cwd, inputPath);
   const isAllowed = allowedPaths.some((allowedPath) => {
     if (allowedPath === resolvedPath) {
@@ -68,6 +69,7 @@ export function resolveAllowedPath(cwd, allowedPaths, inputPath) {
   return resolvedPath;
 }
 export async function assertNoSymbolicLinkPath(fs, filePath) {
+  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const absolutePath = path.resolve(filePath);
   const root = path.parse(absolutePath).root;
   let inspectedPath = root;

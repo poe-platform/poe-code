@@ -266,7 +266,7 @@ These features are available but subject to breaking changes.
 - **[Pipeline](packages/pipeline/)** — Run task plans with configurable steps, live task progress, queued follow-up messages, and plans you can add while the TUI is running.
 - **[Ralph](packages/ralph/)** — Agentic build loop that iterates on a markdown doc
 - **[Experiment loop](packages/experiment-loop/)** — Karpathy-style optimize loop: agent changes code, eval script scores it, keep or discard via git, repeat.
-- **[Poe Agent](packages/poe-agent/)** — Composable agent runtime
+- **[Poe Agent](packages/poe-agent/)** — Composable agent runtime with shared safe-fs access
 
 
 ### Update Poe Code

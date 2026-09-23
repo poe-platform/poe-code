@@ -22,12 +22,14 @@ export declare function assertAllowedPathEntries(
 ): void;
 export declare function normalizeAllowedPaths(
   cwd: string,
-  allowedPaths: string[] | undefined
+  allowedPaths: string[] | undefined,
+  paths?: typeof import("node:path")
 ): string[];
 export declare function resolveAllowedPath(
   cwd: string,
   allowedPaths: string[],
-  inputPath: string
+  inputPath: string,
+  paths?: typeof import("node:path")
 ): string;
 export declare function assertNoSymbolicLinkPath(
   fs: PathInspectionFileSystem,

@@ -14,6 +14,14 @@ export class PluginApiImpl {
     this.#runContext = runContext;
     this.#pluginName = pluginName;
   }
+  get runtime() { return this.#runContext.runtime; }
+  get fs() { return this.runtime.fs; }
+  get cwd() { return this.runtime.cwd; }
+  get homeDir() { return this.runtime.homeDir; }
+  get signal() { return this.runtime.signal; }
+  get nodeFs() { return this.runtime.nodeFs; }
+  get customFs() { return this.runtime.customFs; }
+
   addTool(tool) {
     assertValidToolName(tool.name, this.#pluginName);
     this.#runContext.tools.register(tool);
@@ -22,6 +30,7 @@ export class PluginApiImpl {
     return this.#runContext.tools.get(name);
   }
   addMcp(config) {
+    if (this.runtime.customFs && config.trustedHost !== true) throw new Error("External MCP servers require an explicit host capability: set trustedHost on each trusted server.");
     const cloned = cloneMcpServerConfig(config);
     this.#runContext.mcpServers.push(cloned);
     this.#setupQueue = this.#setupQueue.then(() => this.#setupMcp(cloned));

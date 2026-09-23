@@ -1,20 +1,5 @@
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
-import {
-  agent as defaultAgent,
-  compactionPlugin,
-  environmentPlugin,
-  filesPlugin,
-  openaiChatCompletionsPlugin,
-  openaiResponsesPlugin,
-  policyPlugin,
-  shellPlugin,
-  skillsPlugin,
-  systemPromptPlugin,
-  webPlugin,
-  type AgentBuilder,
-  type PolicyMode,
-  type RunResult
-} from "@poe-code/poe-agent";
+import type { AgentBuilder, PolicyMode, RunResult } from "@poe-code/poe-agent";
 import type { AgentRunInput } from "../runtime/loop.js";
 
 export type AgentFactory = () => AgentBuilder;
@@ -24,7 +9,7 @@ export type ExecutePoeAgentResult = RunResult;
 export async function executePoeAgent(
   agentSpec: string,
   input: AgentRunInput,
-  createAgent: AgentFactory = defaultAgent
+  createAgent?: AgentFactory
 ): Promise<ExecutePoeAgentResult> {
   const { model } = parseAgentSpecifier(agentSpec);
   if (!model) {
@@ -33,7 +18,13 @@ export async function executePoeAgent(
     );
   }
 
-  return createAgent()
+  const {
+    agent, compactionPlugin, environmentPlugin, filesPlugin,
+    openaiChatCompletionsPlugin, openaiResponsesPlugin, policyPlugin,
+    shellPlugin, skillsPlugin, systemPromptPlugin, webPlugin
+  } = await import("@poe-code/poe-agent");
+
+  return (createAgent ?? agent)()
     .model(model)
     .use(openaiResponsesPlugin())
     .use(openaiChatCompletionsPlugin())

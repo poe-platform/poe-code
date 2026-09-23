@@ -12,6 +12,7 @@ export interface TranscriptFsApi {
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
 }
 export interface CreateTranscriptWriterOptions {
+  paths?: typeof import("node:path");
   logPath?: string;
   logDir?: string;
   logFileName?: string;

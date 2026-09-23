@@ -1,5 +1,6 @@
+import path from "node:path";
+import { createAgentRuntime } from "@poe-code/poe-agent";
 import { native } from "./native.js";
-import * as fsPromises from "node:fs/promises";
 import mcpPlugin from "./plugin-mcp.js";
 import { POLICY_MODE_SESSION_KEY } from "./plugin-policy.js";
 import { runAcpCore } from "./acp-core.js";
@@ -103,10 +104,18 @@ class ImmutableAgentBuilder {
     let usage;
     let streamedOutput = "";
     const streamedToolCalls = new Map();
+    const storageFs = options.logPath
+      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal).nodeFs
+      : runContext.runtime.nodeFs;
     const transcript = options.logPath
       ? createTranscriptWriter({
-          logPath: options.logPath,
-          fs: defaultTranscriptFs
+          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(runContext.runtime.cwd, options.logPath),
+          paths: runContext.runtime.customFs ? path.posix : path,
+          fs: {
+            mkdir: async (dir, opts) => { await storageFs.mkdir(dir, opts); },
+            appendFile: (file, text) => storageFs.appendFile(file, text, "utf8"),
+            lstat: (file) => storageFs.lstat(file)
+          }
         })
       : undefined;
     try {
@@ -256,6 +265,7 @@ class ImmutableAgentBuilder {
     assertPositiveIntegerOption(options.maxIterations, "maxIterations");
     const activeSkills = resolveActiveSkills(options);
     const runContext = createRunContext({
+      ...this.#config,
       ...(activeSkills === undefined ? {} : { activeSkills }),
       ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
       ...(options.fileAwareness === undefined ? {} : { fileAwareness: options.fileAwareness })
@@ -280,6 +290,7 @@ class ImmutableAgentBuilder {
           const providers = collectProviders(plugins);
           const provider = resolveProvider(providers, modelName);
           const providerContext = {
+            runtime: runContext.runtime,
             fetch: options.fetch ?? globalThis.fetch,
             signal: runContext.abortController.signal,
             logger: runContext.logger,
@@ -298,7 +309,8 @@ class ImmutableAgentBuilder {
             const mode = runContext.session.get(POLICY_MODE_SESSION_KEY);
             return createInMemorySpawnSession({
               model: modelName,
-              cwd: options.cwd ?? process.cwd(),
+              ...(runContext.runtime.customFs ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir } : {}),
+              cwd: runContext.runtime.cwd,
               ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
               ...(options.env === undefined ? {} : { env: options.env }),
@@ -334,14 +346,10 @@ function mergeRunProviderOptions(providerOptions, runOptions) {
     ...(runOptions.baseUrl === undefined ? {} : { baseUrl: runOptions.baseUrl })
   };
 }
-const defaultTranscriptFs = {
-  mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
-  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8"),
-  lstat: (filePath) => fsPromises.lstat(filePath)
-};
-export function agent() {
-  return new ImmutableAgentBuilder();
+export function agent(options = {}) {
+  return new ImmutableAgentBuilder(createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir }));
 }
+
 class CallerAcpHost {
   #runContext;
   #delegate;
@@ -421,6 +429,7 @@ function toSpawnMcpServers(mcpServers) {
       server.name,
       {
         transport: "stdio",
+        ...(server.trustedHost === undefined ? {} : { trustedHost: server.trustedHost }),
         command: server.command,
         ...(server.args === undefined ? {} : { args: [...server.args] }),
         ...(server.env === undefined ? {} : { env: { ...server.env } }),

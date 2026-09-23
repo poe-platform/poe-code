@@ -3,7 +3,7 @@ import {writeWalk} from './path.js';
 import {writeAtomically} from './io.js';
 function hasCode(error,code){return typeof error==='object'&&error!==null&&Object.hasOwn(error,'code')&&error.code===code;}
 export async function applyBackup(mutation,context,target,content){
- const machine=new native.ConfigBackupMachine(mutation.kind,target,mutation.kind==='backup'?writeWalk(target,context.homeDir):[],content);let request=machine.start(),pendingError;
+ const machine=new native.ConfigBackupMachine(mutation.kind,target,mutation.kind==='backup'?writeWalk(target,context.homeDir,context.paths):[],content);let request=machine.start(),pendingError;
  while(true){
   if(request.kind==='done')return request.outcome;
   if(request.kind==='error'){if(Object.hasOwn(request,'token'))throw pendingError;throw Error(request.message);}
@@ -16,7 +16,7 @@ export async function applyBackup(mutation,context,target,content){
    case 'validateTimestamp':response={kind:'bool',flag:!Number.isNaN(Date.parse(request.timestamp))};break;
    case 'readFile':response={kind:'content',content:await context.fs.readFile(request.path,'utf8')};break;
    case 'timestamp':response={kind:'timestamp',content:new Date().toISOString()};break;
-   case 'walk':response={kind:'walk',walk:writeWalk(request.path,context.homeDir)};break;
+   case 'walk':response={kind:'walk',walk:writeWalk(request.path,context.homeDir,context.paths)};break;
    case 'writeFile':await context.fs.writeFile(request.path,request.content,{encoding:'utf8',flag:'wx'});response={kind:'unit'};break;
    case 'writeAtomically':await writeAtomically(context,request.path,request.content);response={kind:'unit'};break;
    case 'unlink':await context.fs.unlink(request.path);response={kind:'unit'};break;

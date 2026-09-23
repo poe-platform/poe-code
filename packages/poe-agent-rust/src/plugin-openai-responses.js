@@ -75,6 +75,7 @@ export function openaiResponsesPlugin(opts = {}) {
             if (options.defaultHeaders !== undefined || override.defaultHeaders !== undefined)
               merged.defaultHeaders = { ...options.defaultHeaders, ...override.defaultHeaders };
             if (merged.include !== undefined) merged.include = [...merged.include];
+            if (ctx.runtime?.customFs && !nonempty(merged.apiKey)) throw new Error("Custom filesystems require an explicit apiKey; host credential storage is not inherited.");
             let apiKey;
             try {
               apiKey = await resolveOpenaiApiKey(nonempty(merged.apiKey));

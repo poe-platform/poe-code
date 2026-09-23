@@ -17,9 +17,9 @@ export async function runPluginSetup(plugins: AgentPlugin[], runContext: RunCont
       }
 
       if (plugin.prompt) {
-        runContext.prompts.addTransform(async ctx => {
+        runContext.prompts.addTransform(async (ctx, runtime) => {
           try {
-            return await plugin.prompt!(ctx);
+            return await plugin.prompt!(ctx, runtime);
           } catch (error) {
             throw new PromptTransformError(plugin.name, error);
           }
@@ -36,7 +36,7 @@ export async function runPluginSetup(plugins: AgentPlugin[], runContext: RunCont
 
       if (plugin.dispose) {
         runContext.registerDisposeHook(async () => {
-          await plugin.dispose!();
+          await plugin.dispose!(runContext.runtime);
         });
       }
     } catch (error) {

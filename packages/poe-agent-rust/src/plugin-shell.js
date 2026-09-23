@@ -60,6 +60,7 @@ const shellPlugin = (options = {}) => {
       required: ["command"]
     },
     async call(args, ctx) {
+      if (ctx.runtime?.customFs) throw new Error("Host shell commands cannot use a custom filesystem. Use safe-bash with runtime.fs.");
       const command = getRequiredString(args, "command");
       const commandCwdArg = getOptionalString(args, "cwd");
       const commandCwd = commandCwdArg ? resolveAllowedPath(cwd, allowedPaths, commandCwdArg) : cwd;

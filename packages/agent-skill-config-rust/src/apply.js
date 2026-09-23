@@ -25,6 +25,6 @@ export async function unconfigure(agent,options){
 }
 export async function installSkill(agent,skill,options){
  const plan=await preflight(machine('install',agent,options,skill),options.fs,agent);
- await runMutations(plan.mutations,{fs:options.fs,homeDir:plan.home,dryRun:options.dryRun,observers:options.observers,templates:async id=>{if(id==='__skill_content__')return plan.template;throw new Error(`Unknown template: ${id}`);}});
+ await runMutations(plan.mutations,{fs:options.fs,paths:options.paths,homeDir:plan.home,dryRun:options.dryRun,observers:options.observers,templates:async id=>{if(id==='__skill_content__')return plan.template;throw new Error(`Unknown template: ${id}`);}});
  return plan.result;
 }

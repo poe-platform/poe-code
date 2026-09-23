@@ -1,21 +1,26 @@
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
+import { resolvePluginFileSystem } from "@poe-code/poe-agent";
 import { native } from "./native.js";
 import fsPromises from "node:fs/promises";
 import os from "node:os";
-import path from "node:path";
+import nativePath from "node:path";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readOptionalString, rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
 const AGENTS_FILE = "AGENTS.md";
-const USER_MEMORY_DIRECTORY = path.join(".config", "poe-code");
+const USER_MEMORY_DIRECTORY = ".config/poe-code";
 const memoryPlugin = (options = {}) => {
-  const cwd = path.resolve(options.cwd ?? process.cwd());
-  const homeDir = path.resolve(options.homeDir ?? os.homedir());
-  const fs = options.fs ?? fsPromises;
-  let memoryPromise;
+  const memories = new WeakMap();
   return {
     name: "poe-agent-plugin-memory",
-    async prompt(ctx) {
-      memoryPromise ??= loadMemory({ cwd, homeDir, fs });
-      const memory = await memoryPromise;
+    setup(api) { resolvePluginFileSystem(api.runtime, options.fs, fsPromises); },
+    async prompt(ctx, runtime) {
+      const fs = resolvePluginFileSystem(runtime, options.fs, fsPromises);
+      const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
+      const cwd = path.resolve(runtime?.cwd ?? options.cwd ?? process.cwd(), options.cwd ?? ".");
+      const homeDir = path.resolve(runtime?.homeDir ?? options.homeDir ?? os.homedir(), options.homeDir ?? ".");
+      let pending = runtime ? memories.get(runtime) : undefined;
+      if (!pending) { pending = loadMemory({ cwd, homeDir, fs }); if (runtime) memories.set(runtime, pending); }
+      const memory = await pending;
       if (!memory) {
         return ctx;
       }
@@ -27,6 +32,7 @@ const memoryPlugin = (options = {}) => {
   };
 };
 async function loadMemory(options) {
+  const path = getNodeFsBridgeProvider(options.fs) ? nativePath.posix : nativePath;
   const sections = [];
   const projectMemoryPath = await findNearestAgentsFile(options.cwd, options.fs);
   if (projectMemoryPath) {
@@ -53,6 +59,7 @@ async function loadMemory(options) {
   return sections.join("\n\n");
 }
 async function findNearestAgentsFile(cwd, fs) {
+  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   let currentDirectory = cwd;
   while (true) {
     const filePath = path.join(currentDirectory, AGENTS_FILE);
@@ -80,6 +87,7 @@ async function loadOptionalMemoryFile(filePath, trustedDirectory, fs) {
   });
 }
 async function expandImports(options) {
+  const path = getNodeFsBridgeProvider(options.fs) ? nativePath.posix : nativePath;
   const normalizedPath = path.resolve(options.filePath);
   if (!options.loading.enter(normalizedPath)) {
     throw new Error(`Circular AGENTS.md import detected: ${normalizedPath}`);
@@ -94,7 +102,7 @@ async function expandImports(options) {
         continue;
       }
       const importedFilePath = path.resolve(path.dirname(normalizedPath), importPath);
-      assertPathContained(importedFilePath, options.trustedDirectory, "AGENTS.md import");
+      assertPathContained(importedFilePath, options.trustedDirectory, "AGENTS.md import", path);
       const importedContent = await readRequiredTrustedFile(
         importedFilePath,
         options.trustedDirectory,
@@ -132,7 +140,7 @@ async function readOptionalTrustedFile(filePath, trustedDirectory, fs) {
     fs.realpath(filePath),
     fs.realpath(trustedDirectory)
   ]);
-  assertPathContained(canonicalPath, canonicalDirectory, "AGENTS.md file");
+  assertPathContained(canonicalPath, canonicalDirectory, "AGENTS.md file", getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath);
   return await fs.readFile(filePath, "utf8");
 }
 async function readRequiredTrustedFile(filePath, trustedDirectory, fs) {
@@ -153,7 +161,7 @@ async function exists(filePath, fs) {
     throw error;
   }
 }
-function assertPathContained(filePath, trustedDirectory, label) {
+function assertPathContained(filePath, trustedDirectory, label, path = nativePath) {
   const relativePath = path.relative(trustedDirectory, filePath);
   if (
     relativePath === ".." ||

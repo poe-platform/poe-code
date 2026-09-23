@@ -21,6 +21,7 @@
   "dependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/config-mutations": "*",
-    "@poe-code/user-error": "*"
+    "@poe-code/user-error": "*",
+    "@poe-code/safe-fs": "*"
   }
 }

@@ -1,3 +1,4 @@
+import type { AgentRuntime } from "@poe-code/poe-agent";
 import { AcpClient, type AcpTransportClosedEvent, type McpServer } from "./acp/index.js";
 import { type AgentSession, type CreateAgentSessionOptions } from "./agent-session.js";
 import type { SpawnMode } from "./spawn-types.js";
@@ -60,6 +61,7 @@ export type CreateProcessSpawnSessionOptions = {
 };
 export type CreateInMemorySpawnSessionOptions = {
   model: string;
+  fs?: AgentRuntime["fs"]; homeDir?: string; customFs?: boolean;
   cwd: string;
   mode?: SpawnMode;
   baseUrl?: string;

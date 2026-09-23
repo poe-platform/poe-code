@@ -15,9 +15,7 @@ vi.mock("@poe-code/poe-agent", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/poe-agent")>();
   return {
     ...actual,
-    createAgentSession: createAgentSessionMock,
-    parseNullablePluginConfigEntries: (value: unknown) => value,
-    parsePluginConfigEntries: (value: unknown) => value
+    createAgentSession: createAgentSessionMock
   };
 });
 
@@ -58,7 +56,7 @@ describe("poe-agent default config filesystem", () => {
     vol.fromJSON(
       {
         ".poe-code/config.json": `${JSON.stringify({
-          agent: { plugins: [{ id: "memory" }] }
+          agent: { plugins: [{ name: "memory" }] }
         })}\n`
       },
       homeDir
@@ -73,7 +71,7 @@ describe("poe-agent default config filesystem", () => {
 
     await expect(done).resolves.toMatchObject({ exitCode: 0, stdout: "hi\n" });
     expect(createAgentSessionMock).toHaveBeenCalledWith(
-      expect.objectContaining({ pluginsConfig: [{ id: "memory" }] })
+      expect.objectContaining({ pluginsConfig: [{ name: "memory" }] })
     );
   });
 });

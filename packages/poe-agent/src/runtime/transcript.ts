@@ -1,4 +1,4 @@
-import path from "node:path";
+import nativePath from "node:path";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { AcpEvent } from "./types.js";
@@ -81,6 +81,7 @@ export interface TranscriptFsApi {
 }
 
 export interface CreateTranscriptWriterOptions {
+  paths?: typeof import("node:path");
   logPath?: string;
   logDir?: string;
   logFileName?: string;
@@ -91,6 +92,7 @@ export interface CreateTranscriptWriterOptions {
 export function createTranscriptWriter(
   options: CreateTranscriptWriterOptions,
 ): TranscriptWriter {
+  const path = options.paths ?? nativePath;
   const join = options.pathJoin ?? path.join;
   const filePath = resolveTranscriptFilePath(options, join);
   let dirEnsured: Promise<void> | undefined;
@@ -109,9 +111,9 @@ export function createTranscriptWriter(
       const updates = mapAcpEventToSessionUpdates(event);
       if (updates.length === 0) return;
 
-      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      await ensureNoSymbolicLinkPath(options.fs, filePath, path);
       await ensureDir();
-      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      await ensureNoSymbolicLinkPath(options.fs, filePath, path);
       const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
       await options.fs.appendFile(filePath, payload);
     },
@@ -121,7 +123,7 @@ export function createTranscriptWriter(
   };
 }
 
-async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string): Promise<void> {
+async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string, path: typeof import("node:path")): Promise<void> {
   const absolutePath = path.resolve(filePath);
   const root = path.parse(absolutePath).root;
   let inspectedPath = root;

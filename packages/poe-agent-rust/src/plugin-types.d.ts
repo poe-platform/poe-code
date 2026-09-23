@@ -1,3 +1,4 @@
+import type { AgentRuntime } from "@poe-code/poe-agent";
 import type { ChatMessage, ForkResult, NormalizedTool, Tool, ToolCallRecord } from "./types.js";
 import type { McpSpawnServer } from "./spawn-types.js";
 import type { AcpModel } from "./acp-model.js";
@@ -11,9 +12,12 @@ export type PromptContext = {
 export type McpServerConfig = McpSpawnServer & {
   name: string;
   visibility?: "model" | "skill";
+  /** Grant this server host access independently of the agent filesystem. */
+  trustedHost?: boolean;
 };
 export type Logger = RunContextLogger;
 export type ProviderContext = {
+  runtime?: AgentRuntime;
   fetch: typeof fetch;
   signal?: AbortSignal;
   logger?: Logger;
@@ -71,7 +75,7 @@ export type ProviderStreamEvent =
       type: "stop";
       reason: "end_turn" | "tool_use" | "max_tokens" | "error";
     };
-export type PluginApi = {
+export type PluginApi = AgentRuntime & { readonly runtime: AgentRuntime;
   addTool(tool: Tool): void;
   addMcp(config: McpServerConfig): void;
   getTool(name: string): NormalizedTool | undefined;
@@ -252,23 +256,23 @@ export type AgentPlugin = {
   name: string;
   tools?: Tool[];
   providers?: Provider[];
-  prompt?(ctx: PromptContext): PromptContext | Promise<PromptContext>;
+  prompt?(ctx: PromptContext, runtime?: AgentRuntime): PromptContext | Promise<PromptContext>;
   hooks?: {
-    sessionStart?(ctx: SessionStartContext): HookDecision | void | Promise<HookDecision | void>;
+    sessionStart?(ctx: SessionStartContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
     userPromptSubmit?(
-      ctx: UserPromptSubmitContext
+      ctx: UserPromptSubmitContext, runtime?: AgentRuntime
     ): InputDecision | void | Promise<InputDecision | void>;
-    preToolUse?(ctx: ToolUseContext): ToolCallDecision | void | Promise<ToolCallDecision | void>;
+    preToolUse?(ctx: ToolUseContext, runtime?: AgentRuntime): ToolCallDecision | void | Promise<ToolCallDecision | void>;
     postToolUse?(
-      ctx: ToolUseContext
+      ctx: ToolUseContext, runtime?: AgentRuntime
     ): ToolResultDecision | void | Promise<ToolResultDecision | void>;
-    preIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
-    postIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
-    preCompaction?(ctx: PreCompactionContext): HookDecision | void | Promise<HookDecision | void>;
-    postCompaction?(ctx: PostCompactionContext): HookDecision | void | Promise<HookDecision | void>;
-    notification?(ctx: NotificationContext): HookDecision | void | Promise<HookDecision | void>;
-    stop?(ctx: StopContext): HookDecision | void | Promise<HookDecision | void>;
+    preIteration?(ctx: IterationContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
+    postIteration?(ctx: IterationContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
+    preCompaction?(ctx: PreCompactionContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
+    postCompaction?(ctx: PostCompactionContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
+    notification?(ctx: NotificationContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
+    stop?(ctx: StopContext, runtime?: AgentRuntime): HookDecision | void | Promise<HookDecision | void>;
   };
   setup?(api: PluginApi): void | Promise<void>;
-  dispose?(): void | Promise<void>;
+  dispose?(runtime?: AgentRuntime): void | Promise<void>;
 };

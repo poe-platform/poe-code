@@ -10,5 +10,5 @@ const replacements=new Map([
 ].map(([name,target])=>[name,fileURLToPath(new URL('dist/'+target,root))]));
 export default defineConfig({
  plugins:[{name:'own-rust-config-sdk-oracle',enforce:'pre',resolveId(name,importer){if(importer===source||importer===utilities)return replacements.get(name)??null;}}],
- test:{include:[source,utilities],environment:'node',fileParallelism:false,maxWorkers:1,pool:'forks',testTimeout:2000,cache:false},
+ test:{include:[source,utilities,fileURLToPath(new URL("tests/namespace.test.ts",root))],environment:'node',fileParallelism:false,maxWorkers:1,pool:'forks',testTimeout:2000,cache:false},
 });

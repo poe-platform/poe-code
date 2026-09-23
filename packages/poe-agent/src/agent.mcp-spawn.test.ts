@@ -330,3 +330,14 @@ describe("agent builder MCP spawn handoff", () => {
     });
   });
 });
+
+it("grants a trusted MCP server independently of a virtual agent filesystem", async () => {
+  mcpClientConnectMock.mockClear();
+  mcpClientCloseMock.mockClear();
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  await agent({ fs: createMemoryFileSystem(), cwd: "/" })
+    .mcp({ name: "trusted", command: "synthetic", trustedHost: true })
+    .run("hello", { acpModel: createModel([{ content: "done" }]) });
+  expect(mcpClientConnectMock).toHaveBeenCalledOnce();
+  expect(mcpClientCloseMock).toHaveBeenCalledOnce();
+});

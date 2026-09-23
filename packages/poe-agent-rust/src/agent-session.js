@@ -1,3 +1,4 @@
+import { createAgentRuntime } from "@poe-code/poe-agent";
 import { UserError } from "./user-error.js";
 import os from "node:os";
 import path from "node:path";
@@ -16,6 +17,10 @@ import { createJsonlSessionStore, createMemorySessionStore } from "./session-log
 import { buildMessages, collectBranch, findHead } from "./session-tree.js";
 import { getStructuredToolResultParts } from "./tool-results.js";
 export async function createAgentSession(options = {}) {
+  if (options.fs) {
+    const runtime = createAgentRuntime(options, new AbortController().signal);
+    options = { ...options, cwd: runtime.cwd, homeDir: runtime.homeDir };
+  }
   const model = normalizeNonEmptyString(options.model);
   if (!model) {
     throw new UserError("Model must not be empty. Pass --model <id>.");
@@ -24,7 +29,7 @@ export async function createAgentSession(options = {}) {
     throw new Error("Cannot provide both plugins and pluginsConfig.");
   }
   assertPositiveIntegerOption(options.maxToolCallIterations, "maxToolCallIterations");
-  let builder = agent().model(model);
+  let builder = agent(options).model(model);
   const plugins = options.plugins ??
     (options.pluginsConfig !== undefined
       ? resolvePluginsFromConfig(options.pluginsConfig)
@@ -49,6 +54,7 @@ export async function createAgentSession(options = {}) {
       name,
       command: definition.command,
       args: definition.args,
+      ...(definition.trustedHost === undefined ? {} : { trustedHost: definition.trustedHost }),
       env: definition.env
     });
   }
@@ -298,7 +304,7 @@ async function createStore(options) {
   if (!options.persist) {
     return createMemorySessionStore(sessionId);
   }
-  return await createJsonlSessionStore(sessionId, expandHome(options.persist.directory));
+  return await createJsonlSessionStore(sessionId, expandHome(options.persist.directory, options.homeDir ?? (options.fs ? "/" : os.homedir()), options.fs ? path.posix : path), { fs: createAgentRuntime(options, new AbortController().signal).nodeFs });
 }
 function createEntry(entry, parentId) {
   return {
@@ -314,12 +320,12 @@ function buildResumeFromTree(entries, headId) {
   }
   return { messages: buildMessages(entries, headId) };
 }
-function expandHome(directory) {
+function expandHome(directory, homeDir, path) {
   if (directory === "~") {
-    return os.homedir();
+    return homeDir;
   }
   if (directory.startsWith("~/")) {
-    return path.join(os.homedir(), directory.slice(2));
+    return path.join(homeDir, directory.slice(2));
   }
   return directory;
 }

@@ -124,6 +124,9 @@ async function createOpenaiChatCompletionsModel(
   ctx: OpenaiChatCompletionsProviderContext
 ): Promise<AcpModel> {
   const options = ctx.options;
+  if (ctx.runtime?.customFs && !toNonEmptyString(options.apiKey)) {
+    throw new Error("Custom filesystems require an explicit apiKey; host credential storage is not inherited.");
+  }
   const apiKey = await resolveClientApiKey(options.apiKey);
   const baseURL = resolveClientBaseUrl(options.baseUrl);
   const organization = toNonEmptyString(options.organization);

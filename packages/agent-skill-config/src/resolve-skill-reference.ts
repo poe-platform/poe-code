@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs";
 import * as fs from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveAgentSupport, resolveSkillDir } from "./configs.js";
@@ -72,7 +73,7 @@ function findSkill(
   };
 }
 
-export function resolveSkillReference(ref: string, cwd: string, homeDir: string): SkillResolution {
+function searchPlan(ref: string, cwd: string, homeDir: string, paths = path): SkillResolutionFailure | { ref: string; name: string; tiers: SearchTier[]; sourceAgentId?: string } {
   const slashIndex = ref.indexOf("/");
   const hasPrefix = slashIndex !== -1;
 
@@ -92,15 +93,15 @@ export function resolveSkillReference(ref: string, cwd: string, homeDir: string)
     const tiers: SearchTier[] = [
       {
         scope: "project",
-        sourcePath: path.resolve(cwd, ".poe-code/skills", ref)
+        sourcePath: paths.resolve(cwd, ".poe-code/skills", ref)
       },
       {
         scope: "user",
-        sourcePath: path.resolve(homeDir, ".poe-code/skills", ref)
+        sourcePath: paths.resolve(homeDir, ".poe-code/skills", ref)
       }
     ];
 
-    return findSkill(ref, ref, tiers);
+    return { ref, name: ref, tiers };
   }
 
   const agentInput = ref.slice(0, slashIndex);
@@ -122,13 +123,45 @@ export function resolveSkillReference(ref: string, cwd: string, homeDir: string)
   const tiers: SearchTier[] = [
     {
       scope: "project",
-      sourcePath: path.resolve(resolveSkillDir(config, "local", cwd), name)
+      sourcePath: paths.resolve(resolveSkillDir(config, "local", cwd, homeDir, paths), name)
     },
     {
       scope: "user",
-      sourcePath: path.resolve(resolveSkillDir(config, "global", cwd, homeDir), name)
+      sourcePath: paths.resolve(resolveSkillDir(config, "global", cwd, homeDir, paths), name)
     }
   ];
 
-  return findSkill(ref, name, tiers, support.id);
+  return { ref, name, tiers, sourceAgentId: support.id };
+}
+
+/** Synchronous compatibility API using the host filesystem. */
+export function resolveSkillReference(ref: string, cwd: string, homeDir: string): SkillResolution {
+  const plan = searchPlan(ref, cwd, homeDir);
+  return "kind" in plan ? plan : findSkill(ref, plan.name, plan.tiers, plan.sourceAgentId);
+}
+
+export type SkillRuntimeOptions = {
+  fs: FileSystem;
+  cwd: string;
+  homeDir: string;
+  signal?: AbortSignal;
+};
+
+export async function resolveSkillReferenceAsync(ref: string, options: SkillRuntimeOptions): Promise<SkillResolution> {
+  options.signal?.throwIfAborted();
+  const plan = searchPlan(ref, options.cwd, options.homeDir, path.posix);
+  if ("kind" in plan) return plan;
+  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
+  const fs = createNodeFsBridge(options.fs, { cwd: options.cwd, root: "/", signal: options.signal });
+  for (const tier of plan.tiers) {
+    try {
+      if (!(await fs.stat(tier.sourcePath)).isDirectory()) continue;
+      return { kind: "resolved", ref, name: plan.name, sourcePath: tier.sourcePath, scope: tier.scope,
+        ...(plan.sourceAgentId ? { sourceAgentId: plan.sourceAgentId } : {}) };
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      if (!hasOwnErrorCode(error, "ENOENT") && !hasOwnErrorCode(error, "ENOTDIR")) throw error;
+    }
+  }
+  return { kind: "not-found", ref, searchedPaths: plan.tiers.map(tier => tier.sourcePath) };
 }

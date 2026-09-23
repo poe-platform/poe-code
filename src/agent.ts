@@ -1,8 +1,11 @@
+import type { AgentOptions, AgentRuntime } from "@poe-code/poe-agent";
+export type { AgentOptions, AgentRuntime } from "@poe-code/poe-agent";
 import {
   agent as composableAgent,
   openaiChatCompletionsPlugin as composableOpenaiChatCompletionsPlugin,
   openaiResponsesPlugin as composableOpenaiResponsesPlugin,
-  systemPromptPlugin as composableSystemPromptPlugin
+  systemPromptPlugin as composableSystemPromptPlugin,
+  skillsPlugin as composableSkillsPlugin
 } from "@poe-code/poe-agent";
 
 export type ToolResultTextPart = {
@@ -82,6 +85,7 @@ export type ForkResult = {
 };
 
 export type ToolContext = {
+  runtime?: AgentRuntime;
   fork(prompt: string): Promise<ForkResult>;
   spawn(prompt: string): Promise<{ output: string; messages: ChatMessage[] }>;
   signal: AbortSignal;
@@ -104,7 +108,7 @@ export type Tool = {
   };
   call(
     args: unknown,
-    context: ToolContext
+    context: ToolContext, runtime?: AgentRuntime
   ): ToolResult | Promise<ToolResult> | AsyncGenerator<ToolEvent, ToolResult, void>;
 };
 
@@ -115,6 +119,8 @@ export type McpServerConfig = {
   env?: Record<string, string>;
   timeout?: number;
   visibility?: "model" | "skill";
+  /** Grant this server host access independently of the agent filesystem. */
+  trustedHost?: boolean;
 };
 
 export type McpServerMap = Record<string, Omit<McpServerConfig, "name" | "visibility">>;
@@ -153,6 +159,7 @@ export type AcpModel = {
 };
 
 export type ProviderContext = {
+  runtime?: AgentRuntime;
   fetch: typeof fetch;
   signal?: AbortSignal;
   logger?: Logger;
@@ -162,7 +169,7 @@ export type ProviderContext = {
 export type Provider = {
   name: string;
   supports(modelId: string): boolean;
-  createModel(modelId: string, context: ProviderContext): AcpModel | Promise<AcpModel>;
+  createModel(modelId: string, context: ProviderContext, runtime?: AgentRuntime): AcpModel | Promise<AcpModel>;
 };
 
 export type ToolUseContext = {
@@ -231,7 +238,8 @@ export type StopContext = {
 
 export type HookDecision = "skip" | "abort" | { reject: string } | void;
 
-export type PluginApi = {
+export type PluginApi = AgentRuntime & {
+  readonly runtime: AgentRuntime;
   addTool(tool: Tool): void;
   addMcp(config: McpServerConfig): void;
   getTool(name: string): Tool | undefined;
@@ -241,21 +249,21 @@ export type AgentPlugin = {
   name: string;
   tools?: Tool[];
   providers?: Provider[];
-  prompt?(context: PromptContext): PromptContext | Promise<PromptContext>;
+  prompt?(context: PromptContext, runtime?: AgentRuntime): PromptContext | Promise<PromptContext>;
   hooks?: {
-    sessionStart?(context: SessionStartContext): HookDecision | Promise<HookDecision>;
-    userPromptSubmit?(context: UserPromptSubmitContext): HookDecision | Promise<HookDecision>;
-    preToolUse?(context: ToolUseContext): HookDecision | Promise<HookDecision>;
-    postToolUse?(context: ToolUseContext): HookDecision | Promise<HookDecision>;
-    preIteration?(context: IterationContext): HookDecision | Promise<HookDecision>;
-    postIteration?(context: IterationContext): HookDecision | Promise<HookDecision>;
-    preCompaction?(context: PreCompactionContext): HookDecision | Promise<HookDecision>;
-    postCompaction?(context: PostCompactionContext): HookDecision | Promise<HookDecision>;
-    notification?(context: NotificationContext): HookDecision | Promise<HookDecision>;
-    stop?(context: StopContext): HookDecision | Promise<HookDecision>;
+    sessionStart?(context: SessionStartContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    userPromptSubmit?(context: UserPromptSubmitContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    preToolUse?(context: ToolUseContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    postToolUse?(context: ToolUseContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    preIteration?(context: IterationContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    postIteration?(context: IterationContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    preCompaction?(context: PreCompactionContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    postCompaction?(context: PostCompactionContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    notification?(context: NotificationContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
+    stop?(context: StopContext, runtime?: AgentRuntime): HookDecision | Promise<HookDecision>;
   };
   setup?(api: PluginApi): void | Promise<void>;
-  dispose?(): void | Promise<void>;
+  dispose?(runtime?: AgentRuntime): void | Promise<void>;
 };
 
 export type AcpEvent =
@@ -317,7 +325,7 @@ export type OpenaiResponsesPluginOptions = OpenaiProviderPluginOptions & {
   include?: string[];
 };
 
-export const agent = composableAgent as unknown as () => AgentBuilder;
+export const agent = composableAgent as unknown as (options?: AgentOptions) => AgentBuilder;
 export const openaiChatCompletionsPlugin = composableOpenaiChatCompletionsPlugin as unknown as (
   options?: OpenaiProviderPluginOptions
 ) => AgentPlugin;
@@ -325,3 +333,8 @@ export const openaiResponsesPlugin = composableOpenaiResponsesPlugin as unknown 
   options?: OpenaiResponsesPluginOptions
 ) => AgentPlugin;
 export const systemPromptPlugin = composableSystemPromptPlugin as unknown as () => AgentPlugin;
+
+export type { SkillsPluginOptions } from "@poe-code/poe-agent";
+export const skillsPlugin = composableSkillsPlugin as unknown as (
+  options?: import("@poe-code/poe-agent").SkillsPluginOptions
+) => AgentPlugin;

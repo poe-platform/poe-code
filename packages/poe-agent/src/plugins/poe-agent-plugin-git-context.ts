@@ -3,7 +3,8 @@ import type { AgentPlugin } from "../runtime/plugin-types.js";
 
 const gitContext = (cwd: string): AgentPlugin => ({
   name: "git-context",
-  async prompt(ctx) {
+  async prompt(ctx, runtime) {
+    if (runtime?.customFs) throw new Error("Host Git context cannot use a custom filesystem.");
     const [status, log] = await Promise.all([
       exec("git", ["status", "--short"], { cwd })
         .then(result => result.stdout)

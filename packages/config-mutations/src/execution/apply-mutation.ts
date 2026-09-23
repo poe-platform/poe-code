@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import path from "node:path";
+import nativePath from "node:path";
 import { renderTemplate } from "toolcraft-design";
 import type {
   Mutation,
@@ -77,6 +77,7 @@ async function assertRegularWriteTarget(
   // plant one to redirect a credential/config write outside it. Symlinks at or
   // above home are legitimate system links (e.g. /tmp -> /private/tmp on macOS,
   // /var -> /private/var) and must not block writes, so bound the walk at home.
+  const path = context.paths ?? nativePath;
   const boundary = path.dirname(path.resolve(context.homeDir));
   let currentPath = path.resolve(targetPath);
   while (currentPath !== boundary) {
@@ -204,7 +205,7 @@ export function resolveMutationDetails(
     }
 
     try {
-      const targetPath = resolvePath(rawTarget, context.homeDir, context.pathMapper);
+      const targetPath = resolvePath(rawTarget, context.homeDir, context.pathMapper, context.paths);
       return {
         kind: mutation.kind,
         label: mutation.label ?? describeMutation(mutation.kind, targetPath),
@@ -345,7 +346,7 @@ async function applyEnsureDirectory(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.path, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -376,7 +377,7 @@ async function applyRemoveDirectory(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.path, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -433,7 +434,7 @@ async function applyRemoveFile(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -489,7 +490,7 @@ async function applyChmod(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -541,7 +542,7 @@ async function applyBackup(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -596,7 +597,7 @@ async function applyRestoreBackup(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
   const details: MutationDetails = {
     kind: mutation.kind,
     label: mutation.label ?? describeMutation(mutation.kind, targetPath),
@@ -693,7 +694,7 @@ async function applyConfigMerge(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -759,7 +760,7 @@ async function applyConfigPrune(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -840,7 +841,7 @@ async function applyConfigTransform(
   options: MutationOptions
 ): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -935,7 +936,7 @@ async function applyTemplateWrite(
   }
 
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,
@@ -980,7 +981,7 @@ async function applyTemplateMerge(
   }
 
   const rawPath = resolveValue(mutation.target, options);
-  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper, context.paths);
 
   const details: MutationDetails = {
     kind: mutation.kind,

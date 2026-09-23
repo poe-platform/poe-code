@@ -1,6 +1,9 @@
+import { createHostFileSystem } from "@poe-code/safe-fs";
+import type { AgentOptions } from "./filesystem.js";
 import type { AgentPlugin, McpServerConfig } from "./plugin-types.js";
 
-export type ResolvedAgentConfig = {
+export type ResolvedAgentConfig = AgentOptions & {
+  customFs: boolean;
   model?: string;
   plugins: AgentPlugin[];
 };
@@ -96,6 +99,10 @@ export function createResolvedAgentConfig(input: Partial<ResolvedAgentConfig> = 
   const model = input.model?.trim();
 
   return Object.freeze({
+    fs: input.fs ?? createHostFileSystem(),
+    cwd: input.cwd,
+    homeDir: input.homeDir,
+    customFs: input.customFs ?? input.fs !== undefined,
     ...(model === undefined || model.length === 0 ? {} : { model }),
     plugins: Object.freeze((input.plugins ?? []).map(plugin => cloneAgentPlugin(plugin))) as AgentPlugin[],
   }) as ResolvedAgentConfig;

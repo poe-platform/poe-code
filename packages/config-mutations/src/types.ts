@@ -26,7 +26,7 @@ export interface FileSystem {
     content: string,
     options?: { encoding: "utf8"; flag?: string }
   ): Promise<void>;
-  mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+  mkdir(path: string, options?: { recursive: boolean }): Promise<unknown>;
   rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   rm?(
@@ -87,6 +87,8 @@ export interface PathMapper {
 // ============================================================================
 
 export interface MutationContext {
+  /** Path operations for the filesystem namespace; defaults to native host paths. */
+  paths?: typeof import("node:path");
   /** Filesystem interface - required */
   fs: FileSystem;
 

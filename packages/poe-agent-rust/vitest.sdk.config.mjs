@@ -12,18 +12,21 @@ export default defineConfig({
       enforce: "pre",
       transform(code, id) {
         if (
-          ["agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts"].some(
+          ["agent.test.ts", "agent-session.test.ts", "agent.mcp-spawn.test.ts", "filesystem.test.ts", "filesystem-auth.test.ts", "filesystem-platform.test.ts"].some(
             (name) => id === path("../poe-agent/src/" + name)
           )
         ) {
           const replacements = new Map([
             ["./agent.js", "agent"],
             ["./agent-session.js", "agent-session"],
+            ["./session-store.js", "session-store"],
             ["./index.js", "index"],
             ["./runtime/agent-host.js", "agent-host"],
             ["./plugins/poe-agent-plugin-spawn.js", "plugin-spawn"],
             ["./plugins/poe-agent-plugin-max-iterations.js", "plugin-max-iterations"],
             ["./plugins/poe-agent-plugin-files.js", "plugin-files"],
+            ["./plugins/poe-agent-plugin-memory.js", "plugin-memory"],
+            ["./plugins/poe-agent-plugin-skills.js", "plugin-skills"],
             ["./plugins/poe-agent-plugin-shell.js", "plugin-shell"],
             ["./plugins/poe-agent-plugin-web.js", "plugin-web"],
             ["./plugins/poe-agent-plugin-system-prompt.js", "plugin-system-prompt"],
@@ -39,7 +42,8 @@ export default defineConfig({
             ["./runtime/file-awareness.js", "file-awareness"],
             ["./runtime/acp-core.js", "acp-core"],
             ["./system-prompt.js", "system-prompt"],
-            ["tiny-mcp-client", "client/index"]
+            ["tiny-mcp-client", "client/index"],
+            ["auth-store", "openai-auth-store"]
           ]);
           const source = ts.createSourceFile(
             id,
@@ -486,6 +490,9 @@ export default defineConfig({
     include: [
       path("../poe-agent/src/index.test.ts"),
       path("../poe-agent/src/agent.test.ts"),
+      path("../poe-agent/src/filesystem.test.ts"),
+      path("../poe-agent/src/filesystem-auth.test.ts"),
+      path("../poe-agent/src/filesystem-platform.test.ts"),
       path("../poe-agent/src/agent-session.test.ts"),
       path("../poe-agent/src/agent.mcp-spawn.test.ts"),
       path("../poe-agent/src/plugins/registry.test.ts"),

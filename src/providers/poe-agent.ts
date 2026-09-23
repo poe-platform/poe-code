@@ -27,12 +27,7 @@ import {
   resolveConfigPath,
   resolveProjectConfigPath
 } from "@poe-code/poe-code-config/core";
-import {
-  createAgentSessionStore,
-  type ChatMessage,
-  type PersistedAgentSession,
-  type PluginConfigEntry
-} from "@poe-code/poe-agent";
+import type { ChatMessage, PersistedAgentSession, PluginConfigEntry } from "@poe-code/poe-agent";
 import { createProvider } from "./create-provider.js";
 import { agentConfigScope } from "../services/config.js";
 import type { EmptyProviderOptions } from "./spawn-options.js";
@@ -755,6 +750,7 @@ async function runPoeAgentAcpLifecycle(
   let sessionId = "";
   let assistantText = "";
   const pluginsConfig = await loadConfiguredPlugins(options);
+  const { createAgentSessionStore } = await import("@poe-code/poe-agent");
   const sessionStore = createAgentSessionStore({ homeDir: options.homeDir, fs: options.fs });
   const persistedSession = options.resumeThreadId
     ? await sessionStore.load(options.resumeThreadId)

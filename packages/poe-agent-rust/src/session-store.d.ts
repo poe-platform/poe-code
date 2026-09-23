@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs";
 import type { ChatMessage } from "./types.js";
 interface SessionStoreFs {
   mkdir(
@@ -33,5 +34,6 @@ export interface AgentSessionStore {
 }
 export declare function createAgentSessionStore(options?: {
   homeDir?: string;
-  fs?: SessionStoreFs;
+  fs?: SessionStoreFs | FileSystem;
+  signal?: AbortSignal;
 }): AgentSessionStore;

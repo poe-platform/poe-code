@@ -149,6 +149,7 @@ export type InstallSkillOptions = {
   scope: ApplyOptions["scope"];
   dryRun?: boolean;
   observers?: ApplyOptions["observers"];
+  paths?: typeof import("node:path");
   /** Overwrite an existing SKILL.md instead of refusing to install over it. */
   force?: boolean;
 };
@@ -218,6 +219,7 @@ export async function installSkill(
     ],
     {
       fs: options.fs,
+      paths: options.paths,
       homeDir: scope === "global" ? options.homeDir : options.cwd,
       dryRun: options.dryRun,
       observers: options.observers,

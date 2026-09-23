@@ -22,7 +22,7 @@ it("keeps filesystem imports out of the CLI startup graph", async () => {
   }
   const graph = await resolveBundleGraph(root, workspaces);
   const result = await build({
-    entryPoints: [path.join(root, "src/index.ts")],
+    entryPoints: [path.join(root, "src/cli-entry.ts")],
     ...resolveConsumerGraph(graph, canonicalFs),
     bundle: true,
     platform: "node",
@@ -33,7 +33,7 @@ it("keeps filesystem imports out of the CLI startup graph", async () => {
     metafile: true,
     loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   });
-  const pending = ["dist/index.js"];
+  const pending = ["dist/cli-entry.js"];
   const visited = new Set<string>();
   // Include the CLI program, which main loads dynamically before parsing commands.
   for (const [filename, output] of Object.entries(result.metafile.outputs)) {

@@ -1,3 +1,4 @@
+import { createAgentRuntime } from "@poe-code/poe-agent";
 import { createRequire } from "node:module";
 import { HookRegistry } from "./hooks.js";
 import { createFileAwarenessTracker } from "./file-awareness.js";
@@ -7,8 +8,9 @@ const native = createRequire(import.meta.url)("./poe-agent-rust.node");
 export class RunContext {
   messages = [];
   tools = new ToolRegistry();
-  prompts = new PromptRegistry();
-  hooks = new HookRegistry();
+  runtime;
+  prompts;
+  hooks;
   session = new Map();
   mcpServers = [];
   activeSkills;
@@ -22,12 +24,15 @@ export class RunContext {
   #disposing;
   #disposed = false;
   constructor(options = {}) {
+    this.runtime = createAgentRuntime(options, this.abortController.signal);
+    this.prompts = new PromptRegistry(this.runtime);
+    this.hooks = new HookRegistry(this.runtime);
     const names = [];
     for (const value of options.activeSkills ?? []) names.push(value.trim());
     this.activeSkills = native.normalizePluginDependencies(names);
     this.#logger = options.logger ?? console;
     this.fileAwareness =
-      options.fileAwareness ?? createFileAwarenessTracker(options.cwd ?? process.cwd());
+      options.fileAwareness ?? createFileAwarenessTracker(this.runtime.cwd);
   }
   get logger() {
     return this.#logger;

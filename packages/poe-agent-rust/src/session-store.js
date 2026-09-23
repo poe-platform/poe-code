@@ -1,3 +1,4 @@
+import { createNodeFsBridge, getNodeFsBridgeProvider } from "@poe-code/safe-fs";
 import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -6,12 +7,13 @@ function safeId(value) {
   if (!native.agentSessionValid(value)) throw Error(native.agentSessionError(String(value)));
 }
 export function createAgentSessionStore(options = {}) {
-  const fs = options.fs ?? fsPromises,
-    directory = path.join(options.homeDir ?? os.homedir(), ".poe-code", "sessions");
+  const fs = options.fs && "capabilities" in options.fs ? createNodeFsBridge(options.fs, { signal: options.signal }) : options.fs ?? fsPromises;
+  const paths = getNodeFsBridgeProvider(fs) ? path.posix : path;
+  const directory = paths.join(options.homeDir ?? (options.fs && "capabilities" in options.fs ? "/" : os.homedir()), ".poe-code", "sessions");
   return {
     async load(id) {
       safeId(id);
-      const file = path.join(directory, `${id}.json`);
+      const file = paths.join(directory, `${id}.json`);
       let source;
       try {
         source = String(await fs.readFile(file, "utf8"));
@@ -40,7 +42,7 @@ export function createAgentSessionStore(options = {}) {
     async save(session) {
       safeId(session.threadId);
       await fs.mkdir(directory, { recursive: true });
-      const file = path.join(directory, `${session.threadId}.json`);
+      const file = paths.join(directory, `${session.threadId}.json`);
       await fs.writeFile(file, JSON.stringify(session, null, 2) + "\n", "utf8");
     }
   };

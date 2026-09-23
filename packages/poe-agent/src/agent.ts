@@ -1,4 +1,5 @@
-import * as fsPromises from "node:fs/promises";
+import path from "node:path";
+import { createAgentRuntime, type AgentOptions } from "./runtime/filesystem.js";
 import type { McpSpawnConfig } from "@poe-code/agent-spawn";
 import type { CreateAgentSessionOptions } from "./agent-session.js";
 import mcpPlugin from "./plugins/poe-agent-plugin-mcp.js";
@@ -25,7 +26,6 @@ import { collectProviders, resolveProvider } from "./runtime/resolve-provider.js
 import { createRunContext, type RunContext } from "./runtime/run-context.js";
 import {
   createTranscriptWriter,
-  type TranscriptFsApi,
   type TranscriptWriter
 } from "./runtime/transcript.js";
 import { assertValidToolName } from "./runtime/tool-names.js";
@@ -196,10 +196,18 @@ class ImmutableAgentBuilder implements AgentBuilder {
         error?: string;
       }
     >();
+    const storageFs = options.logPath
+      ? createAgentRuntime(runContext.runtime, options.signal ?? new AbortController().signal).nodeFs
+      : runContext.runtime.nodeFs;
     const transcript: TranscriptWriter | undefined = options.logPath
       ? createTranscriptWriter({
-          logPath: options.logPath,
-          fs: defaultTranscriptFs
+          logPath: (runContext.runtime.customFs ? path.posix : path).resolve(runContext.runtime.cwd, options.logPath),
+          paths: runContext.runtime.customFs ? path.posix : path,
+          fs: {
+            mkdir: async (dir, opts) => { await storageFs.mkdir(dir, opts); },
+            appendFile: (file, text) => storageFs.appendFile(file, text, "utf8"),
+            lstat: (file) => storageFs.lstat(file)
+          }
         })
       : undefined;
 
@@ -367,6 +375,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     assertPositiveIntegerOption(options.maxIterations, "maxIterations");
     const activeSkills = resolveActiveSkills(options);
     const runContext = createRunContext({
+      ...this.#config,
       ...(activeSkills === undefined ? {} : { activeSkills }),
       ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
       ...(options.fileAwareness === undefined ? {} : { fileAwareness: options.fileAwareness })
@@ -394,6 +403,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
           const providers = collectProviders(plugins);
           const provider = resolveProvider(providers, modelName);
           const providerContext = {
+            runtime: runContext.runtime,
             fetch: options.fetch ?? globalThis.fetch,
             signal: runContext.abortController.signal,
             logger: runContext.logger,
@@ -417,7 +427,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
 
             return createInMemorySpawnSession({
               model: modelName,
-              cwd: options.cwd ?? process.cwd(),
+              ...(runContext.runtime.customFs ? { fs: runContext.runtime.fs, homeDir: runContext.runtime.homeDir } : {}),
+              cwd: runContext.runtime.cwd,
               ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
               ...(options.env === undefined ? {} : { env: options.env }),
@@ -457,14 +468,8 @@ function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunO
   };
 }
 
-const defaultTranscriptFs: TranscriptFsApi = {
-  mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
-  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8"),
-  lstat: (filePath) => fsPromises.lstat(filePath)
-};
-
-export function agent(): AgentBuilder {
-  return new ImmutableAgentBuilder();
+export function agent(options: AgentOptions = {}): AgentBuilder {
+  return new ImmutableAgentBuilder(createResolvedAgentConfig({ fs: options.fs, cwd: options.cwd, homeDir: options.homeDir }));
 }
 
 type PreparedRun = {
@@ -585,6 +590,7 @@ function toSpawnMcpServers(
       server.name,
       {
         transport: "stdio",
+        ...(server.trustedHost === undefined ? {} : { trustedHost: server.trustedHost }),
         command: server.command,
         ...(server.args === undefined ? {} : { args: [...server.args] }),
         ...(server.env === undefined ? {} : { env: { ...server.env } }),

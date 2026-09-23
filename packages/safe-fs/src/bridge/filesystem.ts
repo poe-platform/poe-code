@@ -58,12 +58,13 @@ function timeValue(value: unknown): number {
 export class FileSystemBridge<Binary extends Uint8Array> {
   readonly #fs: FsBridgeFileSystem;
   readonly #cwd: string;
+  readonly #root: string;
   readonly #signal: AbortSignal | undefined;
 
   readonly #primitives: BridgePrimitives<Binary>;
   readonly #codec: FsBridgeCodec;
 
-  constructor(fs: FileSystem, options: { readonly cwd?: string; readonly signal?: AbortSignal }, primitives: BridgePrimitives<Binary>) {
+  constructor(fs: FileSystem, options: { readonly cwd?: string; readonly root?: string; readonly signal?: AbortSignal }, primitives: BridgePrimitives<Binary>) {
     if (fs === undefined) throw new TypeError("An explicit filesystem is required");
     const cwd = options.cwd ?? "/";
     if (!primitives.paths.isAbsolute(cwd) || cwd.includes("\0")) throw new TypeError("cwd must be an absolute virtual path");
@@ -79,6 +80,8 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     });
     this.#fs = fs;
     this.#cwd = primitives.paths.resolve("/", cwd);
+    this.#root = primitives.paths.resolve("/", options.root ?? cwd);
+    assertBridgePath(this.#root, this.#cwd);
     this.#signal = options.signal;
   }
 
@@ -100,7 +103,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     if (path.length === 0) throw fsError("ENOENT", "path", path);
     checkSignal(this.#signal);
     const absolute = this.#primitives.paths.isAbsolute(path) ? path : childPath(this.#cwd, path);
-    assertBridgePath(this.#cwd, absolute);
+    assertBridgePath(this.#root, absolute);
     return absolute;
   }
 
@@ -120,9 +123,9 @@ export class FileSystemBridge<Binary extends Uint8Array> {
       return await withSignal(combined, async () => {
         const absolute = paths.map((path) => this.#path(path));
         const resolved = [...absolute];
-        if (this.#cwd !== "/") {
+        if (this.#root !== "/") {
           for (let index = 0; index < absolute.length; index++) {
-            resolved[index] = await checkedBridgePath(this.#fs, this.#cwd, absolute[index]!, options, !noFollow.includes(index));
+            resolved[index] = await checkedBridgePath(this.#fs, this.#root, absolute[index]!, options, !noFollow.includes(index));
           }
         }
         checkSignal(combined);
@@ -239,7 +242,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
         } catch (error) {
           if (!hasCode(error, "ENOENT")) throw error;
           firstCreated = candidate;
-          if (candidate === this.#cwd) break;
+          if (candidate === this.#root) break;
           const parent = this.#primitives.paths.dirname(candidate);
           if (parent === candidate) break;
           candidate = parent;
@@ -253,6 +256,13 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   async access(path: unknown, mode = 0): Promise<void> {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) throw new TypeError("Invalid access mode");
     await this.#call([path], (signal, resolved) => this.#fs.access(resolved[0]!, mode, signal));
+  }
+
+  async unlink(path: unknown): Promise<void> {
+    await this.#call([path], async (signal, resolved) => {
+      if (!this.#fs.unlink) unsupported("unlink");
+      await this.#fs.unlink(resolved[0]!, signal);
+    }, undefined, [0]);
   }
 
   async rm(path: unknown, value?: unknown): Promise<void> {
@@ -297,7 +307,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const from = this.#path(source);
     const to = this.#path(destination);
     const canonicalFrom = await this.realpath(from);
-    let ancestor = to === this.#cwd ? to : this.#primitives.paths.dirname(to);
+    let ancestor = to === this.#root ? to : this.#primitives.paths.dirname(to);
     let canonicalAncestor: string;
     while (true) {
       try {
@@ -357,7 +367,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
   async realpath(path: unknown, value?: unknown): Promise<string | Binary> {
     const codec = this.#encoding(optionsRecord(value, ["encoding"]).encoding, "utf8", true);
     const target = await this.#call([path], (signal, resolved) => this.#fs.realpath(resolved[0]!, signal));
-    assertBridgePath(this.#cwd, target);
+    assertBridgePath(this.#root, target);
     return codec === "buffer" ? this.#textBytes(target) : this.#codec.decode(this.#textBytes(target), codec);
   }
 
@@ -386,7 +396,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     const destination = this.#path(path);
     const absoluteTarget = this.#path(this.#primitives.paths.isAbsolute(linkTarget)
       ? linkTarget : childPath(this.#primitives.paths.dirname(destination), linkTarget));
-    if (this.#cwd !== "/" && this.#primitives.paths.isAbsolute(linkTarget)) {
+    if (this.#root !== "/" && this.#primitives.paths.isAbsolute(linkTarget)) {
       throw fsError("ENOTSUP", "symlink", destination);
     }
     const method = this.#fs.symlink;

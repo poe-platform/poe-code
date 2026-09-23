@@ -1,3 +1,4 @@
+import type { AgentRuntime } from "@poe-code/poe-agent";
 import type {
   AgentPlugin,
   FileAwareness,
@@ -112,6 +113,8 @@ export declare class AbortError extends Error {
   constructor(message?: string, cause?: unknown);
 }
 export declare class HookRegistry {
+  constructor(runtime?: AgentRuntime);
+  readonly runtime?: AgentRuntime;
   #private;
   add(plugin: AgentPlugin): void;
   run<TEvent extends HookEvent>(

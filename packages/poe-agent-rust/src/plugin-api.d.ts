@@ -1,8 +1,16 @@
+import type { AgentRuntime } from "@poe-code/poe-agent";
 import type { RunContext } from "./run-context.js";
 import type { McpServerConfig, PluginApi } from "./plugin-types.js";
 import type { Tool, NormalizedTool } from "./types.js";
 export declare class PluginApiImpl implements PluginApi {
   constructor(runContext: RunContext, pluginName?: string);
+  readonly runtime: AgentRuntime;
+  readonly fs: AgentRuntime["fs"];
+  readonly cwd: string;
+  readonly homeDir: string;
+  readonly signal: AbortSignal;
+  readonly nodeFs: AgentRuntime["nodeFs"];
+  readonly customFs: boolean;
   addTool(tool: Tool): void;
   getTool(name: string): NormalizedTool | undefined;
   addMcp(config: McpServerConfig): void;

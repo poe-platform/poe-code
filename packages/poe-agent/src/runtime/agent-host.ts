@@ -80,6 +80,9 @@ export type CreateProcessSpawnSessionOptions = {
 
 export type CreateInMemorySpawnSessionOptions = {
   model: string;
+  fs?: import("@poe-code/safe-fs").FileSystem;
+  homeDir?: string;
+  customFs?: boolean;
   cwd: string;
   mode?: SpawnMode;
   baseUrl?: string;
@@ -120,6 +123,7 @@ export class AgentHost implements AcpHost {
     }
 
     const toolContext: ToolContext = {
+      runtime: this.#runContext.runtime,
       fork: async (prompt) => {
         this.#forkSequence += 1;
         return this.fork({
@@ -297,6 +301,7 @@ export class AgentHost implements AcpHost {
 
   async #runFork(request: ForkRequest): Promise<ForkResult> {
     const childContext = createRunContext({
+      ...this.#runContext.runtime,
       activeSkills: this.#runContext.activeSkills
     });
     childContext.messages.push(...request.context.messages);
@@ -435,6 +440,7 @@ export function createInMemoryAcpTransport(
         const request = params as { cwd?: string } | undefined;
         const session = await createSession({
           model: options.model,
+          ...(options.fs ? { fs: options.fs, homeDir: options.homeDir } : {}),
           cwd: request?.cwd ?? options.cwd,
           ...(options.mode === undefined ? {} : { mode: options.mode }),
           ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),

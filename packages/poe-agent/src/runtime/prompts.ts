@@ -1,8 +1,11 @@
+import type { AgentRuntime } from "./filesystem.js";
 import type { PromptContext } from "./plugin-types.js";
 
-export type PromptTransform = (ctx: PromptContext) => PromptContext | Promise<PromptContext>;
+export type PromptTransform = (ctx: PromptContext, runtime?: AgentRuntime) => PromptContext | Promise<PromptContext>;
 
 export class PromptRegistry {
+  constructor(readonly runtime?: AgentRuntime) {}
+
   readonly #transforms: PromptTransform[] = [];
 
   addTransform(fn: PromptTransform): void {
@@ -22,7 +25,7 @@ export class PromptRegistry {
 
     for (const transform of this.#transforms) {
       context = {
-        ...(await transform(context)),
+        ...(await transform(context, this.runtime)),
         userPrompt,
       };
     }

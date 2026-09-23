@@ -1,3 +1,4 @@
+import { createNodeFsBridge, getNodeFsBridgeProvider, type FileSystem } from "@poe-code/safe-fs";
 import type { Stats } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
@@ -19,7 +20,7 @@ export interface InstallSkillFileSystem {
     data: string | NodeJS.ArrayBufferView,
     options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
-  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
   stat(path: string): Promise<Stats>;
   lstat(path: string): Promise<Stats>;
   rename(oldPath: string, newPath: string): Promise<void>;
@@ -45,7 +46,8 @@ export interface InstallSkillOptions {
   homeDir?: string;
   scope?: SkillScope;
   dryRun?: boolean;
-  fs?: InstallSkillFileSystem;
+  fs?: InstallSkillFileSystem | FileSystem;
+  signal?: AbortSignal;
 }
 
 function createNodeFileSystem(): InstallSkillFileSystem {
@@ -80,9 +82,10 @@ async function resolveSkillContent(
     return source.content;
   }
 
-  const sourcePath = path.isAbsolute(source.file)
+  const paths = getNodeFsBridgeProvider(options.fs) ? path.posix : path;
+  const sourcePath = paths.isAbsolute(source.file)
     ? source.file
-    : path.resolve(options.cwd, source.file);
+    : paths.resolve(options.cwd, source.file);
   return options.fs.readFile(sourcePath, "utf8");
 }
 
@@ -97,9 +100,13 @@ export async function installSkill(
   source: InstallSkillSource,
   options: InstallSkillOptions = {}
 ): Promise<InstallSkillResult> {
-  const cwd = options.cwd ?? process.cwd();
-  const homeDir = options.homeDir ?? os.homedir();
-  const fileSystem = options.fs ?? createNodeFileSystem();
+  const canonical = options.fs && "capabilities" in options.fs ? options.fs : undefined;
+  const cwd = canonical ? path.posix.resolve("/", options.cwd ?? "/") : options.cwd ?? process.cwd();
+  const homeDir = canonical ? path.posix.resolve(cwd, options.homeDir ?? "/") : options.homeDir ?? os.homedir();
+  const fileSystem: InstallSkillFileSystem = options.fs && "capabilities" in options.fs
+    ? createNodeFsBridge(options.fs, { cwd, root: "/", signal: options.signal })
+    : options.fs ?? createNodeFileSystem();
+  options.signal?.throwIfAborted();
   const content = await resolveSkillContent(source, { cwd, fs: fileSystem });
 
   return installAgentSkill(
@@ -110,6 +117,7 @@ export async function installSkill(
     },
     {
       fs: fileSystem,
+      paths: canonical || getNodeFsBridgeProvider(fileSystem) ? path.posix : path,
       cwd,
       homeDir,
       scope: options.scope ?? "local",
@@ -119,3 +127,6 @@ export async function installSkill(
 }
 
 export type { InstallSkillResult, SkillScope };
+
+export { resolveSkillReferenceAsync, bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync } from "@poe-code/agent-skill-config";
+export type { SkillRuntimeOptions, SkillResolution, BridgeManifest } from "@poe-code/agent-skill-config";

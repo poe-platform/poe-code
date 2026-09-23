@@ -29,6 +29,7 @@
       "browser": "./dist/core.browser.js",
       "import": "./dist/index.js"
     },
+    "./search": { "types": "./dist/search.d.ts", "import": "./dist/search.js" },
     "./optional-host": {
       "types": "./dist/optional-host.d.ts",
       "import": "./dist/optional-host.js"

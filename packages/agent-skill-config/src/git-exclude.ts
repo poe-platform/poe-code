@@ -1,3 +1,4 @@
+import type { SkillRuntimeOptions } from "./resolve-skill-reference.js";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
@@ -198,4 +199,75 @@ export function removeExcludeBlock(
   }
 
   writeExcludeFile(excludePath, removeBlock(content, runId, opts?.markerPrefix ?? defaultMarkerPrefix));
+}
+
+async function findExcludePath(options: SkillRuntimeOptions): Promise<string | undefined> {
+  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
+  const fs = createNodeFsBridge(options.fs, { cwd: options.cwd, root: "/", signal: options.signal });
+  const path = (await import("node:path")).posix;
+  let directory = options.cwd;
+  while (true) {
+    const gitPath = path.join(directory, ".git");
+    try {
+      const stat = await fs.lstat(gitPath);
+      if (stat.isSymbolicLink()) throw new Error("Refusing symbolic Git directory");
+      if (stat.isDirectory()) return path.join(gitPath, "info/exclude");
+      const contents = await fs.readFile(gitPath, "utf8");
+      if (!contents.startsWith("gitdir: ")) throw new Error("Invalid Git directory file");
+      const gitDir = path.resolve(directory, contents.slice(8).trim());
+      return path.join(gitDir, "info/exclude");
+    } catch (error) {
+      if (!hasOwnErrorCode(error, "ENOENT")) throw error;
+    }
+    const parent = path.dirname(directory);
+    if (parent === directory) return undefined;
+    directory = parent;
+  }
+}
+
+async function mutateExclude(options: SkillRuntimeOptions, transform: (content: string | undefined) => { content: string; blockId?: string } | undefined): Promise<string | undefined> {
+  const path = (await import("node:path")).posix;
+  const excludePath = await findExcludePath(options);
+  if (!excludePath) return undefined;
+  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
+  const fs = createNodeFsBridge(options.fs, { cwd: options.cwd, root: "/", signal: options.signal });
+  let content: string | undefined;
+  try { content = await fs.readFile(excludePath, "utf8"); }
+  catch (error) { if (!hasOwnErrorCode(error, "ENOENT")) throw error; }
+  const result = transform(content);
+  if (!result) return undefined;
+  // Inspect all ancestors before mutation; never follow symlinks in Git metadata.
+  let current = excludePath;
+  while (true) {
+    try { if ((await fs.lstat(current)).isSymbolicLink()) throw new Error("Refusing symbolic Git exclude path"); }
+    catch (error) { if (!hasOwnErrorCode(error, "ENOENT")) throw error; }
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  await fs.mkdir(path.dirname(excludePath), { recursive: true });
+  const temporary = `${excludePath}.${randomUUID()}.tmp`;
+  let created = false;
+  try {
+    await fs.writeFile(temporary, result.content, { encoding: "utf8", flag: "wx" });
+    created = true;
+    await fs.rename(temporary, excludePath);
+  } finally { if (created) await fs.rm(temporary, { force: true }); }
+  return result.blockId;
+}
+
+export async function appendExcludeBlockAsync(options: SkillRuntimeOptions, runId: string, entries: string[], opts?: { markerPrefix?: string }): Promise<string | undefined> {
+  const prefix = opts?.markerPrefix ?? defaultMarkerPrefix;
+  assertSingleLine(runId, "runId"); assertSingleLine(prefix, "markerPrefix");
+  for (const entry of entries) assertSingleLine(entry, "exclude entry");
+  return mutateExclude(options, content => {
+    const blockId = nextBlockId(content, runId, prefix);
+    return { content: appendBlock(content, blockId, entries, prefix), blockId };
+  });
+}
+
+export async function removeExcludeBlockAsync(options: SkillRuntimeOptions, runId: string, opts?: { markerPrefix?: string }): Promise<void> {
+  const prefix = opts?.markerPrefix ?? defaultMarkerPrefix;
+  assertSingleLine(runId, "runId"); assertSingleLine(prefix, "markerPrefix");
+  await mutateExclude(options, content => content === undefined ? undefined : { content: removeBlock(content, runId, prefix) });
 }

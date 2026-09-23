@@ -87,3 +87,9 @@ export { default as spawnPlugin } from "./plugins/poe-agent-plugin-spawn.js";
 export { default as systemPromptPlugin } from "./plugins/poe-agent-plugin-system-prompt.js";
 export { default as webPlugin } from "./plugins/poe-agent-plugin-web.js";
 export { InvalidToolNameError } from "./runtime/tool-names.js";
+
+export { createAgentRuntime, resolvePluginFileSystem } from "./runtime/filesystem.js";
+export type { AgentOptions, AgentRuntime } from "./runtime/filesystem.js";
+export { globFileSystem, searchFileSystem } from "./runtime/filesystem-search.js";
+
+export type { SkillsPluginOptions } from "./plugins/poe-agent-plugin-skills.js";

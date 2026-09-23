@@ -16,7 +16,7 @@ import type {
   SaveConfiguredServiceOptions,
   UnconfigureServiceOptions
 } from "@poe-code/poe-code-config/core";
-import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent";
+import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent/plugin-config";
 import { superintendentConfigScope } from "@poe-code/superintendent";
 import { codeReviewConfigScope } from "agent-code-review";
 import type { FileSystem } from "../utils/file-system.js";

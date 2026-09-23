@@ -3,14 +3,14 @@ import {isNotFound} from './fs-utils.js';
 import {applyTemplate} from './template.js';
 import {applyBackup} from './backup.js';
 import {writeWalk} from './path.js';
-import path from 'node:path';
+import nativePath from 'node:path';
 import {native} from './native.js';
 function factories(specifications){return Object.fromEntries(specifications.map(({name,kind,fields})=>[name,options=>Object.fromEntries([['kind',kind],...fields.map(field=>[field,options[field]])])]));}
 const layouts=native.configMutationFactories(),knownKinds=new Set(Object.values(layouts).flatMap(group=>group.map(factory=>factory.kind)));
 export const fileMutation=factories(layouts.file);
 export const configMutation=factories(layouts.config);
 export const templateMutation=factories(layouts.template);
-function expandHome(target,home){
+function expandHome(target,home,path=nativePath){
  if(target.startsWith('~./'))target=`~/.${target.slice(3)}`;
  let remainder=target.slice(1);
  if(remainder.startsWith('/')||remainder.startsWith('\\'))remainder=remainder.slice(1);
@@ -18,9 +18,10 @@ function expandHome(target,home){
  return remainder.length===0?home:path.join(home,remainder);
 }
 function resolvePath(raw,context){
+ const path=context.paths??nativePath;
  if(typeof raw!=='string'||raw.length===0)throw Error('Target path must be a non-empty string.');
  if(!raw.startsWith('~'))throw Error(`All target paths must be home-relative (start with ~). Received: "${raw}"`);
- const expanded=expandHome(raw,context.homeDir),canonical=path.resolve(expanded),relative=path.relative(path.resolve(context.homeDir),canonical);
+ const expanded=expandHome(raw,context.homeDir,path),canonical=path.resolve(expanded),relative=path.relative(path.resolve(context.homeDir),canonical);
  if(relative==='..'||relative.startsWith(`..${path.sep}`)||path.isAbsolute(relative))throw Error(`Target path resolves outside home directory: "${raw}"`);
  if(!context.pathMapper)return canonical;
  const directory=context.pathMapper.mapTargetDirectory({targetDirectory:path.dirname(expanded)}),filename=path.basename(expanded);
@@ -42,7 +43,7 @@ async function applyFile(mutation,context,options){
  const {raw,target:targetPath,details}=prepareTarget(mutation,context,options);
  if(['configMerge','configPrune','configTransform'].includes(mutation.kind))return {outcome:await applyConfig(mutation,context,options,raw,targetPath),details};
  if(mutation.kind==='backup'||mutation.kind==='restoreBackup')return {outcome:await applyBackup(mutation,context,targetPath),details};
- const machine=new native.ConfigFileMachine(mutation.kind,writeWalk(targetPath,context.homeDir));
+ const machine=new native.ConfigFileMachine(mutation.kind,writeWalk(targetPath,context.homeDir,context.paths));
  let request=machine.start();
  while(true){
   if(request.error)throw Error(request.error);

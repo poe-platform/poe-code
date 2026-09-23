@@ -1,3 +1,4 @@
+import type { AgentOptions } from "@poe-code/poe-agent";
 import type { SessionUpdate } from "./session-update-types.js";
 import type { SpawnMode } from "./spawn-types.js";
 import { type AgentRunOptions } from "./agent.js";
@@ -21,6 +22,7 @@ export interface AgentSessionSendMessageOptions {
 export type SessionUpdateCallback = (update: SessionUpdate) => void;
 export interface McpStdioServerDefinition {
   transport: "stdio";
+  trustedHost?: boolean;
   command: string;
   args?: string[];
   env?: Record<string, string>;
@@ -31,7 +33,7 @@ export interface McpHttpServerDefinition {
   headers?: Record<string, string>;
 }
 export type McpServerDefinition = McpStdioServerDefinition | McpHttpServerDefinition;
-export interface CreateAgentSessionOptions {
+export interface CreateAgentSessionOptions extends AgentOptions {
   model?: string;
   apiKey?: string;
   cwd?: string;

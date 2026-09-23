@@ -1,3 +1,4 @@
+import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { isSessionEntry, type SessionEntry } from "./entry-types.js";
@@ -44,7 +45,8 @@ export async function createJsonlSessionStore(
 ): Promise<SessionStore> {
   assertSafeSessionId(sessionId);
   const fs = options.fs ?? fsPromises;
-  const filePath = path.join(directory, `${sessionId}.jsonl`);
+  const paths = getNodeFsBridgeProvider(fs) ? path.posix : path;
+  const filePath = paths.join(directory, `${sessionId}.jsonl`);
   let writeQueue = Promise.resolve();
 
   await fs.mkdir(directory, { recursive: true });

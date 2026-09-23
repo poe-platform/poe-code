@@ -1,3 +1,4 @@
+import { createAgentRuntime, type AgentOptions, type AgentRuntime } from "./filesystem.js";
 import { HookRegistry } from "./hooks.js";
 import { createFileAwarenessTracker, type FileAwarenessTracker } from "./file-awareness.js";
 import type { McpServerConfig } from "./plugin-types.js";
@@ -11,7 +12,8 @@ export type RunContextLogger = {
   error(message: string, error?: unknown): void;
 };
 
-export type CreateRunContextOptions = {
+export type CreateRunContextOptions = AgentOptions & {
+  customFs?: boolean;
   activeSkills?: string[];
   logger?: RunContextLogger;
   cwd?: string;
@@ -38,8 +40,9 @@ function normalizeActiveSkills(activeSkills?: string[]): string[] {
 export class RunContext {
   readonly messages: ChatMessage[] = [];
   readonly tools = new ToolRegistry();
-  readonly prompts = new PromptRegistry();
-  readonly hooks = new HookRegistry();
+  readonly runtime: AgentRuntime;
+  readonly prompts: PromptRegistry;
+  readonly hooks: HookRegistry;
   readonly session = new Map<string, unknown>();
   readonly mcpServers: McpServerConfig[] = [];
   readonly activeSkills: string[];
@@ -54,10 +57,13 @@ export class RunContext {
   #disposed = false;
 
   constructor(options: CreateRunContextOptions = {}) {
+    this.runtime = createAgentRuntime(options, this.abortController.signal);
+    this.prompts = new PromptRegistry(this.runtime);
+    this.hooks = new HookRegistry(this.runtime);
     this.activeSkills = normalizeActiveSkills(options.activeSkills);
     this.#logger = options.logger ?? console;
     this.fileAwareness =
-      options.fileAwareness ?? createFileAwarenessTracker(options.cwd ?? process.cwd());
+      options.fileAwareness ?? createFileAwarenessTracker(this.runtime.cwd);
   }
 
   get logger(): RunContextLogger {

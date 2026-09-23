@@ -26,6 +26,8 @@ The agent token accepts canonical ids, aliases, and any casing. It is normalized
 
 Resolution is per ref. Project scope beats user scope; first hit wins.
 
+Use `resolveSkillReferenceAsync(ref, { fs, cwd, homeDir, signal? })` for a canonical safe-fs provider, including in-memory and restricted views. Read the resolved `SKILL.md` through the same provider. The synchronous `resolveSkillReference` API retains explicitly host-backed behavior.
+
 Bare `<name>`:
 
 1. `<cwd>/.poe-code/skills/<name>`
@@ -39,6 +41,8 @@ Prefixed `<agentId>/<name>`:
 Per-agent skill directories come from `agentSkillConfigs` in `configs.ts`; resolvers do not hard-code native agent paths.
 
 ## Bridge Contract
+
+For injectable providers, use `bridgeActiveSkillsAsync(spawnAgentId, refs, runId, runtime)` and `cleanupBridgedSkillsAsync(manifest, runtime)`, where `runtime` has `{ fs, cwd, homeDir, signal? }`. Copies, ownership checks, cleanup, and Git exclude mutations use that provider without native Git or host filesystem fallback. Ownership is isolated by provider and cleanup preserves modified targets. The synchronous bridge APIs remain host-backed compatibility APIs.
 
 At spawn time, `bridgeActiveSkills(spawnAgentId, cwd, refs, homeDir, runId)` resolves every ref, then copies each resolved source folder into the spawning agent's native local skill directory under `cwd`, keyed by source basename:
 

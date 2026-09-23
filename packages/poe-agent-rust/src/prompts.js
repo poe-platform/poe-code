@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./poe-agent-rust.node");
 export class PromptRegistry {
+  constructor(runtime) { this.runtime = runtime; }
   #order = new native.NativePromptOrder();
   #transforms = [];
   addTransform(fn) {
@@ -16,7 +17,7 @@ export class PromptRegistry {
       const handle = this.#order.get(index);
       if (handle === null) break;
       const transform = this.#transforms[handle];
-      context = { ...(await transform(context)), userPrompt };
+      context = { ...(await transform(context, this.runtime)), userPrompt };
     }
     return context;
   }

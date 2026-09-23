@@ -1,3 +1,4 @@
+import { createAgentRuntime, type AgentOptions } from "./runtime/filesystem.js";
 import type {
   SessionUpdate,
   SpawnMode,
@@ -57,6 +58,7 @@ export type SessionUpdateCallback = (update: SessionUpdate) => void;
 
 export interface McpStdioServerDefinition {
   transport: "stdio";
+  trustedHost?: boolean;
   command: string;
   args?: string[];
   env?: Record<string, string>;
@@ -70,7 +72,7 @@ export interface McpHttpServerDefinition {
 
 export type McpServerDefinition = McpStdioServerDefinition | McpHttpServerDefinition;
 
-export interface CreateAgentSessionOptions {
+export interface CreateAgentSessionOptions extends AgentOptions {
   model?: string;
   apiKey?: string;
   cwd?: string;
@@ -94,6 +96,10 @@ type LegacyAcpRunOptions = AgentRunOptions & {
 export async function createAgentSession(
   options: CreateAgentSessionOptions = {}
 ): Promise<AgentSession> {
+  if (options.fs) {
+    const runtime = createAgentRuntime(options, new AbortController().signal);
+    options = { ...options, cwd: runtime.cwd, homeDir: runtime.homeDir };
+  }
   const model = normalizeNonEmptyString(options.model);
   if (!model) {
     throw new UserError("Model must not be empty. Pass --model <id>.");
@@ -105,7 +111,7 @@ export async function createAgentSession(
 
   assertPositiveIntegerOption(options.maxToolCallIterations, "maxToolCallIterations");
 
-  let builder = agent().model(model);
+  let builder = agent(options).model(model);
   const plugins = options.plugins ??
     (options.pluginsConfig !== undefined
       ? resolvePluginsFromConfig(options.pluginsConfig)
@@ -133,6 +139,7 @@ export async function createAgentSession(
       name,
       command: definition.command,
       args: definition.args,
+      ...(definition.trustedHost === undefined ? {} : { trustedHost: definition.trustedHost }),
       env: definition.env
     });
   }
@@ -438,7 +445,7 @@ async function createStore(options: CreateAgentSessionOptions): Promise<SessionS
     return createMemorySessionStore(sessionId);
   }
 
-  return await createJsonlSessionStore(sessionId, expandHome(options.persist.directory));
+  return await createJsonlSessionStore(sessionId, expandHome(options.persist.directory, options.homeDir ?? (options.fs ? "/" : os.homedir()), options.fs ? path.posix : path), { fs: createAgentRuntime(options, new AbortController().signal).nodeFs });
 }
 
 function createEntry(entry: NewSessionEntry, parentId: string | null): SessionEntry {
@@ -461,13 +468,13 @@ function buildResumeFromTree(
   return { messages: buildMessages(entries, headId) };
 }
 
-function expandHome(directory: string): string {
+function expandHome(directory: string, homeDir: string, path: typeof import("node:path")): string {
   if (directory === "~") {
-    return os.homedir();
+    return homeDir;
   }
 
   if (directory.startsWith("~/")) {
-    return path.join(os.homedir(), directory.slice(2));
+    return path.join(homeDir, directory.slice(2));
   }
 
   return directory;

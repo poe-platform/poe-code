@@ -1,3 +1,4 @@
+import type { AgentRuntime } from "./filesystem.js";
 import type {
   AgentPlugin,
   FileAwareness,
@@ -58,13 +59,14 @@ function attachDisposeRun<TContext extends HookContext>(
 }
 
 async function runHookPipeline<TContext, TDecision>(
-  hooks: Array<(ctx: TContext) => TDecision | Promise<TDecision>>,
-  context: TContext
+  hooks: Array<(ctx: TContext, runtime?: AgentRuntime) => TDecision | Promise<TDecision>>,
+  context: TContext,
+  runtime?: AgentRuntime
 ): Promise<TDecision | undefined> {
   let firstDecision: TDecision | undefined = undefined;
 
   for (const hook of hooks) {
-    const decision = await hook(context);
+    const decision = await hook(context, runtime);
     if (firstDecision === undefined && decision !== undefined) {
       firstDecision = decision;
     }
@@ -165,6 +167,7 @@ export class AbortError extends Error {
 }
 
 export class HookRegistry {
+  constructor(readonly runtime?: AgentRuntime) {}
   readonly #sessionStart: SessionStartHook[] = [];
   readonly #userPromptSubmit: UserPromptSubmitHook[] = [];
   readonly #preToolUse: PreToolUseHook[] = [];
@@ -237,25 +240,25 @@ export class HookRegistry {
   > {
     switch (event) {
       case "sessionStart":
-        return runHookPipeline(this.#sessionStart, ctx as SessionStartContext) as never;
+        return runHookPipeline(this.#sessionStart, ctx as SessionStartContext, this.runtime) as never;
       case "userPromptSubmit":
-        return runHookPipeline(this.#userPromptSubmit, ctx as UserPromptSubmitContext) as never;
+        return runHookPipeline(this.#userPromptSubmit, ctx as UserPromptSubmitContext, this.runtime) as never;
       case "preToolUse":
-        return runHookPipeline(this.#preToolUse, ctx as ToolUseContext) as never;
+        return runHookPipeline(this.#preToolUse, ctx as ToolUseContext, this.runtime) as never;
       case "postToolUse":
-        return runHookPipeline(this.#postToolUse, ctx as ToolUseContext) as never;
+        return runHookPipeline(this.#postToolUse, ctx as ToolUseContext, this.runtime) as never;
       case "preIteration":
-        return runHookPipeline(this.#preIteration, ctx as IterationContext) as never;
+        return runHookPipeline(this.#preIteration, ctx as IterationContext, this.runtime) as never;
       case "postIteration":
-        return runHookPipeline(this.#postIteration, ctx as IterationContext) as never;
+        return runHookPipeline(this.#postIteration, ctx as IterationContext, this.runtime) as never;
       case "preCompaction":
-        return runHookPipeline(this.#preCompaction, ctx as PreCompactionContext) as never;
+        return runHookPipeline(this.#preCompaction, ctx as PreCompactionContext, this.runtime) as never;
       case "postCompaction":
-        return runHookPipeline(this.#postCompaction, ctx as PostCompactionContext) as never;
+        return runHookPipeline(this.#postCompaction, ctx as PostCompactionContext, this.runtime) as never;
       case "notification":
-        return runHookPipeline(this.#notification, ctx as NotificationContext) as never;
+        return runHookPipeline(this.#notification, ctx as NotificationContext, this.runtime) as never;
       case "stop":
-        return runHookPipeline(this.#stop, ctx as StopContext) as never;
+        return runHookPipeline(this.#stop, ctx as StopContext, this.runtime) as never;
       default:
         return undefined;
     }

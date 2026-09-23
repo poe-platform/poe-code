@@ -1,10 +1,10 @@
-import path from "node:path";
+import nativePath from "node:path";
 import type { PathMapper } from "../types.js";
 
 /**
  * Expand ~ shortcut to the provided home directory.
  */
-export function expandHome(targetPath: string, homeDir: string): string {
+export function expandHome(targetPath: string, homeDir: string, path = nativePath): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }
@@ -55,10 +55,11 @@ export function validateHomePath(targetPath: string): void {
 export function resolvePath(
   rawPath: string,
   homeDir: string,
-  pathMapper?: PathMapper
+  pathMapper?: PathMapper,
+  path = nativePath
 ): string {
   validateHomePath(rawPath);
-  const expanded = expandHome(rawPath, homeDir);
+  const expanded = expandHome(rawPath, homeDir, path);
   const canonicalHome = path.resolve(homeDir);
   const canonicalExpanded = path.resolve(expanded);
   const relative = path.relative(canonicalHome, canonicalExpanded);

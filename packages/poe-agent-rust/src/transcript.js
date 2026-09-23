@@ -1,10 +1,11 @@
-import path from "node:path";
+import nativePath from "node:path";
 import { native } from "./native.js";
 const length = value => value.length, difference = (left, right) => left - right;
 export function mapAcpEventToSessionUpdates(event) {
   return native.mapAgentTranscript(event, length, difference);
 }
 export function createTranscriptWriter(options) {
+  const path = options.paths ?? nativePath;
   const join = options.pathJoin ?? path.join;
   let filePath;
   if (options.logPath) filePath = options.logPath;
@@ -17,17 +18,17 @@ export function createTranscriptWriter(options) {
     async write(event) {
       const updates = mapAcpEventToSessionUpdates(event);
       if (updates.length === 0) return;
-      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      await ensureNoSymbolicLinkPath(options.fs, filePath, path);
       if (!dirEnsured) dirEnsured = options.fs.mkdir(logDir, { recursive: true });
       await dirEnsured;
-      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      await ensureNoSymbolicLinkPath(options.fs, filePath, path);
       const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
       await options.fs.appendFile(filePath, payload);
     },
     async close() {}
   };
 }
-async function ensureNoSymbolicLinkPath(fs, filePath) {
+async function ensureNoSymbolicLinkPath(fs, filePath, path) {
   const absolutePath = path.resolve(filePath), root = path.parse(absolutePath).root;
   let inspectedPath = root;
   for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {

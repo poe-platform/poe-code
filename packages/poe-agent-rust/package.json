@@ -29,7 +29,9 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "@poe-code/poe-acp-client-rust": "*",
-    "@poe-code/user-error-rust": "*"
+    "@poe-code/user-error-rust": "*",
+    "@poe-code/agent-skill-config": "*",
+    "@poe-code/safe-fs": "*"
   },
   "files": [
     "dist",

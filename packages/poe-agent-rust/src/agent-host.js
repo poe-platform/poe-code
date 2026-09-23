@@ -36,6 +36,7 @@ export class AgentHost {
       };
     }
     const toolContext = {
+      runtime: this.#runContext.runtime,
       fork: async (prompt) => {
         const forkSequence = this.#state.nextFork();
         return this.fork({
@@ -174,6 +175,7 @@ export class AgentHost {
   }
   async #runFork(request) {
     const childContext = createRunContext({
+      ...this.#runContext.runtime,
       activeSkills: this.#runContext.activeSkills
     });
     childContext.messages.push(...request.context.messages);
@@ -316,6 +318,7 @@ export function createInMemoryAcpTransport(options) {
         const creation = Promise.resolve(
           createSession({
             model: options.model,
+          ...(options.fs ? { fs: options.fs, homeDir: options.homeDir } : {}),
             cwd: request?.cwd ?? options.cwd,
             ...(options.mode === undefined ? {} : { mode: options.mode }),
             ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),

@@ -28,6 +28,7 @@ export class AbortError extends Error {
   }
 }
 export class HookRegistry {
+  constructor(runtime) { this.runtime = runtime; }
   #catalog = new native.NativeHookCatalog();
   #callbacks = [];
   add(plugin) {
@@ -49,7 +50,7 @@ export class HookRegistry {
       const handle = this.#catalog.get(event, index++);
       if (handle === null) break;
       const hook = this.#callbacks[handle],
-        decision = await hook(context);
+        decision = await hook(context, this.runtime);
       if (pipeline.observe(decision !== undefined)) first = decision;
     }
     return first;

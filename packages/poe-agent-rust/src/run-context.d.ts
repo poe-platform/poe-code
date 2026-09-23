@@ -1,3 +1,4 @@
+import type { AgentOptions, AgentRuntime } from "@poe-code/poe-agent";
 import { HookRegistry } from "./hooks.js";
 import type { FileAwarenessTracker } from "./file-awareness.js";
 import type { McpServerConfig } from "./plugin-types.js";
@@ -6,7 +7,7 @@ import { ToolRegistry } from "./tools.js";
 import type { ChatMessage } from "./types.js";
 export type DisposeHook = () => void | Promise<void>;
 export type RunContextLogger = { error(message: string, error?: unknown): void };
-export type CreateRunContextOptions = {
+export type CreateRunContextOptions = AgentOptions & { customFs?: boolean;
   activeSkills?: string[];
   logger?: RunContextLogger;
   cwd?: string;
@@ -14,6 +15,7 @@ export type CreateRunContextOptions = {
 };
 export declare class RunContext {
   private readonly _state;
+  readonly runtime: AgentRuntime;
   readonly messages: ChatMessage[];
   readonly tools: ToolRegistry;
   readonly prompts: PromptRegistry;

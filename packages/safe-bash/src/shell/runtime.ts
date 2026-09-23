@@ -6692,6 +6692,7 @@ export class Runtime {
       const digits = argument?.startsWith("+") || argument?.startsWith("-") ? argument.slice(1) : argument;
       if (digits !== undefined && (!digits.length || [...digits].some(character => character < "0" || character > "9"))) {
         await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
+        if (command === "exit") return 2;
         throw completedExit(2, command);
       }
       const status = argument === undefined ? state.status : Number((BigInt(argument) % 256n + 256n) % 256n);

@@ -6141,13 +6141,15 @@ export class Runtime {
       return 2;
     }
     if (command === "shift") {
-      const value = args[0] === undefined ? 1n : await signedLong(args[0], this.budget, this.signal);
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      const value = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
-        await writeDiagnostic(stderr, `shift: ${args[0]}: numeric argument required\n`);
+        await writeDiagnostic(stderr, `shift: ${operand}: numeric argument required\n`);
         return 2;
       }
       const count = Number(value);
-      if (args.length > 1 || count < 0 || count > state.positional.length) return 1;
+      if (args.length - offset > 1 || count < 0 || count > state.positional.length) return 1;
       this.replacePositionals(state, this.positionalValues(state).slice(count));
       return 0;
     }
@@ -6719,24 +6721,28 @@ export class Runtime {
     }
     if (command === "exit" || command === "return") {
       if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
-      if (args.length > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
-      const value = args[0] === undefined ? BigInt(state.status) : await signedLong(args[0], this.budget, this.signal);
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
+      const value = operand === undefined ? BigInt(state.status) : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
-        await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
+        await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
         if (command === "exit") return 2;
         throw completedExit(2, command);
       }
-      const status = args[0] === undefined ? state.status : Number((value % 256n + 256n) % 256n);
+      const status = operand === undefined ? state.status : Number((value % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
-      const count = args[0] === undefined ? 1n : await signedLong(args[0], this.budget, this.signal);
+      const offset = args[0] === "--" ? 1 : 0;
+      const operand = args[offset];
+      const count = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
       if (count === undefined || count === "overflow") {
-        await writeDiagnostic(stderr, `${command}: ${args[0]}: numeric argument required\n`);
+        await writeDiagnostic(stderr, `${command}: ${operand}: numeric argument required\n`);
         throw completedExit(2, "exit");
       }
       const levels = Number(count);
-      if (args.length > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
+      if (args.length - offset > 1) { await writeDiagnostic(stderr, `${command}: invalid loop count\n`); return 1; }
       if (levels < 1) {
         await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
         if (state.loopDepth) throw completedExit(1, "break", state.loopDepth);

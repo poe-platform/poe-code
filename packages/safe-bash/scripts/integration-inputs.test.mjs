@@ -500,6 +500,7 @@ function assertSource7Discovery(files) {
     "tests/shell/loop-count.test.ts",
     "tests/shell/shift-count.test.ts",
     "tests/shell/exit-return-status.test.ts",
+    "tests/shell/numeric-option-terminator.test.ts",
     "tests/shell/mapfile.test.ts",
     "tests/shell/mapfile-eval-arguments.test.ts",
     "tests/shell/associative-arrays.test.ts",

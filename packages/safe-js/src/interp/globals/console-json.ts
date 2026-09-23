@@ -7,6 +7,7 @@ import { sandboxGetOwnPropertyDescriptor } from "../guest-proxy-descriptor.js";
 import { sandboxGetProperty } from "../guest-proxy-get.js";
 import { invokeBuiltinClosure } from "../builtin-call.js";
 import { parseJsonWithReviver } from "./json-parse.js";
+import { admitJson } from "./json-admission.js";
 import { createRawJson, isRawJson } from "../raw-json.js";
 import { readPropertyDescriptor } from "../accessors.js";
 import { createIntrinsicObject, getBoxedPrototype, getSandboxPropertyDescriptor, getSandboxPrototype, materializeFunctionProperties, registerIntrinsicFunction, registerIntrinsicObject, setSandboxPrototype } from "../object-model.js";
@@ -75,6 +76,7 @@ export function createConsoleJsonGlobals(
         call: async ([text, reviver], context) => {
           const converted = sandboxString(text, options.budget, context);
           const source = converted instanceof Promise ? await converted : converted;
+          admitJson(source, options.budget);
           if (isSandboxClosure(reviver)) return parseJsonWithReviver(source, reviver, options.budget, context);
           return copyJsonToSandbox(
             JSON.parse(source),

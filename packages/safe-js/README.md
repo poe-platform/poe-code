@@ -442,6 +442,8 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | `regexCompileAllocations` | Optional per-regex compilation allocation cap; positive safe integer, unlimited when omitted. Compilation still charges work and retained data against the shared budget. |
 | `dataSize` | Retained sandbox data units, not bytes of process memory. |
 
+`JSON.parse` checks both parse paths before building native objects: input work counts toward steps and deadlines, array lengths and object member counts use `arrayLength`, and nesting uses `maxCallDepth` with an additional ceiling of 256 containers. Parsing requires room for a conservative temporary allocation bound of `16 * text.length + 8` data units alongside existing data; whitespace and duplicate keys count toward this bound.
+
 There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.
 
 <details>

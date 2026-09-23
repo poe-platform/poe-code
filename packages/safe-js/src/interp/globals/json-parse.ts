@@ -26,7 +26,6 @@ type ParseRecord = {
 export async function parseJsonWithReviver(
   text: string, reviver: SandboxClosure, budget: Budget, context?: SandboxCallContext
 ): Promise<SandboxValue> {
-  budget.visitNode(text.length);
   // Validate the grammar natively, but capture source ourselves: supported Node
   // versions do not all provide the third native reviver argument.
   JSON.parse(text);

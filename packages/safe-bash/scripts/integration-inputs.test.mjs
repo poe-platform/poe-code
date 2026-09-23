@@ -406,7 +406,7 @@ test("optional scripting leaves stay outside the default build and package expor
   for (const path of ["!dist/optional.js", "!dist/optional.js.map", "!dist/optional.d.ts", "!dist/optional.d.ts.map", "!dist/commands/cmp", "!dist/commands/dd", "!dist/commands/install", "!dist/commands/shuf", "!dist/commands/truncate", "!dist/commands/yes", "!dist/fs/devices", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs", "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read"]) {
     assert.ok(metadata.files.includes(path), `optional artifacts must remain unpublished after explicit compilation: ${path}`);
   }
-  for (const name of ["arguments", "evaluate", "expression", "inplace", "mike", "native-encoder", "native-work", "nodes"]) {
+  for (const name of ["arguments", "evaluate", "expression", "formats", "inplace", "mike", "native-encoder", "native-work", "nodes"]) {
     for (const suffix of ["js", "js.map", "d.ts", "d.ts.map"]) {
       const path = `!dist/commands/yq/${name}.${suffix}`;
       assert.ok(metadata.files.includes(path), `optional YAML artifact must remain unpublished: ${path}`);

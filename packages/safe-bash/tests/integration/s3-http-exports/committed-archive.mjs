@@ -539,7 +539,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         "!dist/commands/yq/expression.js",
         ...["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/comments.${extension}`),
         ...["js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/expression.${extension}`),
-        ...["nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "native-encoder"]
+        ...["nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "formats", "native-encoder"]
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap", "!dist/shell/extensions/jobs",
         "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",

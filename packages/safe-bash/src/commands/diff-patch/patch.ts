@@ -483,7 +483,7 @@ async function replaceReadOnly(path: string, text: string, mode: number, budget:
   const context = budget.context;
   const temporary = `${path}.patch-${globalThis.crypto.randomUUID()}`;
   let owned = false;
-  let operation: Promise<void> | undefined;
+  let operation: Promise<void> | undefined = undefined;
   let cleanupPromise: Promise<void> | undefined;
   const cleanup = () => cleanupPromise ??= (async () => {
     await operation?.catch(() => {});

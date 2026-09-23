@@ -8,8 +8,32 @@ import { inspectDocumentImages, extractDocumentImages } from "./images.js";
 import { DocumentBudget } from "./budget.js";
 import { svgPairFixture } from "../tests/fixtures/svg-image.js";
 import { svgBinary } from "../tests/fixtures/svg-image.js";
-import { rasterPng } from "../tests/fixtures/raster.js";
+import { rasterBmp, rasterGif, rasterPng, rasterTiff } from "../tests/fixtures/raster.js";
 import { insertDocumentImage } from "./image-insertion.js";
+
+it.each([
+  { extension: "gif", bytes: rasterGif(), width: 12700, height: 12700 },
+  { extension: "bmp", bytes: rasterBmp(), width: 12700, height: 12700 },
+  { extension: "tiff", bytes: rasterTiff(), width: 6350, height: 12700 }
+])("inserts admitted $extension bytes with native dimensions and coherent media metadata", async ({ extension, bytes, width, height }) => {
+  const { bytes: input } = await createDocumentFixture("garden", "empty");
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(input), "/output.docx": "" });
+  const result = await insertDocumentImage(input, {
+    operation: "images.add", options: { paragraph: 1, file: svgBinary(bytes), output: "-" }
+  }, {
+    ...context(), encoding: { order: "input", compression: "store" },
+    stdout: { async write(chunk) { volume.appendFileSync("/output.docx", chunk); } }
+  });
+  expect(result.changed).toBe(true);
+  expect(result.changes).toHaveLength(1);
+  const output = new Uint8Array(volume.readFileSync("/output.docx") as Uint8Array);
+  const archive = await readArchive(output, context());
+  expect(archive.members.find(member => member.name === `word/media/image-1.${extension}`)?.bytes).toEqual(bytes);
+  const image = (await inspectDocumentImages(output, { operation: "images.get", image: 1 }, context())).item!;
+  expect(image.details).toMatchObject({ mime: `image/${extension}`, declaredMime: `image/${extension}`, widthEmu: width, heightEmu: height });
+  expect(image.location.value).toMatchObject({ part: result.changes[0]!.after.value.part, path: result.changes[0]!.after.value.path });
+  expect(new Uint8Array(volume.readFileSync("/input.docx") as Uint8Array)).toEqual(input);
+});
 
 it.each(["emf", "wdp"])("preserves original inert %s bytes during unrelated image insertion", async format => {
   const native = new Uint8Array(format === "emf" ? 44 : 4);

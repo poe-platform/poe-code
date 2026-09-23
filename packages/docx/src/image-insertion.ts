@@ -129,7 +129,6 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
   if (options.fallback !== undefined) { admitSvgImage(source, scoped); vector = source; }
   const bytes = options.fallback === undefined ? source : await acquireImage(options.fallback, { ...scoped, ...(context.binaryResolver ? { binaryResolver: context.binaryResolver } : {}) });
   const header = characterizeRasterHeader(bytes, scoped);
-  if (!vector && header.mime !== "image/png" && header.mime !== "image/jpeg") throw new UnsupportedEditError("This raster insertion profile admits PNG and JPEG only.");
   for (const [descriptor, mime] of [[options.file, vector ? "image/svg+xml" : header.mime], ...(options.fallback ? [[options.fallback, header.mime] as const] : [])] as const) {
     if (descriptor.kind !== "vfs") continue;
     const name = descriptor.path.slice(descriptor.path.lastIndexOf("/") + 1), suffix = asciiKey(name.slice(name.lastIndexOf(".") + 1));

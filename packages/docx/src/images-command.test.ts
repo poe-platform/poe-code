@@ -3,11 +3,45 @@ import { Volume } from "memfs";
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
 import { createDocxInspectionCommandEngine } from "./inspection-command.js";
 import type { FileStat, FileSystem } from "@poe-code/safe-fs/core";
-import { extractDocumentImages, type ImageExtractionData } from "./images.js";
+import { extractDocumentImages, inspectDocumentImages, type ImageExtractionData } from "./images.js";
 import { executeImagesCommand } from "./images-command.js";
 import { validateDocxInvocation } from "./command.js";
 import { DocumentBudget } from "./budget.js";
+import { rasterBmp, rasterGif, rasterTiff } from "../tests/fixtures/raster.js";
+import { readArchive } from "./archive.js";
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 32768, maxTotalBytes: 65536, maxMembers: 64, maxPathBytes: 256, maxDepth: 32, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 32000000, chunkSize: 512 };
+
+it.each([
+  { extension: "gif", bytes: rasterGif(), width: 12700 },
+  { extension: "bmp", bytes: rasterBmp(), width: 12700 },
+  { extension: "tiff", bytes: rasterTiff(), width: 6350 }
+])("adds an admitted $extension from an explicit memfs command path", async ({ extension, bytes, width }) => {
+  const { bytes: input } = await createDocumentFixture("garden", "empty");
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(input), [`/sample.${extension}`]: Buffer.from(bytes), "/output.docx": "" });
+  const signal = new AbortController().signal;
+  const result = await createDocxInspectionCommandEngine({ limits }).execute({
+    args: ["images", "add", "/input.docx", "--paragraph", "1", "--file", `/sample.${extension}`, "--output", "-"].map(arg => new TextEncoder().encode(arg)),
+    cwd: "/", signal,
+    filesystem: {
+      async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Uint8Array); },
+      async *readStream(path) { yield new Uint8Array(volume.readFileSync(path) as Uint8Array); }
+    },
+    // eslint-disable-next-line require-yield -- Any stdin acquisition must fail in this explicit-path fixture.
+    stdin: { async *[Symbol.asyncIterator]() { throw new Error("Undeclared stdin"); } },
+    stdout: { async write(chunk) { volume.appendFileSync("/output.docx", chunk); } },
+    stderr: { async write() {} }
+  });
+  expect(result.exitCode).toBe(0);
+  const output = new Uint8Array(volume.readFileSync("/output.docx") as Uint8Array);
+  const archive = await readArchive(output, { limits, signal });
+  expect(archive.members.find(member => member.name === `word/media/image-1.${extension}`)?.bytes).toEqual(bytes);
+  expect((await inspectDocumentImages(output, { operation: "images.get", image: 1 }, { limits, signal })).item?.details).toMatchObject({
+    mime: `image/${extension}`, declaredMime: `image/${extension}`, widthEmu: width, heightEmu: 12700
+  });
+  expect(new Uint8Array(volume.readFileSync("/input.docx") as Uint8Array)).toEqual(input);
+  expect(new Uint8Array(volume.readFileSync(`/sample.${extension}`) as Uint8Array)).toEqual(bytes);
+});
+
 function publication(bytes: Uint8Array, fail = false) {
   const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) }); volume.mkdirSync("/out"); const scope = {};
   const stat = async (path: string): Promise<FileStat> => { const value = volume.lstatSync(path); return { type: value.isDirectory() ? "directory" : "file", size: value.size, mode: value.mode, mtimeMs: value.mtimeMs, ctimeMs: value.ctimeMs, atimeMs: value.atimeMs, ino: value.ino, dev: value.dev, nlink: value.nlink, identityScope: scope, revision: value.mtimeMs }; };

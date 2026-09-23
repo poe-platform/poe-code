@@ -672,6 +672,25 @@ test("tee propagates cancellation into adapter writeStream and releases input", 
   assert.equal(writerJoined, true);
 });
 
+for (const option of ["-t", "--truncate-set1"]) {
+  test(`tr ${option} truncates translation sets before mapping`, async () => {
+    for (const [args, stdin, expected] of [
+      [[option, "abc", "X"], "abc\n", "Xbc\n"],
+      [[option, "abc", ""], "abc", "abc"],
+      [[option, "ab", "XYZ"], "abc", "XYc"],
+      [[option, "a-c", "X"], "abc", "Xbc"],
+      [[option, "-c", "b", "X"], "\0abc", "Xabc"],
+      [[option, "-s", "abc", "X"], "aaabbcc", "Xbbcc"],
+      [[option, "-d", "abc"], "abcd", "d"],
+      [[option, "-ds", "a", "b"], "abbbc", "bc"],
+    ] as const) {
+      const result = await run("tr", [...args], { stdin: chunks(stdin) });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+  });
+}
+
 test("tr translates, deletes, squeezes and complements byte sets across chunks", async () => {
   assert.equal((await run("tr", ["a-z", "A-Z"], { stdin: chunks("one two\n") })).stdout, "ONE TWO\n");
   assert.equal((await run("tr", ["-s", "[:space:]", " "], { stdin: chunks("a \t\n b") })).stdout, "a b");

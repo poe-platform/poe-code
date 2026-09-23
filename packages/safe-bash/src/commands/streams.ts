@@ -425,7 +425,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       }
     }),
     define("tr", async context => {
-      const parsed = options(context.args, "dscC", { delete: "d", "squeeze-repeats": "s", complement: "c" });
+      const parsed = options(context.args, "dscCt", { delete: "d", "squeeze-repeats": "s", complement: "c", "truncate-set1": "t" });
       const deleting = parsed.flags.has("d");
       const squeezing = parsed.flags.has("s");
       const translating = !deleting && parsed.operands.length === 2;
@@ -437,7 +437,8 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
         first = Array.from({ length: 256 }, (_, offset) => offset).filter(byte => !selected.has(byte));
       }
       const second = parsed.operands[1] === undefined ? [] : characterSet(parsed.operands[1]);
-      if (translating && !second.length) throw new UsageError("second character set must not be empty");
+      if (translating && parsed.flags.has("t")) first = first.slice(0, second.length);
+      if (translating && !second.length && !parsed.flags.has("t")) throw new UsageError("second character set must not be empty");
       const mapping = Array.from({ length: 256 }, (_, offset) => offset);
       if (translating) first.forEach((byte, index) => { mapping[byte] = second[Math.min(index, second.length - 1)]!; });
       const removed = new Set(deleting ? first : []);

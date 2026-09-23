@@ -1448,7 +1448,15 @@ function measureSandboxDataWithSeen(
         // ordering, including managed-state changes during descriptor capture.
         const tracked = trackedPropertySymbols(value) !== undefined;
         const proxyKeys = !tracked && nodeTypes.isProxy(value) ? Object.getOwnPropertyNames(value) : undefined;
-        const proxyDescriptors = proxyKeys?.map(key => Object.getOwnPropertyDescriptor(value,key));
+        // Native map/species hooks must not expose or replace proxy snapshots.
+        const proxyDescriptors: Array<PropertyDescriptor | undefined> | undefined = proxyKeys === undefined
+          ? undefined : nativeDataArraySetPrototype([], null);
+        if (proxyKeys !== undefined) {
+          const length = proxyKeys.length;
+          for (let index = 0; index < length; index++)
+            nativeDataArrayAppend(proxyDescriptors!, index in proxyKeys
+              ? Object.getOwnPropertyDescriptor(value, proxyKeys[index]!) : undefined);
+        }
         const includeNonEnumerable = isSandboxDate(value) || isSandboxArrayBuffer(value) || isSandboxSharedArrayBuffer(value) || isSandboxDataView(value) || sandboxErrorTypes.has(value) || hasManagedDescriptors(value);
         const metadata = hostFunctionMetadata.get(value);
         if (tracked && metadata === undefined) {

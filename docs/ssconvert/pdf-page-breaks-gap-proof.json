@@ -1,0 +1,116 @@
+{
+  "scope": "Persisted Gnumeric page breaks in PDF export",
+  "status": "implemented-and-public-SDK-visually-qualified",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "sourceApplicability": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "bindings": [
+      {
+        "path": "src/print.c",
+        "sha256": "fee11181a89822062f3dac39fde3734e554338fae5237e0ce9e96114882da71b"
+      },
+      {
+        "path": "src/print-info.c",
+        "sha256": "ff970d578a151d5e7a76ed962cb3e9159383c6a992cd9ce85d2c0d998a349e11"
+      },
+      {
+        "path": "src/xml-sax-read.c",
+        "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3"
+      },
+      {
+        "path": "src/xml-sax-write.c",
+        "sha256": "5605cd67d0be77854c0f28e1cab71bcae99175fa8edca8fa62d10e4a6ba7a013"
+      }
+    ],
+    "behavior": "Horizontal stored breaks paginate rows; vertical stored breaks paginate columns. Ascending admission precedes removal of automatic entries. Manual and data-slice entries remain."
+  },
+  "reproducedFailures": {
+    "initialFailingControls": 5,
+    "behavior": "PDF export refused retained hPageBreaks/vPageBreaks instead of applying supported geometry."
+  },
+  "repair": "Project source-admitted row/column breaks into the existing bounded print layout. Preserve style,merge,repeat and host authority refusals. Ignore malformed,negative and out-of-C-int positions; overflow-native profiles are not qualified.",
+  "sourceBindings": [
+    {
+      "path": "packages/ssconvert/src/rendering/print/settings.ts",
+      "sha256": "2ed921c697750794ec362ba72bfcb07d7bddc7f51cd6735b811b7d54528cde13"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/pdf.ts",
+      "sha256": "2f7ff58116caf76d270a3b0d136b458eb15fd5b9933023d2f6c1400903c2a399"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/pdf-page-breaks.test.ts",
+      "sha256": "45acb70faeb5454ce71bac7efe2e7a8590123be40bde2555e3fd0a75c974b74a"
+    }
+  ],
+  "tests": {
+    "newControls": 7,
+    "focused": 67,
+    "package": 22527,
+    "files": 366,
+    "lintAndTypes": "passed",
+    "maintainedRootBuild": "passed"
+  },
+  "publicSDK": [
+    {
+      "id": "print-row-manual",
+      "exitCode": 0,
+      "diagnostics": [],
+      "inputUnchanged": true,
+      "pages": 2,
+      "geometry": [
+        {
+          "width": 612,
+          "height": 792
+        },
+        {
+          "width": 612,
+          "height": 792
+        }
+      ],
+      "bytes": 7763
+    },
+    {
+      "id": "print-column-data-slice",
+      "exitCode": 0,
+      "diagnostics": [],
+      "inputUnchanged": true,
+      "pages": 2,
+      "geometry": [
+        {
+          "width": 612,
+          "height": 792
+        },
+        {
+          "width": 612,
+          "height": 792
+        }
+      ],
+      "bytes": 7795
+    },
+    {
+      "id": "print-row-auto-control",
+      "exitCode": 0,
+      "diagnostics": [],
+      "inputUnchanged": true,
+      "pages": 1,
+      "geometry": [
+        {
+          "width": 612,
+          "height": 792
+        }
+      ],
+      "bytes": 6998
+    }
+  ],
+  "visualReview": {
+    "pagesInspected": 5,
+    "result": "Readable headers/footers,page numbering and disjoint cell groups; no overlap or clipping. Tiny fixtures intentionally leave whitespace."
+  },
+  "qualificationLimits": [
+    "Actual native PDF/checkpoint comparison is pending.",
+    "No full font,glyph,style,chart,repeat,grid or rendering-family closure.",
+    "Other original goal families and containing publication remain required."
+  ]
+}

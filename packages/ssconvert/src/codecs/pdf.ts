@@ -205,6 +205,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,
         ...(sheet.rows ? { rows: sheet.rows } : {}), ...(sheet.columns ? { columns: sheet.columns } : {}),
         paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins,
+        rowBreaks: print.rowBreaks, columnBreaks: print.columnBreaks,
         orientation: print.orientation, scale: print.scale, centerHorizontally: print.centerHorizontally,
         centerVertically: print.centerVertically, acrossThenDown: print.acrossThenDown }, context);
       tick(layout.pages.length);

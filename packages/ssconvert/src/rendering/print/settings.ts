@@ -1,7 +1,7 @@
 import { SsconvertError, type CapabilityContext } from "../../contracts.js";
 import type { ImportedValue, Sheet } from "../../workbook.js";
 import type { PrintLayoutRequest } from "./layout.js";
-import { printWork } from "./pagination.js";
+import { type PrintBreak, printWork } from "./pagination.js";
 
 interface PrintNode {
   name: string;
@@ -42,6 +42,7 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
   let headerPoints = 72, footerPoints = 72, paper: string | undefined;
   let orientation: PrintLayoutRequest["orientation"] = "portrait";
   let scale: PrintLayoutRequest["scale"] = { kind: "percentage", x: 100, y: 100 };
+  let rowBreaks: PrintBreak[] = [], columnBreaks: PrintBreak[] = [];
   let centerHorizontally = false, centerVertically = false, acrossThenDown = false, doNotPrint = false;
   const header = { Left: "", Middle: "&[TAB]", Right: "" }, footer = { Left: "", Middle: "Page &[PAGE]", Right: "" };
   for (const retained of sheet.unsupportedRecords ?? []) {
@@ -83,7 +84,29 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
       } else if (node.name === "repeat_top" || node.name === "repeat_left") {
         if (a.value) unsupported(node.name);
       } else if (node.name === "vPageBreaks" || node.name === "hPageBreaks") {
-        if (node.children.length) unsupported(node.name);
+        const breaks: PrintBreak[] = [];
+        let previous = -1;
+        for (const child of node.children) {
+          tick();
+          if (child.name !== "break" || child.attributes.pos === undefined) continue;
+          const raw = child.attributes.pos;
+          tick(raw.length);
+          let start = 0;
+          while (start < raw.length && " \t\n\r\v\f".includes(raw[start]!)) start++;
+          if (raw[start] === "+" || raw[start] === "-") start++;
+          if (start === raw.length && raw.length) continue;
+          if ([...raw.slice(start)].some(char => char < "0" || char > "9")) continue;
+          const position = Number(raw);
+          if (!Number.isInteger(position) || position < 0 || position > 2147483647) continue;
+          const value = (child.attributes.type ?? "none").toLowerCase();
+          const type: PrintBreak["type"] = value === "manual" || value === "auto" || value === "data-slice" ? value : "none";
+          if (type === "none" || position <= previous) continue;
+          previous = position;
+          // Native appends in ascending order before cleaning automatic breaks.
+          if (type !== "auto") breaks.push({ position, type });
+        }
+        if (node.name === "hPageBreaks") rowBreaks = breaks;
+        else columnBreaks = breaks;
       } else if (node.name === "comments") {
         if (a.placement && a.placement !== "GNM_PRINT_COMMENTS_IN_PLACE") unsupported("comments");
       } else if (node.name === "errors") {
@@ -91,5 +114,5 @@ export function sheetPrintSettings(sheet: Sheet, context: CapabilityContext) {
       } else if (!["PrintUnit", "print_range", "print-to-uri"].includes(node.name)) unsupported(node.name);
     }
   }
-  return { margins, headerPoints, footerPoints, header, footer, paper, orientation, scale, centerHorizontally, centerVertically, acrossThenDown, doNotPrint };
+  return { rowBreaks, columnBreaks, margins, headerPoints, footerPoints, header, footer, paper, orientation, scale, centerHorizontally, centerVertically, acrossThenDown, doNotPrint };
 }

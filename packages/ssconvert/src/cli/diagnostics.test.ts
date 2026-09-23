@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { createEngine, runCommand, SsconvertError, type Codec, type Engine } from "../index.js";
 
@@ -199,4 +199,33 @@ it("admits merge cell storage before retaining another workbook or loading later
   expect(reads).toBe(2);
   expect(f.errors()).toBe("ssconvert workbook storage limit exceeded\n");
   expect(f.volume.existsSync("/out.fixture")).toBe(false);
+});
+
+
+describe("errors crossing separately bundled public exports", () => {
+  it.each([1, 3])("reports a separately loaded package error with exit status %i", async exitCode => {
+    vi.resetModules();
+    const { SsconvertError: OtherSsconvertError } = await import("../contracts.js");
+    expect(OtherSsconvertError).not.toBe(SsconvertError);
+    const failure = new OtherSsconvertError("unsupported-feature", "Unsupported ssconvert feature: Python RangeRef object representation", exitCode);
+    const f = fixture();
+    const engine: Engine = { ...f.engine, async convert() { throw failure; } };
+    try {
+      await expect(runCommand(["/in.fixture", "/out.fixture"], engine, f.operation)).resolves.toEqual({ exitCode });
+      expect(f.errors()).toBe(`${failure.message}\n`);
+      expect(f.stdout).toEqual([]);
+      expect(f.volume.toJSON()).toEqual({ "/in.fixture": "original" });
+    } finally { await f.engine.dispose(); }
+  });
+  it("does not classify an ordinary host error by its display name and fields", async () => {
+    const failure = Object.assign(new Error("host failure"), { name: "SsconvertError", code: "io", exitCode: 3 });
+    const f = fixture();
+    const engine: Engine = { ...f.engine, async convert() { throw failure; } };
+    try {
+      await expect(runCommand(["/in.fixture", "/out.fixture"], engine, f.operation)).rejects.toBe(failure);
+      expect(f.stderr).toEqual([]);
+      expect(f.stdout).toEqual([]);
+      expect(f.volume.toJSON()).toEqual({ "/in.fixture": "original" });
+    } finally { await f.engine.dispose(); }
+  });
 });

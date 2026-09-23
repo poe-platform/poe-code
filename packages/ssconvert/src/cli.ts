@@ -1,5 +1,6 @@
 import {
   SsconvertError,
+  isSsconvertError,
   type Engine,
   type Operation,
   type ByteSink,
@@ -36,7 +37,7 @@ export async function runCommand(
       if (argumentBytes > maximum) throw new SsconvertError("resource-limit", "ssconvert argument bytes limit exceeded");
     }
   } catch (error) {
-    if (!(error instanceof SsconvertError)) throw error;
+    if (!isSsconvertError(error)) throw error;
     await operation.stderr.write(new TextEncoder().encode(`${error.message}\n`));
     operation.signal.throwIfAborted();
     return { exitCode: error.exitCode };
@@ -187,7 +188,7 @@ export async function runCommand(
   } catch (error) {
     operation.signal.throwIfAborted();
     if (stderrFailed) throw error;
-    if (!(error instanceof SsconvertError)) throw error;
+    if (!isSsconvertError(error)) throw error;
     await report(encoder.encode(`${error.message}\n`));
     operation.signal.throwIfAborted();
     return { exitCode: error.exitCode };

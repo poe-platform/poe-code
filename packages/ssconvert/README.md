@@ -5,6 +5,7 @@ The engine provides spreadsheet import and export, recalculation, workbook updat
 and chart and print rendering. Lotus WK1/WK3 named-range records import as workbook names; WK3 formulas resolve named ranges with relative and absolute references. The optional `pythonSampleFunctions` binding adds
 percent formatting through `PY_PRINTF` and Unicode 16 capitalization through `PY_CAPWORDS`; supply it as `runtimeFunctions` to enable
 the sample functions. `PY_CAPWORDS` stops at the first NUL and refuses malformed visible Unicode.
+`isSsconvertError(error)` recognizes typed failures across the separately bundled SDK and Shell exports.
 The optional `perlSampleFunctions` binding adds clock-based dates
 and bounded pattern substitution with literal replacements. Native byte results
 use an explicit `byte-string` value with lowercase hex, preserving invalid UTF-8

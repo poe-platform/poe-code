@@ -207,6 +207,12 @@ export interface Engine {
   ): Promise<OperationResult>;
   dispose(): Promise<void>;
 }
+const ssconvertErrorBrand = Symbol.for("poe-code.ssconvert.SsconvertError");
+
+export function isSsconvertError(value: unknown): value is SsconvertError {
+  return value instanceof Error && Object.getOwnPropertyDescriptor(value, ssconvertErrorBrand)?.value === true;
+}
+
 export class SsconvertError extends Error {
   constructor(
     readonly code:
@@ -220,5 +226,6 @@ export class SsconvertError extends Error {
   ) {
     super(message);
     this.name = "SsconvertError";
+    Object.defineProperty(this, ssconvertErrorBrand, { value: true });
   }
 }

@@ -338,9 +338,9 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
           else columns += singleByte ? Number(point >= 32 && point < 127) : wcDisplayWidth(point);
         };
         let inWord = false;
-        const word = (whitespace: boolean, printable = true) => {
+        const word = (whitespace: boolean) => {
           if (whitespace) inWord = false;
-          else if (printable) {
+          else {
             if (!inWord) counts.w!++;
             inWord = true;
           }
@@ -356,7 +356,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
             counts.c! += chunk.length;
             for (const byte of chunk) {
               if (byte === 10) counts.l!++;
-              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13, byte > 32 && byte < 127);
+              if (singleByte) word(byte === 32 || byte >= 9 && byte <= 13 || !posix && byte === 0xa0);
               if (singleByte && parsed.flags.has("L")) lineWidth(byte);
             }
             if (singleByte) counts.m! += chunk.length;

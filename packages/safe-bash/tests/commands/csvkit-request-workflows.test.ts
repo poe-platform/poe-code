@@ -6,6 +6,9 @@ import initSqlite from '@sqlite.org/sqlite-wasm';
 import { Volume } from 'memfs';
 import { Shell, type ShellCommandContext } from '../../src/shell/index.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
+import { MockS3Client, S3FileSystem } from '../../src/fs/s3/index.js';
+import { WebDavFileSystem } from '../../src/fs/webdav/index.js';
+import { MockDav } from '../fs/webdav/mock.js';
 import { arraysExtension } from '../../src/shell/extensions/arrays/index.js';
 import { csvkitCommands } from '../../src/commands/csvkit/index.js';
 import { printfCommand } from '../../src/commands/basic.js';
@@ -176,6 +179,61 @@ test('requested XLSX side files use source basename or stdin rather than descrip
         assert.deepEqual(await fs.readFile(`/${named ? 'book' : 'stdin'}${suffix}`), Uint8Array.from(Buffer.from(base64, 'base64')));
       }
       assert.deepEqual((await fs.readdir('/')).map(entry => entry.name).sort(), named ? ['book.xlsx', 'book_0.csv', 'book_1.csv'] : ['stdin_0.csv', 'stdin_1.csv']);
+    } finally { await shell.dispose(); }
+  }
+});
+
+for (const backend of ['s3', 'webdav'] as const) {
+  test(`XLSX worksheet exports use supported sequential writes on ${backend}`, async () => {
+    const capture = workbook.cases.find(item => item.name === 'relocated' && item.argv.includes('--write-sheets'))!;
+    for (const named of [true, false]) {
+      const fs = backend === 's3'
+        ? new S3FileSystem({ bucket: 'bucket', transport: new MockS3Client({ buckets: ['bucket'] }) })
+        : new WebDavFileSystem({ baseUrl: 'https://example.test/dav/', fetch: new MockDav().fetch });
+      assert.equal(fs.capabilities.open, false);
+      const bytes = Uint8Array.from(Buffer.from(workbook.binary.relocated, 'base64'));
+      await fs.writeFile('/book.xlsx', bytes);
+      const shell = new Shell({ fs }).use(csvkitCommands(bindings));
+      try {
+        const result = await shell.exec(`in2csv -f xlsx --write-sheets - ${named ? '/book.xlsx' : '-'}`, { stdin: bytes });
+        assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, { stdout: capture.stdout, stderr: capture.stderr, status: capture.status });
+        for (const [path, base64] of Object.entries(capture.effects)) {
+          assert.deepEqual(await fs.readFile(`/${named ? 'book' : 'stdin'}${path.slice('relocated'.length)}`), Uint8Array.from(Buffer.from(base64, 'base64')));
+        }
+        const selected = await shell.exec(`in2csv -f xlsx --write-sheets Other --use-sheet-names ${named ? '/book.xlsx' : '-'}`, { stdin: bytes });
+        assert.deepEqual({ stdout: selected.stdout, stderr: selected.stderr, status: selected.exitCode }, { stdout: capture.stdout, stderr: '', status: 0 });
+        assert.deepEqual(await fs.readFile(`/${named ? 'book' : 'stdin'}_Other.csv`), Uint8Array.from(Buffer.from(capture.effects['relocated_1.csv']!, 'base64')));
+        await assert.rejects(fs.stat(`/${named ? 'book' : 'stdin'}_First.csv`), { code: 'ENOENT' });
+        assert.deepEqual(await fs.readFile('/book.xlsx'), bytes);
+      } finally { await shell.dispose(); }
+    }
+  });
+}
+
+test('XLSX side files honor destination capabilities instead of assuming descriptor support', async () => {
+  const capture = workbook.cases.find(item => item.name === 'relocated' && item.argv.includes('--write-sheets'))!;
+  for (const named of [true, false]) {
+    const fs = new MemoryFileSystem();
+    // A composed filesystem may support descriptors for input but only sequential
+    // writes for exported side files, as with writable S3 and WebDAV mounts.
+    const open = fs.open.bind(fs);
+    let outputOpens = 0;
+    fs.open = async (path, settings) => {
+      if (path.endsWith('.csv')) outputOpens++;
+      return open(path, settings);
+    };
+    Object.assign(fs, { capabilitiesFor: async (path: string) => ({ ...fs.capabilities, open: !path.endsWith('.csv') }) });
+    const bytes = Uint8Array.from(Buffer.from(workbook.binary.relocated, 'base64'));
+    await fs.writeFile('/book.xlsx', bytes);
+    const shell = new Shell({ fs }).use(csvkitCommands(bindings));
+    try {
+      const result = await shell.exec(`in2csv -f xlsx --write-sheets - ${named ? '/book.xlsx' : '-'}`, { stdin: bytes });
+      assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, { stdout: capture.stdout, stderr: capture.stderr, status: capture.status });
+      for (const [path, base64] of Object.entries(capture.effects)) {
+        assert.deepEqual(await fs.readFile(`/${named ? 'book' : 'stdin'}${path.slice('relocated'.length)}`), Uint8Array.from(Buffer.from(base64, 'base64')));
+      }
+      assert.equal(outputOpens, 0);
+      assert.deepEqual(await fs.readFile('/book.xlsx'), bytes);
     } finally { await shell.dispose(); }
   }
 });

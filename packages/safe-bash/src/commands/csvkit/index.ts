@@ -113,7 +113,10 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions): readonly C
             }),
             writeFile: async (path, bytes, settings) => writeFileOutput(context, bytes, data => context.fs.writeFile(path, data, settings)),
             ...(context.fs.open === undefined ? {} : { async openWriteFile(path: string, settings: { readonly signal: AbortSignal }) {
-              const file = await openFileOutput({ ...context, signal: settings.signal }, path, { flag: "w", descriptor: true });
+              settings.signal.throwIfAborted();
+              const capabilities = await context.fs.capabilitiesFor?.(path, { signal: settings.signal, create: true }) ?? context.fs.capabilities;
+              settings.signal.throwIfAborted();
+              const file = await openFileOutput({ ...context, signal: settings.signal }, path, { flag: "w", descriptor: capabilities.open !== false });
               return { write: file.sink.write.bind(file.sink), close: file.finish.bind(file) };
             } })
           },

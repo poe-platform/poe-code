@@ -204,7 +204,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 name records implemented and delivered; op7/8 tokens and wider/local profiles remain open",
+      "currentFinding": "WK1/WK3 name records, WK3 op7/8 coordinate conversion and standard function names delivered; aggregate expression admission fixed. Local/wider profiles, dynamic namespace edits and cross-sheet-copy behavior remain unqualified.",
       "proof": [
         {
           "kind": "upstream-source",
@@ -215,6 +215,11 @@
           "kind": "executed-record-import",
           "path": "docs/ssconvert/lotus-name-records-gap-proof.json",
           "outcome": "350files/13259 tests,8 SDK/Shell/browser/worker cases,16 portable XML/XLSX replays per surface;15 native exact,one native XLSX quoted-name grammar divergence retained"
+        },
+        {
+          "kind": "executed-named-token-function-budget",
+          "path": "docs/ssconvert/lotus-name-tokens-gap-proof.json",
+          "outcome": "35focused/13277maintained tests;8SDK/Shell/browser/worker cases,16portable/native XML/XLSX exact;2standard SUM controls per surface,140native-source names exact; corrected43-byte budget regression red on pinned baseline and green at42/43boundary"
         }
       ],
       "delivery": {
@@ -227,6 +232,14 @@
         "remoteMainObserved": "a470b26db34e34383983b1fe411e867911a77993",
         "ancestryVerified": true,
         "publication": "Not yet verified; monitor containing release separately"
+      },
+      "namedTokenDelivery": {
+        "functionNameCommit": "d813aa9a744d0ee6d79b18c34899fdb27bbcd3b5",
+        "namedTokenCommit": "d9861819ead44683e685c8261fbacc30ea061db2",
+        "budgetCommit": "888f4e38e32a3111173f51b127590b4bdc44a547",
+        "remoteMainObserved": "888f4e38e32a3111173f51b127590b4bdc44a547",
+        "publication": "Not yet verified; registry17.0.34 still points to historical ec51e54b9 baseline",
+        "allThreeAncestryChecksPassed": true
       }
     },
     {

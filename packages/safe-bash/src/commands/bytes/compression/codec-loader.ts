@@ -2,6 +2,7 @@ import { PublicDiagnostic } from "../../../diagnostics.js";
 import type { BoundedCodec, BoundedCodecOptions } from "./bounded-codec.js";
 import type { RawCodecFactory } from "./native/types.js";
 import { profiles } from "./options.js";
+import { CompressedDataError } from "./errors.js";
 
 function unavailable(): never { throw new Error("codec attempted an unavailable host operation"); }
 
@@ -66,8 +67,8 @@ export async function createCodec(
         new Uint8Array(module.memory.buffer, inputPointer, input.length).set(input);
         const status = module.bridge_step(inputPointer, input.length, outputPointer, output.length, Number(finish));
         signal.throwIfAborted();
-        if (status === -4) throw new PublicDiagnostic("unexpected end of file");
-        if (status === -2 || status === -3) throw new PublicDiagnostic("invalid compressed data or codec memory limit exceeded");
+        if (status === -4) throw new CompressedDataError("unexpected end of file");
+        if (status === -2 || status === -3) throw new CompressedDataError("invalid compressed data or codec memory limit exceeded");
         if (status !== 1 && status !== 2 && status !== 3) throw new Error(`invalid codec status ${status}`);
         const consumed = module.bridge_consumed();
         const produced = module.bridge_produced();

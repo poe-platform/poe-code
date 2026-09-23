@@ -64,6 +64,9 @@ The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and
 `2` (retaining level `1` when selected), regardless of option order. During
 decompression they select bzip2's reduced-memory decoder, including for every
 concatenated member, while retaining checksum validation.
+Decoded output is published in bounded 5,000-byte buffers; an incomplete final
+buffer is discarded on a data error, while already published buffers remain.
+Truncated or invalid compressed data exits with status `2`; file errors use `1`.
 
 Force does not bypass integrity checks on input starting with gzip magic
 `1f 8b`. Only decompression to stdout (including stdin's implicit stdout and

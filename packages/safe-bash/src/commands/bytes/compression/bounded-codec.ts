@@ -2,6 +2,7 @@ import { PublicDiagnostic } from "../../../diagnostics.js";
 import { yieldTurn } from "../../../contracts/yield.js";
 import type { CodecInput } from "./codec.js";
 import { createCodec } from "./codec-loader.js";
+import { CompressedDataError } from "./errors.js";
 
 export interface CodecStep {
   readonly consumed: number;
@@ -47,7 +48,10 @@ export async function* boundedCodec(
   let calls = 0;
   let work = 0;
   let failed = false;
-  let output = new Uint8Array(64 * 1024);
+  // bzip2's CLI publishes full 5000-byte reads, or the final successful read.
+  const bufferReads = options.format === "bzip2" && options.decompress;
+  let output = new Uint8Array(bufferReads ? 5000 : 64 * 1024);
+  let buffered = 0;
   try {
     stream = await create(options, signal);
     for (;;) {
@@ -84,22 +88,25 @@ export async function* boundedCodec(
         ended = false;
       }
       const bytes = current.subarray(offset, Math.min(current.length, offset + 64 * 1024));
-      const result = stream.step(bytes, output, eof);
+      const available = output.subarray(buffered);
+      const result = stream.step(bytes, available, eof);
       signal.throwIfAborted();
       if (!Number.isSafeInteger(result.consumed) || result.consumed < 0 || result.consumed > bytes.length ||
-          !Number.isSafeInteger(result.produced) || result.produced < 0 || result.produced > output.length ||
+          !Number.isSafeInteger(result.produced) || result.produced < 0 || result.produced > available.length ||
           !["input", "output", "end"].includes(result.status)) {
         throw new Error("invalid codec progress");
       }
       offset += result.consumed;
       if (!result.consumed && !result.produced && result.status !== "end") {
-        if (eof) throw new PublicDiagnostic("unexpected end of file");
+        if (eof) throw new CompressedDataError("unexpected end of file");
         if (bytes.length || result.status !== "input") throw new Error("codec made no progress");
       }
-      if (result.produced) {
-        yield output.subarray(0, result.produced);
+      buffered += result.produced;
+      if (buffered && (!bufferReads || buffered === output.length || result.status === "end")) {
+        yield output.subarray(0, buffered);
         signal.throwIfAborted();
-        output = new Uint8Array(64 * 1024);
+        output = new Uint8Array(output.length);
+        buffered = 0;
       }
       signal.throwIfAborted();
       work += result.consumed + result.produced;

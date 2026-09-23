@@ -1,5 +1,7 @@
 import { PublicDiagnostic } from "../../../diagnostics.js";
 
+export class CompressedDataError extends PublicDiagnostic {}
+
 const dataErrors = new Set([
   "incorrect header check", "unknown compression method", "invalid window size",
   "unknown header flags set", "header crc mismatch", "invalid block type",

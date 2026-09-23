@@ -4,6 +4,7 @@ import { define, diagnostic, output } from "../../internal.js";
 import { planOperands, unchangedSource, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
 import { chunkBytes, transform } from "./stream.js";
+import { CompressedDataError } from "./errors.js";
 
 export function createCompressionCommands(): readonly CommandDefinition[] {
   return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
@@ -41,7 +42,8 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
       } catch (error) {
         context.signal.throwIfAborted();
         if (options.quiet < 2) await diagnostic(context, error);
-        exitCode = 1;
+        const failureCode = options.format === "bzip2" && error instanceof CompressedDataError ? 2 : 1;
+        exitCode = options.format === "bzip2" ? Math.max(exitCode, failureCode) : failureCode;
       }
     }
     return { exitCode };

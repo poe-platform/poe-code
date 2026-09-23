@@ -4,6 +4,9 @@ export { EreLedger } from "./commands/regex-execution/ere/limits.js";
 export { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "./commands/regex-execution/ere/errors.js";
 export { compileEre } from "./commands/regex-execution/ere/syntax.js";
 export { prepareUtf8EreSubject } from "./commands/regex-execution/ere/matcher.js";
+export { parseTomlDocument } from "./commands/yq/toml.js";
+export { YqLedger } from "./commands/yq/accounting.js";
+export { Decimal, numberText } from "./commands/structured/numbers.js";
 export type {
   PreparedShellChild,
   ShellBindingReference,

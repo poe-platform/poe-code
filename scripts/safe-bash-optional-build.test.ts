@@ -112,6 +112,30 @@ describe("optional-owned compiled graph", () => {
     expect(volume.existsSync(optional + "/dist/opt-in/commands/dd/index.js")).toBe(false);
   });
 
+  it("routes optional format parsing through canonical core TOML, accounting, and number helpers", async () => {
+    const { volume, compilation, options } = fixture();
+    const boundaries = [
+      ["yq/toml", "parseTomlDocument"],
+      ["yq/accounting", "YqLedger"],
+      ["structured/numbers", "Decimal, numberText"],
+    ] as const;
+    for (const [target] of boundaries) {
+      for (const extension of ["js", "d.ts"]) {
+        const filename = core + `/dist/commands/${target}.${extension}`;
+        volume.mkdirSync(filename.slice(0, filename.lastIndexOf("/")), { recursive: true });
+        volume.writeFileSync(filename, "export {};\n");
+        if (!compilation.emittedFiles.includes(filename)) compilation.emittedFiles.push(filename);
+      }
+    }
+    volume.writeFileSync(core + "/dist/commands/yes/helper.js", boundaries.map(([target, names]) => `export { ${names} } from "../${target}.js";`).join("\n"));
+    await buildOptionalPackage(options);
+    const rewritten = volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString();
+    for (const [target, names] of boundaries) {
+      expect(rewritten).toContain(`export { ${names} } from "@poe-platform/safe-bash/optional-host";`);
+      expect(volume.existsSync(optional + `/dist/opt-in/commands/${target}.js`)).toBe(false);
+    }
+  });
+
   it("refuses an absent support entry rather than inventing an API", async () => {
     const { volume, options } = fixture();
     const manifest = structuredClone(bashManifest);

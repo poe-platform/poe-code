@@ -630,3 +630,59 @@ test("unsupported or missing filename charset is refused without expanding its v
   assert.equal(missing.exitCode, 1);
   assert.match(missing.stderr, /Missing argument for -charset/);
 });
+
+test("tagsFromFile copies selected PNG metadata through normal publication", async () => {
+  const fs = createMemoryFileSystem();
+  const target = fixture("old"); const source = fixture("first", "copied");
+  await fs.writeFile("/input.png", target); await fs.writeFile("/second.png", source);
+  const result = await invoke(["-tagsFromFile", "second.png", "-Title", "input.png"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "    1 image files updated\n");
+  assert.equal((await invoke(["-s3", "-Title", "input.png"], fs)).stdout, "copied\n");
+  assert.deepEqual(await fs.readFile("/input.png_original"), target);
+  assert.deepEqual(await fs.readFile("/second.png"), source);
+});
+
+test("tagsFromFile copies all admitted tags and can create a destination", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.png", fixture("old")); await fs.writeFile("/second.png", fixture("new"));
+  const result = await invoke(["-tagsfromfile", "second.png", "-o", "copy.png", "input.png"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await invoke(["-s3", "-Title", "copy.png"], fs)).stdout, "new\n");
+  assert.equal((await invoke(["-s3", "-Title", "input.png"], fs)).stdout, "old\n");
+});
+
+test("tagsFromFile failures and input exhaustion leave the target untouched", async () => {
+  for (const source of ["missing.png", "bad.png"]) {
+    const fs = createMemoryFileSystem(); const target = fixture("old");
+    await fs.writeFile("/input.png", target); await fs.writeFile("/bad.png", new Uint8Array([1, 2, 3]));
+    const result = await invoke(["-tagsFromFile", source, "-Title", "input.png"], fs);
+    assert.equal(result.exitCode, 1);
+    assert.deepEqual(await fs.readFile("/input.png"), target);
+    assert.equal((await fs.readdir("/")).length, 2);
+  }
+  const fs = createMemoryFileSystem(); const target = fixture("old");
+  await fs.writeFile("/input.png", target); await fs.writeFile("/second.png", fixture("new"));
+  await assert.rejects(invoke(["-tagsFromFile", "second.png", "input.png"], fs, new AbortController().signal,
+    undefined, { limits: { maxInputBytes: target.length } }), /input budget/);
+  assert.deepEqual(await fs.readFile("/input.png"), target);
+});
+
+test("reported tagsFromFile command updates identical title and preserves description", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = new Uint8Array(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAC3RFWHRUaXRsZQBIZWxsb83PwM8AAAARdEVYdERlc2NyaXB0aW9uAFdvcmxkC2fZ1QAAAAxJREFUeJxj+M/AAAADAQEAyf6S7wAAAABJRU5ErkJggg==", "base64"));
+  await fs.writeFile("/input.png", bytes); await fs.writeFile("/second.png", bytes);
+  const result = await invoke(["-tagsFromFile", "second.png", "-Title", "-overwrite_original", "input.png"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "    1 image files updated\n");
+  assert.equal((await invoke(["-s3", "-Description", "input.png"], fs)).stdout, "World\n");
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), ["input.png", "second.png"]);
+});
+
+test("copy source option values stay literal during argument-file expansion", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/-@", fixture("copied")); await fs.writeFile("/input.png", fixture("old"));
+  const result = await invoke(["-tagsFromFile", "-@", "-Title", "-overwrite_original", "input.png"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await invoke(["-s3", "-Title", "input.png"], fs)).stdout, "copied\n");
+});

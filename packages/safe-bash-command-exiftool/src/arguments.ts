@@ -6,6 +6,7 @@ export interface Invocation {
   json: boolean; csv: boolean; quoteScalars: boolean; duplicates: boolean; binary: boolean; missing: boolean;
   style: "short" | "compact" | "values"; overwrite: "backup" | "replace" | "in-place";
   destination: string | undefined;
+  tagsFromFile: string | undefined;
   groupFamily: 1 | 4 | undefined;
   xml: boolean; tabular: boolean; template: string | undefined;
 }
@@ -14,7 +15,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
   let extent = 0;
   for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
   const result: Invocation = { files: [], tags: [], assignments: [], json: false, csv: false, quoteScalars: false, duplicates: false,
-    binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
+    binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, tagsFromFile: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
   let literal = false;
   let valueConvSelector = false;
   for (let index = 0; index < args.length; index++) {
@@ -42,6 +43,12 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     if (option === "-n") continue; // admitted PNG tags have no PrintConv
     if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
     if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }
+    if (option === "-tagsfromfile") {
+      if (result.tagsFromFile !== undefined) throw new Error("Multiple tagsFromFile sources are not yet supported");
+      result.tagsFromFile = value();
+      if (result.tagsFromFile === "-" || result.tagsFromFile.includes("%")) throw new Error("tagsFromFile stdin and path templates are not yet supported");
+      continue;
+    }
     if (option === "-o") { result.destination = value(); continue; }
     if (["-if", "-stay_open", "-@", "-common_args"].includes(option) || option.startsWith("-execute")) throw new Error("ExifTool option not yet supported (no code evaluation or ambient polling): " + arg);
     const equals = arg.indexOf("=");
@@ -54,18 +61,20 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     else if (known || name === "MissingTag") result.tags.push(known ?? name);
     else throw new Error("ExifTool option/tag not yet supported: " + arg);
   }
+  if (result.tagsFromFile !== undefined && result.assignments.length) throw new Error("Combining tagsFromFile with assignments is not yet supported");
+  const writing = result.assignments.length > 0 || result.tagsFromFile !== undefined;
   if (!result.files.length) throw new Error("No file specified");
   if (result.files.filter(file => file === "-").length > 1) throw new Error("Repeated stdin operands are not supported");
-  if (result.files.includes("-") && result.assignments.length) throw new Error("Writing stdin metadata is not yet supported");
+  if (result.files.includes("-") && writing) throw new Error("Writing stdin metadata is not yet supported");
   if (result.files.length > 64) throw new RangeError("ExifTool file count exceeded");
-  if (result.destination !== undefined && (result.files.length !== 1 || !result.assignments.length)) throw new Error("-o requires a single file with tag assignments in this profile");
+  if (result.destination !== undefined && (result.files.length !== 1 || !writing)) throw new Error("-o requires a single file with tag assignments in this profile");
   if (result.json && result.binary) throw new Error("JSON binary policy not yet supported");
-  if (result.csv && (result.json || result.binary || result.assignments.length)) throw new Error("CSV combined output/import policy not yet supported");
+  if (result.csv && (result.json || result.binary || writing)) throw new Error("CSV combined output/import policy not yet supported");
   if (result.csv && valueConvSelector) throw new Error("CSV ValueConv-qualified headers not yet supported");
-  if (result.groupFamily === 4 && (!result.json || result.assignments.length)) throw new Error("Group-family qualification outside JSON not yet supported");
-  if (result.groupFamily === 1 && (result.json || result.csv || result.binary || result.xml || result.tabular || result.template !== undefined || result.assignments.length)) throw new Error("-G1 requires text extraction in this profile");
+  if (result.groupFamily === 4 && (!result.json || writing)) throw new Error("Group-family qualification outside JSON not yet supported");
+  if (result.groupFamily === 1 && (result.json || result.csv || result.binary || result.xml || result.tabular || result.template !== undefined || writing)) throw new Error("-G1 requires text extraction in this profile");
   if ([result.json, result.csv, result.binary, result.xml, result.tabular, result.template !== undefined].filter(Boolean).length > 1) throw new Error("Conflicting ExifTool output modes");
-  if ((result.xml || result.tabular || result.template !== undefined) && result.assignments.length) throw new Error("Presentation modes require extraction");
+  if ((result.xml || result.tabular || result.template !== undefined) && writing) throw new Error("Presentation modes require extraction");
   if (result.template !== undefined) {
     const parts = parseTemplate(result.template);
     while (!parts.next().done) { /* Validate the entire template before acquiring files. */ }

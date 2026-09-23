@@ -9,6 +9,7 @@ exiftool -j -Title /image.png
 exiftool -n -s3 -ImageWidth /image.png
 exiftool -csv -Title -Author /first.png /second.png
 exiftool -Title=Example /image.png
+exiftool -tagsFromFile /source.png -Title -overwrite_original /image.png
 exiftool -Title= -overwrite_original /image.png
 exiftool -@ /arguments.txt
 ```
@@ -67,13 +68,14 @@ try {
 | Duplicate JSON | `-j -G4` distinguishes `Copy1:Title` and the primary `:Title`; lowercase `-g4` grouped output is independently unsupported |
 | CSV extraction | Buffers all admitted files for union headers, preserves stored controls, quotes fields and supports `-f`; import, binary and ValueConv-qualified headers remain unsupported |
 | Editing | `=`, empty deletion, matching text `-=`; scalar `+=` and temporal shifts are refused; standalone `-all=` removes text and timestamps in admitted PNGs |
+| Copying | `-tagsFromFile SOURCE` copies selected tags, or all admitted tags when no selectors are given, from one regular VFS PNG; absent tags leave target values intact |
 | Publication | Default backup, replacement via `-overwrite_original`, identity-preserving `-overwrite_original_in_place`, exclusive `-o` destination |
 | Limits | Configurable cumulative input, decoded, retained, output and algorithm work admission; explicit cancellation and invocation cleanup |
 | Argument files | VFS `-@` expansion in argument order; initial BOM, physical lines, pinned whitespace/comment/CSTR rules and bounded nested includes |
 
 Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G1`, `-G4`, `-X`, `-T`, `-p TEMPLATE`,
 `-charset filename=UTF8`, `-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-S`/`-s2`, `-s3`, `-n`,
-`-overwrite_original`, `-overwrite_original_in_place`, `-o PATH` and `-@ PATH`.
+`-overwrite_original`, `-overwrite_original_in_place`, `-o PATH`, `-tagsFromFile SOURCE` and `-@ PATH`.
 Selectors are `-Title`, `-Author`, `-Description`, `-Comment`, `-Copyright`,
 `-ModifyDate` and the missing-value probe `-MissingTag`; a trailing `#` requests
 ValueConv without PrintConv. Assignment forms are `-TAG=VALUE`, `-TAG=` and
@@ -81,7 +83,11 @@ ValueConv without PrintConv. Assignment forms are `-TAG=VALUE`, `-TAG=` and
 Most flags and tag names are case-insensitive; `-S` and `-G4` are case-sensitive.
 No directory scanning, `-g4`, import or execute/stay_open protocol is admitted.
 
-Flags have combination limits: `-o` requires one file and assignments; `-G4`
+Copying uses the same resource limits and publication policies as assignments.
+Multiple copy sources, source stdin/path templates, and combining copying with
+explicit assignments are refused.
+
+Flags have combination limits: `-o` requires one file and assignments or copying; `-G4`
 requires JSON extraction; `-G1` requires text extraction. XML, tabular and template
 output require extraction and cannot be combined with other output formats. Templates
 accept literal text and admitted `$Tag` substitutions only; template files, braced
@@ -164,7 +170,7 @@ const result = await createExiftoolCommand().execute({
 ```
 
 Typed options cover the admitted output styles, duplicate/missing-tag policies,
-ValueConv selectors, ordered assignments, overwrite policy and output destination.
+ValueConv selectors, ordered assignments, overwrite policy, output destination and `tagsFromFile` source.
 File operands remain literal even when they start with `-`; `-` selects stdin.
 Argument construction has its own explicit cancellation and resource bounds,
 independent of command execution limits. Unsupported combinations use the CLI

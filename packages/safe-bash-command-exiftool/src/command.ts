@@ -94,60 +94,73 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           await output("Warning: Shift value for " + exiftoolRegistry.scalarShiftErrorGroups[assignment.name] + ":" + assignment.name + " is not a number\nNothing to do.\n", true);
           return { exitCode: 1 };
         }
+        const acquire = async (file: string) => {
+          const path = file === "-" ? "-" : virtualPath(context.cwd, file, resources);
+          const original = file === "-" ? undefined : await publication.track(() => context.fs.lstat(path, { signal: context.signal }));
+          if (original && original.type !== "file") throw new Error("Only regular VFS files are admitted");
+          if (original) {
+            resources.admit("input", original.size);
+            resources.admit("retained", original.size * 32 + 256);
+            resources.admit("decoded", original.size * 2);
+            resources.admit("work", original.size * 20);
+          }
+          const bytes = await publication.track(async () => {
+            if (original && !context.fs.readStream) {
+              const result = await context.fs.readFile(path, { signal: context.signal, maxBytes: original.size });
+              context.signal.throwIfAborted();
+              if (result.length > original.size) throw new RangeError("ExifTool input grew beyond admitted size");
+              return result;
+            }
+            const chunks: Uint8Array[] = [];
+            let size = 0;
+            const source = original ? context.fs.readStream!(path, { signal: context.signal }) : context.stdin;
+            for await (const chunk of readBytes(source, context.signal)) {
+              resources.admit("work", chunk.length + 64);
+              if (original && chunk.length > original.size - size) throw new RangeError("ExifTool input grew beyond admitted size");
+              if (!original) {
+                resources.admit("input", chunk.length);
+                resources.admit("retained", chunk.length * 32 + 256);
+                resources.admit("decoded", chunk.length * 2);
+                resources.admit("work", chunk.length * 20);
+              }
+              resources.admit("retained", chunk.length + 128);
+              if (chunk.length) chunks.push(new Uint8Array(chunk));
+              size += chunk.length;
+            }
+            resources.admit("retained", size);
+            const result = new Uint8Array(size);
+            let position = 0;
+            for (const chunk of chunks) { result.set(chunk, position); position += chunk.length; }
+            return result;
+          });
+          return { path, original, bytes };
+        };
         let errors = 0, updated = 0, created = 0, unchanged = 0, read = 0;
         for (const file of invocation.files) {
           let tags: readonly MetadataTag[] = [];
           try {
-            const path = file === "-" ? "-" : virtualPath(context.cwd, file, resources);
-            const original = file === "-" ? undefined : await publication.track(() => context.fs.lstat(path, { signal: context.signal }));
-            if (original && original.type !== "file") throw new Error("Only regular VFS files are admitted");
-            if (original) {
-              resources.admit("input", original.size);
-              resources.admit("retained", original.size * 32 + 256);
-              resources.admit("decoded", original.size * 2);
-              resources.admit("work", original.size * 20);
-            }
-            const bytes = await publication.track(async () => {
-              if (original && !context.fs.readStream) {
-                const result = await context.fs.readFile(path, { signal: context.signal, maxBytes: original.size });
-                context.signal.throwIfAborted();
-                if (result.length > original.size) throw new RangeError("ExifTool input grew beyond admitted size");
-                return result;
-              }
-              const chunks: Uint8Array[] = [];
-              let size = 0;
-              const source = original ? context.fs.readStream!(path, { signal: context.signal }) : context.stdin;
-              for await (const chunk of readBytes(source, context.signal)) {
-                resources.admit("work", chunk.length + 64);
-                if (original && chunk.length > original.size - size) throw new RangeError("ExifTool input grew beyond admitted size");
-                if (!original) {
-                  resources.admit("input", chunk.length);
-                  resources.admit("retained", chunk.length * 32 + 256);
-                  resources.admit("decoded", chunk.length * 2);
-                  resources.admit("work", chunk.length * 20);
-                }
-                resources.admit("retained", chunk.length + 128);
-                if (chunk.length) chunks.push(new Uint8Array(chunk));
-                size += chunk.length;
-              }
-              resources.admit("retained", size);
-              const result = new Uint8Array(size);
-              let position = 0;
-              for (const chunk of chunks) { result.set(chunk, position); position += chunk.length; }
-              return result;
-            });
+            const { path, original, bytes } = await acquire(file);
             if (!bytes.length) throw new Error("File is empty");
             const extension = file.slice(file.lastIndexOf(".") + 1).toUpperCase();
-            if (invocation.assignments.length && ["DOCX", "PPTX", "XLSX"].includes(extension)) throw new Error("Writing of " + extension + " files is not yet supported");
+            const writing = invocation.assignments.length > 0 || invocation.tagsFromFile !== undefined;
+            if (writing && ["DOCX", "PPTX", "XLSX"].includes(extension)) throw new Error("Writing of " + extension + " files is not yet supported");
             if (extension === "PDF") throw new Error("PDF parser/writer not yet supported; metadata deletion retains historical revisions and never guarantees redaction");
             const png = bytes.length >= 8 && bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71;
-            if (invocation.assignments.length) {
+            if (writing) {
               if (!original) throw new Error("Writing stdin metadata is not yet supported");
               if (!png) throw new Error("Format writer not yet supported");
-              const edited = editPng(bytes, invocation.assignments, resources);
+              let assignments = invocation.assignments;
+              if (invocation.tagsFromFile !== undefined) {
+                const source = await acquire(invocation.tagsFromFile);
+                const values = selected(inspectPng(source.bytes, resources).tags, invocation.tags, false, resources);
+                resources.admit("work", values.length * exiftoolRegistry.tags.length * 16);
+                resources.admit("retained", values.length * 128);
+                assignments = values.filter(tag => Object.hasOwn(exiftoolRegistry.writeChunks, tag.name)).map(tag => ({ name: tag.name, operation: "set" as const, value: tag.value }));
+              }
+              const edited = editPng(bytes, assignments, resources);
               resources.admit("retained", edited.length * 3);
               resources.admit("work", bytes.length);
-              if (invocation.destination === undefined && !invocation.assignments.some(op => op.operation === "set" && op.value !== "") && edited.length === bytes.length && edited.every((byte, index) => byte === bytes[index])) { unchanged++; continue; }
+              if (invocation.destination === undefined && !assignments.some(op => op.operation === "set" && op.value !== "") && edited.length === bytes.length && edited.every((byte, index) => byte === bytes[index])) { unchanged++; continue; }
               resources.admit("output", edited.length);
               const inPlace = invocation.overwrite === "in-place";
               const destination = invocation.destination === undefined ? path : virtualPath(context.cwd, invocation.destination, resources);

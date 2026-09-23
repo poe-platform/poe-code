@@ -20,6 +20,7 @@ export interface ExiftoolInvocationOptions {
   readonly template?: string;
   readonly overwrite?: "backup" | "replace" | "in-place";
   readonly destination?: string;
+  readonly tagsFromFile?: string;
 }
 
 /** Build bounded, branded argv for direct CommandDefinition SDK invocation.
@@ -28,7 +29,7 @@ export interface ExiftoolInvocationOptions {
  */
 export function createExiftoolArguments(options: ExiftoolInvocationOptions, engine: EngineOptions): CommandArguments {
   const resources = new Resources(engine);
-  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination", "template", "filenameCharset"];
+  const supported = ["files", "tags", "assignments", "format", "style", "duplicates", "missing", "numeric", "quoteScalars", "groupFamily", "overwrite", "destination", "template", "filenameCharset", "tagsFromFile"];
   resources.admit("retained", 256);
   for (const key in options) {
     if (!Object.hasOwn(options, key)) continue;
@@ -87,6 +88,7 @@ export function createExiftoolArguments(options: ExiftoolInvocationOptions, engi
     append(flag);
   }
   if (options.destination !== undefined) { append("-o"); append(options.destination); }
+  if (options.tagsFromFile !== undefined) { append("-tagsFromFile"); append(options.tagsFromFile); }
   for (const tag of options.tags ?? []) { tagName(tag, false); append("-", tag); }
   for (const assignment of options.assignments ?? []) {
     tagName(assignment.name, true);

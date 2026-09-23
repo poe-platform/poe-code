@@ -69,3 +69,14 @@ test("typed SDK exposes explicit UTF-8 filename charset with bounded CLI admissi
   assert.deepEqual(carrier.args, ["-charset", "filename=UTF8", "-Title", "--", "café 水😀.png"]);
   assert.throws(() => createExiftoolArguments({ files: ["image.png"], filenameCharset: "Latin1" } as unknown as Parameters<typeof createExiftoolArguments>[0], { signal }), /UTF-8 filename charset/);
 });
+
+test("typed metadata copying preserves source value authority and write admission", () => {
+  assert.deepEqual(createExiftoolArguments({ files: ["input.png"], tagsFromFile: "-@", tags: ["Title"], overwrite: "replace" }, { signal }).args,
+    ["-overwrite_original", "-tagsFromFile", "-@", "-Title", "--", "input.png"]);
+  for (const options of [
+    { files: ["-"], tagsFromFile: "source.png" },
+    { files: ["input.png"], tagsFromFile: "-" },
+    { files: ["input.png"], tagsFromFile: "source.png", format: "csv" as const },
+    { files: ["input.png"], tagsFromFile: "source.png", assignments: [{ name: "Title", operation: "set" as const, value: "new" }] },
+  ]) assert.throws(() => createExiftoolArguments(options, { signal }));
+});

@@ -10,6 +10,8 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
     const programs: string[] = [];
     const assignments: string[] = [];
     let separator: string | undefined;
+    let hasMain = false;
+    let operandAssignments = true;
     let index = 0;
     for (; index < context.args.length; index++) {
       const argument = context.args[index]!;
@@ -19,8 +21,8 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (argument === "--characters-as-bytes" || argument === "-b") continue;
       const equals = argument.indexOf("=");
       const option = argument.startsWith("--") ? argument.slice(0, equals < 0 ? undefined : equals) : `-${argument[1]}`;
-      const flag = option === "--field-separator" ? "F" : option === "--source" ? "e" : option.startsWith("--") ? undefined : argument[1];
-      if (flag !== "F" && flag !== "v" && flag !== "f" && flag !== "e") throw new ProgramError(`unsupported awk option '${argument}'`);
+      const flag = option === "--field-separator" ? "F" : option === "--source" ? "e" : option === "--exec" ? "E" : option === "--include" ? "i" : option.startsWith("--") ? undefined : argument[1];
+      if (flag !== "F" && flag !== "v" && flag !== "f" && flag !== "e" && flag !== "E" && flag !== "i") throw new ProgramError(`unsupported awk option '${argument}'`);
       const attached = argument.startsWith("--") ? equals < 0 ? undefined : argument.slice(equals + 1) : argument.length > 2 ? argument.slice(2) : undefined;
       const value = attached ?? context.args[++index];
       if (value === undefined) throw new ProgramError(`${option} requires an argument`);
@@ -29,15 +31,17 @@ export function awkCommand(options: TextProgramOptions = {}): CommandDefinition 
         if (!/^[A-Za-z_][A-Za-z0-9_]*=/u.test(value)) throw new ProgramError("-v requires a NAME=value assignment");
         assignments.push(byteString(value));
       }
-      if (flag === "f") programs.push(await readProgram(context, value));
+      if (flag === "f" || flag === "E" || flag === "i") programs.push(await readProgram(context, value));
       if (flag === "e") programs.push(byteString(value));
+      if (flag === "f" || flag === "e" || flag === "E") hasMain = true;
+      if (flag === "E") { operandAssignments = false; index++; break; }
     }
-    if (!programs.length) {
+    if (!hasMain) {
       const program = context.args[index++];
       if (program === undefined) throw new ProgramError("missing awk program");
       programs.push(byteString(program));
     }
     const program = new AwkParser(programs.join("\n")).parse();
-    return new AwkRuntime(program, context, budget, new AwkRetention(32 * 1024 * 1024, context.signal), context.args.slice(index), assignments, separator).run();
+    return new AwkRuntime(program, context, budget, new AwkRetention(32 * 1024 * 1024, context.signal), context.args.slice(index), assignments, separator, operandAssignments).run();
   });
 }

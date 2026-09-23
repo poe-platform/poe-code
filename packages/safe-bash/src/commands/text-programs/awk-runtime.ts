@@ -37,7 +37,7 @@ export class AwkRuntime {
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
-  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string) {
+  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true) {
     const defaults: Record<string, Scalar> = { FS: string(" "), RS: string("\n"), OFS: string(" "), ORS: string("\n"), OFMT: string("%.6g"), CONVFMT: string("%.6g"), SUBSEP: string("\x1c"), NR: numeric(0), FNR: numeric(0), NF: numeric(0), FILENAME: string(""), RSTART: numeric(0), RLENGTH: numeric(0), ARGC: numeric(args.length + 1) };
     try {
       for (const [name, value] of Object.entries(defaults)) this.storeScalar(this.variables, name, value);
@@ -583,7 +583,7 @@ export class AwkRuntime {
           if (argument > 100000) throw new ProgramError("argument count limit exceeded");
           const next = this.asText(this.array("ARGV").entries.get(String(argument++)) ?? unset);
           if (!next) continue;
-          if (/^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }
+          if (this.operandAssignments && /^[A-Za-z_][A-Za-z0-9_]*=/u.test(next)) { this.assignment(next); continue; }
           file = next; sawFile = true; break;
         }
         if (file === undefined && !sawFile && !defaultUsed) { file = "-"; defaultUsed = true; }

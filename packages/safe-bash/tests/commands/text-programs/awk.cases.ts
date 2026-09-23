@@ -5,6 +5,51 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const args of [["-E", "owned.awk"], ["-Eowned.awk"], ["--exec=owned.awk"], ["--exec", "owned.awk"]]) {
+  test(`awk executes VFS program: ${JSON.stringify(args)}`, async () => {
+    const fs = await makeFileSystem({ "owned.awk": "{print $2}", records: "Independent 31\nChanged 47\n" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+    try {
+      const result = await shell.exec(`awk ${args.join(" ")} records`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "31\n47\n", ""]);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const args of [["-i", "./include.awk"], ["-i./include.awk"], ["--include=./include.awk"], ["--include", "./include.awk"]]) {
+  for (const main of [["{print transform($2)}"], ["-f", "main.awk"], ["-E", "main.awk"]]) {
+    test(`awk includes VFS function: ${JSON.stringify([...args, ...main])}`, async () => {
+      const result = await runVirtual("awk", {
+        args: [...args, ...main, "records"],
+        files: { "include.awk": 'function transform(s) { return "Actual:" s }', "main.awk": "{print transform($2)}", records: "Independent 31\nChanged 47\n" },
+      });
+      assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "Actual:31\nActual:47\n", ""]);
+    });
+  }
+}
+
+test("awk exec ends options and disables operand assignments", async () => {
+  const result = await runVirtual("awk", {
+    args: ["-E", "main.awk", "-v", "x=record"],
+    files: { "main.awk": "{print $2}", "-v": "first 31\n", "x=record": "second 47\n" },
+  });
+  assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, "31\n47\n", ""]);
+});
+
+for (const flag of ["-E", "--exec", "-i", "--include"]) {
+  test(`awk requires ${flag} file argument`, async () => {
+    const result = await runVirtual("awk", { args: [flag] });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr.toString(), `awk: ${flag} requires an argument\n`);
+  });
+  test(`awk does not search ambient paths for ${flag}`, async () => {
+    const result = await runVirtual("awk", { args: [flag, "missing.awk", "BEGIN {print 1}"] });
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr.toString(), /missing.awk/u);
+    assert.equal(result.stdout.length, 0);
+  });
+}
+
 for (const args of [
   ["--field-separator=,", "{print $2}", "input"],
   ["--field-separator", ",", "{print $2}", "input"],

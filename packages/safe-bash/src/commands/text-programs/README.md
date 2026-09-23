@@ -113,8 +113,13 @@ records; preflight syntax rejection is not a rollback guarantee for execution.
 
 ## Awk grammar and behavior
 
-Options: `-F SEPARATOR`, `-v NAME=VALUE`, repeated `-f FILE`, attached versions of
-those options, and `--`. Otherwise the first operand is the program. Remaining
+Options: `-F SEPARATOR`/`--field-separator`, `-v NAME=VALUE`, repeated `-f FILE`,
+`-e SOURCE`/`--source`, `-i FILE`/`--include`, `-E FILE`/`--exec`, attached versions
+of those options (long options use `=VALUE`), and `--`. Includes add source before
+the main program; they do not consume the inline program operand. `-E` selects a
+program file, ends option parsing, and treats subsequent assignments as input paths.
+Files are read only from the configured VFS, without ambient `AWKPATH` or library
+lookup. Otherwise the first operand is the program. Remaining
 operands are input paths, `-` for stdin, or variable assignments. `-v` assignments
 precede `BEGIN`; operand assignments take effect as the input argument list is
 traversed. Program and data files are exclusively virtual. A BEGIN-only program

@@ -258,6 +258,8 @@ export type InterpreterResult =
 export type InterpretOptions = {
   sourceReference?: AsyncEvaluationContext["sourceReference"];
   modulePhase?: "link" | "evaluate";
+  /** Skip unused public bindings; retained data is still reconciled. */
+  captureSnapshot?: boolean;
   script?: { strict: boolean };
   assertActive?: () => void;
   onSuspend?: () => void;
@@ -550,7 +552,7 @@ export async function interpret(
     if ((options.script !== undefined || options.modulePhase === "evaluate") && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {
       evaluation = createThrowCompletion(evaluation.error, budget, context.callStack, evaluation.error.span);
     }
-    const snapshot = scope.snapshot();
+    const snapshot = options.captureSnapshot === false ? {bindings: {}} : scope.snapshot();
     reconcileDataBudget(
       budget,
       stats,

@@ -437,7 +437,7 @@ export class SourceModuleGraph {
 
   private async execute(record: RecordEntry, modulePhase: "link" | "evaluate", onSuspend?: () => void): Promise<void> {
     const result = await interpret({type:"BlockStatement",body:record.parsed.module.body,span:record.parsed.module.span},
-      {...this.options, scope:record.scope, useScopeDirectly:true, jobs:this.jobs, nested:true,modulePhase,onSuspend});
+      {...this.options, scope:record.scope, useScopeDirectly:true, captureSnapshot:false, jobs:this.jobs, nested:true,modulePhase,onSuspend});
     this.stats.nodeVisits += result.stats.nodeVisits;
     if (!result.ok) throw new Error(result.error.message);
   }

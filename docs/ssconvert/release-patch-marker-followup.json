@@ -1,6 +1,6 @@
 {
   "scope": "Required release validation patch parser duplicate incomplete-line marker repair",
-  "status": "implemented-focused-and-independent-controls-build-guarded-lint-qualified",
+  "status": "historical-strict-repair-superseded-by-upstream-marker-acceptance",
   "wholeGoalComplete": false,
   "publication": "unverified",
   "failedRelease": 35859732558,
@@ -218,5 +218,87 @@
     "This focused repair does not establish full SafeBash/ssconvert parity or successful containing release.",
     "No sealed fixture or test expectations changed.",
     "Other original goal/publication obligations remain active."
-  ]
+  ],
+  "currentDisposition": {
+    "upstreamCommit": "33a4fb97f48ec4dd44077e6768a1ac4c4441f644",
+    "ownedConflictingRemoteCommit": "fea57f1a860f754f9ded7f6055c770207f0575ad",
+    "correction": "Remove only our global Reader duplicate rejection;preserve all six upstream source/docs/tests byte for byte.",
+    "currentReview": {
+      "upstream": "33a4fb97f48ec4dd44077e6768a1ac4c4441f644",
+      "qualification": "Independent bounded current-source and maintained-control review; not release or full repository acceptance.",
+      "trackedEdits": [],
+      "receipts": [
+        {
+          "path": "packages/safe-bash/src/commands/diff-patch/patch-formats.ts",
+          "bytes": 11111,
+          "sha256": "3660eb4de1ac392a194564d464338770265c688b153c1ea071feda91bc3b87fa",
+          "exactUpstreamBytes": true
+        },
+        {
+          "path": "packages/safe-bash/src/commands/diff-patch/PARSER.md",
+          "bytes": 10534,
+          "sha256": "916ab8327f6b1007b1d2ea8f3d7ded280c033400ca0b65a8c0b2c6772f47325e",
+          "exactUpstreamBytes": true
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/README.md",
+          "bytes": 11398,
+          "sha256": "c15668dbd639987da62021573c07d5530019015f3539861787cc65fe6aba1ce9",
+          "exactUpstreamBytes": true
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/fixtures.ts",
+          "bytes": 11936,
+          "sha256": "632369dd4e0604b1d68207c5d0dbc525f34237b8cf157b1b612d20293eab868d",
+          "exactUpstreamBytes": true
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts",
+          "bytes": 1481,
+          "sha256": "0531ebef16b8584a5d97dd5d7ace3a57db40651126e247f19bdca1b2663c083b",
+          "exactUpstreamBytes": true
+        },
+        {
+          "path": "packages/safe-bash/tests/commands/diff-patch/patch-gnu-publication.test.ts",
+          "bytes": 7489,
+          "sha256": "a45f59debf6db8c8f9ca239b12f1ceb87ae9ab6fd30c88f20dcd284edeb64cfd",
+          "exactUpstreamBytes": true
+        }
+      ],
+      "gitDiff": {
+        "terminal": 0,
+        "empty": true,
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-upstream-exact-diff.log"
+      },
+      "maintained": {
+        "tests": 1346,
+        "pass": 1346,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "terminal": 0,
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-upstream-current-maintained-controls.log",
+        "files": [
+          "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts",
+          "packages/safe-bash/tests/commands/diff-patch/hunk-regressions.test.ts",
+          "packages/safe-bash/tests/commands/diff-patch/diff-patch.test.ts",
+          "packages/safe-bash/tests/commands/diff-patch/patch-gnu-publication.test.ts"
+        ]
+      },
+      "currentBehavior": "Accept surplus exact markers after a complete nonempty new context side, retaining first-marker EOF meaning. Refuse old-side duplicates, pre-body markers, incomplete nonfinal new-side lines, and malformed later sections during atomic preflight.",
+      "supersededEvidence": {
+        "report": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-review.json",
+        "policy": "The earlier global duplicate rejection and strict new-side v2 memory matrix are historical, superseded by upstream ownership decision33a4fb97f4. They are not current requirements or current passing evidence.",
+        "retainedNative": "out/ssconvert-gap-resolution/node-rebase-feedback/native-marker-review-TkbcOO/report.json",
+        "nativeObservation": "Previously measured GNU patch2.8 Darwin accepts duplicate new-side markers and refuses old-side duplicates, consistent with corrected upstream scope. No new native run claimed."
+      }
+    },
+    "currentMaintainedRegression": "red117/138;green138/138",
+    "currentIndependentMaintainedControls": 1346,
+    "currentBuild": "passed maintained selected27-buildclosure",
+    "currentGuardedLint": "complete16524inputs/25receipts/zeroerrors/warnings",
+    "currentSourceSha256": "3660eb4de1ac392a194564d464338770265c688b153c1ea071feda91bc3b87fa",
+    "publication": "unverified"
+  }
 }

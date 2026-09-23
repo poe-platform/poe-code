@@ -31,7 +31,6 @@ class Reader {
     if (this.peek() === "\\ No newline at end of file") {
       await this.take();
       if (text === "\n") throw new ToolError("empty incomplete line is not a valid text line");
-      if (this.peek() === "\\ No newline at end of file") throw new ToolError("duplicate no-newline marker");
       text = text.slice(0, -1);
     }
     return text;

@@ -28,7 +28,7 @@ await csvgrep(context, { columns: 'name,city', match: 'York', any: true });
 | `-a`, `--any-match` | Any selected cell instead of all. |
 | `-i`, `--invert-match` | Negate the aggregate result. |
 | `-H`, `--no-header-row` | Generate headers a..z, aa, bb, cc. |
-| `-l`, `--linenumbers` | Prepend `line_numbers`; physical parser line number minus one for a header, before filtering. |
+| `-l`, `--linenumbers` | Prepend physical line numbers before filtering. Numeric selectors still count original data columns; named `line_numbers` selects the added column. With `-H`, generated headers include the added column (`a,b,c,...`). |
 | `-K`, `--skip-lines` | Skip a nonnegative number of physical input lines. |
 | `--zero` | Use zero-based column positions and names output. |
 | `-n`, `--names` | Print `position: name` lines with positions right-aligned to width three and stop after the header; requires a header row. |

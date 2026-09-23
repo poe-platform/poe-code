@@ -88,6 +88,32 @@ test("empty-input output and diagnostics respect output quotas", async () => {
     assert.equal(result.accounting.outputBytes, 0);
   }
 });
+test("line numbers preserve data positions and named access with CLI/SDK parity", async () => {
+  for (const [flags, columns, zero, headerless, match, expected] of [
+    [["-l"], "1", false, false, "Ada", "line_numbers,name,n\n1,Ada,1\n"],
+    [["--linenumbers"], "1", false, false, "Ada", "line_numbers,name,n\n1,Ada,1\n"],
+    [["-l", "--zero"], "0", true, false, "Ada", "line_numbers,name,n\n1,Ada,1\n"],
+    [["-l", "-H"], "1", false, true, "Ada", "a,b,c\n1,Ada,1\n"],
+    [["-l"], "name", false, false, "Ada", "line_numbers,name,n\n1,Ada,1\n"],
+    [["-l"], "line_numbers", false, false, "2", "line_numbers,name,n\n2,Bob,2\n"],
+    [["-l"], "1-2", false, false, "Ada", "line_numbers,name,n\n"],
+    [["-l", "-H"], "b", false, true, "Ada", "a,b,c\n1,Ada,1\n"]
+  ] as const) {
+    const input = (headerless ? "" : "name,n\n") + "Ada,1\nBob,2\n";
+    for (const file of [false, true]) {
+      const cli = fixture([...flags, "-c", columns, "-m", match, ...(file ? ["data"] : [])], input,
+        { "/vfs/data": input });
+      const sdk = fixture([], input, { "/vfs/data": input });
+      assert.equal((await csvgrep(cli.context)).exitCode, 0);
+      assert.equal((await csvgrep(sdk.context, {
+        columns, zero, headerless, match, lineNumbers: true, ...(file ? { filePath: "data" } : {})
+      })).exitCode, 0);
+      assert.equal(cli.text(), expected, JSON.stringify({ flags, columns, file }));
+      assert.deepEqual(cli.out, sdk.out);
+      assert.deepEqual(cli.err, sdk.err);
+    }
+  }
+});
 test("exhausted diagnostic budgets return failure without exceeding quotas", async () => {
   for (const limits of [{ outputBytes: 2 }, { work: 0 }, { retainedBytes: 0 }]) {
     const f = fixture(["-c", "x", "-m", "a"], "x\na\n");

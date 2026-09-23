@@ -3,6 +3,13 @@ import { test } from "node:test";
 import { CsvParser, selectColumns, serializeRow, CsvBudget } from "./index.js";
 const enc = new TextEncoder();
 const signal = new AbortController().signal;
+test("numeric offsets skip synthetic columns while names keep their positions", () => {
+  const b = new CsvBudget({}, signal), headers = ["line_numbers", "name", "n"];
+  assert.deepEqual(selectColumns("1,name,line_numbers,1-2", headers, false, b, undefined, 1), [1, 1, 0, 1, 2]);
+  assert.deepEqual(selectColumns("0-1,line_numbers", headers, true, b, undefined, 1), [1, 2, 0]);
+  assert.throws(() => selectColumns("3", headers, false, b, undefined, 1), { code: "INPUT" });
+  assert.throws(() => selectColumns("0", headers, false, b, undefined, 1), { code: "INPUT" });
+});
 test("every byte split preserves quoted multiline cells and physical positions", () => {
   const bytes = enc.encode('\ufeffx,y\r\n"é\r\nq",a\r\nb\r\n');
   for (let split = 0; split <= bytes.length; split++) {

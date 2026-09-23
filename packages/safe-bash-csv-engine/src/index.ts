@@ -310,7 +310,8 @@ export function selectColumns(
   headers: readonly string[],
   zero: boolean,
   budget: CsvBudget,
-  policy?: { readonly profile: "csvkit-2.2.0-ascii-v1"; readonly exclude?: boolean }
+  policy?: { readonly profile: "csvkit-2.2.0-ascii-v1"; readonly exclude?: boolean },
+  numericOffset = 0
 ): number[] {
   budget.text(selector);
   budget.charge("work", selector.length);
@@ -325,8 +326,8 @@ export function selectColumns(
   const position = (token: string): number => {
     budget.charge("work", token.length + 1);
     const numeric = decimalPosition(token);
-    const number = numeric === undefined ? (names.get(token) ?? -1) : numeric - (zero ? 0 : 1);
-    if (number < 0 || number >= headers.length)
+    const number = numeric === undefined ? (names.get(token) ?? -1) : numeric - (zero ? 0 : 1) + numericOffset;
+    if (number < (numeric === undefined ? 0 : numericOffset) || number >= headers.length)
       throw new CsvError("INPUT", `Column ${token} does not exist`);
     return number === 0 ? 0 : number;
   };
@@ -336,8 +337,8 @@ export function selectColumns(
     if (token === "" && !policy?.exclude && !(policy && names.has(token)))
       throw new CsvError("INPUT", "Empty column selector");
     const numeric = decimalPosition(token);
-    const index = numeric === undefined ? -1 : numeric - (zero ? 0 : 1);
-    if (policy && index >= 0 && index < headers.length) {
+    const index = numeric === undefined ? -1 : numeric - (zero ? 0 : 1) + numericOffset;
+    if (policy && index >= numericOffset && index < headers.length) {
       result.push(position(token));
       continue;
     }
@@ -350,7 +351,7 @@ export function selectColumns(
       if (parts.length !== 2) throw new CsvError("INPUT", "Invalid column range");
       const startToken = parts[0] || "1";
       // Preserve release 2.2.0's exclusion open-end defect independently.
-      const endToken = parts[1] || String(headers.length + (policy.exclude ? -1 : 0));
+      const endToken = parts[1] || String(headers.length - numericOffset + (policy.exclude ? -1 : 0));
       if (decimalPosition(startToken) === undefined || decimalPosition(endToken) === undefined)
         throw new CsvError("INPUT", "Column range endpoints must be integers");
       const start = position(startToken), end = position(endToken);
@@ -372,7 +373,7 @@ export function selectColumns(
         result.push(index);
       }
     } else {
-      if (policy?.exclude && (numeric === undefined ? !names.has(token) : numeric - (zero ? 0 : 1) < 0 || numeric - (zero ? 0 : 1) >= headers.length)) continue;
+      if (policy?.exclude && (numeric === undefined ? !names.has(token) : index < numericOffset || index >= headers.length)) continue;
       result.push(position(token));
     }
   }

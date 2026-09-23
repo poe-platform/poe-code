@@ -459,8 +459,10 @@ export async function csvgrep(
           signal.throwIfAborted();
           b.charge("work", 1);
           if (headers === undefined) {
-            headers = options.headerless ? generatedHeaders(row.cells.length, b) : row.cells;
-            if (options.lineNumbers) {
+            headers = options.headerless
+              ? generatedHeaders(row.cells.length + (options.lineNumbers ? 1 : 0), b)
+              : row.cells;
+            if (options.lineNumbers && !options.headerless) {
               b.charge("retainedBytes", headers.length * 8 + 32);
               headers = ["line_numbers", ...headers];
             }
@@ -469,7 +471,8 @@ export async function csvgrep(
                 await write(`${String(i + (options.zero ? 0 : 1)).padStart(3)}: ${headers[i]}\n`);
               return;
             }
-            columns = selectColumns(options.columns!, headers, options.zero ?? false, b);
+            columns = selectColumns(options.columns!, headers, options.zero ?? false, b, undefined,
+              options.lineNumbers ? 1 : 0);
             await write(serializeRow(headers, b));
             if (!options.headerless) continue;
           }

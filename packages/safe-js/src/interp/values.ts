@@ -798,6 +798,7 @@ interface DataContinuation {
   readonly depth: number;
 }
 const defineDataContinuation = Reflect.defineProperty;
+const nativeDataArrayFrom = Array.from.bind(Array);
 
 function appendDataContinuation(pending: DataContinuation[], values: readonly unknown[], depth: number): void {
   // Do not expose the stack or its mutable frames through later Array hooks.
@@ -1331,17 +1332,44 @@ function measureSandboxDataWithSeen(
           if (mapped !== undefined) {
             for (const retained of mapped.scope.retainedDataRoots()) visit(retained, depth + 1);
           }
-          const entries: Array<[string, unknown[]]> = [];
-          for (const key of Object.getOwnPropertyNames(value)) {
+          let retained: SandboxValue[] | undefined;
+          let retainedCount = 0;
+          const keys = Object.getOwnPropertyNames(value);
+          for (const key of keys) {
             const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
-            const retained = "value" in descriptor ? [descriptor.value] : retainedAccessorClosures(descriptor);
-            // The native restricted callee accessor retains no sandbox data.
-            if (retained.length > 0) entries.push([key, retained]);
+            if ("value" in descriptor) {
+              usage += 1 + key.length;
+              const data = descriptor.value;
+              if (typeof data === "string") usage += data.length;
+              else if (
+                typeof data === "bigint" ||
+                typeof data === "symbol" ||
+                (typeof data === "object" && data !== null)
+              ) {
+                retained ??= nativeDataArrayFrom({
+                  __proto__: null,
+                  length: keys.length * 2
+                } as ArrayLike<SandboxValue>);
+                retained[retainedCount++] = data;
+              }
+            } else {
+              const closures = retainedAccessorClosures(descriptor);
+              // The native restricted callee accessor retains no sandbox data.
+              if (closures.length > 0) usage += 1 + key.length;
+              for (let index = 0; index < closures.length; index++) {
+                retained ??= nativeDataArrayFrom({
+                  __proto__: null,
+                  length: keys.length * 2
+                } as ArrayLike<SandboxValue>);
+                retained[retainedCount++] = closures[index]!;
+              }
+            }
           }
-          for (const [key, retained] of entries) {
-            usage += 1 + key.length;
-            for (const entry of retained) visit(entry, depth + 1);
-          }
+          // Capture every descriptor before callbacks. Pinned Array.from creates
+          // own slots for at most two accessor roots per key, so indexed writes
+          // cannot invoke inherited setters or expose the snapshot to Array hooks.
+          if (retained !== undefined)
+            for (let index = 0; index < retainedCount; index++) visit(retained[index], depth + 1);
           break entry;
         }
 

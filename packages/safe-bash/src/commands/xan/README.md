@@ -25,6 +25,9 @@ Unknown keys and invalid limits fail construction. Limits are invocation-wide.
   Human-readable counts use comma grouping and a short suffix from 10,000 rows;
   as in XAN 0.61.0, parallel/thread options bypass human-readable formatting.
 - `select`: `-n/--no-headers`, required literal selector, optional input.
+  `-e/--evaluate` accepts a single ASCII column identifier; `-f/--evaluate-file`
+  reads that expression from a virtual UTF-8 file instead of a literal selector.
+  Surrounding whitespace is accepted; other expression syntax refuses.
 - `slice`: `-n/--no-headers`, `-s/--start N`, `--skip N`, `-e/--end N`,
   `-l/--len N`, `-i/--index N`, `-I/--indices LIST`, `-L/--last N`.
 - Every subcommand accepts `-h/--help`, `-d/--delimiter BYTE`, `-o/--output PATH`.
@@ -36,7 +39,7 @@ against command cwd. `.tsv`/`.tab`, `.ssv`/`.scsv`, `.psv` infer tab, semicolon,
 pipe; otherwise comma. Input delimiter override does not change output delimiter.
 NUL/CR/LF/quote/non-ASCII delimiters refuse; literal `\t` is accepted.
 Compression and `.cdx`, `.ndjson`, `.jsonl`, `.vcf`, `.gtf`, `.gff2`, `.sam`,
-`.bed` formats refuse, as do expressions, conditions, byte slicing, raw slicing,
+`.bed` formats refuse, as do general expressions, conditions, byte slicing, raw slicing,
 forced color. No shell/eval interpretation occurs.
 
 Selectors use the adopted consuming grammar: signed indices, named duplicate

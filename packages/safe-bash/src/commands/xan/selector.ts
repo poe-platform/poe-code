@@ -5,6 +5,19 @@ type Clause = { kind: "all" } | { kind: "prefix" | "suffix"; text: string; bytes
 export interface Selection { complement: boolean; clauses: Clause[] }
 const minimum = -(1n << 63n);
 const maximum = (1n << 63n) - 1n;
+export async function parseColumnExpression(text: string, budget: Budget): Promise<Selection> {
+  budget.bound("maxSelectorBytes", await budget.textSize(text));
+  const name = text.trim();
+  if (!name) throw new XanError("unsupported in bounded CSV profile: expression syntax");
+  for (let offset = 0; offset < name.length; offset++) {
+    budget.work();
+    const code = name.charCodeAt(offset);
+    const letter = (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95;
+    if (!letter && !(offset > 0 && code >= 48 && code <= 57)) throw new XanError("unsupported in bounded CSV profile: expression syntax");
+    if ((offset & 1023) === 0) await budget.checkpoint();
+  }
+  return parseSelection(name, budget);
+}
 function signed(text: string): bigint | undefined {
   if (!/^[+-]?[0-9]+$/u.test(text)) return undefined;
   const digits = text.replace(/^[+-]?0*/u, "");

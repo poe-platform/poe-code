@@ -13,6 +13,8 @@ export interface Arguments {
   csv: boolean;
   help: boolean;
   selection: string;
+  evaluate?: boolean;
+  evaluateFile?: boolean;
   start: bigint;
   end?: bigint;
   indices?: bigint[];
@@ -52,12 +54,12 @@ export function inferDelimiter(path: string): number {
   return 44;
 }
 const shortOptions: Record<string, string> = { H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
-const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel"]);
+const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel", "evaluate", "evaluate-file"]);
 const common = ["help", "output", "delimiter"];
 const allowed: Record<Subcommand, Set<string>> = {
   headers: new Set([...common, "just-names", "csv", "start", "color"]),
   count: new Set([...common, "no-headers", "human-readable", "check-alignment", "approx", "parallel", "threads"]),
-  select: new Set([...common, "no-headers"]),
+  select: new Set([...common, "no-headers", "evaluate", "evaluate-file"]),
   slice: new Set([...common, "no-headers", "start", "skip", "end", "len", "index", "indices", "last"]),
 };
 export async function parseArguments(args: readonly string[], cwd: string, budget: Budget): Promise<Arguments> {
@@ -97,7 +99,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
     } else if (!positional && arg.startsWith("-") && arg !== "-") {
       for (let position = 1; position < arg.length; position++) {
         const letter = arg[position]!;
-        const name = shortOptions[letter];
+        const name = command === "select" && letter === "e" ? "evaluate" : command === "select" && letter === "f" ? "evaluate-file" : shortOptions[letter];
         if (command === "headers" && letter === "n") throw new UsageError(`${headersUsage}Unknown flag: '-n' Use the -h/--help flag for more information.`);
         if (!name || !allowed[command].has(name)) throw new XanError(`unsupported in bounded CSV profile: -${letter}`);
         if (switches.has(name)) put(name, "true");
@@ -115,6 +117,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   if (parallel && (values.has("approx") || values.has("check-alignment"))) throw new XanError("-p/--parallel or -t/--threads cannot be used with -a/--approx nor -c/--check-alignment!");
   const help = values.has("help");
   if (!help && (parallel || values.has("approx")) && (!operands.length || operands[0] === "-")) throw new XanError("count execution options require a file path");
+  if (values.has("evaluate") && values.has("evaluate-file")) throw new XanError("conflicting expression modes");
   const selection = command === "select" ? operands.shift() : "";
   if (selection === undefined && !help) throw new UsageError("Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.");
   if (command !== "headers" && operands.length > 1) throw new XanError("too many input files");
@@ -170,6 +173,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   }
   budget.release(values.size * 32);
   return { command, humanReadable: values.has("human-readable"), checkAlignment: values.has("check-alignment"), parallel, inputs: operands, noHeaders: values.has("no-headers"), justNames: values.has("just-names"), csv: values.has("csv"), help, selection: selection ?? "", start,
+    evaluate: values.has("evaluate"), evaluateFile: values.has("evaluate-file"),
     ...(output !== undefined && output !== "-" ? { output: path(output) } : {}),
     ...(delimiter !== undefined ? { delimiter } : {}), ...(end !== undefined ? { end } : {}), ...(indices !== undefined ? { indices } : {}), ...(last !== undefined ? { last } : {}),
   };

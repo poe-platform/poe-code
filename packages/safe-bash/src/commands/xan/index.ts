@@ -8,7 +8,7 @@ import { Budget, LimitError, XanError } from "./budget.js";
 import { prepareRows } from "./commands.js";
 import { EscapingFailure, InputScope, managedOutput, outputOperation, preflight, publish } from "./io.js";
 import { validateOptions, type XanCommandsOptions, type XanLimits } from "./options.js";
-import { parseSelection } from "./selector.js";
+import { parseColumnExpression, parseSelection } from "./selector.js";
 import { Writer } from "./writer.js";
 
 export type { XanCommandsOptions, XanLimits } from "./options.js";
@@ -26,10 +26,14 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
   try {
     const args = await parseArguments(context.args, context.cwd, budget);
     command = args.command;
-    const selection = args.command === "select" && !args.help ? await parseSelection(args.selection, budget) : undefined;
     operation = outputOperation(context, args.output !== undefined && !args.help);
     budget.signal = operation.signal;
     scope = new InputScope(context, budget);
+    const selection = args.command === "select" && !args.help
+      ? args.evaluate || args.evaluateFile
+        ? await parseColumnExpression(args.evaluateFile ? await scope.expression(args.selection) : args.selection, budget)
+        : await parseSelection(args.selection, budget)
+      : undefined;
     const destination = args.help ? undefined : await preflight(context, args, budget);
     const writer = new Writer(inferDelimiter(args.output ?? "-"), budget);
     source = managedOutput(await prepareRows(args, selection, scope, budget, writer), scope, budget);

@@ -7,7 +7,7 @@ import { resolvePath } from "../../contracts/path.js";
 import { compareObservedEntries } from "../copy-identity.js";
 import type { Arguments } from "./argv.js";
 import { inferDelimiter } from "./argv.js";
-import { Budget } from "./budget.js";
+import { Budget, Bytes, XanError } from "./budget.js";
 import { Scanner } from "./csv.js";
 
 export class EscapingFailure { constructor(readonly reason: unknown) {} }
@@ -94,6 +94,26 @@ export class InputScope {
     this.scanners.add(scanner);
     this.own(() => { this.budget.release(32); });
     return scanner;
+  }
+  async expression(path: string): Promise<string> {
+    if (this.closed) throw new Error("xan input admission closed");
+    if (!path || path.includes("\0")) throw new XanError("invalid expression path");
+    if (!this.context.fs.readStream) throw new FsError("ENOTSUP", { path, message: "xan requires streaming input" });
+    const bytes = new Bytes(this.budget);
+    this.own(() => bytes.free());
+    const source = this.manage(this.context.fs.readStream(resolvePath(this.context.cwd, path), { signal: this.signal }));
+    for await (const chunk of source) {
+      this.budget.add("maxChunks", 1);
+      this.budget.bound("maxChunkBytes", chunk.length);
+      this.budget.add("maxInputBytes", chunk.length);
+      this.budget.bound("maxSelectorBytes", bytes.length + chunk.length);
+      for (const byte of chunk) { await bytes.push(byte); await this.budget.checkpoint(); }
+    }
+    this.budget.hold(bytes.length * 2);
+    const textBytes = bytes.length * 2;
+    this.own(() => this.budget.release(textBytes));
+    try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes.view()); }
+    catch { throw new XanError("expression file is not valid UTF-8"); }
   }
 }
 export interface Destination { readonly path: string; readonly flag: "w" | "wx" }

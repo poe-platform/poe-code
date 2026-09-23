@@ -7,7 +7,7 @@ import { Budget, UnrtfError, type UnrtfLimits, type UnrtfOptions } from './contr
 import { renderRtf } from './render.js';
 
 export interface UnrtfCommandOptions {
-  format?:'text'|'html'; file?:string; limits?:Partial<UnrtfLimits>;
+  format?:'text'|'html'|'latex'; file?:string; limits?:Partial<UnrtfLimits>; quiet?:boolean; noremap?:boolean;
   profile?:UnrtfOptions['profile']; replace?:boolean;
 }
 export interface UnrtfResult { readonly exitCode:0|1 }
@@ -18,7 +18,7 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
   const abort = ():void => controller.abort(context.signal.reason);
   const limits = {...defaultLimits,...configuration.limits};
   let format = configuration.format ?? 'html', file = configuration.file;
-  const profile = configuration.profile;
+  let profile = configuration.profile, quiet = configuration.quiet, noremap = configuration.noremap;
   let failed = false;
   const scope = {signal,...(context.registerCleanup ? {registerCleanup:context.registerCleanup.bind(context)} : {})};
   let stdout:OutputOperation | undefined, stderr:OutputOperation | undefined;
@@ -42,7 +42,7 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
     signal.throwIfAborted();
     stdout = createOutputOperation(scope,context.stdout);
     stderr = createOutputOperation(scope,context.stderr);
-    const budget = new Budget({limits,signal,...(profile === undefined ? {} : {profile})});
+    const budget = new Budget({limits,signal});
     const admit = (value:string):void => {
       budget.bound('tokenBytes',value.length,0);
       budget.charge('work',value.length,0);
@@ -65,12 +65,17 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
         if (operands) { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
         else if (arg === '--text') format = 'text';
         else if (arg === '--html') format = 'html';
-        else if (arg === '--quiet' || arg === '--nopict' || arg === '-n') { /* Strict output has no comments or exports. */ }
+        else if (arg === '--latex') format = 'latex';
+        else if (arg.startsWith('--profile=')) profile = arg.slice('--profile='.length) as UnrtfOptions['profile'];
+        else if (arg === '--quiet') quiet = true;
+        else if (arg === '--noremap') noremap = true;
+        else if (arg === '--nopict' || arg === '-n') { /* No profile exports pictures. */ }
         else if (arg.startsWith('--') && arg !== '--' || arg.startsWith('-') && arg !== '-' && arg !== '--') throw new UnrtfError('E_PROFILE','Option requires an unadmitted personality/configuration profile',0);
         else { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
       }
     } else if (file !== undefined) admit(file);
-    if (format !== 'text' && format !== 'html') throw new UnrtfError('E_PROFILE','Only text and html formats are admitted',0);
+    new Budget({limits,signal,...(profile === undefined ? {} : {profile})});
+    if (format !== 'text' && format !== 'html' && !(profile === 'gnu-0.21.10' && format === 'latex') || noremap && profile !== 'gnu-0.21.10') throw new UnrtfError('E_PROFILE','Option requires the GNU personality profile',0);
     if (file?.includes('\0')) throw new UnrtfError('E_PARSE','NUL is unavailable in VFS paths',0);
     async function* source():AsyncGenerator<Uint8Array> {
       if (file === undefined) { yield* readBytes(context.stdin,signal); return; }
@@ -91,7 +96,7 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
         }
       }
     }
-    for await (const bytes of renderRtf(source(),{format,limits,signal,...(profile === undefined ? {} : {profile})},budget))
+    for await (const bytes of renderRtf(source(),{format,limits,signal,...(quiet === undefined ? {} : {quiet}),...(noremap === undefined ? {} : {noremap}),...(profile === undefined ? {} : {profile})},budget))
       await writeBytes(stdout.output,bytes,stdout.signal);
   });
   try { await pending; return {exitCode:0}; }

@@ -24,11 +24,59 @@ test('CLI and SDK use the same strict text and HTML byte pipeline', async () => 
     await Promise.all(cli.cleanups.map(callback => callback()));
   }
 });
+test('explicit GNU personality matches issue 292 and preserves CLI/SDK parity', async () => {
+  const outputs = {
+    text:'###  Translation from RTF performed by UnRTF, version 0.21.10 \n\n-----------------\nHello',
+    html:'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n<html>\n<head>\n<meta http-equiv="content-type" content="text/html; charset=utf-8">\n<!-- Translation from RTF performed by UnRTF, version 0.21.10 -->\n</head>\n<body>Hello</body>\n</html>\n',
+    latex:'\\documentclass[11pt]{article}\n\\title{}\n%  Translation from RTF performed by UnRTF, version 0.21.10 \n\n\n\\begin{document}\n\\maketitle\n\nHello\\end{document}\n',
+  };
+  for (const format of ['text','html','latex'] as const) for (const noremap of [false,true]) {
+    const files = {'/vfs/input.rtf':'{\\rtf1\\ansi Hello}'};
+    const cli = fixture(['--profile=gnu-0.21.10','--'+format,...(noremap ? ['--noremap'] : []),'input.rtf'],files);
+    const sdk = fixture([],files);
+    assert.equal((await createUnrtfCommand().execute(cli.context)).exitCode,0);
+    assert.equal((await unrtf(sdk.context,{profile:'gnu-0.21.10',format,noremap,file:'input.rtf'})).exitCode,0);
+    assert.equal(new TextDecoder().decode(Uint8Array.from(cli.stdout)),outputs[format]);
+    assert.deepEqual(cli.stdout,sdk.stdout);
+  }
+});
 test('one literal VFS operand retries appended .rtf; dash remains a filename', async () => {
   const cli = fixture(['--text','-'], {'/vfs/-.rtf':'{\\rtf1 literal}'});
   assert.equal((await createUnrtfCommand().execute(cli.context)).exitCode,0);
   assert.deepEqual(cli.opened,['/vfs/-','/vfs/-.rtf']);
   assert.equal(new TextDecoder().decode(Uint8Array.from(cli.stdout)),'literal');
+});
+test('GNU quiet, aliases, noremap and scoped emphasis use official personality templates', async () => {
+  for (const [format,input,body] of [
+    ['text','A\\par B\\line C','A\nB\nC'],
+    ['html','A{\\b B{\\i C}D}E','A<b>B<i>C</i></b><b>D</b>E'],
+    ['latex','A{\\b B{\\i C}D}E','A{\\bf B{\\it C}}{\\bf D}E'],
+    ['html','<&%_>','&lt;&amp;%_&gt;'],
+    ['latex','<&%_>','<\\&\\%\\_>'],
+  ]) {
+    const f = fixture(['--profile=gnu-0.21.10','--'+format,'--quiet','input'],{'/vfs/input':'{\\rtf1 '+input+'}'});
+    assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
+    const output = new TextDecoder().decode(Uint8Array.from(f.stdout));
+    assert.ok(output.includes(body!));
+    assert.ok(!output.includes('Translation from RTF'));
+  }
+  const f = fixture(['--profile=gnu-0.21.10','--html','--noremap','input'],{'/vfs/input':'{\\rtf1 <&>}'});
+  assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
+  assert.ok(new TextDecoder().decode(Uint8Array.from(f.stdout)).includes('<body><&></body>'));
+});
+test('GNU profile retains strict Unicode failures, inert destinations and output budgets', async () => {
+  for (const input of ['{\\rtf1\\uc0\\u-10240 X}', '{\\rtf1 PREFIX']) {
+    const f = fixture(['--profile=gnu-0.21.10','--text','input'],{'/vfs/input':input});
+    assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,1);
+    assert.match(new TextDecoder().decode(Uint8Array.from(f.stderr)),/E_ENCODING|E_PARSE/);
+  }
+  const f = fixture(['--profile=gnu-0.21.10','--text','input'],{'/vfs/input':'{\\rtf1 A{\\*\\fldinst SECRET}{\\pict 00}Z}'});
+  assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
+  assert.ok(new TextDecoder().decode(Uint8Array.from(f.stdout)).endsWith('AZ'));
+  const limited = fixture(['--profile=gnu-0.21.10','--text']);
+  assert.equal((await createUnrtfCommand({limits:{outputBytes:1}}).execute(limited.context)).exitCode,1);
+  assert.deepEqual(limited.stdout,[]);
+  assert.match(new TextDecoder().decode(Uint8Array.from(limited.stderr)),/E_LIMIT.*outputBytes/);
 });
 test('missing VFS input fails without emitting an HTML document in CLI and SDK', async () => {
   for (const cli of [true,false]) {

@@ -1,12 +1,14 @@
 import { Budget, UnrtfError, type UnrtfOptions } from './contracts.js';
 import { extractRtf } from './extract.js';
+import { personalities } from './personalities.js';
 
-export interface UnrtfRenderOptions extends UnrtfOptions { format: 'text' | 'html' }
+export interface UnrtfRenderOptions extends UnrtfOptions { format: 'text' | 'html' | 'latex'; quiet?:boolean; noremap?:boolean }
 interface Style { bold:boolean; italic:boolean; underline:boolean; strike:boolean; font?:number; size?:number; color?:string }
 const normal: Style = {bold:false,italic:false,underline:false,strike:false};
 
 /** Strict UTF-8 projection. This is deliberately not a GNU output personality. */
 export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:UnrtfRenderOptions, budget = new Budget(options)):AsyncGenerator<Uint8Array> {
+  if (options.profile === 'gnu-0.21.10') { yield* renderPersonality(source,options,budget); return; }
   const encoder = new TextEncoder(), html = options.format === 'html';
   if (!html && options.format !== 'text') throw new UnrtfError('E_PROFILE','Unsupported output format',0);
   let style = {...normal}, paragraph = false, table = false, row = false, cell = false;
@@ -123,4 +125,68 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     budget.release('retainedBytes',stack.length * 32);
     stack.length = 0; fonts.clear(); colors.clear();
   }
+}
+
+/** Official output templates over strict extraction, without legacy parser defects. */
+async function* renderPersonality(source:AsyncIterable<Uint8Array>, options:UnrtfRenderOptions, budget:Budget):AsyncGenerator<Uint8Array> {
+  const personality = personalities[options.format];
+  if (!personality) throw new UnrtfError('E_PROFILE','Unsupported output personality',0);
+  const template = (name:string):string => (personality[name] ?? '').split('\\%').join('%');
+  const encoder = new TextEncoder();
+  const emit = (text:string, offset:number):Uint8Array => {
+    budget.charge('work',text.length,offset);
+    budget.charge('retainedBytes',text.length * 5,offset);
+    try {
+      const bytes = encoder.encode(text);
+      budget.charge('outputBytes',bytes.length,offset);
+      return bytes;
+    } finally { budget.release('retainedBytes',text.length * 5); }
+  };
+  let started = false;
+  let active:string[] = [];
+  const stack:string[][] = [];
+  const controls:Record<string,string> = {b:'bold',i:'italic',ul:'underline',strike:'strikethru'};
+  try {
+    for await (const event of extractRtf(source,options,budget,false)) {
+      if (!started) {
+        const banner = options.quiet ? '' : template('comment_begin') + ' Translation from RTF performed by UnRTF, version 0.21.10 ' + template('comment_end');
+        yield emit(template('document_begin') + template('header_begin') + template('utf8_encoding') + banner + template('header_end') + template('body_begin'),event.offset);
+        started = true;
+      }
+      budget.charge('work',1,event.offset);
+      if (event.kind === 'open') {
+        budget.charge('retainedBytes',128,event.offset); stack.push([...active]);
+      } else if (event.kind === 'close') {
+        yield emit([...active].reverse().map(name => template(name+'_end')).join(''),event.offset);
+        active = stack.pop()!; budget.release('retainedBytes',128);
+        if (stack.length) yield emit(active.map(name => template(name+'_begin')).join(''),event.offset);
+      } else if (event.kind === 'control') {
+        const name = controls[event.name];
+        if (name || event.name === 'plain' || event.name === 'ulnone') {
+          if (name && event.parameter !== 0) {
+            if (!active.includes(name)) { active.push(name); yield emit(template(name+'_begin'),event.offset); }
+            continue;
+          }
+          yield emit([...active].reverse().map(value => template(value+'_end')).join(''),event.offset);
+          if (event.name === 'plain') active = [];
+          else {
+            const value = name ?? 'underline';
+            active = active.filter(item => item !== value);
+            if (event.parameter !== 0 && event.name !== 'ulnone') active.push(value);
+          }
+          yield emit(active.map(value => template(value+'_begin')).join(''),event.offset);
+        }
+      } else if (event.kind === 'text') {
+        let text = '';
+        for (const char of event.text) {
+          const code = char.codePointAt(0)!;
+          if (char === '\n') text += template('line_break');
+          else if (options.noremap) text += char;
+          else text += personality['<U'+code.toString(16).toUpperCase()+'>'] ?? personality[String(code)] ?? char;
+        }
+        yield emit(text,event.offset);
+      }
+    }
+    if (started) yield emit(template('body_end') + template('document_end'),0);
+  } finally { budget.release('retainedBytes',stack.length * 128); }
 }

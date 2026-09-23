@@ -43,19 +43,30 @@ for await (const event of extractRtf(input(), { limits, signal })) {
 | `charsetCodePages`, `codecLabels` | Explicit source charset mapping and codec inventory |
 | `unrtfBaseline` | Pinned source provenance and admitted extraction profile |
 
-`standards-strict` is the only admitted profile. `native-legacy` and `recovery`
+`standards-strict` is the default profile. `native-legacy` and `recovery`
 fail with `E_PROFILE` before input is pulled. This is standards-oriented
 extraction, **not GNU UnRTF 0.21.10 personality compatibility**.
 `unrtfBaseline` pins the official source archive SHA256
 `b49f20211fa69fff97d42d6e782a62d7e2da670b064951f14bbff968c93734ae`;
-that provenance does not imply support for its `outputs/*.conf` personalities.
+An explicit `gnu-0.21.10` profile uses scoped official text, HTML and LaTeX
+personality templates and character aliases (GPL-3.0-or-later; see NOTICE).
+Select it with `unrtf --profile=gnu-0.21.10 --latex /document.rtf` or
+`unrtf(context, { profile: 'gnu-0.21.10', format: 'latex', file: '/document.rtf' })`.
+The profile emits GNU document wrappers, banners, text separators, line breaks
+and scoped bold/italic/underline/strike templates. `--quiet` suppresses its
+banner; `--noremap` bypasses character aliases and can emit unescaped markup.
+SDK options `quiet` and `noremap` provide the same behavior. Registration also
+accepts `unrtfCommands({ profile: 'gnu-0.21.10' })`.
+This is scoped output compatibility over strict extraction, not full native
+parser, font/color/table or malformed-input parity. Strict Unicode and binary
+handling, inert destinations, budgets and no exports remain in effect.
 
 Text/HTML supports paragraphs, line breaks, tabs, flat table rows/cells, scoped
 bold/italic/underline/strike, fonts, half-point sizes and foreground RGB colors.
 HTML escapes text/font names; field instructions, links and objects stay inert,
 while field results remain text. Pictures, metadata, stylesheets, exact `header`/`footer` destinations
 and starred destinations are skipped. Header/footer variants such as `headerl`
-and `footerr` currently remain ordinary content. GNU configurations/personalities,
+and `footerr` currently remain ordinary content. Arbitrary GNU configurations,
 picture exports, nested/merged tables and inherited stylesheet styles are
 unimplemented.
 Unknown rendering controls are ignored; extraction exposes them as events.
@@ -93,9 +104,10 @@ before input access; no ambient configuration search occurs.
 | `--nopict`, `-n` | Accepted; this profile never exports pictures |
 | `--` | End options; subsequent arguments are literal VFS operands |
 
-There are no other supported flags, including `--help` or `--version`.
-The last format flag wins. SDK `format` selects the same renderer; quiet/nopict
-need no SDK option because their behavior is unconditional.
+`--profile=standards-strict` and `--profile=gnu-0.21.10` select the profile.
+`--latex` and `--noremap` require the GNU profile; the latter has SDK option
+`noremap`. `--help` and `--version` remain unsupported. The last format flag
+wins. `--nopict` is unconditional in both profiles; SDK `quiet` controls the GNU banner.
 
 | Limit | Command default |
 | --- | ---: |

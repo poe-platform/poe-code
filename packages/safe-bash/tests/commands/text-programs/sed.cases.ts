@@ -6,6 +6,91 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const separator of ["\n", "\0"]) {
+  for (const payload of ["DifferentTail", "Different\xfeTail"]) {
+    for (const ending of ["", separator]) {
+      // Byte-exact GNU sed 4.9 outputs; termination belongs to the resulting space.
+      const first = `First${separator}`;
+      const mode = separator === "\0" ? "-z " : "";
+      for (const [program, input, expected] of [
+        ["", payload, payload + ending],
+        ["G", payload, payload + separator + separator],
+        ["g", payload, separator],
+        ["x", payload, separator],
+        ["G", first + payload, first + separator + payload + separator + separator],
+        ["g", first + payload, separator + separator],
+        ["x", first + payload, separator + first],
+        ["1h;2x", first + payload, first + first],
+        ["1h;2g", first + payload, first + first],
+        ["1h;2G", first + payload, first + payload + separator + first],
+        ["h;g", payload, payload + ending],
+        ["h;G", payload, payload + separator + payload + ending],
+        ["H;g", payload, separator + payload + ending],
+        ["x;x", payload, payload + ending],
+        ["x;g", payload, payload + ending],
+        ["x;G", payload, separator + payload + ending],
+        ["x;H;g", payload, payload + separator + separator],
+      ] as const) {
+        test(`sed hold termination ${mode}${program}: ${JSON.stringify(input + ending)}`, async () => {
+          const original = Buffer.from(input + ending, "latin1");
+          const fs = await makeFileSystem({ input: original });
+          const shell = new Shell({ fs, cwd: "/work" }).use(textProgramCommands());
+          const result = await shell.exec(`sed ${mode}'${program}' input > actual.bin`);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(result.stderr, "");
+          assert.equal(result.stdout, "");
+          assert.deepEqual(Buffer.from(await fs.readFile("/work/actual.bin")), Buffer.from(expected, "latin1"));
+          assert.deepEqual(Buffer.from(await fs.readFile("/work/input")), original);
+        });
+      }
+    }
+  }
+}
+
+for (const [program, expected] of [["g", "\n"], ["G", "tail\n\n"], ["x", "\n"]] as const) {
+  for (const print of ["p", "P", "s/^/prefix/p"]) {
+    test(`sed hold termination reaches explicit printing: ${program};${print}`, async () => {
+      const result = await runVirtual("sed", { args: ["-n", `${program};${print}`], stdin: "tail" });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      assert.deepEqual(result.stdout, Buffer.from(print === "P" && program === "G" ? "tail\n" : (print.startsWith("s/") ? "prefix" : "") + expected));
+    });
+  }
+  test(`sed hold termination reaches in-place output: ${program}`, async () => {
+    const result = await runVirtual("sed", { args: ["-i.bak", program, "input"], files: { input: "tail" } });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stdout.length, 0);
+    assert.deepEqual(result.files, { input: Buffer.from(expected), "input.bak": Buffer.from("tail") });
+  });
+}
+
+test("sed hold termination and raw bytes survive reused input buffers", async () => {
+  const storage = Buffer.alloc(2);
+  let closed = false;
+  const source = (async function* () {
+    try {
+      storage.set([0xff, 10]); yield storage;
+      storage.set([0xfe, 10]); yield storage.subarray(0, 1);
+    } finally { storage.fill(88); closed = true; }
+  })();
+  const result = await runVirtual("sed", { args: ["1h;2G"] }, {}, source);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.deepEqual(result.stdout, Buffer.from([0xff, 10, 0xfe, 10, 0xff, 10]));
+  assert.equal(closed, true);
+});
+
+for (const program of ["G", "H;g"]) {
+  test(`sed hold termination retains buffer limits: ${program}`, async () => {
+    for (const maxBufferBytes of [4, 5]) {
+      const result = await runVirtual("sed", { args: [program], stdin: "tail" }, { maxBufferBytes });
+      assert.equal(result.exitCode, maxBufferBytes === 4 ? 2 : 0, result.stderr.toString());
+      if (maxBufferBytes === 4) {
+        assert.match(result.stderr.toString(), /text buffer limit exceeded/u);
+        assert.equal(result.stdout.length, 0);
+      } else assert.deepEqual(result.stdout, Buffer.from(program === "G" ? "tail\n\n" : "\ntail"));
+    }
+  });
+}
+
 for (const option of ["--separate", "-s"]) {
   test(`sed ${option} resets last addresses, numbering, ranges and hold space per file`, async () => {
     const files = { input: "a\nb\n", empty: "", second: "c\nd\n" };

@@ -14,6 +14,12 @@ export const filesystemCommandRequirements = {
   ],
   cp: [
     { id: "backup", description: "Rename replaced entries to backup files", capabilities: ["rename"], mutates: true },
+    { id: "attributes", description: "Leave existing file contents intact", capabilities: ["stat", "realpath"] },
+    { id: "attributes-create", description: "Create an empty destination", capabilities: ["stat", "realpath", "exclusiveCreate"], mutates: true },
+    { id: "attributes-recursive", description: "Copy directory structure without file contents", capabilities: ["stat", "realpath", "readdir", "explicitDirectories", "mkdir"], mutates: true },
+    { id: "mode", description: "Preserve file modes", capabilities: ["permissions"], mutates: true },
+    { id: "timestamps", description: "Preserve access and modification times", capabilities: ["timestamps"], mutates: true },
+    { id: "hardlink", description: "Preserve links between copied entries", capabilities: ["hardlinks"], mutates: true },
     { id: "file", description: "Copy file contents", capabilities: ["stat", "realpath", "copy"], mutates: true },
     { id: "recursive", description: "Copy directory trees (-r/-R)", capabilities: ["stat", "realpath", "readdir", "explicitDirectories", "mkdir", "copy"], mutates: true },
     { id: "symlink", description: "Copy symbolic links without dereferencing", capabilities: ["stat", "realpath", "readlink", "symlinks"], mutates: true },

@@ -1,7 +1,8 @@
-import { basename, dirname, FsError, type CommandContext } from "../contracts/index.js";
+import { basename, dirname, FsError, type CommandContext, type FileStat } from "../contracts/index.js";
 import { codeOf, options, UsageError, value } from "./internal.js";
 import { admitFilesystemModes } from "./filesystem-requirements.js";
 import { type DirectoryReader } from "./directory-admission.js";
+import type { CopyAttribute } from "./copy-preserve.js";
 
 export interface CopyBackup {
   readonly mode: "simple" | "numbered" | "existing";
@@ -11,40 +12,38 @@ export interface CopyBackup {
 export function copyOptions(context: CommandContext) {
   // GNU's optional long backup argument only consumes an attached value.
   const args: string[] = [];
+  const preserve = new Set<CopyAttribute>();
   let ended = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
-    args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}`
-      : !ended && argument === "--preserve" ? "--preserve=mode,ownership,timestamps" : argument);
+    if (!ended && argument.startsWith("--preserve=")) {
+      for (const attribute of argument.slice("--preserve=".length).split(",")) {
+        if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") {
+          preserve.add(attribute);
+        } else if (attribute === "all" || attribute === "context" || attribute === "xattr") {
+          throw new FsError("ENOTSUP", { syscall: "cp", message: `preserving ${attribute} is unavailable` });
+        } else throw new UsageError(`invalid argument '${attribute}' for 'preserve'`);
+      }
+    } else args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}` : argument);
     if (argument === "--") ended = true;
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
-      ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
+      ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t" || character === "B")) : -1;
     if (!ended && (argument === "--suffix" || argument === "--target-directory" || valueOffset > 0 && valueOffset === argument.length - 1)) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
   const parsed = options(args, "arRfnvPLpdbB:S:t:T", {
-    archive: "a",
+    archive: "a", preserve: "p", "attributes-only": false,
     recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "B", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
-    preserve: "preserve:", "attributes-only": false,
   });
-  const attributes = new Set<string>(parsed.flags.has("p") ? ["mode", "ownership", "timestamps"] : []);
-  for (const list of parsed.values.get("preserve") ?? []) {
-    for (const attribute of list.split(",")) {
-      if (!["mode", "ownership", "timestamps", "links", "context", "xattr", "all"].includes(attribute)) {
-        throw new UsageError(`invalid argument '${attribute}' for 'preserve attribute'`);
-      }
-      if (attribute === "all") for (const name of ["mode", "ownership", "timestamps", "links", "context", "xattr"]) attributes.add(name);
-      else attributes.add(attribute);
-    }
-  }
-  if (parsed.flags.has("d")) { parsed.flags.add("P"); attributes.add("links"); }
-  for (const attribute of attributes) parsed.flags.add(`preserve-${attribute}`);
   if (parsed.flags.has("a")) {
     parsed.flags.add("R");
     parsed.flags.add("P");
   }
+  if (parsed.flags.has("p")) for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
+  if (parsed.flags.has("d")) { parsed.flags.add("P"); preserve.add("links"); }
+  if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
   let backup: CopyBackup | undefined;
   if (parsed.flags.has("b") || parsed.flags.has("B")) {
     const control = value(parsed, "B") ?? context.env.VERSION_CONTROL ?? "existing";
@@ -58,7 +57,10 @@ export function copyOptions(context: CommandContext) {
   }
   if (backup && parsed.flags.has("n")) throw new UsageError("options --backup and --no-clobber are mutually exclusive");
   if (backup && (!backup.suffix || backup.suffix.includes("/"))) throw new UsageError("invalid backup suffix");
-  return { ...parsed, backup };
+  const copiedLinks = new Map<object | symbol, Map<string, { path: string; stat?: FileStat }>>();
+  const sourceMetadata = new Map<string, FileStat>();
+  const copiedTargets = new Map<string, FileStat>();
+  return { ...parsed, backup, preserve, copiedLinks, sourceMetadata, copiedTargets };
 }
 
 export async function backupCopyTarget(

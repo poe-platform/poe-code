@@ -12,7 +12,8 @@ import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { touchTimes } from "./touch-times.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
-import { backupCopyTarget, copyOptions, type CopyBackup } from "./copy-backup.js";
+import { backupCopyTarget, copyOptions } from "./copy-backup.js";
+import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
@@ -139,11 +140,12 @@ function childOperand(operand: string, name: string): string {
 
 async function copy(
   context: CommandContext, source: string, target: string,
-  flags: ReadonlySet<string>, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
-  preflight = false, displaySource = source, displayTarget = target, backup?: CopyBackup,
-  copied: { stat: FileStat; target: string }[] = [],
+  settings: CopyOptions, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
+  preflight = false, displaySource = source, displayTarget = target,
 ): Promise<void> {
   context.signal.throwIfAborted();
+  const { flags, preserve, copiedLinks, backup } = settings;
+  const attributesOnly = flags.has("attributes-only");
   const link = await context.fs.lstat(source, { signal: context.signal });
   const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
@@ -160,23 +162,46 @@ async function copy(
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
   if (flags.has("n") && await maybeStat(context, target, false)) return;
-  const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal }) ?? context.fs.capabilities;
-  if (flags.has("preserve-context") || flags.has("preserve-xattr")
-    || !preserveLink && flags.has("preserve-mode") && (!context.fs.chmod || capabilities.permissions === false)
-    || !preserveLink && flags.has("preserve-timestamps") && (!context.fs.utimes || capabilities.timestamps === false)
-    || preserveLink && (flags.has("preserve-mode") || flags.has("preserve-timestamps"))) {
-    throw new FsError("ENOTSUP", { syscall: "cp", path: target, message: "requested metadata preservation is unavailable" });
-  }
-  if (flags.has("preserve-ownership") && (sourceStat.uid !== undefined || sourceStat.gid !== undefined)) {
-    const owner = targetStat ?? await context.fs.stat(dirname(target), { signal: context.signal });
-    if (owner.uid !== sourceStat.uid || owner.gid !== sourceStat.gid) {
-      throw new FsError("ENOTSUP", { syscall: "cp", path: target, message: "ownership preservation is unavailable" });
-    }
-  }
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {
     throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
   }
-  if (sourceStat.type === "directory") {
+  const metadata = settings.sourceMetadata.get(physicalSource) ?? sourceStat;
+  if (preserve.has("timestamps") && !settings.sourceMetadata.has(physicalSource)) settings.sourceMetadata.set(physicalSource, metadata);
+  await admitCopyPreservation(context, preserve, sourceStat, target, targetStat);
+  const previousSource = settings.copiedTargets.get(physicalTarget);
+  if (previousSource && compareCopyIdentity(previousSource, sourceStat) !== "same") {
+    throw new PublicDiagnostic(`will not overwrite just-created '${displayTarget}' with '${displaySource}'`);
+  }
+  let links: Map<string, { path: string; stat?: FileStat }> | undefined;
+  let identity: string | undefined;
+  if (preserve.has("links") && sourceStat.type !== "directory") {
+    if (compareCopyIdentity(sourceStat, sourceStat) !== "same") {
+      throw new FsError("ENOTSUP", { syscall: "cp", path: source, message: "preserving links requires scoped file identity" });
+    }
+    links = copiedLinks.get(sourceStat.identityScope!);
+    if (!links) { links = new Map(); copiedLinks.set(sourceStat.identityScope!, links); }
+    identity = `${sourceStat.dev}:${sourceStat.ino}`;
+  }
+  const previous = links?.get(identity!);
+  if (previous) {
+    await admitFilesystemModes(context, "cp", ["hardlink"], [previous.path, target]);
+    needCapability(context, "link");
+    const existing = await maybeStat(context, target, false);
+    if (existing?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (!preflight && compareCopyIdentity(previous.stat, await context.fs.lstat(previous.path, { signal: context.signal })) !== "same") {
+      throw new FsError("ENOTSUP", { syscall: "cp", path: previous.path, message: "copied hard-link source changed" });
+    }
+    if (!preflight && compareCopyIdentity(previous.stat, existing) === "same") return;
+    if (existing) {
+      await admitFilesystemModes(context, "cp", ["replace"], [target]);
+      if (compareCopyIdentity(link, existing) !== "distinct" || compareCopyIdentity(sourceStat, existing) !== "distinct") {
+        throw new FsError("ENOTSUP", { path: target, message: "hard-link copy unlink lacks authoritative distinctness" });
+      }
+      if (backup) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
+      else if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
+    }
+    if (!preflight) await context.fs.link!(previous.path, target, { signal: context.signal });
+  } else if (sourceStat.type === "directory") {
     if (!flags.has("r") && !flags.has("R")) throw new FsError("EISDIR", { path: source, message: "omitting directory (use -R)" });
     if (isPathWithin(physicalSource, physicalTarget)) throw new FsError("EINVAL", { path: target, message: "cannot copy a directory into itself" });
     if (ancestors.has(physicalSource)) throw new FsError("ELOOP", { path: source });
@@ -185,21 +210,38 @@ async function copy(
     if (ancestors.size > MAX_RECURSIVE_DIRECTORY_DEPTH) {
       throw new FsError("ELOOP", { path: source, message: `cp directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
     }
-    await admitFilesystemModes(context, "cp", ["recursive"], [target]);
+    await admitFilesystemModes(context, "cp", [attributesOnly ? "attributes-recursive" : "recursive"], [target]);
+    const temporaryMode = !targetStat && (sourceStat.mode & 0o700) !== 0o700;
+    if (temporaryMode) {
+      await admitFilesystemModes(context, "cp", ["mode"], [target]);
+      if (!context.fs.chmod) throw new FsError("ENOTSUP", { syscall: "chmod", path: target });
+    }
+    let created = false;
     ancestors.add(physicalSource);
     try {
-      if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
-      for (const entry of await readDirectory(context, source, true)) {
-        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight,
-          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), backup, copied);
+      if (!targetStat && !preflight) {
+        await context.fs.mkdir(target, { mode: (sourceStat.mode & 0o777) | (temporaryMode ? 0o700 : 0), signal: context.signal });
+        created = true;
       }
-    } finally { ancestors.delete(physicalSource); }
+      for (const entry of await readDirectory(context, source, true)) {
+        await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), settings, readDirectory, false, ancestors, preflight,
+          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name));
+      }
+    } finally {
+      ancestors.delete(physicalSource);
+      if (created && temporaryMode) {
+        // Restore the temporary mode even when copying was cancelled.
+        try { await context.fs.chmod!(target, sourceStat.mode & 0o777); }
+        finally { context.signal.throwIfAborted(); }
+      }
+    }
   } else if (preserveLink) {
     await admitFilesystemModes(context, "cp", ["symlink"], [target]);
     needCapability(context, "symlink"); needCapability(context, "readlink");
     const linkTarget = await context.fs.readlink!(source, { signal: context.signal });
     const existing = await maybeStat(context, target, false);
     if (existing) {
+      if (attributesOnly) throw new FsError("EEXIST", { syscall: "symlink", path: target });
       await admitFilesystemModes(context, "cp", ["replace"], [target]);
       if (existing.type === "directory") throw new FsError("EISDIR", { path: target });
       const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
@@ -211,6 +253,13 @@ async function copy(
       else if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
     }
     if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
+  } else if (attributesOnly) {
+    await admitFilesystemModes(context, "cp", [targetStat && !backup ? "attributes" : "attributes-create"], [target]);
+    if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (backup && targetStat) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
+    if ((!targetStat || backup) && !preflight) {
+      await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", mode: sourceStat.mode & 0o777, signal: context.signal });
+    }
   } else {
     const replace = removeDestination || flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
     await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
@@ -222,26 +271,20 @@ async function copy(
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "copy unlink lacks authoritative distinctness" });
     }
     if (backup && await maybeStat(context, target, false)) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
-    if (preflight) return;
+    if (preflight) {
+      if (links) {
+        links.set(identity!, { path: target });
+        settings.copiedTargets.set(physicalTarget, sourceStat);
+      }
+      return;
+    }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      const previous = flags.has("preserve-links") ? copied.find(entry => compareCopyIdentity(sourceStat, entry.stat) === "same") : undefined;
-      if (flags.has("attributes-only")) {
-        if (!targetStat || removeDestination || backup) await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", signal: context.signal });
-      } else if (previous) {
-        needCapability(context, "link");
-        if (targetStat && !removeDestination && !backup) {
-          if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) !== "distinct") {
-            throw new FsError("ENOTSUP", { path: target, message: "hard link copy unlink lacks authoritative distinctness" });
-          }
-          await context.fs.rm(target, { recursive: false, signal: context.signal });
-        }
-        await context.fs.link!(previous.target, target, { signal: context.signal });
-      } else await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
+      await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
     }
     catch (error) {
       context.signal.throwIfAborted();
-      if (flags.has("attributes-only") || flags.has("preserve-links") || removeDestination || !replace || codeOf(error) !== "EACCES") throw error;
+      if (removeDestination || !replace || codeOf(error) !== "EACCES") throw error;
       const existing = await maybeStat(context, target, false);
       if (existing) {
         const sourceEntry = await context.fs.lstat(source, { signal: context.signal });
@@ -256,12 +299,11 @@ async function copy(
       }
       await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
     }
-    if (flags.has("preserve-links")) copied.push({ stat: sourceStat, target });
   }
-  if (!preflight && !preserveLink) {
-    if (flags.has("preserve-mode")) await context.fs.chmod!(target, sourceStat.mode & 0o7777, { signal: context.signal });
-    if (flags.has("preserve-timestamps")) await context.fs.utimes!(target, sourceStat.atimeMs, sourceStat.mtimeMs, { signal: context.signal });
-  }
+  if (!preflight) await preserveCopyMetadata(context, preserve, metadata, target);
+  context.signal.throwIfAborted();
+  if (links) settings.copiedTargets.set(physicalTarget, sourceStat);
+  if (links && !previous) links.set(identity!, { path: target, ...preflight ? {} : { stat: await context.fs.lstat(target, { signal: context.signal }) } });
   if (!preflight && flags.has("v")) await output(context, `'${escapeText(displaySource, "display")}' -> '${escapeText(displayTarget, "display")}'\n`);
 }
 
@@ -346,21 +388,21 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     define("cp", async context => {
       const parsed = copyOptions(context);
-      const copied: { stat: FileStat; target: string }[] = [];
-      if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
       const destination = await destinations(context, parsed.operands, value(parsed, "t"), parsed.flags.has("T"));
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed.flags, readDirectory, true, new Set(), true, source, destination.target, parsed.backup);
+          parsed, readDirectory, true, new Set(), true);
       });
+      parsed.copiedLinks.clear();
+      parsed.copiedTargets.clear();
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const targetOperand = destination.targetOperand;
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed.flags, readDirectory, true, new Set(), false, operand,
-          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand, parsed.backup, copied);
+          parsed, readDirectory, true, new Set(), false, operand,
+          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
       });
     }),
     define("mv", async context => {

@@ -1,6 +1,6 @@
 {
   "scope": "Linux native reference provisioning",
-  "status": "goffice-built-gnumeric-itstool-prerequisite-validated-rerun-required",
+  "status": "exact-paradox-compile-failure-preserved-three-corrected-profile-runs-in-progress",
   "wholeGoalComplete": false,
   "initialRun": 35836474044,
   "initialHead": "5496dd7e634a29f97664b6505cef36af72ac2f02",
@@ -104,6 +104,24 @@
       },
       "productParity": "unqualified",
       "neighboringSourceRequirement": "Authenticated Gnumeric configure immediately requires xmllint after itstool; libxml2-dev does not supply the utility. Add libxml2-utils without changing configure flags."
+    },
+    {
+      "run": 35838317483,
+      "head": "3c27133876bf89c8e2351db9ad9a520036cc4b47",
+      "goffice": "configure-make-install-success",
+      "gnumericConfigure": {
+        "exitCode": 0,
+        "logSha256": "27fc9624edb238835e5da6633a83345ada576359176fe45528c062a786e3a8ed"
+      },
+      "gnumericMake": {
+        "exitCode": 2,
+        "logBytes": 69809,
+        "logSha256": "7b60c0dca31ce69a55dc6e0524ebea3f86bdf6c41ca8beece95602a6d937c504",
+        "failure": "Declared paradox plugin compilation: px.h includes missing pxversion.h.",
+        "tail": "ns.lo\nLC_ALL=C /usr/bin/intltool-merge -x -u -c ../../po/.intltool-merge-cache ../../po plugin.xml.in plugin.xml.tmp\nFound cached translation database\nMerging translations into plugin.xml.tmp.\nCREATED plugin.xml.tmp\nperl -pi -e \"s/VERSION/1.12.61/\" plugin.xml.tmp\nmv plugin.xml.tmp plugin.xml\n  CCLD     plugin.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/fn-stat'\nMaking all in fn-string\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/fn-string'\n  CC       functions.lo\nLC_ALL=C /usr/bin/intltool-merge -x -u -c ../../po/.intltool-merge-cache ../../po plugin.xml.in plugin.xml.tmp\nFound cached translation database\nMerging translations into plugin.xml.tmp.\nCREATED plugin.xml.tmp\nperl -pi -e \"s/VERSION/1.12.61/\" plugin.xml.tmp\nmv plugin.xml.tmp plugin.xml\n  CCLD     plugin.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/fn-string'\nMaking all in fn-tsa\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/fn-tsa'\n  CC       functions.lo\nLC_ALL=C /usr/bin/intltool-merge -x -u -c ../../po/.intltool-merge-cache ../../po plugin.xml.in plugin.xml.tmp\nFound cached translation database\nMerging translations into plugin.xml.tmp.\nCREATED plugin.xml.tmp\nperl -pi -e \"s/VERSION/1.12.61/\" plugin.xml.tmp\nmv plugin.xml.tmp plugin.xml\n  CCLD     plugin.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/fn-tsa'\nMaking all in glpk\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/glpk'\n  CC       boot.lo\n  CC       gnm-glpk.lo\n  CC       glpk-write.lo\n  ITMRG  plugin.xml\n  CCLD     glpk.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/glpk'\nMaking all in html\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/html'\n  CC       boot.lo\n  CC       html.lo\n  CC       html_read.lo\n  CC       latex.lo\n  CC       roff.lo\n  CC       font.lo\n  ITMRG  plugin.xml\n  CCLD     html.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/html'\nMaking all in lotus-123\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/lotus-123'\n  CC       boot.lo\n  CC       lotus.lo\nlotus.c: In function 'lotus_set_colwidth_cb':\nlotus.c:1389:24: warning: variable 'outlinelevel' set but not used [-Wunused-but-set-variable]\n 1389 |         guint16 flags, outlinelevel;\n      |                        ^~~~~~~~~~~~\nlotus.c: In function 'lotus_set_rowheight_cb':\nlotus.c:1435:24: warning: variable 'outlinelevel' set but not used [-Wunused-but-set-variable]\n 1435 |         guint16 flags, outlinelevel;\n      |                        ^~~~~~~~~~~~\n  CC       lotus-formula.lo\n  ITMRG  plugin.xml\n  CCLD     lotus.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/lotus-123'\nMaking all in lpsolve\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/lpsolve'\n  CC       boot.lo\n  CC       gnm-lpsolve.lo\n  CC       lpsolve-write.lo\n  ITMRG  plugin.xml\n  CCLD     lpsolve.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/lpsolve'\nMaking all in mps\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/mps'\n  CC       mps.lo\n  ITMRG  plugin.xml\n  CCLD     mps.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/mps'\nMaking all in nlsolve\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/nlsolve'\n  CC       boot.lo\n  CC       gnm-nlsolve.lo\n  ITMRG  plugin.xml\n  CCLD     nlsolve.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/nlsolve'\nMaking all in oleo\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/oleo'\n  CC       boot.lo\n  CC       oleo.lo\n  ITMRG  plugin.xml\n  CCLD     oleo.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/oleo'\nMaking all in openoffice\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/openoffice'\n  CC       openoffice-read.lo\n  CC       openoffice-write.lo\n  ITMRG  plugin.xml\n  CCLD     openoffice.la\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/openoffice'\nMaking all in paradox\nmake[3]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/paradox'\n  CC       paradox.lo\n  ITMRG  plugin.xml\nIn file included from paradox.c:10:\npx.h:5:10: fatal error: pxversion.h: No such file or directory\n    5 | #include <pxversion.h>\n      |          ^~~~~~~~~~~~~\ncompilation terminated.\nmake[3]: *** [Makefile:572: paradox.lo] Error 1\nmake[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/paradox'\nmake[2]: *** [Makefile:512: all-recursive] Error 1\nmake[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins'\nmake[1]: *** [Makefile:669: all-recursive] Error 1\nmake[1]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61'\nmake: *** [Makefile:528: all] Error 2\n"
+      },
+      "correctionDelivered": "52c8dd425bfede79c86aca9bb8fbcf47856ce4f3 installs pxlib-dev without altering native source/profile flags.",
+      "productParity": "unqualified"
     }
   ],
   "artifactPackaging": {
@@ -198,5 +216,25 @@
     ],
     "gda6": "Required libgda-6.0-dev absent in Debian trixie package index; libgda-5.0-dev is a different ABI and is not a substitute. GDA/gnomedb qualification remains unresolved.",
     "status": "configuration-prepared-actual-selected-runs-required"
-  }
+  },
+  "selectedRuns": [
+    {
+      "run": 35838516785,
+      "head": "52c8dd425bfede79c86aca9bb8fbcf47856ce4f3",
+      "profile": "gnumeric-1.12.61-optional-none",
+      "status": "build-in-progress-last-observed"
+    },
+    {
+      "run": 35838796927,
+      "head": "4407183db2888f858efeb6c4d29419017dd5fe75",
+      "profile": "gnumeric-1.12.61-optional-perl-samples",
+      "status": "in-progress-last-observed"
+    },
+    {
+      "run": 35838801396,
+      "head": "4407183db2888f858efeb6c4d29419017dd5fe75",
+      "profile": "gnumeric-1.12.61-optional-python-samples",
+      "status": "in-progress-last-observed"
+    }
+  ]
 }

@@ -6404,16 +6404,18 @@ export class Runtime {
       let count: number | undefined;
       let exact = false;
       let delimiter: number | undefined;
+      let array: string | undefined;
       let invalid = false;
       while (names[0]?.startsWith("-") && names[0] !== "--" && names[0] !== "-") {
         const option = names.shift()!;
         for (let index = 1; index < option.length; index++) {
           const flag = option[index];
           if (flag === "r") { raw = true; continue; }
-          if (flag !== "n" && flag !== "N" && flag !== "d") { invalid = true; break; }
+          if (flag !== "n" && flag !== "N" && flag !== "d" && flag !== "a") { invalid = true; break; }
           if (flag === "N") exact = true;
           const value = option.slice(index + 1) || names.shift();
           if (value === undefined) invalid = true;
+          else if (flag === "a") array = value;
           else if (flag === "d") delimiter = new TextEncoder().encode(value)[0] ?? 0;
           else if (exact && (!/^[ \t]*[+-]?\d+[ \t]*$/u.test(value) || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) {
             const diagnosticIO: IO = context;
@@ -6427,6 +6429,7 @@ export class Runtime {
         if (invalid) break;
       }
       if (names[0] === "--") names.shift();
+      if (array !== undefined) names.splice(0, names.length, array);
       const invalidName = names.find(name => !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name));
       if (exact && !invalid && invalidName !== undefined) {
         const diagnosticIO: IO = context;
@@ -6443,7 +6446,16 @@ export class Runtime {
           ...(count === undefined ? {} : { count }), ...(delimiter === undefined ? {} : { delimiter }), byteCount: byteLocale(state.variables), exact,
         });
       try {
-      if (!names.length) {
+      if (array !== undefined) {
+        if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
+        const writer = await this.incrementalIndexed(state, context, array, true);
+        try {
+          const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+          const fields = await line?.fields(separators) ?? [];
+          for (let index = 0; index < fields.length; index++) await writer.set(index, fields[index]!.value);
+        } finally { await writer.close(); }
+      }
+      else if (!names.length) {
         if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 1; }
         this.writeVariable(state, "REPLY", line?.shellValue ?? "");
       }

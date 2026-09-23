@@ -297,6 +297,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       if (attempt && args.download?.resume && output && output !== "-") resumeOffset = await existingSize(context, output, signal) ?? 0;
       values.num_retries = String(attempt);
       downloaded = 0;
+      uploaded = 0;
       failure = undefined;
       let current = new URL(initial);
       let currentUrl = current.origin + initialTarget;

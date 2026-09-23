@@ -118,6 +118,42 @@ function assertRequests(state: Awaited<ReturnType<typeof fixture>>["state"], att
   assert.deepEqual(state.disposed, attempts.map(() => 1));
 }
 
+for (const input of ["file", "stdin"] as const) {
+  for (const output of ["stdout", "file"] as const) {
+    for (const statuses of [[200], [503, 503, 200], [503, 503, 503]]) {
+      test(`curl final upload count: ${input}, ${output}, statuses ${statuses}`, async () => {
+        const fs = new MemoryFileSystem();
+        const bytes = Uint8Array.of(65, 254, 0, 10);
+        await fs.writeFile("/upload", bytes);
+        const uploads: Uint8Array[] = [];
+        const shell = new Shell({ fs }).use(networkCommands({
+          authorize: () => true,
+          async transport(request) {
+            assert.ok(request.body);
+            const chunks: Buffer[] = [];
+            for await (const chunk of request.body) chunks.push(Buffer.from(chunk));
+            uploads.push(Buffer.concat(chunks));
+            return {
+              status: statuses[uploads.length - 1]!, statusText: "Fixture", headers: [],
+              body: toByteSource("reply"), async dispose() {},
+            };
+          },
+        }));
+        try {
+          const result = await shell.exec(`curl -s --retry 2 --retry-delay 0.001 --data-binary @${input === "file" ? "/upload" : "-"} ${output === "file" ? "-o /out" : ""} -w '${writeout}' '${url}'`, { stdin: toByteSource(bytes) });
+          assert.equal(result.exitCode, 0);
+          assert.deepEqual(uploads.map(upload => Array.from(upload)), statuses.map(() => Array.from(bytes)));
+          const finalStatus = statuses[statuses.length - 1];
+          const bodies = output === "stdout" ? "reply".repeat(statuses.length) : "";
+          assert.equal(result.stdout, `${bodies}${finalStatus}|0|${statuses.length - 1}|4|5|0|${url}|\n`);
+          assert.deepEqual(await fs.readFile("/upload"), bytes);
+          if (output === "file") assert.equal(Buffer.from(await fs.readFile("/out")).toString(), "reply");
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
 function construct(limits: Partial<NetworkLimits>): void {
   const options = { authorize: () => true, transport: async () => { throw new Error("construction must not send"); }, limits };
   assert.equal(createCurlCommand(options).name, "curl");

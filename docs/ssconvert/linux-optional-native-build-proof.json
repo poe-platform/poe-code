@@ -1,0 +1,174 @@
+{
+  "scope": "Actual optional activation native builds; dependency/source/runtime failures preserved independently of product parity",
+  "wholeGoalComplete": false,
+  "failures": [
+    {
+      "run": 35842042259,
+      "profile": "gnumeric-1.12.61-optional-gda",
+      "workflowConclusion": "failure",
+      "logs": [
+        {
+          "name": "gnumeric-configure.log",
+          "bytes": 15120,
+          "sha256": "acff0f36848057533b750d3eb1d316232fae9e2c53edaac38b899d40a4e8a7b9",
+          "relevantLines": [
+            "checking for libgda-6.0 >= 6.0.0, libgda-ui-6.0 >= 6.0.0... no",
+            "\tGDA support:\t\t\tNO.  libgda problem"
+          ],
+          "tail": [
+            "\tFloating point type:\t\tdouble",
+            "",
+            "\tUI:\t\t\t\tGtk",
+            "",
+            "\tPerl plugin support:\t\tNo. (disabled by request)",
+            "\tPython plugin support:\t\tDisabled by request",
+            "\tIntrospection python support:\tNo, introspection disabled",
+            "",
+            "\tGDA support:\t\t\tNO.  libgda problem",
+            "\tGNOME-DB support:\t\tno",
+            "\tPsiconv support:        \tMissing dependencies",
+            "",
+            "\tPDF documentation:\t\tNo, not requested.",
+            ""
+          ]
+        },
+        {
+          "name": "gnumeric-make.log",
+          "bytes": 66690,
+          "sha256": "0c6e65fee62df57cf7de1bb6a263e00a616942f57574c4d1f5bf4fc90a9de6bd",
+          "relevantLines": [
+            "  ITMRG  ui.xml",
+            "plugin-gda.c:23:10: fatal error: libgda/libgda.h: No such file or directory",
+            "   23 | #include <libgda/libgda.h>",
+            "make[3]: *** [Makefile:573: plugin-gda.lo] Error 1",
+            "make[2]: *** [Makefile:512: all-recursive] Error 1",
+            "make[1]: *** [Makefile:669: all-recursive] Error 1",
+            "make: *** [Makefile:528: all] Error 2"
+          ],
+          "tail": [
+            "  CC       plugin-gda.lo",
+            "  ITMRG  plugin.xml",
+            "  ITMRG  ui.xml",
+            "plugin-gda.c:23:10: fatal error: libgda/libgda.h: No such file or directory",
+            "   23 | #include <libgda/libgda.h>",
+            "      |          ^~~~~~~~~~~~~~~~~",
+            "compilation terminated.",
+            "make[3]: *** [Makefile:573: plugin-gda.lo] Error 1",
+            "make[3]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins/gda'",
+            "make[2]: *** [Makefile:512: all-recursive] Error 1",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/plugins'",
+            "make[1]: *** [Makefile:669: all-recursive] Error 1",
+            "make[1]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61'",
+            "make: *** [Makefile:528: all] Error 2"
+          ]
+        }
+      ],
+      "productFailure": false,
+      "qualified": false
+    },
+    {
+      "run": 35842043972,
+      "profile": "gnumeric-1.12.61-optional-gnomedb-ui",
+      "workflowConclusion": "failure",
+      "logs": [
+        {
+          "name": "gnumeric-configure.log",
+          "bytes": 15120,
+          "sha256": "acff0f36848057533b750d3eb1d316232fae9e2c53edaac38b899d40a4e8a7b9",
+          "relevantLines": [
+            "checking for libgda-6.0 >= 6.0.0, libgda-ui-6.0 >= 6.0.0... no",
+            "\tGDA support:\t\t\tNO.  libgda problem"
+          ],
+          "tail": [
+            "\tFloating point type:\t\tdouble",
+            "",
+            "\tUI:\t\t\t\tGtk",
+            "",
+            "\tPerl plugin support:\t\tNo. (disabled by request)",
+            "\tPython plugin support:\t\tDisabled by request",
+            "\tIntrospection python support:\tNo, introspection disabled",
+            "",
+            "\tGDA support:\t\t\tNO.  libgda problem",
+            "\tGNOME-DB support:\t\tno",
+            "\tPsiconv support:        \tMissing dependencies",
+            "",
+            "\tPDF documentation:\t\tNo, not requested.",
+            ""
+          ]
+        },
+        {
+          "name": "gnumeric-make.log",
+          "bytes": 84090,
+          "sha256": "e1c7630ae0097007a4c1e3768834ad8e1a2d0484e40954eca765c1ad904ac937",
+          "relevantLines": [],
+          "tail": [
+            "  ITMRG  org.gnome.gnumeric.plugin.gschema.xml",
+            "  GEN      org.gnome.gnumeric.gschema.valid",
+            "  GEN      org.gnome.gnumeric.dialogs.gschema.valid",
+            "  GEN      org.gnome.gnumeric.plugin.gschema.valid",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/schemas'",
+            "Making all in test",
+            "make[2]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "make[2]: Nothing to be done for 'all'.",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "Making all in introspection",
+            "make[2]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'",
+            "make[2]: Nothing to be done for 'all'.",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'",
+            "make[1]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61'"
+          ]
+        },
+        {
+          "name": "gnumeric-install.log",
+          "bytes": 434322,
+          "sha256": "ca92f8e3c4288906f38f43c4229998524f43e84ca9a698206222b0011858aa86",
+          "relevantLines": [],
+          "tail": [
+            "Making install in test",
+            "make[1]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "make[2]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "make[2]: Nothing to be done for 'install-exec-am'.",
+            "make[2]: Nothing to be done for 'install-data-am'.",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "make[1]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/test'",
+            "Making install in introspection",
+            "make[1]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'",
+            "make[2]: Entering directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'",
+            "make[2]: Nothing to be done for 'install-exec-am'.",
+            "make[2]: Nothing to be done for 'install-data-am'.",
+            "make[2]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'",
+            "make[1]: Leaving directory '/__w/poe-code/poe-code/out/ssconvert-linux/gnumeric-1.12.61/introspection'"
+          ]
+        },
+        {
+          "name": "functions.stderr",
+          "bytes": 594,
+          "sha256": "68bd61be214c2a8e36ae309068daa6e3d8670b1f841a615e794cd2693abbfe85",
+          "relevantLines": [
+            "      E Error while activating plugin service #0.",
+            "        E Cannot read UI description from ui.xml: /opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/gnome-db/ui.xml: No such file or directory",
+            "  E Error while activating plugin service #0.",
+            "    E Cannot read UI description from ui.xml: /opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/gnome-db/ui.xml: No such file or directory"
+          ],
+          "tail": [
+            "E Errors while initializing plugin system.",
+            "  E Errors while activating plugins.",
+            "    E Couldn't activate plugin \"GNOME-DB\" (ID: Gnumeric_GnomeDB).",
+            "      E Error while activating plugin service #0.",
+            "        E Cannot read UI description from ui.xml: /opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/gnome-db/ui.xml: No such file or directory",
+            "E Couldn't activate plugin \"GNOME-DB\" (ID: Gnumeric_GnomeDB).",
+            "  E Error while activating plugin service #0.",
+            "    E Cannot read UI description from ui.xml: /opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/gnome-db/ui.xml: No such file or directory"
+          ]
+        }
+      ],
+      "productFailure": false,
+      "qualified": false
+    }
+  ],
+  "requiredDependencySource": "docs/ssconvert/linux-reference-dependencies.json",
+  "libgdaSourceSha256": "995f4b420e666da5c8bac9faf55e7aedbe3789c525d634720a53be3ccf27a670",
+  "libgdaUpstreamChecksumAuthenticated": true,
+  "sourceUIRequirement": "GTK3 and gtksourceview3.0 are available in authenticated Debian trixie arm64 index; source enables UI only with experimental=true",
+  "publication": "unverified"
+}

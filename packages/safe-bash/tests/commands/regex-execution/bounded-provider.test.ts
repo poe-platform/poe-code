@@ -13,6 +13,16 @@ const grep = (patterns: string[], overrides: object = {}): Descriptor => ({
 });
 const row = (text: string, all = false) => ({ bytes: new TextEncoder().encode(text), all, terminated: true });
 const request = (descriptor: Descriptor, texts: string[] = ["abc"]): RegexWorkerRequest => ({ id: 1, descriptor, rows: texts.map(text => row(text)) });
+
+test("bounded provider admits patterns above the former implicit byte ceiling", async () => {
+  for (const options of [{}, { maxPatternBytes: 70_000 }]) {
+    const worker = createBoundedRegexProvider(options).createWorker(defaults);
+    try {
+      const reply = await exchange(worker, request(grep(["a".repeat(65_537)]), []));
+      assert.ok("results" in reply, "error" in reply ? reply.error : "expected results");
+    } finally { await worker.terminate(); }
+  }
+});
 const literal = (kind: "grep" | "rg", patterns: string[], whole = false): Descriptor => kind === "grep"
   ? grep(patterns.map(pattern => Buffer.from(pattern).toString("latin1")), { fixed: true, whole })
   : { kind, patterns, fixed: true, case: "sensitive", whole, word: false, nullData: false };

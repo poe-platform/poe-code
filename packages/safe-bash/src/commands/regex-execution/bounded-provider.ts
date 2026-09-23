@@ -151,8 +151,8 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
     if (length > limits.maxInputBytes - bytes) fail("limit", "aggregate input byte limit exceeded");
     bytes += length;
   }
-  const ledger = new EreLedger({ maxExpansionBytes: 1_048_576, maxExpansionFields: 8192 }, {
-    patternBytes: Math.min(65_536, limits.maxPatternBytes + (selected.kind === "glob" ? 32 : selected.fixed ? 0 : 4)), subjectBytes: limits.maxInputBytes,
+  const ledger = new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }, {
+    patternBytes: limits.maxPatternBytes + (selected.kind === "glob" ? 32 : selected.fixed ? 0 : 4), subjectBytes: limits.maxInputBytes,
     work: limits.maxWork, allocationUnits: limits.maxAllocationUnits, states: limits.maxStates,
   });
   // Include snapshots, row/result metadata and worst-case match storage before copying.

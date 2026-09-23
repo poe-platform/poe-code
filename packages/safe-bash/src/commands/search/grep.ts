@@ -218,6 +218,7 @@ inspect the resulting state before repeating the action.
               if (count >= maxCount && remainingAfter === 0) break records;
             }
           }
+          if (parsed.flags.has("q")) continue;
           if (parsed.flags.has("l") && count > 0 || parsed.flags.has("L") && count === 0) {
             await output(context, named + (parsed.flags.has("Z") ? "\0" : "\n")); anySelected = true;
           } else if (parsed.flags.has("c") && !parsed.flags.has("l") && !parsed.flags.has("L")) await output(context, prefix() + count + delimiter);

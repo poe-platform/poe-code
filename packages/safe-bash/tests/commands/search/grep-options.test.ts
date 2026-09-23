@@ -29,6 +29,36 @@ const cases = [
   ["--directories=invalid alpha input", "", 2],
 ] as const;
 
+for (const command of ["grep", "egrep", "fgrep"]) {
+  for (const options of ["-Lq", "-qL", "-L --quiet", "-L --silent", "-LqZ", "-Lcq"]) {
+    for (const [content, exitCode] of [["y\n", 1], ["", 1], ["x\n", 0]] as const) {
+      test(`${command} ${options} suppresses filenames for ${JSON.stringify(content)}`, async () => {
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/input", Buffer.from(content));
+        const shell = new Shell({ fs }).use(agentCommands());
+        try {
+          const result = await shell.exec(`${command} ${options} x input`);
+          assert.equal(result.stdout, "");
+          assert.equal(result.stderr, "");
+          assert.equal(result.exitCode, exitCode);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+  test(`${command} -Lq searches later files without printing earlier filenames`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/nonmatching", Buffer.from("y\n"));
+    await fs.writeFile("/matching", Buffer.from("x\n"));
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`${command} -Lq x nonmatching matching`);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const command of ["grep", "egrep", "fgrep"]) for (const [args, expected, code] of cases) {
   test(`${command} ${args}`, async () => {
     const fs = new MemoryFileSystem();

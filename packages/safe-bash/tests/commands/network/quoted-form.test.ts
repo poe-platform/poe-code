@@ -61,13 +61,17 @@ test("mixed file bodies agree with native curl including per-file attributes", a
   await fs.writeFile("/dev/stdin", payload);
   await fs.writeFile("/dev/null", new Uint8Array());
   try {
-    for (const operand of ["/dev/stdin,/dev/null", '/dev/null;filename="empty,first";type=text/plain,/dev/stdin;filename=last;type=application/octet-stream']) {
+    for (const [operand, nativeOperand] of [
+      ["/dev/stdin,/dev/null", "-;filename=stdin;type=application/octet-stream,/dev/null"],
+      ['/dev/null;filename="empty,first";type=text/plain,/dev/stdin;filename=last;type=application/octet-stream', '/dev/null;filename="empty,first";type=text/plain,-;filename=last;type=application/octet-stream'],
+    ]) {
       const args = ["-sS", "-F", `field=@${operand}`, host.origin + "/echo"];
       const actual = await run(args, { fs });
       assert.equal(actual.exitCode, 0, actual.stderr.toString());
       const virtual = host.requests.at(-1)!.body;
       await new Promise<void>((resolve, reject) => {
-        const child = spawn("/usr/bin/curl", ["-q", "--noproxy", "*", ...args], { stdio: ["pipe", "ignore", "pipe"] });
+        // Native stdin is a pipe, so use curl's stdin operand with the same file metadata.
+        const child = spawn("/usr/bin/curl", ["-q", "--noproxy", "*", "-sS", "-F", `field=@${nativeOperand}`, host.origin + "/echo"], { stdio: ["pipe", "ignore", "pipe"] });
         let stderr = "";
         child.stderr.on("data", chunk => { stderr += chunk.toString(); });
         child.on("error", reject);

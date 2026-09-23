@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T10:08:16.907190+00:00",
+  "recordedAt": "2026-09-23T10:14:27.801103+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -512,7 +512,7 @@
     {
       "id": "perl-sed",
       "status": "open",
-      "currentFinding": "Bounded Perl grammar cohorts and38native invalid-byte results now have explicit lossless byte-string workbook representation,380qualified scalar controls,228downstream array cells and240native CSV quoting controls. Current public SDK/Shell/checkpoint/browser/worker outputs match. Native warnings,case conversion,wider byte contexts/grammar/profiles and final publication remain open. DeclaredUnicode16 C-locale LOWER/UPPER now repaired with38actual red failures,55focused tests,2224126scalar fields and14463field controls per public surface; locale/native-profile/diagnostic/otherbyte contexts remainrequired. UNICODE byte admission repaired with48red/green controls and38actualnative rows/152fields exact acrosspublic paths; warning parity remainsrequired. EXACT byte-prefix/NFD comparison repaired with228actualnative failures,247focused regressions and5126newfields perpublicsurface; historical sourceforms qualified,full normalization/profile/warning obligations stayopen. TRIM repaired with94original failures,102focused controls,98private rawvalues and114actualnative fields exact perpublicsurface; CLEAN/otherconsumers/warnings/fullprofiles remainrequired. CLEAN byte admission/cursor repaired with78original red regressions,113focused tests and190actual native CSV fields exact on SDK/Shell/replay/browser/worker; broader consumers,profiles,diagnostics and publication remain open. PROPER repaired with179validated red controls,201own tests and380actual native auto/never CSV fields exact on SDK/Shell/replay/browser/worker; native CSV encoding separated from scalar expectations. Wider consumers/profiles/diagnostics remain open.",
+      "currentFinding": "Bounded PerlSED grammar/raw-byte ports delivered; actual Linux captures now include all 638 original source cases:625valid-output controls plus13previously omitted malformed UTF8 results,549bytes exact across five public surfaces with zero native stderr. Historical reference shutdown/profile differences remain explicit. Wider grammar/Unicode/diagnostic/profile obligations and publication remain open.",
       "proof": [
         {
           "kind": "authenticated-unmodified-source-Perl-scalar-oracle",
@@ -613,7 +613,9 @@
           "kind": "native-byte-PROPER",
           "path": "docs/ssconvert/byte-string-proper-gap-proof.json",
           "result": "416focused/13628maintained tests,package lint/types/selected build,SDK/Shell/browser/worker/replay passed; implementation3ee5f6345 verified remote,publication unverified."
-        }
+        },
+        "docs/ssconvert/linux-language-native-capture.json",
+        "docs/ssconvert/linux-perl-raw-native-capture.json"
       ],
       "delivery": {
         "localCommit": "77a70d0fa7c447263a06e0ca7f223a388b8f3c89",
@@ -1430,6 +1432,28 @@
       "worker"
     ],
     "diagnosticParity": false,
+    "publication": "unverified",
+    "wholeGoalComplete": false
+  },
+  "linuxPerlRawResults": {
+    "evidence": "docs/ssconvert/linux-perl-raw-native-capture.json",
+    "nativeRun": 35846837435,
+    "cases": 13,
+    "logicalFields": 26,
+    "outputBytes": 549,
+    "nativeCandidateDifferences": 0,
+    "previouslyExcludedOriginalInputsQualified": true,
+    "exactSurfaces": [
+      "SDK",
+      "Shell",
+      "XML formula replay",
+      "browser",
+      "worker"
+    ],
+    "nativeStderrBytes": 0,
+    "browserConsoleMessages": 0,
+    "screenshotInspected": true,
+    "productCodeChangeRequired": false,
     "publication": "unverified",
     "wholeGoalComplete": false
   }

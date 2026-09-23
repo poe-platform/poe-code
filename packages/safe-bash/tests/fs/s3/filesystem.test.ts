@@ -140,7 +140,7 @@ test("prefixes and limits validate before any requests and object key byte limit
 });
 
 test("readdir traverses more than 1000 objects and recursive rm snapshots every page before deleting", async () => {
-  const { fs, client } = fixture({ pageSize: 137 });
+  const { fs, client } = fixture({ pageSize: 137, removalLimits: { maxRequests: 1200, maxListEntries: 1200, maxDeleteObjects: 1103 } });
   for (let index = 0; index < 1103; index++) await seed(client, `mount/tree/file-${String(index).padStart(4, "0")}`, String(index));
   await seed(client, "mount/tree-other/file", "keep");
   assert.equal((await fs.readdir("/tree")).length, 1103);

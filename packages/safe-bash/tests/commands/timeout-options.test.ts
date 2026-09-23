@@ -5,6 +5,43 @@ import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { parseSignal } from "../../src/commands/timeout/signal.js";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
 
+test("timeout foreground options preserve file bytes and child status through Shell", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/Changed input.txt", new TextEncoder().encode("Changed12\r\n"));
+  const shell = new Shell({ fs });
+  await shell.use(agentCommands());
+  try {
+    for (const option of ["-f", "--foreground", "-f --preserve-status -sTERM"]) {
+      const result = await shell.exec(`timeout ${option} 2 cat "Changed input.txt"`);
+      assert.equal(result.exitCode, 0, option);
+      assert.equal(result.stdout, "Changed12\r\n", option);
+      assert.equal(result.stderr, "", option);
+      const failed = await shell.exec(`timeout ${option} 2 sh -c 'printf child; exit 9'`);
+      assert.equal(failed.exitCode, 9, option);
+      assert.equal(failed.stdout, "child", option);
+      assert.equal(failed.stderr, "", option);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("timeout foreground retains cooperative expiry and preserve-status", async () => {
+  for (const option of ["-f", "--foreground"]) {
+    for (const preserve of [false, true]) {
+      const scheduler = new ManualScheduler();
+      const capture = captureContext([option, ...(preserve ? ["--preserve-status"] : []), "1", "child"], {
+        invoke: async (_command, _args, invocation) => {
+          scheduler.fire(1000);
+          assert.equal(invocation!.signal!.aborted, true);
+          throw invocation!.signal!.reason;
+        },
+      });
+      assert.equal((await createTimeoutCommand({ scheduler }).execute(capture.context)).exitCode, preserve ? 143 : 124);
+      assert.equal(capture.stderr(), "");
+      assert.equal(scheduler.pending, false);
+    }
+  }
+});
+
 test("timeout accepts preserve-status and named, numeric, attached signal options through Shell", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() });
   await shell.use(agentCommands());
@@ -39,7 +76,7 @@ test("timeout deadline status reflects preserve-status and selected signal", asy
 });
 
 test("timeout validates signal options before invoking the child", async () => {
-  for (const options of [["--signal=bogus"], ["-s", "65"], ["-s"], ["--preserve-status=yes"], ["-p"]]) {
+  for (const options of [["--signal=bogus"], ["-s", "65"], ["-s"], ["--preserve-status=yes"], ["-p"], ["--foreground=yes"], ["-fyes"]]) {
     const capture = captureContext(options, { invoke: async () => { assert.fail("invalid options invoked child"); } });
     assert.equal((await createTimeoutCommand().execute(capture.context)).exitCode, 125);
     assert.notEqual(capture.stderr(), "");

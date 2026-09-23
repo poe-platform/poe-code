@@ -46,7 +46,6 @@ const records = Object.freeze({
   invalidOption: encoder.encode("timeout: invalid option\n"),
   invalidSignal: encoder.encode("timeout: invalid signal\n"),
   killAfter: encoder.encode("timeout: kill-after escalation requires a host policy binding\n"),
-  foreground: encoder.encode("timeout: option --foreground is unsupported\n"),
   invokeUnavailable: encoder.encode("timeout: command invocation is unavailable\n"),
   timerSetupFailed: encoder.encode("timeout: timer setup failed\n"),
   help: encoder.encode("Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"),
@@ -98,11 +97,6 @@ function settings(value: unknown, includeReplace: boolean): Settings {
   return { invoke, killAfterPolicy: killAfterPolicy as KillAfterPolicy | undefined, scheduler: binding, maxTimerMilliseconds: maximum ?? 2147483647, replace };
 }
 
-function unsupported(token: string): Uint8Array | undefined {
-  const first = token.length > 1 && token.charCodeAt(0) === 45 && token.charCodeAt(1) !== 45 ? token.charCodeAt(1) : -1;
-  if (token === "--foreground" || token.startsWith("--foreground=") || first === 102) return records.foreground;
-  return undefined;
-}
 
 async function status(context: CommandContext, bytes: Uint8Array, exitCode: number, stdout = false): Promise<{ exitCode: number }> {
   await writeBytes(stdout ? context.stdout : context.stderr, bytes, context.signal);
@@ -142,6 +136,11 @@ function definition(configuration: Settings): CommandDefinition {
           offset++;
           continue;
         }
+        // Virtual invocation already runs without a separate POSIX process group.
+        if (token === "--foreground" || token === "-f") {
+          offset++;
+          continue;
+        }
         if (token === "--preserve-status") {
           preserveStatus = true;
           offset++;
@@ -169,8 +168,7 @@ function definition(configuration: Settings): CommandDefinition {
           offset++;
           continue;
         }
-        const record = unsupported(token);
-        return status(context, record ?? records.invalidOption, 125);
+        return status(context, records.invalidOption, 125);
       }
       const durationToken = originalArgs[offset];
       if (durationToken === undefined) return status(context, records.missingDuration, 125);

@@ -6,6 +6,13 @@ literal `CommandContext.invoke` call. It exports `createTimeoutCommand`,
 scheduler interfaces. The command is available in the default agent command
 aggregate and through the package's `commands/timeout` subpath.
 
+`-f` and `--foreground` run the child through the existing virtual invocation:
+there is no separate POSIX process group or controlling terminal to configure.
+They preserve output bytes and child exit status and support the same cooperative
+deadline, `--signal`, and `--preserve-status` options. They do not grant native
+TTY access or implement native descendant signal policy; trusted host commands
+remain responsible for honoring cancellation and cleaning up their resources.
+
 Durations use the ASCII `smhd` grammar fixed by the accepted timeout profile.
 The parser scans the existing string once in reverse with constant auxiliary
 state, performs exact decimal scaling, and accepts values through

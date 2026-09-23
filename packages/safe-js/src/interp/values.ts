@@ -1076,8 +1076,13 @@ function measureSandboxDataWithSeen(
                 // Descendants may collect their own native captures on this walk.
                 captures = undefined;
               }
-              if (roots !== undefined)
-                for (let index = 0; index < roots.length; index++) visit(roots[index], depth + 1);
+              if (roots !== undefined && roots.length > 0) {
+                if (roots.length > 1)
+                  pending = appendDataContinuation(pending, roots, depth + 1);
+                value = roots[0];
+                depth++;
+                continue walk;
+              }
             } else for (const root of closure[sandboxRetainedValues]?.() ?? []) visit(root, depth + 1);
           }
           break entry;

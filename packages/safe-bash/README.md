@@ -68,9 +68,12 @@ physical permissions, and the host process mask remains unchanged.
   `shopt -s dotglob` includes dotfiles in globs.
 
 Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
-`shift`, `export`, `local`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`,
+`shift`, `export`, `local`, `declare`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`,
 `exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
 `eval`. `pwd`, `true`, and `false` also work without a command bundle.
+`declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
+name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
+global declarations (`-g`), inherited locals (`-I`), and function inspection (`-f`/`-F`).
 
 ### Command bundle
 

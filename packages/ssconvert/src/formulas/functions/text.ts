@@ -309,9 +309,19 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     return byteStringValue(result, host.tick, host.context.limits.outputBytes);
   },
   ...Object.fromEntries(["REPLACE", "REPLACEB"].map(name => [name, ((args, host) => {
-    const source = textArg(args, 0, host), start = numberArg(args, 1, host), count = numberArg(args, 2, host), replacement = textArg(args, 3, host), chars = Array.from(source);
+    const start = numberArg(args, 1, host), count = numberArg(args, 2, host);
     if (start < 1 || count < 0) return error("#VALUE!");
-    if (name === "REPLACE") { const from = Math.min(chars.length, Math.trunc(start - 1)); return boundedText(chars.slice(0, from).join("") + replacement + chars.slice(from + Math.trunc(count)).join(""), host); }
+    if (name === "REPLACE") {
+      const source = byteTextArg(args, 0, host), replacement = byteTextArg(args, 3, host);
+      const length = byteTextLength(source, host.tick), before = Math.trunc(Math.min(length, start - 1));
+      const removed = Math.trunc(Math.min(length - before, count));
+      let from = 0, to = 0;
+      for (let index = 0; index < before; index++) { host.tick(); from = readByteTextCharacter(source, from, host.tick).next; }
+      to = from;
+      for (let index = 0; index < removed; index++) { host.tick(); to = readByteTextCharacter(source, to, host.tick).next; }
+      return joinByteText([source.subarray(0, from), replacement, source.subarray(to)], new Uint8Array(), host.context.limits.outputBytes, host.tick);
+    }
+    const source = textArg(args, 0, host), replacement = textArg(args, 3, host), chars = Array.from(source);
     const offsets = byteOffsets(source, host), length = offsets.at(-1)!, from = Math.min(length, Math.trunc(start - 1)), end = Math.min(length, from + Math.trunc(count));
     if (!offsets.includes(from) || !offsets.includes(end)) return error("#VALUE!");
     return boundedText(chars.slice(0, offsets.indexOf(from)).join("") + replacement + chars.slice(offsets.indexOf(end)).join(""), host);

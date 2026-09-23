@@ -10,7 +10,7 @@ The optional `perlSampleFunctions` binding adds clock-based dates
 and bounded pattern substitution with literal replacements. Native byte results
 use an explicit `byte-string` value with lowercase hex, preserving invalid UTF-8
 through qualified text formulas, arrays and CSV output. LOWER/UPPER use captured
-Unicode 16 C-locale case behavior, including native byte values. CLEAN, PROPER, REPT and SUBSTITUTE
+Unicode 16 C-locale case behavior, including native byte values. CLEAN, PROPER, REPT, REPLACE and SUBSTITUTE
 also accept native byte values. Wider Perl grammar,
 diagnostics and byte consumers remain documented gaps. It also opens XOR-obfuscated and RC4-encrypted Excel workbooks (standard and CryptoAPI)
 using the native reader's built-in password or an explicit host `password.read` callback. AES/Blowfish-encrypted OpenDocument spreadsheets open through the same host callback. Encrypted Paradox tables open automatically using their declared header key. Format support has documented limits; see the

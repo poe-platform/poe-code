@@ -982,5 +982,17 @@
     "exactNegativeGroups": 3,
     "publication": "unverified",
     "remaining": "Residual validated Bash shard feedback and all original ssconvert plan families"
+  },
+  "byteStringReptFollowup": {
+    "proof": "docs/ssconvert/byte-string-rept-gap-proof.json",
+    "implementationCommit": "eaa1e8212e12b8729acb9d9c4b4c1d04cadc5aa7",
+    "remoteMainVerified": true,
+    "reptTests": 232,
+    "focusedTests": 648,
+    "maintainedFiles": 355,
+    "maintainedTests": 13860,
+    "publicFieldsEachSurface": 266,
+    "integratedGuardedLint": "incomplete2 checkout identity drift; stable rerun required",
+    "publication": "unverified"
   }
 }

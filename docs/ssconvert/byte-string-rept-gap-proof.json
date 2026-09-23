@@ -1,0 +1,635 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-09-23T05:07:42.611842+00:00",
+  "classification": "implemented-and-qualified-cohort; broader family open",
+  "problem": "REPT refused native byte-string arguments, repeated host text past embedded NUL and used floating instead of native integer division for overflow.",
+  "reference": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "source": {
+      "path": "out/ssconvert-gap-resolution/reference/gnumeric-1.12.61/plugins/fn-string/functions.c",
+      "bytes": 88870,
+      "sha256": "9b89954f5c4419be33a0d7cd3182129204662be81ed36933226afc1cb444eb90"
+    },
+    "lines": "808-835",
+    "contract": "strlen visible bytes; negative count VALUE; empty/count<1 fast return; count>=INT_MAX/len integer division VALUE; truncate count; repeat raw bytes",
+    "profile": "Darwin Gnumeric1.12.61 corrected task-owned Perl loader, inherited HOME unchanged with user .gnumeric read/write deny fence. Narrow cohort, not full dependency/profile qualification.",
+    "nativeExit": 0,
+    "nativeStdoutBytes": 7188,
+    "nativeStderrHex": "5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a",
+    "nativeResults": {
+      "formulas": [
+        {
+          "id": "expanded-9",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"\",\"$1\\\\n\")",
+            "REPT(A1,0)",
+            "REPT(A1,1)",
+            "REPT(A1,2)",
+            "REPT(A1,3)",
+            "REPT(A1,1.5)",
+            "REPT(A1,-1)"
+          ]
+        },
+        {
+          "id": "expanded-119",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a*\",\"$1\\\\n\")",
+            "REPT(A2,0)",
+            "REPT(A2,1)",
+            "REPT(A2,2)",
+            "REPT(A2,3)",
+            "REPT(A2,1.5)",
+            "REPT(A2,-1)"
+          ]
+        },
+        {
+          "id": "expanded-141",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a?\",\"$1\\\\n\")",
+            "REPT(A3,0)",
+            "REPT(A3,1)",
+            "REPT(A3,2)",
+            "REPT(A3,3)",
+            "REPT(A3,1.5)",
+            "REPT(A3,-1)"
+          ]
+        },
+        {
+          "id": "expanded-152",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a*?\",\"$1\\\\n\")",
+            "REPT(A4,0)",
+            "REPT(A4,1)",
+            "REPT(A4,2)",
+            "REPT(A4,3)",
+            "REPT(A4,1.5)",
+            "REPT(A4,-1)"
+          ]
+        },
+        {
+          "id": "expanded-174",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a??\",\"$1\\\\n\")",
+            "REPT(A5,0)",
+            "REPT(A5,1)",
+            "REPT(A5,2)",
+            "REPT(A5,3)",
+            "REPT(A5,1.5)",
+            "REPT(A5,-1)"
+          ]
+        },
+        {
+          "id": "expanded-196",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a{0,2}\",\"$1\\\\n\")",
+            "REPT(A6,0)",
+            "REPT(A6,1)",
+            "REPT(A6,2)",
+            "REPT(A6,3)",
+            "REPT(A6,1.5)",
+            "REPT(A6,-1)"
+          ]
+        },
+        {
+          "id": "expanded-240",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"(?:a|ab)*\",\"$1\\\\n\")",
+            "REPT(A7,0)",
+            "REPT(A7,1)",
+            "REPT(A7,2)",
+            "REPT(A7,3)",
+            "REPT(A7,1.5)",
+            "REPT(A7,-1)"
+          ]
+        },
+        {
+          "id": "expanded-273",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"|a\",\"$1\\\\n\")",
+            "REPT(A8,0)",
+            "REPT(A8,1)",
+            "REPT(A8,2)",
+            "REPT(A8,3)",
+            "REPT(A8,1.5)",
+            "REPT(A8,-1)"
+          ]
+        },
+        {
+          "id": "expanded-284",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"a|\",\"$1\\\\n\")",
+            "REPT(A9,0)",
+            "REPT(A9,1)",
+            "REPT(A9,2)",
+            "REPT(A9,3)",
+            "REPT(A9,1.5)",
+            "REPT(A9,-1)"
+          ]
+        },
+        {
+          "id": "expanded-317",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"(a?)*\",\"$1\\\\n\")",
+            "REPT(A10,0)",
+            "REPT(A10,1)",
+            "REPT(A10,2)",
+            "REPT(A10,3)",
+            "REPT(A10,1.5)",
+            "REPT(A10,-1)"
+          ]
+        },
+        {
+          "id": "expanded-328",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"(a*)*\",\"$1\\\\n\")",
+            "REPT(A11,0)",
+            "REPT(A11,1)",
+            "REPT(A11,2)",
+            "REPT(A11,3)",
+            "REPT(A11,1.5)",
+            "REPT(A11,-1)"
+          ]
+        },
+        {
+          "id": "expanded-493",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"\\\\B\",\"$1\\\\n\")",
+            "REPT(A12,0)",
+            "REPT(A12,1)",
+            "REPT(A12,2)",
+            "REPT(A12,3)",
+            "REPT(A12,1.5)",
+            "REPT(A12,-1)"
+          ]
+        },
+        {
+          "id": "expanded-603",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\u00e9\",\"(?!a)\",\"$1\\\\n\")",
+            "REPT(A13,0)",
+            "REPT(A13,1)",
+            "REPT(A13,2)",
+            "REPT(A13,3)",
+            "REPT(A13,1.5)",
+            "REPT(A13,-1)"
+          ]
+        },
+        {
+          "id": "capture-71",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(a*)\\\\1\",\"$1\\\\n\")",
+            "REPT(A14,0)",
+            "REPT(A14,1)",
+            "REPT(A14,2)",
+            "REPT(A14,3)",
+            "REPT(A14,1.5)",
+            "REPT(A14,-1)"
+          ]
+        },
+        {
+          "id": "capture-83",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(a*?)\\\\1\",\"$1\\\\n\")",
+            "REPT(A15,0)",
+            "REPT(A15,1)",
+            "REPT(A15,2)",
+            "REPT(A15,3)",
+            "REPT(A15,1.5)",
+            "REPT(A15,-1)"
+          ]
+        },
+        {
+          "id": "behind-220",
+          "expressions": [
+            "PERL_SED(\"\u00e4b\",\"(?<!a)\",\"X\")",
+            "REPT(A16,0)",
+            "REPT(A16,1)",
+            "REPT(A16,2)",
+            "REPT(A16,3)",
+            "REPT(A16,1.5)",
+            "REPT(A16,-1)"
+          ]
+        },
+        {
+          "id": "named-119",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?<a>a*)\\\\k<a>\",\"$1\\\\n\")",
+            "REPT(A17,0)",
+            "REPT(A17,1)",
+            "REPT(A17,2)",
+            "REPT(A17,3)",
+            "REPT(A17,1.5)",
+            "REPT(A17,-1)"
+          ]
+        },
+        {
+          "id": "named-134",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?<a>a*?)\\\\k<a>\",\"$1\\\\n\")",
+            "REPT(A18,0)",
+            "REPT(A18,1)",
+            "REPT(A18,2)",
+            "REPT(A18,3)",
+            "REPT(A18,1.5)",
+            "REPT(A18,-1)"
+          ]
+        },
+        {
+          "id": "atomic-251",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?>a*)\",\"$1\\\\n\")",
+            "REPT(A19,0)",
+            "REPT(A19,1)",
+            "REPT(A19,2)",
+            "REPT(A19,3)",
+            "REPT(A19,1.5)",
+            "REPT(A19,-1)"
+          ]
+        },
+        {
+          "id": "atomic-269",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"a*+\",\"$1\\\\n\")",
+            "REPT(A20,0)",
+            "REPT(A20,1)",
+            "REPT(A20,2)",
+            "REPT(A20,3)",
+            "REPT(A20,1.5)",
+            "REPT(A20,-1)"
+          ]
+        },
+        {
+          "id": "atomic-323",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?>(a*))\\\\1\",\"$1\\\\n\")",
+            "REPT(A21,0)",
+            "REPT(A21,1)",
+            "REPT(A21,2)",
+            "REPT(A21,3)",
+            "REPT(A21,1.5)",
+            "REPT(A21,-1)"
+          ]
+        },
+        {
+          "id": "atomic-503",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?:a?)*+\",\"$1\\\\n\")",
+            "REPT(A22,0)",
+            "REPT(A22,1)",
+            "REPT(A22,2)",
+            "REPT(A22,3)",
+            "REPT(A22,1.5)",
+            "REPT(A22,-1)"
+          ]
+        },
+        {
+          "id": "atomic-521",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(a*?)*+\",\"$1\\\\n\")",
+            "REPT(A23,0)",
+            "REPT(A23,1)",
+            "REPT(A23,2)",
+            "REPT(A23,3)",
+            "REPT(A23,1.5)",
+            "REPT(A23,-1)"
+          ]
+        },
+        {
+          "id": "variable-behind-527",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"(?<=(a{0,2}))\\\\1\",\"$1\\\\n\")",
+            "REPT(A24,0)",
+            "REPT(A24,1)",
+            "REPT(A24,2)",
+            "REPT(A24,3)",
+            "REPT(A24,1.5)",
+            "REPT(A24,-1)"
+          ]
+        },
+        {
+          "id": "escape-15",
+          "expressions": [
+            "PERL_SED(\"\u00a0\",\"\\\\h+\",\"$1\\\\n\")",
+            "REPT(A25,0)",
+            "REPT(A25,1)",
+            "REPT(A25,2)",
+            "REPT(A25,3)",
+            "REPT(A25,1.5)",
+            "REPT(A25,-1)"
+          ]
+        },
+        {
+          "id": "escape-32",
+          "expressions": [
+            "PERL_SED(\"\u00a0\",\"\\\\H+\",\"$1\\\\n\")",
+            "REPT(A26,0)",
+            "REPT(A26,1)",
+            "REPT(A26,2)",
+            "REPT(A26,3)",
+            "REPT(A26,1.5)",
+            "REPT(A26,-1)"
+          ]
+        },
+        {
+          "id": "escape-48",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"\\\\v+\",\"$1\\\\n\")",
+            "REPT(A27,0)",
+            "REPT(A27,1)",
+            "REPT(A27,2)",
+            "REPT(A27,3)",
+            "REPT(A27,1.5)",
+            "REPT(A27,-1)"
+          ]
+        },
+        {
+          "id": "escape-65",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"\\\\V+\",\"$1\\\\n\")",
+            "REPT(A28,0)",
+            "REPT(A28,1)",
+            "REPT(A28,2)",
+            "REPT(A28,3)",
+            "REPT(A28,1.5)",
+            "REPT(A28,-1)"
+          ]
+        },
+        {
+          "id": "escape-82",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"\\\\R\",\"$1\\\\n\")",
+            "REPT(A29,0)",
+            "REPT(A29,1)",
+            "REPT(A29,2)",
+            "REPT(A29,3)",
+            "REPT(A29,1.5)",
+            "REPT(A29,-1)"
+          ]
+        },
+        {
+          "id": "escape-99",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"\\\\R+\",\"$1\\\\n\")",
+            "REPT(A30,0)",
+            "REPT(A30,1)",
+            "REPT(A30,2)",
+            "REPT(A30,3)",
+            "REPT(A30,1.5)",
+            "REPT(A30,-1)"
+          ]
+        },
+        {
+          "id": "escape-168",
+          "expressions": [
+            "PERL_SED(\"\u00a0\",\"[\\\\h]+\",\"$1\\\\n\")",
+            "REPT(A31,0)",
+            "REPT(A31,1)",
+            "REPT(A31,2)",
+            "REPT(A31,3)",
+            "REPT(A31,1.5)",
+            "REPT(A31,-1)"
+          ]
+        },
+        {
+          "id": "escape-185",
+          "expressions": [
+            "PERL_SED(\"\u00a0\",\"[\\\\H]+\",\"$1\\\\n\")",
+            "REPT(A32,0)",
+            "REPT(A32,1)",
+            "REPT(A32,2)",
+            "REPT(A32,3)",
+            "REPT(A32,1.5)",
+            "REPT(A32,-1)"
+          ]
+        },
+        {
+          "id": "escape-201",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"[\\\\v]+\",\"$1\\\\n\")",
+            "REPT(A33,0)",
+            "REPT(A33,1)",
+            "REPT(A33,2)",
+            "REPT(A33,3)",
+            "REPT(A33,1.5)",
+            "REPT(A33,-1)"
+          ]
+        },
+        {
+          "id": "escape-218",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"[\\\\V]+\",\"$1\\\\n\")",
+            "REPT(A34,0)",
+            "REPT(A34,1)",
+            "REPT(A34,2)",
+            "REPT(A34,3)",
+            "REPT(A34,1.5)",
+            "REPT(A34,-1)"
+          ]
+        },
+        {
+          "id": "escape-472",
+          "expressions": [
+            "PERL_SED(\"\u00e4a\u00e4a\",\"\\\\h*?\",\"$1\\\\n\")",
+            "REPT(A35,0)",
+            "REPT(A35,1)",
+            "REPT(A35,2)",
+            "REPT(A35,3)",
+            "REPT(A35,1.5)",
+            "REPT(A35,-1)"
+          ]
+        },
+        {
+          "id": "escape-473",
+          "expressions": [
+            "PERL_SED(\"\u0085\",\"\\\\h*?\",\"$1\\\\n\")",
+            "REPT(A36,0)",
+            "REPT(A36,1)",
+            "REPT(A36,2)",
+            "REPT(A36,3)",
+            "REPT(A36,1.5)",
+            "REPT(A36,-1)"
+          ]
+        },
+        {
+          "id": "escape-474",
+          "expressions": [
+            "PERL_SED(\"\u00a0\",\"\\\\h*?\",\"$1\\\\n\")",
+            "REPT(A37,0)",
+            "REPT(A37,1)",
+            "REPT(A37,2)",
+            "REPT(A37,3)",
+            "REPT(A37,1.5)",
+            "REPT(A37,-1)"
+          ]
+        },
+        {
+          "id": "escape-475",
+          "expressions": [
+            "PERL_SED(\"\u2028\",\"\\\\h*?\",\"$1\\\\n\")",
+            "REPT(A38,0)",
+            "REPT(A38,1)",
+            "REPT(A38,2)",
+            "REPT(A38,3)",
+            "REPT(A38,1.5)",
+            "REPT(A38,-1)"
+          ]
+        }
+      ],
+      "exit": 0,
+      "stdoutHex": "24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea462c324315c6ea924315c6e2c2c24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c6ec324315c6ea462c324315c6ea924315c6e24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c6ec324315c6ea462c324315c6ea924315c6e24315c6ec324315c6ea462c324315c6ea924315c6e24315c6ec324315c6ea462c324315c6ea924315c6e2c24315c6ec324315c6ea462c324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c24315c6ec324315c6ea424315c6e6224315c6ec324315c6ea924315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a58c358a45862582c2c58c358a45862582c58c358a458625858c358a45862582c58c358a458625858c358a458625858c358a45862582c58c358a45862582c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2356414c5545210a24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c2c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c24315c6ec324315c6ea46124315c6ec324315c6ea46124315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c24315c6ec324315c6ea424315c6e24315c6ec324315c6ea424315c6e24315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec3a424315c6e6124315c6e2c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210a24315c6ea02c2c24315c6ea02c24315c6ea024315c6ea02c24315c6ea024315c6ea024315c6ea02c24315c6ea02c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210a24315c6e852c2c24315c6e852c24315c6e8524315c6e852c24315c6e8524315c6e8524315c6e852c24315c6e852c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210a24315c6ea02c2c24315c6ea02c24315c6ea024315c6ea02c24315c6ea024315c6ea024315c6ea02c24315c6ea02c2356414c5545210ac224315c6e2c2cc224315c6e2cc224315c6ec224315c6e2cc224315c6ec224315c6ec224315c6e2cc224315c6e2c2356414c5545210a24315c6e852c2c24315c6e852c24315c6e8524315c6e852c24315c6e8524315c6e8524315c6e852c24315c6e852c2356414c5545210a24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c24315c6ec324315c6ea424315c6e6124315c6ec324315c6ea424315c6e6124315c6e2c2356414c5545210a24315c6ec224315c6e8524315c6e2c2c24315c6ec224315c6e8524315c6e2c24315c6ec224315c6e8524315c6e24315c6ec224315c6e8524315c6e2c24315c6ec224315c6e8524315c6e24315c6ec224315c6e8524315c6e24315c6ec224315c6e8524315c6e2c24315c6ec224315c6e8524315c6e2c2356414c5545210a24315c6ec224315c6e24315c6e24315c6e2c2c24315c6ec224315c6e24315c6e24315c6e2c24315c6ec224315c6e24315c6e24315c6e24315c6ec224315c6e24315c6e24315c6e2c24315c6ec224315c6e24315c6e24315c6e24315c6ec224315c6e24315c6e24315c6e24315c6ec224315c6e24315c6e24315c6e2c24315c6ec224315c6e24315c6e24315c6e2c2356414c5545210a24315c6ee224315c6e8024315c6ea824315c6e2c2c24315c6ee224315c6e8024315c6ea824315c6e2c24315c6ee224315c6e8024315c6ea824315c6e24315c6ee224315c6e8024315c6ea824315c6e2c24315c6ee224315c6e8024315c6ea824315c6e24315c6ee224315c6e8024315c6ea824315c6e24315c6ee224315c6e8024315c6ea824315c6e2c24315c6ee224315c6e8024315c6ea824315c6e2c2356414c5545210a",
+      "stderrHex": "5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a5661726961626c65206c656e677468206c6f6f6b626568696e64206973206578706572696d656e74616c20696e2072656765783b206d61726b6564206279203c2d2d204845524520696e206d2f283f3c3d28617b302c327d29295c31203c2d2d2048455245202f206174202f55736572732f6b6a6f70656b2f576f726b73706163652f706f652d636f64652f6f75742f7373636f6e766572742d6761702d7265736f6c7574696f6e2f7265666572656e63652f7065726c2d6e61746976652d6f776e65642d6469726563746f72792d706c7567696e732f7065726c2d66756e632f7065726c5f66756e632e706c206c696e652034302e0a"
+    },
+    "diagnosticParity": false
+  },
+  "originalRed": {
+    "tests": 232,
+    "failed": 232,
+    "passed": 0,
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/byte-rept-red.log",
+      "bytes": 270770,
+      "sha256": "9b35c570d9ddff077f6be2272fb5d9c8428c726b51585129fafc6d01f21ef5f6"
+    }
+  },
+  "repair": "Use admitted owned byte arguments; admit repeated size before allocation, copy with cooperative tick, preserve raw results via canonical byte-string value. Retain negative/empty/fractional/native-overflow semantics and explicit malformed visible host text refusal.",
+  "qualified": {
+    "focusedTests": 648,
+    "reptTests": 232,
+    "maintainedFiles": 355,
+    "maintainedTests": 13860,
+    "packageLintAndSourceTestConsumerTypes": "passed",
+    "selectedWorkspaceBuild": "passed",
+    "sdkShellFormulaReplay": {
+      "results": [
+        {
+          "label": "rept-native38",
+          "caseCount": 266,
+          "sdkExact": true,
+          "shellExact": true,
+          "checkpointReplayExact": true,
+          "xmlValidUtf8": true,
+          "formulaCachesOmitted": true,
+          "inputUnchanged": true
+        }
+      ]
+    },
+    "browserAndWorker": {
+      "fieldsEach": 266,
+      "bytesEach": 7188,
+      "exitCode": 0,
+      "diagnostics": [],
+      "stderrBytes": 0,
+      "exact": true
+    },
+    "screenshot": "Inspected readable actual browser/worker byte-exact results; favicon404 separate from product diagnostics.",
+    "normalRootBuild": "passed126declared workspace builds plus root suffix"
+  },
+  "files": [
+    {
+      "path": "packages/ssconvert/src/formulas/functions/text.ts",
+      "bytes": 27607,
+      "sha256": "76b9de1d14108cb4d09d35d796ff0caee2b234cb2fa04c3ccd0e90521f487c96"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/functions/byte-rept.test.ts",
+      "bytes": 6500,
+      "sha256": "669a7bbca9e3ddd07ba23dae30607d421ae67dbe5ad5ab8d521dc561c6072815"
+    }
+  ],
+  "receipts": [
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-focused.log",
+      "bytes": 552,
+      "sha256": "e0099e8aef01089e4ace441df617682dbd03ae7360d8361760c9e53a4f82fbbd"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-maintained-tests.log",
+      "bytes": 28362,
+      "sha256": "1d2d346780acbeb5411e1bf3fa57a57896dcdac069abca72aa732ba441d8c036"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-maintained-lint.log",
+      "bytes": 165,
+      "sha256": "21ca19e19d4ee1b13657e7e0f32fcea6ff6e2e858764826087c0f59aa396cad5"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-build.log",
+      "bytes": 737,
+      "sha256": "c9eef3f857ddbf6689857ae0cf6e9473187127f33ed93158382537f3b50eeeca"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-public-qa.mjs",
+      "bytes": 2719,
+      "sha256": "60224dcc895dfb3af55db98945993bd139dade5fe50f90d77f100953192824c8"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-public-cases.json",
+      "bytes": 38794,
+      "sha256": "401b917506069773136e0b355e83c70181a7d1434724300cf56485358bc01c29"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-public-qa.log",
+      "bytes": 85,
+      "sha256": "28c22412bb7237c9270c9089ec065789b6d95b9bc3086230834f124232e9f4a3"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-public-results.json",
+      "bytes": 271,
+      "sha256": "23ab853399f75f14253b35bd8d6147f45190418ad8772dbcf7563fd07bbabf5d"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-browser-results.log",
+      "bytes": 430,
+      "sha256": "e67dccbb15e9bc88c3975b252be9b4e2321b472c7eacd276f159c4bcc1150793"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-browser-build.log",
+      "bytes": 96,
+      "sha256": "54a921ec89c68170d073998c10a1844d404a3ef49f3ee6c760c73a7f2a4e1265"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-browser.png",
+      "bytes": 59206,
+      "sha256": "aa4913a809f15f8d4a32257f65142a7b52c35cb3f647cc6bf8fea3701d8b01ef"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/byte-rept-root-build.log",
+      "bytes": 22203,
+      "sha256": "276bcba24186e30b3990be85f2339c4d2e19ad588dc7d6c259cfeb303f9ddc15"
+    }
+  ],
+  "limits": [
+    "Full integrated guarded lint attempt incomplete2; stable rerun required. Normal root build terminal0 separately.",
+    "Runtime byte consumers beyond this cohort and complete native/locale/diagnostic/optional profiles remain required.",
+    "SDK/Shell/browser/worker product diagnostics empty; native warning parity not qualified.",
+    "Publication unverified.",
+    "CLEAN/TRIM/PROPER overlap shared focused cohort; do not sum as unique all-case acceptance."
+  ],
+  "integratedGateAttempt": {
+    "complete": false,
+    "exitCode": 2,
+    "subjectsProcessed": 15587,
+    "errors": 0,
+    "warnings": 0,
+    "gaps": 1047,
+    "sampleGap": {
+      "path": "packages/safe-bash/tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/npm-pack-record.json",
+      "message": "filesystem identity drift: size {\"path\":\"/Users/kjopek/Workspace/poe-code\",\"pathTruncated\":false,\"phase\":\"directory-entry-ancestor\",\"field\":\"size\",\"expected\":{\"type\":\"number\",\"value\":\"1600\",\"truncated\":false},\"observed\":{\"type\":\"number\",\"value\":\"1632\",\"truncated\":false}}",
+      "descendantsUnknown": true
+    },
+    "typeAndWorkflowStages": "not reached",
+    "receipt": {
+      "path": "out/ssconvert-gap-resolution/byte-rept-patch-root-lint.log",
+      "bytes": 2791825,
+      "sha256": "2e8c26e9eaa8457574cf044a2f00cae9a14a8b99ec9fcdad5afe92a9c664d394"
+    },
+    "classification": "Incomplete, not passed; concurrent normal build replaced root dist directory while guard pinned checkout identity. Stable guarded rerun remains required for integrated Safe Bash candidate."
+  },
+  "delivery": {
+    "implementationCommit": "eaa1e8212e12b8729acb9d9c4b4c1d04cadc5aa7",
+    "remoteMainVerified": true,
+    "publication": "unverified",
+    "incomingPreserved": "e4182fc3a tar capability tests; owned REPT source/test hashes unchanged",
+    "runtimeReplayCandidate": "Built pre-rebase candidate; owned source/test bytes authenticated unchanged. Native/SDK/Shell/browser/worker observations not counted as full incoming tar acceptance."
+  }
+}

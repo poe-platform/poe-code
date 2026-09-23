@@ -113,7 +113,7 @@ test("stat missing fields fail rather than becoming zero; mutation capability do
 
 test("stat limits, invalid options and cancellation have nonzero/abort outcomes", async () => {
   const fs = await fixture();
-  for (const args of [["-f", "file"], ["-c"], ["-c", "%", "file"], ["-c", "%10000000n", "file"]]) {
+  for (const args of [["-q", "file"], ["-c"], ["-c", "%", "file"], ["-c", "%10000000n", "file"]]) {
     const result = await runMetadata("stat", args, fs);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
@@ -154,4 +154,43 @@ test("stat formats supplied numeric metadata on memory VFS", async () => {
   const stat = await fs.stat("/work/file");
   const result = await runMetadata("stat", ["-c", "%i:%h:%u:%g:%d", "file"], fs);
   assert.equal(result.stdout, `${stat.ino}:${stat.nlink}:${stat.uid}:${stat.gid}:${stat.dev}\n`);
+});
+
+test("stat filesystem mode reports the backend type with format and printf semantics", async () => {
+  const fs = await fixture();
+  for (const option of ["--file-system", "-f"]) {
+    const result = await runMetadata("stat", [option, "--format=%T", "."], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "memory\n");
+  }
+  assert.equal((await runMetadata("stat", ["-fc", "%n:%10T:%%", "file"], fs)).stdout, "file:    memory:%\n");
+  assert.equal((await runMetadata("stat", ["-f", "--printf=%T\\n", "."], fs)).stdout, "memory\n");
+  assert.equal((await runMetadata("stat", ["-f", "."], fs)).stdout, "  File: .\n  Type: memory\n");
+});
+
+test("stat filesystem mode follows links, validates operands and refuses unavailable fields", async () => {
+  const fs = await fixture();
+  await fs.symlink("file", "/work/link");
+  await fs.symlink("missing", "/work/dangling");
+  const result = await runMetadata("stat", ["-f", "-c%T", "missing", "link", "dangling"], fs);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "memory\n");
+  for (const code of ["s", "b", "a", "f", "i", "t", "S", "c", "d", "l"]) {
+    const unsupported = await runMetadata("stat", ["-f", `-c%T:%${code}`, "."], fs);
+    assert.equal(unsupported.exitCode, 1, code);
+    assert.equal(unsupported.stdout, "", code);
+    assert.match(unsupported.stderr, /ENOTSUP/u);
+  }
+  const unknown: FileSystem = new Proxy(fs, { get(target, property) {
+    if (property === "stat") return async (path: string) => {
+      const { filesystemType: ignoredType, ...stat } = await target.stat(path);
+      return stat;
+    };
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const unavailable = await runMetadata("stat", ["-f", "-c%T", "."], unknown);
+  assert.equal(unavailable.exitCode, 1);
+  assert.equal(unavailable.stdout, "");
+  assert.match(unavailable.stderr, /ENOTSUP/u);
 });

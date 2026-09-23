@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   Shell, CommandRegistry, agentCommands, createAgentCommands, metadataCommands,
   createMetadataCommands, createMemoryFileSystem, createReadOnlyFileSystem,
+  createMountFileSystem, createOverlayFileSystem,
   MockS3Client, S3FileSystem, type PluginHost,
 } from "../../../src/index.js";
 import { runMetadata } from "./helpers.js";
@@ -50,6 +51,24 @@ test("metadata options are forwarded through the aggregate without enabling host
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "400\n");
   } finally { await shell.dispose(); }
+});
+
+test("aggregate shell stat filesystem mode reads backend metadata through filesystem wrappers", async () => {
+  const backing = createMemoryFileSystem();
+  await backing.mkdir("/work");
+  for (const fs of [
+    createReadOnlyFileSystem(backing),
+    createMountFileSystem({ root: backing }),
+    createOverlayFileSystem({ upper: createMemoryFileSystem(), lower: backing }),
+  ]) {
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec("stat --file-system --format=%T . | cat");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "memory\n");
+    } finally { await shell.dispose(); }
+  }
 });
 
 test("readonly VFS mutation failures do not prevent metadata reads", async () => {

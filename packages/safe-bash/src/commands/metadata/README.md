@@ -40,6 +40,13 @@ rejected rather than silently ignored.
 
 Supports `-L`/`--dereference`, `-c`/`--format` (newline per operand), and
 `--printf` (explicit escapes/newlines, including raw byte octal/hex escapes).
+`-f`/`--file-system` reports the containing filesystem using `%T` (backend type),
+`%n` (operand), and `%%`, with the same formatting and escape rules. Memory
+filesystems report `memory`. Backends supply the optional `FileStat.filesystemType`;
+an unknown type or any unsupported filesystem metric fails explicitly rather
+than inventing host capacity, inode counts, block sizes, IDs, or type numbers.
+Filesystem mode follows symlinks and requires an existing target. Its default
+report includes only the operand and backend type.
 Implemented directives: `%n`, `%N`, `%s`, `%a`, `%A`, `%f`, `%F`, `%i`, `%h`,
 `%u`, `%g`, `%d`, `%D`, `%x/%y/%z/%w`, `%X/%Y/%Z/%W`, and `%%`.
 Basic width, alignment, numeric zero/sign/alternate padding and epoch precision

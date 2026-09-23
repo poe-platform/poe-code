@@ -829,6 +829,8 @@ function assertSource7Discovery(files) {
     "tests/plugins/device-canonical-runtime.test.ts",
   ]) assert.ok(files.includes(path), "optional device test is missing: " + path);
   assert.ok(files.includes("tests/commands/device-metadata.test.ts"), "character metadata test is missing");
+  assert.ok(files.includes("tests/commands/metadata/stat.test.ts"), "stat metadata test is missing");
+  assert.ok(files.includes("tests/commands/metadata/integration.test.ts"), "metadata integration test is missing");
   assert.equal(new Set(files).size, files.length);
   for (const path of removed) assert.ok(!files.includes(path), "removed filesystem test remains selected: " + path);
   for (const path of added) assert.ok(files.includes(path), "retained filesystem test is missing: " + path);

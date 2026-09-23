@@ -9,6 +9,8 @@ export type EntryComparison = "same" | "distinct" | "unknown";
 
 export interface FileStat {
   readonly type: FileType;
+  /** Backend-reported type of the containing filesystem; absence means unknown. */
+  readonly filesystemType?: string;
   readonly size: number;
   readonly allocatedBytes?: number;
   readonly ioBlockSize?: number;

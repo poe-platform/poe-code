@@ -332,6 +332,7 @@ export class MemoryFileSystem implements FileSystem {
   private snapshot(node: MemoryNode): FileStat {
     return {
       type: node.type,
+      filesystemType: "memory",
       ioBlockSize: preferredIoBlockSize,
       ...(Number.isSafeInteger(node.revision) ? { revision: node.revision } : {}),
       preferredIoBlockSize: 4096,

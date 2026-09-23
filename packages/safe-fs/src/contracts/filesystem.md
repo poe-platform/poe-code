@@ -801,6 +801,13 @@ retained-resize promise. Object replacement is not an implementation of it.
 
 ### Preferred I/O blocks
 
+`FileStat.filesystemType?: string` optionally names the backend filesystem
+containing the observed entry. A present value is a nonempty string; absence
+means unknown. Memory reports `memory`, not a host filesystem type. Faithful
+stat wrappers preserve this observation; remappers must omit or replace it if
+the containing filesystem changes. This does not imply a native numeric type,
+filesystem ID, capacity, free blocks, inode counts, or block geometry.
+
 `FileStat.preferredIoBlockSize?: number` is an optional positive safe-integer
 byte count for the same observed entry. Absence means unknown. It is a preferred
 transfer-size hint, not allocated bytes, allocation granularity or a reference

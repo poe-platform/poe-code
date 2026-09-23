@@ -4,6 +4,7 @@ import { MetadataBudget, metadataCommand, permissionString, settings, type Metad
 
 function parse(args: readonly string[]) {
   let follow = false;
+  let filesystem = false;
   let format: string | undefined;
   let printf = false;
   let literal = false;
@@ -13,6 +14,7 @@ function parse(args: readonly string[]) {
     if (literal || argument === "-" || !argument.startsWith("-")) paths.push(argument);
     else if (argument === "--") literal = true;
     else if (argument === "--dereference") follow = true;
+    else if (argument === "--file-system") filesystem = true;
     else if (argument === "--format" || argument.startsWith("--format=") || argument === "--printf" || argument.startsWith("--printf=")) {
       printf = argument.startsWith("--printf");
       format = argument.includes("=") ? argument.slice(argument.indexOf("=") + 1) : args[++index];
@@ -20,6 +22,7 @@ function parse(args: readonly string[]) {
     } else if (!argument.startsWith("--")) {
       for (let offset = 1; offset < argument.length; offset++) {
         if (argument[offset] === "L") follow = true;
+        else if (argument[offset] === "f") filesystem = true;
         else if (argument[offset] === "c") {
           format = argument.slice(offset + 1) || args[++index];
           if (format === undefined) throw new UsageError("missing format for '-c'");
@@ -30,7 +33,7 @@ function parse(args: readonly string[]) {
     } else throw new UsageError(`unrecognized option '${argument}'`);
   }
   requireOperands(paths);
-  return { follow, format, printf, paths };
+  return { follow, filesystem, format, printf, paths };
 }
 
 function quoted(text: string, style?: string): string {
@@ -130,7 +133,7 @@ function formatField(text: string, code: string, flags: string, width: number, p
   return Buffer.concat([Buffer.alloc(padding, 32), bytes]);
 }
 
-async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number): Promise<Uint8Array> {
+async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
   const append = (text: string | Uint8Array) => {
@@ -174,10 +177,22 @@ async function render(context: CommandContext, path: string, name: string, stat:
     const { code, flags } = parsed;
     const width = Number(parsed.width || 0);
     if (!Number.isSafeInteger(width) || width > limit) throw new FsError("EFBIG", { message: "stat format width limit exceeded" });
-    const epochCode = ["X", "Y", "Z", "W"].includes(code);
+    const epochCode = !filesystem && ["X", "Y", "Z", "W"].includes(code);
     const precision = parsed.precision === undefined ? undefined : Number(parsed.precision || (epochCode ? 9 : 0));
     if (precision !== undefined && (!Number.isSafeInteger(precision) || precision > limit)) throw new FsError("EFBIG", { message: "stat format precision limit exceeded" });
     if (code === "%" && parsed.length !== 2) throw new UsageError("invalid stat format directive");
+    if (filesystem) {
+      let text: string;
+      if (code === "n") text = name;
+      else if (code === "%") text = "%";
+      else if (code === "T") {
+        if (stat.filesystemType === undefined) throw new FsError("ENOTSUP", { syscall: "stat", message: "filesystem does not expose its type" });
+        if (typeof stat.filesystemType !== "string" || stat.filesystemType.length === 0) throw new FsError("EIO", { syscall: "stat", message: "invalid filesystem type" });
+        text = stat.filesystemType;
+      } else throw new FsError("ENOTSUP", { message: `unsupported filesystem stat format: %${code}` });
+      append(formatField(text, code, flags, width, precision, false, false));
+      continue;
+    }
     let text: string;
     let linkText: string | undefined;
     let numeric = false;
@@ -223,9 +238,9 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
       await budget.step();
       try {
         const path = pathOf(context, name);
-        const stat = await context.fs[parsed.follow ? "stat" : "lstat"](path, { signal: context.signal });
-        const format = parsed.format ?? "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w";
-        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes);
+        const stat = await context.fs[parsed.follow || parsed.filesystem ? "stat" : "lstat"](path, { signal: context.signal });
+        const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
+        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem);
         await budget.output(parsed.printf ? text : Buffer.concat([text, Uint8Array.of(10)]));
       } catch (error) {
         context.signal.throwIfAborted();

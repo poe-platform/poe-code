@@ -5,7 +5,7 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     31,
     0,
     "NA",
-    "\"NA\"",
+    "NA",
     "wk1_std_func"
   ],
   [
@@ -19,245 +19,245 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     33,
     1,
     "ABS",
-    "\"ABS\"",
+    "ABS",
     "wk1_std_func"
   ],
   [
     34,
     1,
     "INT",
-    "\"TRUNC\"",
+    "TRUNC",
     "wk1_std_func"
   ],
   [
     35,
     1,
     "SQRT",
-    "\"SQRT\"",
+    "SQRT",
     "wk1_std_func"
   ],
   [
     36,
     1,
     "LOG",
-    "\"LOG\"",
+    "LOG",
     "wk1_std_func"
   ],
   [
     37,
     1,
     "LN",
-    "\"LN\"",
+    "LN",
     "wk1_std_func"
   ],
   [
     38,
     0,
     "PI",
-    "\"PI\"",
+    "PI",
     "wk1_std_func"
   ],
   [
     39,
     1,
     "SIN",
-    "\"SIN\"",
+    "SIN",
     "wk1_std_func"
   ],
   [
     40,
     1,
     "COS",
-    "\"COS\"",
+    "COS",
     "wk1_std_func"
   ],
   [
     41,
     1,
     "TAN",
-    "\"TAN\"",
+    "TAN",
     "wk1_std_func"
   ],
   [
     42,
     2,
     "ATAN2",
-    "\"ATAN2\"",
+    "ATAN2",
     "wk1_std_func"
   ],
   [
     43,
     1,
     "ATAN",
-    "\"ATAN\"",
+    "ATAN",
     "wk1_std_func"
   ],
   [
     44,
     1,
     "ASIN",
-    "\"ASIN\"",
+    "ASIN",
     "wk1_std_func"
   ],
   [
     45,
     1,
     "ACOS",
-    "\"ACOS\"",
+    "ACOS",
     "wk1_std_func"
   ],
   [
     46,
     1,
     "EXP",
-    "\"EXP\"",
+    "EXP",
     "wk1_std_func"
   ],
   [
     47,
     2,
     "MOD",
-    "\"MOD\"",
+    "MOD",
     "wk1_std_func"
   ],
   [
     48,
     -1,
     "CHOOSE",
-    "\"CHOOSE\"",
+    "CHOOSE",
     "wk1_std_func"
   ],
   [
     49,
     1,
     "ISNA",
-    "\"ISNA\"",
+    "ISNA",
     "wk1_std_func"
   ],
   [
     50,
     1,
     "ISERR",
-    "\"ISERR\"",
+    "ISERR",
     "wk1_std_func"
   ],
   [
     51,
     0,
     "FALSE",
-    "\"FALSE\"",
+    "FALSE",
     "wk1_std_func"
   ],
   [
     52,
     0,
     "TRUE",
-    "\"TRUE\"",
+    "TRUE",
     "wk1_std_func"
   ],
   [
     53,
     0,
     "RAND",
-    "\"RAND\"",
+    "RAND",
     "wk1_std_func"
   ],
   [
     54,
     3,
     "DATE",
-    "\"DATE\"",
+    "DATE",
     "wk1_std_func"
   ],
   [
     55,
     0,
     "TODAY",
-    "\"TODAY\"",
+    "TODAY",
     "wk1_std_func"
   ],
   [
     56,
     3,
     "PMT",
-    "\"PMT\"",
+    "PMT",
     "wk1_fin_func"
   ],
   [
     57,
     3,
     "PV",
-    "\"PV\"",
+    "PV",
     "wk1_fin_func"
   ],
   [
     58,
     3,
     "FV",
-    "\"FV\"",
+    "FV",
     "wk1_fin_func"
   ],
   [
     59,
     3,
     "IF",
-    "\"IF\"",
+    "IF",
     "wk1_std_func"
   ],
   [
     60,
     1,
     "DAY",
-    "\"DAY\"",
+    "DAY",
     "wk1_std_func"
   ],
   [
     61,
     1,
     "MONTH",
-    "\"MONTH\"",
+    "MONTH",
     "wk1_std_func"
   ],
   [
     62,
     1,
     "YEAR",
-    "\"YEAR\"",
+    "YEAR",
     "wk1_year_func"
   ],
   [
     63,
     2,
     "ROUND",
-    "\"ROUND\"",
+    "ROUND",
     "wk1_std_func"
   ],
   [
     64,
     3,
     "TIME",
-    "\"TIME\"",
+    "TIME",
     "wk1_std_func"
   ],
   [
     65,
     1,
     "HOUR",
-    "\"HOUR\"",
+    "HOUR",
     "wk1_std_func"
   ],
   [
     66,
     1,
     "MINUTE",
-    "\"MINUTE\"",
+    "MINUTE",
     "wk1_std_func"
   ],
   [
     67,
     1,
     "SECOND",
-    "\"SECOND\"",
+    "SECOND",
     "wk1_std_func"
   ],
   [
@@ -278,49 +278,49 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     70,
     1,
     "LENGTH",
-    "\"LEN\"",
+    "LEN",
     "wk1_std_func"
   ],
   [
     71,
     1,
     "VALUE",
-    "\"VALUE\"",
+    "VALUE",
     "wk1_std_func"
   ],
   [
     72,
     2,
     "STRING",
-    "\"FIXED\"",
+    "FIXED",
     "wk1_std_func"
   ],
   [
     73,
     3,
     "MID",
-    "\"MID\"",
+    "MID",
     "wk1_std_func"
   ],
   [
     74,
     1,
     "CHAR",
-    "\"CHAR\"",
+    "CHAR",
     "wk1_std_func"
   ],
   [
     75,
     1,
     "CODE",
-    "\"CODE\"",
+    "CODE",
     "wk1_std_func"
   ],
   [
     76,
     3,
     "FIND",
-    "\"FIND\"",
+    "FIND",
     "wk1_find_func"
   ],
   [
@@ -348,238 +348,238 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     80,
     -1,
     "SUM",
-    "\"SUM\"",
+    "SUM",
     "wk1_std_func"
   ],
   [
     81,
     -1,
     "AVG",
-    "\"AVERAGEA\"",
+    "AVERAGEA",
     "wk1_std_func"
   ],
   [
     82,
     -1,
     "COUNT",
-    "\"COUNTA\"",
+    "COUNTA",
     "wk1_std_func"
   ],
   [
     83,
     -1,
     "MIN",
-    "\"MINA\"",
+    "MINA",
     "wk1_std_func"
   ],
   [
     84,
     -1,
     "MAX",
-    "\"MAXA\"",
+    "MAXA",
     "wk1_std_func"
   ],
   [
     85,
     3,
     "VLOOKUP",
-    "\"VLOOKUP\"",
+    "VLOOKUP",
     "wk1_std_func"
   ],
   [
     86,
     2,
     "NPV",
-    "\"NPV\"",
+    "NPV",
     "wk1_std_func"
   ],
   [
     87,
     -1,
     "VAR",
-    "\"VARPA\"",
+    "VARPA",
     "wk1_std_func"
   ],
   [
     88,
     -1,
     "STD",
-    "\"STDEVPA\"",
+    "STDEVPA",
     "wk1_std_func"
   ],
   [
     89,
     2,
     "IRR",
-    "\"IRR\"",
+    "IRR",
     "wk1_fin_func"
   ],
   [
     90,
     3,
     "HLOOKUP",
-    "\"HLOOKUP\"",
+    "HLOOKUP",
     "wk1_std_func"
   ],
   [
     91,
     -2,
     "DSUM",
-    "\"DSUM\"",
+    "DSUM",
     "wk1_std_func"
   ],
   [
     92,
     -2,
     "DAVG",
-    "\"DAVERAGE\"",
+    "DAVERAGE",
     "wk1_std_func"
   ],
   [
     93,
     -2,
     "DCNT",
-    "\"DCOUNTA\"",
+    "DCOUNTA",
     "wk1_std_func"
   ],
   [
     94,
     -2,
     "DMIN",
-    "\"DMIN\"",
+    "DMIN",
     "wk1_std_func"
   ],
   [
     95,
     -2,
     "DMAX",
-    "\"DMAX\"",
+    "DMAX",
     "wk1_std_func"
   ],
   [
     96,
     -2,
     "DVAR",
-    "\"DVARP\"",
+    "DVARP",
     "wk1_std_func"
   ],
   [
     97,
     -2,
     "DSTD",
-    "\"DSTDEVP\"",
+    "DSTDEVP",
     "wk1_std_func"
   ],
   [
     98,
     -3,
     "INDEX",
-    "\"INDEX\"",
+    "INDEX",
     "wk1_std_func"
   ],
   [
     99,
     1,
     "COLS",
-    "\"COLUMNS\"",
+    "COLUMNS",
     "wk1_std_func"
   ],
   [
     100,
     1,
     "ROWS",
-    "\"ROWS\"",
+    "ROWS",
     "wk1_std_func"
   ],
   [
     101,
     2,
     "REPEAT",
-    "\"REPT\"",
+    "REPT",
     "wk1_std_func"
   ],
   [
     102,
     1,
     "UPPER",
-    "\"UPPER\"",
+    "UPPER",
     "wk1_std_func"
   ],
   [
     103,
     1,
     "LOWER",
-    "\"LOWER\"",
+    "LOWER",
     "wk1_std_func"
   ],
   [
     104,
     2,
     "LEFT",
-    "\"LEFT\"",
+    "LEFT",
     "wk1_std_func"
   ],
   [
     105,
     2,
     "RIGHT",
-    "\"RIGHT\"",
+    "RIGHT",
     "wk1_std_func"
   ],
   [
     106,
     4,
     "REPLACE",
-    "\"REPLACE\"",
+    "REPLACE",
     "wk1_std_func"
   ],
   [
     107,
     1,
     "PROPER",
-    "\"PROPER\"",
+    "PROPER",
     "wk1_std_func"
   ],
   [
     108,
     2,
     "CELL",
-    "\"CELL\"",
+    "CELL",
     "wk1_std_func"
   ],
   [
     109,
     1,
     "TRIM",
-    "\"TRIM\"",
+    "TRIM",
     "wk1_std_func"
   ],
   [
     110,
     1,
     "CLEAN",
-    "\"CLEAN\"",
+    "CLEAN",
     "wk1_std_func"
   ],
   [
     111,
     1,
     "S",
-    "\"T\"",
+    "T",
     "wk1_std_func"
   ],
   [
     112,
     1,
     "N",
-    "\"N\"",
+    "N",
     "wk1_std_func"
   ],
   [
     113,
     2,
     "EXACT",
-    "\"EXACT\"",
+    "EXACT",
     "wk1_std_func"
   ],
   [
@@ -593,14 +593,14 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     115,
     1,
     "@",
-    "\"INDIRECT\"",
+    "INDIRECT",
     "wk1_std_func"
   ],
   [
     116,
     3,
     "RATE",
-    "\"RATE\"",
+    "RATE",
     "wk1_rate_func"
   ],
   [
@@ -621,35 +621,35 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     119,
     3,
     "SLN",
-    "\"SLN\"",
+    "SLN",
     "wk1_std_func"
   ],
   [
     120,
     4,
     "SYD",
-    "\"SYD\"",
+    "SYD",
     "wk1_std_func"
   ],
   [
     121,
     4,
     "DDB",
-    "\"DDB\"",
+    "DDB",
     "wk1_std_func"
   ],
   [
     123,
     1,
     "SHEETS",
-    "\"SHEETS\"",
+    "SHEETS",
     "wk1_std_func"
   ],
   [
     124,
     1,
     "INFO",
-    "\"INFO\"",
+    "INFO",
     "wk1_std_func"
   ],
   [
@@ -663,14 +663,14 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     126,
     1,
     "ISRANGE",
-    "\"ISREF\"",
+    "ISREF",
     "wk1_std_func"
   ],
   [
     127,
     -1,
     "DGET",
-    "\"DGET\"",
+    "DGET",
     "wk1_std_func"
   ],
   [
@@ -691,42 +691,42 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     131,
     0,
     "TODAY",
-    "\"TODAY\"",
+    "TODAY",
     "wk1_std_func"
   ],
   [
     132,
     -1,
     "VDB",
-    "\"VDB\"",
+    "VDB",
     "wk1_std_func"
   ],
   [
     133,
     -1,
     "DVARS",
-    "\"DVAR\"",
+    "DVAR",
     "wk1_std_func"
   ],
   [
     134,
     -1,
     "DSTDS",
-    "\"DSTDEV\"",
+    "DSTDEV",
     "wk1_std_func"
   ],
   [
     135,
     -1,
     "VARS",
-    "\"VARA\"",
+    "VARA",
     "wk1_std_func"
   ],
   [
     136,
     -1,
     "STDS",
-    "\"STDEVA\"",
+    "STDEVA",
     "wk1_std_func"
   ],
   [
@@ -754,21 +754,21 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     141,
     1,
     "WEEKDAY",
-    "\"WEEKDAY\"",
+    "WEEKDAY",
     "wk1_std_func"
   ],
   [
     142,
     3,
     "DATEDIF",
-    "\"DATEDIF\"",
+    "DATEDIF",
     "wk1_std_func"
   ],
   [
     143,
     -1,
     "RANK",
-    "\"RANK\"",
+    "RANK",
     "wk1_std_func"
   ],
   [
@@ -789,21 +789,21 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     146,
     1,
     "DECIMAL",
-    "\"HEX2DEC\"",
+    "HEX2DEC",
     "wk1_std_func"
   ],
   [
     147,
     1,
     "HEX",
-    "\"DEC2HEX\"",
+    "DEC2HEX",
     "wk1_std_func"
   ],
   [
     148,
     4,
     "DB",
-    "\"DB\"",
+    "DB",
     "wk1_std_func"
   ],
   [
@@ -838,7 +838,7 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     153,
     -1,
     "PUREAVG",
-    "\"AVERAGE\"",
+    "AVERAGE",
     "wk1_std_func"
   ],
   [
@@ -852,28 +852,28 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     155,
     -1,
     "PUREMAX",
-    "\"MAX\"",
+    "MAX",
     "wk1_std_func"
   ],
   [
     156,
     -1,
     "PUREMIN",
-    "\"MIN\"",
+    "MIN",
     "wk1_std_func"
   ],
   [
     157,
     -1,
     "PURESTD",
-    "\"STDEVP\"",
+    "STDEVP",
     "wk1_std_func"
   ],
   [
     158,
     -1,
     "PUREVAR",
-    "\"VARP\"",
+    "VARP",
     "wk1_std_func"
   ],
   [
@@ -922,28 +922,28 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     167,
     1,
     "FACT",
-    "\"FACT\"",
+    "FACT",
     "wk1_std_func"
   ],
   [
     170,
     1,
     "SINH",
-    "\"SINH\"",
+    "SINH",
     "wk1_std_func"
   ],
   [
     171,
     1,
     "ASINH",
-    "\"ASINH\"",
+    "ASINH",
     "wk1_std_func"
   ],
   [
     175,
     1,
     "GAMMALN",
-    "\"GAMMALN\"",
+    "GAMMALN",
     "wk1_std_func"
   ],
   [
@@ -957,7 +957,7 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     177,
     2,
     "COMBIN",
-    "\"COMBIN\"",
+    "COMBIN",
     "wk1_std_func"
   ],
   [
@@ -971,21 +971,21 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     179,
     2,
     "BETA",
-    "\"BETA\"",
+    "BETA",
     "wk1_std_func"
   ],
   [
     180,
     1,
     "COSH",
-    "\"COSH\"",
+    "COSH",
     "wk1_std_func"
   ],
   [
     181,
     1,
     "TANH",
-    "\"TANH\"",
+    "TANH",
     "wk1_std_func"
   ],
   [
@@ -1006,14 +1006,14 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     184,
     1,
     "ACOSH",
-    "\"ACOSH\"",
+    "ACOSH",
     "wk1_std_func"
   ],
   [
     185,
     1,
     "ATANH",
-    "\"ATANH\"",
+    "ATANH",
     "wk1_std_func"
   ],
   [
@@ -1041,35 +1041,35 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     190,
     -1,
     "AVEDEV",
-    "\"AVEDEV\"",
+    "AVEDEV",
     "wk1_std_func"
   ],
   [
     191,
     2,
     "BESSELI",
-    "\"BESSELI\"",
+    "BESSELI",
     "wk1_std_func"
   ],
   [
     192,
     2,
     "BESSELJ",
-    "\"BESSELJ\"",
+    "BESSELJ",
     "wk1_std_func"
   ],
   [
     193,
     2,
     "BESSELK",
-    "\"BESSELK\"",
+    "BESSELK",
     "wk1_std_func"
   ],
   [
     194,
     2,
     "BESSELY",
-    "\"BESSELY\"",
+    "BESSELY",
     "wk1_std_func"
   ],
   [
@@ -1083,14 +1083,14 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     202,
     -1,
     "DEVSQ",
-    "\"DEVSQ\"",
+    "DEVSQ",
     "wk1_std_func"
   ],
   [
     204,
     1,
     "ERFC",
-    "\"ERFC\"",
+    "ERFC",
     "wk1_std_func"
   ],
   [
@@ -1125,7 +1125,7 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     220,
     1,
     "SQRTPI",
-    "\"SQRTPI\"",
+    "SQRTPI",
     "wk1_std_func"
   ],
   [
@@ -1153,35 +1153,35 @@ const definitions: readonly (readonly [number, number, string, string | null, st
     250,
     1,
     "SIGN",
-    "\"SIGN\"",
+    "SIGN",
     "wk1_std_func"
   ],
   [
     251,
     -1,
     "SUMSQ",
-    "\"SUMSQ\"",
+    "SUMSQ",
     "wk1_std_func"
   ],
   [
     257,
     1,
     "EVEN",
-    "\"EVEN\"",
+    "EVEN",
     "wk1_std_func"
   ],
   [
     259,
     1,
     "ODD",
-    "\"ODD\"",
+    "ODD",
     "wk1_std_func"
   ],
   [
     281,
     1,
     "ISEMPTY",
-    "\"ISBLANK\"",
+    "ISBLANK",
     "wk1_std_func"
   ]
 ];

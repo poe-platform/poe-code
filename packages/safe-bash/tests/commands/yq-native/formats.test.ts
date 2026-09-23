@@ -85,3 +85,53 @@ for (const backend of ["memory", "s3"] as const) {
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [limits, diagnostic] of [
+  [{ maxDepth: 32 }, "maxDepth"],
+  [{ maxParserNodes: 32 }, "maxParserNodes"],
+  [{ maxNodes: 32 }, "maxNodes"],
+] as const) test(`properties admits ${diagnostic} before building a deep graph`, async context => {
+  const create = Object.create;
+  let mappings = 0;
+  context.mock.method(Object, "create", (...args: Parameters<typeof Object.create>) => {
+    if (args[0] === null) mappings++;
+    return create(...args);
+  });
+  const result = await run(["-p=props", "-o=json", "."], "x.".repeat(10000) + "last=ok\n", {}, { limits });
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes(`yq limit exceeded: ${diagnostic}`), result.stderr);
+  assert.ok(mappings < 100, `allocated ${mappings} maps before rejection`);
+});
+
+test("properties rejects a near-document-limit virtual file with an ordinary depth diagnostic", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/payload", Buffer.from("x.".repeat(500000) + "last=ok\n"));
+  const shell = new Shell({ fs }).use(mikeYqCommands({ limits: { maxDocumentBytes: 1048576, maxParserNodes: 4096, maxDepth: 128 } }));
+  try {
+    const result = await shell.exec("yq -p=props -o=json . /payload");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "Error: yq limit exceeded: maxDepth\n");
+  } finally { await shell.dispose(); }
+});
+
+test("properties admits parser nodes across entries before constructing a wide graph", async context => {
+  const create = Object.create;
+  let mappings = 0;
+  context.mock.method(Object, "create", (...args: Parameters<typeof Object.create>) => {
+    if (args[0] === null) mappings++;
+    return create(...args);
+  });
+  const input = Array.from({ length: 1000 }, (_, index) => `key${index}.value=ok`).join("\n");
+  const result = await run(["-p=props", "-o=json", "."], input, {}, { limits: { maxParserNodes: 32 } });
+  assert.equal(result.status, 1);
+  assert.ok(result.stderr.includes("yq limit exceeded: maxParserNodes"), result.stderr);
+  assert.ok(mappings < 100, `allocated ${mappings} maps before rejection`);
+});
+
+test("properties preserves shared paths, replacement, empty components and literal prototype keys", async () => {
+  const result = await run(["-p=props", "-o=json", "-I=0", "."], "a.b=one\na.c=two\na.b=three\nx=old\nx.y=new\n.empty=end\n__proto__.safe=yes\n");
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), { a: { b: "three", c: "two" }, x: { y: "new" }, "": { empty: "end" }, ["__proto__"]: { safe: "yes" } });
+});

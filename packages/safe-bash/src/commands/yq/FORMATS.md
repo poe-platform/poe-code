@@ -15,6 +15,8 @@ and URI output uses form-style `+` spaces.
 Conversion uses the configured virtual filesystem and existing Mike-profile
 byte, document, scalar, node, depth, step and output quotas. It does not invoke
 native tools. Split output uses the selected format's extension.
+Properties keys are checked against configured depth and parser-node quotas
+before constructing their nested maps; each new node also consumes native work.
 
 This remains a bounded format profile: properties support simple dotted paths;
 INI supports simple sections and entries; XML supports elements, repeated

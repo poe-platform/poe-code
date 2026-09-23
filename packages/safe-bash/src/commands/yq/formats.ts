@@ -11,6 +11,60 @@ export type MikeFormat = "yaml" | "json" | "csv" | "tsv" | "props" | "xml" | "in
 type Value = null | boolean | number | string | Value[] | { [key: string]: Value };
 function mapping(value: Value): value is { [key: string]: Value } { return value !== null && typeof value === "object" && !Array.isArray(value); }
 
+async function properties(text: string, work: NativeWork): Promise<Value> {
+  let nodes = 0;
+  const admit = (count: number) => {
+    if (count > work.limits.maxParserNodes - nodes) throw new MikeError("yq limit exceeded: maxParserNodes");
+    work.node(count);
+    nodes += count;
+  };
+  admit(1);
+  const result: { [key: string]: Value } = Object.create(null);
+  let offset = 0;
+  while (offset < text.length) {
+    const newline = text.indexOf("\n", offset);
+    const end = newline < 0 ? text.length : newline;
+    const line = text.slice(offset, end).trim();
+    offset = end + 1;
+    await work.tick(line.length + 1);
+    if (!line || line.startsWith("#") || line.startsWith(";") || line.startsWith("!")) continue;
+    let equal = line.indexOf("=");
+    if (equal < 0) equal = line.indexOf(":");
+    if (equal < 0) throw new MikeError("invalid props entry");
+    const key = line.slice(0, equal).trim();
+    // A path needs a root plus a key and value node for every component.
+    // Check its minimum size before materializing any part of that path.
+    let depth = 1;
+    work.depth(depth);
+    if (1 + 2 * depth > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
+    for (let index = 0; index < key.length; index++) {
+      await work.tick();
+      if (key[index] !== ".") continue;
+      work.depth(++depth);
+      if (1 + 2 * depth > work.limits.maxParserNodes) throw new MikeError("yq limit exceeded: maxParserNodes");
+    }
+    let target = result;
+    let start = 0;
+    while (true) {
+      await work.tick();
+      const dot = key.indexOf(".", start);
+      const component = key.slice(start, dot < 0 ? key.length : dot);
+      if (dot < 0) {
+        admit(Object.hasOwn(target, component) ? 1 : 2);
+        target[component] = line.slice(equal + 1).trim();
+        break;
+      }
+      if (!mapping(target[component] ?? null)) {
+        admit(Object.hasOwn(target, component) ? 1 : 2);
+        target[component] = Object.create(null) as Value;
+      }
+      target = target[component] as { [key: string]: Value };
+      start = dot + 1;
+    }
+  }
+  return result;
+}
+
 async function table(text: string, delimiter: string, yaml: YamlModule, work: NativeWork): Promise<Value> {
   const rows: string[][] = [];
   let row: string[] = [], field = "", quoted = false, closed = false;
@@ -85,20 +139,18 @@ export async function decodeFormat(text: string, filename: string, fileIndex: nu
         return item as Value;
       };
       value = convert(parsed);
-    } else if (format === "props" || format === "ini") {
+    } else if (format === "props") value = await properties(text, work);
+    else if (format === "ini") {
       value = Object.create(null) as { [key: string]: Value };
       let section = value;
       for (const source of text.split("\n")) {
         await work.tick(source.length + 1);
         const line = source.trim();
         if (!line || line.startsWith("#") || line.startsWith(";") || line.startsWith("!")) continue;
-        if (format === "ini" && line.startsWith("[") && line.endsWith("]")) { const name = line.slice(1, -1); section = Object.create(null) as { [key: string]: Value }; value[name] = section; continue; }
+        if (line.startsWith("[") && line.endsWith("]")) { const name = line.slice(1, -1); section = Object.create(null) as { [key: string]: Value }; value[name] = section; continue; }
         let equal = line.indexOf("="); if (equal < 0) equal = line.indexOf(":");
         if (equal < 0) throw new MikeError(`invalid ${format} entry`);
-        const keys = format === "props" ? line.slice(0, equal).trim().split(".") : [line.slice(0, equal).trim()];
-        let target = section;
-        for (const key of keys.slice(0, -1)) { if (!mapping(target[key] ?? null)) target[key] = Object.create(null) as Value; target = target[key] as { [key: string]: Value }; }
-        target[keys.at(-1)!] = line.slice(equal + 1).trim();
+        section[line.slice(0, equal).trim()] = line.slice(equal + 1).trim();
       }
     } else throw new MikeError(`format '${format}' does not support decoding`);
   } catch (error) { if (error instanceof MikeError) throw error; throw new MikeError(`bad ${format} input: ${error instanceof Error ? error.message : String(error)}`); }

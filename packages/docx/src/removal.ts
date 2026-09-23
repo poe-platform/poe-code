@@ -101,7 +101,8 @@ export async function removeDocumentContent(input: Uint8Array, request: ContentR
           if (opts.markers === "include" && range.start <= offset && offset <= range.end) patches.set(current, "");
           return;
         }
-        const text = current.localName === "t" ? current.text : current.localName === "tab" ? "\t" : ["br", "cr"].includes(current.localName) ? "\n" : undefined;
+        const text = current.localName === "t" ? current.text : current.localName === "tab" ? "\t" : ["br", "cr"].includes(current.localName) ? "\n"
+          : current.localName === "noBreakHyphen" ? "\u2011" : current.localName === "softHyphen" ? "\u00ad" : undefined;
         if (text !== undefined) {
           const chars = [...text];
           budget.charge("retainedBytes", chars.length * 8);

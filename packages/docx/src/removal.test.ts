@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import * as docx from "./index.js";
 import { paragraph, run, table, textContext, textFixture } from "../tests/fixtures/text.js";
+import { publication } from "../tests/fixtures/object-publication.js";
 
 async function remove(body: string, operation: "paragraphs.remove" | "runs.remove" | "tables.remove", options: Record<string, unknown>, strict = false) {
   const input = await textFixture(body, {}, strict);
@@ -17,6 +18,37 @@ async function range(body: string, start: number, end: number, kind: "paragraph"
   const document = await docx.openDocumentLocations(await textFixture(body), textContext);
   return document.range(document.at(kind, 1, kind === "run" ? { owner: document.at("paragraph", 1).token } : {}).token, start, end).token;
 }
+
+it.each(["sdk", "cli"] as const)("removes native hyphens at their Unicode scalar offsets through %s", async route => {
+  const input = await textFixture('<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>🌊</w:t><w:noBreakHyphen/><w:t>x</w:t><w:softHyphen/><w:t>Z</w:t></w:r></w:p>');
+  const original = new Uint8Array(input), env = publication(input);
+  const document = await docx.openDocumentLocations(input, textContext);
+  const select = document.range(document.at("paragraph", 1).token, 1, 4).token;
+  if (route === "sdk") {
+    const result = await docx.removeDocumentContent(input, { operation: "paragraphs.remove", options: { select, markers: "exclude", output: "/out/result.docx" } }, {
+      ...textContext, encoding: { order: "input", compression: "store" }, filesystem: env.fs
+    });
+    expect(result.changes[0]?.after?.value.range).toEqual({ start: 1, end: 1 });
+  } else {
+    env.volume.writeFileSync("/stdout", ""); env.volume.writeFileSync("/stderr", "");
+    const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+      args: ["paragraphs", "remove", "/input.docx", "--select", select, "--markers", "exclude", "--output", "/out/result.docx", "--json"].map(value => new TextEncoder().encode(value)),
+      cwd: "/", filesystem: env.fs, signal: textContext.signal,
+      stdin: { async *[Symbol.asyncIterator]() { /* File input has no stdin chunks. */ } },
+      stdout: { async write(bytes) { env.volume.appendFileSync("/stdout", bytes); } },
+      stderr: { async write(bytes) { env.volume.appendFileSync("/stderr", bytes); } }
+    });
+    expect(result.exitCode).toBe(0);
+    const report = JSON.parse(env.volume.readFileSync("/stdout", "utf8") as string);
+    expect(report.data.changes[0].after.value.range).toEqual({ start: 1, end: 1 });
+  }
+  const bytes = new Uint8Array(env.volume.readFileSync("/out/result.docx") as Uint8Array);
+  expect((await docx.extractDocumentText(bytes, textContext)).text).toBe("🌊Z");
+  const xml = new TextDecoder().decode(await docx.getDocumentXml(bytes, textContext, { part: "/word/document.xml", raw: true }) as Uint8Array);
+  expect(xml).toContain("<w:b/>"); expect(xml).not.toContain("<w:noBreakHyphen"); expect(xml).not.toContain("<w:softHyphen");
+  expect(input).toEqual(original);
+  expect(new Uint8Array(env.volume.readFileSync("/input.docx") as Uint8Array)).toEqual(original);
+});
 
 it.each([false, true])("removes only the selected paragraph and retains its neighbors (%s)", async strict => {
   const result = await remove(paragraph("North") + paragraph("Discard") + paragraph("South"), "paragraphs.remove", { paragraph: 2 }, strict);

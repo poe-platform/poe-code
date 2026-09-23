@@ -152,11 +152,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? Infinity;
   const snapshotLimits = { ...(options.limits?.maxSnapshotBytes === undefined ? {} : { maxSnapshotBytes }), ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? 16 * 1024 * 1024;
-  const maxTabs = options.limits?.maxTabs ?? 16;
+  const maxTabs = options.limits?.maxTabs ?? Infinity;
   const maxCommandBytes = options.limits?.maxCommandBytes ?? 16 * 1024 * 1024;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const value of [options.limits?.maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, maxArtifactBytes, options.limits?.maxTabs, maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const pendingRestores = new Set<string>();
   const occupiedSessions = (except?: string) => new Set([

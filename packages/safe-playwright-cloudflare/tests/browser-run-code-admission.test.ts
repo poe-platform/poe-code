@@ -16,7 +16,7 @@ vi.mock("../src/browser-run-code-native", () => ({
 vi.mock("../src/browser-run-code-relay", () => ({ createRunCodeRelay: vi.fn() }));
 import { createBrowserRunCode } from "../src/browser-run-code";
 
-test.each([
+for (const maxPages of [4, Infinity, 65]) test.each([
   {
     url: "about:blank",
     contextId: "private-context",
@@ -82,7 +82,7 @@ test.each([
       signal: new AbortController().signal,
       timeoutMs: 1000,
       maxOutputBytes: 1024,
-      maxPages: 4
+      maxPages
     } as never).catch((error) => error);
     expect(error).toBeInstanceOf(Error);
     const prefix = "Run-code cannot reconnect another existing browser context: ";

@@ -62,3 +62,20 @@ test('failed context retirement still detaches a released borrowed lease and pre
   lease.onClosed(() => { notifications++; });
   assert.equal(notifications, 2);
 });
+
+for (const maxPages of [Infinity, 65, 2]) test(`code execution forwards page limit ${maxPages}`, async () => {
+  let received: number | undefined;
+  const page = { url: () => 'about:blank' } as PlaywrightPage;
+  const context: PlaywrightContext = { newPage: async () => page, pages: () => [page], close: async () => {}, on() {}, off() {} };
+  const adapter = createPlaywrightAdapter({ chromium: { async acquireBrowser() {
+    return { browser: { isConnected: () => true, newContext: async () => context, on() {}, off() {} },
+      async executeCode(options) { received = options.maxPages; return 'complete'; }, async release() {} };
+  } } });
+  const signal = new AbortController().signal;
+  const lease = await adapter.acquire({ acquisitionId: 'page-limit', session: 'demo', browser: 'chromium', headless: true, signal });
+  try {
+    assert.equal(await lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: 1000, maxOutputBytes: 1024, maxPages }), 'complete');
+    assert.equal(received, maxPages);
+    for (const invalid of [0, -1, NaN, -Infinity, 1.5]) await assert.rejects(lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: 1000, maxOutputBytes: 1024, maxPages: invalid }), /Invalid Playwright code execution options/);
+  } finally { await lease.release(); }
+});

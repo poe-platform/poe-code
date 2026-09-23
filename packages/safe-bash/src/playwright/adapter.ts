@@ -320,6 +320,7 @@ export interface PlaywrightCodeExecutionOptions {
   readonly signal: AbortSignal;
   readonly timeoutMs: number;
   readonly maxOutputBytes: number;
+  /** Infinity means no configured page-count limit. */
   readonly maxPages: number;
 }
 /** Trusted isolated host execution of a function receiving the native page.
@@ -546,7 +547,8 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             executionOptions.signal.throwIfAborted();
             if (typeof executionOptions.source !== 'string' || !executionOptions.source.trim()
-              || ![executionOptions.timeoutMs, executionOptions.maxOutputBytes, executionOptions.maxPages].every(value => Number.isSafeInteger(value) && value > 0)) return Promise.reject(new TypeError('Invalid Playwright code execution options'));
+              || ![executionOptions.timeoutMs, executionOptions.maxOutputBytes].every(value => Number.isSafeInteger(value) && value > 0)
+              || (executionOptions.maxPages !== Infinity && (!Number.isSafeInteger(executionOptions.maxPages) || executionOptions.maxPages < 1))) return Promise.reject(new TypeError('Invalid Playwright code execution options'));
             const ownedOptions = Object.freeze({ ...executionOptions });
             const operation = Promise.resolve().then(async () => {
               ownedOptions.signal.throwIfAborted();

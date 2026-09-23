@@ -44,7 +44,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   const browserSession = context.browserSession;
   const request: PlaywrightAbilityRequest = Object.freeze({
     command: parsed.command, session: parsed.session, args: parsed.args, options: parsed.options, signal: context.signal,
-    limits: Object.freeze({ maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: context.actionTimeoutMs ?? 5000, codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? 30000, navigationTimeoutMs: context.navigationTimeoutMs ?? 60000, maxPages: context.maxPages ?? 16 }),
+    limits: Object.freeze({ maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: context.actionTimeoutMs ?? 5000, codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? 30000, navigationTimeoutMs: context.navigationTimeoutMs ?? 60000, maxPages: context.maxPages ?? Infinity }),
     ...(browserSession ? { browserSession: Object.freeze({
       context: browserSession.context,
       page: browserSession.page,
@@ -73,7 +73,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
           signal: AbortSignal.any([context.signal, options.signal]),
           timeoutMs: Math.min(options.timeoutMs, context.codeExecutionTimeoutMs ?? 30000),
           maxOutputBytes: Math.min(options.maxOutputBytes, budget.remaining),
-          maxPages: Math.min(options.maxPages, context.maxPages ?? 16),
+          maxPages: Math.min(options.maxPages, context.maxPages ?? Infinity),
         });
       }) as NonNullable<typeof browserSession.executeCode> } : {}),
       resolveTarget(ref: string) {

@@ -42,6 +42,12 @@ The safe-bash controller has no default snapshot byte or reference cap. Configur
 setting another limit does not impose either snapshot cap. Other controller and
 provider resource limits still apply.
 
+The session and tab admission limits are also opt-in: omitted `maxSessions` and
+`maxTabs` do not impose a controller count cap. Explicit values remain positive
+safe integers. Code executors receive `maxPages: Infinity` when no tab limit is
+configured and must preserve that sentinel; independent provider transport and
+creation budgets remain in effect.
+
 An explicit snapshot cap rejects the capture without publishing partial refs or
 closing a healthy browser. Inspection and navigation remain available in the same
 context. A failed automatic snapshot can follow a completed navigation or click;

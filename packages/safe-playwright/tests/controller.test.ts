@@ -178,6 +178,31 @@ for (const cleanupFails of [false, true]) {
   });
 }
 
+for (const limits of [undefined, { maxSessions: 1 }, { maxTabs: 2 }]) test(`tab admission respects only explicit limits ${JSON.stringify(limits)}`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    const pages: PlaywrightPage[] = [];
+    Object.assign(lease.context, { pages: () => pages, async newPage() {
+      const page = { goto: async (url: string) => { f.events.push(`goto:${url}`); }, url: () => `https://example.test/tab-${pages.length}` } as PlaywrightPage;
+      pages.push(page);
+      return page;
+    } });
+    return lease;
+  } }, ...(limits ? { limits } : {}) });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await run(['open']);
+    const count = limits?.maxTabs ?? 18;
+    for (let index = 1; index < count; index++) await run(['tab-new']);
+    if (limits?.maxTabs !== undefined) await assert.rejects(run(['tab-new']), /tab limit exceeded/);
+    await run(['tab-list']);
+    assert.equal(f.leases[0]!.lease.context.pages().length, count);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await controller.dispose(); }
+});
+
 for (const limits of [undefined, { maxArtifactBytes: 1024 }]) test(`omitted session count permits more than four sessions with partial limits ${limits !== undefined}`, async () => {
   const f = fixture();
   const controller = createPlaywrightController({ adapter: f.adapter, ...(limits ? { limits } : {}) });

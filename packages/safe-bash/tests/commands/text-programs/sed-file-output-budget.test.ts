@@ -5,6 +5,29 @@ import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { sedCommand } from "../../../src/commands/text-programs/sed.js";
 import { runVirtual } from "./helpers.js";
+import { agentCommands } from "../../../src/plugins/index.js";
+
+for (const option of ["--in-place=.bak", "--in-place", "--in-place="]) {
+  test(`sed ${option} edits named files with GNU optional suffix semantics`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/input", Buffer.from("old\n"));
+    await fs.writeFile("/work/second", Buffer.from("old again\n"));
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`sed ${option} 's/old/new/' input second`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    for (const [file, before, after] of [["input", "old\n", "new\n"], ["second", "old again\n", "new again\n"]]) {
+      assert.equal(Buffer.from(await fs.readFile(`/work/${file}`)).toString(), after);
+      if (option === "--in-place=.bak") {
+        assert.equal(Buffer.from(await fs.readFile(`/work/${file}.bak`)).toString(), before);
+      } else {
+        await assert.rejects(fs.readFile(`/work/${file}.bak`), { code: "ENOENT" });
+      }
+    }
+  });
+}
 
 function fixture(maxOutputBytes: number) {
   const fs = new MemoryFileSystem();

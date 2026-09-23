@@ -437,6 +437,10 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (argument === "--null-data") { separator = "\0"; continue; }
       if (argument === "--quiet") { quiet = true; continue; }
       if (argument === "--regexp-extended") { extended = true; continue; }
+      if (argument === "--in-place" || argument.startsWith("--in-place=")) {
+        inPlace = argument === "--in-place" ? "" : argument.slice("--in-place=".length);
+        continue;
+      }
       if (argument.startsWith("--")) throw new ProgramError(`unsupported option '${argument}'`);
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;

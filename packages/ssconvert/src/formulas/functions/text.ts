@@ -6,6 +6,7 @@ import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
 import { trimByteText } from "./byte-trim.js";
 import { properByteText } from "./byte-proper.js";
+import { substituteByteText } from "./byte-substitute.js";
 import type { CellValue } from "../../workbook.js";
 import { blank, error, numericResult, numericText, rendered } from "../values.js";
 import { admitMatrix, asBoolean, bool, boundedText, byteTextArg, collect, numberArg, scalarArg, str, textArg, unsupported, wildcard } from "./common.js";
@@ -316,18 +317,11 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     return boundedText(chars.slice(0, offsets.indexOf(from)).join("") + replacement + chars.slice(offsets.indexOf(end)).join(""), host);
   }) satisfies FunctionImplementation])),
   SUBSTITUTE: (args, host) => {
-    const source = textArg(args, 0, host), search = textArg(args, 1, host), replacement = textArg(args, 2, host), instance = numberArg(args, 3, host, -1);
-    if (args[3] !== undefined && instance <= 0) return error("#VALUE!");
-    if (!search) return str(source);
-    let result = "", from = 0, occurrence = 0;
-    while (from <= source.length) {
-      host.tick(); const index = source.indexOf(search, from);
-      if (index < 0) { result += source.slice(from); break; }
-      result += source.slice(from, index) + (++occurrence === Math.trunc(instance) || instance === -1 || Math.trunc(instance) === 0 ? replacement : search);
-      if (result.length > host.context.limits.outputBytes) throw new SsconvertError("resource-limit", "ssconvert calculation text limit exceeded");
-      from = index + search.length;
-    }
-    return boundedText(result, host);
+    const source = byteTextArg(args, 0, host), search = byteTextArg(args, 1, host), replacement = byteTextArg(args, 2, host);
+    const count = numberArg(args, 3, host, 0);
+    if (args[3] !== undefined && count <= 0) return error("#VALUE!");
+    const instance = Math.trunc(Math.min(2147483647, count));
+    return byteStringValue(substituteByteText(source, search, replacement, instance, host.context.limits.outputBytes, host.tick), host.tick, host.context.limits.outputBytes);
   },
   T: (args, host) => { const value = scalarArg(args, 0, host); return value.kind === "string" || value.kind === "byte-string" ? value : blank; },
   VALUE: (args, host) => { const value = scalarArg(args, 0, host); if (value.kind === "blank" || value.kind === "number" || value.kind === "boolean") return value; const n = matchNumber(rendered(value), host); return n === undefined ? error("#VALUE!") : typeof n === "boolean" ? bool(n) : numericResult(n); },

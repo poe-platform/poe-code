@@ -7,7 +7,7 @@ test("canonical conformance identifies the private workspace without claiming a 
   const source = await sourceState();
   assert.equal(source["canonical:profile"], "private-workspace");
   assert.ok(source["canonical:version"]);
-  assert.equal(Object.hasOwn(source, "canonical:lock-integrity"), source["canonical:profile"] === "installed-release");
+  assert.equal(Object.hasOwn(source, "canonical:lock-integrity"), false);
 });
 
 function peerFixture(checkout: boolean) {

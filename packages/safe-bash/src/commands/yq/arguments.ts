@@ -23,6 +23,8 @@ export interface MikeArguments {
   prettyPrint: boolean;
   compactSequence: boolean;
   mergeSpec: boolean;
+  disableEnvOps: boolean;
+  disableFileOps: boolean;
   expression: string | undefined;
   fromFile: string | undefined;
   frontMatter: string | undefined;
@@ -39,6 +41,7 @@ const booleans: Readonly<Record<string, keyof MikeArguments>> = {
   h: "help", help: "help", V: "version", version: "version", N: "noDoc", "no-doc": "noDoc",
   c: "compactSequence", "yaml-compact-seq-indent": "compactSequence", "yaml-fix-merge-anchor-to-spec": "mergeSpec",
   "0": "nulOutput", "nul-output": "nulOutput", P: "prettyPrint", prettyPrint: "prettyPrint",
+  "security-disable-env-ops": "disableEnvOps", "security-disable-file-ops": "disableFileOps",
 };
 const values: Readonly<Record<string, "input" | "output" | "indent" | "expression" | "fromFile" | "frontMatter" | "splitExpression" | "splitFile">> = {
   "from-file": "fromFile", f: "frontMatter", "front-matter": "frontMatter",
@@ -113,7 +116,7 @@ export function parseMikeArguments(context: CommandContext): MikeArguments {
   }
   const result: MikeArguments = { all: false, help: false, version: false, nullInput: false, inplace: false,
     exitStatus: false, input: "auto", output: "auto", indent: 2, unwrap: undefined, noDoc: false,
-    compactSequence: false, mergeSpec: false, nulOutput: false, prettyPrint: false, expression: undefined, fromFile: undefined, frontMatter: undefined, splitExpression: undefined, splitFile: undefined, headerPreprocess: true, operands: [] };
+    compactSequence: false, mergeSpec: false, disableEnvOps: false, disableFileOps: false, nulOutput: false, prettyPrint: false, expression: undefined, fromFile: undefined, frontMatter: undefined, splitExpression: undefined, splitFile: undefined, headerPreprocess: true, operands: [] };
   let ended = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;

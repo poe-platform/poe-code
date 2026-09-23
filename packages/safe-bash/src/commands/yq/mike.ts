@@ -56,8 +56,8 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const inferred = operands[0]?.toLowerCase().endsWith(".json") ? "json" : "yaml";
     const format = inputOption === "auto" ? inferred : inputOption;
     const output = outputOption === "auto" ? inputOption === "auto" ? inferred : "yaml" : outputOption;
-    const program = compileExpression(expression);
-    const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression) : undefined;
+    const program = compileExpression(expression, options);
+    const splitProgram = splitExpression !== undefined ? compileExpression(splitExpression, options) : undefined;
     const yaml = await work.track(loadYaml());
     work.assertOpen();
     const evaluator = new Evaluator(yaml, work, options.mergeSpec);

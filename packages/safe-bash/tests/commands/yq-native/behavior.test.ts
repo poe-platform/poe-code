@@ -10,6 +10,89 @@ import { createMikeYqCommand, createMikeYqCommands, mikeYqCommands } from "../..
 import type { MikeYqOptions } from "../../../src/commands/yq/mike.js";
 import { run } from "./helpers.js";
 
+for (const flag of ["--security-disable-env-ops", "--security-disable-file-ops"]) {
+  test(`Mike yq accepts ${flag} for ordinary input files`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input.yaml", Buffer.from("a: 1\n"));
+    const shell = new Shell({ fs }).use(mikeYqCommands());
+    try {
+      for (const mode of ["", "eval", "eval-all"]) {
+        const result = await shell.exec(`yq ${mode} ${flag} . /input.yaml`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "a: 1\n");
+        assert.equal(result.stderr, "");
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("Mike yq disables environment operators before reading input or publishing effects", async () => {
+  for (const expression of ["env(VALUE)", "strenv(VALUE)", "select(false) | env(VALUE)", '.a = strenv(VALUE)']) {
+    let reads = 0;
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input.yaml", Buffer.from("a: 1\n"));
+    const result = await run(["--security-disable-env-ops", "-i", expression, "/input.yaml"], "", {
+      fs: Object.assign(Object.create(fs) as typeof fs, {
+        readFile: async (...args: Parameters<typeof fs.readFile>) => { reads++; return fs.readFile(...args); },
+        readStream: (...args: Parameters<NonNullable<typeof fs.readStream>>) => { reads++; return fs.readStream!(...args); },
+      }),
+      env: { VALUE: "secret" },
+    });
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /env operations have been disabled/u);
+    assert.equal(reads, 0);
+    assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), "a: 1\n");
+  }
+});
+
+test("Mike yq security booleans are invocation-local and accept explicit false", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(mikeYqCommands());
+  try {
+    assert.equal((await shell.exec("yq -n --security-disable-env-ops 'strenv(VALUE)'", { env: { VALUE: "secret" } })).exitCode, 1);
+    for (const flag of ["", "--security-disable-env-ops=false", "--security-disable-file-ops"]) {
+      const result = await shell.exec(`yq -n ${flag} 'strenv(VALUE)'`, { env: { VALUE: "secret" } });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "secret\n");
+    }
+    const data = await shell.exec('yq -n --security-disable-env-ops \'{"env": "strenv(VALUE)"}\'');
+    assert.equal(data.exitCode, 0, data.stderr);
+    assert.equal(data.stdout, "env: strenv(VALUE)\n");
+  } finally { await shell.dispose(); }
+});
+
+test("Mike yq disabled file operators perform no external reads", async () => {
+  for (const operator of ["load", "load_str", "load_xml", "load_props", "load_base64"]) {
+    let reads = 0;
+    const fs = createMemoryFileSystem();
+    const result = await run(["-n", "--security-disable-file-ops", `${operator}("private.yaml")`], "", {
+      fs: Object.assign(Object.create(fs) as typeof fs, {
+        readFile: async (...args: Parameters<typeof fs.readFile>) => { reads++; return fs.readFile(...args); },
+        readStream: (...args: Parameters<NonNullable<typeof fs.readStream>>) => { reads++; return fs.readStream!(...args); },
+      }),
+    });
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /file operations have been disabled/u);
+    assert.equal(reads, 0);
+  }
+});
+
+test("Mike yq security flags cover expressions loaded from files and split output names", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/expression.yq", Buffer.from("strenv(VALUE)"));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    for (const args of ["--from-file /expression.yq", "--split-exp 'strenv(VALUE)' .", "--split-exp-file /expression.yq ."]) {
+      const result = await shell.exec(`yq -n --security-disable-env-ops ${args}`, { env: { VALUE: "leaked" } });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.match(result.stderr, /env operations have been disabled/u);
+      await assert.rejects(fs.stat("/leaked.yml"), (error: unknown) => error instanceof FsError && error.code === "ENOENT");
+    }
+  } finally { await shell.dispose(); }
+});
+
 interface InplaceMetadata {
   type: "file" | "symlink";
   mode: number;

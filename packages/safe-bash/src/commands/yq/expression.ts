@@ -15,7 +15,7 @@ interface Token { text: string; offset: number; kind: "symbol" | "string" | "num
 const priorities: Readonly<Record<string, number>> = { "|": 1, ",": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
 const functions = new Set(["select", "map", "has", "length", "keys", "tag", "type", "kind", "style", "documentIndex", "di", "fileIndex", "fi", "filename", "env", "strenv", "del", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "with_entries", "pick", "upcase", "downcase", "test", "split"]);
 
-export function compileExpression(source: string): Expression {
+export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean } = {}): Expression {
   if (Buffer.byteLength(source) > 8192) throw new MikeError("yq limit exceeded: expression bytes");
   const tokens: Token[] = [];
   let offset = 0;
@@ -73,6 +73,8 @@ export function compileExpression(source: string): Expression {
     else if (token.kind === "number") result = literal(/[.eE]/u.test(token.text) ? Number(token.text) : BigInt(token.text));
     else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
     else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as boolean | null);
+    else if (security.disableEnvOps && ["env", "strenv", "envsubst"].includes(token.text)) throw new MikeError("env operations have been disabled");
+    else if (security.disableFileOps && ["load", "load_str", "load_xml", "load_props", "load_base64"].includes(token.text)) throw new MikeError("file operations have been disabled");
     else if (functions.has(token.text)) {
       const args: Expression[] = [];
       if (peek().text === "(") {

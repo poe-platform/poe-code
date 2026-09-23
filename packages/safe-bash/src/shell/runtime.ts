@@ -6675,7 +6675,7 @@ export class Runtime {
       } finally { line?.release(); }
     }
     if (command === "exit" || command === "return") {
-      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: not in a function\n"); return 1; }
+      if (command === "return" && state.functionDepth === 0 && !state.sourceDepth) { await writeDiagnostic(stderr, "return: can only `return' from a function or sourced script\n"); return 2; }
       if (args.length > 1) { await writeDiagnostic(stderr, `${command}: too many arguments\n`); return 1; }
       let argument = args[0];
       if (argument !== undefined) {

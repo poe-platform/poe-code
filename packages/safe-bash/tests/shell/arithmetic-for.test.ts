@@ -3,6 +3,29 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 
+for (const argument of ["", " 0", " 7"]) {
+  for (const errexit of [false, true]) test(`top-level return${argument} reports usage status${errexit ? " under errexit" : ""}`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`${errexit ? "set -e; " : ""}return${argument}; say "AFTER:$?"`);
+      assert.equal(result.exitCode, errexit ? 2 : 0);
+      assert.equal(result.stdout, errexit ? "" : "AFTER:2\n");
+      assert.equal(result.stderr, "return: can only `return' from a function or sourced script\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("return remains valid in functions and sourced scripts, then rejects top-level use", async () => {
+  const { shell, fs } = setup();
+  try {
+    await fs.writeFile("/return.sh", new TextEncoder().encode('return 7; say WRONG'));
+    const result = await shell.exec('f() { return 7; say WRONG; }; f; say "FUNCTION:$?"; . /return.sh; say "SOURCE:$?"; return 0; say "AFTER:$?"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "FUNCTION:7\nSOURCE:7\nAFTER:2\n");
+    assert.equal(result.stderr, "return: can only `return' from a function or sourced script\n");
+  } finally { await shell.dispose(); }
+});
+
 for (const control of ["break", "continue"]) {
   test(`${control} 0 preserves the failed loop status`, async () => {
     const { shell } = setup();

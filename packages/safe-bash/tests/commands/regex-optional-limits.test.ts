@@ -27,6 +27,7 @@ test("BRE protocol accepts unlimited and larger explicit individual limits", () 
   validateExprInput(descriptor, [{ bytes: new Uint8Array([97]), all: false, terminated: false }], new AbortController().signal);
 });
 test("text regex compilation has no hidden nesting, repetition or program quotas", () => {
+  assert.doesNotThrow(() => new Pattern("a".repeat(8193), true));
   assert.doesNotThrow(() => new Pattern("(".repeat(70) + "a" + ")".repeat(70), true));
   assert.doesNotThrow(() => new Pattern("a{17000}", true));
 });

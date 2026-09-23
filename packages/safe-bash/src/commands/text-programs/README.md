@@ -40,9 +40,9 @@ subexpressions in capture order, including ambiguous repeated nested captures.
 Collating/equivalence classes, lookaround, and other non-POSIX special groups
 are rejected. Exhaustive POSIX subexpression parity is not claimed. Non-ASCII locale folding and
 multibyte-character semantics are outside this C-byte-oriented increment.
-Regex source is limited to 8,192 bytes, nesting to 64 levels, repetition bounds
-to 1,000, and compiled instructions to 16,384. Every matching instruction spends
-the invocation's step budget. A costly pattern fails deterministically rather
+Regex compilation has no implicit source, nesting, repetition or instruction
+quotas. Every matching instruction spends the invocation's step budget.
+A costly pattern fails deterministically rather
 than entering an uninterruptible native-regex backtracking operation.
 
 ## Sed grammar and behavior

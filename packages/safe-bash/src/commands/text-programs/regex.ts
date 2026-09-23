@@ -73,7 +73,6 @@ export class Pattern {
   private readonly linear: boolean;
 
   constructor(source: string, extended = true, ignoreCase = false) {
-    if (source.length > 8192) throw new ProgramError("regular expression exceeds 8192 bytes");
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;

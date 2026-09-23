@@ -2185,7 +2185,7 @@ describe("spawn.pretty()", () => {
 });
 
 describe("spawn.autonomous()", () => {
-  it("retries timeout errors with the default activity timeout and returns the retry result", async () => {
+  it("retries timeout errors without an implicit activity timeout and returns the retry result", async () => {
     const timeoutError = createActivityTimeoutError();
 
     vi.mocked(getSpawnConfig).mockReturnValue({
@@ -2217,19 +2217,20 @@ describe("spawn.autonomous()", () => {
       exitCode: 0,
       threadId: "thread_retry"
     });
+    for (const [options] of vi.mocked(spawnStreaming).mock.calls) {
+      expect(options).not.toHaveProperty("activityTimeoutMs");
+    }
     expect(spawnStreaming).toHaveBeenCalledTimes(2);
     expect(spawnStreaming).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        prompt: "test prompt",
-        activityTimeoutMs: 10 * 60 * 1000
+        prompt: "test prompt"
       })
     );
     expect(spawnStreaming).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        prompt: "test prompt",
-        activityTimeoutMs: 10 * 60 * 1000
+        prompt: "test prompt"
       })
     );
   });

@@ -32,4 +32,4 @@ This package does not read any environment variables.
 
 ## Configuration
 
-This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget`; current failure checkpoints never raise limits automatically. See [SafeJS recovery](../safe-js/RECOVERY.md) for budget and checkpoint behavior.
+This package does not read package-level configuration. Runtime behavior is supplied through `runHarnessPair` options: `modulesFor`, `allowedGlobals`, `budget`, `resume`, `signal`, and `snapshotPath`. `budget` accepts a SafeJS `Budget` shared by schema extraction and execution. Schema extraction has no implicit resource caps and honors `signal`; `extractSchema(source, path, { budget, signal })` accepts the same controls. Supplying an individual budget leaves other resource limits unset; current failure checkpoints never raise limits automatically. See [SafeJS recovery](../safe-js/RECOVERY.md) for budget and checkpoint behavior.

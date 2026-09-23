@@ -46,7 +46,7 @@ export function createSpawnParallel<
   options?: SpawnParallelOptions
 ) => Promise<TResult[]> {
   return async function parallel(calls, options = {}) {
-    const maxConcurrent = normalizeMaxConcurrent(options.maxConcurrent);
+    const maxConcurrent = options.maxConcurrent === undefined ? calls.length : normalizeMaxConcurrent(options.maxConcurrent);
     const failFast = options.failFast ?? true;
     const requestedCheck = Object.hasOwn(options, "check") ? options.check : undefined;
     const check = requestedCheck === undefined ? failFast : requestedCheck;
@@ -167,8 +167,7 @@ async function drainEvents(events: AsyncIterable<AcpEvent>): Promise<void> {
   }
 }
 
-function normalizeMaxConcurrent(maxConcurrent: number | undefined): number {
-  const value = maxConcurrent ?? 4;
+function normalizeMaxConcurrent(value: number): number {
   if (!Number.isInteger(value) || value < 1) {
     throw new Error("spawn.parallel maxConcurrent must be an integer greater than or equal to 1.");
   }

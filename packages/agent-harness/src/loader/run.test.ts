@@ -183,6 +183,25 @@ describe("runHarnessPair", () => {
     vi.restoreAllMocks();
   });
 
+  it("passes the caller budget and cancellation through schema loading", async () => {
+    vol.fromJSON({
+      "/repo/schema.md": "---\nkind: schema\n---\n",
+      "/repo/schema.ajs": 'import { S } from "schema"; export const schema = S.Object({ kind: S.String() }); export default async function (frontmatter) { return frontmatter.kind; }'
+    });
+    const options = { modulesFor: () => ({}), snapshotPath: "/repo/state.json" };
+    await expect(runHarnessPair("/repo/schema.md", {
+      ...options, budget: new Budget({ maxSteps: 1 })
+    })).rejects.toThrow("budget exceeded");
+    const controller = new AbortController();
+    controller.abort();
+    await expect(runHarnessPair("/repo/schema.md", {
+      ...options, signal: controller.signal
+    })).rejects.toThrow("aborted");
+    await expect(runHarnessPair("/repo/schema.md", {
+      ...options, budget: new Budget({ maxSteps: 10000 })
+    })).resolves.toMatchObject({ ok: true, returnValue: "schema" });
+  });
+
   it("recovers a budget failure without repeating completed effects", async () => {
     vol.fromJSON({
       "/repo/recovery.md": "---\nkind: recovery\nversion: 1\n---\n",
@@ -1317,6 +1336,8 @@ describe("runHarnessPair", () => {
 
       const first = createDeferred<string>();
       const second = createDeferred<string>();
+      // Cancellation can win before the harness observes this deferred host result.
+      void second.promise.catch(() => {});
       const controller = new AbortController();
       const firstRun = runHarnessPair(mdPath, {
         clock: {

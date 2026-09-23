@@ -89,7 +89,7 @@ Pass `resumeThreadId` to continue a prior provider thread/session. Declarative a
 
 ## Autonomous streaming
 
-`spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners.
+`spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners. Activity timeouts and retry ceilings are disabled when omitted; set `activityTimeoutMs` and `maxTimeoutRetries` independently to opt in. `maxTimeoutRetries` counts total attempts. Cancellation remains available through `signal`. Parallel spawns start every call unless `maxConcurrent` is supplied.
 
 For a live conversation dashboard, `createDashboardAgentRunner({ spawn, onOutput, onActivity, onUsage })` connects your normal streaming spawn function to the design system. Tool starts and completions update one entry in place, with concise Read, Search, List files, and Edit labels. Full command details stay available separately. The runner preserves spawn settings, reconciles streamed usage with final totals, and accepts `maxTimeoutRetries` for autonomous loops.
 

@@ -400,7 +400,7 @@ describe("spawn.parallel()", () => {
     expect(started).toBe(2);
   });
 
-  it("uses the default maxConcurrent of 4 for tuple calls", async () => {
+  it.each([undefined, 6])("starts every tuple call with maxConcurrent %s", async (maxConcurrent) => {
     let active = 0;
     let maxActive = 0;
     const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(
@@ -421,11 +421,12 @@ describe("spawn.parallel()", () => {
     );
 
     const results = await parallel(
-      Array.from({ length: 6 }, (_, index) => ["codex", { prompt: String(index) }] as const)
+      Array.from({ length: 6 }, (_, index) => ["codex", { prompt: String(index) }] as const),
+      { maxConcurrent }
     );
 
     expect(results.map((item) => item.stdout)).toEqual(["0", "1", "2", "3", "4", "5"]);
-    expect(maxActive).toBe(4);
+    expect(maxActive).toBe(6);
   });
 
   it("aborts tuple calls when the parent signal aborts", async () => {

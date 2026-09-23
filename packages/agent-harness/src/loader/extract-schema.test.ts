@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { Budget } from "@poe-code/safe-js";
 import { S } from "toolcraft-schema";
 
 import * as api from "../index.js";
@@ -32,6 +33,33 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("extractSchema", () => {
+  it.each([undefined, new Budget({ arrayLength: 2000 }), new Budget({ maxSteps: 10000 })])(
+    "evaluates large schemas with omitted or individual budgets: %s",
+    async (budget) => {
+      const values = Array.from({ length: 1001 }, (_, index) => `value${index}`);
+      const source = `export const schema = S.Enum(${JSON.stringify(values)});`;
+      await expect(extractSchema(source, "/schema.ajs", { budget })).resolves.toEqual(S.Enum(values));
+    }
+  );
+
+  it.each([
+    { arrayLength: 1 },
+    { dataSize: 1 },
+    { stringLength: 1 },
+    { maxCallDepth: 1 }
+  ])("honors an individual schema resource limit: %s", async (limits) => {
+    await expect(extractSchema(
+      'export const schema = (() => (() => S.Enum(["first", "second"]))())();',
+      "/schema.ajs", { budget: new Budget(limits) }
+    )).rejects.toThrow("budget exceeded");
+  });
+
+  it("honors an explicit schema step limit", async () => {
+    await expect(extractSchema("export const schema = S.String();", "/schema.ajs", {
+      budget: new Budget({ maxSteps: 1 })
+    })).rejects.toThrow("budget exceeded");
+  });
+
   it("is re-exported from the package entrypoint", () => {
     expect(api.extractSchema).toBe(extractSchema);
   });
@@ -216,7 +244,8 @@ describe("extractSchema", () => {
     await expect(
       extractSchema(
         "export const schema = ((loop) => loop(loop))((loop) => loop(loop));",
-        "/tmp/infinite.ajs"
+        "/tmp/infinite.ajs",
+        { budget: new Budget({ maxSteps: 200 }) }
       )
     ).rejects.toThrow(/Sandbox budget exceeded/);
   });

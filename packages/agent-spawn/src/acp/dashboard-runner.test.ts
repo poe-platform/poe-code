@@ -41,6 +41,7 @@ describe("dashboard agent runner", () => {
     const controller = new AbortController();
     await run({ agent: "codex", prompt: "Implement", cwd: "/worktree", model: "chosen", mode: "yolo", logFileName: "step.jsonl", skills: ["test"], hooks: { from: "claude" }, mcpServers: {}, signal: controller.signal });
     expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ captureSession: false, prompt: "Implement", cwd: "/worktree", model: "chosen", mode: "yolo", logFileName: "step.jsonl", skills: ["test"], hooks: { from: "claude" }, mcpServers: {}, signal: controller.signal, middlewares: [middleware] }));
+    expect(spawn).toHaveBeenCalledWith("codex", expect.not.objectContaining({ activityTimeoutMs: expect.anything() }));
     expect(output.map((item) => item.text)).toEqual(["Read src/app.ts", "Read src/app.ts"]);
     expect(usage.reduce((total, item) => total + item.inputTokens, 0)).toBe(125);
     expect(usage.reduce((total, item) => total + item.outputTokens, 0)).toBe(25);

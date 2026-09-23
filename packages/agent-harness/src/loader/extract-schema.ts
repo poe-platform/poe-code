@@ -1,5 +1,5 @@
 import {
-  Budget,
+  type Budget,
   deepCopyFromSandbox,
   findExportedConstInitializer,
   parseModule,
@@ -13,17 +13,15 @@ type ParsedModule = ReturnType<typeof parseModule>;
 type ParsedStatement = ParsedModule["body"][number];
 type ParsedVariableDeclaration = Extract<ParsedStatement, { type: "VariableDeclaration" }>;
 
-const SCHEMA_EXTRACTION_BUDGET = {
-  arrayLength: 1_000,
-  dataSize: 200_000,
-  maxCallDepth: 20,
-  maxSteps: 200,
-  stringLength: 100_000
-} as const;
+export type ExtractSchemaOptions = {
+  budget?: Budget;
+  signal?: AbortSignal;
+};
 
 export async function extractSchema(
   ajsSource: string,
-  ajsPath: string
+  ajsPath: string,
+  options: ExtractSchemaOptions = {}
 ): Promise<SchemaDescriptor | undefined> {
   const module = parseModule(ajsSource, ajsPath);
   const initializer = findExportedConstInitializer(module, "schema");
@@ -36,7 +34,7 @@ export async function extractSchema(
     initializer.span.start.offset,
     initializer.span.end.offset
   );
-  const result = await evaluateSchemaInitializer(initializerSource, ajsPath);
+  const result = await evaluateSchemaInitializer(initializerSource, ajsPath, options);
 
   if (!result.ok) {
     throwSchemaInitializerError(
@@ -49,10 +47,11 @@ export async function extractSchema(
   return (await deepCopyFromSandbox(result.returnValue)) as SchemaDescriptor;
 }
 
-async function evaluateSchemaInitializer(initializerSource: string, ajsPath: string) {
+async function evaluateSchemaInitializer(initializerSource: string, ajsPath: string, options: ExtractSchemaOptions) {
   try {
     return await run(`import { S } from "schema"; return ${initializerSource};`, {
-      budget: new Budget(SCHEMA_EXTRACTION_BUDGET),
+      budget: options.budget,
+      signal: options.signal,
       filename: ajsPath,
       modules: {
         schema: makeSchemaModule()

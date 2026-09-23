@@ -193,6 +193,8 @@ const { events, result: ghResult } = spawn("codex", {
 console.log(result.stdout);
 ```
 
+Agent spawn activity timeouts and parallel concurrency limits are optional; set `activityTimeoutMs` or `maxConcurrent` explicitly when needed. Autonomous spawn retries have no ceiling unless `maxTimeoutRetries` is supplied.
+
 For plugin-first agent composition, import the public agent builder from the
 `poe-code/agent` subpath:
 

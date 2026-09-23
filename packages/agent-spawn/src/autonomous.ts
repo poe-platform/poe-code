@@ -2,9 +2,6 @@ import { renderAcpStream } from "./acp/renderer.js";
 import type { AcpEvent } from "./acp/types.js";
 import { isActivityTimeoutError } from "./spawn.js";
 
-const DEFAULT_ACTIVITY_TIMEOUT_MS = 10 * 60 * 1000;
-const DEFAULT_MAX_TIMEOUT_RETRIES = 3;
-
 export interface StreamingSpawnReturn<TResult> {
   events: AsyncIterable<AcpEvent>;
   result: Promise<TResult>;
@@ -31,7 +28,7 @@ export type AutonomousOptions<TOptions> = TOptions & {
  * to their own result shape.
  */
 export async function spawnAutonomous<
-  TOptions extends { activityTimeoutMs?: number },
+  TOptions extends { activityTimeoutMs?: number; signal?: AbortSignal },
   TResult
 >(
   streamSpawn: StreamingSpawnFn<TOptions, TResult>,
@@ -39,20 +36,19 @@ export async function spawnAutonomous<
 ): Promise<TResult> {
   const {
     service,
-    maxTimeoutRetries = DEFAULT_MAX_TIMEOUT_RETRIES,
-    activityTimeoutMs = DEFAULT_ACTIVITY_TIMEOUT_MS,
+    maxTimeoutRetries,
     ...rest
   } = options;
 
-  if (!Number.isInteger(maxTimeoutRetries) || maxTimeoutRetries < 1) {
+  if (maxTimeoutRetries !== undefined && (!Number.isInteger(maxTimeoutRetries) || maxTimeoutRetries < 1)) {
     throw new Error(
       "spawnAutonomous maxTimeoutRetries must be an integer greater than or equal to 1."
     );
   }
 
-  const spawnOptions = { ...rest, activityTimeoutMs } as unknown as TOptions;
+  const spawnOptions = rest as unknown as TOptions;
 
-  for (let attempt = 1; attempt <= maxTimeoutRetries; attempt += 1) {
+  for (let attempt = 1; ; attempt += 1) {
     let result: Promise<TResult> | undefined;
     try {
       const stream = streamSpawn(service, spawnOptions);
@@ -66,11 +62,9 @@ export async function spawnAutonomous<
       return spawnResult;
     } catch (error) {
       result?.catch(() => {});
-      if (!isActivityTimeoutError(error) || attempt === maxTimeoutRetries) {
+      if (options.signal?.aborted || !isActivityTimeoutError(error) || attempt === maxTimeoutRetries) {
         throw error;
       }
     }
   }
-
-  throw new Error("Unreachable");
 }

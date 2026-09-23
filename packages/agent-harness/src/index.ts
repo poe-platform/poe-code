@@ -1,7 +1,7 @@
 export { makeSchemaModule } from "./modules/schema.js";
 export { runHarnessCodegen } from "./codegen/emit-schemas.js";
 export { discoverHarnesses } from "./discovery/discover.js";
-export { extractSchema } from "./loader/extract-schema.js";
+export { extractSchema, type ExtractSchemaOptions } from "./loader/extract-schema.js";
 export { runHarnessPair } from "./loader/run.js";
 export { assertReplayEquivalent } from "./testing/replay-equivalence.js";
 export { listBuiltinTemplates } from "./templates/index.js";

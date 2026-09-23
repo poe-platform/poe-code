@@ -282,7 +282,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
 
@@ -1259,7 +1258,6 @@ describe("spawn command", () => {
       model: "some-model",
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1343,7 +1341,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1375,7 +1372,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1407,7 +1403,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1441,7 +1436,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1464,7 +1458,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1545,7 +1538,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       hooks: { from: "claude", strategy: "auto" },
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1604,7 +1596,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       hooks: { from: "CLAUDE-CODE", strategy: "auto" },
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1638,7 +1629,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       hooks: { from: "claude", strategy: "transform" },
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1672,7 +1662,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       hooks: { from: "claude", strategy: "auto", scope: "project" },
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1782,7 +1771,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1811,7 +1799,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -1849,7 +1836,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
       mcpServers: {
         test: {
@@ -2101,7 +2087,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
       mcpServers: {
         test: {
@@ -2152,7 +2137,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
       mcpServers: {
         test: {
@@ -2205,7 +2189,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
       mcpServers: {
         test: {
@@ -2256,7 +2239,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
       mcpServers: {
         test: {
@@ -2295,7 +2277,6 @@ describe("spawn command", () => {
       mode: "yolo",
       cwd: undefined,
       resumeThreadId: "thread_abc123",
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -2523,7 +2504,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -2549,7 +2529,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -2681,7 +2660,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "read",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       useStdin: true,
       runtimeConfigCwd: cwd
     });
@@ -2744,7 +2722,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: customCwd,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -2777,7 +2754,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "yolo",
       cwd: resolved,
-      activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
   });
@@ -2860,7 +2836,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "read",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       useStdin: true,
       runtimeConfigCwd: cwd
     });
@@ -2906,7 +2881,6 @@ describe("spawn command", () => {
       model: undefined,
       mode: "read",
       cwd: undefined,
-      activityTimeoutMs: 600_000,
       useStdin: true,
       runtimeConfigCwd: cwd
     });

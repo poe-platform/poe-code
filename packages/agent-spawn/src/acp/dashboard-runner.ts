@@ -16,11 +16,11 @@ export function createDashboardAgentRunner(options: {
   /** Usage deltas; the final result reconciles any usage already observed in the stream. */
   onUsage?(usage: Pick<SpawnUsage, "inputTokens" | "outputTokens">): void;
   middlewares?: SpawnOptions["middlewares"];
-  /** Total attempts on activity timeout, matching spawn.autonomous. Defaults to one. */
+  /** Total attempts on activity timeout, matching spawn.autonomous. Unlimited when omitted. */
   maxTimeoutRetries?: number;
 }) {
-  const maxAttempts = options.maxTimeoutRetries ?? 1;
-  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+  const maxAttempts = options.maxTimeoutRetries;
+  if (maxAttempts !== undefined && (!Number.isInteger(maxAttempts) || maxAttempts < 1)) {
     throw new Error("maxTimeoutRetries must be an integer greater than or equal to 1.");
   }
   async function runAttempt(input: SpawnOptions & { agent: string }): Promise<SpawnResult> {
@@ -41,7 +41,6 @@ export function createDashboardAgentRunner(options: {
       const { events, result } = options.spawn(agent, {
         ...spawnOptions,
         captureSession: false,
-        activityTimeoutMs: input.activityTimeoutMs ?? 10 * 60 * 1000,
         ...(options.middlewares ? { middlewares: [...options.middlewares, ...(input.middlewares ?? [])] } : {}),
         tee: {
           stdout: { write(chunk) {
@@ -89,8 +88,8 @@ export function createDashboardAgentRunner(options: {
       try {
         return await runAttempt(input);
       } catch (error) {
-        if (input.signal?.aborted || !isActivityTimeoutError(error) || attempt >= maxAttempts) throw error;
-        options.onOutput({ kind: "status", role: "action", text: `Agent timed out · retrying ${attempt + 1}/${maxAttempts}`, ts: Date.now() });
+        if (input.signal?.aborted || !isActivityTimeoutError(error) || (maxAttempts !== undefined && attempt >= maxAttempts)) throw error;
+        options.onOutput({ kind: "status", role: "action", text: `Agent timed out · retrying ${attempt + 1}${maxAttempts === undefined ? "" : `/${maxAttempts}`}`, ts: Date.now() });
       }
     }
   };

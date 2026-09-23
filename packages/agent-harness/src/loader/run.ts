@@ -96,7 +96,7 @@ export async function runHarnessPair(
       options.frontmatterOverrides === undefined
         ? frontmatter
         : deepMergeFrontmatter(frontmatter, options.frontmatterOverrides);
-    const schema = await extractSchema(ajsSource, pair.ajsPath);
+    const schema = await extractSchema(ajsSource, pair.ajsPath, { budget: options.budget, signal: options.signal });
     const validated = (
       schema === undefined ? merged : validateFrontmatter(schema, merged, pair.mdPath)
     ) as Record<string, unknown>;

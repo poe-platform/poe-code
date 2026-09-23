@@ -50,6 +50,32 @@ Recognized compressed headers still go through decoding and validation; damaged
 frames fail. `zstd` and `unzstd` retain their default rejection of plaintext.
 Test mode (`-t`) validates compressed input rather than copying plaintext.
 
+The Zstandard family supports `--[no-]check` for checksum generation and
+validation, `--stream-size=BYTES` for a pledged input size (written in the frame
+and enforced), `--size-hint=BYTES`, `--[no-]compress-literals`, and
+`--[no-]row-match-finder`. These settings reach the bounded Zstandard codec;
+checksum validation applies to every concatenated frame. `--long=LOG` enables
+long-distance matching for window logs 10–23. Bare `--long` requests the native
+default 27 and fails under the existing 8 MiB window policy.
+
+`--single-thread`, `-T1`, `-T 1`, `--threads=1` and `--threads 1` select the
+single-thread codec. `--auto-threads=physical` or `logical` is accepted but does
+not enable automatic thread counts: `-T0` and counts above one fail.
+`--asyncio` enables input read-ahead (the default); `--no-asyncio` disables it.
+`--no-progress`, `--no-sparse`, `--no-dictID` and `--format=zstd` select the
+existing silent, dense-output, dictionary-free Zstandard profile. `--ultra`
+is admitted at supported presets; it does not lift the level 1–9 or memory cap.
+Fast presets, adaptive compression, rsyncable compression, forced progress,
+other output formats and unsupported thread/window values fail explicitly.
+
+`--pass-through` enables copying unrecognized input during decompression,
+including stdin and VFS file output; `--no-pass-through` disables it, including
+the `zstdcat` default. Last selection wins, and recognized frames still validate.
+`--exclude-compressed` skips named compression operands ending in `.zst`,
+`.tzst`, `.gz`, `.tgz`, `.xz`, `.txz`, `.lzma`, `.tlz`, `.bz2`, `.tbz2`, `.lz4`,
+`.zip`, `.7z`, `.rar`, `.lz`, `.br` or `.cab` (case-sensitive),
+including stdout/force mode; stdin and decompression are unaffected.
+
 The XZ family (`xz`, `unxz`, `xzcat`) accepts `--compress` to select
 compression, including when invoked through a decompression alias. `-e` and
 `--extreme` enable liblzma's extreme preset with the selected level. `-T1`,

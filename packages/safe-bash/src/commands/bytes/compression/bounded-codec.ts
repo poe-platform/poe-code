@@ -3,6 +3,7 @@ import { yieldTurn } from "../../../contracts/yield.js";
 import type { CodecInput } from "./codec.js";
 import { createCodec } from "./codec-loader.js";
 import { CompressedDataError } from "./errors.js";
+import type { ZstdOptions } from "./options.js";
 
 export interface CodecStep {
   readonly consumed: number;
@@ -24,6 +25,7 @@ export interface BoundedCodecOptions {
   readonly extreme?: boolean;
   /** bzip2's reduced-memory decoder. */
   readonly small?: boolean | undefined;
+  readonly zstd?: ZstdOptions | undefined;
   /** Stop at the first frame and return unread bytes to the input reader. */
   readonly singleMember?: boolean;
   readonly onFailure?: (error: unknown) => void;

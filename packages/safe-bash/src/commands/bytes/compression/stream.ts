@@ -38,10 +38,10 @@ async function* zstdcatStream(reader: InstanceType<typeof CodecReader>, options:
   restored.set(header.subarray(0, length));
   if (remainder) restored.set(remainder, length);
   reader.restore(restored);
-  yield* boundedCodec(reader, { format: "zstd", decompress: true, level: options.level, onFailure: fail }, signal);
+  yield* boundedCodec(reader, { format: "zstd", decompress: true, level: options.level, zstd: options.zstd, onFailure: fail }, signal);
 }
 
-async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void): ByteSource {
+async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void, prefetch = true): ByteSource {
   signal.throwIfAborted();
   const sourceIterator = source[Symbol.asyncIterator]();
   const iterator = readBytes({
@@ -74,11 +74,15 @@ async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unk
       for (let offset = 0; offset < chunk.byteLength; offset += chunkBytes) {
         signal.throwIfAborted();
         const bytes = new Uint8Array(chunk.subarray(offset, offset + chunkBytes));
-        if (offset + chunkBytes >= chunk.byteLength) {
+        if (prefetch && offset + chunkBytes >= chunk.byteLength) {
           pending = iterator.next();
           void pending.catch(() => {});
         }
         yield bytes;
+        if (!prefetch && offset + chunkBytes >= chunk.byteLength) {
+          pending = iterator.next();
+          void pending.catch(() => {});
+        }
       }
     }
   } finally { await iterator.return(undefined); }
@@ -99,14 +103,14 @@ export async function transform(
   const fail = (error: unknown): void => {
     if (!controller.signal.aborted) { hasFailure = true; failure = error; controller.abort(error); }
   };
-  let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal, fail);
+  let prepared: ByteSource = split(typeof source === "function" ? source(signal) : source, signal, fail, options.asyncIO !== false);
   let warned = false;
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
-  const transformed = options.passthrough && options.decompress && options.stdout && !options.test
+  const transformed = options.passthrough && options.decompress && !options.test
     ? zstdcatStream(reader!, options, signal, fail)
     : options.format !== "gzip"
-    ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, onFailure: fail }, signal)
+    ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, zstd: options.zstd, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {

@@ -76,6 +76,16 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
 #endif
  if(!ok){bridge_destroy();return -2;}return 0;
 }
+#if !defined(BZ) && !defined(XZ)
+API int bridge_zstd_config(int check,int literals,int row,int window,uint32_t size_low,uint32_t size_high,int size_known,int hint) {
+ if(!active||(check!=0&&check!=1)||literals<0||literals>2||row<0||row>2||(window!=0&&(window<10||window>23))||(size_known!=0&&size_known!=1)||hint<0)return -1;
+ if(decompressing)return ZSTD_isError(ZSTD_DCtx_setParameter(dec,ZSTD_d_forceIgnoreChecksum,check?ZSTD_d_validateChecksum:ZSTD_d_ignoreChecksum))?-1:0;
+ if(ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_checksumFlag,check))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_literalCompressionMode,literals))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_useRowMatchFinder,row))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_srcSizeHint,hint)))return -1;
+ if(window&&(ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_enableLongDistanceMatching,1))||ZSTD_isError(ZSTD_CCtx_setParameter(enc,ZSTD_c_windowLog,window))))return -1;
+ if(size_known&&ZSTD_isError(ZSTD_CCtx_setPledgedSrcSize(enc,((uint64_t)size_high<<32)|size_low)))return -1;
+ return 0;
+}
+#endif
 #if defined(XZ)
 /* ZIP method 14 is raw LZMA1, never an XZ stream. Admit before allocation. */
 API int bridge_create_lzma(int decode,int level,uint32_t memory_limit,uint32_t dictionary,uint32_t properties,int eos,uint32_t size_low,uint32_t size_high) {

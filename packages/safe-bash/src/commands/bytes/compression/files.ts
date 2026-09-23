@@ -91,6 +91,7 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
     if (name === "-") { plans.push({ source: "-" }); continue; }
     if (!name) throw new FsError("ENOENT", { path: name });
     const source = pathOf(context, name);
+    if (options.excludeCompressed && !options.decompress && [".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2", ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"].some(suffix => source.endsWith(suffix))) continue;
     const sourceStat = await context.fs.lstat(source, { signal: context.signal });
     if (options.recursive && sourceStat.type === "directory") {
       const realDirectory = await context.fs.realpath(source, { signal: context.signal });

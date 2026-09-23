@@ -15,7 +15,19 @@ export interface CompressionOptions {
   level: number;
   extreme?: boolean;
   suffix?: string;
+  zstd?: ZstdOptions;
+  excludeCompressed?: boolean;
+  asyncIO?: boolean;
   operands: string[];
+}
+
+export interface ZstdOptions {
+  check: boolean;
+  literals: number;
+  row: number;
+  window: number;
+  streamSize?: number;
+  sizeHint: number;
 }
 
 export const profiles = [
@@ -40,6 +52,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     decompress: command !== profile.names[0], stdout: command === profile.names[2], keep: profile.keep,
     force: false, test: false, help: false, quiet: 0, recursive: false, level: profile.level, operands: [],
     passthrough: command === "zstdcat",
+    ...(profile.format === "zstd" ? { zstd: { check: true, literals: 0, row: 0, window: 0, sizeHint: 0 } } : {}),
   };
   let ended = false;
   for (let index = 0; index < args.length; index++) {
@@ -49,6 +62,43 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       continue;
     }
     if (argument === "--") { ended = true; continue; }
+    if (result.zstd && argument.startsWith("--")) {
+      const equal = argument.indexOf("=");
+      const name = equal < 0 ? argument.slice(2) : argument.slice(2, equal);
+      const value = equal < 0 ? undefined : argument.slice(equal + 1);
+      if (["threads", "format", "stream-size", "size-hint", "long", "auto-threads"].includes(name)) {
+        const supplied = value ?? (name === "long" ? "27" : args[++index]);
+        if (name === "format") {
+          if (supplied !== "zstd") throw new UsageError("only --format=zstd is supported");
+        } else if (name === "auto-threads") {
+          if (supplied !== "physical" && supplied !== "logical") throw new UsageError("invalid automatic thread selection");
+        } else {
+          if (!supplied || ![...supplied].every(character => character >= "0" && character <= "9") || !Number.isSafeInteger(Number(supplied))) throw new UsageError(`invalid --${name} value`);
+          const number = Number(supplied);
+          if (name === "threads" && number !== 1) throw new UsageError("only --threads=1 is supported by the single-threaded Zstandard codec");
+          if (name === "long") {
+            if (number < 10 || number > 23) throw new UsageError("long-distance matching requires a window log from 10 through 23 under the codec window limit");
+            result.zstd.window = number;
+          }
+          if (name === "stream-size") result.zstd.streamSize = number;
+          if (name === "size-hint") {
+            if (number > 0x7fffffff) throw new UsageError("size hint exceeds the codec parameter limit");
+            result.zstd.sizeHint = number;
+          }
+        }
+        continue;
+      }
+      if (value === undefined) {
+        if (["no-progress", "single-thread", "no-dictID", "no-sparse", "ultra"].includes(name)) continue;
+        if (name === "asyncio" || name === "no-asyncio") { result.asyncIO = name === "asyncio"; continue; }
+        if (name === "check" || name === "no-check") { result.zstd.check = name === "check"; continue; }
+        if (name === "pass-through" || name === "no-pass-through") { result.passthrough = name === "pass-through"; continue; }
+        if (name === "compress-literals" || name === "no-compress-literals") { result.zstd.literals = name === "compress-literals" ? 1 : 2; continue; }
+        if (name === "row-match-finder" || name === "no-row-match-finder") { result.zstd.row = name === "row-match-finder" ? 1 : 2; continue; }
+        if (name === "exclude-compressed") { result.excludeCompressed = true; continue; }
+        if (["adapt", "rsyncable", "progress"].includes(name)) throw new UsageError(`--${name} is unsupported by the bounded streaming Zstandard frontend`);
+      }
+    }
     if (profile.format === "zstd" && (argument === "--fast" || argument.startsWith("--fast="))) {
       const acceleration = argument === "--fast" ? "1" : argument.slice("--fast=".length);
       if (!acceleration || ![...acceleration].every(character => character >= "0" && character <= "9")
@@ -92,9 +142,9 @@ export function parseOptions(command: string, args: readonly string[]): Compress
           result.extreme = true;
           break;
         case "T": {
-          if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
+          if (profile.format !== "xz" && profile.format !== "zstd") throw new UsageError(`invalid option -- '${flag}'`);
           const threads = flags.slice(offset + 1) || args[++index];
-          if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
+          if (threads !== "1") throw new UsageError(`only --threads=1 is supported by the single-threaded ${profile.format} codec`);
           offset = flags.length;
           break;
         }

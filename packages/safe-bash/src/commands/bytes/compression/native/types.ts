@@ -5,6 +5,7 @@ export interface RawCodecModule {
   bridge_create_lzma?(decompress: number, level: number, memoryLimit: number, dictionary: number, properties: number, eos: number, sizeLow: number, sizeHigh: number): number;
   bridge_step(input: number, inputLength: number, output: number, outputLength: number, finish: number): number;
   bridge_destroy(): void;
+  bridge_zstd_config?(check: number, literals: number, row: number, window: number, sizeLow: number, sizeHigh: number, sizeKnown: number, sizeHint: number): number;
   bridge_input(): number;
   bridge_output(): number;
   bridge_consumed(): number;

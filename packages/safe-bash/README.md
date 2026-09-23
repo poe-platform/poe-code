@@ -160,6 +160,12 @@ terse output. Filesystem terse output (`-ft`) remains unsupported.
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.
+Use `--[no-]check` to control frame checksums, `--stream-size=BYTES` to declare
+and enforce input size, and `--[no-]pass-through` to copy unrecognized input
+during decompression. `--exclude-compressed` skips compressed file suffixes.
+Single-thread execution, I/O read-ahead, literal compression, row matching,
+size hints and bounded long-distance matching are configurable; see the
+[compression options](src/commands/bytes/compression/README.md).
 Zstandard presets are parsed as whole numbers; the bounded codec supports levels
 1–9. Higher presets and `--fast[=NUM]` fail explicitly instead of selecting a
 different level. Codec allocations remain capped at 64 MiB.

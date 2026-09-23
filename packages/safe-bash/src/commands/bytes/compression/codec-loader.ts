@@ -33,6 +33,13 @@ export async function createCodec(
   const minimumLevel = profiles.find(profile => profile.format === options.format)?.minimumLevel ?? 1;
   if (!Number.isInteger(options.level) || options.level < minimumLevel || options.level > 9) throw new RangeError("invalid codec level");
   if (options.extreme && options.format !== "xz") throw new RangeError("extreme preset requires XZ");
+  if (options.zstd) {
+    const value = options.zstd;
+    if (options.format !== "zstd" || typeof value.check !== "boolean" || ![0, 1, 2].includes(value.literals) || ![0, 1, 2].includes(value.row)
+      || !Number.isInteger(value.window) || value.window !== 0 && (value.window < 10 || value.window > 23)
+      || !Number.isInteger(value.sizeHint) || value.sizeHint < 0 || value.sizeHint > 0x7fffffff
+      || value.streamSize !== undefined && (!Number.isSafeInteger(value.streamSize) || value.streamSize < 0)) throw new RangeError("invalid Zstandard codec parameters");
+  }
   const lzma = options.lzma;
   if (lzma && (options.format !== "xz" || !Number.isInteger(lzma.dictionary) || lzma.dictionary < 0 || lzma.dictionary > 8 * 1024 * 1024 ||
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
@@ -57,6 +64,11 @@ export async function createCodec(
       : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, 64 * 1024 * 1024, 23, Number(options.small === true));
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
+    if (options.zstd) {
+      const value = options.zstd;
+      const size = value.streamSize ?? 0;
+      if (module.bridge_zstd_config?.(Number(value.check), value.literals, value.row, value.window, size >>> 0, Math.floor(size / 0x100000000), Number(value.streamSize !== undefined), value.sizeHint) !== 0) throw new PublicDiagnostic("unsupported Zstandard codec parameters");
+    }
     const inputPointer = module.bridge_input();
     const outputPointer = module.bridge_output();
     return {

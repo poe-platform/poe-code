@@ -395,6 +395,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   });
   const externalNameSheets = externalReferences.map(ref => supbooks[ref.book]?.kind !== "local" ? undefined : ref.first >= 0xfffe ? null : sheets[ref.first]?.name);
   const deletedExternalSheets = externalReferences.map(ref => supbooks[ref.book]?.kind === "local" && (ref.first === 0xffff || ref.last === 0xffff));
+  const unavailableExternalSheets = externalReferences.map(ref => supbooks[ref.book]?.kind === "external");
   const localSheets = sheets.map(sheet => sheet.name);
   const nameSheets = names.map(name => {
     if (!name.sheetIndex) return undefined;
@@ -404,7 +405,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const formulaNames = names.map(name => name.name);
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, names: formulaNames, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
-    ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets, deletedExternalSheets, externalNameSheets,
+    ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const addinTables = [

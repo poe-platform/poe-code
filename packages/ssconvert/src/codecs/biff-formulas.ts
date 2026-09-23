@@ -20,8 +20,10 @@ export interface BiffFormulaContext {
   readonly externalNameSheets?: readonly (string | null | undefined)[];
   /** Associated add-in names; undefined denotes an unbound/unsupported namespace. */
   readonly externalNames?: readonly (readonly ({ readonly name: string; readonly expression?: string } | undefined)[] | undefined)[];
-  /** Deleted local link endpoints; true external namespaces stay unsupported. */
+  /** Deleted local link endpoints. */
   readonly deletedExternalSheets?: readonly boolean[];
+  /** Native standard external SUPBOOKs have no bound workbook and evaluate to #REF!. */
+  readonly unavailableExternalSheets?: readonly boolean[];
   readonly currentSheet?: string;
   readonly localSheets?: readonly string[];
   readonly shared?: boolean;
@@ -177,7 +179,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
         const size = token === 0x3a ? 6 : 10;
         data.check(offset, size);
         const index = data.u16(offset);
-        if (context.deletedExternalSheets?.[index]) { offset += size; push("#REF!"); continue; }
+        if (context.deletedExternalSheets?.[index] || context.unavailableExternalSheets?.[index]) { offset += size; push("#REF!"); continue; }
         sheet = context.externalSheets[index]; offset += 2;
       }
       else {

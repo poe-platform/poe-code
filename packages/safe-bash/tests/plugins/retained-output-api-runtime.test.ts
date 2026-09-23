@@ -4,11 +4,11 @@ import { describe, test } from "node:test";
 const selected = process.env.SAFE_BASH_TEST_OPTIONAL_BUILD;
 if (selected !== undefined && selected !== "1") throw new Error("SAFE_BASH_TEST_OPTIONAL_BUILD must be 1 when supplied");
 
-describe("compiled retained output API", { skip: selected === undefined ? "Requires a current build and SAFE_BASH_TEST_OPTIONAL_BUILD=1" : false }, () => {
+describe("compiled workspace retained output API", { skip: selected === undefined ? "Requires a current build and SAFE_BASH_TEST_OPTIONAL_BUILD=1" : false }, () => {
   test("explicit output API retains the renamed open file", async context => {
-    const { Shell } = await import("poe-code/safe-bash");
-    const { createMemoryFileSystem } = await import("poe-code/safe-fs");
-    const { openFileOutput } = await import("poe-code/safe-bash/contracts/filesystem-output");
+    const { Shell } = await import("@poe-platform/safe-bash");
+    const { createMemoryFileSystem } = await import("@poe-code/safe-fs/core");
+    const { openFileOutput } = await import("@poe-platform/safe-bash/contracts/filesystem-output");
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs });
     context.after(() => shell.dispose());
@@ -31,9 +31,9 @@ describe("compiled retained output API", { skip: selected === undefined ? "Requi
 
   for (const reason of [false, 0, "", null]) {
     for (const method of ["stat", "read", "write", "truncate", "sync", "data-sync", "position"] as const) {
-      test(`closed public descriptor preserves operation cancellation: ${method} ${String(reason)}`, async () => {
-        const { createMemoryFileSystem } = await import("poe-code/safe-fs");
-        const { openFileOutput } = await import("poe-code/safe-bash/contracts/filesystem-output");
+      test(`closed workspace descriptor preserves operation cancellation: ${method} ${String(reason)}`, async () => {
+        const { createMemoryFileSystem } = await import("@poe-code/safe-fs/core");
+        const { openFileOutput } = await import("@poe-platform/safe-bash/contracts/filesystem-output");
         const output = await openFileOutput({ fs: createMemoryFileSystem(), signal: new AbortController().signal }, "/out", { flag: "w", descriptor: true });
         const descriptor = output.descriptor;
         assert.ok(descriptor);

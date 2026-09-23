@@ -76,7 +76,7 @@ export async function editDocumentRevisionDecisions(input: Uint8Array, request: 
       return false;
     };
     if (ancestors.some(ancestor => ancestor.children.some(properties => properties.namespace === w &&
-      ["pPr", "trPr", "tcPr", "tblPr", "sectPr"].includes(properties.localName) && structuralReview(properties)))) throw new UnsupportedEditError("Structural property revisions overlap this decision.");
+      ["pPr", "trPr", "tcPr", "tblPr", "tblGrid", "sectPr"].includes(properties.localName) && structuralReview(properties)))) throw new UnsupportedEditError("Structural property revisions overlap this decision.");
     budget.charge("retainedBytes", 8);
     const descendants = [node];
     while (descendants.length) {

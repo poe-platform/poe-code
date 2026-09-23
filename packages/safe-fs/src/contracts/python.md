@@ -44,6 +44,15 @@ only with O_CREAT|O_EXCL. Other unsupported flags refuse before effects. General
 no-follow acquisition, retained fchmod/futimes, and unqualified provider guarantees
 are not synthesized. Guest unlink requires canonical unlink, never weaker rm.
 
+Interpreter integrations retain an invocation-local umask, initially `022`,
+and intercept the pinned `__syscall_umask_js` import without calling host umask.
+Creation modes are masked before canonical open/mkdir dispatch; chmod and
+existing-file opens retain their modes. The real adapter's `exactMode` option
+sets the final mode on newly acquired entries without applying a second host
+mask. File acquisition uses exclusive creation to distinguish new entries from
+existing ones; recursive exact-mode mkdir is unsupported. Remote permission
+metadata remains subject to each backend's advertised permission support.
+
 `PythonStatTranslator` maps complete canonical scope/device identities into a
 bounded, invocation-local guest device namespace while retaining inode numbers.
 The default limit is 1,024 scope/device pairs, configurable by constructor.

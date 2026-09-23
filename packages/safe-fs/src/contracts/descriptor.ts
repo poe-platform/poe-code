@@ -6,6 +6,8 @@ export interface OpenFileOptions extends FsOptions {
   readonly truncate?: boolean;
   readonly append?: boolean;
   readonly mode?: number;
+  /** Apply mode exactly to new entries, without an additional host umask. */
+  readonly exactMode?: boolean;
   readonly synchronization?: "data" | "all";
 }
 

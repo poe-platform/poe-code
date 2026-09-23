@@ -8,6 +8,7 @@ export interface PythonNativeSyscallOptions {
   readonly cwd: string;
   readonly runtimeMount: string;
   readonly maxTransferBytes: number;
+  readonly getUmask?: () => number;
   readonly original?: (name: string, args: readonly (number | bigint)[]) => number;
 }
 
@@ -188,7 +189,8 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
           return original(name, args);
         }
         if (fourth) range(fourth, 4);
-        const openOptions = translatePythonOpenFlags(third, fourth ? view().getUint32(fourth, true) : 0o666);
+        const mode = (fourth ? view().getUint32(fourth, true) : 0o666) & ~(options.getUmask?.() ?? 0);
+        const openOptions = { ...translatePythonOpenFlags(third, mode), exactMode: true };
         const handle = await options.dispatch({op:'open', args:[path, openOptions]}) as number;
         try {
           signal.throwIfAborted();
@@ -287,7 +289,7 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
       case '__syscall_mkdirat': case '__syscall_unlinkat': {
         const path = pathAt(first, second);
         if (privatePath(path)) fail('EROFS');
-        if (name === '__syscall_mkdirat') await request('mkdir', path, {mode:third & 0o7777});
+        if (name === '__syscall_mkdirat') await request('mkdir', path, {mode:third & 0o7777 & ~(options.getUmask?.() ?? 0),exactMode:true});
         else {
           if (third !== 0 && third !== 512) fail('EINVAL');
           await request(third === 512 ? 'rmdir' : 'rm', path);

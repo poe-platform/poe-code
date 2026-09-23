@@ -261,7 +261,10 @@ numeric-or-null position to that handle. Successful byte counts are returned
 without retrying, filling, or replacing the file. `sync(true)` calls datasync;
 `sync(false)` calls sync. Acquisition's synchronization option requests flush
 availability; it is not an O_SYNC/O_DSYNC flag or per-write flushing policy.
-Host permissions and umask apply. Stable-root/TOCTOU limits above remain intact.
+Host permissions and umask apply by default. With `exactMode: true`, open and
+nonrecursive mkdir apply the supplied creation mode to newly created entries
+without a second host umask; existing entries retain their modes. The host
+process mask is unchanged. Stable-root/TOCTOU limits above remain intact.
 
 Mounts select the backend once, preserve actual returned descriptor capabilities,
 and remap errors to virtual mount operands without re-resolving later operations.

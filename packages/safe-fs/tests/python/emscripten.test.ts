@@ -53,3 +53,26 @@ test('runtime devices stay disjoint from application identities and retain devic
  assert.equal(map(first),first);
  assert.throws(()=>map({dev:3,ino:1}),/EOVERFLOW/);
 });
+
+ test('Python creations apply the current guest mask without masking chmod', () => {
+  let mask = 0o22;
+  const FS: Record<string, any> = {root:{}, cwd:()=>'/work', createNode:()=>({}), mount:()=>{}, isFile:()=>true, isDir:()=>false, createStream:(stream:any)=>stream};
+  for (const method of ['chdir','lookupNode','open','stat','lstat','fstat','unlink','rmdir','chmod','truncate','utime','mkdir','rename','symlink','readdir','readlink','mknod','write']) FS[method] = () => {};
+  const request = vi.fn((op:string) => op === 'open' ? 1 : op === 'realpath' ? '/work' : op === 'descriptorCapabilities' ? {positionedWrite:true} : {type:'file',mode:0o600});
+  mountPythonFileSystem(FS, {request,cwd:'/work',runtimeMount:'/.runtime',maxTransferBytes:65536,errno:{},synchronizationFlags:0,runtimeModule:{SYSCALLS:{writeStat:()=>{}}}, getUmask:()=>mask});
+  FS.open('file', 577);
+  FS.mkdir('directory');
+  mask = 0o77;
+  FS.open('private', 193, 0o640);
+  FS.mkdir('private-dir',0o750);
+  FS.mknod('node',0o100666,0);
+  FS.chmod('private',0o666);
+  assert.deepEqual(request.mock.calls.filter(([op])=>op==='open'||op==='mkdir'||op==='chmod'), [
+   ['open','/work/file',{access:'write',creation:'ifMissing',truncate:true,append:false,mode:0o644,exactMode:true}],
+   ['mkdir','/work/directory',{mode:0o755,exactMode:true}],
+   ['open','/work/private',{access:'write',creation:'exclusive',truncate:false,append:false,mode:0o600,exactMode:true}],
+   ['mkdir','/work/private-dir',{mode:0o700,exactMode:true}],
+   ['open','/work/node',{access:'write',creation:'exclusive',mode:0o600,exactMode:true}],
+   ['chmod','/work/private',0o666],
+  ]);
+ });

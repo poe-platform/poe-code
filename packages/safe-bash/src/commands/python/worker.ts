@@ -72,6 +72,7 @@ interface WasmEngine {
  */
 async function loadPythonRuntime(
  load: () => Promise<PythonWorkerRuntime>,
+ setUmask: (mask: number) => number,
 ): Promise<PythonWorkerRuntime> {
  const wasm = (globalThis as unknown as { WebAssembly: WasmEngine }).WebAssembly;
  const instantiate = wasm.instantiate;
@@ -81,6 +82,7 @@ async function loadPythonRuntime(
  const restrict = (imports?: WasmImports): void => {
   const env = imports?.env;
   if (!env) return;
+  if (typeof env.__syscall_umask_js === 'function') env.__syscall_umask_js = setUmask;
   if (typeof env._emscripten_system === 'function') {
    // Emscripten libc converts the negative errno to system() == -1 / ENOSYS.
    env._emscripten_system = (command: number) => command === 0 ? 0 : -52;
@@ -151,10 +153,11 @@ export async function runPythonWorker(options: {
     // Removes accidental `import js` access to process/fetch/globalThis. This is
     // defense in depth, not a sandbox: Python JS proxies can recover JS execution.
     category = 'runtime-assets';
+    let guestMask = 0o22;
     const runtime = await loadPythonRuntime(() => options.loadRuntime({jsglobals: Object.create(null) as Record<string, never>, args:[...configuration.startupArgs], env:{...configuration.env},
       stdout: message => { startupWrite('stdout', message); },
       stderr: message => { startupWrite('stderr', message); },
-    }));
+    }), mask => { const previous = guestMask; guestMask = mask & 0o777; return previous; });
     // Namespace relocation is qualified against this ABI only.
     if (runtime.version !== '314.0.6') throw new PythonFailure('runtime-abi', { cause: new Error('Python worker requires Pyodide 314.0.6') });
     if (start.packages) await installPythonPackages(runtime, start.packages, startupRequest, start.maxTransferBytes);
@@ -194,6 +197,7 @@ export async function runPythonWorker(options: {
       }});
     }
     mountPythonFileSystem(runtime.FS, {
+      getUmask: () => guestMask,
       request, cwd: start.invocation.cwd, runtimeMount: start.runtimeMount,
       maxTransferBytes: start.maxTransferBytes, errno, runtimeModule: runtime._module,
       synchronizationFlags: runtime.runPython("__import__('os').O_SYNC | __import__('os').O_DSYNC"),

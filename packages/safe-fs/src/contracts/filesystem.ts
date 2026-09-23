@@ -171,6 +171,8 @@ export interface AppendFileOptions extends FsOptions {
 }
 
 export interface MkdirOptions extends FsOptions {
+  /** Apply mode exactly to new entries, without an additional host umask. */
+  readonly exactMode?: boolean;
   readonly recursive?: boolean;
   readonly mode?: number;
 }

@@ -108,3 +108,20 @@ describe("rooted real canonical descriptors (memfs fixtures)", () => {
     await expect(filesystem.open("/", { access: "read" })).rejects.toMatchObject({ code: "EISDIR", path: "/" });
   });
 });
+
+it("exact creation mode bypasses the host mask only for newly acquired files", async () => {
+  const open = fs.promises.open.bind(fs.promises);
+  vi.mocked(native.open).mockImplementation(async (path, flags, mode) => open(path, (flags as number) & constants.O_CREAT ? "wx" : (flags as number) & constants.O_DIRECTORY ? "r" : "r+", (mode as number ?? 0o666) & ~0o077) as unknown as Promise<native.FileHandle>);
+  const filesystem = new RealFileSystem('/machine');
+  const created = await filesystem.open('/new', {access:'write',creation:'ifMissing',mode:0o666,exactMode:true});
+  expect((await created.stat()).mode & 0o777).toBe(0o666);
+  await created.close();
+  await fs.promises.chmod('/machine/file',0o640);
+  const existing = await filesystem.open('/file',{access:'write',creation:'ifMissing',mode:0o777,exactMode:true});
+  expect((await existing.stat()).mode & 0o777).toBe(0o640);
+  await existing.close();
+  await filesystem.mkdir('/new-dir',{mode:0o777,exactMode:true});
+  expect((await filesystem.stat('/new-dir')).mode & 0o777).toBe(0o777);
+  await expect(filesystem.mkdir('/new-dir',{mode:0o700,exactMode:true})).rejects.toMatchObject({code:'EEXIST'});
+  expect((await filesystem.stat('/new-dir')).mode & 0o777).toBe(0o777);
+});

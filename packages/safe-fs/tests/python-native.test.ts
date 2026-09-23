@@ -4,7 +4,7 @@ import { createPythonNativeSyscalls } from '../src/python/native.js';
 import { MemoryFileSystem } from '../src/fs/memory/index.js';
 import { PythonFileSystem } from '../src/python/filesystem.js';
 
-function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise<unknown>, signal = new AbortController().signal) {
+function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise<unknown>, signal = new AbortController().signal, getUmask?: () => number) {
   const memory = new Uint8Array(65536);
   const streams: any[] = [];
   const runtime = {
@@ -19,7 +19,7 @@ function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise
       closeStream(fd: number) { streams[fd] = null; },
     },
   };
-  const native = createPythonNativeSyscalls({ runtime, dispatch, cwd: '/work',
+  const native = createPythonNativeSyscalls({ runtime, dispatch, ...(getUmask ? {getUmask} : {}), cwd: '/work',
     runtimeMount: '/.runtime', maxTransferBytes: 2, signal });
   function text(value: string, pointer = 128) { memory.set(new TextEncoder().encode(value + '\0'), pointer); return pointer; }
   function vector(pointer = 1024, length = 3) { new DataView(memory.buffer).setUint32(512, pointer, true); new DataView(memory.buffer).setUint32(516, length, true); }
@@ -260,4 +260,22 @@ test('native append refuses unavailable cursor semantics before any writes', asy
   });
   assert.equal(await native.invoke('__syscall_openat',[-100,native.text('output'),1025,0]),-138);
   assert.deepEqual(closed,[1]);
+});
+
+test('native creation syscalls use the invocation guest mask', async () => {
+  const backend = new MemoryFileSystem();
+  await backend.mkdir('/work');
+  const filesystem = new PythonFileSystem(backend, {cwd:'/work'});
+  let mask = 0o22;
+  const native = fixture(request => filesystem.dispatch(request), undefined, () => mask);
+  try {
+    new DataView(native.memory.buffer).setUint32(800,0o666,true);
+    const fd = await native.invoke('__syscall_openat',[-100,native.text('created'),193,800]);
+    assert.ok(fd >= 3);
+    assert.equal((await backend.stat('/work/created')).mode & 0o777,0o644);
+    mask = 0o77;
+    assert.equal(await native.invoke('__syscall_mkdirat',[-100,native.text('directory'),0o777]),0);
+    assert.equal((await backend.stat('/work/directory')).mode & 0o777,0o700);
+    await native.invoke('fd_close',[fd]);
+  } finally {await native.close(); await filesystem.close();}
 });

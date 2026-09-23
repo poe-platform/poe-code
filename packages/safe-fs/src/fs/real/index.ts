@@ -459,7 +459,17 @@ export class RealFileSystem implements FileSystem {
         if (admitted.creation !== "never") flags |= constants.O_CREAT;
         if (admitted.creation === "exclusive") flags |= constants.O_EXCL;
         if (admitted.append) flags |= constants.O_APPEND;
-        handle = await native.open(target, flags, admitted.mode);
+        let created = false;
+        if (admitted.exactMode && admitted.creation !== "never") {
+          try {
+            handle = await native.open(target, flags | constants.O_EXCL, admitted.mode);
+            created = true;
+          } catch (error) {
+            if (admitted.creation === "exclusive" || nativeError(error).code !== "EEXIST") throw error;
+            handle = await native.open(target, flags & ~constants.O_CREAT, admitted.mode);
+          }
+        } else handle = await native.open(target, flags, admitted.mode);
+        if (created) await handle.chmod(admitted.mode);
         admitted.signal?.throwIfAborted();
         const stat = await handle.stat();
         if (stat.isDirectory()) throw new FsError("EISDIR");
@@ -565,6 +575,7 @@ export class RealFileSystem implements FileSystem {
   async mkdir(path: string, options: MkdirOptions = {}): Promise<void> {
     return this.operation("mkdir", path, options, async () => {
       if (options.mode !== undefined) integer(options.mode);
+      if (options.exactMode && options.recursive) throw new FsError("ENOTSUP");
       const target = await this.path(path, {
         ...options,
         missing: "final", followFinal: !!options.recursive, deferTrailingSeparator: true,
@@ -572,6 +583,7 @@ export class RealFileSystem implements FileSystem {
       });
       options.signal?.throwIfAborted();
       await native.mkdir(target, { recursive: options.recursive ?? false, ...(options.mode === undefined ? {} : { mode: options.mode }) });
+      if (options.exactMode) await native.chmod(target, options.mode ?? 0o777);
     });
   }
 

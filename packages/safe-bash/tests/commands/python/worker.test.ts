@@ -64,7 +64,7 @@ test('runtime initialization intercepts native process and socket imports before
   let observed: WasmImports | undefined;
   wasm.instantiate = (async (_source: unknown, imports?: WasmImports) => { observed = imports; return {}; }) as typeof wasm.instantiate;
   const ambient = () => { throw new Error('ambient host syscall'); };
-  const imports = { env: { _emscripten_system: ambient, __syscall_socket: ambient, __syscall_connect: ambient } };
+  const imports = { env: { _emscripten_system: ambient, __syscall_socket: ambient, __syscall_connect: ambient, __syscall_umask_js: ambient } };
   try {
     await runPythonWorker({
       start: { shared: new SharedArrayBuffer(1024), invocation: { args: ['-c', 'pass'], cwd: '/', env: {} }, runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64 },
@@ -75,6 +75,10 @@ test('runtime initialization intercepts native process and socket imports before
     assert.equal((observed!.env!._emscripten_system as (command: number) => number)(0), 0);
     assert.equal((observed!.env!.__syscall_socket as () => number)(), -52);
     assert.equal((observed!.env!.__syscall_connect as () => number)(), -52);
+    const umask = observed!.env!.__syscall_umask_js as (mask: number) => number;
+    assert.equal(umask(0o77), 0o22);
+    assert.equal(umask(0o1000), 0o77);
+    assert.equal(umask(0), 0);
   } finally { wasm.instantiate = original; }
 });
 

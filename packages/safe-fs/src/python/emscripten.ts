@@ -10,6 +10,7 @@ export interface PythonMountOptions {
   errno: Record<string, number>;
   synchronizationFlags: number;
   runtimeModule: any;
+  getUmask?: () => number;
 }
 export function mountPythonFileSystem(FS: any, options: PythonMountOptions): void {
 const {request: rpc, cwd, runtimeMount, maxTransferBytes, errno, synchronizationFlags} = options;
@@ -54,8 +55,8 @@ const nodeOps = {
   },
   mknod(parent: any, name: string, mode: number) {
     const target = `${path(parent)}/${name}`;
-    if (FS.isDir(mode)) rpc('mkdir', target, { mode: mode & 4095 });
-    else { const handle = rpc('open', target, { access: 'write', creation: 'exclusive', mode: mode & 4095 }); rpc('close', handle); }
+    if (FS.isDir(mode)) rpc('mkdir', target, { mode: mode & 4095 & ~(options.getUmask?.() ?? 0), exactMode: true });
+    else { const handle = rpc('open', target, { access: 'write', creation: 'exclusive', mode: mode & 4095 & ~(options.getUmask?.() ?? 0), exactMode: true }); rpc('close', handle); }
     return node(parent, name, rpc('lstat', target));
   },
   rename(n: any, parent: any, name: string) { rpc('rename', path(n), `${path(parent)}/${name}`); n.name = name; n.parent = parent; },
@@ -117,7 +118,7 @@ FS.open = function (inputPath: string, flags: number | string, mode = 438) {
   if ((flags & 131072) && !exclusive) throw new FS.ErrnoError(138);
   if (flags & 65536) throw new FS.ErrnoError(54);
   let openOptions;
-  try { openOptions = translatePythonOpenFlags(flags, mode); }
+  try { openOptions = { ...translatePythonOpenFlags(flags, mode & ~(options.getUmask?.() ?? 0)), exactMode: true }; }
   catch (error) { throw new FS.ErrnoError(errno[(error as {code: string}).code] ?? errno.EIO); }
   const handle = rpc('open', absolute, openOptions);
   try {
@@ -161,7 +162,7 @@ const originalMkdir = FS.mkdir.bind(FS);
 FS.mkdir = (target: string, mode = 0o777) => {
   if (bootstrapPath(target)) return originalMkdir(target, mode);
   const absolute = absolutePath(target);
-  rpc('mkdir', absolute, {mode});
+  rpc('mkdir', absolute, {mode: mode & ~(options.getUmask?.() ?? 0), exactMode: true});
   return node(FS.root, absolute.slice(1), rpc('lstat', absolute));
 };
 const originalRename = FS.rename.bind(FS);
@@ -196,7 +197,7 @@ const originalMknod = FS.mknod.bind(FS);
 FS.mknod = (target: string, mode: number, device: number) => {
   if (bootstrapPath(target)) return originalMknod(target, mode, device);
   if (!FS.isFile(mode)) throw new FS.ErrnoError(errno.ENOTSUP);
-  const handle = rpc('open', absolutePath(target), {access:'write',creation:'exclusive',mode:mode & 4095});
+  const handle = rpc('open', absolutePath(target), {access:'write',creation:'exclusive',mode:mode & 4095 & ~(options.getUmask?.() ?? 0),exactMode:true});
   rpc('close', handle);
   return node(FS.root, absolutePath(target).slice(1), rpc('lstat', absolutePath(target)));
 };

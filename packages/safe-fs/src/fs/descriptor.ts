@@ -219,11 +219,12 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
   if (!options || typeof options !== "object") throw new FsError("EINVAL", { syscall: "open", path });
   const signal = options.signal;
   signal?.throwIfAborted();
-  const keys = ["access", "creation", "truncate", "append", "mode", "synchronization", "signal"];
+  const keys = ["access", "creation", "truncate", "append", "mode", "exactMode", "synchronization", "signal"];
   const { access, creation = "never", truncate = false, append = false, mode = 0o666, synchronization } = options;
   if (Object.keys(options).some(key => !keys.includes(key))
     || !["read", "write", "readwrite"].includes(access)
     || !["never", "ifMissing", "exclusive"].includes(creation)
+    || options.exactMode !== undefined && typeof options.exactMode !== "boolean"
     || typeof truncate !== "boolean" || typeof append !== "boolean"
     || access === "read" && (truncate || append)
     || synchronization !== undefined && !["data", "all"].includes(synchronization)
@@ -231,6 +232,7 @@ export async function openFileDescriptor<Resource>(path: string, options: OpenFi
     throw new FsError("EINVAL", { syscall: "open", path });
   }
   const admitted: DescriptorOpenOptions = Object.freeze({ access, creation, truncate, append, mode,
+    ...(options.exactMode === undefined ? {} : { exactMode: options.exactMode }),
     ...(signal === undefined ? {} : { signal }), ...(synchronization === undefined ? {} : { synchronization }) });
   const admittedCapabilities = Object.freeze({ ...capabilities });
   admitCapabilities(path, admitted, admittedCapabilities);

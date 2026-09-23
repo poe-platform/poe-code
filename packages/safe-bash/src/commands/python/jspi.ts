@@ -46,6 +46,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   const execute = async (start: PythonExecutorStart): Promise<number> => {
     const signal = AbortSignal.any([start.signal, controller.signal]);
     const configuration = parsePythonInvocation(start.invocation.args, start.invocation.env);
+    let guestMask = 0o22;
     let qualified = false;
     let exitCode = 0;
     let finalized = 0;
@@ -60,7 +61,8 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
           for (const namespace of namespaces) {
             for (const [name, value] of Object.entries(namespace)) {
               if (typeof value !== 'function') continue;
-              if (name in pythonJspiSignatures) originals[name] = value as (...args: any[]) => number;
+              if (name === '__syscall_umask_js') namespace[name] = (mask: number) => { const previous = guestMask; guestMask = mask & 0o777; return previous; };
+              else if (name in pythonJspiSignatures) originals[name] = value as (...args: any[]) => number;
               else if (name.startsWith('__syscall_') || name === '_maybe_connect_async') namespace[name] = () => -52;
               else if (name === '_emscripten_system') namespace[name] = (command: number) => command === 0 ? 0 : -52;
             }
@@ -100,7 +102,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       filesystem.mount({mount:() => bootstrap}, {}, start.runtimeMount);
       runtime.runPython(pythonRuntimeRelocation);
       filesystem.currentPath = start.invocation.cwd;
-      native = createPythonNativeSyscalls({runtime:runtime._module, cwd:start.invocation.cwd,
+      native = createPythonNativeSyscalls({getUmask: () => guestMask, runtime:runtime._module, cwd:start.invocation.cwd,
         runtimeMount:start.runtimeMount, maxTransferBytes:start.maxTransferBytes, signal,
         dispatch:start.dispatch, original:(name, args) => originals[name]!(...args)});
       const errno = JSON.parse(runtime.runPython("__import__('json').dumps({name:value for name,value in vars(__import__('errno')).items() if name.startswith('E') and isinstance(value,int)})"));

@@ -804,28 +804,13 @@ export function* cloneStructuredGraph(
 }
 
 interface DataContinuation {
-  readonly values: readonly unknown[];
+  values: readonly unknown[] | undefined;
   index: number;
-  readonly depth: number;
+  depth: number;
 }
 const nativeDataArrayFrom = Array.from.bind(Array);
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
-
-function appendDataContinuation(
-  pending: DataContinuation[] | undefined,
-  values: readonly unknown[],
-  depth: number
-): DataContinuation[] {
-  // Do not expose the stack or its mutable frames through later Array hooks.
-  // A private null-prototype array also bypasses inherited native index setters.
-  if (pending === undefined) {
-    pending = [];
-    nativeDataArraySetPrototype(pending, null);
-  }
-  nativeDataArrayAppend(pending, { values, index: 1, depth });
-  return pending;
-}
 
 export function measureSandboxData(
   values: Iterable<unknown>,
@@ -854,6 +839,24 @@ function measureSandboxDataWithSeen(
   let waiting: Map<object | symbol, WeakContribution[]> | undefined;
   let ready: WeakContribution[] | undefined;
 
+  // Reuse private frames within this measurement. Recursive visits own only
+  // the segment above their entry count; completed frames release guest roots.
+  let pending: DataContinuation[] | undefined;
+  let pendingCount = 0;
+  const appendContinuation = (values: readonly unknown[], depth: number): void => {
+    const frames = pending ??= nativeDataArraySetPrototype([], null) as DataContinuation[];
+    let frame = frames[pendingCount];
+    if (frame === undefined) {
+      frame = { values, index: 1, depth };
+      nativeDataArrayAppend(frames, frame);
+    } else {
+      frame.values = values;
+      frame.index = 1;
+      frame.depth = depth;
+    }
+    pendingCount++;
+  };
+
   let captures: SandboxValue[] | undefined;
   const appendNativeCapture = (value: SandboxValue): void => {
     // Omitting an already visited object is equivalent to visit's first check.
@@ -864,7 +867,7 @@ function measureSandboxDataWithSeen(
 
   const visit = (value: unknown, depth = 0): void => {
     // Keep ordered record/array descendants off the native call stack.
-    let pending: DataContinuation[] | undefined;
+    const floor = pendingCount;
     walk: while (true) {
       entry: {
         if (typeof value === "bigint") {
@@ -909,7 +912,7 @@ function measureSandboxDataWithSeen(
             const references = bindingRoot.values;
             if (references.length === 0) break entry;
             if (references.length > 1)
-              pending = appendDataContinuation(pending, references, depth);
+              appendContinuation(references, depth);
             value = references[0];
           }
           // Accounting projections add neither object units nor graph depth.
@@ -1078,7 +1081,7 @@ function measureSandboxDataWithSeen(
               }
               if (roots !== undefined && roots.length > 0) {
                 if (roots.length > 1)
-                  pending = appendDataContinuation(pending, roots, depth + 1);
+                  appendContinuation(roots, depth + 1);
                 value = roots[0];
                 depth++;
                 continue walk;
@@ -1227,7 +1230,7 @@ function measureSandboxDataWithSeen(
           // Descriptors/elements are captured before retained callbacks.
           if (retained.length === 0) break entry;
           if (retained.length > 1)
-            pending = appendDataContinuation(pending, retained, depth + 1);
+            appendContinuation(retained, depth + 1);
           value = retained[0];
           depth++;
           continue walk;
@@ -1425,7 +1428,7 @@ function measureSandboxDataWithSeen(
             const references = projection.references;
             if (references.length === 0) break entry;
             if (references.length > 1)
-              pending = appendDataContinuation(pending, references, depth + 1);
+              appendContinuation(references, depth + 1);
             value = references[0];
             depth++;
             continue walk;
@@ -1465,39 +1468,45 @@ function measureSandboxDataWithSeen(
         // native hooks or inherited index setters. Capture all edges before visits.
         if (retained !== undefined && retained.length > 0) {
           if (retained.length > 1)
-            pending = appendDataContinuation(pending, retained, depth + 1);
+            appendContinuation(retained, depth + 1);
           value = retained[0];
           depth++;
           continue walk;
         }
       }
-      while (pending !== undefined && pending.length > 0) {
-        const frame = pending[pending.length - 1]!;
-        if (frame.index < frame.values.length) {
-          value = frame.values[frame.index++];
+      while (pendingCount > floor) {
+        const frame = pending![pendingCount - 1]!;
+        const references = frame.values!;
+        if (frame.index < references.length) {
+          value = references[frame.index++];
           depth = frame.depth;
           continue walk;
         }
-        pending.length--;
+        frame.values = undefined;
+        pendingCount--;
       }
       return;
     }
   };
 
-  for (const value of values) visit(value);
-  // Weak values may expose further keys or collections. Newly unlocked entries
-  // append to this worklist, so unrooted cycles never bootstrap themselves.
-  for (let index = 0; index < (ready?.length ?? 0); index++) {
-    const contribution = ready![index]!;
-    usage += 1;
-    visit(contribution.value, contribution.depth);
+  try {
+    for (const value of values) visit(value);
+    // Weak values may expose further keys or collections. Newly unlocked entries
+    // append to this worklist, so unrooted cycles never bootstrap themselves.
+    for (let index = 0; index < (ready?.length ?? 0); index++) {
+      const contribution = ready![index]!;
+      usage += 1;
+      visit(contribution.value, contribution.depth);
+    }
+    for (const projection of projectedPrimitives) {
+      if (seen.has(projection.target)) continue;
+      for (const item of projection.values)
+        if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
+    }
+    return usage;
+  } finally {
+    while (pendingCount > 0) pending![--pendingCount]!.values = undefined;
   }
-  for (const projection of projectedPrimitives) {
-    if (seen.has(projection.target)) continue;
-    for (const item of projection.values)
-      if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
-  }
-  return usage;
 }
 
 export function reconcileCompiledValues(

@@ -77,6 +77,7 @@ jobs:
           if [ -n "$remote_head" ]; then
             git fetch origin "$publication_ref"
             if [ "$remote_head" != "$GITHUB_SHA" ] && git merge-base --is-ancestor "$GITHUB_SHA" "$remote_head"; then
+              echo "::notice::Publication superseded by validated commit $remote_head; this run did not publish."
               echo "Publication superseded by validated commit $remote_head; this run did not publish." >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
@@ -115,6 +116,7 @@ jobs:
           let summary;
           if (!result && analyzed && !releaseType) {
             summary = 'No releasable changes; this run did not publish.';
+            console.log('::notice::' + summary);
           } else if (result?.nextRelease?.gitHead === process.env.GITHUB_SHA && npmPublished) {
             summary = `Published poe-code@${result.nextRelease.version} from validated commit ${process.env.GITHUB_SHA}.`;
           } else {

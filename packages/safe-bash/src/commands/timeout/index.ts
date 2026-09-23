@@ -200,7 +200,10 @@ function definition(configuration: Settings): CommandDefinition {
       }
       if (parsed.milliseconds === 0) {
         if (selected === undefined) return status(context, records.invokeUnavailable, 125);
-        return Reflect.apply(selected.invoke, selected.receiver, [command, args, streams]);
+        context.signal.throwIfAborted();
+        const result = await Reflect.apply(selected.invoke, selected.receiver, [command, args, { signal: context.signal, ...streams }]);
+        context.signal.throwIfAborted();
+        return result;
       }
 
       if (selected === undefined) return status(context, records.invokeUnavailable, 125);

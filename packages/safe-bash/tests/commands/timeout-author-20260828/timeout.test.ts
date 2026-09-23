@@ -151,7 +151,7 @@ test("zero disables deadline resources and transparently forwards literal invoca
   assert.deepEqual(observed, {
     command: "child",
     args: ["--signal", "x"],
-    options: { stdin, stdinIsDefault: false, stdout, stderr },
+    options: { signal: capture.context.signal, stdin, stdinIsDefault: false, stdout, stderr },
   });
 });
 

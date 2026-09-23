@@ -5,6 +5,7 @@ import { createArchive, manifest } from "./create.js";
 import { readArchive } from "./extract.js";
 import { Budget, bounded, display, fail, fileSource, maybeStat, operation, publish, sameIdentity, settings, vfsPath, type ArchiveCommandsOptions } from "./internal.js";
 import { parseOptions } from "./options.js";
+import { compareArchive, mutateArchive } from "./modes.js";
 import { autodetected, compressed } from "./stream.js";
 import { createZipCommand } from "./zip.js";
 import { createUnzipCommand } from "./unzip.js";
@@ -25,11 +26,16 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
       const parsed = await parseOptions(context, limits);
       if (parsed === "help") {
         await writeBytes(context.stdout, Buffer.from(`Usage: tar [OPTION]... [FILE]...
-Create, list or extract USTAR/PAX archives in the virtual filesystem.
+Create, read or modify USTAR/PAX archives in the virtual filesystem.
 
   -c, --create             Create an archive
   -t, --list               List archive members
   -x, --extract, --get      Extract archive members
+  -r, --append             Append files to an uncompressed archive
+  -u, --update             Append files newer than archived members
+  -d, --compare, --diff    Compare archive members with filesystem entries
+      --delete            Delete selected archive members
+  -A, --catenate, --concatenate Append archives to an uncompressed archive
   -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)
   -z, --gzip               Use gzip compression
   -j, --bzip2              Use bzip2 compression
@@ -73,13 +79,18 @@ Create, list or extract USTAR/PAX archives in the virtual filesystem.
       --help              Display this help and exit
       --                  End options; remaining arguments are filenames
 
-Exactly one of -c, -t or -x is required for archive operations.
+Exactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.
 When reading, gzip, bzip2 and xz compression is detected from archive bytes.
 Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory
 `), signal);
         return { exitCode: 0 };
       }
       const budget = new Budget(context, limits);
+      if (parsed.mode === "d") return { exitCode: await compareArchive(context, parsed, budget) };
+      if (parsed.mode === "r" || parsed.mode === "u" || parsed.mode === "delete" || parsed.mode === "A") {
+        await mutateArchive(context, parsed, budget);
+        return { exitCode: 0 };
+      }
       if (parsed.mode === "c") {
         const prepared = await manifest(context, parsed, budget);
         let source: ByteSource = bounded(createArchive(context, prepared.entries, parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);

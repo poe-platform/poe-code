@@ -116,13 +116,19 @@ function verbose(entry: ReadEntry, fullTime?: boolean): string {
   return `${type}${permissions} ${entry.uid ?? "-"}/${entry.gid ?? "-"} ${entry.size} ${timestamp} ${display(entry.name)}${suffix}\n`;
 }
 
-export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget): Promise<void> {
+export interface ArchiveVisitor {
+  readonly rejectGlobal?: boolean;
+  member(entry: ReadEntry, reader: Reader, selected: boolean, root: string, start: number): Promise<void>;
+}
+
+export async function readArchive(context: CommandContext, source: ByteSource, options: TarOptions, budget: Budget, visitor?: ArchiveVisitor): Promise<void> {
   const reader = new Reader(source, context.signal);
   const exclusions = new Exclusions(options.excludes, budget.limits.maxPatternSteps);
   const transformedNames = new TransformedNames(context, options.transforms, budget.limits);
   const global = new Map<string, string>();
   let local = new Map<string, string>();
   let pending = false;
+  let memberStart = 0;
   let longName: string | undefined;
   let longLink: string | undefined;
   let warnedAbsolute = false;
@@ -151,6 +157,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
       const header = parseHeader(block);
       await budget.member();
       if (["x", "g", "L", "K"].includes(header.type)) {
+        if (header.type === "g" && visitor?.rejectGlobal) fail("global PAX headers are unsupported for archive mutation");
         const size = numberField(block, 124, 12);
         if (size > budget.limits.maxPaxBytes) fail("extended header byte limit exceeded");
         const payload = await reader.exact(size);
@@ -205,6 +212,12 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
           selected = true;
           matched.add(index);
         }
+      }
+      if (visitor) {
+        await visitor.member(entry, reader, selected && !exclusions.matches(name), root, memberStart);
+        await reader.padding(entry.size);
+        memberStart = reader.position;
+        continue;
       }
       if (!selected || exclusions.matches(name)) {
         await reader.discard(entry.size); await reader.padding(entry.size); continue;

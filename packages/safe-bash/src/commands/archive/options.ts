@@ -4,7 +4,7 @@ import { parseTransform, type NameTransform } from "./transform.js";
 
 export interface Operand { readonly name: string; readonly cwd: string }
 export interface TarOptions {
-  mode: "c" | "t" | "x";
+  mode: "c" | "t" | "x" | "r" | "u" | "d" | "delete" | "A";
   archive: string;
   compression?: "gzip" | "bzip2" | "xz";
   verbose: boolean;
@@ -99,8 +99,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     }
   };
   const apply = async (flag: string, value?: string) => {
-    if (flag === "c" || flag === "t" || flag === "x") {
-      if (mode) fail("exactly one of -c, -t, -x is required");
+    if (flag === "c" || flag === "t" || flag === "x" || flag === "r" || flag === "u" || flag === "d" || flag === "delete" || flag === "A") {
+      if (mode) fail("exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)");
       mode = flag;
     } else if (flag === "z" || flag === "j" || flag === "J") {
       const selected = flag === "z" ? "gzip" : flag === "j" ? "bzip2" : "xz";
@@ -180,7 +180,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "no-verbatim-files-from") verbatim = false;
     else fail(`unsupported option: ${flag}`);
   };
-  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform" };
+  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform" };
   const values = new Set(["f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort"]);
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
@@ -197,7 +197,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await apply(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxzjJavfCTXmpkh".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkh".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -212,12 +212,13 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       }
     } else operand(argument);
   }
-  if (!mode) fail("exactly one of -c, -t, -x is required");
-  if (occurrence !== undefined && (mode === "c" || !operands.length)) fail("--occurrence requires member operands when reading archives");
+  if (!mode) fail("exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)");
+  const creating = mode === "c" || mode === "r" || mode === "u";
+  if (occurrence !== undefined && (creating || mode === "A" || !operands.length)) fail("--occurrence requires member operands when reading archives");
   if (mode !== "t" && transforms.length) fail("--transform is currently supported only when listing archives");
   if (mode !== "c" && archive === "-" && stdinUsed) fail("archive and file list cannot both use standard input");
-  if (mode === "c" && strip !== 0) fail("--strip-components is only supported when reading archives");
-  if (mode === "c" && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
+  if (mode !== "t" && mode !== "x" && strip !== 0) fail("--strip-components is only supported when listing or extracting archives");
+  if (creating && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
   if (mode === "c" && !operands.length && !filesFrom) fail("refusing to create an empty archive without -T");
   if (archive !== "-") checkPath(archive, limits);
   if (mode === "c" && autoCompress) {

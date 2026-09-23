@@ -61,8 +61,19 @@ convenience decoder removes an initial BOM. The author test asserts
 
 ## CLI profile
 
-Exactly one of `-c`/`--create`, `-t`/`--list`, or `-x`/`--extract`/`--get` is
-required. Supported common options:
+Choose exactly one operation: `-c`/`--create`, `-t`/`--list`,
+`-x`/`--extract`/`--get`, `-r`/`--append`, `-u`/`--update`,
+`-d`/`--compare`/`--diff`, `--delete`, or `-A`/`--catenate`/`--concatenate`.
+Append, update, delete and concatenate require an existing named, uncompressed
+archive with known backing identity. Update appends newer or absent members;
+delete supports the reading selectors, including `--occurrence`. Untouched
+member bytes are preserved. Mutation buffers admitted archive inputs and new
+members within the archive limits before replacement; global PAX headers are
+currently refused. Preparation failures preserve the original archive, but
+publication uses the existing remove-and-exclusive-create contract and does not
+promise atomic replacement or rollback. Compare streams file contents and checks
+available archive metadata, returning 1 for differences and 2 for errors or
+missing filesystem metadata capabilities. Supported common options:
 
 | Option | Behavior |
 | --- | --- |

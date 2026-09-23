@@ -57,6 +57,7 @@ export async function* autodetected(source: ByteSource, signal: AbortSignal, lim
 }
 
 export class Reader {
+  position = 0;
   readonly iterator: AsyncIterator<Uint8Array>;
   private chunk: Uint8Array = new Uint8Array();
   private offset = 0;
@@ -74,6 +75,7 @@ export class Reader {
     const end = Math.min(this.chunk.length, this.offset + maximum);
     const bytes = this.chunk.subarray(this.offset, end);
     this.offset = end;
+    this.position += bytes.length;
     return bytes;
   }
   async exact(size: number): Promise<Uint8Array> {

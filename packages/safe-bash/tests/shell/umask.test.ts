@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
 import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
-import { createDeviceFileSystem, createMountFileSystem, scopeFileSystem, type FileSystem, type FileSystemCapabilities, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
+import { createDeviceFileSystem, createMountFileSystem, createReadOnlyFileSystem, scopeFileSystem, type FileSystem, type FileSystemCapabilities, type OpenFileOptions, type WriteFileOptions } from "@poe-code/safe-fs/core";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 
 const legacyWrites = [
@@ -124,18 +124,177 @@ for (const options of [
 }
 
 for (const creation of ["ifMissing", "exclusive"] as const) {
-  test(`creating open retains path capability and masked mode: ${creation}`, async () => {
+  test(`creating open queries generic permission hints and masks mode: ${creation}`, async () => {
     const backing = createMemoryFileSystem();
     const queries: unknown[] = [];
+    const opens: OpenFileOptions[] = [];
+    const options: OpenFileOptions = { access: "write", creation };
     const fs = new Proxy(backing, { get(target, key) {
-      if (key === "capabilitiesFor") return async (path: string, options: { create?: boolean }) => { queries.push({ path, create: options.create }); return target.capabilities; };
+      if (key === "capabilitiesFor") return async (path: string, forwarded: object) => {
+        queries.push(path);
+        assert.equal(Object.hasOwn(forwarded, "create"), false);
+        assert.equal(forwarded, options);
+        return target.capabilities;
+      };
+      if (key === "open") return async (path: string, forwarded: OpenFileOptions) => { opens.push(forwarded); return target.open(path, forwarded); };
       const member: unknown = Reflect.get(target, key, target);
       return typeof member === "function" ? member.bind(target) : member;
     } });
-    const descriptor = await creationFileSystem(fs, 0o077).open!("/new", { access: "write", creation });
+    const descriptor = await creationFileSystem(fs, 0o077).open!("/new", options);
     await descriptor.close();
-    assert.deepEqual(queries, [{ path: "/new", create: true }]);
+    assert.deepEqual(queries, ["/new"]);
+    assert.deepEqual(opens, [{ ...options, mode: 0o600 }]);
+    assert.notEqual(opens[0], options);
+    assert.equal(Object.hasOwn(options, "mode"), false);
     assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+  });
+
+  for (const permissions of [false, undefined]) {
+    test(`creating open preserves permissionless and unknown hints: ${creation}/${permissions}`, async () => {
+      const backing = createMemoryFileSystem();
+      const options: OpenFileOptions = { access: "write", creation };
+      const opens: OpenFileOptions[] = [];
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor") return async () => {
+          const capabilities: FileSystemCapabilities = Object.fromEntries(Object.entries(target.capabilities).filter(([name]) => name !== "permissions"));
+          return permissions === undefined ? capabilities : { ...capabilities, permissions };
+        };
+        if (key === "open") return async (path: string, forwarded: OpenFileOptions) => { opens.push(forwarded); return target.open(path, forwarded); };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      const descriptor = await creationFileSystem(fs, 0o077).open!("/new", options);
+      await descriptor.close();
+      assert.equal(opens[0]!.mode, permissions === false ? undefined : 0o600);
+      assert.equal(opens[0] === options, permissions === false);
+      assert.equal(Object.hasOwn(options, "mode"), false);
+    });
+  }
+
+  test(`creating open preserves explicit caller options without querying: ${creation}`, async () => {
+    const backing = createMemoryFileSystem();
+    const options: OpenFileOptions = { access: "write", creation, mode: 0o640 };
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async () => { assert.fail("explicit mode must not query"); };
+      if (key === "open") return async (path: string, forwarded: OpenFileOptions) => { assert.equal(forwarded, options); return target.open(path, forwarded); };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const descriptor = await creationFileSystem(fs, 0o077).open!("/new", options);
+    await descriptor.close();
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o640);
+  });
+
+  test(`creating open propagates query errors and falsey cancellations: ${creation}`, async () => {
+    const backing = createMemoryFileSystem();
+    for (const reason of [new FsError("EACCES"), null, false, 0, "", Number.NaN]) {
+      const controller = new AbortController();
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor") return async () => {
+          if (reason instanceof FsError) throw reason;
+          controller.abort(reason);
+          return target.capabilities;
+        };
+        if (key === "open") return async () => { assert.fail("failed/aborted query must not acquire"); };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      try {
+        await creationFileSystem(fs, 0o077).open!("/new", { access: "write", creation, signal: controller.signal });
+        assert.fail("expected query failure");
+      } catch (error) { assert.ok(Object.is(error, reason)); }
+      await assert.rejects(backing.stat("/new"), { code: "ENOENT" });
+    }
+    for (const reason of [null, false, 0, "", Number.NaN]) {
+      const controller = new AbortController();
+      controller.abort(reason);
+      const fs = new Proxy(backing, { get(target, key) {
+        if (key === "capabilitiesFor" || key === "open") return async () => { assert.fail("pre-abort must not query/acquire"); };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      } });
+      try {
+        await creationFileSystem(fs, 0o077).open!("/new", { access: "write", creation, signal: controller.signal });
+        assert.fail("expected pre-abort");
+      } catch (error) { assert.ok(Object.is(error, reason)); }
+    }
+  });
+
+  for (const fixture of [
+    { name: "missing final", path: "/new", backend: () => createMemoryFileSystem() },
+    { name: "mounted missing final", path: "/data/new", backend: () => createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": createMemoryFileSystem() } }) },
+    { name: "missing parent", path: "/missing/new", backend: () => createMemoryFileSystem(), error: "ENOENT" },
+    { name: "mounted missing parent", path: "/data/missing/new", backend: () => createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": createMemoryFileSystem() } }), error: "ENOENT" },
+    { name: "readonly backend", path: "/new", backend: () => createReadOnlyFileSystem(createMemoryFileSystem()), error: "EROFS" },
+    { name: "mounted readonly backend", path: "/data/new", backend: () => createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": createReadOnlyFileSystem(createMemoryFileSystem()) } }), error: "EROFS" },
+    { name: "null device", path: "/dev/null", backend: () => createMemoryFileSystem(), ...(creation === "exclusive" ? { error: "EEXIST" } : {}) },
+    { name: "null device child", path: "/dev/null/child", backend: () => createMemoryFileSystem(), error: "ENOTDIR" },
+    { name: "device directory", path: "/dev", backend: () => createMemoryFileSystem(), error: "ENOTSUP" },
+  ]) {
+    test(`creating open retains actual backend authority: ${creation}/${fixture.name}`, async () => {
+      const backing = fixture.backend();
+      const fs = createDeviceFileSystem(backing);
+      if (fixture.error) {
+        await assert.rejects(creationFileSystem(fs, 0o077).open!(fixture.path, { access: "write", creation }), { code: fixture.error });
+        if (fixture.name.includes("missing parent") || fixture.name.includes("readonly")) await assert.rejects(backing.stat(fixture.path), { code: "ENOENT" });
+      } else {
+        const descriptor = await creationFileSystem(fs, 0o077).open!(fixture.path, { access: "write", creation });
+        const stat = await descriptor.stat();
+        await descriptor.write(new Uint8Array([1]), null);
+        await descriptor.close();
+        if (fixture.name === "null device") {
+          assert.equal(stat.type, "character");
+          assert.equal(stat.mode & 0o777, 0o666);
+          assert.deepEqual(await fs.readFile(fixture.path), new Uint8Array());
+        } else {
+          assert.equal(stat.mode & 0o777, 0o600);
+          assert.deepEqual(await fs.readFile(fixture.path), new Uint8Array([1]));
+        }
+      }
+    });
+  }
+}
+
+for (const exclusive of [false, true]) {
+  test(`Shell retains caller creating-open preflight and mode: exclusive=${exclusive}`, async context => {
+    const backing = createMemoryFileSystem();
+    const metadata = context.mock.method(backing, "stat");
+    const queries: { create?: boolean }[] = [];
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === "capabilitiesFor") return async (_path: string, options: { create?: boolean }) => { queries.push(options); return target.capabilities; };
+      const member: unknown = Reflect.get(target, key, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(`umask 077; ${exclusive ? "set -C; " : ""}printf x >/new`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(metadata.mock.calls.map(call => call.arguments[0]), exclusive ? [] : ["/"]);
+      assert.equal(queries.filter(options => options.create === true).length, exclusive ? 0 : 1);
+      assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+      assert.deepEqual(await backing.readFile("/new"), new Uint8Array([120]));
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const fixture of [
+  { source: ": >/dev", stderr: "shell: line 1: /dev: Permission denied\n", exitCode: 1 },
+  { source: "set -C; : >/dev", stderr: "shell: line 1: ENOTSUP: exclusive creation is not supported, write '/dev'\n", exitCode: 1 },
+  { source: ": >/dev/null", stderr: "", exitCode: 0 },
+  { source: "set -C; : >/dev/null", stderr: "shell: line 1: /dev/null: cannot overwrite existing file\n", exitCode: 1 },
+  { source: ": >/dev/null/child", stderr: "shell: line 1: /dev/null/child: Not a directory\n", exitCode: 1 },
+  { source: "set -C; : >/dev/null/child", stderr: "shell: line 1: /dev/null/child: Not a directory\n", exitCode: 1 },
+]) {
+  test(`Shell preserves device diagnostic ordering: ${fixture.source}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem() });
+    try {
+      const result = await shell.exec(fixture.source);
+      assert.equal(result.exitCode, fixture.exitCode);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, fixture.stderr);
+    } finally { await shell.dispose(); }
   });
 }
 

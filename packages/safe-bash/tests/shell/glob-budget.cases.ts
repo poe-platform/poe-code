@@ -68,9 +68,11 @@ for (const extra of [false, true]) {
         assert.equal(result.exitCode, 0);
         assert.equal(result.stdout, "");
         assert.equal(result.stderr, "");
-        // Redirect creation validates its parent and resolves creation capabilities after glob expansion.
-        assert.deepEqual(metadata.mock.calls.map(call => call.arguments[0]), [...names.toSorted().map(name => `/${name}`), "/", "/"]);
-        assert.equal((await fs.stat("/after")).size, 0);
+        // Acquisition validates the parent once; the generic mode hint adds no parent stat.
+        assert.deepEqual(metadata.mock.calls.map(call => call.arguments[0]), [...names.toSorted().map(name => `/${name}`), "/"]);
+        const created = await fs.stat("/after");
+        assert.equal(created.size, 0);
+        assert.equal(created.mode! & 0o777, 0o644);
       }
       assert.equal(enumeration.mock.callCount(), 1);
     } finally { await shell.dispose(); }

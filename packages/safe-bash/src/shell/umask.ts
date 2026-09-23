@@ -29,7 +29,7 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
           let capabilities = target.capabilities;
           while (target.capabilitiesFor) {
             try {
-              capabilities = await target.capabilitiesFor(path, key === "mkdir" || key === "open" ? { ...options, create: true } : options);
+              capabilities = await target.capabilitiesFor(path, key === "mkdir" ? { ...options, create: true } : options);
               break;
             } catch (error) {
               options.signal?.throwIfAborted();

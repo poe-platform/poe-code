@@ -9,7 +9,7 @@ aggregate and through the package's `commands/timeout` subpath.
 `-f` and `--foreground` run the child through the existing virtual invocation:
 there is no separate POSIX process group or controlling terminal to configure.
 They preserve output bytes and child exit status and support the same cooperative
-deadline, `--signal`, and `--preserve-status` options. They do not grant native
+deadline, `--signal`, and `-p`/`--preserve-status` options. They do not grant native
 TTY access or implement native descendant signal policy; trusted host commands
 remain responsible for honoring cancellation and cleaning up their resources.
 

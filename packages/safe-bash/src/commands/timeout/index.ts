@@ -141,7 +141,7 @@ function definition(configuration: Settings): CommandDefinition {
           offset++;
           continue;
         }
-        if (token === "--preserve-status") {
+        if (token === "--preserve-status" || token === "-p") {
           preserveStatus = true;
           offset++;
           continue;

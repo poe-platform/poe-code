@@ -11,7 +11,7 @@ test("timeout foreground options preserve file bytes and child status through Sh
   const shell = new Shell({ fs });
   await shell.use(agentCommands());
   try {
-    for (const option of ["-f", "--foreground", "-f --preserve-status -sTERM"]) {
+    for (const option of ["-f", "--foreground", "-f --preserve-status -sTERM", "-p", "-f -p -sTERM"]) {
       const result = await shell.exec(`timeout ${option} 2 cat "Changed input.txt"`);
       assert.equal(result.exitCode, 0, option);
       assert.equal(result.stdout, "Changed12\r\n", option);
@@ -58,7 +58,7 @@ test("timeout accepts preserve-status and named, numeric, attached signal option
 
 test("timeout deadline status reflects preserve-status and selected signal", async () => {
   for (const [options, expected] of [
-    [[], 124], [["--preserve-status"], 143], [["--preserve-status", "-s", "INT"], 130],
+    [[], 124], [["--preserve-status"], 143], [["-p"], 143], [["-p", "-s", "INT"], 130], [["--preserve-status", "-s", "INT"], 130],
     [["--signal=KILL"], 137], [["--preserve-status", "--signal=9"], 137],
   ] as const) {
     const scheduler = new ManualScheduler();
@@ -76,7 +76,7 @@ test("timeout deadline status reflects preserve-status and selected signal", asy
 });
 
 test("timeout validates signal options before invoking the child", async () => {
-  for (const options of [["--signal=bogus"], ["-s", "65"], ["-s"], ["--preserve-status=yes"], ["-p"], ["--foreground=yes"], ["-fyes"]]) {
+  for (const options of [["--signal=bogus"], ["-s", "65"], ["-s"], ["--preserve-status=yes"], ["-p=yes"], ["--foreground=yes"], ["-fyes"]]) {
     const capture = captureContext(options, { invoke: async () => { assert.fail("invalid options invoked child"); } });
     assert.equal((await createTimeoutCommand().execute(capture.context)).exitCode, 125);
     assert.notEqual(capture.stderr(), "");
@@ -116,7 +116,7 @@ test("timeout signal parsing is portable for aliases and realtime boundaries", (
 });
 
 test("timeout options preserve byte streams and cancellation status through the registry", async () => {
-  for (const [option, expected] of [["--preserve-status -s INT", 130], ["-s TERM", 124], ["-s KILL", 137]] as const) {
+  for (const [option, expected] of [["--preserve-status -s INT", 130], ["-p -s INT", 130], ["-s TERM", 124], ["-s KILL", 137]] as const) {
     const scheduler = new ManualScheduler();
     const chunks: Uint8Array[] = [];
     const commands = new CommandRegistry([createTimeoutCommand({ scheduler }), {

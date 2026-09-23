@@ -6,7 +6,7 @@ import { gnumericChildren, gnumericAttributes, objectChildren } from "./gnumeric
 import { parseExpression } from "../formulas/parser.js";
 import { gnumericGrammar } from "../formulas/conventions.js";
 import { quoteFormulaString } from "../formulas/serialization.js";
-import { rewriteReferences } from "../formulas/rewriting.js";
+import { rewriteReferences, visitFormula } from "../formulas/rewriting.js";
 import { encodingName } from "../encoding/names.js";
 import { singleByteTables } from "../encoding/tables.js";
 import { gnumericNumber } from "./gnumeric-number.js";
@@ -289,14 +289,73 @@ async function warnUnknown(node: XmlElement, context: CapabilityContext, path: r
   }
 }
 
-function names(node: XmlElement, sheet: string): NamedExpression[] {
-  return children(child(node, "Names"), "Name").flatMap(item => {
+function names(node: XmlElement | undefined, sheet: string, local = false): NamedExpression[] {
+  return children(node, "Name").flatMap(item => {
     const prop = (name: string) => item.children.find(c => c.localName === name && (namespaces.has(c.namespace) || !c.namespace))?.text;
     const name = prop("name"), expression = prop("value"); if (!name || expression === undefined) return [];
     const pos = parseA1(prop("position") ?? "A1");
-    return [{ name, expression, ...(node.localName === "Sheet" ? { sheet } : {}),
+    return [{ name, expression, ...(local ? { sheet } : {}),
       ...(pos ? { position: { sheet, ...pos } } : {}) }];
   });
+}
+
+/** Native XML cell expressions bind before delayed name definitions are parsed. */
+function bindCellNames(root: XmlElement, context: CapabilityContext, tick: () => void): ReadonlyMap<XmlElement, string> {
+  const bound = new Map<XmlElement, string>();
+  const globals = new Set<string>(), locals = new Map<string, Set<string>>();
+  const futureLocals = new Map<string, Set<string>>();
+  for (const sheet of children(child(root, "Sheets"), "Sheet")) {
+    const name = sheetName(sheet);
+    if (name !== undefined) futureLocals.set(foldSheetName(name), new Set(children(sheet, "Names").flatMap(group => names(group, name).map(entry => entry.name))));
+  }
+  const addSheet = (name: string) => {
+    const key = foldSheetName(name);
+    // sheet_constructed installs these permanent names before XML content.
+    if (!locals.has(key)) locals.set(key, new Set(["Sheet_Title", "Print_Area"]));
+  };
+  for (const section of root.children) {
+    if (!namespaces.has(section.namespace)) continue;
+    if (section.localName === "SheetNameIndex") {
+      for (const sheet of children(section, "SheetName")) addSheet(sheet.text);
+    } else if (section.localName === "Names") {
+      for (const entry of names(section, "")) globals.add(entry.name);
+    } else if (section.localName === "Sheets") for (const sheet of children(section, "Sheet")) {
+      const name = sheetName(sheet); if (name === undefined) continue;
+      addSheet(name);
+      for (const part of sheet.children) {
+        if (!namespaces.has(part.namespace)) continue;
+        if (part.localName === "Names") {
+          for (const entry of names(part, name)) locals.get(foldSheetName(name))!.add(entry.name);
+        } else if (part.localName === "Cells") for (const cell of children(part, "Cell")) {
+          const formula = child(cell, "Content")?.text ?? cell.text;
+          if (!formula.startsWith("=") || attribute(cell, "ValueType") !== undefined && attribute(cell, "Value") === undefined) continue;
+          const row = number(cell, "Row", -1), column = number(cell, "Col", -1);
+          if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0) continue;
+          const parsed = parseExpression(formula, { position: { sheet: name, row, column }, signal: context.signal });
+          if (!parsed.ok) continue;
+          const changes = new Map<number, { end: number; text: string }>();
+          visitFormula(parsed.document.root, node => {
+            tick();
+            if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return;
+            if (node.workbook === "" && node.sheet === undefined) { globals.add(node.name); return; }
+            const scope = foldSheetName(node.sheet ?? name), visible = locals.get(scope);
+            if (!visible || visible.has(node.name)) return;
+            if (!globals.has(node.name)) {
+              // An unknown unqualified name creates a global placeholder;
+              // a qualified name creates a placeholder on that sheet.
+              if (node.sheet !== undefined) { visible.add(node.name); return; }
+              globals.add(node.name);
+            }
+            if (futureLocals.get(scope)?.has(node.name)) changes.set(node.start, { end: node.end, text: "[]" + node.name });
+          });
+          let result = formula;
+          for (const [start, change] of [...changes].sort(([a], [b]) => b - a)) result = result.slice(0, start) + change.text + result.slice(change.end);
+          if (result !== formula) bound.set(cell, result);
+        }
+      }
+    }
+  }
+  return bound;
 }
 function axes(node: XmlElement | undefined, axis: "RowInfo" | "ColInfo", maximum: number, admit: (count: number) => void): AxisMetadata[] {
   const result: AxisMetadata[] = [];
@@ -364,6 +423,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
     expandedAxes += count;
   };
   const tick = () => { context.signal.throwIfAborted(); if (++work > (context.limits.workbookWork ?? context.limits.inputBytes + context.limits.cells * 32)) limit("XML relationship work"); };
+  const boundNames = bindCellNames(root, context, tick);
   const knownSheets = new Set(index.map(node => foldSheetName(node.text)));
   const sheets: Sheet[] = [];
   for (const [i, node] of sheetNodes.entries()) {
@@ -382,7 +442,7 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       if (!Number.isSafeInteger(row) || !Number.isSafeInteger(column) || row < 0 || column < 0 || row >= size.rows || column >= size.columns) invalid("invalid cell position");
       const text = child(item, "Content")?.text ?? item.text;
       const type = attribute(item, "ValueType"), cached = attribute(item, "Value"), id = attribute(item, "ExprID");
-      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? text : undefined;
+      let formula = text.startsWith("=") && (type === undefined || cached !== undefined) ? boundNames.get(item) ?? text : undefined;
       if (!text && id && shared.has(id)) {
         const original = shared.get(id)!;
         const parsed = parseExpression(original.formula, { position: original, signal: context.signal });
@@ -437,7 +497,8 @@ export async function readGnumeric(bytes: Uint8Array, context: CapabilityContext
       unsupportedRecords: node.children.filter(n => namespaces.has(n.namespace) && ["PrintInformation", "Styles", "Cols", "Rows", "Selections", "Objects", "SheetLayout", "Filters", "Solver", "Scenarios"].includes(n.localName)).map(retained) });
   }
   const selected = number(child(root, "UIData"), "SelectedTab", 0);
-  const allNames = [...names(root, sheets[0]?.id ?? "s1"), ...sheetNodes.flatMap((n, i) => names(n, sheets[i]!.id))];
+  const allNames = [...children(root, "Names").flatMap(group => names(group, sheets[0]?.id ?? "s1")),
+    ...sheetNodes.flatMap((n, i) => children(n, "Names").flatMap(group => names(group, sheets[i]!.id, true)))];
   return { sheets, ...(sheets[selected] ? { activeSheet: sheets[selected]!.id } : {}), names: allNames, properties: metadata(root),
     dateSystem,
     calculationMode: manualRecalc ? "manual" : "automatic", iteration,

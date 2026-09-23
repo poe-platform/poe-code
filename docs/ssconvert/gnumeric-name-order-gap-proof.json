@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "validatedBase": "5f3ff8912523178df09ec61f01c337d6516c9228",
+  "problem": "Native XML parses cell names before all sheet-local declarations exist. The product previously rebound every name after full load, changing native11/13 back to local2/3 on the three captured XML replays.",
+  "nativeEvidence": {
+    "run": 35925225030,
+    "capture": "docs/ssconvert/biff-name-identity-native-capture.json",
+    "profiles": [
+      "BIFF7",
+      "BIFF8",
+      "dual-stream"
+    ],
+    "directCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+    "nativeXmlReplayCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+    "previousCompiledReplayMismatchCount": 6,
+    "previousWarnings": []
+  },
+  "sourceEvidence": {
+    "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
+    "members": [
+      {
+        "path": "src/xml-sax-read.c",
+        "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+        "finding": "xml_sax_named_expr_end installs declarations immediately; handle_delayed_names parses their expressions after loading. Ordinary cells parse during SAX traversal."
+      },
+      {
+        "path": "src/parser.y",
+        "sha256": "b0ebd707f3205031b00e4fcb5da8f7ea75f1d0e1b03b1d54c118c7dcb434b9c3",
+        "finding": "parser_simple_name chooses visible local then global; absent unqualified names create global placeholders and absent qualified names create sheet-local placeholders."
+      },
+      {
+        "path": "src/sheet.c",
+        "sha256": "dd06712b10126b59b2c42601878abc12fe29f08003bcfc0c7ec36b09bcc8059b",
+        "finding": "sheet_constructed installs permanent Sheet_Title and Print_Area before XML declarations."
+      },
+      {
+        "path": "src/expr.c",
+        "sha256": "04338a2d4208df47cbc66b62b62c97586f0dfe550aab7a23d8ee01fc94ee95f5",
+        "finding": "Name evaluation uses the bound named expression; optional sheet qualification does not change evaluation position."
+      },
+      {
+        "path": "src/expr-name.c",
+        "sha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+        "finding": "Exact name equality and local/global lookup; expr_name_eval evaluates at the supplied caller position."
+      }
+    ]
+  },
+  "implementation": "Walk names and cells in original XML order, independently of sheet-index order. Track declarations, permanent names and placeholders. Use parsed spans to make a selected global name explicit as []Name when later local declarations would otherwise shadow it. Keep name-expression evaluation delayed, and retain literal/external names and shared-formula binding. Charge AST traversal to existing XML work admission and cancellation.",
+  "validation": {
+    "originalTests": {
+      "total": 7,
+      "failed": 4,
+      "passed": 3
+    },
+    "focused": {
+      "tests": 85,
+      "passed": 85
+    },
+    "workspace": {
+      "files": 380,
+      "tests": 22772,
+      "passed": 22772
+    },
+    "finalFocused": {
+      "tests": 7,
+      "passed": 7
+    },
+    "lint": "Maintained workspace lint/source/test/consumer types pass on final files. Two useless quote escapes in a test were corrected after the first lint rejection; literal contents were unchanged.",
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=@poe-code/ssconvert",
+      "builds": 4,
+      "layers": 11,
+      "passed": true
+    },
+    "public": {
+      "nativeRun": 35925225030,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+          "sha256": "b09e3f05e0ec17aeca85923bc336c4d73d6fa76d2f05900d2cf1d4c5b1d03e58"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "51fde11cf11f8531b5b2fae91244e37542571e1793e65ca36559e66ae7e4f424"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ],
+      "results": [
+        {
+          "id": "biff-name-identity-excel_biff7-xml",
+          "path": "out/ssconvert-biff-name-identity/native-capture/biff-name-identity-excel_biff7.gnumeric",
+          "sha256": "2d5f4dcd6e9d63080a6ba10079704825d713df2d522c05208ae021c6b9618cb9",
+          "expected": "11\n13\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-name-identity-excel_biff7-biff",
+          "path": "out/ssconvert-biff-name-identity/excel_biff7.xls",
+          "sha256": "8b3e513dd204aaaca926c2fd4cd52e4b7d98c084e40792f4f341d2683780d993",
+          "expected": "2\n3\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-name-identity-excel_biff8-xml",
+          "path": "out/ssconvert-biff-name-identity/native-capture/biff-name-identity-excel_biff8.gnumeric",
+          "sha256": "1be8bc1899c0562695d2d21e5da2b49671bef0debce4c780f932494e84a78ab7",
+          "expected": "11\n13\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-name-identity-excel_biff8-biff",
+          "path": "out/ssconvert-biff-name-identity/excel_biff8.xls",
+          "sha256": "ce4aa71b25a043f4d31f55ef76b4f8a592306628be1b2eba7e72173460fb9597",
+          "expected": "2\n3\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-name-identity-excel_dsf-xml",
+          "path": "out/ssconvert-biff-name-identity/native-capture/biff-name-identity-excel_dsf.gnumeric",
+          "sha256": "1be8bc1899c0562695d2d21e5da2b49671bef0debce4c780f932494e84a78ab7",
+          "expected": "11\n13\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "11\n13\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-name-identity-excel_dsf-biff",
+          "path": "out/ssconvert-biff-name-identity/excel_dsf.xls",
+          "sha256": "c0257ed18769ec8360c0969c188a639dbae4290bee04149c16519a8d98f76263",
+          "expected": "2\n3\n11\n13\n29\n#NAME?\n",
+          "sdkCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "shellCsv": "2\n3\n11\n13\n29\n#NAME?\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        },
+        {
+          "id": "biff-missing-sheet-name-xml",
+          "path": "out/ssconvert-biff-name-identity/native-capture/biff-missing-sheet-name-replay.gnumeric",
+          "sha256": "276c7e99800f017df6ab8c33dc045ac65d1f79cd52b5cd823c4030447bf61c3f",
+          "expected": "'Missing'!Rate\n",
+          "sdkCsv": "'Missing'!Rate\n",
+          "shellCsv": "'Missing'!Rate\n",
+          "diagnostics": [],
+          "inputKeepAndNamespacePreserved": true
+        }
+      ],
+      "executions": 14,
+      "resolutions": 0
+    },
+    "screenshot": {
+      "sha256": "399fc3743cadbd27e1d2847c0233114acbead30f77f6d2d4a9ae77f0714ef9a6",
+      "inspected": true,
+      "finding": "Both native result sequences and all output rows are readable without clipping."
+    }
+  },
+  "bindings": [
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric.ts",
+      "sha256": "b09e3f05e0ec17aeca85923bc336c4d73d6fa76d2f05900d2cf1d4c5b1d03e58"
+    },
+    {
+      "path": "packages/ssconvert/src/codecs/gnumeric-name-order.test.ts",
+      "sha256": "f4f3e63fb9f093818aa55a026d5ae2afa00cd9f7dd9c0cc03e569d8e0d7b1bf8"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/parser.ts",
+      "sha256": "6c7c6915ef587fccc52b98cc9bfb6512b88f97c80eb6478e43b446c228d3f2cd"
+    },
+    {
+      "path": "packages/ssconvert/src/formulas/rewriting.ts",
+      "sha256": "0ffbe9fdbf24fc4a8c27f9ad4a46f822e7e36dd89ca2a5c6c6885d3b4d2de7ac"
+    },
+    {
+      "path": "packages/ssconvert/dist/index.js",
+      "sha256": "51fde11cf11f8531b5b2fae91244e37542571e1793e65ca36559e66ae7e4f424"
+    },
+    {
+      "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+      "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+    }
+  ],
+  "logs": [
+    {
+      "path": "out/ssconvert-gnumeric-name-order/red.log",
+      "sha256": "52d03d526597d7f3b66b87a94135ec1bb5af2e93d545459b316a5c83f787fdb2"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/green.log",
+      "sha256": "7621e80a005c19073d170b02a1a4bad6dd7070a5992a4ad1610c407c0fcfc941"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/package-tests.log",
+      "sha256": "1d413188a9607473465d8e3bd930234d01df0c93772dcdf04162dc56da090e03"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/lint.log",
+      "sha256": "ed8d4b3bfd87f30ce3d41d5d6659094b69162da20e4eb6d3b83e782cb2689a91"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/lint-final.log",
+      "sha256": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/final-focused.log",
+      "sha256": "541839dfa7613338b974786227b8fa2c0bdaa75654895fb667654b3bfe9b04cc"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/build.log",
+      "sha256": "f2567ae35ecda93a96da1cfb3e82ee8e79d7a72b4494b1248114ea855a578d39"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/public.log",
+      "sha256": "03332573151fe672bf758c2155c67a84d713196261c86bfaf291ffe77a2b90e8"
+    },
+    {
+      "path": "out/ssconvert-gnumeric-name-order/screenshot.log",
+      "sha256": "aa67d2f678c8383e7622c2ecbff7a31359024e7026df4d4e8572da5d36b4e7b6"
+    }
+  ],
+  "limits": [
+    "Actual native qualification covers the three authenticated name-identity XML files and one missing-sheet string replay; other declaration-order tests are source-backed memory controls.",
+    "Does not claim complete malformed-expression side-effect, array, cross-sheet shared-formula or workbook-name mutation equivalence.",
+    "All19 original families and containing root publication remain open."
+  ]
+}

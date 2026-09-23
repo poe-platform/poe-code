@@ -44,8 +44,13 @@ output, including filename escaping; `-z`/`--zero` preserves literal names with
 NUL termination. `-b`/`--binary` and `--tag` are accepted: CRC retains its
 checksum/length format, and hash algorithms retain tagged output. Input bytes
 are unchanged. All algorithms use the same bounded streaming/cancellation
-path, never buffering a complete input. Other algorithms, checksum verification,
-untagged output, text selectors and output-length options remain rejected.
+path, never buffering a complete input. `--untagged` prints digest/name records
+with a space marker, or `*` with `--binary`. `--base64` encodes hash digests in
+Base64 instead of hex, in either tagged or untagged records. `--raw` emits only
+the hash digest bytes, without names or delimiters; it requires a hash algorithm
+and cannot be combined with `--tag`, `--untagged`, `--base64` or `--zero`.
+CRC keeps its decimal checksum/length format with `--untagged` or `--base64`.
+Other algorithms, checksum verification, text selectors and output-length options remain rejected.
 This is not the complete modern GNU interface. Existing SHA/MD5 command
 verification behavior and default CRC bytes/length output are unchanged.
 

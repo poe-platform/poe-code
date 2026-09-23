@@ -2,7 +2,7 @@ import { yieldTurn } from "../../../contracts/yield.js";
 import { PublicDiagnostic } from "../../../diagnostics.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
-import { bytesToHex } from "@noble/hashes/utils.js";
+import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
 import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "../../../contracts/index.js";
 import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "../../internal.js";
 import { ByteInputBudget, resolveInputLimit, type ByteInputOptions } from "../input-budget.js";
@@ -25,6 +25,7 @@ interface Settings {
   strict: boolean;
   ignoreMissing: boolean;
   report: ReportMode;
+  encoding?: "raw" | "base64";
 }
 
 interface InputState { stdinUsed: boolean; budget: ByteInputBudget }
@@ -33,10 +34,18 @@ interface Digest { hex: string; length: bigint }
 interface Entry { digest: string; filename: string }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
-  const parsed = options(args, "a:bz", { algorithm: "a", binary: "b", tag: false, zero: "z" });
+  const parsed = options(args, "a:bz", { algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false });
   const algorithm = value(parsed, "a") ?? "crc";
   if (!["crc", "md5", "sha1", "sha224", "sha256", "sha384", "sha512"].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
-  return { algorithm: algorithm as Algorithm, settings: { operands: parsed.operands, binary: false, check: false, zero: parsed.flags.has("z"), tag: true, strict: false, ignoreMissing: false, report: "normal" } };
+  if (parsed.flags.has("raw") && (algorithm === "crc" || ["tag", "untagged", "base64", "z"].some(flag => parsed.flags.has(flag)))) {
+    throw new UsageError("--raw requires a hash algorithm and cannot be combined with --tag, --untagged, --base64 or --zero");
+  }
+  return { algorithm: algorithm as Algorithm, settings: {
+    operands: parsed.operands, binary: parsed.flags.has("b"), check: false,
+    zero: parsed.flags.has("z"), tag: !parsed.flags.has("untagged") || parsed.flags.has("tag"),
+    strict: false, ignoreMissing: false, report: "normal",
+    ...(parsed.flags.has("raw") ? { encoding: "raw" as const } : parsed.flags.has("base64") ? { encoding: "base64" as const } : {}),
+  } };
 }
 
 function parse(args: readonly string[], algorithm: Algorithm): Settings {
@@ -269,10 +278,16 @@ function command(name: string, algorithm: Algorithm, maxInputBytes: number): Com
       const delimiter = settings.zero ? "\0" : "\n";
       if (selectedAlgorithm === "crc") await output(context, `${result.hex} ${result.length}${settings.operands.length ? ` ${filename}` : ""}${delimiter}`);
       else {
+        if (settings.encoding === "raw") {
+          await output(context, hexToBytes(result.hex));
+          continue;
+        }
+        const encoded = settings.encoding === "base64"
+          ? btoa(String.fromCharCode(...hexToBytes(result.hex))) : result.hex;
         const display = settings.zero ? { prefix: "", name: filename } : escaped(filename);
         await output(context, settings.tag
-          ? `${display.prefix}${selectedAlgorithm.toUpperCase()} (${display.name}) = ${result.hex}${delimiter}`
-          : `${display.prefix}${result.hex} ${settings.binary ? "*" : " "}${display.name}${delimiter}`);
+          ? `${display.prefix}${selectedAlgorithm.toUpperCase()} (${display.name}) = ${encoded}${delimiter}`
+          : `${display.prefix}${encoded} ${settings.binary ? "*" : " "}${display.name}${delimiter}`);
       }
     }
     return { exitCode: failed ? 1 : 0 };

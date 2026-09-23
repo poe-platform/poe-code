@@ -2,7 +2,7 @@ import { FsError, type CommandContext, type CommandDefinition, type FileStat } f
 import { codeOf, define, pathOf, UsageError } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { predicateRequirements } from "./portable-requirements.js";
-import { compareCopyIdentity } from "./copy-identity.js";
+import { evaluateFilePredicate, type PredicateIdentity } from "./file-predicates.js";
 
 type Predicate = () => Promise<boolean>;
 
@@ -83,13 +83,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
             return operator === "<" ? order < 0 : order > 0;
           }
           if (["-nt", "-ot", "-ef"].includes(operator)) {
-            const leftStat = await metadata(context, token);
-            const rightStat = await metadata(context, right);
-            if (operator === "-nt") return leftStat !== undefined && (!rightStat || leftStat.mtimeMs > rightStat.mtimeMs);
-            if (operator === "-ot") return rightStat !== undefined && (!leftStat || leftStat.mtimeMs < rightStat.mtimeMs);
-            const identity = compareCopyIdentity(leftStat, rightStat);
-            if (identity !== "unknown") return identity === "same";
-            return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.type === rightStat.type && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
+            return evaluateFilePredicate(context, operator, token, right);
           }
           const leftNumber = leftLength ? BigInt(new TextEncoder().encode(left).byteLength) : number(left);
           const rightNumber = rightLength ? BigInt(new TextEncoder().encode(right).byteLength) : number(right);
@@ -126,20 +120,11 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
             }
             catch (error) { context.signal.throwIfAborted(); if (["ENOENT", "ENOTDIR", "EACCES", "EROFS"].includes(codeOf(error) ?? "")) return false; throw error; }
           }
+          if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G"].includes(token)) {
+            return evaluateFilePredicate(context, token, operand, undefined, context.capabilities?.predicateIdentity as PredicateIdentity | undefined ?? identity);
+          }
           const stat = await metadata(context, operand, token === "-L" || token === "-h");
           if (!stat) return false;
-          if (token === "-b") return (stat.mode & 0o170000) === 0o060000;
-          if (token === "-p") return (stat.mode & 0o170000) === 0o010000;
-          if (token === "-S") return (stat.mode & 0o170000) === 0o140000;
-          if (token === "-u") return (stat.mode & 0o4000) !== 0;
-          if (token === "-g") return (stat.mode & 0o2000) !== 0;
-          if (token === "-k") return (stat.mode & 0o1000) !== 0;
-          if (token === "-O" || token === "-G") {
-            const caller = token === "-O" ? identity.effectiveUid : identity.effectiveGid;
-            const owner = token === "-O" ? stat.uid : stat.gid;
-            if (caller === undefined || owner === undefined) throw new FsError("ENOTSUP", { message: "ownership predicate requires caller and filesystem identity" });
-            return caller === owner;
-          }
           if (token === "-f") return stat.type === "file";
           if (token === "-c") return stat.type === "character";
           if (token === "-d") return stat.type === "directory";

@@ -541,7 +541,7 @@ interface IO {
   /** Zeroth argument identity; command remains the name used for lookup. */
   readonly argv0?: string | undefined;
   readonly [declarationArrays]?: ReadonlyMap<number, ArrayAssignment> | undefined;
-  readonly capabilities?: CommandContext["capabilities"];
+  readonly capabilities?: import("./types.js").ShellCapabilities | undefined;
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
   readonly nameExpansionContext?: "document" | "conditional" | undefined;
@@ -3552,6 +3552,8 @@ export class Runtime {
         try {
           return await evaluateConditional(command.expression, {
             fs: this.fs, cwd: state.cwd, signal: this.signal,
+            predicateIdentity: io.capabilities?.predicateIdentity,
+            reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false,
             locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
             ignoreCase: !!state.nocasematch,
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },

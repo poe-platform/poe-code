@@ -3,8 +3,11 @@ import type { ShellExtension } from "./extensions.js";
 import type { InternalErrorHandler, CommandArguments, InvocationCapabilities } from "../contracts/command.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
+import type { PredicateIdentity } from "../commands/file-predicates.js";
 
 export interface ShellCapabilities extends InvocationCapabilities {
+  /** Explicit caller identity for conditional ownership predicates; never inferred from the host. */
+  readonly predicateIdentity?: PredicateIdentity | undefined;
   readonly regex?: {
     readonly executor: BoundedRegexProvider;
     readonly limits: Readonly<RegexExecutionOptions>;

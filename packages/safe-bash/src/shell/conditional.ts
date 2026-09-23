@@ -5,6 +5,7 @@ import { pathOf } from "../commands/internal.js";
 import type { Word } from "./parser.js";
 import { matchesPattern } from "./pattern.js";
 import type { StringWork } from "./string-operations.js";
+import { evaluateFilePredicate, type PredicateIdentity } from "../commands/file-predicates.js";
 
 export type ConditionalExpression =
   | { kind: "nonempty"; operand: Word }
@@ -26,11 +27,13 @@ interface ConditionalContext {
   readonly locale: string;
   readonly work: StringWork;
   readonly ignoreCase?: boolean;
+  readonly predicateIdentity?: PredicateIdentity | undefined;
   expand(word: Word, pattern?: boolean): Promise<string>;
   arithmetic(value: string): bigint | Promise<bigint>;
   regex?(subject: string, pattern: Word): Promise<number>;
   present(name: string): boolean;
   option(name: string): boolean;
+  reference(name: string): boolean;
 }
 
 function unsupported(detail: string): never { throw new ConditionalUnsupported(`[[ ${detail}: unsupported conditional profile`); }
@@ -85,6 +88,17 @@ async function unary(operator: string, value: string, context: ConditionalContex
     return context.present(value);
   }
   if (operator === "-o") return context.option(value);
+  if (operator === "-R") return context.reference(value);
+  // Virtual shell descriptors do not expose terminal capabilities.
+  if (operator === "-t") return false;
+  if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G"].includes(operator)) {
+    try { return await evaluateFilePredicate(context, operator, value, undefined, context.predicateIdentity); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (isFsError(error) && ["ENOTSUP", "EOPNOTSUPP", "ENOSYS"].includes(error.code)) unsupported(error.message);
+      throw error;
+    }
+  }
   if (!["-e", "-a", "-f", "-d", "-c", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
   if (value === "") return false;
   if (/^\/dev\/(?:fd(?:\/|$)|stdin$|stdout$|stderr$)/u.test(value)) unsupported("descriptor predicate");
@@ -122,7 +136,15 @@ async function leaf(node: Extract<ConditionalExpression, { kind: "nonempty" | "u
   if (node.operator === "=~" && context.regex) return context.regex(left, node.right);
   const pattern = ["=", "==", "!="].includes(node.operator);
   const right = await context.expand(node.right, pattern);
-  if (node.operator === "=~" || ["-nt", "-ot", "-ef"].includes(node.operator)) unsupported(node.operator);
+  if (node.operator === "=~") unsupported(node.operator);
+  if (["-nt", "-ot", "-ef"].includes(node.operator)) {
+    try { return await evaluateFilePredicate(context, node.operator, left, right); }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (isFsError(error) && ["ENOTSUP", "EOPNOTSUPP", "ENOSYS"].includes(error.code)) unsupported("filesystem capability");
+      throw error;
+    }
+  }
   if (pattern) {
     await patternAdmission(right, context);
     const match = await matchesPattern(right, left, context.work, context.ignoreCase);

@@ -56,12 +56,16 @@ physical permissions, and the host process mask remains unchanged.
   `>>`), descriptor redirection such as `2>&1`, here-documents, and here-strings.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
-  `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays with arithmetic
+  `[[ … ]]` (including file age/identity, special-file, mode and nameref
+  predicates), arithmetic commands `(( … ))`, and indexed arrays with arithmetic
   and relative negative element indices, including `declare -a`, `local -a`,
   and `readonly -a` array literals. Arithmetic array operands such as `a[i]`
   support reads, assignments, and increments in `$(( … ))`, `(( … ))`,
   `for (( … ))`, and `let`, including associative keys. The optional arrays extension adds
   member slices and lazy element default/alternate operators.
+  Ownership predicates `-O` and `-G` in `[[ … ]]`, `test` and `[` use explicit
+  `capabilities: { predicateIdentity: { effectiveUid, effectiveGid } }` on the
+  shell or execution options; missing caller or filesystem identity is refused.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks
   syntax without executing commands; `set -n` / `set -o noexec` parses the

@@ -72,7 +72,9 @@ line-ending counts, BOM wording, language guesses and executable permission clai
 JSON requires a complete bounded object/array that successfully passes JSON.parse
 after text decoding. Scalars remain plain text. A syntactically complete JSON
 prefix is not proof of a complete document. Streaming input ending exactly at
-the sniff cap remains unproved, even if stat.size agrees. Whole readFile content
+the sniff cap remains unproved, even if stat.size agrees. The default 256 KiB
+extent admits complete JSON below that bound, including 65536/65537-byte documents;
+hosts can configure `limits.maxSniffBytes` for another bounded extent. Whole readFile content
 at the cap can be proved complete. Text classification generally describes only
 the sampled prefix, not unseen later bytes.
 
@@ -96,7 +98,7 @@ Defaults (all positive safe integers; maxDurationMs <= 2147483647):
 
 | Limit | Default | Meaning |
 | --- | ---: | --- |
-| maxSniffBytes | 65536 | retained sample per operand |
+| maxSniffBytes | 262144 | retained sample per operand |
 | maxReadFileBytes | 1048576 | maximum authorized whole-read fallback |
 | maxInputBytes | 8388608 | aggregate ByteIO and admitted metadata UTF-8 bytes |
 | maxOutputBytes | 1048576 | combined stdout and stderr bytes |

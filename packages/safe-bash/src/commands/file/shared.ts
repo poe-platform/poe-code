@@ -20,7 +20,7 @@ export interface FileCommandsOptions {
 
 export function settings(options: FileCommandsOptions): FileLimits {
   const limits: FileLimits = {
-    maxSniffBytes: 65536, maxReadFileBytes: 1024 * 1024, maxInputBytes: 8 * 1024 * 1024,
+    maxSniffBytes: 256 * 1024, maxReadFileBytes: 1024 * 1024, maxInputBytes: 8 * 1024 * 1024,
     maxOutputBytes: 1024 * 1024, maxChunkBytes: 1024 * 1024, maxEntries: 1024,
     maxSteps: 1024 * 1024, maxArgumentBytes: 65536, maxDurationMs: 10000, ...options.limits,
   };

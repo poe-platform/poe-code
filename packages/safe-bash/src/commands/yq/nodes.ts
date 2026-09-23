@@ -12,6 +12,7 @@ export interface NativeDocument {
 export interface Candidate {
   node: Node;
   document: NativeDocument;
+  isDerived?: boolean;
   isDocumentRoot?: true;
   parent?: YAMLMap | YAMLSeq;
   slot?: number;
@@ -58,7 +59,7 @@ export function dereference(candidate: Candidate, yaml: YamlModule, work: Native
     if (!resolved) throw new MikeError(`unknown anchor '${node.source}' referenced`);
     node = resolved;
   }
-  return node === candidate.node ? candidate : { node, document: candidate.document };
+  return node === candidate.node ? candidate : { node, document: candidate.document, isDerived: candidate.isDerived ?? false };
 }
 
 export async function inspectNode(node: Node, yaml: YamlModule, work: NativeWork, allocate = false): Promise<void> {

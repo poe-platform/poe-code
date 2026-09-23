@@ -57,7 +57,7 @@ export class Evaluator {
 
   child(node: Node, parent: Candidate, collection?: YAMLMap | YAMLSeq, slot?: number): Candidate {
     this.work.node();
-    return { node, document: parent.document, ...(collection === undefined ? {} : { parent: collection, slot: slot! }) };
+    return { node, document: parent.document, isDerived: collection === undefined || parent.isDerived === true, ...(collection === undefined ? {} : { parent: collection, slot: slot! }) };
   }
 
   async entries(input: Candidate, depth = 0): Promise<Map<string, Candidate>> {
@@ -69,12 +69,12 @@ export class Evaluator {
     const node = base.node;
     const isMerge = (key: unknown) => this.yaml.isScalar(key) && (key.tag === "tag:yaml.org,2002:merge" || key.value === "<<" && key.type === "PLAIN");
     const merge = async (incoming: Node) => {
-      const source = dereference(this.child(incoming, base), this.yaml, this.work);
+      const source = dereference({ ...base, node: incoming }, this.yaml, this.work);
       const values = this.yaml.isSeq(source.node) ? source.node.items : [source.node];
       for (let index = 0; index < values.length; index++) {
         const selected = values[this.mergeSpec ? values.length - 1 - index : index];
         if (!this.yaml.isNode(selected)) continue;
-        for (const [key, child] of await this.entries(this.child(selected, source), depth + 1)) { await this.work.tick(); entries.set(key, child); }
+        for (const [key, child] of await this.entries({ ...source, node: selected }, depth + 1)) { await this.work.tick(); entries.set(key, child); }
       }
     };
     if (this.mergeSpec) for (let index = node.items.length - 1; index >= 0; index--) {

@@ -2,7 +2,7 @@ import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefin
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
-import { decodeDocuments, loadYaml, root, scalar, truth, type Candidate, type NativeDocument } from "./nodes.js";
+import { decodeDocuments, loadYaml, root, scalar, truth, type Candidate } from "./nodes.js";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
 import { publishInPlace } from "./inplace.js";
@@ -49,19 +49,21 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     const evaluator = new Evaluator(yaml, work, options.mergeSpec);
     const results: string[] = [];
     let qualified = false;
-    let previous: NativeDocument | undefined;
+    let previous: { fileIndex: number; documentIndex: number } | undefined;
     let original: FileStat | undefined;
     if (options.inplace) { original = await work.track(context.fs.stat(pathOf(context, operands[0]!), { signal: work.signal })); work.assertOpen(); }
     const print = async (candidates: Candidate[]) => {
       for (const candidate of candidates) {
         await work.tick();
-        const separator = previous && (previous.fileIndex !== candidate.document.fileIndex || previous.documentIndex !== candidate.document.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
+        // Computed nodes have yq's default output origin, while projections keep their source origin.
+        const origin = candidate.isDerived ? { fileIndex: 0, documentIndex: 0 } : candidate.document;
+        const separator = previous && (previous.fileIndex !== origin.fileIndex || previous.documentIndex !== origin.documentIndex) && output === "yaml" && !options.noDoc ? "---\n" : "";
         const text = separator + await encodeNative(candidate, { format: output, indent: options.indent, unwrap: options.unwrap ?? output === "yaml", compactSequence: options.compactSequence }, yaml, work);
         work.output(Buffer.byteLength(text));
         if (options.inplace) results.push(text);
         else await work.write(Buffer.from(text));
         qualified ||= truth(candidate.node, yaml);
-        previous = candidate.document;
+        previous = origin;
       }
     };
     const all: Candidate[] = [];

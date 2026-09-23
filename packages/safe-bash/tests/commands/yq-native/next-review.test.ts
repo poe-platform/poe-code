@@ -7,6 +7,30 @@ import { Shell } from "../../../src/shell/shell.js";
 import { ShellLimitError } from "../../../src/shell/types.js";
 import { native, nativeOptions, run } from "./helpers.js";
 
+for (const [expression, stdout] of [
+  ['has("a")', "true\ntrue\n"],
+  ["keys", "- a\n- a\n"],
+  ["tag", "!!map\n!!map\n"],
+  ["style", "\n\n"],
+  ["[.a]", "- 1\n- 2\n"],
+  ["[.a] | .[]", "1\n2\n"],
+  [".missing // 0", "0\n0\n"],
+  ["filename", "input.yaml\ninput.yaml\n"],
+  [".a", "1\n---\n2\n"],
+  ["select(has(\"a\")) | .a", "1\n---\n2\n"],
+] as const) test(`derived output document origins: ${expression}`, async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from("a: 1\n---\na: 2\n"));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  context.after(() => shell.dispose());
+  for (const flag of ["", "-N "]) {
+    const result = await shell.exec(`yq ${flag}'${expression}' input.yaml`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, flag ? stdout.split("---\n").join("") : stdout);
+  }
+});
+
 const cases: readonly { readonly name: string; readonly args: readonly string[]; readonly input: string }[] = [
   { name: "numeric keys retain insertion order and duplicates", args: ["-p=json", "-o=json", "-I0", "."], input: '{"10":1,"2":2,"10":3,"01":4,"0":5}' },
   { name: "escaped duplicate keys retain both pairs", args: ["-p=json", "-o=json", "-I0", "."], input: '{"a":1,"\\u0061":2,"a":3}' },

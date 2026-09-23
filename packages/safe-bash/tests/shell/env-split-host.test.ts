@@ -17,8 +17,10 @@ const scenarios = [
 
 async function runHost(selected: readonly string[], batch = false): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-    // The maintained unit route builds the complete public API before running this host.
-    const child = spawn(process.execPath, ["--unhandled-rejections=strict", fileURLToPath(new URL("../shell-stress/env-split-author/resume-host.mjs", import.meta.url)), ...(batch ? ["--batch", ...selected] : selected)], {
+    // Preserve the sealed historical host; argv0 is now a supported option.
+    const current = selected.length === 1 && selected[0] === "unsupported-before-chdir";
+    const host = new URL(current ? "./env-split-current-host.mjs" : "../shell-stress/env-split-author/resume-host.mjs", import.meta.url);
+    const child = spawn(process.execPath, ["--unhandled-rejections=strict", fileURLToPath(host), ...(batch ? ["--batch", ...selected] : selected)], {
       detached: true, stdio: ["ignore", "pipe", "pipe"],
     });
     const stdout: Buffer[] = [];
@@ -46,7 +48,7 @@ async function runHost(selected: readonly string[], batch = false): Promise<stri
 
 const finiteBatches = [
   scenarios.slice(0, 4),
-  scenarios.slice(4, 8),
+  scenarios.slice(4, 7),
   ["literal-single-optional-argument", "literal-injection-host-boundary", "fallback-keeps-context", "same-stream-split-does-not-consume"],
 ];
 const filtered = ["--test-name-pattern", "--test-skip-pattern"].some(option =>

@@ -492,6 +492,7 @@ function assertSource7Discovery(files) {
     "tests/plugins/optional-runtime.test.ts",
     "tests/plugins/optional-host.test.ts",
     "tests/shell/value-state.test.ts",
+    "tests/shell/env-split-host.test.ts",
     "tests/shell/array-ifs-empty-fields.test.ts",
     "tests/shell/declare.test.ts",
     "tests/shell/umask.test.ts",
@@ -2803,6 +2804,15 @@ test("Playwright standard capability native acceptance remains admitted current 
   const root = fileURLToPath(new URL("../", import.meta.url));
   const boundaries = loadBoundaries(root);
   for (const path of ["tests/integration/playwright-capabilities.test.mjs", "tests/integration/playwright-snapshot-native.test.mjs", "tests/integration/playwright-native-types.test.mjs", "tests/integration/playwright-snapshot-navigation.test.mjs"]) {
+    assertAdmittedInputPath(path, boundaries);
+    assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
+  }
+});
+
+test("Current env split host remains admitted alongside the historical host", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const boundaries = loadBoundaries(root);
+  for (const path of ["tests/shell/env-split-host.test.ts", "tests/shell/env-split-current-host.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     assert.ok(readRegularInput(root, path, 65536, fs, boundaries).length > 0);
   }

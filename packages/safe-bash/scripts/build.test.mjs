@@ -118,6 +118,7 @@ for (const defect of ["none", "pin", "name", "version", "export", "closure", "li
     "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"@poe-code/pandoc": defect === "pin" ? "unapproved" : "*"}}),
     "src/index.ts": 'import type { Page } from "@poe-code/pandoc"; export const page: Page = { width: 12 };',
     "../pandoc/package.json": JSON.stringify(pandoc),
+    "../pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
     "../pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf";',
     "../pdf/package.json": JSON.stringify(pdf),
     "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',

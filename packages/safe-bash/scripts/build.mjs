@@ -448,7 +448,9 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.deepEqual(dependency.dependencies, dependencies, "Pandoc SDK dependency closure");
           assert.deepEqual(dependency.exports, packageExports[name], "Pandoc SDK declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));
-          peerPaths["@poe-code/" + name] = [join(dependencyRoot, "dist/index.d.ts")];
+          for (const [subpath, entry] of Object.entries(packageExports[name])) {
+            peerPaths["@poe-code/" + name + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
+          }
         }
       }
       if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {

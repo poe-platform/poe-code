@@ -3,6 +3,8 @@ import test from "node:test";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import type { FileStat, FileSystem } from "../../../src/contracts/index.js";
 import { runMetadata } from "./helpers.js";
+import { Shell } from "../../../src/shell/shell.js";
+import { createStatCommand } from "../../../src/commands/metadata/stat.js";
 
 async function fixture() {
   const fs = new MemoryFileSystem();
@@ -11,6 +13,71 @@ async function fixture() {
   await fs.utimes("/work/file", -1, 946684800123);
   return fs;
 }
+
+test("stat terse options print GNU field order and truthfully mark unavailable metadata", async () => {
+  const backing = await fixture();
+  const metadata: FileStat = { type: "file", size: 3, allocatedBytes: 4096, mode: 0o100644,
+    uid: 12, gid: 34, dev: 0x10301, ino: 567, nlink: 1, rdevMajor: 0, rdevMinor: 0,
+    atimeMs: 1000, mtimeMs: 2000, ctimeMs: 3000, birthtimeMs: 4000, ioBlockSize: 4096 };
+  const fs: FileSystem = new Proxy(backing, { get(target, property) {
+    if (property === "lstat") return async () => metadata;
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  for (const option of ["--terse", "-t"]) {
+    const result = await runMetadata("stat", [option, "file", "second file"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "file 3 8 81a4 12 34 10301 567 1 0 0 1 2 3 4 4096\nsecond file 3 8 81a4 12 34 10301 567 1 0 0 1 2 3 4 4096\n");
+    const memory = await runMetadata("stat", [option, "file"], backing);
+    assert.equal(memory.exitCode, 0, memory.stderr);
+    const fields = memory.stdout.trimEnd().split(" ");
+    assert.equal(fields.length, 16);
+    assert.equal(fields[2], "?");
+    assert.equal(fields[9], "?");
+    assert.equal(fields[10], "?");
+  }
+});
+
+test("stat custom formats override terse regardless of option order", async () => {
+  const fs = await fixture();
+  for (const args of [["-t", "-c%s"], ["-c%s", "--terse"], ["--terse", "--printf=%s\\n"], ["--printf=%s\\n", "-t"]]) {
+    const result = await runMetadata("stat", [...args, "file"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "4\n");
+  }
+  assert.equal((await runMetadata("stat", ["-Ltc%s", "file"], fs)).stdout, "4\n");
+});
+
+test("stat terse through Shell preserves link following, later operands, limits and missing fields", async context => {
+  const fs = await fixture();
+  await fs.symlink("file", "/work/link");
+  const shell = new Shell({ fs, cwd: "/work" });
+  context.after(() => shell.dispose());
+  shell.register(createStatCommand());
+  for (const [options, size] of [["-t", 4], ["-Lt", 4]] as const) {
+    const result = await shell.exec(`stat ${options} missing link file`);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /missing/u);
+    const lines = result.stdout.trimEnd().split("\n");
+    assert.equal(lines.length, 2);
+    assert.equal(lines[0]!.split(" ")[1], String(size));
+    assert.equal(lines[1]!.split(" ")[0], "file");
+    assert.equal(lines[0]!.split(" ")[3], options === "-t" ? "a1ff" : "81e9");
+  }
+  assert.equal((await runMetadata("stat", ["-t", "file"], fs, { limits: { maxOutputBytes: 1 } })).exitCode, 1);
+  const unknown: FileSystem = new Proxy(fs, { get(target, property) {
+    if (property === "lstat") return async () => ({ type: "file", size: 4, mode: 0o100644,
+      atimeMs: 0, mtimeMs: 0, ctimeMs: 0 } satisfies FileStat);
+    const member: unknown = Reflect.get(target, property, target);
+    return typeof member === "function" ? member.bind(target) : member;
+  } });
+  const result = await runMetadata("stat", ["-t", "file"], unknown);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "file 4 ? 81a4 ? ? ? ? ? ? ? 0 0 0 ? ?\n");
+  const unsupported = await runMetadata("stat", ["-ft", "file"], fs);
+  assert.equal(unsupported.exitCode, 1);
+  assert.match(unsupported.stderr, /ENOTSUP/u);
+});
 
 test("stat prints common mode, type, size, name and UTC millisecond timestamps", async () => {
   const fs = await fixture();

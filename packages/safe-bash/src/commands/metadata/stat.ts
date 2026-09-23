@@ -5,6 +5,7 @@ import { MetadataBudget, metadataCommand, permissionString, settings, type Metad
 function parse(args: readonly string[]) {
   let follow = false;
   let filesystem = false;
+  let terse = false;
   let format: string | undefined;
   let printf = false;
   let literal = false;
@@ -15,6 +16,7 @@ function parse(args: readonly string[]) {
     else if (argument === "--") literal = true;
     else if (argument === "--dereference") follow = true;
     else if (argument === "--file-system") filesystem = true;
+    else if (argument === "--terse") terse = true;
     else if (argument === "--format" || argument.startsWith("--format=") || argument === "--printf" || argument.startsWith("--printf=")) {
       printf = argument.startsWith("--printf");
       format = argument.includes("=") ? argument.slice(argument.indexOf("=") + 1) : args[++index];
@@ -23,6 +25,7 @@ function parse(args: readonly string[]) {
       for (let offset = 1; offset < argument.length; offset++) {
         if (argument[offset] === "L") follow = true;
         else if (argument[offset] === "f") filesystem = true;
+        else if (argument[offset] === "t") terse = true;
         else if (argument[offset] === "c") {
           format = argument.slice(offset + 1) || args[++index];
           if (format === undefined) throw new UsageError("missing format for '-c'");
@@ -33,7 +36,7 @@ function parse(args: readonly string[]) {
     } else throw new UsageError(`unrecognized option '${argument}'`);
   }
   requireOperands(paths);
-  return { follow, filesystem, format, printf, paths };
+  return { follow, filesystem, terse, format, printf, paths };
 }
 
 function quoted(text: string, style?: string): string {
@@ -133,7 +136,7 @@ function formatField(text: string, code: string, flags: string, width: number, p
   return Buffer.concat([Buffer.alloc(padding, 32), bytes]);
 }
 
-async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean): Promise<Uint8Array> {
+async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean, terse: boolean): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
   const append = (text: string | Uint8Array) => {
@@ -198,7 +201,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
     let numeric = false;
     if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
     const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
-    if (Object.hasOwn(times, code)) { text = epoch(available(times[code], code), precision ?? 0); numeric = true; }
+    if (Object.hasOwn(times, code)) { text = terse && times[code] === undefined ? "?" : epoch(available(times[code], code), precision ?? 0); numeric = text !== "?"; }
     else if (code === "n") text = name;
     else if (code === "N") {
       text = quoted(name, context.env.QUOTING_STYLE);
@@ -213,11 +216,13 @@ async function render(context: CommandContext, path: string, name: string, stat:
       const value = times[code.toUpperCase()];
       text = code === "w" && value === undefined ? "-" : timestamp(available(value, code));
     } else {
-      const fields: Record<string, number | undefined> = { s: stat.size, a: stat.mode & 0o7777, f: stat.mode, i: stat.ino, h: stat.nlink, u: stat.uid, g: stat.gid, d: stat.dev, D: stat.dev };
+      const fields: Record<string, number | undefined> = { s: stat.size, a: stat.mode & 0o7777, f: stat.mode, i: stat.ino, h: stat.nlink, u: stat.uid, g: stat.gid, d: stat.dev, D: stat.dev,
+        b: stat.allocatedBytes === undefined ? undefined : Math.ceil(stat.allocatedBytes / 512),
+        o: stat.ioBlockSize, t: stat.rdevMajor, T: stat.rdevMinor };
       if (!Object.hasOwn(fields, code)) throw new FsError("ENOTSUP", { message: `unsupported stat format: %${code}` });
-      const value = available(fields[code], code);
-      text = value.toString(code === "a" ? 8 : code === "f" || code === "D" ? 16 : 10);
-      numeric = true;
+      const value = fields[code];
+      text = terse && value === undefined ? "?" : available(value, code).toString(code === "a" ? 8 : ["f", "D", "t", "T"].includes(code) ? 16 : 10);
+      numeric = text !== "?";
     }
     append(formatField(text, code, flags, width, precision, numeric, epochCode));
     if (linkText !== undefined) {
@@ -239,8 +244,12 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
       try {
         const path = pathOf(context, name);
         const stat = await context.fs[parsed.follow || parsed.filesystem ? "stat" : "lstat"](path, { signal: context.signal });
-        const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
-        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem);
+        const terse = parsed.terse && parsed.format === undefined;
+        if (terse && parsed.filesystem) throw new FsError("ENOTSUP", { message: "filesystem terse stat is unsupported" });
+        const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : terse
+          ? "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
+          : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
+        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem, terse);
         await budget.output(parsed.printf ? text : Buffer.concat([text, Uint8Array.of(10)]));
       } catch (error) {
         context.signal.throwIfAborted();

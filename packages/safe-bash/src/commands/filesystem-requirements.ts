@@ -67,7 +67,7 @@ export const filesystemCommandRequirements = {
 } satisfies Record<string, readonly CommandFileSystemRequirement[]>;
 
 export async function admitFilesystemModes(
-  context: CommandContext, command: keyof typeof filesystemCommandRequirements, modes: readonly string[], paths: readonly string[],
+  context: CommandContext, command: keyof typeof filesystemCommandRequirements, modes: readonly string[], paths: readonly string[], allowNonDirectory = false,
 ): Promise<void> {
   const requirements = filesystemCommandRequirements[command];
   for (const path of paths) {
@@ -83,7 +83,7 @@ export async function admitFilesystemModes(
         if (codeOf(error) === "ENOTSUP" || codeOf(error) === "EROFS") {
           throw new FsError(codeOf(error) === "EROFS" ? "EROFS" : "ENOTSUP", { syscall: command, path, cause: error });
         }
-        if (codeOf(error) !== "ENOENT" || candidate === "/") throw error;
+        if (codeOf(error) !== "ENOENT" && !(allowNonDirectory && codeOf(error) === "ENOTDIR") || candidate === "/") throw error;
         candidate = dirname(candidate);
       }
     }

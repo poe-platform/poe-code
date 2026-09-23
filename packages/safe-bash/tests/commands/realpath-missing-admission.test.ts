@@ -5,8 +5,11 @@ import { withFileSystemQuota } from "@poe-code/safe-fs";
 import { FsError, toByteSource, type FileSystem } from "../../src/contracts/index.js";
 import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
+import { WebDavFileSystem } from "../../src/fs/webdav/index.js";
+import { MockDav } from "../fs/webdav/mock.js";
 
 for (const strip of ["", "--strip"]) {
   for (const [strict, permissive] of [
@@ -177,13 +180,49 @@ test("realpath -m pre-abort does not invoke the filesystem", async () => {
   assert.deepEqual(observed.calls, []);
 });
 
-test("realpath -m retains preliminary lstat errors before the hook", async () => {
+test("realpath -m accepts regular-file intermediate components", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/file", new Uint8Array());
+  await fs.writeFile("/input", new Uint8Array([65]));
   const observed = observe(fs);
-  const result = await execute(observed.view, ["-m", "/file/child"]);
-  assert.deepEqual(result, { exitCode: 1, stdout: "", stderr: "realpath: ENOTDIR: not a directory, lstat '/file/child'\n" });
-  assert.deepEqual(observed.calls, [{ method: "lstat", path: "/file/child" }]);
+  for (const view of [observed.view, observe(fs, true).view]) {
+    for (const flags of [["-m"], ["-e", "-m"], ["-em"], ["--canonicalize-existing", "--canonicalize-missing"]]) {
+      for (const path of ["/file/child", "/file/child/grandchild"]) {
+        assert.deepEqual(await execute(view, [...flags, "--relative-to=/", path]), {
+          exitCode: 0, stdout: `${path.slice(1)}\n`, stderr: "",
+        });
+      }
+    }
+    assert.equal((await execute(view, ["-e", "/file/child"])).exitCode, 1);
+    assert.equal((await execute(view, ["/file/child"])).exitCode, 1);
+    const copy = await execute(view, ["/input", "/file/child"], undefined, undefined, "cp");
+    assert.equal(copy.exitCode, 1);
+    assert.match(copy.stderr, /ENOTDIR/);
+  }
+  assert.deepEqual(await fs.readFile("/file"), new Uint8Array());
+});
+
+test("registered Shell realpath -m accepts regular prefixes on memory, quota, S3 and WebDAV filesystems", async context => {
+  const filesystems = [
+    createMemoryFileSystem(),
+    withFileSystemQuota(createMemoryFileSystem(), { maxBytes: 1024 }),
+    new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }) }),
+    new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: new MockDav().fetch }),
+  ];
+  const bytes = new TextEncoder().encode("unchanged\r\n");
+  for (const fs of filesystems) {
+    await fs.mkdir("/work/Changed folder", { recursive: true });
+    await fs.writeFile("/work/Changed folder/Changed file.dat", bytes);
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    context.after(() => shell.dispose());
+    for (const flags of ["-m", "-e -m", "-em", "--canonicalize-existing --canonicalize-missing", "-sm"]) {
+      const result = await shell.exec(`realpath ${flags} --relative-to=. -- 'Changed folder/Changed file.dat/child/grandchild'`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "Changed folder/Changed file.dat/child/grandchild\n");
+      assert.equal(result.stderr, "");
+    }
+    assert.deepEqual(await fs.readFile("/work/Changed folder/Changed file.dat"), bytes);
+  }
 });
 
 test("realpath -m preserves a hook refusal error without trying fallback", async () => {

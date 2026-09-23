@@ -32,9 +32,9 @@ async function preflightOperands(
   }
 }
 
-async function maybeStat(context: CommandContext, path: string, follow = true): Promise<FileStat | undefined> {
+async function maybeStat(context: CommandContext, path: string, follow = true, allowNonDirectory = false): Promise<FileStat | undefined> {
   try { return await context.fs[follow ? "stat" : "lstat"](path, { signal: context.signal }); }
-  catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT") return undefined; throw error; }
+  catch (error) { context.signal.throwIfAborted(); if (codeOf(error) === "ENOENT" || allowNonDirectory && codeOf(error) === "ENOTDIR") return undefined; throw error; }
 }
 
 async function admitNoReplaceRename(context: CommandContext, target: string): Promise<void> {
@@ -60,9 +60,15 @@ async function canonicalMissing(
 ): Promise<string> {
   if (mode !== "copy") {
     context.signal.throwIfAborted();
-    const canonical = context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
-    context.signal.throwIfAborted();
-    if (canonical !== undefined) return canonical;
+    try {
+      const canonical = context.fs.canonicalizeMissingTarget?.(path, { signal: context.signal });
+      context.signal.throwIfAborted();
+      if (canonical !== undefined) return canonical;
+    } catch (error) {
+      context.signal.throwIfAborted();
+      // Copy-target hooks require directories; realpath -m does not.
+      if (mode !== "realpath" || codeOf(error) !== "ENOTDIR") throw error;
+    }
   }
   const suffix: string[] = [];
   let canonical: string;
@@ -74,8 +80,8 @@ async function canonicalMissing(
     try { canonical = await context.fs.realpath(path, { signal: context.signal }); break; }
     catch (error) {
       context.signal.throwIfAborted();
-      if (codeOf(error) !== "ENOENT" || path === "/") throw error;
-      const link = await maybeStat(context, path, false);
+      if (codeOf(error) !== "ENOENT" && !(mode === "realpath" && codeOf(error) === "ENOTDIR") || path === "/") throw error;
+      const link = await maybeStat(context, path, false, mode === "realpath");
       if (link?.type === "symlink") throw error;
       suffix.push(basename(path));
       path = dirname(path);
@@ -951,8 +957,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           }
           return lexical;
         }
-        await admitFilesystemModes(context, "realpath", ["canonical"], [path]);
-        const existing = await maybeStat(context, path, false);
+        await admitFilesystemModes(context, "realpath", ["canonical"], [path], mode === "m");
+        const existing = await maybeStat(context, path, false, mode === "m");
         return mode === "m" ? await canonicalMissing(context, path, "realpath")
           : mode === "e" || existing ? await context.fs.realpath(path, { signal: context.signal })
           : joinPath(await context.fs.realpath(dirname(path), { signal: context.signal }), basename(path));

@@ -116,7 +116,7 @@ jobs:
                   payload = bytes.fromhex(fifo_producer['payloadHex'])
                   assert 0 < len(payload) <= 4096 and 0 < fifo_producer['waitSeconds'] <= 10
                   home = pathlib.Path(selected_env['HOME']).resolve(strict=True)
-                  assert home.is_relative_to(root) and home != root
+                  assert home.is_relative_to(root.resolve()) and home != root.resolve()
                   fifo = home / fifo_producer['filename']
                   assert not fifo.exists()
                   if fifo_producer['preexisting']:
@@ -287,7 +287,7 @@ jobs:
                       for key in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
                           directory = root / (probe['label'] + '-' + key.lower())
                           directory.mkdir(exist_ok=False)
-                          probe_env[key] = str(directory)
+                          probe_env[key] = str(directory.resolve())
                   capture(probe['label'], [str(binary), *argv], capture_env=probe_env,
                       expected_exit_codes=probe['expectedExitCodes'], fifo_producer=probe.get('fifoProducer'))
               outputs = []

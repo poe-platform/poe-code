@@ -286,7 +286,7 @@ test('zero remaining budgets admit empty frames but reject actual text or refs',
 });
 
 test('invalid limits and mismatched refs return fixed statuses without page strings', () => {
-  for (const value of [-1, 0.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const value of [-1, 0.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     for (const key of ['maxSnapshotBytes', 'maxSnapshotRefs']) {
       const current = fixture([], '', { maxSnapshotBytes: 1024, maxSnapshotRefs: 1, [key]: value });
       assert.equal(current.capsule.status, 'invalid-input');
@@ -297,6 +297,14 @@ test('invalid limits and mismatched refs return fixed statuses without page stri
   assert.deepEqual(current.render([]), { status: 'invalid-refs', text: '' });
   assert.deepEqual(current.render(['e1', 'e2']), { status: 'invalid-refs', text: '' });
   assert.deepEqual(current.render(['x'.repeat(8192)]), { status: 'byte-limit', text: '' });
+});
+
+test('internal unlimited budgets capture text and refs without truncation', () => {
+  const current = fixture([element(), element()], 'x'.repeat(300 * 1024), { maxSnapshotBytes: Infinity, maxSnapshotRefs: Infinity });
+  assert.equal(current.capsule.status, 'ok');
+  const rendered = current.render(['e1', 'e2']);
+  assert.equal(rendered.status, 'ok');
+  assert.ok(rendered.text.includes('x'.repeat(300 * 1024)));
 });
 
 test('retained identity survives replacement while later field mutations remain bounded', () => {

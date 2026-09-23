@@ -400,12 +400,14 @@ test('middleware denial prevents effects and preserves command and pipeline stat
   await f.shell.dispose();
 });
 
-test('initial snapshot limits retire failed opens; tab limits leave established sessions usable', async () => {
+test('initial snapshot and tab limits leave healthy sessions usable', async () => {
   const limited = interactiveFixture({ maxSnapshotBytes: 1 }); await limited.fs.mkdir('/work');
   const opened = await limited.shell.exec('playwright-cli open');
   assert.equal(opened.exitCode, 1); assert.match(opened.stderr, /limit/);
-  assert.deepEqual(limited.controller.inspectSessions(), []);
-  assert.equal(limited.events.filter(event => event === 'release').length, 1);
+  assert.equal(limited.controller.inspectSessions().length, 1);
+  assert.equal(limited.events.filter(event => event === 'release').length, 0);
+  assert.equal((await limited.shell.exec('playwright-cli tab-list')).exitCode, 0);
+  assert.equal(limited.events.filter(event => event === 'acquire').length, 1);
   await limited.shell.dispose();
   const f = interactiveFixture({ maxTabs: 1 }); await f.fs.mkdir('/work');
   assert.equal((await f.shell.exec('playwright-cli open')).exitCode, 0);

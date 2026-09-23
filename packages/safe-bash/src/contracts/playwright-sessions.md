@@ -31,6 +31,18 @@ are checked before host JSON parsing and schema rendering. Input schemas must
 be JSON objects or booleans; annotations must contain boolean values. Pages
 exceeding the budgets fail with a resource-limit error.
 
+The safe-bash controller has no default snapshot byte or reference cap. Configure
+`limits.maxSnapshotBytes` or `limits.maxSnapshotRefs` to opt in independently;
+setting another limit does not impose either snapshot cap. Other controller and
+provider resource limits still apply.
+
+An explicit snapshot cap rejects the capture without publishing partial refs or
+closing a healthy browser. Inspection and navigation remain available in the same
+context. A failed automatic snapshot can follow a completed navigation or click;
+inspect that page before repeating the action. Cancellation, provider loss, and
+snapshot cleanup failures still require retirement. Persistence failures retain
+their existing checkpoint semantics.
+
 The host must isolate each controller and its persistence callbacks by trusted
 owner identity. Never use an untrusted alias to select another owner's browser,
 filesystem, or storage namespace. Browser networking follows the selected native

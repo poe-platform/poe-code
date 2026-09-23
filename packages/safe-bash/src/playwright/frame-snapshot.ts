@@ -231,7 +231,7 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     },
   };
   try {
-    if (!Number.isSafeInteger(maxSnapshotBytes) || maxSnapshotBytes < 0 || !Number.isSafeInteger(maxSnapshotRefs) || maxSnapshotRefs < 0) {
+    if ((maxSnapshotBytes !== Infinity && !Number.isSafeInteger(maxSnapshotBytes)) || maxSnapshotBytes < 0 || (maxSnapshotRefs !== Infinity && !Number.isSafeInteger(maxSnapshotRefs)) || maxSnapshotRefs < 0) {
       capsule.status = 'invalid-input';
       return capsule;
     }

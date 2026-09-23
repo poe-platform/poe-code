@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createPlaywrightController } from '../../src/playwright/index.js';
-import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from '../../src/playwright/index.js';
+import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightSessionCheckpoint } from '../../src/playwright/index.js';
 import type { SnapshotNode } from '../../src/playwright/adapter.js';
 import { createSnapshotFrame } from '../helpers/playwright-snapshot.js';
 
@@ -78,6 +78,59 @@ for (const command of ['click', 'check', 'select'] as const) for (const change o
     await run(command === 'select' ? ['select', ref, 'blue'] : [command, ref]);
     if (change === 'retained') { await run(['click', ref]); assert.equal(clicks, 2); }
     else { await assert.rejects(run(['click', ref]), /not found|stale/i); assert.equal(clicks, 1); }
+  } finally { await controller.dispose(); }
+});
+
+for (const limits of [undefined, { maxSessions: 1 }]) test(`omitted snapshot limits admit large pages with partial limits ${limits !== undefined}`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const controller = createPlaywrightController({ adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    const nodes = Array.from({ length: 1100 }, () => {
+      const node = { tagName: 'BUTTON', textContent: 'Reply', isConnected: true, getAttribute: () => null };
+      return { node, native: {
+        async evaluate<T, Argument = undefined>(callback: (element: SnapshotNode, argument: Argument) => T, argument?: Argument) { return callback(node, argument!); },
+        async click() {}, async fill() {}, async dispose() {},
+      } };
+    });
+    const snapshot = createSnapshotFrame(nodes, 'x'.repeat(300 * 1024));
+    Object.assign(lease.context.pages()[0]!, { frames: () => [snapshot.frame] });
+    return lease;
+  } }, ...(limits ? { limits } : {}) });
+  let output = '';
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write(text) { output += text; } });
+  try {
+    await run(['open', 'https://example.test']);
+    assert.ok(output.includes('x'.repeat(300 * 1024)));
+    assert.equal((output.match(/\[ref=/g) ?? []).length, 1100);
+    await run(['tab-list']);
+    assert.equal(f.leases[0]!.releases, 0);
+  } finally { await controller.dispose(); }
+});
+
+for (const limits of [{ maxSnapshotBytes: 32 }, { maxSnapshotRefs: 1 }]) test(`explicit snapshot cap preserves the same browser ${JSON.stringify(limits)}`, async () => {
+  const f = fixture();
+  const acquire = f.adapter.acquire.bind(f.adapter);
+  const checkpoints: PlaywrightSessionCheckpoint[] = [];
+  const controller = createPlaywrightController({ limits, persistence: {
+    async restore() { return undefined; }, async delete() {},
+    async checkpoint(session) { checkpoints.push(session); },
+  }, adapter: { ...f.adapter, async acquire(request) {
+    const lease = await acquire(request);
+    Object.assign(lease.context.pages()[0]!, { on() {}, off() {}, ariaSnapshot: async () => '- button "First" [ref=e1]\n- button "Second" [ref=e2]\n' });
+    return lease;
+  } } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {} });
+  try {
+    await assert.rejects(run(['open', 'https://example.test']), /Snapshot .* limit exceeded/);
+    assert.equal(f.leases[0]!.releases, 0);
+    assert.equal(checkpoints.length, 1);
+    assert.equal(checkpoints[0]!.context, f.leases[0]!.lease.context);
+    await run(['tab-list']);
+    Object.assign(f.leases[0]!.lease.context.pages()[0]!, { ariaSnapshot: async () => '- text "Ready"\n' });
+    await run(['snapshot']);
+    assert.equal(f.leases.length, 1);
+    assert.equal(f.leases[0]!.releases, 0);
   } finally { await controller.dispose(); }
 });
 

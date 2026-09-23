@@ -5,7 +5,7 @@ import { captureNativePlaywrightJSON } from './native-json-snapshot.js';
 
 export class SnapshotCleanupError extends AggregateError {}
 
-export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
+export interface SnapshotLimits { readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number }
 
 interface SnapshotResource { dispose(): Promise<void> }
 type SnapshotReference = {
@@ -51,8 +51,9 @@ async function captureStable<Result, Options extends { timeout?: number; root?: 
 }
 
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid snapshot limit');
-  const { maxSnapshotBytes, maxSnapshotRefs } = limits;
+  for (const value of [limits?.maxSnapshotBytes, limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  const maxSnapshotBytes = limits.maxSnapshotBytes ?? Infinity;
+  const maxSnapshotRefs = limits.maxSnapshotRefs ?? Infinity;
   let sequence = 0;
   let epoch = 0;
   const retirements = new Set<Promise<void>>();

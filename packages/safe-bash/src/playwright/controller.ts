@@ -148,14 +148,15 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 5_000;
   // Isolated startup and multiple native actions share this host budget, not one action's timeout.
   const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? 30_000;
-  const maxSnapshotBytes = options.limits?.maxSnapshotBytes ?? 256 * 1024;
-  const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? 1000;
+  const maxSnapshotBytes = options.limits?.maxSnapshotBytes ?? Infinity;
+  const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? Infinity;
+  const snapshotLimits = { ...(options.limits?.maxSnapshotBytes === undefined ? {} : { maxSnapshotBytes }), ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? 16 * 1024 * 1024;
   const maxTabs = options.limits?.maxTabs ?? 16;
   const maxCommandBytes = options.limits?.maxCommandBytes ?? 16 * 1024 * 1024;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, maxSnapshotBytes, maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid Playwright limit');
+  for (const value of [maxSessions, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotBytes, options.limits?.maxSnapshotRefs, maxArtifactBytes, maxTabs, maxCommandBytes]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const pendingRestores = new Set<string>();
   const occupiedSessions = (except?: string) => new Set([
@@ -432,7 +433,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       const epoch = Array.from(crypto.getRandomValues(new Uint32Array(4)), value => String(value).padStart(10, '0')).join('');
       const session: Session = { name, generation: ++generation, state: 'acquiring', cleanups: new Set(),
         ...(request.recovery === undefined ? {} : { recovery: request.recovery }),
-        snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${epoch}${++refSequence}`),
+        snapshot: createSnapshotEngine(snapshotLimits, () => `e${epoch}${++refSequence}`),
         ...(expiresAt === undefined ? {} : { expiresAt }),
         ...(request.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: request.idleTimeoutMs }),
         ...(request.contextOptions === undefined ? {} : { contextOptions: parsePlaywrightContextOptions(request.contextOptions, maxArtifactBytes) }),
@@ -1113,7 +1114,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             // claim this slot during retirement's asynchronous boundary.
             const occupied = occupiedSessions();
             if (occupied >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
-            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`), cleanups: new Set(), idleTimeoutMs: openOptions.idleTimeoutMs, contextOptions: openOptions.contextOptions };
+            active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine(snapshotLimits, () => `e${++refSequence}`), cleanups: new Set(), idleTimeoutMs: openOptions.idleTimeoutMs, contextOptions: openOptions.contextOptions };
             active.configuration = { ...openOptions.configuration, browserName: openOptions.browser, headless: openOptions.headless };
             sessions.set(parsed.session, active);
             const session = active;
@@ -1128,6 +1129,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             checkSession(session);
             if (parsed.url) await runAction(session, async () => { await session.page!.goto(parsed.url!, { timeout: sessionNavigationTimeout(session) }); });
             checkSession(session);
+            session.state = 'open';
             const result = await pageResult(session, actionCode(session, { name: 'navigate', url: parsed.url ?? 'about:blank' }, `await page.goto(${playwrightCodeString(parsed.url ?? 'about:blank')});`), 'file');
             const rendered = serializePlaywrightResult(configuredResult(result), parsed);
             await write(parsed.json ? JSON.stringify({ session: session.name, result: JSON.parse(rendered) }, null, 2) + '\n'
@@ -1311,11 +1313,18 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             await checkpointCompletedAction(session);
             retained = true;
           }
-        })().catch(error => {
+        })().catch(async error => {
           const cleanupFailed = (cause: unknown): boolean => cause instanceof SnapshotCleanupError
             || cause instanceof AggregateError && cause.errors.some(cleanupFailed);
           if (cleanupFailed(error)) retained = false;
-          else if (error instanceof PlaywrightSnapshotLimitError && canRetainAfterError(active, error)) retained = true;
+          else if (error instanceof PlaywrightSnapshotLimitError && active && canRetainAfterError(active, error)) {
+            try { await checkpointCompletedAction(active); }
+            catch (checkpointError) {
+              commandFailure = { error: new AggregateError([error, checkpointError], 'Playwright snapshot and checkpoint failed') };
+              return;
+            }
+            retained = true;
+          }
           commandFailure = { error };
         });
         let traceFailure: { error: unknown } | undefined;

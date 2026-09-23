@@ -3,10 +3,14 @@ import { readBytes, writeBytes, type CommandDefinition } from "../../../contract
 import { define, diagnostic, output } from "../../internal.js";
 import { planOperands, unchangedSource, writeFileOperand } from "./files.js";
 import { parseOptions, profiles } from "./options.js";
-import { chunkBytes, transform } from "./stream.js";
+import { chunkBytes, DecodedBudget, stagingLimit, transform, type CompressionCommandOptions } from "./stream.js";
 import { CompressedDataError } from "./errors.js";
 
-export function createCompressionCommands(): readonly CommandDefinition[] {
+export function createCompressionCommands(config: CompressionCommandOptions = {}): readonly CommandDefinition[] {
+  const maxDecodedBytes = config.maxDecodedBytes ?? stagingLimit;
+  if (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0) {
+    throw new RangeError("maxDecodedBytes must be a nonnegative safe integer");
+  }
   return profiles.flatMap(profile => profile.names).map((name) => define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
@@ -20,11 +24,12 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
       if (options.quiet < 2) throw error;
       return { exitCode: 1 };
     }
+    const decodedBudget = new DecodedBudget(maxDecodedBytes);
     let exitCode = 0;
     for (const plan of plans) {
       try {
         let warned: boolean;
-        if (plan.destination) warned = await writeFileOperand(context, plan, options);
+        if (plan.destination) warned = await writeFileOperand(context, plan, options, decodedBudget);
         else {
           await unchangedSource(context, plan);
           const source = plan.source === "-" ? context.stdin
@@ -33,7 +38,7 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
             for await (const chunk of readBytes(bytes, signal)) {
               if (!options.test) await writeBytes(context.stdout, chunk, signal);
             }
-          }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, context.signal);
+          }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, context.signal, Infinity, decodedBudget);
         }
         if (warned) {
           if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${plan.source}: decompression OK, trailing garbage ignored`));
@@ -44,6 +49,7 @@ export function createCompressionCommands(): readonly CommandDefinition[] {
         if (options.quiet < 2) await diagnostic(context, error);
         const failureCode = options.format === "bzip2" && error instanceof CompressedDataError ? 2 : 1;
         exitCode = options.format === "bzip2" ? Math.max(exitCode, failureCode) : failureCode;
+        if (decodedBudget.exceeded) break;
       }
     }
     return { exitCode };

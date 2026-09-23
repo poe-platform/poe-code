@@ -166,7 +166,7 @@ export async function unchangedSource(context: CommandContext, plan: Operand): P
   }
 }
 
-export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions): Promise<boolean> {
+export async function writeFileOperand(context: CommandContext, plan: Operand, options: CompressionOptions, decodedBudget?: import("./stream.js").DecodedBudget): Promise<boolean> {
   const destination = plan.destination!;
   let directory: string | undefined;
   let staged: string | undefined;
@@ -235,7 +235,7 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     if (stageStat.type !== "file" || stageStat.size !== 0 || !identified(stageStat)) throw new FsError("EBUSY", { path: staged });
     warned = await operation.run(() => transform((signal) => fs.readStream!(plan.source, { signal, chunkSize: chunkBytes }), async (output, signal) => {
       await fs.writeStream!(staged!, output, { flag: "w", mode: 0o600, signal });
-    }, { ...options, force: false }, signal, stagingLimit));
+    }, { ...options, force: false }, signal, stagingLimit, decodedBudget));
     await operation.run(() => unchangedSource(active, plan));
     const target = await operation.run(() => existing(active, destination));
     if (plan.destinationStat ? !target || !sameSnapshot(plan.destinationStat, target) : target !== undefined) {

@@ -215,7 +215,15 @@ cancellation, not a hard deadline or termination guarantee.
 File staging allows at most **256 MiB (268435456 bytes) of output per operand**,
 counted after compression/decompression and before forwarding each output chunk
 to the writer. Exceeding it fails with `EFBIG`; no larger archive is buffered as
-a workaround. Stdout and `-t` have no command-level total byte cap. Shell-level
+a workaround. Every decompression mode (including stdout, `-t`, forced passthrough, and file
+output) shares a finite **256 MiB decoded-byte budget per invocation** across all
+operands and members. Configure a smaller Worker budget with
+`byteCommands({ compression: { maxDecodedBytes: 1024 * 1024 } })` or
+`createCompressionCommands({ maxDecodedBytes: 1024 * 1024 })`. The value must be
+a nonnegative safe integer; zero admits only empty decoded output. Chunks that
+would exceed the budget are rejected before forwarding or discarding them, and
+later operands are not processed. This budget is separate from per-file staging
+and applies even when shell output limits cannot see discarded data. Shell-level
 output, execution, or cancellation limits are separate and still apply when
 these definitions run through the shell. A provider may internally buffer the
 staged bytes despite its streaming interface.

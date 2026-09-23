@@ -2,11 +2,15 @@ import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/inde
 import { createEncodingCommands } from "./encoding/index.js";
 import { createChecksumCommands } from "./checksums/index.js";
 import { createCompressionCommands } from "./compression/index.js";
+import type { CompressionCommandOptions } from "./compression/stream.js";
+export type { CompressionCommandOptions } from "./compression/stream.js";
 import type { ByteInputOptions } from "./input-budget.js";
 export type { ByteInputLimits, ByteInputOptions } from "./input-budget.js";
 
 export interface ByteCommandsOptions {
   readonly replace?: boolean;
+  /** Finite cumulative decoded-byte budget for all decompression modes and operands. */
+  readonly compression?: CompressionCommandOptions;
   /** Input limits for base64, base32, xxd and od only; ignored/skipped bytes count. */
   readonly encoding?: ByteInputOptions;
   /** Input limits for checksum commands only; manifests and referenced files share one invocation budget. */
@@ -14,7 +18,7 @@ export interface ByteCommandsOptions {
 }
 
 export function createByteCommands(options: Omit<ByteCommandsOptions, "replace"> = {}): readonly CommandDefinition[] {
-  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands()];
+  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands(options.compression)];
 }
 
 export function byteCommands(options: ByteCommandsOptions = {}): VirtualShellPlugin {

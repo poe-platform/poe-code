@@ -63,6 +63,26 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
   yield* (options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec)(reader, options, signal);
 }
 
+export interface CompressionCommandOptions {
+  /** Cumulative decoded bytes per invocation, including discarded and passthrough bytes; defaults to 256 MiB. */
+  readonly maxDecodedBytes?: number;
+}
+
+export class DecodedBudget {
+  #size = 0;
+  exceeded = false;
+
+  constructor(readonly limit: number) {}
+
+  admit(bytes: number): void {
+    if (bytes > this.limit - this.#size) {
+      this.exceeded = true;
+      throw new FsError("EFBIG", { message: "decompression decoded byte limit exceeded" });
+    }
+    this.#size += bytes;
+  }
+}
+
 async function* split(source: ByteSource, signal: AbortSignal, fail: (error: unknown) => void, prefetch = true): ByteSource {
   signal.throwIfAborted();
   const sourceIterator = source[Symbol.asyncIterator]();
@@ -116,6 +136,7 @@ export async function transform(
   options: CompressionOptions,
   parentSignal: AbortSignal,
   maxOutput = Infinity,
+  decodedBudget = new DecodedBudget(stagingLimit),
 ): Promise<boolean> {
   const controller = new AbortController();
   const signal = AbortSignal.any([parentSignal, controller.signal]);
@@ -139,6 +160,7 @@ export async function transform(
     let size = 0;
     try {
       for await (const chunk of readBytes(transformed, signal)) {
+        if (options.decompress) decodedBudget.admit(chunk.byteLength);
         if (chunk.length > maxOutput - size) throw new FsError("EFBIG", { message: `staged output exceeds ${maxOutput} bytes` });
         let bytes = chunk;
         if (options.format === "gzip" && !options.decompress && size <= 9 && size + chunk.length > 9) {

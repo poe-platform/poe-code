@@ -506,6 +506,8 @@ There are no package-specific runtime environment switches. Supply these through
 `getopts` starts with `OPTIND=1` and `OPTERR=1`, updates `OPTIND`/`OPTARG`, and
 honors changes made in the script. `PIPESTATUS` exposes pipeline stage statuses.
 `curl` does not read proxy variables, host credentials, `.curlrc`, or `.netrc`.
+Following curl 8.5/8.10, `--data-urlencode name@file` sends no field when the
+file is empty; use `--data-urlencode name=` to send an explicit empty value.
 
 ## Limitations
 

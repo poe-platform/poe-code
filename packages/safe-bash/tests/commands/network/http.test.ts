@@ -11,6 +11,29 @@ let acquisition: Promise<TestServer> | undefined;
 before(async () => { acquisition = server(); host = await acquisition; });
 after(async () => { await (await acquisition)?.close(); });
 
+test("Shell curl matches curl 8.5/8.10 empty-file URL encoding for POST and GET", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/empty", new Uint8Array());
+  await fs.writeFile("/input", Buffer.from("hello world"));
+  const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  try {
+    for (const get of [false, true]) {
+      for (const [argument, expected] of [
+        ["audit@/empty", ""], ["@/empty", ""], ["audit=", "audit="],
+        ["audit@/input", "audit=hello+world"], ["@/input", "hello+world"],
+      ]) {
+        const result = await shell.exec(`curl -sS ${get ? "-G" : ""} --data-urlencode '${argument}' ${host.origin}/echo`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const request = host.requests.at(-1)!;
+        assert.equal(request.method, get ? "GET" : "POST");
+        assert.equal(request.path, get && expected ? `/echo?${expected}` : "/echo");
+        assert.equal(request.body.toString(), get ? "" : expected);
+        assert.equal(request.headers["content-type"], get ? undefined : "application/x-www-form-urlencoded");
+      }
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("Shell curl sends byte ranges and streams partial responses", async () => {
   const bodies = new Map([
     ["bytes=0-2", { body: "hel", contentRange: "bytes 0-2/6" }],

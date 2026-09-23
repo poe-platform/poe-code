@@ -12,6 +12,7 @@ interface Part {
   readonly file?: string;
   readonly strip?: boolean;
   readonly urlencode?: boolean;
+  readonly prefix?: Uint8Array;
 }
 
 export interface RequestBody {
@@ -33,7 +34,8 @@ function dataPart(argument: DataArgument): Part[] {
     const equals = value.indexOf("=");
     if (equals >= 0) return [{ bytes: encode(equals ? `${value.slice(0, equals)}=` : "") }, { bytes: encode(value.slice(equals + 1)), urlencode: true }];
     const at = value.indexOf("@");
-    if (at >= 0) return [{ bytes: encode(at ? `${value.slice(0, at)}=` : "") }, { file: value.slice(at + 1), urlencode: true }];
+    // curl 8.5/8.10 omit the name as well as the value for empty file data.
+    if (at >= 0) return [{ prefix: encode(at ? `${value.slice(0, at)}=` : ""), file: value.slice(at + 1), urlencode: true }];
     return [{ bytes: encode(value), urlencode: true }];
   }
   if (argument.kind !== "raw" && value.startsWith("@")) return [{ file: value.slice(1), strip: argument.kind === "data" }];
@@ -129,21 +131,31 @@ export function createBody(context: CommandContext, args: CurlArguments, limits:
         opened = true;
         let count = 0;
         let chunks = 0;
-        for (const part of parts) for await (const raw of source(part, signal)) {
-          if (++chunks % 256 === 0) await yieldTurn(signal);
-          for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
-            signal.throwIfAborted();
-            let chunk = raw.subarray(offset, offset + 16 * 1024);
-            if (part.strip) chunk = chunk.filter(byte => byte !== 0 && byte !== 10 && byte !== 13);
-            if (part.urlencode) chunk = percent(chunk);
-            count += chunk.length;
-            if (count > limits.maxUploadBytes) throw new CurlError(63, "Upload exceeds host byte limit");
-            if (hasStdin && replayable) {
-              cachedBytes += chunk.length;
-              if (cachedBytes > limits.maxBufferBytes) { replayable = false; cache = []; }
-              else cache.push(new Uint8Array(chunk));
+        for (const part of parts) {
+          let prefix = part.prefix;
+          for await (const raw of source(part, signal)) {
+            if (++chunks % 256 === 0) await yieldTurn(signal);
+            for (let offset = 0; offset < raw.length; offset += 16 * 1024) {
+              signal.throwIfAborted();
+              let chunk = raw.subarray(offset, offset + 16 * 1024);
+              if (part.strip) chunk = chunk.filter(byte => byte !== 0 && byte !== 10 && byte !== 13);
+              if (part.urlencode) chunk = percent(chunk);
+              count += chunk.length + (prefix?.length ?? 0);
+              if (count > limits.maxUploadBytes) throw new CurlError(63, "Upload exceeds host byte limit");
+              if (prefix?.length) {
+                const prefixed = new Uint8Array(prefix.length + chunk.length);
+                prefixed.set(prefix);
+                prefixed.set(chunk, prefix.length);
+                chunk = prefixed;
+                prefix = undefined;
+              }
+              if (hasStdin && replayable) {
+                cachedBytes += chunk.length;
+                if (cachedBytes > limits.maxBufferBytes) { replayable = false; cache = []; }
+                else cache.push(new Uint8Array(chunk));
+              }
+              if (chunk.length) yield chunk;
             }
-            if (chunk.length) yield chunk;
           }
         }
         replayComplete = true;

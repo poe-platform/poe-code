@@ -217,7 +217,9 @@ async function copy(
       throw new FsError("ELOOP", { path: source, message: `cp directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
     }
     await admitFilesystemModes(context, "cp", [attributesOnly ? "attributes-recursive" : "recursive"], [target]);
-    const temporaryMode = !targetStat && (sourceStat.mode & 0o700) !== 0o700;
+    const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal }) ?? context.fs.capabilities;
+    const directoryMode = capabilities.permissions === false ? undefined : sourceStat.mode & 0o777;
+    const temporaryMode = !targetStat && directoryMode !== undefined && (directoryMode & 0o700) !== 0o700;
     if (temporaryMode) {
       await admitFilesystemModes(context, "cp", ["mode"], [target]);
       if (!context.fs.chmod) throw new FsError("ENOTSUP", { syscall: "chmod", path: target });
@@ -226,7 +228,10 @@ async function copy(
     ancestors.add(physicalSource);
     try {
       if (!targetStat && !preflight) {
-        await context.fs.mkdir(target, { mode: (sourceStat.mode & 0o777) | (temporaryMode ? 0o700 : 0), signal: context.signal });
+        await context.fs.mkdir(target, {
+          ...(directoryMode === undefined ? {} : { mode: directoryMode | (temporaryMode ? 0o700 : 0) }),
+          signal: context.signal,
+        });
         created = true;
       }
       // Unknown identity must not turn into an asserted filesystem boundary.

@@ -457,6 +457,7 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/commands/bytes/input-budget.test.ts",
     "tests/commands/node-safejs.test.ts",
+    "tests/commands/node-source-maps.test.ts",
     "tests/commands/node-text-encoder.test.ts",
     "tests/commands/node-path.test.ts",
     "tests/commands/node-fs-promises.test.ts",

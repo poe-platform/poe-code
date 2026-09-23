@@ -7,6 +7,7 @@ import { bufferBindings, bufferSource } from "./buffer.js";
 import { timerBindings, timerSource } from "./timers.js";
 import { nodeRequireSource } from "./preload.js";
 import { SafeJsCommandLimitError } from "../safejs/types.js";
+import { nodeSourceLocation } from "./source-maps.js";
 import { nodeReadFile } from "./filesystem.js";
 import { createNodePathModule } from "./path.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
@@ -38,6 +39,7 @@ function invocation(args: readonly string[]): Invocation {
   let source: string | undefined;
   let print = false;
   let check = false;
+  let sourceMaps = false;
   const preloads: string[] = [];
   let inputType: "module" | undefined;
   let index = 0;
@@ -45,6 +47,7 @@ function invocation(args: readonly string[]): Invocation {
     const argument = args[index]!;
     if (argument === "--") { index++; break; }
     if (argument === "-h" || argument === "--help") return { file: "-", args: [], print: false, help: true };
+    if (argument === "--enable-source-maps") { sourceMaps = true; continue; }
     if (argument === "--require" || argument.startsWith("--require=") || argument.startsWith("-r")) {
       const name = argument === "--require" || argument === "-r" ? args[++index]
         : argument.startsWith("--require=") ? argument.slice(10) : argument.slice(2);
@@ -77,8 +80,8 @@ function invocation(args: readonly string[]): Invocation {
     if (argument !== "-" && argument.startsWith("-")) throw new UsageError(`unsupported node option '${argument}'`);
     break;
   }
-  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, preloads, ...(inputType ? { inputType } : {}) };
-  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, ...(inputType ? { inputType } : {}) };
+  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
+  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
 }
 
 export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
@@ -90,9 +93,9 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
+    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
     invocation,
-    prepare(source, selected, modules, lifecycle) {
+    async prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
       const directory = selected.inputType === "module" || selected.source === undefined && selected.file.endsWith(".mjs")
         ? undefined : selected.source !== undefined || selected.file === "-" ? "." : dirname(selected.file);
@@ -125,7 +128,11 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
       const prefix = bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + nodeRequireSource;
       let remainingSourceBytes = limits.maxSourceBytes - lifecycle.sourceBytes;
       const printing = selected.print;
+      const sourceLocation = selected.sourceMaps
+        ? await nodeSourceLocation(source, selected.file, command.cwd as string, prefix + (printing ? "console.log((\n" : ""), lifecycle.readSource, lifecycle.signal,
+          limits) : undefined;
       return {
+        ...(sourceLocation ? { sourceLocation } : {}),
         importSpecifiers: [...requiredModules.keys()],
         source: prefix + (printing ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
         bindings: {

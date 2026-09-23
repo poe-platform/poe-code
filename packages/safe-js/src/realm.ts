@@ -1252,6 +1252,7 @@ export async function runWithExtensions(source: string, options: RunOptions, job
       "Live extension runs do not support snapshots or entryPointArgs; use a persistent realm."
     );
   const state = new RealmState(readRealmOptions(options, true), jobs);
+  if (options.sourceLocation !== undefined) state.resources.sourceLocation = options.sourceLocation;
   try {
     const result = await state.perform(() => state.evaluateRaw(source, options.filename, false, options.sourceType));
     if (result.ok && options.sourceType !== "module") encodeReplayData(result.returnValue);
@@ -1300,7 +1301,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
   if (!oneShot) supported.add("callbackScheduling");
   if (!oneShot) supported.add("sourceImportTimeoutMs");
   for (const [key, entry] of Object.entries(options)) {
-    if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
+    if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || key === "sourceLocation" || entry === undefined))) continue;
     throw new TypeError(`Unsupported ${oneShot ? "extension-run" : "realm"} option '${key}'.`);
   }
   if (options.callbackScheduling !== undefined && options.callbackScheduling !== "after-prefix")

@@ -104,6 +104,8 @@ export type RunOptions = {
   clock?: RunClock;
   entryPointArgs?: readonly unknown[];
   filename?: string;
+  /** Trusted diagnostic mapping; re-supply when resuming a snapshot. Does not change source or execution. */
+  sourceLocation?: (position: { line: number; column: number }) => { filename: string; line: number; column: number } | undefined;
   importMeta?: Record<string, unknown>;
   hostCallResumeProvider?: HostCallResumeProvider;
   modules?: ModuleRegistry;
@@ -249,6 +251,7 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
           const functionSourceText = executionSemantics === "jobs-v8" || executionSemantics === EXECUTION_SEMANTICS;
           runResources.getStore()!.functionSourceText = functionSourceText;
           runResources.getStore()!.hostDataMetadata = executionSemantics === EXECUTION_SEMANTICS;
+          if (options.sourceLocation !== undefined) runResources.getStore()!.sourceLocation = options.sourceLocation;
           const convertInitialInput = <TValue>(convert: () => TValue): TValue =>
             executionSemantics === "jobs-v6" ? convert() : promiseReplayContext.exit(convert);
           if (restoredSnapshot !== undefined) {

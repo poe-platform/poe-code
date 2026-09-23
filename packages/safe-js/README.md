@@ -418,6 +418,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 | `budget` | A `Budget` instance. Without one, only the default call-depth limit of 1,000 is configured. |
 | `signal` | Host `AbortSignal` for cancellation. |
 | `filename` | Diagnostic filename; defaults to `<input>`. |
+| `sourceLocation` | Optional trusted callback mapping one-based guest stack `{ line, column }` positions to `{ filename, line, column }`. Return `undefined` to retain a generated frame. It changes diagnostics only; re-supply it when resuming snapshots. |
 | `entryPointArgs` | Arguments for invoking the default-exported function. Omit for top-level execution only. |
 | `importMeta` | Host-supplied fields exposed through `import.meta`. |
 | `sink` | Console destination with `log(...args)` and `error(...args)`; defaults to the host console. |

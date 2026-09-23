@@ -22,7 +22,7 @@ import { awaitSandboxValue, withCancellationSignal } from "./cancel.js";
 import { evaluateResourceScope, registerScopeResource, resourceSuspension } from "./resource-management.js";
 import { asyncGeneratorDrivers } from "./async-generator-driver.js";
 import { getGeneratorOrigin } from "./closure-origin.js";
-import { retainValues } from "./resources.js";
+import { retainValues, runResources } from "./resources.js";
 import { templateObject, templateRawArrays } from "./template-objects.js";
 import { evaluateClass } from "./classes.js";
 import { defineDataProperty, getOwnEnumerableProperties, reflectionProperties } from "./globals/object-array.js";
@@ -3537,6 +3537,8 @@ function getConstructorName(callee: Expression): string {
 }
 
 function formatStackFrame(node: { span: SourceSpan }, name: string | undefined): string {
+  const location = runResources.getStore()?.sourceLocation?.({ line: node.span.start.line, column: node.span.start.column });
+  if (location) return `    at ${name ?? "<anonymous>"} (${location.filename}:${location.line}:${location.column})`;
   return `    at ${name ?? "<anonymous>"} (line ${node.span.start.line}, column ${node.span.start.column})`;
 }
 

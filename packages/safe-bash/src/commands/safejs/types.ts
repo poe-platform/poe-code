@@ -19,6 +19,8 @@ export interface SafeJsRunOptions<Budget> {
   readonly bindings?: SafeJsModule;
   readonly budget: Budget;
   readonly filename: string;
+  /** Maps one-based generated guest stack positions to original source locations. */
+  readonly sourceLocation?: (position: { line: number; column: number }) => { filename: string; line: number; column: number } | undefined;
   readonly modules: Record<string, SafeJsModule>;
   readonly signal: AbortSignal;
   readonly sink: { log(...args: unknown[]): void; error(...args: unknown[]): void };

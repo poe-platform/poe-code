@@ -18,11 +18,14 @@ export interface SafeJsCommandDialect {
     readonly fail: (error: unknown) => void;
     readonly sourceBytes: number;
     readonly readSource: (filename: string, maxBytes?: number) => Promise<string>;
-  }) => {
-    readonly source: string;
-    readonly importSpecifiers?: readonly string[];
-    readonly bindings: SafeJsModule;
-  };
+  }) => Promise<SafeJsPreparedProgram> | SafeJsPreparedProgram;
+}
+
+interface SafeJsPreparedProgram {
+  readonly source: string;
+  readonly importSpecifiers?: readonly string[];
+  readonly bindings: SafeJsModule;
+  readonly sourceLocation?: import("./types.js").SafeJsRunOptions<unknown>["sourceLocation"];
 }
 
 class GuestDiagnostic extends PublicDiagnostic {
@@ -141,7 +144,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         const budget = runtime.createBudget({ maxSteps: limits.maxSteps, deadline,
           maxCallDepth: limits.maxCallDepth, stringLength: limits.stringLength, arrayLength: limits.arrayLength, dataSize: limits.dataSize });
         const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
-        const prepared = dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail, sourceBytes,
+        const prepared = await dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail, sourceBytes,
           async readSource(path, maxBytes = limits.maxSourceBytes) {
             const capabilities = await withSignal(signal, async () =>
               await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities);
@@ -154,6 +157,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         });
         const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
           budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
+            ...(prepared.sourceLocation ? { sourceLocation: prepared.sourceLocation } : {}),
             ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
           sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
         })), "SafeJS run result");

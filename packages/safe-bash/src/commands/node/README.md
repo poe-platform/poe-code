@@ -41,6 +41,15 @@ try {
   including for file entries in another directory. Use explicit `.cjs`, `.js`,
   or `.json` paths, or the supported builtin names below. Check mode skips
   preloads. No host modules or environment-driven preloads are loaded.
+- `node --enable-source-maps` maps guest error stacks through version 3 source
+  maps from `sourceMappingURL` comments. Maps may be inline JSON data URLs or
+  files in the explicit VFS, resolved relative to the program (or virtual cwd
+  for eval/stdin). `sourceRoot` and mapped line/column positions are honored.
+  Missing, invalid, remote, and indexed maps retain generated locations; maps
+  never grant filesystem or network access. Map reads share source byte limits,
+  deadlines, and cancellation. Decoded entries and filenames obey array, string,
+  and data limits. The injected `run` must honor the optional
+  `sourceLocation` diagnostic callback, as the SafeJS implementation does.
 - `node --check FILE` / `node -c FILE` checks the complete source without running
   statements or resolving imports. Omit `FILE` or use `-` to check stdin;
   `--input-type=module` and `--` remain available. Inject `parseSourceModule` as

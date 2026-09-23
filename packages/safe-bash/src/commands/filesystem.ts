@@ -146,15 +146,16 @@ async function copy(
   context.signal.throwIfAborted();
   const { flags, preserve, copiedLinks, backup } = settings;
   const attributesOnly = flags.has("attributes-only");
+  const linkMode = flags.has("s") || flags.has("l");
   const link = await context.fs.lstat(source, { signal: context.signal });
   const preserveLink = link.type === "symlink" && !flags.has("L") && (flags.has("P") || !top);
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
   const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";
-  const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination);
+  const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination && !linkMode);
   const physicalSource = preserveLink
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
-  const physicalTarget = preserveLink || removeDestination
+  const physicalTarget = preserveLink || removeDestination || linkMode
     ? joinPath(preflight ? await canonicalMissing(context, dirname(target), "preflight")
       : await context.fs.realpath(dirname(target), { signal: context.signal }), basename(target))
     : await canonicalMissing(context, target, preflight ? "preflight" : "copy");
@@ -234,6 +235,27 @@ async function copy(
         try { await context.fs.chmod!(target, sourceStat.mode & 0o777); }
         finally { context.signal.throwIfAborted(); }
       }
+    }
+  } else if (linkMode) {
+    const symbolic = flags.has("s");
+    await admitFilesystemModes(context, "cp", [symbolic ? "symlink" : "hardlink"], [source, target]);
+    needCapability(context, symbolic ? "symlink" : "link");
+    if (symbolic && !displaySource.startsWith("/")
+      && dirname(physicalTarget) !== await context.fs.realpath(context.cwd, { signal: context.signal })) {
+      throw new PublicDiagnostic("can make relative symbolic links only in current directory");
+    }
+    if (targetStat) {
+      if (targetStat.type === "directory") throw new FsError("EISDIR", { path: target });
+      await admitFilesystemModes(context, "cp", ["replace"], [target]);
+      if (compareCopyIdentity(link, targetStat) !== "distinct" || compareCopyIdentity(sourceStat, targetStat) !== "distinct") {
+        throw new FsError("ENOTSUP", { path: target, message: "link copy unlink lacks authoritative distinctness" });
+      }
+      if (backup) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
+      else if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
+    }
+    if (!preflight) {
+      if (symbolic) await context.fs.symlink!(displaySource, target, { signal: context.signal });
+      else await context.fs.link!(preserveLink ? source : physicalSource, target, { signal: context.signal });
     }
   } else if (preserveLink) {
     await admitFilesystemModes(context, "cp", ["symlink"], [target]);
@@ -400,7 +422,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed, readDirectory, true, new Set(), true);
+          parsed, readDirectory, true, new Set(), true, operand);
       });
       parsed.copiedLinks.clear();
       parsed.copiedTargets.clear();

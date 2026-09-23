@@ -117,6 +117,8 @@ filesystem and byte streams, not host executables.
 | Script helpers | `echo`, `printf`, `true`, `false`, `test`, `[`, `env`, `printenv`, `xargs`, `expr`, `date`, `sleep`, `timeout`. `env -v` / `--debug` writes environment changes, the working directory change, and command/argument diagnostics to stderr. |
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
+`cp -l` / `--link` creates hard links to source files; `cp -s` / `--symbolic-link` creates symbolic links using the source operand as the literal target. Relative symbolic targets require destinations in the current directory; use absolute source paths when copying into other directories. Link modes require filesystem link capabilities and support recursive copying, no-clobber and backups.
+
 Tar creation also accepts `--sort=name` (bytewise directory-child order; operand order stays unchanged), `--sort=none` (default), `--dereference` / `-h` (archive symbolic-link targets), and `--exclude-caches` (retain directories with a valid `CACHEDIR.TAG` and their tag files, omitting other contents). Dereferencing retains backend containment and output-archive checks and rejects directory cycles.
 
 Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=FILE`. When listing or extracting, `--wildcards` enables anchored glob member selection; `--no-wildcards` restores literal selection. `--occurrence[=NUM]` selects only the requested occurrence of each member operand (default 1), and requires member operands.

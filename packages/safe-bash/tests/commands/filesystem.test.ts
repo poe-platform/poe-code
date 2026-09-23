@@ -6,6 +6,62 @@ import { fixture, run } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
+for (const option of ["-l", "--link", "-s", "--symbolic-link"]) {
+  test(`cp ${option} creates a filesystem link through Shell`, async () => {
+    const fs = await fixture({ input: "original" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`cp ${option} ./input output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    if (option === "-s" || option === "--symbolic-link") {
+      assert.equal(await fs.readlink("/work/output"), "./input");
+    } else {
+      assert.equal((await fs.stat("/work/input")).ino, (await fs.stat("/work/output")).ino);
+    }
+    await fs.writeFile("/work/input", new TextEncoder().encode("changed"));
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "changed");
+  });
+}
+
+test("cp link modes replace destinations, honor no-clobber and back up entries", async () => {
+  for (const option of ["-l", "-s"]) {
+    const fs = await fixture({ input: "new", output: "old" });
+    assert.equal((await run("cp", [option, "-n", "input", "output"], { fs })).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "old");
+    assert.equal((await run("cp", [option, "-b", "input", "output"], { fs })).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output~")), "old");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "new");
+    await fs.rm("/work/output", { recursive: false });
+    await fs.writeFile("/work/output", new TextEncoder().encode("replacement"));
+    assert.equal((await run("cp", [option, "input", "output"], { fs })).exitCode, 0);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "new");
+    assert.equal((await run("cp", [option, "input", "input"], { fs })).exitCode, 1);
+  }
+});
+
+test("cp refuses unsupported link modes before replacing a destination", async () => {
+  for (const [option, method] of [["-l", "link"], ["-s", "symlink"]]) {
+    const backing = await fixture({ input: "new", output: "old" });
+    const fs: FileSystem = new Proxy(backing, { get(target, property) {
+      if (property === method) return undefined;
+      const member: unknown = Reflect.get(target, property, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    assert.equal((await run("cp", [option!, "input", "output"], { fs })).exitCode, 1);
+    assert.equal(new TextDecoder().decode(await backing.readFile("/work/output")), "old");
+  }
+});
+
+test("cp recursively links files and rejects relative symbolic targets outside cwd", async () => {
+  const fs = await fixture({ "tree/child": "data" });
+  assert.equal((await run("cp", ["-Rl", "tree", "output"], { fs })).exitCode, 0);
+  assert.equal((await fs.stat("/work/tree/child")).ino, (await fs.stat("/work/output/child")).ino);
+  assert.equal((await run("cp", ["-Rs", "/work/tree", "symbolic"], { fs })).exitCode, 0);
+  assert.equal(await fs.readlink("/work/symbolic/child"), "/work/tree/child");
+  assert.equal((await run("cp", ["-s", "tree/child", "output/link"], { fs })).exitCode, 1);
+  assert.equal((await run("cp", ["-ls", "tree/child", "link"], { fs })).exitCode, 2);
+});
+
 for (const option of ["--preserve=mode", "-p"]) {
   test(`cp ${option} preserves mode and copies contents`, async () => {
     const fs = await fixture({ input: "new", output: "old" });

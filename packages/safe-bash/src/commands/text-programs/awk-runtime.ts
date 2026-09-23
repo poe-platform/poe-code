@@ -526,7 +526,7 @@ export class AwkRuntime {
         const array = this.array(statement.array);
         for (const key of [...array.entries.keys()]) {
           this.budget.step(); if (!array.entries.has(key)) continue;
-          this.set(statement.variable, inputValue(key));
+          this.set(statement.variable, string(key));
           try { await this.execute(statement.body); }
           catch (error) { if (error instanceof Flow && error.kind === "break") break; if (!(error instanceof Flow && error.kind === "continue")) throw error; }
         }

@@ -5,6 +5,24 @@ import { standardCommands } from "../../../src/commands/index.js";
 import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
 import { byteChunks, makeFileSystem, runVirtual } from "./helpers.js";
 
+for (const key of ["01", "007", "1.0", "1e2", " 1 "]) {
+  test(`awk foreach preserves string comparison for key ${JSON.stringify(key)}`, async () => {
+    const result = await runVirtual("awk", {
+      args: [`BEGIN { a["${key}"] = "value"; for (k in a) print k == ${Number(key)}, k + 0, a[k] }`],
+    });
+    assert.deepEqual([result.exitCode, result.stdout.toString(), result.stderr.toString()], [0, `0 ${Number(key)} value\n`, ""]);
+  });
+}
+
+test("awk foreach compares distinct numeric-looking keys as strings", async () => {
+  const result = await runVirtual("awk", {
+    args: ['BEGIN { a["1"] = "one"; a["01"] = "zero-one"; for (k in a) if (k == 1) print "matches 1:", k, a[k]; for (k1 in a) for (k2 in a) if (k1 != k2) print "distinct:", k1, k2 }'],
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr.toString(), "");
+  assert.deepEqual(result.stdout.toString().trim().split("\n").sort(), ["distinct: 01 1", "distinct: 1 01", "matches 1: 1 one"]);
+});
+
 for (const args of [["-E", "owned.awk"], ["-Eowned.awk"], ["--exec=owned.awk"], ["--exec", "owned.awk"]]) {
   test(`awk executes VFS program: ${JSON.stringify(args)}`, async () => {
     const fs = await makeFileSystem({ "owned.awk": "{print $2}", records: "Independent 31\nChanged 47\n" });

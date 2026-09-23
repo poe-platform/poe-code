@@ -16,7 +16,7 @@ it(`comment anchor refuses relocated opaque ownership before allocation; runtime
     : shape === "fallback-property" ? '<w:rPr><mc:AlternateContent><mc:Choice Requires="o"><o:leaf/></mc:Choice><mc:Fallback><w:i/></mc:Fallback></mc:AlternateContent></w:rPr>' : "";
   const input = await textFixture(`<w:p xmlns:o="urn:original:anchor-preflight" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="o" mc:ProcessContent="o:carrier"><w:r${shape === "run-attribute" ? ' o:stored="Retained海🌊"' : ""}>${properties}<w:t>Coastal anchor</w:t></w:r></w:p>`, {}, strict, { kind });
   const memory = Volume.fromJSON({ "/input": Buffer.from(input), "/destination": "Retained destination" });
-  const budget = new api.DocumentBudget();
+  const budget = new api.DocumentBudget(remaining === "default" ? {} : { insertedNodes: 1000 });
   const document = await api.Document(new Uint8Array(memory.readFileSync("/input") as Buffer), { ...textContext, budget, timestamp: new Date("2026-03-04T05:06:07Z") });
   const run = document.paragraphs[0]!.runs[0]!;
   const before = document.part.package.parts.map(part => [String(part.partname), part.blob]);

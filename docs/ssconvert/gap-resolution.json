@@ -967,5 +967,20 @@
     "implementationCommit": "8e281e301",
     "status": "remote-main verified;full integrated gate/publication pending",
     "result": "Original4red controls;113maintained current adapter/umask controls pass after preserving incoming overlap. Recursive mount/overlay creation and cancellation/explicit modes retained;peer forwarding stays separate."
+  },
+  "umaskEntryViewFollowup": {
+    "proof": "docs/ssconvert/umask-entry-view-gap-proof.json",
+    "implementationCommit": "c13c66550d10628aebb4763c1a639afb3dd266bc",
+    "remoteMainVerified": true,
+    "registeredViewControls": 182,
+    "integratedAdapterControls": 142,
+    "cohortsOverlap": true,
+    "filesystemComparisonControls": 100,
+    "portableAndNodePolicyControls": 33,
+    "guardedLintSubjects": 16403,
+    "maintainedStandalonePositiveGroups": 26,
+    "exactNegativeGroups": 3,
+    "publication": "unverified",
+    "remaining": "Residual validated Bash shard feedback and all original ssconvert plan families"
   }
 }

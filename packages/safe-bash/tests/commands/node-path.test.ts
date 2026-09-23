@@ -8,6 +8,54 @@ import { Shell } from "../../src/shell/index.js";
 
 const runtime = { run, makeFsModule, declareHostOperation, createBudget: (options: ConstructorParameters<typeof Budget>[0]) => new Budget(options) };
 
+test("node exposes CommonJS __dirname for eval, print, stdin, and virtual files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/virtual-work/scripts", { recursive: true });
+  const source = 'console.log(typeof __dirname); console.log(__dirname);';
+  await fs.writeFile("/virtual-work/scripts/main.js", new TextEncoder().encode(source));
+  await fs.writeFile("/virtual-work/scripts/main.cjs", new TextEncoder().encode(source));
+  const shell = new Shell({ fs, cwd: "/virtual-work" }).use(nodeCommands({ runtime }));
+  try {
+    for (const [command, stdin, expected] of [
+      ["node -e 'console.log(typeof __dirname)' a b", undefined, "string\n"],
+      [`node -e '${source}'`, undefined, "string\n.\n"],
+      ["node -p '__dirname'", undefined, ".\n"],
+      ["node -", source, "string\n.\n"],
+      ["node", source, "string\n.\n"],
+      ["node scripts/main.js", undefined, "string\n/virtual-work/scripts\n"],
+      ["node /virtual-work/scripts/main.cjs", undefined, "string\n/virtual-work/scripts\n"],
+      ["node -e '__dirname = \"changed\"; console.log(__dirname)'", undefined, "changed\n"],
+      ["node -p '__dirname'", undefined, ".\n"],
+    ] as const) {
+      const result = await shell.exec(command, stdin === undefined ? {} : { stdin });
+      assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+      assert.equal(result.stdout, expected, command);
+      assert.equal(result.stderr, "", command);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("node keeps __dirname absent for module input and .mjs files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/virtual-work", { recursive: true });
+  const source = "console.log(typeof __dirname);";
+  await fs.writeFile("/virtual-work/main.mjs", new TextEncoder().encode(source));
+  const shell = new Shell({ fs, cwd: "/virtual-work" }).use(nodeCommands({ runtime }));
+  try {
+    for (const [command, stdin] of [
+      [`node --input-type=module -e '${source}'`, undefined],
+      [`node -e '${source}' --input-type module`, undefined],
+      ["node --input-type=module -", source],
+      ["node main.mjs", undefined],
+    ] as const) {
+      const result = await shell.exec(command, stdin === undefined ? {} : { stdin });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "undefined\n", command);
+      assert.equal(result.stderr, "", command);
+    }
+  } finally { await shell.dispose(); }
+});
+
 for (const name of ["path", "node:path"]) {
   for (const loading of ["require", "default", "named", "namespace"]) {
     test(`node loads ${name} through ${loading}`, async () => {

@@ -1,0 +1,854 @@
+{
+  "scope": "Native preparation for three actual SDK-emitted BIFF profiles and one unresolved missing-sheet XML observation. No new native result is claimed.",
+  "sourceRepairCommit": "1ed2d59491c70694c2b36f2b6e5ceebf3788ab8c",
+  "manifestSha256": "2dba8895faad55e6d0512c6189010be26ecc32603b10386a9fa472b706a1a304",
+  "originalInputs": 64,
+  "originalCaptures": 117,
+  "inputs": 68,
+  "captures": 129,
+  "preservedOriginalManifest": true,
+  "biffReview": {
+    "scope": "Static SDK-output preparation review. Independent Python struct CFB/FAT+BIFF NAME/formula parsing and minimal numeric/index RPN evaluator; no product reader, no native execution.",
+    "bindings": [
+      {
+        "path": "out/ssconvert-biff-name-identity/native-manifest-proposed.json",
+        "sha256": "9aa1c3da2428ad8f4e7f3ef1934639e802966c91af21a91f0729161ce790685a"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/native-candidates.json",
+        "sha256": "c66fc865729802d6b22ba49b8dde5874b76dd341f222ef233462e8674b98d00e"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/public.json",
+        "sha256": "80f50d6552e69d9377956265a0a9127643de085c7272b1cd46e57f193f629a75"
+      },
+      {
+        "path": "docs/ssconvert/linux-optional-service-native-probes.json",
+        "sha256": "d444455642e602015dff95c36b99b305d3700b3a829703003c735cef5b461a4e"
+      },
+      {
+        "path": "docs/ssconvert/biff-name-identity-gap-proof.json",
+        "sha256": "28707258ab8d3a3e7298deecbaaa079197f0c70f27ab91015f484eb04f4aebc7"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/public.mjs",
+        "sha256": "1154acd67ff628b9ded62c5d51db848d805459cfe4c2f48558205020cf6728a4"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/excel_biff7.xls",
+        "sha256": "8b3e513dd204aaaca926c2fd4cd52e4b7d98c084e40792f4f341d2683780d993"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/excel_biff8.xls",
+        "sha256": "ce4aa71b25a043f4d31f55ef76b4f8a592306628be1b2eba7e72173460fb9597"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/excel_dsf.xls",
+        "sha256": "c0257ed18769ec8360c0969c188a639dbae4290bee04149c16519a8d98f76263"
+      }
+    ],
+    "sourceCommit": "1ed2d59491c70694c2b36f2b6e5ceebf3788ab8c",
+    "sourceProofBindingsMatch": true,
+    "proofChangeSinceCommit": "delivery metadata only",
+    "stable": true,
+    "sdkInputs": 3,
+    "physicalBiffStreams": 4,
+    "nativeCaptureArgv": 9,
+    "originalInputs": 64,
+    "originalCaptures": 117,
+    "proposedInputs": 67,
+    "proposedCaptures": 126,
+    "originalManifestPreserved": true,
+    "originalInputsSha256": "0bf9d8d166fcef08cab0af5e7df5ebd2016e634a314f2f7aeb787fbc8bfa4e59",
+    "otherManifestFieldsSha256": "be5c37be873c00131483f019f6aa036b4603e0463c6cdd7bf953fb1e418f641b",
+    "noLabelOrPathCollisions": true,
+    "rows": [
+      {
+        "id": "biff-name-identity-excel_biff7",
+        "sdkSha256": "8b3e513dd204aaaca926c2fd4cd52e4b7d98c084e40792f4f341d2683780d993",
+        "bytes": 5632,
+        "streams": [
+          {
+            "stream": "Book",
+            "revision": 7,
+            "sha256": "6d238a4d661c24068d04bdc7e1995ec3479c40b0f73f37136d293d6ba46fa597",
+            "sheetNames": [
+              "Here",
+              "target",
+              "Data"
+            ],
+            "names": [
+              {
+                "name": "Rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    11
+                  ]
+                ],
+                "hex": "1e0b00"
+              },
+              {
+                "name": "rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    13
+                  ]
+                ],
+                "hex": "1e0d00"
+              },
+              {
+                "name": "Rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    2
+                  ]
+                ],
+                "hex": "1e0200"
+              },
+              {
+                "name": "rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    3
+                  ]
+                ],
+                "hex": "1e0300"
+              },
+              {
+                "name": "Bridge",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "name",
+                    3
+                  ],
+                  [
+                    "name",
+                    4
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    1
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    2
+                  ],
+                  [
+                    "add"
+                  ]
+                ],
+                "hex": "430300000000000000000000000000430400000000000000000000000000034301000000000000000000000000000343020000000000000000000000000003"
+              }
+            ],
+            "formulas": [
+              {
+                "row": 0,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    3,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010003000000000000000f0001000000"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    4,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010004000000000000000f0002000000"
+              },
+              {
+                "row": 2,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    1
+                  ]
+                ],
+                "hex": "430100000000000000000000000000"
+              },
+              {
+                "row": 3,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    2
+                  ]
+                ],
+                "hex": "430200000000000000000000000000"
+              },
+              {
+                "row": 4,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    5,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010005000000000000000f0003000000"
+              },
+              {
+                "row": 5,
+                "column": 0,
+                "tokens": [
+                  [
+                    "error",
+                    29
+                  ]
+                ],
+                "hex": "1c1d"
+              }
+            ],
+            "independentRpnValues": [
+              2,
+              3,
+              11,
+              13,
+              29,
+              "#NAME?"
+            ],
+            "externalSheetTable": []
+          }
+        ]
+      },
+      {
+        "id": "biff-name-identity-excel_biff8",
+        "sdkSha256": "ce4aa71b25a043f4d31f55ef76b4f8a592306628be1b2eba7e72173460fb9597",
+        "bytes": 5632,
+        "streams": [
+          {
+            "stream": "Workbook",
+            "revision": 8,
+            "sha256": "5fb5f1fa887959dc346acebdb5c1bb9bf4d6c1f2dea0ec4408bff1742e513754",
+            "sheetNames": [
+              "Here",
+              "target",
+              "Data"
+            ],
+            "names": [
+              {
+                "name": "Rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    11
+                  ]
+                ],
+                "hex": "1e0b00"
+              },
+              {
+                "name": "rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    13
+                  ]
+                ],
+                "hex": "1e0d00"
+              },
+              {
+                "name": "Rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    2
+                  ]
+                ],
+                "hex": "1e0200"
+              },
+              {
+                "name": "rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    3
+                  ]
+                ],
+                "hex": "1e0300"
+              },
+              {
+                "name": "Bridge",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "name",
+                    3
+                  ],
+                  [
+                    "name",
+                    4
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    1
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    2
+                  ],
+                  [
+                    "add"
+                  ]
+                ],
+                "hex": "4303000000430400000003430100000003430200000003"
+              }
+            ],
+            "formulas": [
+              {
+                "row": 0,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    3,
+                    0
+                  ]
+                ],
+                "hex": "59000003000000"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    4,
+                    0
+                  ]
+                ],
+                "hex": "59000004000000"
+              },
+              {
+                "row": 2,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    1
+                  ]
+                ],
+                "hex": "4301000000"
+              },
+              {
+                "row": 3,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    2
+                  ]
+                ],
+                "hex": "4302000000"
+              },
+              {
+                "row": 4,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    5,
+                    0
+                  ]
+                ],
+                "hex": "59000005000000"
+              },
+              {
+                "row": 5,
+                "column": 0,
+                "tokens": [
+                  [
+                    "error",
+                    29
+                  ]
+                ],
+                "hex": "1c1d"
+              }
+            ],
+            "independentRpnValues": [
+              2,
+              3,
+              11,
+              13,
+              29,
+              "#NAME?"
+            ],
+            "externalSheetTable": [
+              [
+                0,
+                2,
+                2
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "biff-name-identity-excel_dsf",
+        "sdkSha256": "c0257ed18769ec8360c0969c188a639dbae4290bee04149c16519a8d98f76263",
+        "bytes": 9728,
+        "streams": [
+          {
+            "stream": "Book",
+            "revision": 7,
+            "sha256": "6d238a4d661c24068d04bdc7e1995ec3479c40b0f73f37136d293d6ba46fa597",
+            "sheetNames": [
+              "Here",
+              "target",
+              "Data"
+            ],
+            "names": [
+              {
+                "name": "Rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    11
+                  ]
+                ],
+                "hex": "1e0b00"
+              },
+              {
+                "name": "rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    13
+                  ]
+                ],
+                "hex": "1e0d00"
+              },
+              {
+                "name": "Rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    2
+                  ]
+                ],
+                "hex": "1e0200"
+              },
+              {
+                "name": "rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    3
+                  ]
+                ],
+                "hex": "1e0300"
+              },
+              {
+                "name": "Bridge",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "name",
+                    3
+                  ],
+                  [
+                    "name",
+                    4
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    1
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    2
+                  ],
+                  [
+                    "add"
+                  ]
+                ],
+                "hex": "430300000000000000000000000000430400000000000000000000000000034301000000000000000000000000000343020000000000000000000000000003"
+              }
+            ],
+            "formulas": [
+              {
+                "row": 0,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    3,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010003000000000000000f0001000000"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    4,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010004000000000000000f0002000000"
+              },
+              {
+                "row": 2,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    1
+                  ]
+                ],
+                "hex": "430100000000000000000000000000"
+              },
+              {
+                "row": 3,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    2
+                  ]
+                ],
+                "hex": "430200000000000000000000000000"
+              },
+              {
+                "row": 4,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    5,
+                    -3
+                  ]
+                ],
+                "hex": "59fdff000000000000010005000000000000000f0003000000"
+              },
+              {
+                "row": 5,
+                "column": 0,
+                "tokens": [
+                  [
+                    "error",
+                    29
+                  ]
+                ],
+                "hex": "1c1d"
+              }
+            ],
+            "independentRpnValues": [
+              2,
+              3,
+              11,
+              13,
+              29,
+              "#NAME?"
+            ],
+            "externalSheetTable": []
+          },
+          {
+            "stream": "Workbook",
+            "revision": 8,
+            "sha256": "3aa135ef92039a1d8f4dc32308420efdd8543ffddeee559f3517396937678114",
+            "sheetNames": [
+              "Here",
+              "target",
+              "Data"
+            ],
+            "names": [
+              {
+                "name": "Rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    11
+                  ]
+                ],
+                "hex": "1e0b00"
+              },
+              {
+                "name": "rate",
+                "scope": 0,
+                "tokens": [
+                  [
+                    "int",
+                    13
+                  ]
+                ],
+                "hex": "1e0d00"
+              },
+              {
+                "name": "Rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    2
+                  ]
+                ],
+                "hex": "1e0200"
+              },
+              {
+                "name": "rate",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "int",
+                    3
+                  ]
+                ],
+                "hex": "1e0300"
+              },
+              {
+                "name": "Bridge",
+                "scope": 3,
+                "tokens": [
+                  [
+                    "name",
+                    3
+                  ],
+                  [
+                    "name",
+                    4
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    1
+                  ],
+                  [
+                    "add"
+                  ],
+                  [
+                    "name",
+                    2
+                  ],
+                  [
+                    "add"
+                  ]
+                ],
+                "hex": "4303000000430400000003430100000003430200000003"
+              }
+            ],
+            "formulas": [
+              {
+                "row": 0,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    3,
+                    0
+                  ]
+                ],
+                "hex": "59000003000000"
+              },
+              {
+                "row": 1,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    4,
+                    0
+                  ]
+                ],
+                "hex": "59000004000000"
+              },
+              {
+                "row": 2,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    1
+                  ]
+                ],
+                "hex": "4301000000"
+              },
+              {
+                "row": 3,
+                "column": 0,
+                "tokens": [
+                  [
+                    "name",
+                    2
+                  ]
+                ],
+                "hex": "4302000000"
+              },
+              {
+                "row": 4,
+                "column": 0,
+                "tokens": [
+                  [
+                    "namex",
+                    5,
+                    0
+                  ]
+                ],
+                "hex": "59000005000000"
+              },
+              {
+                "row": 5,
+                "column": 0,
+                "tokens": [
+                  [
+                    "error",
+                    29
+                  ]
+                ],
+                "hex": "1c1d"
+              }
+            ],
+            "independentRpnValues": [
+              2,
+              3,
+              11,
+              13,
+              29,
+              "#NAME?"
+            ],
+            "externalSheetTable": [
+              [
+                0,
+                2,
+                2
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "nativeExecutionQualified": false,
+    "limitations": [
+      "Native Gnumeric case-sensitive name interpretation of emitted BIFF remains to be captured.",
+      "SDK and Shell output hashes intentionally differ; candidates are exact SDK outputs, and no byte-identity claim across SDK versus Shell is made.",
+      "Declared exits0/1 preserve native refusal evidence; successful workflow execution alone does not establish value parity."
+    ]
+  },
+  "missingSheetReview": {
+    "scope": "Independent XML structural comparison, compiled SDK observation, and v2 append review. Native semantics remain unknown.",
+    "inputSha256": "b21c76a622bc5b8ba8730f8416453ba2852d1d91cbecf7e7f2c16da9ce17cf1a",
+    "inputBytes": 3034,
+    "xmlChanges": [
+      "Here A1 formula becomes Missing!Rate",
+      "Remove five other Here cells",
+      "Here MaxRow5 becomes0"
+    ],
+    "allNamesOtherSheetsAndRemainingMetadataPreserved": true,
+    "publicObservation": {
+      "exitCode": 0,
+      "diagnostics": [],
+      "csv": "11\n",
+      "resolutions": 0,
+      "inputUnchanged": true
+    },
+    "original64Inputs117CapturesPreserved": true,
+    "reviewed3BiffCandidatesPreserved": true,
+    "proposedInputs": 68,
+    "proposedCaptures": 129,
+    "distinctInputAndReplayOutput": true,
+    "noLabelOrPathCollisions": true,
+    "bindings": [
+      {
+        "path": "out/ssconvert-biff-name-identity/public-input.gnumeric",
+        "sha256": "dc6cf721de285147d9927682335c2f4fd70ba8712a7f2d53f9ec9318e4ab8f2d"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/missing-sheet.gnumeric",
+        "sha256": "b21c76a622bc5b8ba8730f8416453ba2852d1d91cbecf7e7f2c16da9ce17cf1a"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/missing-native-candidate.json",
+        "sha256": "12dd2ffef9ac17ca09c35c3785f41367f3e8f4683aa23148f4c6d96e738edb93"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/missing-sheet-public.json",
+        "sha256": "bf5fd2f724d00804335810b805800e024f07e47167ed8e4df1012470a7ef37dc"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/native-manifest-proposed-v2.json",
+        "sha256": "78ffdfb5653c1b7e914b3178cfd4a2f9711cd4f01a6c626a4db06e6c3b84f524"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/native-manifest-proposed.json",
+        "sha256": "9aa1c3da2428ad8f4e7f3ef1934639e802966c91af21a91f0729161ce790685a"
+      },
+      {
+        "path": "out/ssconvert-biff-name-identity/native-candidates.json",
+        "sha256": "c66fc865729802d6b22ba49b8dde5874b76dd341f222ef233462e8674b98d00e"
+      },
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "ca6aa993bfe4456e6623f5ce1b8e6e9fd8ea5d3a499fdb1b4ba17a351a9cac04"
+      }
+    ],
+    "stable": true,
+    "nativeExecutionQualified": false
+  },
+  "finalMetadataClarification": "After independent review, construction text explicitly records Here MaxRow 5 to 0. Fixture bytes and argv remain unchanged.",
+  "proofs": [
+    "docs/ssconvert/biff-sheet-resolution-gap-proof.json",
+    "docs/ssconvert/biff-name-identity-gap-proof.json"
+  ],
+  "nativeExecution": {
+    "status": "pending",
+    "workflow": "provision-ssconvert-reference.yml",
+    "profile": "gnumeric-1.12.61-optional-none"
+  },
+  "limitations": [
+    "Admission of native exit codes 0 and 1 preserves failures; workflow success is not semantic agreement.",
+    "Missing-sheet native behavior is unknown.",
+    "Native execution and root publication are separate; all 19 original families remain open."
+  ]
+}

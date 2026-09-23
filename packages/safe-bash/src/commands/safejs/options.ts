@@ -17,7 +17,7 @@ export function commandLimits(options: Partial<SafeJsCommandLimits> = {}): SafeJ
   return Object.freeze(result);
 }
 
-export interface Invocation { readonly source?: string; readonly file: string; readonly args: readonly string[]; readonly print: boolean; readonly help: boolean; readonly inputType?: "module" | "commonjs"; readonly check?: boolean; readonly preloads?: readonly string[]; readonly sourceMaps?: boolean }
+export interface Invocation { readonly source?: string; readonly file: string; readonly args: readonly string[]; readonly print: boolean; readonly help: boolean; readonly inputType?: "module" | "commonjs"; readonly check?: boolean; readonly preloads?: readonly string[]; readonly sourceMaps?: boolean; readonly output?: string; readonly nodeOptions?: readonly string[]; readonly envFiles?: readonly { path: string; optional: boolean }[] }
 
 export function invocation(args: readonly string[]): Invocation {
   let print = false;

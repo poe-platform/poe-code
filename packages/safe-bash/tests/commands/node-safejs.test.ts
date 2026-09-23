@@ -477,3 +477,93 @@ for (const [name, code, exitCode] of [["ParseError", "", 2], ["ParseError", "bud
     } finally { await shell.dispose(); }
   });
 }
+
+test("node reports supplied SafeJS identity and completes only supported options", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime: { ...runtime,
+    node: { version: "SafeJS test-runtime", options: { "--max-old-space-size": "value" } },
+  } }));
+  try {
+    for (const flag of ["--version", "-v"]) {
+      const result = await shell.exec(`node ${flag}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "SafeJS test-runtime\n");
+    }
+    const result = await shell.exec("node --completion-bash");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.includes("complete -F _node_complete node"));
+    assert.ok(result.stdout.includes("--max-old-space-size"));
+    assert.ok(!result.stdout.includes("--permission"));
+  } finally { await shell.dispose(); }
+});
+
+test("node loads virtual env files without replacing exports or changing parent env", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/owned.env", Buffer.from('AUDIT=owned-public\nKEEP=file\nQUOTED="two\nlines"\nexport HASH=value # comment\n'));
+  const shell = new Shell({ fs, env: { KEEP: "exported" } }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec(`node --env-file=owned.env -e 'console.log(process.env.AUDIT, process.env.KEEP, process.env.QUOTED, process.env.HASH)'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "owned-public exported two\nlines value\n");
+    const next = await shell.exec(`node --env-file-if-exists missing.env -p 'process.env.AUDIT'`);
+    assert.equal(next.exitCode, 0, next.stderr);
+    assert.equal(next.stdout, "undefined\n");
+    assert.notEqual((await shell.exec("node --env-file missing.env -e 'console.log(1)'" )).exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("node forwards only explicitly supported runtime options and keeps finite budgets", async () => {
+  let admitted: readonly string[] | undefined;
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime: { ...runtime,
+    node: { options: { "--max-old-space-size": "value", "--permission": "boolean", "--allow-fs-read": "value" } },
+    async run(source, options) { admitted = options.nodeOptions; return run(source, options); },
+  }, limits: { maxSteps: 1000 } }));
+  try {
+    const result = await shell.exec(`node --max-old-space-size 64 --permission --allow-fs-read=. -e 'console.log("local")'`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(admitted, ["--max-old-space-size=64", "--permission", "--allow-fs-read=."]);
+    assert.equal((await shell.exec(`node --max-old-space-size=64 -e 'while(true){}'`)).exitCode, 124);
+    assert.equal((await shell.exec("node --max-old-space-size")).exitCode, 2);
+  } finally { await shell.dispose(); }
+  const unconfigured = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime }));
+  try {
+    const result = await unconfigured.exec("node --version");
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes("runtime.node.version"));
+    for (const option of ["--max-old-space-size=64", "--permission", "--allow-fs-read=."]) {
+      assert.equal((await unconfigured.exec(`node ${option} -e 'console.log(1)'`)).exitCode, 2);
+    }
+    for (const option of ["--no-warnings", "--zero-fill-buffers"]) {
+      assert.equal((await unconfigured.exec(`node ${option} -e 'console.log(1)'`)).exitCode, 2);
+    }
+  } finally { await unconfigured.dispose(); }
+});
+
+test("node env files share source and preload byte limits and skip only missing optional files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/one.env", Buffer.from("ONE=1111111111\n"));
+  await fs.writeFile("/two.env", Buffer.from("TWO=2222222222\n"));
+  await fs.writeFile("/setup.cjs", Buffer.from("globalThis.loaded = true;"));
+  const shell = new Shell({ fs }).use(nodeCommands({ runtime, limits: { maxSourceBytes: 40 } }));
+  try {
+    for (const command of [
+      `node --env-file one.env --env-file two.env -e 'console.log(1)'`,
+      `node --env-file one.env --require ./setup.cjs -e 'console.log(1)'`,
+    ]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 124, result.stderr);
+      assert.equal(result.stdout, "");
+    }
+    await fs.mkdir("/directory");
+    const directory = await shell.exec(`node --env-file-if-exists directory -e 'console.log(1)'`);
+    assert.notEqual(directory.exitCode, 0);
+    assert.equal(directory.stdout, "");
+    const operand = await shell.exec(`node -e 'console.log(process.argv[1])' -- --version`);
+    assert.equal(operand.stdout, "--version\n");
+  } finally { await shell.dispose(); }
+});
+
+test("node rejects completion injection in runtime capability names", () => {
+  assert.throws(() => createNodeCommand({ runtime: { ...runtime,
+    node: { options: { "--bad'$(command)": "boolean" } },
+  } }), /runtime.node.options/);
+});

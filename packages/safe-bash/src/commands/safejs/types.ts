@@ -15,6 +15,8 @@ export interface SafeJsBudgetOptions {
 }
 
 export interface SafeJsRunOptions<Budget> {
+  /** Explicitly admitted runtime options; budgets and host capabilities remain authoritative. */
+  readonly nodeOptions?: readonly string[];
   readonly importSpecifiers?: readonly string[];
   readonly bindings?: SafeJsModule;
   readonly budget: Budget;
@@ -30,6 +32,11 @@ export type SafeJsRunResult = { readonly ok: true; readonly returnValue?: unknow
   | { readonly ok: false; readonly error: unknown };
 
 export interface SafeJsRuntime<Budget> {
+  /** Trusted implemented semantics and identity, never inferred from host Node. */
+  readonly node?: {
+    readonly version?: string;
+    readonly options?: Readonly<Record<string, "boolean" | "value">>;
+  };
   /** Parse the complete source without evaluating it or resolving imports; throw on invalid syntax. */
   readonly parseSourceModule?: (source: string, filename: string) => unknown;
   readonly run: (source: string, options: SafeJsRunOptions<Budget>) => Promise<SafeJsRunResult>;

@@ -161,7 +161,25 @@ implementation that honors that contract, including
 host operation and copy its result or throw its error at the guest call site,
 without exposing a guest Promise. Virtual CommonJS modules and CommonJS input use
 the interpreter's guest `eval` capability inside a wrapper. It never uses native
-eval. SafeJS syntax and value limits still apply. There are no runtime environment switches.
+eval. SafeJS syntax and value limits still apply.
+
+`--env-file PATH` and `--env-file-if-exists=PATH` load dotenv assignments from the
+virtual filesystem. Exported shell variables take precedence; later files override
+earlier files. Quoted values may span lines. Loading never changes the parent
+shell or host environment, and `NODE_OPTIONS` remains an ordinary guest variable.
+Environment-file bytes share the source/module byte allowance.
+
+`--version`/`-v` reports the identity explicitly supplied as `runtime.node.version`;
+without that metadata it returns a configuration diagnostic, never the host Node
+version. `--completion-bash` emits Bash completion for frontend options and runtime
+capabilities. An adapter may declare `runtime.node.options`, for example
+`{ "--no-warnings": "boolean", "--max-old-space-size": "value" }`, only when it
+implements those semantics. Admitted options are normalized and passed to `run`
+as `options.nodeOptions`; adapters must apply them or fail execution. The stock
+SafeJS hooks do not declare native V8, warning, buffer, or permission flags.
+Undeclared flags remain refused. Runtime flags never replace command budgets or
+authorize host filesystem access; a V8 heap limit is not a SafeJS memory or CPU
+limit. `--` and script operands stop option parsing as usual.
 
 | `limits` option | Default |
 | --- | --- |

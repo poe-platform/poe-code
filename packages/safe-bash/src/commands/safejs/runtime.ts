@@ -74,6 +74,10 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     try { parsed = dialect.invocation(context.args); }
     catch (error) { await diagnose(publicDiagnosticMessage(error, context.onInternalError)); return { exitCode: 2 }; }
     context.signal.throwIfAborted();
+    if (parsed.output !== undefined) {
+      if (Buffer.byteLength(parsed.output) > limits.maxOutputBytes) { await diagnose("SafeJS command limit exceeded: maxOutputBytes"); return { exitCode: 124 }; }
+      await writeBytes(context.stdout, Buffer.from(parsed.output), context.signal); return { exitCode: 0 };
+    }
     if (parsed.help) { await writeBytes(context.stdout, Buffer.from(dialect.help), context.signal); return { exitCode: 0 }; }
     if (!runtime) { await diagnose("runtime not installed; inject run, createBudget, makeFsModule and declareHostOperation"); return { exitCode: 127 }; }
     const controller = new AbortController();
@@ -158,6 +162,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
           },
         });
         const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
+          ...(parsed.nodeOptions?.length ? { nodeOptions: parsed.nodeOptions } : {}),
           budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
             ...(prepared.sourceLocation ? { sourceLocation: prepared.sourceLocation } : {}),
             ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),

@@ -15,6 +15,7 @@ import { commandLimits } from "../safejs/options.js";
 import type { Invocation } from "../safejs/options.js";
 import type { SafeJsHostFunction } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
+import { nodeEnvironment } from "./environment.js";
 
 export type SafeJsNodeCommandsOptions<Budget = unknown> = NodeSafeJsCommandOptions<Budget> & { readonly replace?: boolean };
 
@@ -35,18 +36,48 @@ export function safeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOptions<Bu
   } };
 }
 
-function invocation(args: readonly string[]): Invocation {
+function invocation(args: readonly string[], metadata: import("../safejs/types.js").SafeJsRuntime<unknown>["node"]): Invocation {
   let source: string | undefined;
   let print = false;
   let check = false;
   let sourceMaps = false;
   const preloads: string[] = [];
+  const nodeOptions: string[] = [];
+  const envFiles: { path: string; optional: boolean }[] = [];
   let inputType: "module" | "commonjs" | undefined;
   let index = 0;
   for (; index < args.length; index++) {
     const argument = args[index]!;
     if (argument === "--") { index++; break; }
     if (argument === "-h" || argument === "--help") return { file: "-", args: [], print: false, help: true };
+    if (argument === "-v" || argument === "--version") {
+      if (!metadata?.version) throw new UsageError("inject runtime.node.version to report the actual runtime identity");
+      return { file: "-", args: [], print: false, help: false, output: metadata.version + "\n" };
+    }
+    if (argument === "--completion-bash") {
+      const flags = ["--help", "--version", "--completion-bash", "--check", "--eval", "--print", "--input-type", "--require", "--enable-source-maps", "--env-file", "--env-file-if-exists", ...Object.keys(metadata?.options ?? {})];
+      return { file: "-", args: [], print: false, help: false, output: `_node_complete() {\n  local cur_word="\${COMP_WORDS[COMP_CWORD]}"\n  COMPREPLY=( $(compgen -W '${flags.join(" ")}' -- "$cur_word") )\n}\ncomplete -F _node_complete node\n` };
+    }
+    const equal = argument.indexOf("=");
+    const flag = equal < 0 ? argument : argument.slice(0, equal);
+    if (flag === "--env-file" || flag === "--env-file-if-exists") {
+      const path = equal < 0 ? args[++index] : argument.slice(equal + 1);
+      if (!path) throw new UsageError(`${flag} requires a file operand`);
+      envFiles.push({ path, optional: flag === "--env-file-if-exists" });
+      continue;
+    }
+    if (Object.hasOwn(metadata?.options ?? {}, flag)) {
+      const kind = metadata!.options![flag];
+      if (kind === "boolean") {
+        if (equal >= 0) throw new UsageError(`${flag} does not accept a value`);
+        nodeOptions.push(flag);
+      } else {
+        const value = equal < 0 ? args[++index] : argument.slice(equal + 1);
+        if (!value || value.startsWith("--")) throw new UsageError(`${flag} requires a value`);
+        nodeOptions.push(flag + "=" + value);
+      }
+      continue;
+    }
     if (argument === "--enable-source-maps") { sourceMaps = true; continue; }
     if (argument === "--require" || argument.startsWith("--require=") || argument.startsWith("-r")) {
       const name = argument === "--require" || argument === "-r" ? args[++index]
@@ -80,9 +111,9 @@ function invocation(args: readonly string[]): Invocation {
     if (argument !== "-" && argument.startsWith("-")) throw new UsageError(`unsupported node option '${argument}'`);
     break;
   }
-  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
+  if (source !== undefined) return { source, file: print ? "<node -p>" : "<node -e>", args: args.slice(index), print, help: false, preloads, sourceMaps, nodeOptions, envFiles, ...(inputType ? { inputType } : {}) };
   if (inputType === "commonjs" && args[index] !== undefined && args[index] !== "-") throw new UsageError("--input-type can only be used with eval, print or stdin source");
-  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, sourceMaps, ...(inputType ? { inputType } : {}) };
+  return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, sourceMaps, nodeOptions, envFiles, ...(inputType ? { inputType } : {}) };
 }
 
 export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
@@ -91,11 +122,17 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   if (settings.runtime === undefined || settings.runtime === null) throw new TypeError("node requires an injected SafeJS runtime");
   options = settings as unknown as NodeSafeJsCommandOptions<Budget>;
   const limits = commandLimits(options.limits);
+  const suppliedMetadata = options.runtime.node;
+  const metadata = suppliedMetadata ? { ...(suppliedMetadata.version !== undefined ? { version: suppliedMetadata.version } : {}), options: Object.freeze({ ...suppliedMetadata.options }) } : undefined;
+  if (metadata?.version !== undefined && (typeof metadata.version !== "string" || !metadata.version || metadata.version.includes("\n") || metadata.version.includes("\0"))) throw new TypeError("Invalid runtime.node.version");
+  for (const [flag, kind] of Object.entries(metadata?.options ?? {})) {
+    if (!flag.startsWith("--") || flag.length < 3 || ![...flag.slice(2)].every(char => "abcdefghijklmnopqrstuvwxyz0123456789-".includes(char)) || (kind !== "boolean" && kind !== "value")) throw new TypeError("Invalid runtime.node.options");
+  }
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
     help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
-    invocation,
+    invocation: args => invocation(args, metadata),
     transformSource(source, selected) {
       if (selected.inputType !== "commonjs") return source;
       if (source.startsWith("#!")) {
@@ -113,6 +150,12 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
     },
     async prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
+      let remainingSourceBytes = limits.maxSourceBytes - lifecycle.sourceBytes;
+      const env = await nodeEnvironment(selected.envFiles ?? [], command.env as Record<string, string>, command.cwd as string, async (path, maxBytes) => {
+        const value = await lifecycle.readSource(path, maxBytes);
+        remainingSourceBytes -= Buffer.byteLength(value);
+        return value;
+      }, lifecycle.signal, remainingSourceBytes);
       const directory = selected.inputType === "module" || selected.source === undefined && selected.file.endsWith(".mjs")
         ? undefined : selected.source !== undefined || selected.file === "-" ? "." : dirname(selected.file);
       const stdio = modules.stdio!;
@@ -120,7 +163,7 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       const pending = new Set<Promise<void>>();
       const processModule = {
         argv: ["/virtual/bin/node", ...(selected.source === undefined ? [selected.file] : []), ...selected.args],
-        env: command.env,
+        env,
         cwd: options.runtime.declareHostOperation(() => command.cwd, "read-side-effect"),
         exitCode: 0,
         stdin: { readText: stdio.readText, readBytes: stdio.readBytes },
@@ -144,7 +187,6 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       const requiredModules = new Map([["fs", nodeFs], ["node:fs", nodeFs], ["fs/promises", fs], ["node:fs/promises", fs], ["path", path], ["node:path", path]]);
       for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       const prefix = bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + nodeRequireSource;
-      let remainingSourceBytes = limits.maxSourceBytes - lifecycle.sourceBytes;
       const printing = selected.print && selected.inputType !== "commonjs";
       const sourceLocation = selected.sourceMaps
         ? await nodeSourceLocation(source, selected.file, command.cwd as string, prefix + (printing ? "console.log((\n" : ""), lifecycle.readSource, lifecycle.signal,

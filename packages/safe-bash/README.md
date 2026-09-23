@@ -330,6 +330,9 @@ Output: `done\nHELLO\n3\n`.
 
 `node -e SOURCE` evaluates a program; `node -p EXPRESSION` prints an expression.
 `node FILE`, `node -`, and bare `node` accept virtual-file or stdin source.
+`--env-file` loads virtual dotenv files; `--version` uses supplied runtime identity
+and `--completion-bash` lists supported options. Runtime flags require explicit
+adapter capabilities; see the [Node configuration](src/commands/node/README.md#configuration).
 Programs get `console`, virtual `process.argv`, `process.env`, `process.cwd()`,
 `process.exitCode`, guest-owned `Buffer` bytes with string encodings and shared
 views, and shell streams. Await `process.stdout.write(text)` and

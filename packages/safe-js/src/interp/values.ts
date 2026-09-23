@@ -109,6 +109,7 @@ import { readIndexedClosureCaptures } from "./indexed-closure-captures.js";
 type FrozenClosureData = {
   readonly symbols: readonly symbol[];
   readonly closure: boolean;
+  readonly propertiesGetter: PropertyDescriptor["get"];
 };
 const frozenClosureData = new WeakMap<object, FrozenClosureData>();
 const readFrozenClosureData = WeakMap.prototype.get.bind(frozenClosureData);
@@ -116,6 +117,22 @@ const writeFrozenClosureData = WeakMap.prototype.set.bind(frozenClosureData);
 const freezeClosureShape = Object.freeze;
 const captureClosureSymbols = Object.getOwnPropertySymbols;
 const captureClosureDescriptor = Object.getOwnPropertyDescriptor;
+const hasClosureDescriptorField = Object.hasOwn;
+const invokeClosureGetter = Reflect.apply;
+const closureGetterArguments = freezeClosureShape([]);
+
+// The own accessor is immutable, but its returned table and native observations
+// stay fresh. Calling it directly avoids polymorphic accessor loads for thousands
+// of closures. Foreign receivers and missing/data descriptors keep normal reads.
+function readClosureProperties(
+  closure: SandboxClosure,
+  data?: FrozenClosureData
+): SandboxObject | undefined {
+  const getter = data?.propertiesGetter;
+  return getter === undefined
+    ? closure.properties
+    : invokeClosureGetter(getter, closure, closureGetterArguments);
+}
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
@@ -375,11 +392,14 @@ export function createSandboxClosure(input: {
   }
 
   freezeClosureShape(closure);
+  const properties = captureClosureDescriptor(closure, "properties");
   writeFrozenClosureData(
     closure,
     freezeClosureShape({
       symbols: freezeClosureShape(captureClosureSymbols(closure)),
-      closure: captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined
+      closure: captureClosureDescriptor(closure, sandboxClosureBrand) !== undefined,
+      propertiesGetter: properties !== undefined && hasClosureDescriptorField(properties, "get")
+        ? properties.get : undefined
     })
   );
   return closure;
@@ -1109,14 +1129,14 @@ function measureSandboxDataWithSeen(
           const prototype = getSandboxPrototype(closure);
           if (prototype !== null) visit(prototype, depth + 1);
           if (options.ignoreClosures) break entry;
-          if (closure.properties !== undefined) {
+          if (readClosureProperties(closure, closureData) !== undefined) {
             if (isIntrinsicFunction(closure)) {
-              for (const [key, descriptor] of intrinsicFunctionDataDescriptors(closure.properties)) {
+              for (const [key, descriptor] of intrinsicFunctionDataDescriptors(readClosureProperties(closure, closureData)!)) {
                 usage += key.length + 1;
                 if ("value" in descriptor) visit(descriptor.value, depth + 1);
                 else for (const closure of retainedAccessorClosures(descriptor)) visit(closure, depth + 1);
               }
-            } else visit(closure.properties, depth + 1);
+            } else visit(readClosureProperties(closure, closureData), depth + 1);
           }
           if (!options.ignoreClosureCaptures) {
             const collect = readIndexedClosureCaptures(closure);

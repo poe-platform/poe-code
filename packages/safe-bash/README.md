@@ -58,7 +58,8 @@ physical permissions, and the host process mask remains unchanged.
   member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
-  control failures; `shopt -s dotglob` includes dotfiles in globs.
+  control failures; Bash-profile `set -f` / `set -o noglob` disables pathname
+  expansion, and `set +f` restores it; `shopt -s dotglob` includes dotfiles in globs.
 
 Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
 `shift`, `export`, `local`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`,

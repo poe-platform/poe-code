@@ -258,7 +258,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
   const listTerminators = new Map<string, ShellListTerminatorHook>();
   const specialParameters = new Map<string, ShellSpecialParameterHook>();
   const checkpoints: NonNullable<ShellExtensionInstance["checkpoint"]>[] = [];
-  const flags = new Set(["e", "u", "o"]);
+  const flags = new Set(["e", "u", "f", "o"]);
   const entries = snapshots.map((definition, index) => {
     const previous = parent?.entries[index]?.instance;
     const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
@@ -285,7 +285,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
       builtins.set(name, Object.freeze({ name, ...(replace === undefined ? {} : { replace }), ...(special === undefined ? {} : { special }), ...(expansion === undefined ? {} : { expansion }), execute: execute.bind(builtin) }));
     }
     for (const option of instance.options ?? []) {
-      if (!option.name || ["errexit", "nounset", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");
+      if (!option.name || ["errexit", "nounset", "noglob", "pipefail"].includes(option.name) || options.has(option.name) || typeof option.enabled !== "boolean" || option.flag !== undefined && (option.flag.length !== 1 || flags.has(option.flag))) throw new TypeError("Invalid or duplicate extension shell option");
       if (option.flag !== undefined) flags.add(option.flag);
       options.set(option.name, option);
     }

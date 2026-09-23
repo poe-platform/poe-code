@@ -103,7 +103,7 @@ const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exi
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
   "allexport", "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
-  "ignoreeof", "interactive-comments", "keyword", "monitor", "noclobber", "noexec", "noglob", "nolog",
+  "ignoreeof", "interactive-comments", "keyword", "monitor", "noclobber", "noexec", "nolog",
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
@@ -476,6 +476,7 @@ export interface State {
   dotglob?: boolean;
   globstar?: boolean;
   braceexpand?: boolean;
+  noglob?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
@@ -3340,7 +3341,7 @@ export class Runtime {
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
-            option: name => name === "braceexpand" ? state.braceexpand !== false : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
+            option: name => name === "braceexpand" ? state.braceexpand !== false : name === "noglob" ? !!state.noglob : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
               if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
@@ -5263,6 +5264,7 @@ export class Runtime {
         const flag = option[position];
         if (flag === "e") state.errexit = enabled;
         else if (flag === "u") state.nounset = enabled;
+        else if (flag === "f") state.noglob = enabled;
         else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
           for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         }
@@ -5270,13 +5272,14 @@ export class Runtime {
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
+            const options = [["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
             for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
             else if (name === "nounset") state.nounset = enabled;
             else if (name === "pipefail") state.pipefail = enabled;
             else if (name === "braceexpand") state.braceexpand = enabled;
+            else if (name === "noglob") state.noglob = enabled;
             else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
@@ -5288,7 +5291,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u/B clusters, -- arguments and terminal o with braceexpand, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- e/u/f/B clusters, -- arguments and terminal o with braceexpand, noglob, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -6654,7 +6657,7 @@ export class Runtime {
     }
     let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}`
+      : part.name === "-" ? `${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
@@ -7479,6 +7482,7 @@ export class Runtime {
   }
 
   async glob(value: string, pattern: string, state: State): Promise<string[]> {
+    if (state.noglob) return [value];
     if (!/(?:^|[^\\])[*?[]/u.test(pattern)) return [value];
     if (state.globstar) {
       const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };

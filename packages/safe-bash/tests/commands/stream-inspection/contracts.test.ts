@@ -250,3 +250,75 @@ test("CPU-heavy nonempty scans yield to caller cancellation", async () => {
     try { await check; } finally { clearTimeout(timer); }
   }
 });
+
+for (const [input, width, columns, bytes] of [
+  ["Changed界🚀Tail\n", 4, "Chan\nged\n界🚀\nTail\n", "Chan\nged\n界\n🚀\nTail\n"],
+  ["🌙🌙🌙🌙\n", 7, "🌙🌙🌙\n🌙\n", "🌙\n🌙\n🌙\n🌙\n"],
+  ["語語語語\n", 4, "語語\n語語\n", "語\n語\n語\n語\n"],
+  ["語語語語\n", 7, "語語語\n語\n", "語語\n語語\n"],
+] as const) {
+  test(`default fold preserves UTF-8 scalars at width ${width}: ${input.trim()}`, async () => {
+    const { Shell } = await import("../../../src/shell/index.js");
+    const { agentCommands } = await import("../../../src/plugins/index.js");
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Buffer.from(input));
+    const shell = new Shell({ fs, env: { LC_ALL: "C.UTF-8", LANG: "C.UTF-8" } }).use(agentCommands());
+    try {
+      for (const [flag, expected] of [["", columns], ["-b", bytes]] as const) {
+        for (const source of [`fold ${flag} -w${width} /input`, `cat /input | fold ${flag} -w${width}`]) {
+          const result = await shell.exec(source);
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.equal(new TextDecoder("utf-8", { fatal: true }).decode(result.stdoutBytes), expected);
+          assert.deepEqual(Buffer.from(await fs.readFile("/input")), Buffer.from(input));
+        }
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("fold UTF-8 decoding spans chunks and preserves malformed bytes and file boundaries", async () => {
+  for (const chunkSize of [1, 2, 3, 4, 7]) {
+    for (const [args, input, expected] of [
+      [["-w4"], "Changed界🚀Tail\n", "Chan\nged\n界🚀\nTail\n"],
+      [["-bw1"], "界🚀", "界\n🚀"],
+      [["-w1"], "e\u0301x", "e\u0301\nx"],
+      [["-sw5"], "界 a語b", "界 \na語b"],
+    ] as const) {
+      const result = await runFixture(fixture("utf8-chunks", "fold", args, input), {}, { env: { LC_ALL: "C.UTF-8" } }, chunkSize);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
+    }
+    const malformed = await runFixture(fixture("utf8-malformed", "fold", ["-bw2"], Buffer.from([0xe7, 0x95, 0x41, 0xff, 0xf0, 0x9f])), {}, { env: { LANG: "C.utf8" } }, chunkSize);
+    assert.equal(malformed.exitCode, 0, malformed.stderr);
+    assert.equal(malformed.stdoutHex, "e7950a41ff0af09f");
+  }
+  const files = await runFixture(fixture("utf8-file-boundary", "fold", ["-bw4", "first", "second"], "", { first: "e795", second: Buffer.from("界").toString("hex") }), {}, { env: { LC_ALL: "C.UTF-8" } }, 1);
+  assert.equal(files.exitCode, 0, files.stderr);
+  assert.equal(files.stdoutHex, "e795e7958c");
+});
+
+test("fold respects locale precedence and retains C byte wrapping", async () => {
+  for (const [env, expected] of [
+    [{ LC_ALL: "C", LC_CTYPE: "C.UTF-8", LANG: "C.UTF-8" }, "e7950a8ce70a958c"],
+    [{ LC_ALL: "", LC_CTYPE: "C.UTF-8", LANG: "C" }, "e7958c0ae7958c"],
+    [{ LANG: "en_US.utf8@modifier" }, "e7958c0ae7958c"],
+    [{ LC_CTYPE: "C", LANG: "C.UTF-8" }, "e7950a8ce70a958c"],
+  ] as const) {
+    const result = await runFixture(fixture("fold-locale", "fold", ["-w2"], "界界"), {}, { env });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdoutHex, expected);
+  }
+});
+
+test("fold UTF-8 character mode composes with ordered byte flags", async () => {
+  for (const [args, expected] of [
+    [["-cw2"], "界🚀\n語"],
+    [["--characters", "-w2"], "界🚀\n語"],
+    [["-bcw2"], "界🚀\n語"],
+    [["-cbw2"], "界\n🚀\n語"],
+  ] as const) {
+    const result = await runFixture(fixture("utf8-character-options", "fold", args, "界🚀語"), {}, { env: { LC_ALL: "C.UTF-8" } }, 1);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+});

@@ -73,20 +73,24 @@ accepted numeric-fixer behavior rather than a newly narrowed flag profile.
 ### fold
 
 `-w N`, `--width=N` sets a positive width (default80). `-b`, `--bytes` counts
-every non-LF byte as one. Otherwise the fixed C/POSIX byte-column profile uses
-8-column tabs, decrementing backspace, reset-on-CR, and one column for every
-other byte. `-s`, `--spaces` wraps after the last ASCII space or tab already
-buffered when width would be exceeded; the blank is preserved. Tabs can exceed
-a narrow requested width by themselves, as GNU9.7 does. Each operand starts
-with a fresh column and pending-line buffer.
+encoded bytes. In UTF-8 locales, valid scalars remain indivisible even in byte
+mode, and column mode uses the bundled Unicode17 width table (wide CJK/emoji
+count two columns, combining marks count zero). This deterministic profile does
+not emulate arbitrary libc locale tables or grapheme/terminal rendering.
+The first nonempty `LC_ALL`, `LC_CTYPE`, then `LANG` selects the profile; names
+ending in UTF-8 or UTF8 (case-insensitive, before an optional @ modifier) select
+UTF-8. Other locales retain the C/POSIX byte-column profile.
+`-c`, `--characters` counts decoded scalars in UTF-8 and bytes in C;
+the last `-b` or `-c` wins. Column controls still apply in character mode.
 
-Pending output is record-bounded, including a long CR/backspace-heavy sequence
-whose display column never reaches the width. UTF8 is preserved, not interpreted
-as display cells or characters. Locale environment values do not switch this
-byte profile and are not rejected. This does not claim Unicode display-width
-parity or newer GNU character modes. Numeric `-WIDTH` syntax (for example `-3`)
-is supported under the pinned GNU9.7 Darwin profile; every supplied width is
-validated before the last valid width is used.
+Column mode uses 8-column tabs, decrementing backspace and reset-on-CR.
+`-s`, `--spaces` wraps after the last buffered ASCII space or tab and preserves
+the blank. A single scalar or tab may exceed a narrow requested width.
+Each operand starts with a fresh column, decoder and pending-line buffer.
+Invalid and incomplete UTF-8 bytes are preserved individually, without replacement.
+Pending output remains record-bounded, including long CR/backspace-heavy input.
+Numeric `-WIDTH` syntax (for example `-3`) is supported; every supplied width
+is validated before the last valid width is used.
 
 ### strings
 

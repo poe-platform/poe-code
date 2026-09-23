@@ -1,3 +1,4 @@
+import { decodeFoldUnit, type FoldUnit } from "./units.js";
 import { FoldError, validateLimits, type FoldLimits, type FoldOptions } from './contracts.js';
 import { adjustFoldColumn } from './column.js';
 // Inspect intrinsic slots across realms; producer properties must not change
@@ -6,22 +7,6 @@ const byteViewPrototype = Object.getPrototypeOf(Uint8Array.prototype) as object;
 const byteType = Object.getOwnPropertyDescriptor(byteViewPrototype, Symbol.toStringTag)!.get!;
 const byteLength = Object.getOwnPropertyDescriptor(byteViewPrototype, 'byteLength')!.get!;
 const byteValues = Uint8Array.prototype.values;
-interface Unit { cp: number; length: number; valid: boolean }
-function decode(bytes: ArrayLike<number>, offset: number, available: number, eof: boolean): Unit | undefined {
-  const first = bytes[offset]!;
-  if (first < 128) return { cp: first, length: 1, valid: true };
-  const length = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
-  const invalid = { cp: first, length: 1, valid: false };
-  if (length === 1) return invalid;
-  for (let i = 1; i < Math.min(length, available); i++) {
-    const b = bytes[offset + i]!;
-    if (b < 128 || b > 191 || (i === 1 && ((first === 0xe0 && b < 0xa0) || (first === 0xed && b > 0x9f) || (first === 0xf0 && b < 0x90) || (first === 0xf4 && b > 0x8f)))) return invalid;
-  }
-  if (available < length) return eof ? invalid : undefined;
-  let cp = first & (length === 2 ? 31 : length === 3 ? 15 : 7);
-  for (let i = 1; i < length; i++) cp = cp * 64 + (bytes[offset + i]! & 63);
-  return { cp, length, valid: true };
-}
 export interface FoldAccounting {
   readonly inputBytes: number;
   readonly decodedBytes: number;
@@ -61,7 +46,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, limits: F
     if (amount > work - steps) throw new FoldError('LIMIT', 'Algorithm work limit exceeded');
     steps += amount;
   };
-  const adjust = (unit: Unit, rescan = false): number => {
+  const adjust = (unit: FoldUnit, rescan = false): number => {
     check();
     // mbbuf input errors have invalid width; mcel remainder scans use ch=0.
     // A malformed byte must never inherit the Unicode width of its byte value.
@@ -80,9 +65,9 @@ export function createFoldEngine(options: FoldOptions, locale: string, limits: F
     if (lf) bytes[length] = 10;
     emitted.push(bytes);
   };
-  const scan = (offset: number): Unit => locale === 'C' ? { cp: line[offset]!, length: 1, valid: line[offset]! < 128 } : decode(line, offset, used - offset, true)!;
+  const scan = (offset: number): FoldUnit => locale === 'C' ? { cp: line[offset]!, length: 1, valid: line[offset]! < 128 } : decodeFoldUnit(line, offset, used - offset, true)!;
   const blank = (cp: number): boolean => cp === 9 || cp === 32 || (locale !== 'C' && (cp === 0x1680 || (cp >= 0x2000 && cp <= 0x200a && cp !== 0x2007) || cp === 0x205f || cp === 0x3000));
-  const consume = (unit: Unit, bytes: ArrayLike<number>): void => {
+  const consume = (unit: FoldUnit, bytes: ArrayLike<number>): void => {
     check();
     if (unit.cp === 10) { emit(used, true); used = column = lastBlank = 0; return; }
     for (;;) {
@@ -104,7 +89,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, limits: F
   };
   const drain = (eof: boolean): void => {
     while (pending.length) {
-      const unit = locale === 'C' ? { cp: pending[0]!, length: 1, valid: pending[0]! < 128 } : decode(pending, 0, pending.length, eof);
+      const unit = locale === 'C' ? { cp: pending[0]!, length: 1, valid: pending[0]! < 128 } : decodeFoldUnit(pending, 0, pending.length, eof);
       if (!unit) break;
       if (unit.length > decodedLimit - decoded) throw new FoldError('LIMIT', 'Decoded byte limit exceeded');
       check(unit.length);

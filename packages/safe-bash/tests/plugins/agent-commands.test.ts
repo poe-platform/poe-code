@@ -35,7 +35,7 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware installation"); }, registerFileSystem() { throw new Error("Unexpected filesystem installation"); } };
 }
 
-test("default fold counting flags use the last requested mode and retain the C profile", async t => {
+test("default fold counting flags use the last requested mode in UTF-8", async t => {
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: 'C.UTF-8' } }).use(agentCommands());
   t.after(() => shell.dispose());
   for (const flags of ['-bc', '-b -c', '--bytes --characters']) {
@@ -51,7 +51,7 @@ test("default fold counting flags use the last requested mode and retain the C p
     assert.equal(result.stderr, '');
   }
   const unicode = await shell.exec("printf 'éé' | fold -c -w2");
-  assert.equal(unicode.stdout, 'é\né');
+  assert.equal(unicode.stdout, 'éé');
   assert.equal(unicode.exitCode, 0);
   const invalid = await shell.exec("printf abc | fold --characters=yes");
   assert.equal(invalid.exitCode, 1);

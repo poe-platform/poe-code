@@ -31,19 +31,27 @@ interface Settings {
 interface InputState { stdinUsed: boolean; budget: ByteInputBudget }
 interface ReadProgress { hasData: boolean }
 interface Digest { hex: string; length: bigint }
-interface Entry { digest: string; filename: string }
+interface Entry { digest: string; filename: string; algorithm: Algorithm }
 
 function parseCksum(args: readonly string[]): { algorithm: Algorithm; settings: Settings } {
-  const parsed = options(args, "a:bz", { algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false });
+  let report: ReportMode = "normal";
+  const parsed = options(args, "a:bczw", { check: "c", warn: "w", quiet: false, status: false, strict: false, "ignore-missing": false, algorithm: "a", binary: "b", tag: false, zero: "z", untagged: false, raw: false, base64: false },
+    false, undefined, undefined, key => {
+      if (key === "quiet" || key === "status") report = key;
+      if (key === "w") report = "warn";
+    });
   const algorithm = value(parsed, "a") ?? "crc";
   if (!["crc", "md5", "sha1", "sha224", "sha256", "sha384", "sha512"].includes(algorithm)) throw new UsageError(`unsupported checksum algorithm '${algorithm}'`);
   if (parsed.flags.has("raw") && (algorithm === "crc" || ["tag", "untagged", "base64", "z"].some(flag => parsed.flags.has(flag)))) {
     throw new UsageError("--raw requires a hash algorithm and cannot be combined with --tag, --untagged, --base64 or --zero");
   }
+  const check = parsed.flags.has("c");
+  if (!check && (report !== "normal" || parsed.flags.has("strict") || parsed.flags.has("ignore-missing"))) throw new UsageError("verification options require --check");
+  if (check && ["b", "z", "tag", "raw", "base64"].some(flag => parsed.flags.has(flag))) throw new UsageError("output options are not supported with --check");
   return { algorithm: algorithm as Algorithm, settings: {
-    operands: parsed.operands, binary: parsed.flags.has("b"), check: false,
+    operands: parsed.operands, binary: parsed.flags.has("b"), check,
     zero: parsed.flags.has("z"), tag: !parsed.flags.has("untagged") || parsed.flags.has("tag"),
-    strict: false, ignoreMissing: false, report: "normal",
+    strict: parsed.flags.has("strict"), ignoreMissing: parsed.flags.has("ignore-missing"), report,
     ...(parsed.flags.has("raw") ? { encoding: "raw" as const } : parsed.flags.has("base64") ? { encoding: "base64" as const } : {}),
   } };
 }
@@ -186,6 +194,17 @@ async function* manifestLines(input: ByteSource, signal: AbortSignal): AsyncGene
 }
 
 function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | undefined {
+  if (algorithm === "crc") {
+    // The default cksum verifier accepts tagged records only, selecting a hash per line.
+    let text: string;
+    try { text = utf8.decode(bytes).trimStart(); } catch { return undefined; }
+    if (text.startsWith("\\")) text = text.slice(1);
+    for (const candidate of Object.keys(hashes) as (keyof typeof hashes)[]) {
+      if (text.startsWith(`${candidate.toUpperCase()} (`) || text.startsWith(`${candidate.toUpperCase()}(`)) return parseEntry(bytes, candidate);
+    }
+    if (text === "" || text.startsWith("#")) return "skip";
+    return undefined;
+  }
   let line: string;
   try { line = utf8.decode(bytes); } catch { return undefined; }
   if (line.endsWith("\r")) line = line.slice(0, -1);
@@ -207,7 +226,7 @@ function parseEntry(bytes: Uint8Array, algorithm: Algorithm): Entry | "skip" | u
     if (invalid) return undefined;
   }
   try { validateFilename(filename); } catch { return undefined; }
-  return { digest: (tagged ? tagged[3]! : match![2]!).toLowerCase(), filename };
+  return { digest: (tagged ? tagged[3]! : match![2]!).toLowerCase(), filename, algorithm };
 }
 
 async function report(context: CommandContext, filename: string, status: string): Promise<void> {
@@ -234,7 +253,7 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
     valid = true;
     let actual: Digest;
     const progress: ReadProgress = { hasData: false };
-    try { actual = await digest(source(context, entry.filename, state), algorithm, context.signal, progress); }
+    try { actual = await digest(source(context, entry.filename, state), entry.algorithm, context.signal, progress); }
     catch (error) {
       state.budget.assertOpen(context.signal);
       if (settings.ignoreMissing && entry.filename !== "-" && !progress.hasData && codeOf(error) === "ENOENT") continue;

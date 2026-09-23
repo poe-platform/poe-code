@@ -50,7 +50,12 @@ Base64 instead of hex, in either tagged or untagged records. `--raw` emits only
 the hash digest bytes, without names or delimiters; it requires a hash algorithm
 and cannot be combined with `--tag`, `--untagged`, `--base64` or `--zero`.
 CRC keeps its decimal checksum/length format with `--untagged` or `--base64`.
-Other algorithms, checksum verification, text selectors and output-length options remain rejected.
+Other algorithms, text selectors and output-length options remain rejected.
+`-c`/`--check` supports the reporting flags in the table above. Without a
+selected hash, verification detects the algorithm of each tagged SHA/MD5
+record, including mixed manifests; an explicit hash also accepts untagged
+records. Binary, zero, explicit tag, raw and base64 output options cannot be
+combined with verification. Legacy decimal CRC records are not verifiable.
 This is not the complete modern GNU interface. Existing SHA/MD5 command
 verification behavior and default CRC bytes/length output are unchanged.
 

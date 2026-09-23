@@ -193,7 +193,7 @@ test("all unknown flags and invalid combinations are rejected", async () => {
   for (const args of [["--tag=yes"], ["--algorithm=sha256"], ["--quiet"], ["--status"], ["--strict"], ["--ignore-missing"], ["-w"], ["-cz"], ["-cb"], ["-ct"], ["--check=yes"], ["-q"], ["--nope"]]) {
     assert.equal((await run("sha256sum", args)).exitCode, 2, args.join(" "));
   }
-  for (const args of [["-c"], ["--binary=yes"], ["--tag=yes"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {
+  for (const args of [["-c", "-z"], ["--binary=yes"], ["--tag=yes"], ["--text"], ["--algorithm=unknown"], ["--strict"]]) {
     assert.equal((await run("cksum", args)).exitCode, 2);
   }
 });

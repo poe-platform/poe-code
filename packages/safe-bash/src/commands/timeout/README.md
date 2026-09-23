@@ -13,9 +13,10 @@ deadline, `--signal`, and `-p`/`--preserve-status` options. They do not grant na
 TTY access or implement native descendant signal policy; trusted host commands
 remain responsible for honoring cancellation and cleaning up their resources.
 
-Durations use the ASCII `smhd` grammar fixed by the accepted timeout profile.
-The parser scans the existing string once in reverse with constant auxiliary
-state, performs exact decimal scaling, and accepts values through
+Durations accept leading ASCII whitespace, an optional sign, decimal or C
+hexadecimal floating-point notation, and optional `s`, `m`, `h`, or `d` units.
+Negative values are rejected except mathematical zero. The parser performs exact
+scaling, rounds positive fractional milliseconds up, and accepts values through
 `Number.MAX_SAFE_INTEGER` milliseconds. Mathematical zero creates no deadline
 resources. Positive durations use one opaque timer handle at a time, clear a
 completed chunk before rearming, and retain the final handle through cooperative

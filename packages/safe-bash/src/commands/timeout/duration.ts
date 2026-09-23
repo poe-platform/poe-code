@@ -1,4 +1,4 @@
-const maximumMilliseconds = Number.MAX_SAFE_INTEGER;
+const maximumMilliseconds = BigInt(Number.MAX_SAFE_INTEGER);
 
 export type DurationResult =
   | { readonly kind: "value"; readonly milliseconds: number }
@@ -12,63 +12,62 @@ function multiplier(code: number): number | undefined {
   if (code === 100) return 86400000;
   return undefined;
 }
+
 export function parseDuration(token: string): DurationResult {
-  const length = token.length;
-  const suffixCode = token.charCodeAt(length - 1);
-  const suffixMultiplier = multiplier(suffixCode);
-  const millisecondsPerUnit = suffixMultiplier ?? 1000;
-  const quotient = Math.floor(maximumMilliseconds / millisecondsPerUnit);
-  let index = length - 1 - (suffixMultiplier === undefined ? 0 : 1);
-  let invalid = false;
+  const end = token.length;
+  let index = 0;
+  while (index < end && (token[index] === " " || (token.charCodeAt(index) >= 9 && token.charCodeAt(index) <= 13))) index++;
+  const negative = token[index] === "-";
+  if (negative || token[index] === "+") index++;
+  const hexadecimal = token[index] === "0" && (token[index + 1] === "x" || token[index + 1] === "X");
+  if (hexadecimal) index += 2;
+  const radix = hexadecimal ? 16 : 10;
+  let digits = "";
+  let fractionalDigits = 0;
   let sawPoint = false;
-  let trailingDigits = 0;
-  let integerDigits = 0;
-  let integer = 0;
-  let place = 1;
-  let placeOverflow = false;
-  let integerOverflow = false;
-  let fractionCarry = 0;
-  let fractionSticky = false;
-
-  for (; index >= 0; index--) {
-    const code = token.charCodeAt(index);
-    if (code >= 48 && code <= 57) {
-      const digit = code - 48;
-      if (!sawPoint) {
-        trailingDigits++;
-        const temporary = digit * millisecondsPerUnit + fractionCarry;
-        fractionCarry = Math.floor(temporary / 10);
-        fractionSticky ||= temporary % 10 !== 0;
-      } else integerDigits++;
-      if (digit !== 0) {
-        if (placeOverflow || digit > Math.floor((quotient - integer) / place)) integerOverflow = true;
-        else integer += digit * place;
-      }
-      if (!placeOverflow) {
-        if (place > Math.floor(quotient / 10)) placeOverflow = true;
-        else place *= 10;
-      }
+  while (index < end) {
+    const character = token[index]!;
+    if (character === "." && !sawPoint) {
+      sawPoint = true;
+      index++;
       continue;
     }
-    if (code === 46) {
-      if (sawPoint) invalid = true;
-      else {
-        sawPoint = true;
-        integer = 0;
-        place = 1;
-        placeOverflow = false;
-        integerOverflow = false;
-      }
-      continue;
-    }
-    invalid = true;
+    const code = character.toLowerCase().charCodeAt(0);
+    const digit = code >= 48 && code <= 57 ? code - 48 : code >= 97 && code <= 102 ? code - 87 : radix;
+    if (digit >= radix) break;
+    digits += character;
+    if (sawPoint) fractionalDigits++;
+    index++;
   }
-
-  if (sawPoint ? trailingDigits + integerDigits === 0 : trailingDigits === 0) invalid = true;
-  if (invalid) return { kind: "invalid" };
-  if (integerOverflow) return { kind: "overflow" };
-  const fraction = sawPoint ? fractionCarry + (fractionSticky ? 1 : 0) : 0;
-  const product = integer * millisecondsPerUnit;
-  if (fraction > maximumMilliseconds - product) return { kind: "overflow" };
-  return { kind: "value", milliseconds: product + fraction };
+  if (digits.length === 0) return { kind: "invalid" };
+  let exponent = 0;
+  const exponentMarker = hexadecimal ? "p" : "e";
+  // Saturation bounds arithmetic to the operand size, including fractional scale.
+  const exponentLimit = token.length * 4 + 100;
+  if (token[index]?.toLowerCase() === exponentMarker) {
+    index++;
+    const exponentNegative = token[index] === "-";
+    if (exponentNegative || token[index] === "+") index++;
+    const start = index;
+    while (index < end && token.charCodeAt(index) >= 48 && token.charCodeAt(index) <= 57) {
+      exponent = Math.min(exponentLimit, exponent * 10 + token.charCodeAt(index) - 48);
+      index++;
+    }
+    if (index === start) return { kind: "invalid" };
+    if (exponentNegative) exponent = -exponent;
+  }
+  const suffixMultiplier = multiplier(token.charCodeAt(index));
+  if (index !== end && (suffixMultiplier === undefined || index + 1 !== end)) return { kind: "invalid" };
+  const significand = BigInt(hexadecimal ? "0x" + digits : digits);
+  if (significand === 0n) return { kind: "value", milliseconds: 0 };
+  if (negative) return { kind: "invalid" };
+  const scale = exponent - fractionalDigits * (hexadecimal ? 4 : 1);
+  const base = hexadecimal ? 2n : 10n;
+  let numerator = significand * BigInt(suffixMultiplier ?? 1000);
+  let denominator = 1n;
+  if (scale >= 0) numerator *= base ** BigInt(scale);
+  else denominator = base ** BigInt(-scale);
+  const milliseconds = (numerator + denominator - 1n) / denominator;
+  if (milliseconds > maximumMilliseconds) return { kind: "overflow" };
+  return { kind: "value", milliseconds: Number(milliseconds) };
 }

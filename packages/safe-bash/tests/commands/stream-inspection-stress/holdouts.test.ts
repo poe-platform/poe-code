@@ -392,6 +392,10 @@ test("raw object marker honors supported data and encoding modes and rejects inv
       assert.equal(result.stdout, expected, args);
       assert.equal(result.stderr, "", args);
     }
+    const wide = await instance.exec("strings -e l", { stdin: Buffer.from("WIDE_DATA\0", "utf16le") });
+    assert.equal(wide.exitCode, 0, wide.stderr);
+    assert.equal(wide.stdout, "WIDE_DATA\n");
+    assert.equal(wide.stderr, "");
     for (const [args, diagnostic] of [
       ["-e z", "strings: invalid encoding 'z'\n"],
       ["-U unsupported", "strings: invalid Unicode option 'unsupported'\n"],

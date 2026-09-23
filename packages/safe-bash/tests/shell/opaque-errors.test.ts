@@ -215,7 +215,7 @@ for (const [source, exitCode, diagnostic] of [
   ["split --bad-option", 1, "split: unrecognized option '--bad-option'\n"],
   ["find / -delete -prune", 1, "find: -delete implies -depth; -prune is ineffective unless -depth is explicitly supplied\n"],
   ["printf '?' | base64 -d", 1, "base64: invalid input\n"],
-  ["printf 'x' | xxd -r -p", 1, "xxd: invalid input: expected hexadecimal digits or ASCII whitespace\n"],
+  ["printf 'x' | xxd -r", 1, "xxd: invalid input: expected hexadecimal address and colon\n"],
   ["printf 'x' | gunzip", 1, "gunzip: unexpected end of file\n"],
 ] as const) {
   test(`CONTROL existing user diagnostic ${source}`, async context => {
@@ -225,6 +225,14 @@ for (const [source, exitCode, diagnostic] of [
     assert.equal(result.stderr, diagnostic);
   });
 }
+
+test("CONTROL plain xxd reversal ignores nonhex input without a diagnostic", async context => {
+  const { shell } = fixture(context);
+  const result = await shell.exec("printf 'x' | xxd -r -p");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+});
 
 for (const reason of [null, false, 0, ""] as const) {
   test(`CONTROL active abort preserves ${JSON.stringify(reason)} identity`, async context => {

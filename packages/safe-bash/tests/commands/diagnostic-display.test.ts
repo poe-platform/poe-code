@@ -13,7 +13,6 @@ import { createNodeCommand, NODE_PROFILE } from "../../src/commands/node/index.j
 import { RegexSession } from "../../src/commands/regex-execution/client.js";
 import { validateExprReply, type ExprMatchDescriptor } from "../../src/commands/regex-execution/protocol.js";
 import { run as runExpr } from "./expr/helpers.js";
-import { yqCaps } from "../../src/commands/yq/accounting.js";
 
 const marker = "bad\u001b[31m";
 const escaped = "bad\\033[31m";
@@ -134,15 +133,13 @@ test("script-name and here-document warning fields use diagnostic escaping", asy
   assert.equal(warning.stderr.includes(JSON.stringify(marker)), true, JSON.stringify(warning.stderr));
 });
 
-test("yq truncates the rendered filename without doubling existing diagnostic quoting", async () => {
+test("yq renders the full filename without doubling existing diagnostic quoting", async () => {
   const name = `/missing-${"\u009b".repeat(200)}`;
   const actual = await run(`yq . ${quote(name)}`, undefined, createYqCommand());
   assert.notEqual(actual.exitCode, 0);
   assert.equal(actual.stderr.includes("\u009b"), false);
   const display = actual.stderr.slice(actual.stderr.indexOf('"'), actual.stderr.lastIndexOf('"') + 1);
-  assert.equal(display.endsWith('..."'), true, JSON.stringify(actual.stderr));
-  assert.ok(Buffer.byteLength(display) <= yqCaps.maxDisplayedFilenameBytes);
-  assert.equal(display.includes("\\302\\233"), true);
+  assert.equal(display, `"/missing-${"\\302\\233".repeat(200)}"`);
 });
 
 test("program stderr and redirected bytes are not diagnostic display", async () => {

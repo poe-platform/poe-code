@@ -189,7 +189,7 @@ function definition(configuration: Settings): CommandDefinition {
         stdout: context.stdout,
         stderr: context.stderr,
       };
-      if (killAfterMilliseconds !== undefined && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0) {
+      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && configuration.killAfterPolicy !== undefined && parsed.milliseconds !== 0) {
         context.signal.throwIfAborted();
         const result = await configuration.killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
           durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,

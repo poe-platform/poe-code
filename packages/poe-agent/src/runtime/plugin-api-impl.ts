@@ -13,6 +13,7 @@ import { toolResultPartToText } from "./tool-results.js";
 import { assertValidToolName } from "./tool-names.js";
 import type { Tool, ToolResult, ToolResultPart } from "./types.js";
 import type { RunContext } from "./run-context.js";
+import type { AgentRuntime } from "./filesystem.js";
 
 const DEFAULT_MCP_CLIENT_INFO = {
   name: "poe-agent",
@@ -29,12 +30,12 @@ export class PluginApiImpl implements PluginApi {
     this.#pluginName = pluginName;
   }
 
-  get runtime() { return this.#runContext.runtime; }
-  get fs() { return this.runtime.fs; }
+  get runtime(): AgentRuntime { return this.#runContext.runtime; }
+  get fs(): AgentRuntime["fs"] { return this.runtime.fs; }
   get cwd() { return this.runtime.cwd; }
   get homeDir() { return this.runtime.homeDir; }
   get signal() { return this.runtime.signal; }
-  get nodeFs() { return this.runtime.nodeFs; }
+  get nodeFs(): AgentRuntime["nodeFs"] { return this.runtime.nodeFs; }
   get customFs() { return this.runtime.customFs; }
 
   addTool(tool: Tool): void {

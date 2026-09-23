@@ -293,7 +293,7 @@ for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
   test(`RED optional SafeJS host ${stage} rejection is opaque`, async context => {
     const runtime = {
       createBudget() { return {}; },
-      makeFsModule() { return {}; },
+      makeFsModule() { return { readFile() { assert.fail("eval must not read guest files"); } }; },
       declareHostOperation(operation) { return operation; },
       async run() { return { ok: true }; },
     } satisfies SafeJsRuntime<object>;
@@ -366,7 +366,7 @@ for (const [command, input, message] of [
 
 test("CONTROL optional SafeJS explicit guest error result remains guest-visible", async context => {
   const runtime: SafeJsRuntime<object> = {
-    createBudget() { return {}; }, makeFsModule() { return {}; },
+    createBudget() { return {}; }, makeFsModule() { return { readFile() { assert.fail("eval must not read guest files"); } }; },
     declareHostOperation(operation) { return operation; },
     async run() { return { ok: false, error: { name: "ParseError", message: "guest parse diagnostic" } }; },
   };
@@ -563,7 +563,7 @@ for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
   test(`HOST SafeJS ${stage} keeps original falsey or error identity`, async context => {
     const seen: unknown[] = [];
     const failure = stage === "run" ? null : new TypeError(secret);
-    const runtime = { createBudget() { return {}; }, makeFsModule() { return {}; }, declareHostOperation(operation) { return operation; }, async run() { return { ok: true }; } } satisfies SafeJsRuntime<object>;
+    const runtime = { createBudget() { return {}; }, makeFsModule() { return { readFile() { assert.fail("eval must not read guest files"); } }; }, declareHostOperation(operation) { return operation; }, async run() { return { ok: true }; } } satisfies SafeJsRuntime<object>;
     runtime[stage] = () => { throw failure; };
     const { shell } = fixture(context, createSafeJsCommands({ runtime }), { onInternalError(reason) { seen.push(reason); } });
     const result = await shell.exec("node -e '1'");

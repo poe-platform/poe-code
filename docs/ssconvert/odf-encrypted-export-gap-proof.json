@@ -295,6 +295,49 @@
     "screenshotInspected": {
       "sha256": "1a9ef0cf878fbb8806ae765fe7b43876eb1807747c178fe7930fb926bfcfd294",
       "result": "Two readable profile rows; browser/worker bytes exact; CSV and XML replay pass."
+    },
+    "postCommitShellFileWorkflow": {
+      "initialHarnessError": "CSV readback to fd://1 omitted explicit exporter and was correctly refused; corrected readback explicitly selects Gnumeric_stf:stf_csv.",
+      "rows": [
+        {
+          "profile": "openoffice",
+          "outputBytes": 3772,
+          "csv": "private,42\n",
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        },
+        {
+          "profile": "odf",
+          "outputBytes": 3805,
+          "csv": "private,42\n",
+          "requests": [
+            {
+              "purpose": "encrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": "/encrypted.ods"
+            },
+            {
+              "purpose": "decrypt",
+              "algorithm": "aes-cbc",
+              "encoding": "utf8",
+              "outputFilename": null
+            }
+          ]
+        }
+      ]
     }
   },
   "sourceHashes": {
@@ -307,9 +350,13 @@
     "packages/ssconvert/src/engine.ts": "e8b88c02fa62d2742bd41470d4e20edb0a9c3e475d1a17b889302fe489f25748"
   },
   "delivery": {
-    "localCommit": "pending at record creation",
-    "remoteMain": "pending",
-    "publication": "pending"
+    "localCommit": "548d7c3af39068df8b36623f8556570e97264f37",
+    "remoteMain": {
+      "containingHead": "421f2db8903e8efb3a15ced2ddecfdb2dfde058d",
+      "verifiedAt": "2026-09-23T16:33:26.234099+00:00",
+      "ancestorVerified": true
+    },
+    "publication": "pending; superseded direct run35888169195 cancelled, containing validation still required"
   },
   "wholeGoalComplete": false
 }

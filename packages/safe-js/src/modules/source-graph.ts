@@ -1,4 +1,4 @@
-import {parseSourceModule, type ParsedSourceModule} from "../parse/source-module.js";
+import {parseSourceModule, type ParsedSourceModule, type SourceExport, type SourceImport} from "../parse/source-module.js";
 import {AsyncLocalStorage} from "node:async_hooks";
 import type { Module } from "../parse/parser.js";
 import {interpret, type InterpretOptions} from "../interp/interpreter.js";
@@ -19,6 +19,9 @@ type RecordEntry = {
   id: string;
   source: string;
   parsed: ParsedSourceModule;
+  explicitExports: Map<string, SourceExport>;
+  localImports: Map<string, SourceImport>;
+  starExports: SourceExport[];
   scope: Scope;
   dependencies: Map<string, RecordEntry | SandboxObject>;
   namespace?: SandboxObject;
@@ -43,6 +46,7 @@ export class SourceModuleGraph {
   private readonly records = new Map<string, RecordEntry>();
   private readonly requests = new Map<string, Promise<RecordEntry | SandboxObject>>();
   private requestDataSize = 0;
+  private lookupDataSize = 0;
   private readonly pendingImports = new Set<Promise<SandboxObject>>();
   private fulfilledImports = 0;
   private rejectedImports = 0;
@@ -67,6 +71,13 @@ export class SourceModuleGraph {
   close(): void {
     this.options.budget?.setRetainedValues(this,undefined);
     this.options.budget?.setRetainedDataUsage(this.requests,0);
+    for (const record of this.records.values()) {
+      record.explicitExports.clear();
+      record.localImports.clear();
+      record.starExports.length = 0;
+    }
+    this.options.budget?.setRetainedDataUsage(this.records,0);
+    this.lookupDataSize = 0;
     this.requestDataSize = 0;
     this.records.clear();
     this.requests.clear();
@@ -170,9 +181,35 @@ export class SourceModuleGraph {
       }
       this.options.budget?.chargeDataUsage(source.source.length + source.id.length + 1);
       const parsed = parseSourceModule(source.source, source.id, this.options.compilation?.owner ?? this.options.compileOwner, { sharedPositions: true, compactAst: true });
+      const explicitExports = new Map<string, SourceExport>();
+      const localImports = new Map<string, SourceImport>();
+      const starExports: SourceExport[] = [];
+      for (const entry of parsed.exports) {
+        this.options.budget?.visitNode();
+        if (entry.exported === undefined) {
+          const lookupDataSize = this.lookupDataSize + 1;
+          this.options.budget?.setRetainedDataUsage(this.records, lookupDataSize);
+          this.lookupDataSize = lookupDataSize;
+          starExports.push(entry);
+        } else if (!explicitExports.has(entry.exported)) {
+          const lookupDataSize = this.lookupDataSize + entry.exported.length + 2;
+          this.options.budget?.setRetainedDataUsage(this.records, lookupDataSize);
+          this.lookupDataSize = lookupDataSize;
+          explicitExports.set(entry.exported, entry);
+        }
+      }
+      for (const entry of parsed.imports) {
+        this.options.budget?.visitNode();
+        if (!localImports.has(entry.local)) {
+          const lookupDataSize = this.lookupDataSize + entry.local.length + 2;
+          this.options.budget?.setRetainedDataUsage(this.records, lookupDataSize);
+          this.lookupDataSize = lookupDataSize;
+          localImports.set(entry.local, entry);
+        }
+      }
       const importMeta = Object.create(null) as SandboxObject;
       setSandboxPrototype(importMeta,null);
-      const record: RecordEntry = {id:source.id, source:source.source, parsed,
+      const record: RecordEntry = {id:source.id, source:source.source, parsed, explicitExports, localImports, starExports,
         scope: new Scope({this:undefined},this.options.scope,importMeta, {functionBoundary:true}), dependencies:new Map()};
       record.scope.moduleEnvironment = this.options.modules;
       record.scope.moduleId = record.id;
@@ -303,24 +340,17 @@ export class SourceModuleGraph {
     const leave = this.options.budget?.enterCall();
     try {
       visited.add(key);
-      const explicit = record.parsed.exports.find(entry => {
-        this.options.budget?.visitNode();
-        return entry.exported === name;
-      });
+      const explicit = record.explicitExports.get(name);
       if (explicit?.local !== undefined) {
-        const imported = record.parsed.imports.find(entry => {
-          this.options.budget?.visitNode();
-          return entry.local === explicit.local;
-        });
+        const imported = record.localImports.get(explicit.local);
         if (imported === undefined || imported.namespace === true) return {record,name:explicit.local};
         return this.resolveDependency(record, imported.request, imported.imported,visited);
       }
       if (explicit?.request !== undefined) return this.resolveDependency(record,explicit.request,explicit.imported!,visited,explicit.namespace);
       if (name === "default") return undefined;
       let resolved: Binding | undefined;
-      for (const entry of record.parsed.exports) {
+      for (const entry of record.starExports) {
         this.options.budget?.visitNode();
-        if (entry.exported !== undefined) continue;
         const candidate = this.resolveDependency(record,entry.request!,name,visited);
         if (candidate === ambiguous) return ambiguous;
         if (candidate === undefined) continue;

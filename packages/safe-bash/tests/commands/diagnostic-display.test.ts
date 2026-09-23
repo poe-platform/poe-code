@@ -290,7 +290,7 @@ test("expr escapes a mocked worker error reply before output-byte admission", as
 for (const [name, source, expected] of [
   ["copy", `cp -v ${quote(`/names/${marker}`)} /copy; cat /copy`, `'/names/${escaped}' -> '/copy'\npayload`],
   ["mkdir", `mkdir -v ${quote(`/${marker}`)}; test -d ${quote(`/${marker}`)}`, `mkdir: created directory '/${escaped}'\n`],
-  ["move", `mv -v ${quote(`/names/${marker}`)} /moved; cat /moved`, `'/names/${escaped}' -> '/moved'\npayload`],
+  ["move", `mv -v ${quote(`/names/${marker}`)} /moved; cat /moved`, `renamed '/names/${escaped}' -> '/moved'\npayload`],
   ["remove", `rm -v ${quote(`/names/${marker}`)}; test ! -e ${quote(`/names/${marker}`)}`, `removed '/names/${escaped}'\n`],
   ["rmdir", `mkdir ${quote(`/${marker}`)}; rmdir -v ${quote(`/${marker}`)}; test ! -d ${quote(`/${marker}`)}`, `rmdir: removing directory '/${escaped}'\n`],
 ] as const) {

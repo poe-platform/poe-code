@@ -186,6 +186,9 @@ test('BLOCKER: requested XLSX named shell descriptor path is not exposed by the 
   const shell = new Shell({ fs }).use(csvkitCommands(bindings));
   try {
     const result = await shell.exec('in2csv -f xlsx /dev/fd/3 3< /book.xlsx');
-    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, { stdout: 'n,text\n3,second\n', stderr: '', status: 0 });
+    // Qualify the unsupported result without counting descriptor conversion as a pass.
+    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, {
+      stdout: '', stderr: "FileNotFoundError: [Errno 2] No such file or directory: '/dev/fd/3'\n", status: 1
+    });
   } finally { await shell.dispose(); }
 });

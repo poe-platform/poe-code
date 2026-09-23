@@ -1,6 +1,6 @@
 # csvgrep
 
-Filter CSV rows in a virtual filesystem or pipeline without installing a native tool.
+Filter CSV rows in a virtual filesystem or pipeline without installing a native tool. Empty input produces a single LF when filtering (including headerless mode); `--names` fails with status 1 and a concise diagnostic when no header is available.
 
 ```ts
 import { Shell } from '@poe-platform/safe-bash';

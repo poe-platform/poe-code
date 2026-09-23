@@ -60,6 +60,34 @@ function fixture(args: readonly string[], input: string, files: Record<string, s
   };
 }
 const base = "x,y,id\na,a,1\na,b,2\nb,a,3\nb,b,4\n";
+test("empty input emits LF for filtering and fails names with CLI/SDK parity", async () => {
+  for (const file of [false, true]) for (const sdk of [false, true]) {
+    for (const mode of ["filter", "headerless", "names"] as const) {
+      const names = mode === "names", headerless = mode === "headerless";
+      const args = names ? ["--names"] : ["-c1", "-mAda", ...(headerless ? ["-H"] : [])];
+      const f = fixture([...args, ...(file ? ["data"] : [])], "", { "/vfs/data": "" });
+      const result = await csvgrep(f.context, sdk ? {
+        ...(names ? { names: true } : { columns: "1", match: "Ada", headerless }),
+        ...(file ? { filePath: "data" } : {})
+      } : undefined);
+      assert.equal(result.exitCode, names ? 1 : 0);
+      assert.equal(f.text(), names ? "" : "\n");
+      assert.equal(f.error(), names ? "error: No header row available\n" : "");
+      assert.equal(result.accounting.retainedBytes, 0);
+      assert.equal(f.reads(), file ? 1 : 0);
+    }
+  }
+});
+test("empty-input output and diagnostics respect output quotas", async () => {
+  for (const args of [["-c1", "-mAda"], ["--names"]]) {
+    const f = fixture(args, "");
+    const result = await csvgrep(f.context, undefined, { limits: { outputBytes: 0 } });
+    assert.equal(result.exitCode, 1);
+    assert.equal(f.text(), "");
+    assert.equal(f.error(), "");
+    assert.equal(result.accounting.outputBytes, 0);
+  }
+});
 test("exhausted diagnostic budgets return failure without exceeding quotas", async () => {
   for (const limits of [{ outputBytes: 2 }, { work: 0 }, { retainedBytes: 0 }]) {
     const f = fixture(["-c", "x", "-m", "a"], "x\na\n");

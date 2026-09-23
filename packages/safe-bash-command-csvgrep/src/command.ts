@@ -489,6 +489,10 @@ export async function csvgrep(
         () => Boolean(options.names && headers !== undefined)
       );
       if (!options.names) await deliver(parser.end());
+      if (headers === undefined) {
+        if (options.names) throw new CsvError("INPUT", "No header row available");
+        await write(serializeRow([], b));
+      }
       return { exitCode: 0, accounting: Object.freeze({ ...b.accounting, retainedBytes: 0 }) };
     } catch (error) {
       signal.throwIfAborted();

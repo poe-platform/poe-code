@@ -19,8 +19,33 @@ for (const flag of ["n", "N"]) {
       const { shell } = setup();
       context.after(() => shell.dispose());
       const result = await shell.exec(`read -${flag} '${value}' first; args "$?"; pass`, { stdin: "untouched" });
-      assert.equal(result.stdout, JSON.stringify([flag === "N" ? "1" : "2"]) + "untouched");
+      assert.equal(result.stdout, JSON.stringify([flag === "N" || value === "9007199254740992" ? "1" : "2"]) + "untouched");
       assert.ok(result.stderr.includes("read:"));
     });
   }
+  for (const count of ["2147483648", "4294967296", "9007199254740991"]) {
+    for (const attached of [false, true]) {
+      test(`default read -${flag} rejects ${count} (${attached ? "attached" : "separate"}) without consuming input`, async () => {
+        const { shell } = setup();
+        try {
+          const result = await shell.exec(
+            `saved=old; read -${flag}${attached ? "" : " "}${count} first; code=$?; read -${flag} ${count} saved; read -r rest; args "$code" "\${first-unset}" "$saved" "$rest"; pass; exit "$code"`,
+            { stdin: "abcd\nTAIL\n" },
+          );
+          assert.equal(result.exitCode, 1);
+          assert.equal(result.stdout, '["1","unset","old","abcd"]TAIL\n');
+          assert.equal(result.stderr, `shell: line 1: read: ${count}: invalid number\nshell: line 1: read: ${count}: invalid number\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+  test(`default read -${flag} accepts the signed 32-bit maximum`, async () => {
+    const { shell } = setup();
+    try {
+      const result = await shell.exec(`read -${flag} 2147483647 first; args "$?" "$first"; pass`, { stdin: "abcd\nTAIL\n" });
+      assert.equal(result.stdout, flag === "n" ? '["0","abcd"]TAIL\n' : '["1","abcd\\nTAIL\\n"]');
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
 }

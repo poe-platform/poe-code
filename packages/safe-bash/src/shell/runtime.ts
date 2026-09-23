@@ -6667,8 +6667,8 @@ export class Runtime {
               if (value[digit]! < "0" || value[digit]! > "9") { decimal = false; break; }
             }
             const parsed = Number(value);
-            if (!decimal || !Number.isSafeInteger(parsed) || parsed < 0) {
-              if (exact) {
+            if (!decimal || !Number.isSafeInteger(parsed) || parsed < 0 || parsed > 2147483647) {
+              if (exact || decimal && parsed > 2147483647) {
                 const diagnosticIO: IO = context;
                 await writeDiagnostic(stderr, `${diagnosticIO.scriptName ?? "shell"}: line ${diagnosticIO.diagnosticLine ?? 1}: read: ${value}: invalid ${/^[+-]?0[xX]/u.test(value) ? "hex " : ""}number\n`);
                 return 1;

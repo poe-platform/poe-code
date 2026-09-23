@@ -30,17 +30,11 @@ export class Test262Agents implements AgentHost {
     if (this.failure) throw this.failure;
     const require = nodeModule.createRequire(import.meta.url);
     const canRegister = typeof nodeModule.register === "function";
-    const entry = new URL("./agent-worker.ts", import.meta.url);
-    const worker = new Worker(canRegister ? `
-      const { workerData } = require('node:worker_threads');
-      import(workerData.loader).then(({ register }) => {
-        register();
-        return import(workerData.entry);
-      }).catch(error => { throw error; });
-    ` : entry, { eval: canRegister,
+    const entry = new URL(canRegister ? "./agent-worker-bootstrap.mjs" : "./agent-worker.ts", import.meta.url);
+    const worker = new Worker(entry, {
       execArgv: canRegister ? [] : ["--loader", pathToFileURL(require.resolve("tsx")).href],
-      workerData: { source, budget: this.budget,
-        loader: pathToFileURL(require.resolve("tsx/esm/api")).href, entry: entry.href } });
+      workerData: { source, budget: this.budget }
+    });
     let ready!: Pending;
     const started = new Promise<void>((resolve, reject) => { ready = { resolve, reject }; });
     const child: Child = { worker, ready, pending: new Map(), leaving: false };

@@ -89,7 +89,7 @@ function filenameContentType(filename: string): string | undefined {
 
 function multipart(argument: DataArgument, boundary: string): Part[] {
   const equals = argument.value.indexOf("=");
-  if (equals < 1) throw new CurlError(2, "Multipart form requires name=value");
+  if (equals < 0) throw new CurlError(2, "Multipart form requires name=value");
   const name = quoted(argument.value.slice(0, equals));
   const input = argument.value.slice(equals + 1);
   const upload = argument.kind === "form" && input.startsWith("@");
@@ -130,10 +130,11 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   } while (start <= input.length);
   const mixed = entries.length > 1;
   const childBoundary = mixed ? `virtual-bash-${randomBytes(18).toString("hex")}` : boundary;
+  const disposition = `form-data${name ? `; name="${name}"` : ""}`;
   const parts: Part[] = [];
-  if (mixed) parts.push({ bytes: encode(`--${boundary}\r\nContent-Disposition: form-data; name="${name}"\r\nContent-Type: multipart/mixed; boundary=${childBoundary}\r\n\r\n`) });
+  if (mixed) parts.push({ bytes: encode(`--${boundary}\r\nContent-Disposition: ${disposition}\r\nContent-Type: multipart/mixed; boundary=${childBoundary}\r\n\r\n`) });
   for (const entry of entries) {
-    let preamble = `--${childBoundary}\r\nContent-Disposition: ${mixed ? "attachment" : `form-data; name="${name}"`}`;
+    let preamble = `--${childBoundary}\r\nContent-Disposition: ${mixed ? "attachment" : disposition}`;
     if (entry.filename !== undefined) preamble += `; filename="${quoted(entry.filename)}"`;
     preamble += "\r\n";
     if (entry.type || entry.filename !== undefined) {

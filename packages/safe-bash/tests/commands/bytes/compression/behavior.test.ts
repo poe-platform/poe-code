@@ -12,6 +12,67 @@ import { compressed } from "../../../../src/commands/archive/stream.js";
 import { DEFAULT_ARCHIVE_LIMITS } from "../../../../src/commands/archive/internal.js";
 import { binary, chunks, emptyMember, helloMember, run } from "./helpers.js";
 
+test("gzip quiet and recursive aliases round trip through Shell pipelines", async () => {
+  const fs = createMemoryFileSystem();
+  const input = new TextEncoder().encode("abc\n");
+  await fs.writeFile("/input", input);
+  const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+  try {
+    for (const flag of ["--quiet", "-q", "--recursive", "-r"]) {
+      const result = await shell.exec(`gzip ${flag} -c input | gzip -dc`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.stdoutBytes, input);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(await fs.readFile("/input"), input);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("gzip quiet suppresses warnings but preserves errors even when repeated", async () => {
+  for (const command of ["gzip", "gunzip", "zcat"]) {
+    for (const flag of ["-q", "--quiet", "-qq"]) {
+      const warning = await run(command, [flag, "-dc"], chunks(Buffer.concat([helloMember, Buffer.from("garbage")])));
+      assert.equal(warning.exitCode, 2);
+      assert.equal(warning.stderr, "");
+      assert.deepEqual(warning.stdout, gunzipSync(helloMember));
+      const error = await run(command, [flag, "-dc"], chunks(Buffer.from("plain")));
+      assert.equal(error.exitCode, 1);
+      assert.notEqual(error.stderr, "");
+      const missing = await run(command, [flag, "-dc", "missing"]);
+      assert.equal(missing.exitCode, 1);
+      assert.notEqual(missing.stderr, "");
+    }
+  }
+});
+
+test("gzip recursion compresses and decompresses nested files without following symlinks", async () => {
+  for (const flag of ["-r", "--recursive"]) {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/tree/nested", { recursive: true });
+    await fs.writeFile("/tree/first", Buffer.from("first\n"));
+    await fs.writeFile("/tree/nested/second", Buffer.from("second\n"));
+    await fs.writeFile("/outside", Buffer.from("outside\n"));
+    await fs.symlink("/outside", "/tree/link");
+    await fs.symlink("/tree", "/tree/nested/cycle");
+    const shell = new Shell({ fs, cwd: "/", commands: new CommandRegistry(createCompressionCommands()) });
+    try {
+      const compressed = await shell.exec(`gzip ${flag} tree`);
+      assert.equal(compressed.exitCode, 0, compressed.stderr);
+      for (const [path, text] of [["/tree/first", "first\n"], ["/tree/nested/second", "second\n"]] as const) {
+        assert.deepEqual(gunzipSync(await fs.readFile(path + ".gz")), Buffer.from(text));
+        await assert.rejects(fs.lstat(path), { code: "ENOENT" });
+      }
+      const decompressed = await shell.exec(`gunzip ${flag} tree`);
+      assert.equal(decompressed.exitCode, 0, decompressed.stderr);
+      assert.deepEqual(Buffer.from(await fs.readFile("/tree/first")), Buffer.from("first\n"));
+      assert.deepEqual(Buffer.from(await fs.readFile("/tree/nested/second")), Buffer.from("second\n"));
+      assert.deepEqual(Buffer.from(await fs.readFile("/outside")), Buffer.from("outside\n"));
+      assert.equal((await fs.lstat("/tree/link")).type, "symlink");
+      assert.equal((await fs.lstat("/tree/nested/cycle")).type, "symlink");
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("zstd quiet options preserve exact bytes through a Shell pipeline", async () => {
   const fs = createMemoryFileSystem();
   const input = new TextEncoder().encode("abc\n");
@@ -231,7 +292,7 @@ for (const [name, bytes] of [
   });
 }
 
-for (const flag of ["-0", "-x", "--unknown", "--stdout=yes", "--suffix", "-N", "-r"]) {
+for (const flag of ["-0", "-x", "--unknown", "--stdout=yes", "--suffix", "-N"]) {
   test(`rejects unsupported option ${flag} before mutation`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input", binary);

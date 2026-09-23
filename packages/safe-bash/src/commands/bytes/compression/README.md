@@ -24,6 +24,8 @@ it. Named files resolve relative to the injected virtual cwd.
 | `-k` | `--keep` | Retain input after successful file publication. |
 | `-f` | `--force` | Permit eligible replacement and multiply linked input; see restrictions below. |
 | `-t` | `--test` | Decompress and validate, discarding output; never modify inputs. |
+| `-q` | `--quiet` | Suppress warnings; errors remain visible even when repeated. |
+| `-r` | `--recursive` | Traverse virtual directories, processing regular files without following symlinks. |
 | `-n` | `--no-name` | Accepted; the no-name/no-timestamp header policy is always enabled. |
 | `-1` through `-9` | `--fast` (`-1`), `--best` (`-9`) | Compression level; default `6`, last level wins. |
 | `-h` | `--help` | Print usage to stdout without reading operands. |
@@ -188,7 +190,7 @@ check completion/exit status rather than treating received bytes as validated.
 This is a specified subset, not GNU/POSIX gzip compatibility certification.
 Unlike GNU gzip's default named compression, no original name/time is stored;
 metadata preservation, prompting, terminal detection, name restoration (`-N`),
-custom suffixes (`-S`), listing, recursion, verbosity/quiet, rsyncable mode,
+custom suffixes (`-S`), listing, verbosity, rsyncable mode,
 environment-driven `GZIP` options, and other undocumented flags are unsupported.
 Only gzip is decoded: not ZIP, zlib wrappers, raw DEFLATE, pack, or compress `.Z`.
 In particular, `zcat` here means gzip decompression, **not POSIX compress-format

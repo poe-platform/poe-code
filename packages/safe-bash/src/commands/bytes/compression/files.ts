@@ -79,16 +79,28 @@ export async function planOperands(context: CommandContext, options: Compression
 
 async function collectOperands(context: CommandContext, options: CompressionOptions): Promise<Operand[]> {
   const plans: Operand[] = [];
-  for (const name of options.operands) {
+  const pending = [...options.operands].reverse();
+  const directories = new Set<string>();
+  while (pending.length) {
+    const name = pending.pop()!;
     context.signal.throwIfAborted();
     if (name === "-") { plans.push({ source: "-" }); continue; }
     if (!name) throw new FsError("ENOENT", { path: name });
     const source = pathOf(context, name);
+    const sourceStat = await context.fs.lstat(source, { signal: context.signal });
+    if (options.recursive && sourceStat.type === "directory") {
+      const realDirectory = await context.fs.realpath(source, { signal: context.signal });
+      if (directories.has(realDirectory)) continue;
+      directories.add(realDirectory);
+      const entries = await context.fs.readdir(source, { signal: context.signal });
+      for (const entry of entries.reverse()) pending.push(joinPath(source, entry.name));
+      continue;
+    }
+    if (options.recursive && sourceStat.type === "symlink") continue;
     const sourceCapabilities = await context.fs.capabilitiesFor?.(source, { signal: context.signal }) ?? context.fs.capabilities;
     if (!context.fs.readStream || sourceCapabilities.streamingRead === false) {
       throw new FsError("ENOTSUP", { message: "named input requires VFS streaming reads; no readFile fallback" });
     }
-    const sourceStat = await context.fs.lstat(source, { signal: context.signal });
     if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
     const realSource = await context.fs.realpath(source, { signal: context.signal });
     if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource }); continue; }

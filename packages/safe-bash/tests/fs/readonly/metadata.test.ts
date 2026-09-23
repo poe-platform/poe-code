@@ -42,7 +42,7 @@ function requiredStat(): Mutable<FileStat> {
 }
 
 function fullStat(): Mutable<Required<FileStat>> {
-  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
+  return { ...requiredStat(), revision: 7, allocatedBytes: 4096, ioBlockSize: 1024, preferredIoBlockSize: 4096, birthtimeMs: 10, identityScope: Symbol(), opaqueIdentity: "file-identity", opaqueVersion: "file-version", ino: 21, dev: 22, rdevMajor: 0, rdevMinor: 0, nlink: 2, uid: 0, gid: 0 };
 }
 
 for (const representation of ["prototype-accessors", "nonenumerable-own"] as const) {
@@ -73,6 +73,8 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       delegate.change("ctimeMs", 102);
       for (const key of optionalFields) delegate.change(key, 103);
       delegate.change("identityScope", Symbol());
+      delegate.change("opaqueIdentity", "changed-identity");
+      delegate.change("opaqueVersion", "changed-version");
       assert.deepEqual(snapshot, expected);
       assert.deepEqual(await filesystem[method]("/file"), values);
       const mutable = snapshot as Mutable<FileStat>;
@@ -92,7 +94,7 @@ for (const representation of ["prototype-accessors", "nonenumerable-own"] as con
       fixture.state[method] = metadata(expected, representation).view;
       const snapshot = await createReadOnlyFileSystem(fixture.filesystem)[method]("/file");
       assert.deepEqual(snapshot, expected);
-      for (const key of optionalFields) assert.equal(Object.hasOwn(snapshot, key), false);
+      for (const key of [...optionalFields, "opaqueIdentity", "opaqueVersion"] as const) assert.equal(Object.hasOwn(snapshot, key), false);
     });
 
     test(`${method} preserves all ${2 ** optionalFields.length} optional-field permutations for ${representation}`, async () => {

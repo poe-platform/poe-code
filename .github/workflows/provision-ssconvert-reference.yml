@@ -19,7 +19,7 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           apt-get update > /out/ssconvert-bootstrap.log 2>&1
           apt-get install -y --no-install-recommends \
-            build-essential bison ca-certificates curl git pkg-config intltool gettext \
+            build-essential bison ca-certificates curl git pkg-config intltool itstool libxml2-utils gettext \
             libgtk-3-dev libgsf-1-dev libxml2-dev libxslt1-dev librsvg2-dev libglib2.0-dev libbz2-dev zlib1g-dev \
             libglpk-dev liblpsolve55-dev glpk-utils lp-solve \
             fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-yaml file \

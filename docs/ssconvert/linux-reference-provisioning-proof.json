@@ -1,6 +1,6 @@
 {
   "scope": "Linux native reference provisioning",
-  "status": "goffice-built-gnumeric-parser-prerequisite-validated-rerun-required",
+  "status": "goffice-built-gnumeric-itstool-prerequisite-validated-rerun-required",
   "wholeGoalComplete": false,
   "initialRun": 35836474044,
   "initialHead": "5496dd7e634a29f97664b6505cef36af72ac2f02",
@@ -46,6 +46,64 @@
         "bison"
       ],
       "productParity": "unqualified"
+    },
+    {
+      "run": 35837781945,
+      "head": "bda821d11a8412664155443e379061a3a6ccff75",
+      "goffice": "configure-make-install-success",
+      "gnumericConfigure": {
+        "exitCode": 1,
+        "missing": [
+          "itstool"
+        ],
+        "logBytes": 9113,
+        "logSha256": "6c045fff71381c535b2bc43c7466c9368c5e4a74dbb96c9a25cafa4ada5f7b95",
+        "log": "checking for a BSD-compatible install... /usr/bin/install -c\nchecking whether build environment is sane... yes\nchecking for a race-free mkdir -p... /usr/bin/mkdir -p\nchecking for gawk... no\nchecking for mawk... mawk\nchecking whether make sets $(MAKE)... yes\nchecking whether make supports nested variables... yes\nchecking whether to enable maintainer-specific portions of Makefiles... yes\nchecking whether make supports nested variables... (cached) yes\nchecking for pkg-config... /usr/bin/pkg-config\nchecking pkg-config is at least version 0.9.0... yes\nchecking for gtk-doc... no\nconfigure: WARNING:\n  You will not be able to create source packages with 'make dist'\n  because gtk-doc is not found.\nchecking for gtkdoc-check... no\nchecking for gtkdoc-check... no\nchecking for gtkdoc-rebase... no\nchecking for gtkdoc-mkpdf... no\nchecking whether to build gtk-doc documentation... no\nchecking for glib-2.0 >= 2.10.0 gobject-2.0  >= 2.10.0... yes\nchecking whether NLS is requested... yes\nchecking for intltool >= 0.35.0... 0.51.0 found\nchecking for intltool-update... /usr/bin/intltool-update\nchecking for intltool-merge... /usr/bin/intltool-merge\nchecking for intltool-extract... /usr/bin/intltool-extract\nchecking for xgettext... /usr/bin/xgettext\nchecking for msgmerge... /usr/bin/msgmerge\nchecking for msgfmt... /usr/bin/msgfmt\nchecking for gmsgfmt... /usr/bin/msgfmt\nchecking for perl... /usr/bin/perl\nchecking for perl >= 5.8.1... 5.40.1\nchecking for XML::Parser... ok\nchecking build system type... aarch64-unknown-linux-gnu\nchecking host system type... aarch64-unknown-linux-gnu\nchecking for gcc... gcc\nchecking whether the C compiler works... yes\nchecking for C compiler default output file name... a.out\nchecking for suffix of executables... \nchecking whether we are cross compiling... no\nchecking for suffix of object files... o\nchecking whether the compiler supports GNU C... yes\nchecking whether gcc accepts -g... yes\nchecking for gcc option to enable C11 features... none needed\nchecking whether gcc understands -c and -o together... yes\nchecking whether make supports the include directive... yes (GNU style)\nchecking dependency style of gcc... gcc3\nchecking for bison... bison -y\nchecking whether ln -s works... yes\nchecking how to print strings... printf\nchecking for a sed that does not truncate output... /usr/bin/sed\nchecking for grep that handles long lines and -e... /usr/bin/grep\nchecking for egrep... /usr/bin/grep -E\nchecking for fgrep... /usr/bin/grep -F\nchecking for ld used by gcc... /usr/bin/ld\nchecking if the linker (/usr/bin/ld) is GNU ld... yes\nchecking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B\nchecking the name lister (/usr/bin/nm -B) interface... BSD nm\nchecking the maximum length of command line arguments... 3145728\nchecking how to convert aarch64-unknown-linux-gnu file names to aarch64-unknown-linux-gnu format... func_convert_file_noop\nchecking how to convert aarch64-unknown-linux-gnu file names to toolchain format... func_convert_file_noop\nchecking for /usr/bin/ld option to reload object files... -r\nchecking for file... file\nchecking for objdump... objdump\nchecking how to recognize dependent libraries... pass_all\nchecking for dlltool... no\nchecking how to associate runtime and link libraries... printf %s\\n\nchecking for ar... ar\nchecking for archiver @FILE support... @\nchecking for strip... strip\nchecking for ranlib... ranlib\nchecking command to parse /usr/bin/nm -B output from gcc object... ok\nchecking for sysroot... no\nchecking for a working dd... /usr/bin/dd\nchecking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1\nchecking for mt... no\nchecking if : is a manifest tool... no\nchecking for stdio.h... yes\nchecking for stdlib.h... yes\nchecking for string.h... yes\nchecking for inttypes.h... yes\nchecking for stdint.h... yes\nchecking for strings.h... yes\nchecking for sys/stat.h... yes\nchecking for sys/types.h... yes\nchecking for unistd.h... yes\nchecking for dlfcn.h... yes\nchecking for objdir... .libs\nchecking if gcc supports -fno-rtti -fno-exceptions... no\nchecking for gcc option to produce PIC... -fPIC -DPIC\nchecking if gcc PIC flag -fPIC -DPIC works... yes\nchecking if gcc static flag -static works... yes\nchecking if gcc supports -c -o file.o... yes\nchecking if gcc supports -c -o file.o... (cached) yes\nchecking whether the gcc linker (/usr/bin/ld) supports shared libraries... yes\nchecking whether -lc should be explicitly linked in... no\nchecking dynamic linker characteristics... GNU/Linux ld.so\nchecking how to hardcode library paths into programs... immediate\nchecking whether stripping libraries is possible... yes\nchecking if libtool supports shared libraries... yes\nchecking whether to build shared libraries... yes\nchecking whether to build static libraries... no\nchecking for zlib.h... yes\nchecking for gzread in -lz... yes\nchecking for pkg-config... (cached) /usr/bin/pkg-config\nchecking pkg-config is at least version 0.18... yes\nchecking for \n\tgtk+-3.0\t\t>= 3.20.0\n... yes\nchecking for \n\tgtk+-3.0\t\t>= 3.20.0\n... yes\nchecking for \n\tlibgoffice-0.10\t>= 0.10.61\n\tlibgsf-1\t\t>= 1.14.45\n\tlibxml-2.0\t\t>= 2.4.12\n \n\tgtk+-3.0\t\t>= 3.20.0\n... yes\nchecking for \n\tlibgoffice-0.10\t>= 0.10.61\n\tlibgsf-1\t\t>= 1.14.45\n\tlibxml-2.0\t\t>= 2.4.12\n\n\tglib-2.0\t\t>= 2.40.0\n\tgobject-2.0\t\t>= 2.40.0\n\tgmodule-2.0\t\t>= 2.40.0\n\tgthread-2.0\t\t>= 2.40.0\n\tpango\t\t\t>= 1.46.0\n\tpangocairo\t\t>= 1.46.0\n \n\tgtk+-3.0\t\t>= 3.20.0\n... yes\nchecking for msgfmt... (cached) /usr/bin/msgfmt\nchecking for gmsgfmt... (cached) /usr/bin/msgfmt\nchecking for xgettext... (cached) /usr/bin/xgettext\nchecking for msgmerge... (cached) /usr/bin/msgmerge\nchecking for ld... /usr/bin/ld\nchecking if the linker (/usr/bin/ld) is GNU ld... yes\nchecking for shared library run path origin... done\nchecking 32-bit host C ABI... no\nchecking how to run the C preprocessor... gcc -E\nchecking for ELF binary format... yes\nchecking for the common suffixes of directories in the library search path... lib,lib,lib\nchecking for CFPreferencesCopyAppValue... no\nchecking for CFLocaleCopyPreferredLanguages... no\nchecking for GNU gettext in libc... yes\nchecking whether to use NLS... yes\nchecking where the gettext function comes from... libc\nchecking for glib-genmarshal... glib-genmarshal\nchecking for gdk-pixbuf-csource... gdk-pixbuf-csource\nchecking for gcc options needed to detect all undeclared functions... none needed\nchecking whether fdopen is declared... yes\nchecking whether struct timeval is available... yes\nchecking whether M_PI is available... yes\nchecking for psiconv-config... no\nchecking for pxlib >= 0.4.0... no\nchecking for mkfifo... yes\nchecking for sys/wait.h that is POSIX.1 compatible... yes\nchecking for uname... yes\nchecking for setenv... yes\nchecking for putenv... yes\nchecking for bind_textdomain_codeset... yes\nchecking for langinfo.h... yes\nchecking for sys/resource.h... yes\nchecking for fpu_control.h... yes\nchecking for gtk_cell_renderer_text_get_background_set... no\nchecking for gtk_cell_renderer_text_get_foreground_set... no\nchecking for gtk_cell_renderer_text_get_editable... no\nchecking for gtk_entry_set_editing_cancelled... no\nchecking for gtk_icon_theme_add_resource_path... yes\nchecking for lgamma_r... no\nchecking for lgamma_r in -lm... yes\nchecking for lgamma... yes\nchecking cos is reliable... yes\nchecking whether gcc understands -Werror=unknown-warning-option... no\nchecking whether gcc understands -Wall... yes\nchecking whether gcc understands -Werror=init-self... yes\nchecking whether gcc understands -Werror=missing-include-dirs... yes\nchecking whether gcc understands -Wsign-compare... yes\nchecking whether gcc understands -Werror=pointer-arith... yes\nchecking whether gcc understands -Wchar-subscripts... yes\nchecking whether gcc understands -Wwrite-strings... yes\nchecking whether gcc understands -Wnested-externs... yes\nchecking whether gcc understands -Wmissing-noreturn... yes\nchecking whether gcc understands -Werror=missing-prototypes... yes\nchecking whether gcc understands -Werror=nested-externs... yes\nchecking whether gcc understands -Werror=implicit-function-declaration... yes\nchecking whether gcc understands -Wmissing-declarations... yes\nchecking whether gcc understands -Wno-pointer-sign... yes\nchecking whether gcc understands -Werror=format-security... yes\nchecking whether gcc understands -Wbitwise... no\nchecking whether gcc understands -Wcast-to-as... no\nchecking whether gcc understands -Wdefault-bitfield-sign... no\nchecking whether gcc understands -Wdo-while... no\nchecking whether gcc understands -Wparen-string... no\nchecking whether gcc understands -Wptr-subtraction-blows... no\nchecking whether gcc understands -Wreturn-void... no\nchecking whether gcc understands -Wtypesign... no\nchecking whether gcc understands -Wstrict-prototypes... yes\nchecking whether gcc understands -Wno-error=format-nonliteral... yes\nchecking if we must prototype lgamma_r ourselves... no\nchecking for g_settings_new in -lgio-2.0... yes\nchecking for pkg-config... (cached) /usr/bin/pkg-config\nchecking pkg-config is at least version 0.16... yes\nchecking for perl... perl\nchecking for itstool... no\nconfigure: error: itstool not found\n"
+      },
+      "correction": [
+        "itstool",
+        "libxml2-utils"
+      ],
+      "partialPrefixArchive": {
+        "sha256": "acdc1fdb279655402975a53e2b934670291e868adf2719e0f56af268dbcf4ce9",
+        "receiptMatches": true,
+        "members": 604,
+        "executableMembers": [
+          "ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.la",
+          "ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+          "ssconvert-reference/lib/libgoffice-0.10.la"
+        ],
+        "symlinks": [
+          {
+            "name": "ssconvert-reference/lib/libgoffice-0.10.so",
+            "target": "libgoffice-0.10.so.10.0.61"
+          },
+          {
+            "name": "ssconvert-reference/lib/libgoffice-0.10.so.10",
+            "target": "libgoffice-0.10.so.10.0.61"
+          }
+        ],
+        "containsGnumeric": false
+      },
+      "productParity": "unqualified",
+      "neighboringSourceRequirement": "Authenticated Gnumeric configure immediately requires xmllint after itstool; libxml2-dev does not supply the utility. Add libxml2-utils without changing configure flags."
     }
   ],
   "artifactPackaging": {

@@ -306,11 +306,27 @@ for (const args of [["reports/drafts"], ["explicit"], ["collision"], ["-p", "col
   });
 }
 
+for (const flags of ["-pv", "--parents --verbose"]) {
+  test(`mkdir ${flags} reports each new parent through Shell`, async () => {
+    const fs = await fixture({});
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`mkdir ${flags} outer/inner outer/second`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "mkdir: created directory 'outer'\nmkdir: created directory 'outer/inner'\nmkdir: created directory 'outer/second'\n");
+    assert.equal((await fs.stat("/work/outer/inner")).type, "directory");
+    assert.equal((await shell.exec(`mkdir ${flags} outer/inner`)).stdout, "");
+    const trailing = await shell.exec(`mkdir ${flags} ./relative/deep/`);
+    assert.equal(trailing.exitCode, 0, trailing.stderr);
+    assert.equal(trailing.stdout, "mkdir: created directory './relative'\nmkdir: created directory './relative/deep/'\n");
+  });
+}
+
 test("mkdir still passes mode and emits verbose output only for absent directories", async () => {
   const current = await prefixFixture();
   const result = await run("mkdir", ["-pv", "-m", "700", "reports/drafts", "new/deep"], { fs: current.fs });
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "mkdir: created directory 'new/deep'\n");
+  assert.equal(result.stdout, "mkdir: created directory 'new'\nmkdir: created directory 'new/deep'\n");
   assert.equal((await current.fs.stat("/work/new/deep")).mode & 0o777, 0o700);
   assert.equal((await current.fs.stat("/work/reports/drafts")).mode & 0o777, 0o755);
   assert.deepEqual(current.calls.map(call => call.options), [

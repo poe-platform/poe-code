@@ -492,7 +492,10 @@ export interface State {
   redirectAssignments?: ReadonlyMap<string, ShellValue>;
 }
 
+const declarationArrays = Symbol("declarationArrays");
+
 interface IO {
+  readonly [declarationArrays]?: ReadonlyMap<number, ArrayAssignment> | undefined;
   readonly capabilities?: CommandContext["capabilities"];
   readonly admittedHandles?: CommandContext["admittedHandles"];
   readonly processSignals?: CommandContext["processSignals"];
@@ -3990,9 +3993,10 @@ export class Runtime {
     }
     const declarationName = commandWords[declarationIndex]?.plain ?? "";
     const declarationBuiltin = state.extensions?.builtins.get(declarationName);
-    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "local", "readonly"].includes(declarationName);
-    const indexedDeclaration = declaration && state.extensions?.syntax.indexedDeclarations?.some(name => name === declarationName) === true;
-    const wordValues = await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration);
+    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "local", "readonly"].includes(declarationName);
+    const indexedDeclaration = declaration && ["declare", "local", "readonly"].includes(declarationName);
+    const compounds = new Map<number, ArrayAssignment>();
+    const wordValues = await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration, declarationName === "readonly" ? undefined : compounds, declarationIndex + 1);
     const words = wordValues.map(shellValueText);
     const special = state.profile === "sh" && (specialBuiltinNames.has(words[0] ?? "") || !!state.extensions?.builtins.get(words[0] ?? "")?.special);
     const inlineInput = command.redirects.some((redirect) => redirect.document || redirect.operator === "<<<");
@@ -4105,7 +4109,7 @@ export class Runtime {
         await pipeBytes(input, io.stdout, this.signal);
         return 0;
       }
-      return words.length ? await this.dispatch(wordValues[0]!, words.slice(1), state, io, previous, false, wordValues.slice(1), previous) : state.substitutionStatus;
+      return words.length ? await this.dispatch(wordValues[0]!, words.slice(1), state, { ...io, [declarationArrays]: compounds }, previous, false, wordValues.slice(1), previous) : state.substitutionStatus;
     } catch (error) {
       if (error instanceof Flow) {
         if ((error.kind === "break" || error.kind === "continue" || error.kind === "return") && io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
@@ -4144,6 +4148,7 @@ export class Runtime {
   private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>): Promise<number> {
     const { [invocationScope]: scope, ...publicIO } = io;
     Reflect.deleteProperty(publicIO, valueScope);
+    Reflect.deleteProperty(publicIO, declarationArrays);
     const allocation = this.budget.values.scope();
     scope.register(() => allocation.close());
     if (typeof nameValue !== "string") allocation.hold(nameValue);
@@ -4398,7 +4403,7 @@ export class Runtime {
           if (context.command === "command" || context.command === "builtin" || context.command === "type") return { exitCode: await this.discoveryBuiltin(context, state, io, assignments) };
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
-          const builtinWork = this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           const builtin = arrayStore(state) ? await interruptible(builtinWork, this.signal) : await builtinWork;
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
@@ -6034,7 +6039,8 @@ export class Runtime {
       const disabled = new Set<string>();
       const declarationArgs = [...args];
       let indexedLocal = false;
-      const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true;
+      const readonlySyntax = state.extensions?.syntax.indexedDeclarations?.includes("readonly") === true
+        || command === "readonly" && args.some(arg => arg.startsWith("-") && arg.includes("a"));
       let indexedReadonly = false;
       if (command === "declare") {
         while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
@@ -6142,6 +6148,8 @@ export class Runtime {
         const match = (command === "readonly" && readonlySyntax ? /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su : /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su).exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
+        const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
+        const compound = syntax?.name === name ? syntax : undefined;
         const append = command === "readonly" && readonlySyntax && arg[name.length] === "+";
         const assignedValue = (): ShellValue => {
           const original = declarationValues[declarationOffset + declarationIndex]!;
@@ -6176,7 +6184,7 @@ export class Runtime {
           assignments.delete(name);
           continue;
         }
-        if ((localDeclaration || command === "declare") && indexedLocal) {
+        if ((localDeclaration || command === "declare") && (indexedLocal || compound)) {
           if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
           if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
           const existingLocal = locals?.get(name);
@@ -6198,34 +6206,43 @@ export class Runtime {
               preparedSaved = true;
               await this.prepareVariable(state, name, saved);
             }
-            const store = requireArrays(state);
-            operation = ArrayOwner.create(store.owner.ledger, store.owner);
-            holding = store.owner.hold();
-            const watch = await store.watch(name, operation, this.signal);
-            const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
-            const prepared = await store.prepareName(name, operation, this.signal);
-            const current = store.get(name);
-            if (!saved && current && current.associative !== associativeDeclaration) throw new ArrayFailure("cannot convert array kind");
-            shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, associativeDeclaration);
-            const value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
-            if (value !== undefined) {
-              const token = await textToken(shadow.owner, value, this.signal);
-              try { shadow.insert(associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0, token); } catch (error) { token.release(); throw error; }
-            }
-            this.signal.throwIfAborted();
-            if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
-            if (!watch.valid()) throw new ArrayFailure("stale binding");
-            let released: Promise<void> | undefined;
-            stateMonitor(state)!.publish(tickets, name, () => {
+            if (compound) {
+              // Retain the visible outer binding while expanding the initializer.
+              // The saved local participates in the shared publication observers.
               if (saved) locals!.set(name, saved);
-              delete state.variables[name];
-              released = store.publish(name, shadow!, tickets, prepared);
-            });
-            shadow = undefined;
-            published = true;
-            watch.close();
-            await released;
-            assignments.delete(name);
+              await this.arrayAssignment(compound, state, context, enabled.has("r") ? "readonly" : undefined, "declaration");
+              published = true;
+              assignments.delete(name);
+            } else {
+              const store = requireArrays(state);
+              operation = ArrayOwner.create(store.owner.ledger, store.owner);
+              holding = store.owner.hold();
+              const watch = await store.watch(name, operation, this.signal);
+              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+              const prepared = await store.prepareName(name, operation, this.signal);
+              const current = store.get(name);
+              if (!saved && current && current.associative !== associativeDeclaration) throw new ArrayFailure("cannot convert array kind");
+              shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, associativeDeclaration);
+              const value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
+              if (value !== undefined) {
+                const token = await textToken(shadow.owner, value, this.signal);
+                try { shadow.insert(associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0, token); } catch (error) { token.release(); throw error; }
+              }
+              this.signal.throwIfAborted();
+              if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
+              if (!watch.valid()) throw new ArrayFailure("stale binding");
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(tickets, name, () => {
+                if (saved) locals!.set(name, saved);
+                delete state.variables[name];
+                released = store.publish(name, shadow!, tickets, prepared);
+              });
+              shadow = undefined;
+              published = true;
+              watch.close();
+              await released;
+              assignments.delete(name);
+            }
           } catch (error) {
             primaryPresent = true;
             primary = error;
@@ -6467,12 +6484,13 @@ export class Runtime {
     return (await this.valueWords(words, state, io, declaration)).map(shellValueText);
   }
 
-  private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false, indexedDeclaration = false): Promise<ShellValue[]> {
+  private async valueWords(words: readonly Word[], state: State, io: IO, declaration = false, indexedDeclaration = false, compounds?: Map<number, ArrayAssignment>, argumentOffset = 1): Promise<ShellValue[]> {
     const fields: ShellValue[] = [];
     for (const word of words) {
       const assignment = indexedDeclaration ? getArrayAssignment(word) : undefined;
       if (assignment) {
-        await this.arrayAssignment(assignment, state, io, undefined, "declaration");
+        if (compounds) compounds.set(fields.length - argumentOffset, assignment);
+        else await this.arrayAssignment(assignment, state, io, undefined, "declaration");
         fields.push(assignment.name);
       } else {
         const values = await this.valueWord(word, state, io, !(declaration && this.assignment(word)), false, false, false, undefined, false, true);

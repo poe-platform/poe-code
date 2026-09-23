@@ -130,7 +130,7 @@ test("independent readonly syntax: extension capture deduplicates without retain
 });
 
 for (const profile of ["default", "name-only", "keys-only"] as const) {
-  test(`independent readonly syntax: ${profile} remains isolated through eval and substitution`, async context => {
+  test(`independent readonly syntax: ${profile} supports declarations through eval and substitution`, async context => {
     const extensions: ShellExtension[] = profile === "default" ? [] : [{
       name: profile === "name-only" ? "arrays" : "keys",
       ...(profile === "keys-only" ? { syntax: { arrayKeys: true as const } } : {}),
@@ -138,15 +138,15 @@ for (const profile of ["default", "name-only", "keys-only"] as const) {
     }];
     const { shell } = fixture(context, extensions);
     const result = await shell.exec(`eval 'readonly -a values=(one)'; printf 'eval=%s;' "$?"; ignored=$(readonly -a inner); printf 'sub=%s' "$?"`);
-    assert.equal(result.stdout, "eval=2;sub=2");
-    assert.ok(result.stderr.length > 0);
+    assert.equal(result.stdout, "eval=0;sub=0");
+    assert.equal(result.stderr, "");
   });
 }
 
 test("independent readonly parser: compound syntax requires the literal admitted declaration head", () => {
   const syntax: ShellSyntaxDeclarations = { indexedDeclarations: ["readonly"] };
   assert.doesNotThrow(() => parseShell("readonly -a values=(')' one)", 0, syntax));
-  assert.throws(() => parseShell("readonly -a values=(one)", 0, { arrayKeys: true }));
+  assert.doesNotThrow(() => parseShell("readonly -a values=(one)", 0, { arrayKeys: true }));
   assert.throws(() => parseShell("echo values=(one)", 0, syntax));
   assert.throws(() => parseShell("'readonly' -a values=(one)", 0, syntax));
   assert.throws(() => parseShell("readonly -a values=(one", 0, syntax));

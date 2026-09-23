@@ -51,7 +51,7 @@ describe("compiled optional readonly indexed declarations", { skip: selected ===
   }
 
   for (const profile of ["default", "name-only", "array-keys-only"] as const) {
-    test(`${profile} does not acquire indexed readonly declarations`, async context => {
+    test(`${profile} supports indexed readonly declarations`, async context => {
       const published = await import("poe-code/safe-bash");
       const { createMemoryFileSystem } = await import("poe-code/safe-fs");
       assert.equal(Object.hasOwn(published, "arraysExtension"), false);
@@ -62,10 +62,10 @@ describe("compiled optional readonly indexed declarations", { skip: selected ===
       }];
       const shell = new published.Shell({ fs: createMemoryFileSystem(), extensions }).use(published.agentCommands());
       context.after(() => shell.dispose());
-      const result = await shell.exec("readonly -a values=(one two); printf UNEXPECTED");
-      assert.equal(result.exitCode, 2);
-      assert.equal(result.stdout, "");
-      assert.notEqual(result.stderr, "");
+      const result = await shell.exec('readonly -a values=(one two); printf "<%s>" "${values[@]}"');
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "<one><two>");
+      assert.equal(result.stderr, "");
     });
   }
 

@@ -483,6 +483,7 @@ function assertSource7Discovery(files) {
     "tests/shell/declare.test.ts",
     "tests/shell/umask.test.ts",
     "tests/shell/byte-values.test.ts",
+    "tests/shell/declaration-arrays.test.ts",
     "tests/shell/background-jobs.test.ts",
     "tests/shell/background-jobs-review.test.ts",
     "tests/shell/globstar.test.ts",

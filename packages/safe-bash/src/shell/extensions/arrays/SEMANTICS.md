@@ -1,10 +1,12 @@
 # Indexed array keys, element operators and readonly declarations
 
 `arraysExtension()` explicitly enables `${!name[@]}`, `${!name[*]}`, literal indexed
-element `-`/`+` operators and indexed readonly declarations. It declares
+element `-`/`+` operators. It retains the readonly compatibility declaration
 `syntax: { arrayKeys: true, indexedElementOperators: true, indexedDeclarations: ["readonly"] }`
 and the matching runtime identity; it installs no builtins. The default shell neither imports
-this leaf nor enables these capabilities. This is not full Bash array support.
+this leaf nor enables key and element-operator capabilities. Indexed declarations
+through `declare -a`, `local -a` and `readonly -a` are available by default.
+This is not full Bash array support.
 
 ## Capture and composition
 
@@ -26,7 +28,8 @@ Indexed readonly support is a separate own data capability. Its declaration list
 must be dense and contain only the single known head `readonly`; holes, accessors,
 extra keys, duplicate heads and unknown heads are rejected. An absent or empty
 list is omitted from the captured object. Naming an extension `arrays` or
-declaring only `arrayKeys` does not enable indexed readonly declarations.
+declaring only `arrayKeys` does not enable the compatibility listing profile;
+indexed declaration grammar is available independently.
 
 Captured syntax follows incremental execution, eval, source, function bodies,
 interpreters, script files, command substitutions, heredocs and shell-input
@@ -86,7 +89,9 @@ member default operators and key slices are outside this increment.
 
 ## Indexed readonly declarations
 
-The explicit capability enables `readonly -a` and indexed declaration listing.
+The default shell enables `readonly -a`, including indexed declaration listing
+with `readonly -ap`. The explicit capability also enables indexed listing with
+plain `readonly`.
 Declarations use the existing canonical binding storage, readonly attributes,
 local restoration, byte ownership and shared allocation limits.
 

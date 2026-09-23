@@ -1269,7 +1269,7 @@ class Parser {
       const indexedDeclaration = (): boolean => {
         let index = 0;
         while (words[index] && scalarAssignmentName(words[index]!)) index++;
-        return this.lexer.syntax.indexedDeclarations?.some(name => name === words[index]?.plain) === true;
+        return ["declare", "local", "readonly"].includes(words[index]?.plain ?? "");
       };
       let line: number | undefined;
       while (true) {

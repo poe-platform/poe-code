@@ -81,13 +81,14 @@ object. `arrayKeys` must be `true` when present. Different extensions can declar
 the same capability; this does not relax duplicate extension or builtin checks.
 The `arrayKeys` declaration does not admit background-job syntax.
 
-An extension may separately declare `indexedDeclarations: ["readonly"]` to
-enable indexed readonly declarations, including their compound-assignment
-grammar. This is an own data property containing a dense, bounded list of known
+Indexed `declare -a`, `local -a` and `readonly -a` compound declarations are
+available in the default shell. An extension may retain the compatibility
+declaration `indexedDeclarations: ["readonly"]` for readonly listing and
+diagnostic behavior. This is an own data property containing a dense, bounded list of known
 declaration heads; accessors, holes, extra keys, duplicates and unknown heads
 are rejected. An absent or empty list remains omitted from captured syntax.
 The declaration is captured and propagated with the other syntax capabilities.
-Neither an extension's name nor `arrayKeys` alone enables it.
+It is no longer required to admit indexed declaration grammar.
 
 An extension may independently declare `indexedElementOperators: true` to enable
 indexed element `-`, `+`, `:-` and `:+` default/alternate operators and indexed

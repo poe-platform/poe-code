@@ -54,7 +54,8 @@ physical permissions, and the host process mask remains unchanged.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
   groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
   `[[ … ]]`, arithmetic commands `(( … ))`, and indexed arrays with arithmetic
-  and relative negative element indices. The optional arrays extension adds
+  and relative negative element indices, including `declare -a`, `local -a`,
+  and `readonly -a` array literals. The optional arrays extension adds
   member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
   runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks

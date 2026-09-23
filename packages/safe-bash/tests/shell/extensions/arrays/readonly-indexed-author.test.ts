@@ -57,22 +57,22 @@ test("readonly indexed metadata rejects accessors without invoking them", () => 
 });
 
 for (const profile of profiles) {
-  test(`readonly indexed opt-in isolation: ${profile.name} retains unsupported -a`, async context => {
+  test(`readonly indexed default support: ${profile.name} accepts -a`, async context => {
     const shell = new Shell({ fs: createMemoryFileSystem(), extensions: profile.extensions });
     context.after(() => shell.dispose());
     const result = await shell.exec("readonly -a values");
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, 0);
     assert.deepEqual(result.stdoutBytes, new Uint8Array());
-    assert.deepEqual(Buffer.from(result.stderrBytes), Buffer.from("readonly: -a: unsupported option\n"));
+    assert.deepEqual(result.stderrBytes, new Uint8Array());
   });
 
-  test(`readonly indexed opt-in isolation: ${profile.name} rejects declaration compound grammar`, async context => {
+  test(`readonly indexed default support: ${profile.name} accepts declaration compound grammar`, async context => {
     const shell = new Shell({ fs: createMemoryFileSystem(), extensions: profile.extensions });
     context.after(() => shell.dispose());
     const result = await shell.exec("readonly -a values=(one two)");
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, 0);
     assert.deepEqual(result.stdoutBytes, new Uint8Array());
-    assert.notEqual(result.stderrBytes.length, 0);
+    assert.equal(result.stderrBytes.length, 0);
   });
 }
 

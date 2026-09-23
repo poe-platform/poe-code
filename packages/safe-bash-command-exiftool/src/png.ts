@@ -111,6 +111,12 @@ function parse(input: Uint8Array, resources: Resources): { chunks: Chunk[]; tags
       const header = new DataView(data.buffer, data.byteOffset, data.byteLength);
       if (!header.getUint32(0) || !header.getUint32(4) || header.getUint32(0) > 0x7fffffff || header.getUint32(4) > 0x7fffffff) throw new Error("Invalid PNG dimensions");
       if (!bitDepths[data[9]!]?.includes(data[8]!) || data[10] !== 0 || data[11] !== 0 || data[12]! > 1) throw new Error("Invalid PNG IHDR encoding fields");
+      resources.admit("decoded", 20);
+      resources.admit("retained", 256);
+      resources.admit("work", 64);
+      tags.push(Object.freeze({ name: "ImageWidth", rawName: "ImageWidth", chunkType: type,
+        index: chunks.length, group: "PNG", instance: 0, offset: offset + 8,
+        value: String(header.getUint32(0)), raw: new Uint8Array(data.subarray(0, 4)) }));
     }
     if (type === "IDAT") imageData = true;
     if (type === "IEND" && !imageData) throw new Error("PNG missing IDAT");
@@ -190,7 +196,7 @@ export function editPng(input: Uint8Array, assignments: readonly TagAssignment[]
     resources.admit("retained", assignment.name.length * 10 + assignment.value.length * 6);
     if (all) continue;
     const name = exiftoolRegistry.tags.find(name => name.toLowerCase() === assignment.name.toLowerCase());
-    if (!name) throw new Error("Tag write not yet supported: " + assignment.name);
+    if (!name || !exiftoolRegistry.writeChunks[name]) throw new Error("Tag write not yet supported: " + assignment.name);
     if (name === "ModifyDate" && assignment.operation !== "set") throw new Error("Temporal shifts are not yet supported for ModifyDate");
     if (assignment.operation === "add") {
       const group = exiftoolRegistry.scalarShiftErrorGroups[name];

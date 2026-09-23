@@ -41,6 +41,16 @@ test("presentation escapes XML and refuses executable templates before writes", 
   assert.deepEqual(await fs.readFile("/image.png"), bytes);
 });
 
+test("numeric ImageWidth reads the issue PNG without modifying virtual files", async () => {
+  const fs = createMemoryFileSystem();
+  const original = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAC3RFWHRUaXRsZQBIZWxsb83PwM8AAAARdEVYdERlc2NyaXB0aW9uAFdvcmxkC2fZ1QAAAAxJREFUeJxj+M/AAAADAQEAyf6S7wAAAABJRU5ErkJggg==", "base64");
+  await fs.writeFile("/input.png", original);
+  const result = await invoke(["-n", "-s3", "-ImageWidth", "input.png"], fs);
+  assert.deepEqual(result, { exitCode: 0, stdout: "1\n", stderr: "" });
+  assert.deepEqual(await fs.readFile("/input.png"), new Uint8Array(original));
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input.png"]);
+});
+
 test("buffered VFS fallback refuses bytes beyond the admitted stat extent", async () => {
   for (const argfile of [false, true]) {
     const fs = createMemoryFileSystem();
@@ -440,7 +450,7 @@ test("JSON SourceFile provenance cannot be shadowed by a same-token stored keywo
   const input = new Uint8Array(Buffer.concat([base.subarray(0,33), pngChunk("tEXt", new TextEncoder().encode("SourceFile\0untrusted")), base.subarray(33)]));
   await fs.writeFile("/image.png", input);
   const result = await invoke(["-j", "image.png"], fs);
-  assert.equal(result.stdout, '[{\n  "SourceFile": "image.png",\n  "Title": "value"\n}]\n');
+  assert.equal(result.stdout, '[{\n  "SourceFile": "image.png",\n  "ImageWidth": 1,\n  "Title": "value"\n}]\n');
 });
 
 test("repeated text rendering shares cumulative algorithm work admission", async () => {

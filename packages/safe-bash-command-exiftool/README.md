@@ -1,11 +1,12 @@
 # Virtual ExifTool metadata
 
-Inspect and edit admitted PNG text metadata in virtual files. Use the public
+Read PNG image width and inspect and edit admitted PNG text metadata in virtual files. Use the public
 `@poe-platform/safe-bash/commands/exiftool` export; this private implementation
 workspace is never an installation dependency for consumers.
 
 ```sh
 exiftool -j -Title /image.png
+exiftool -n -s3 -ImageWidth /image.png
 exiftool -csv -Title -Author /first.png /second.png
 exiftool -Title=Example /image.png
 exiftool -Title= -overwrite_original /image.png
@@ -13,6 +14,8 @@ exiftool -@ /arguments.txt
 ```
 
 These commands run inside the configured virtual Shell, not a host executable.
+`ImageWidth` is read-only and comes from the validated PNG header. Metadata
+deletion preserves the header and image data.
 The runtime is first-party TypeScript ESM with byte-stream input/output and no
 external runtime dependencies, Perl, native/WASM fallback, network access,
 ambient files/configuration or downloaded code. The versioned registry qualifies

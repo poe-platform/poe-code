@@ -39,7 +39,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     if (arg === "-S" || option === "-s2") { result.style = "compact"; continue; }
     if (option === "-s" || option === "-s1") { result.style = "short"; continue; }
     if (option === "-s3") { result.style = "values"; continue; }
-    if (option === "-n") continue; // admitted PNG text tags have no PrintConv
+    if (option === "-n") continue; // admitted PNG tags have no PrintConv
     if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
     if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }
     if (option === "-o") { result.destination = value(); continue; }

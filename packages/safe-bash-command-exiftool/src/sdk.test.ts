@@ -8,6 +8,11 @@ import { fixture } from "./fixtures.js";
 
 const signal = new AbortController().signal;
 
+test("typed SDK admits numeric ImageWidth selectors", () => {
+  const carrier = createExiftoolArguments({ files: ["image.png"], tags: ["ImageWidth"], numeric: true, style: "values" }, { signal });
+  assert.deepEqual(carrier.args, ["-s3", "-n", "-ImageWidth", "--", "image.png"]);
+});
+
 test("typed SDK options create canonical argv and preserve literal operand authority", async () => {
   const carrier = createExiftoolArguments({ files: ["-Title=hostile", "-@"], tags: ["Title"], format: "json", quoteScalars: true, groupFamily: 4 }, { signal });
   assert.deepEqual(carrier.args, ["-j", "-api", "StructFormat=JSONQ", "-G4", "-Title", "--", "-Title=hostile", "-@"]);

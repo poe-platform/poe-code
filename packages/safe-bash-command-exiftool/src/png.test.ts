@@ -6,6 +6,24 @@ import { inspectPng, editPng, pngChunk } from "./png.js";
 const signature = new Uint8Array([137,80,78,71,13,10,26,10]);
 const signal = new AbortController().signal;
 
+test("ImageWidth owns the header bytes and survives metadata deletion", () => {
+  const input = fixture("remove");
+  const header = input.slice(16, 29);
+  new DataView(header.buffer).setUint32(0, 65537);
+  const wide = new Uint8Array(Buffer.concat([signature, pngChunk("IHDR", header), input.subarray(33)]));
+  const tag = inspectPng(wide, { signal }).tags.find(tag => tag.name === "ImageWidth")!;
+  assert.equal(tag.value, "65537");
+  assert.equal(tag.offset, 16);
+  assert.equal(tag.chunkType, "IHDR");
+  assert.deepEqual(tag.raw, new Uint8Array([0, 1, 0, 1]));
+  const deleted = editPng(wide, [{ name: "all", operation: "set", value: "" }], { signal });
+  assert.deepEqual(imageChunks(deleted), imageChunks(wide));
+  assert.equal(inspectPng(deleted, { signal }).tags[0]!.value, "65537");
+  assert.throws(() => editPng(wide, [{ name: "ImageWidth", operation: "set", value: "2" }], { signal }), /Tag write not yet supported/);
+  wide.fill(0);
+  assert.deepEqual(tag.raw, new Uint8Array([0, 1, 0, 1]));
+});
+
 test("parse and write loops observe cancellation at an interior resource checkpoint", () => {
   const bytes = fixture(...Array<string>(64).fill("value"));
   for (const write of [false, true]) {
@@ -39,7 +57,7 @@ function imageChunks(bytes: Uint8Array): Uint8Array[] {
 }
 
 test("PNG extraction retains duplicate identity, offsets and lexical value", () => {
-  const tags = inspectPng(fixture("first", "1e999"), { signal }).tags;
+  const tags = inspectPng(fixture("first", "1e999"), { signal }).tags.filter(tag => tag.chunkType !== "IHDR");
   assert.deepEqual(tags.map(tag => [tag.name, tag.value, tag.instance]), [["Title", "first", 0], ["Title", "1e999", 1]]);
   assert.notEqual(tags[0]!.offset, tags[1]!.offset);
   assert.equal(tags[0]!.group, "PNG");
@@ -48,7 +66,7 @@ test("PNG extraction retains duplicate identity, offsets and lexical value", () 
 test("scalar last assignment wins, updates duplicates and preserves image chunks", () => {
   const original = fixture("first", "second");
   const changed = editPng(original, [{ name: "Title", operation: "set", value: "old" }, { name: "Title", operation: "set", value: "new" }], { signal });
-  assert.deepEqual(inspectPng(changed, { signal }).tags.map(tag => tag.value), ["new", "new"]);
+  assert.deepEqual(inspectPng(changed, { signal }).tags.filter(tag => tag.chunkType !== "IHDR").map(tag => tag.value), ["new", "new"]);
   assert.deepEqual(changed.subarray(0,33), original.subarray(0,33));
   assert.deepEqual(imageChunks(changed), imageChunks(original));
   assert.deepEqual(original, fixture("first", "second"));
@@ -57,7 +75,7 @@ test("scalar last assignment wins, updates duplicates and preserves image chunks
 test("new PNG text is published before IDAT to avoid post-image metadata warnings", () => {
   const original = fixture();
   const changed = editPng(original, [{ name: "Title", operation: "set", value: "new" }], { signal });
-  assert.equal(inspectPng(changed, { signal }).tags[0]!.index, 1);
+  assert.equal(inspectPng(changed, { signal }).tags.find(tag => tag.chunkType !== "IHDR")!.index, 1);
   assert.deepEqual(imageChunks(changed), imageChunks(original));
 });
 
@@ -65,7 +83,7 @@ test("UTF-8 writes use uncompressed iTXt, including Latin-1 characters, without 
   const original = fixture("old", "older");
   for (const value of ["café", "café 水😀", "a\0b\u0001\u007f"]) {
     const changed = editPng(original, [{ name: "Title", operation: "set", value }], { signal });
-    const tags = inspectPng(changed, { signal }).tags;
+    const tags = inspectPng(changed, { signal }).tags.filter(tag => tag.chunkType !== "IHDR");
     assert.equal(tags.length, 2);
     assert.equal(tags[0]!.value, value);
     assert.equal(tags[0]!.chunkType, value === "a\0b\u0001\u007f" ? "tEXt" : "iTXt");
@@ -131,7 +149,7 @@ test("tIME extraction keeps oversized stored fields in ValueConv without shiftin
   const base = fixture();
   const raw = new Uint8Array([255, 255, 255, 255, 255, 255, 255]);
   const input = new Uint8Array(Buffer.concat([base.subarray(0, 33), pngChunk("tIME", raw), base.subarray(33)]));
-  const tag = inspectPng(input, { signal }).tags[0]!;
+  const tag = inspectPng(input, { signal }).tags.find(tag => tag.chunkType !== "IHDR")!;
   assert.equal(tag.value, "65535:255:255 255:255:255");
   assert.deepEqual(tag.raw, raw);
 });
@@ -142,12 +160,12 @@ test("timestamp writes preserve unknown text with a colliding ModifyDate keyword
   const input = new Uint8Array(Buffer.concat([base.subarray(0, 33), unknown, base.subarray(33)]));
   const edited = editPng(input, [{ name: "ModifyDate", operation: "set", value: "2024:02:29 12:34:56" }], { signal });
   assert.deepEqual(edited.subarray(33, 33 + unknown.length), unknown);
-  assert.deepEqual(inspectPng(edited, { signal }).tags.map(tag => tag.value), ["opaque", "2024:02:29 12:34:56"]);
+  assert.deepEqual(inspectPng(edited, { signal }).tags.filter(tag => tag.chunkType !== "IHDR").map(tag => tag.value), ["opaque", "2024:02:29 12:34:56"]);
   assert.deepEqual(editPng(edited, [{ name: "ModifyDate", operation: "set", value: "" }], { signal }), input);
 });
 
 test("delete removes all selected duplicates; remove matches only specified scalar", () => {
-  assert.deepEqual(inspectPng(editPng(fixture("first", "second"), [{ name: "Title", operation: "remove", value: "first" }], { signal }), { signal }).tags.map(tag => tag.value), ["second"]);
+  assert.deepEqual(inspectPng(editPng(fixture("first", "second"), [{ name: "Title", operation: "remove", value: "first" }], { signal }), { signal }).tags.filter(tag => tag.chunkType !== "IHDR").map(tag => tag.value), ["second"]);
   assert.deepEqual(editPng(fixture("first", "second"), [{ name: "Title", operation: "set", value: "" }], { signal }), fixture());
 });
 
@@ -170,14 +188,14 @@ test("PNG refuses malformed image structure before publication", () => {
 test("extracted metadata owns raw byte provenance independently of input and display", () => {
   const input = fixture("a\0b"); const result = inspectPng(input, { signal });
   input.fill(0);
-  assert.equal(result.tags[0]!.value, "a\0b");
-  assert.deepEqual(result.tags[0]!.raw, new Uint8Array([97,0,98]));
+  assert.equal(result.tags.find(tag => tag.chunkType !== "IHDR")!.value, "a\0b");
+  assert.deepEqual(result.tags.find(tag => tag.chunkType !== "IHDR")!.raw, new Uint8Array([97,0,98]));
 });
 
 test("tag identity retains exact stored keyword and source chunk separately from display name", () => {
   const bytes = fixture();
   const input = new Uint8Array(Buffer.concat([bytes.subarray(0,33), pngChunk("tEXt", new TextEncoder().encode("title\0value")), bytes.subarray(33)]));
-  const tag = inspectPng(input, { signal }).tags[0]!;
+  const tag = inspectPng(input, { signal }).tags.find(tag => tag.chunkType !== "IHDR")!;
   assert.equal(tag.name, "Title"); assert.equal(tag.rawName, "title"); assert.equal(tag.chunkType, "tEXt"); assert.equal(tag.index, 1);
 });
 

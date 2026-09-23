@@ -3016,7 +3016,7 @@ test("native declaration classification admits the current maintained preflight 
   const { verifyTypecheckInputs } = await import("./typecheck-inputs.mjs");
   const root = fileURLToPath(new URL("../", import.meta.url));
   const admitted = verifyTypecheckInputs(root);
-  assert.equal(admitted.standaloneInventory.declaration, 10);
+  assert.equal(admitted.standaloneInventory.declaration, 12);
   assert.equal(admitted.standaloneInventory.current, 37);
   assert.equal(admitted.standaloneInventory["negative-types"], 3);
   assert.ok(admitted.standaloneAdmission.heldEvidence.length > 0);

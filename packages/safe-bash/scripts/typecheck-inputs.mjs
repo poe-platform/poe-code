@@ -87,7 +87,16 @@ export function verifyTypecheckInputs(root, fileSystem = fs) {
   }
   const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0").filter(Boolean);
   for (const entry of staged.entries) assert.ok(tracked.includes(entry.path) && tracked.includes(entry.owner.path), `staged input and owning manifest must be tracked: ${entry.path}`);
-  const inventory = includeCurrentSourceDeclarations(mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries));
+  const currentInventory = includeCurrentSourceDeclarations(mergeStandaloneInventory(originalInventory, integrationTypes.standaloneEntries));
+  const peerDeclarations = [
+    { path: "scripts/typecheck-consumers.d.mts", classification: "declaration", sha256: "f8c970dbe603d56704b5b7f43c43a05eb87d4a5cfda05ddcf082ff58b014d001" },
+    { path: "tests/plugins/qualified-current-release/peer.d.mts", classification: "declaration", sha256: "0326915623a0cad2cf571f400598d95666176db937a13c4000e32009a0726636" },
+  ];
+  const inventory = {
+    ...currentInventory,
+    entries: [...currentInventory.entries, ...peerDeclarations],
+    counts: { ...currentInventory.counts, declaration: currentInventory.counts.declaration + peerDeclarations.length },
+  };
   const classified = new Set(inventory.entries.map(entry => entry.path));
   const unknown = tracked.filter(path => path.endsWith(".mts") && !classified.has(path));
   assert.equal(unknown.length, 0, `Unclassified current .mts inputs require an explicit existing-inventory route: ${unknown.join(", ")}`);

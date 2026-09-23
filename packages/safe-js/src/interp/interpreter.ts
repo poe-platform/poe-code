@@ -662,8 +662,11 @@ export async function evaluateNode(
     };
   }
 
-  const compilation = new CompileScope(context.compilation?.owner, context.compilation);
-  const evaluationContext = {
+  // Primitive literals never compile source or regexes. Keep their await and
+  // full reconciliation, but avoid an empty scope and a copied context.
+  const compilation = handler === evaluatePrimitiveLiteral
+    ? undefined : new CompileScope(context.compilation?.owner, context.compilation);
+  const evaluationContext = compilation === undefined ? context : {
     ...context,
     compilation,
     get generatorResume() {
@@ -718,7 +721,7 @@ export async function evaluateNode(
 
     return completion;
   } finally {
-    compilation.dispose();
+    compilation?.dispose();
   }
 }
 

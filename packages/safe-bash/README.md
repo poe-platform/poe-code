@@ -57,7 +57,9 @@ physical permissions, and the host process mask remains unchanged.
   and relative negative element indices. The optional arrays extension adds
   member slices and lazy element default/alternate operators.
 - Virtual script files through `sh`, `bash`, or executable paths; `source`/`.`
-  runs a script in the current shell. `set -e`, `set -u`, and `set -o pipefail`
+  runs a script in the current shell. `bash -n script.sh` (also `sh -n`) checks
+  syntax without executing commands; `set -n` / `set -o noexec` parses the
+  remaining input without execution. `set -e`, `set -u`, and `set -o pipefail`
   control failures; `set -a` (or `set -o allexport`) exports subsequent variable
   assignments to child commands, and `set +a` disables automatic export.
   Bash-profile `set -f` / `set -o noglob` disables pathname

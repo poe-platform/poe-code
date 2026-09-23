@@ -103,7 +103,7 @@ const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exi
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
   "emacs", "errtrace", "functrace", "hashall", "histexpand", "history",
-  "ignoreeof", "interactive-comments", "keyword", "monitor", "noexec", "nolog",
+  "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog",
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
 type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
@@ -482,6 +482,7 @@ export interface State {
   noglob?: boolean;
   noclobber?: boolean;
   allexport?: boolean;
+  noexec?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
@@ -2797,6 +2798,7 @@ export class Runtime {
   }
 
   async runUnit(script: Script, state: State, io: IO): Promise<{ exitCode: number; terminated: boolean }> {
+    if (state.noexec) return { exitCode: 0, terminated: false };
     state = trackState(state, this.budget, io[invocationScope]);
     try {
       await this.startExtensions(state, io);
@@ -2826,6 +2828,7 @@ export class Runtime {
   async script(script: Script, state: State, io: IO): Promise<number> {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };
     for (const list of script.lists) {
+      if (state.noexec) throw new Flow("discard", 0);
       if (list.terminator) {
         const hook = state.extensions?.listTerminators.get(list.terminator.operator);
         if (!hook) throw new TypeError("Missing captured shell list terminator handler");
@@ -2852,6 +2855,7 @@ export class Runtime {
         continue;
       }
       for (let index = 0; index < list.pipelines.length; index++) {
+        if (state.noexec) throw new Flow("discard", 0);
         const operator = list.operators[index - 1];
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
         const pipeline = list.pipelines[index]!;
@@ -3348,7 +3352,7 @@ export class Runtime {
             work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), allocation },
             expand: async (word, pattern = false) => (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join(""),
             regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }),
-            option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
+            option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false,
             present: name => {
               const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
               if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
@@ -4577,25 +4581,28 @@ export class Runtime {
     let standardInput = false;
     let errexit = false;
     let braceexpand = true;
+    let noexec = false;
     while (args.length && /^[+-]/u.test(args[0]!)) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
-      if ((option === "-o" || option === "+o") && args[0] === "braceexpand") {
-        braceexpand = option === "-o";
+      if ((option === "-o" || option === "+o") && (args[0] === "braceexpand" || args[0] === "noexec")) {
+        if (args[0] === "noexec") noexec = option === "-o";
+        else braceexpand = option === "-o";
         args.shift();
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "cseB" : "eB").includes(flag))) {
-        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, -e, +e, -B, +B and +/-o braceexpand\n`);
+      if (!flags.length || [...flags].some(flag => !(option[0] === "-" ? "csenB" : "enB").includes(flag))) {
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-e, +/-n, +/-B and +/-o braceexpand or noexec\n`);
         return 2;
       }
       commandString ||= option.includes("c");
       standardInput ||= option.includes("s");
       if (option.includes("e")) errexit = option.startsWith("-");
       if (option.includes("B")) braceexpand = option.startsWith("-");
+      if (option.includes("n")) noexec = option.startsWith("-");
     }
-    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand);
+    if (!commandString && !standardInput && args.length) return this.scriptFile(context, state, io, args[0]!, args.slice(1), false, errexit, loadedSource, braceexpand, noexec);
     const source = commandString ? args.shift() : undefined;
     if (commandString && source === undefined) {
       await writeDiagnostic(context.stderr, `${context.command}: -c: option requires an argument\n`);
@@ -4606,6 +4613,7 @@ export class Runtime {
     const child = this.processState(context, state, io, arg0, args);
     child.errexit = errexit;
     child.braceexpand = braceexpand;
+    child.noexec = noexec;
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: shellValueText(arg0) }, references);
     try {
@@ -4900,7 +4908,7 @@ export class Runtime {
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
   }
 
-  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true): Promise<number> {
+  async scriptFile(context: CommandContext, state: State, io: IO, target: string, args: readonly string[], direct: boolean, errexit = false, loadedSource?: { path: string; source: string }, braceexpand = true, noexec = false): Promise<number> {
     if (target === "") throw new CommandFailure(`${context.command}: : No such file or directory`, 127);
     if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const path = pathOf(state, target);
@@ -4988,6 +4996,7 @@ export class Runtime {
     const child = this.processState(context, state, io, target, args);
     child.errexit = errexit;
     child.braceexpand = braceexpand;
+    child.noexec = noexec;
     if (direct) child.profile = interpreterProfile ?? state.profile ?? "bash";
     const references = new PipeDescriptorFrame(io[invocationScope]);
     const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, assignmentDiagnosticContext: undefined, scriptName: target }, references);
@@ -5276,6 +5285,7 @@ export class Runtime {
         else if (flag === "u") state.nounset = enabled;
         else if (flag === "f") state.noglob = enabled;
         else if (flag === "C") state.noclobber = enabled;
+        else if (flag === "n") state.noexec = enabled;
         else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
           for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         }
@@ -5283,7 +5293,7 @@ export class Runtime {
         else if (flag === "o" && position === option.length - 1) {
           const name = args[index + 1];
           if (name === undefined) {
-            const options = [["allexport", !!state.allexport], ["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
+            const options = [["allexport", !!state.allexport], ["braceexpand", state.braceexpand !== false], ["errexit", !!state.errexit], ["noclobber", !!state.noclobber], ["noexec", !!state.noexec], ["noglob", !!state.noglob], ["nounset", !!state.nounset], ["pipefail", state.pipefail], ...[...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled] as const)] as const;
             for (const [name, active] of options) await writeText(stdout, enabled ? `${name}\t${active ? "on" : "off"}\n` : `set ${active ? "-" : "+"}o ${name}\n`);
           } else {
             if (name === "errexit") state.errexit = enabled;
@@ -5293,6 +5303,7 @@ export class Runtime {
             else if (name === "braceexpand") state.braceexpand = enabled;
             else if (name === "noglob") state.noglob = enabled;
             else if (name === "noclobber") state.noclobber = enabled;
+            else if (name === "noexec") state.noexec = enabled;
             else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
@@ -5304,12 +5315,13 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/u/f/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noglob, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noexec, noglob, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
     }
     if (positionals) { this.replacePositionals(state, getCommandArguments(context).values.slice(index)); state.positionalSetVersion = (state.positionalSetVersion ?? 0) + 1; }
+    if (state.noexec) throw new Flow("discard", 0);
     return 0;
   }
 
@@ -6676,7 +6688,7 @@ export class Runtime {
     }
     let value = part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(hereString && (part.name === "@" || !part.quoted) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

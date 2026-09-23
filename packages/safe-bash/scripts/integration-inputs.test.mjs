@@ -886,6 +886,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/printf-variable.test.ts"));
   assert.ok(files.includes("tests/shell/brace-expansion.test.ts"));
   assert.ok(files.includes("tests/shell/noglob.test.ts"));
+  assert.ok(files.includes("tests/shell/noexec.test.ts"));
   assert.ok(files.includes("tests/shell/brace-expansion-differential.test.ts"));
   assert.ok(files.includes("tests/shell/xargs-parallel-lifecycle.test.ts"));
   assert.ok(files.includes("tests/shell/tail-follow-lifecycle.test.ts"));

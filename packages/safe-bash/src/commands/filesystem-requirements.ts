@@ -13,6 +13,7 @@ export const filesystemCommandRequirements = {
     { id: "no-create", description: "Skip missing files (-c)", capabilities: ["stat"] },
   ],
   cp: [
+    { id: "backup", description: "Rename replaced entries to backup files", capabilities: ["rename"], mutates: true },
     { id: "file", description: "Copy file contents", capabilities: ["stat", "realpath", "copy"], mutates: true },
     { id: "recursive", description: "Copy directory trees (-r/-R)", capabilities: ["stat", "realpath", "readdir", "explicitDirectories", "mkdir", "copy"], mutates: true },
     { id: "symlink", description: "Copy symbolic links without dereferencing", capabilities: ["stat", "realpath", "readlink", "symlinks"], mutates: true },

@@ -12,6 +12,7 @@ import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { touchTimes } from "./touch-times.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
+import { backupCopyTarget, copyOptions, type CopyBackup } from "./copy-backup.js";
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
@@ -135,7 +136,7 @@ function childOperand(operand: string, name: string): string {
 async function copy(
   context: CommandContext, source: string, target: string,
   flags: ReadonlySet<string>, readDirectory: DirectoryReader, top = true, ancestors = new Set<string>(),
-  preflight = false, displaySource = source, displayTarget = target,
+  preflight = false, displaySource = source, displayTarget = target, backup?: CopyBackup,
 ): Promise<void> {
   context.signal.throwIfAborted();
   const link = await context.fs.lstat(source, { signal: context.signal });
@@ -171,7 +172,7 @@ async function copy(
       if (!targetStat && !preflight) await context.fs.mkdir(target, { mode: sourceStat.mode & 0o777, signal: context.signal });
       for (const entry of await readDirectory(context, source, true)) {
         await copy(context, joinPath(source, entry.name), joinPath(target, entry.name), flags, readDirectory, false, ancestors, preflight,
-          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name));
+          childOperand(displaySource, entry.name), childOperand(displayTarget, entry.name), backup);
       }
     } finally { ancestors.delete(physicalSource); }
   } else if (preserveLink) {
@@ -187,13 +188,15 @@ async function copy(
       if (identity === "same") throw new FsError("EINVAL", { path: source, dest: target, message: "source and destination are the same file" });
       if (identity === "unknown") throw new FsError("ENOTSUP", { path: source, dest: target, message: "symbolic link copy unlink lacks authoritative distinctness" });
       context.signal.throwIfAborted();
-      if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
+      if (backup) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
+      else if (!preflight) await context.fs.rm(target, { recursive: false, signal: context.signal });
     }
     if (!preflight) await context.fs.symlink!(linkTarget, target, { signal: context.signal });
   } else {
     const replace = flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
     await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
+    if (backup && await maybeStat(context, target, false)) await backupCopyTarget(context, source, target, backup, readDirectory, preflight);
     if (preflight) return;
     try { await context.fs.copyFile(source, target, { signal: context.signal }); }
     catch (error) {
@@ -297,20 +300,20 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("cp", async context => {
-      const parsed = options(context.args, "rRfnvPL", { recursive: "R", force: "f", "no-clobber": "n", verbose: "v", dereference: "L", "no-dereference": "P" });
+      const parsed = copyOptions(context);
       if (parsed.flags.has("P") && parsed.flags.has("L")) throw new UsageError("-P and -L cannot be combined");
       const destination = await destinations(context, parsed.operands);
       await preflightOperands(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
-          parsed.flags, readDirectory, true, new Set(), true);
+          parsed.flags, readDirectory, true, new Set(), true, source, destination.target, parsed.backup);
       });
       return eachOperand(context, destination.sources, async operand => {
         const source = pathOf(context, operand);
         const targetOperand = parsed.operands.at(-1)!;
         await copy(context, source, destination.directory ? joinPath(destination.target, basename(source)) : destination.target,
           parsed.flags, readDirectory, true, new Set(), false, operand,
-          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand);
+          destination.directory ? childOperand(targetOperand, basename(source)) : targetOperand, parsed.backup);
       });
     }),
     define("mv", async context => {

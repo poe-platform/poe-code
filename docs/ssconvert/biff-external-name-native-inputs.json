@@ -1,5 +1,5 @@
 {
-  "scope": "Nine unchanged raw BIFF NameX inputs wrapped for actual native Gnumeric import/recalc/XML replay; native execution is pending.",
+  "scope": "Nine unchanged raw BIFF NameX inputs wrapped for native Gnumeric import/recalc/XML replay; the linked capture records actual execution and its diagnostic limitations.",
   "independentInputReview": {
     "scope": "Independent Python struct/CFB FAT-directory extraction; no product reader/writer invoked. Static native argv/workflow review only; no native Gnumeric capture executed.",
     "bindings": [
@@ -780,13 +780,23 @@
     "sourceExpectedValues": "six #REF! and three6; native results remain to be observed"
   },
   "nativeExecution": {
-    "status": "pending",
-    "workflow": "provision-ssconvert-reference.yml",
-    "profile": "gnumeric-1.12.61-optional-none"
+    "status": "success",
+    "run": 35918106503,
+    "head": "a00ad5517f7385d1ab20c232fb323fc8620f926b",
+    "profile": "gnumeric-1.12.61-optional-none",
+    "proof": "docs/ssconvert/biff-external-name-native-capture.json",
+    "commands": 27,
+    "allExitZero": true,
+    "csvAgreement": true,
+    "diagnosticsAgree": false
   },
   "limitations": [
     "Expected exit codes0/1 retain refusals; workflow success does not assert semantic agreement.",
     "Missing XML output or replay refusal is an unresolved observation, not a passing case.",
     "All19original ssconvert families remain open."
-  ]
+  ],
+  "delivery": {
+    "commit": "a00ad5517f7385d1ab20c232fb323fc8620f926b",
+    "exactRemoteMainVerified": true
+  }
 }

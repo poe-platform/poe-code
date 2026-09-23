@@ -245,7 +245,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. This is authenticated-source qualification,not a new native capture. Wider identity/writer/legacy/flagged declarations and publication remain open.",
+      "currentFinding": "Actual Linux BIFF8 external cell/area imports recalculate to #REF!,not stale17. Reader mismatch repaired with six failing memory controls; six logical fields/27CSVbytes now exact across SDK/Shell/XML replay/browser/worker,with raw SUPBOOK/cache retention and no implicit link I/O. Warning text differs. Full external identity/host binding/writer,NameX and broader version roundtrips remain open. BIFF8 external NameX now resolves supported on-file declaration tables:9 original stale999 cases recalculate to six #REF! and three6 values. Seven red unit groups precede repair;43focused/22713package tests,lint/types and selected4-build closure pass. All54SDK/Shell/XML/XLSX/browser/worker checks agree with unchanged inputs and zero external I/O; screenshots inspected. Native run35918106503 now independently qualifies all9original NameX inputs:27commands exit0,import and XML replay give six#REF!/three6;18publicSDK/compiledShell nativeXML replays agree with zero diagnostics/link access. Native external-reference,UNKNOWN-name and missing-XF warnings remain explicitly different;49module entries resolve to48files. Wider identity/writer/legacy/flagged declarations and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -341,6 +341,11 @@
         {
           "kind": "external-name-declaration-resolution",
           "path": "docs/ssconvert/biff-external-name-gap-proof.json"
+        },
+        {
+          "kind": "actual-native-BIFF8-NameX-and-XML-replay",
+          "path": "docs/ssconvert/biff-external-name-native-capture.json",
+          "outcome": "Exact runhead/artifact/source/profile/46plugin/49module-entry/48file/2prefix-library/8font identity;9unchanged raw inputs,27native commands,18public nativeXML replays. Native warning differences and broader identity/writer/legacy/flagged profiles remain open."
         }
       ],
       "delivery": {

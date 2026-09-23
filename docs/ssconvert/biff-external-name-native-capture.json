@@ -1,0 +1,1410 @@
+{
+  "run": 35918106503,
+  "head": "a00ad5517f7385d1ab20c232fb323fc8620f926b",
+  "artifactSha256": "8e60e23dff974b3d74d2745c426959850aec7b45fc02371c1bb5156bfb502846",
+  "identitySha256": "e65e0adad980501865933b040fa4e0d1c328674a7e47637b715925a73e42269f",
+  "workflowSha256": "f5dcd9974fbbcc09c502acaf9e670da882ecd2811b1d4aeb5becee41d7c53d6a",
+  "manifestSha256": "d444455642e602015dff95c36b99b305d3700b3a829703003c735cef5b461a4e",
+  "prefixArchiveSha256": "0bafa3c9aab49d271417a8a426c925e8859307cf003517d9a5a2a5c11b229f8e",
+  "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+  "architecture": "AArch64",
+  "binaryMode": "0755",
+  "modules": [
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "sha256": "9287e99cb0eb58b22e3591d606b7e692f6a01ed4df5f27d31cd253dbbdd08bd7",
+      "bytes": 179168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "sha256": "1d27cc3e112c32e9c4acb3e72502ee543b1eda1ca257c4a64f5b0d1c8b8ef437",
+      "bytes": 106672
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "sha256": "8862a7ac773dc5fc0147fe42be92e3b9b0672d83fcf83be0329d92c0fd2d9803",
+      "bytes": 3230928
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "sha256": "6e65d282c7e00c697fb53924f4c213a6575d36b6cb4a94fe4a001fb9432aa5fa",
+      "bytes": 96056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "sha256": "d53f6f927023b68632236285ce3c9e19c98d84262d5f039688bbc547d5fc170d",
+      "bytes": 153872
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "sha256": "0b5caff19fd3c99333bc7d9cfb172659f3b770456eaafb26f9d6b9e8afdaa332",
+      "bytes": 109744
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "sha256": "5537687bfb6f4239c65d2f5b2ec053ef78e165de7cdd09d4a44dcdfcbf23380f",
+      "bytes": 129160
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "sha256": "3074c0a6ff94af72cadce040a4d6de2c00270d3ef5e2b0be977c58276b3623f8",
+      "bytes": 179248
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "sha256": "1b486c857e1b97d330c20d15648dc49999f1c3ab625005abf1a956a1e5a96fb6",
+      "bytes": 117208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "sha256": "1faaf049e22ed1c150885ca105094a833ded1048053b42bda606dc71abad19c5",
+      "bytes": 98112
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "sha256": "50da1b950765ff1a2c34a9e608e737a553123aacb163a1b96ea7d67ecbe72f5e",
+      "bytes": 273792
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "sha256": "f57b02b1236ade73c909a56f52a5fd4aff7e75e316cacb76ab3c99903903fcdd",
+      "bytes": 82120
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "sha256": "5420584319c02bcfdc106e8c5b62d289aa73e536431d4cbdf62f066c2534de67",
+      "bytes": 117648
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "sha256": "15a7551f3f9b6efee5adf6b1d0ed5c684e697e18f0b181a61c93bd541254ef2a",
+      "bytes": 117880
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "sha256": "2614988bbb8d512296e78ff8ae686c19be9c2a5563a2bcd4cf2824236fdd16ac",
+      "bytes": 89048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "sha256": "ae1c3d5759926cfea414a915d101a0e21e302544a4e1e4e7e17dd4aa5b35b392",
+      "bytes": 173768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "sha256": "be379f6467576b215ca9cac2de85f403121d19830b997cb49a871d4f8341c9a9",
+      "bytes": 251024
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "sha256": "a465fa00dffc7e7107110d370550eb30361852fbb09ec974805470c306b0ebe7",
+      "bytes": 104576
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "sha256": "01ab7fda05e5d3a9c2c2b58624e85f3e80c7776498fc723e3682f119a220fed2",
+      "bytes": 203832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "sha256": "76b04d170909244061aec95b949e919ad4b910e191c52fcab926ec19e5bece24",
+      "bytes": 113800
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "sha256": "a71a298d51db266213770b440542c61f23e17be18eca9c7c70ee51d66ef42263",
+      "bytes": 359728
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "sha256": "97e162519a4df0eb3f7baebb65d7f7af4d4e1aa623e6838192a9a00b4d753e35",
+      "bytes": 250768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "sha256": "dcf46a9056a077ea5383bca055342f78399c15736653ab6714e7dd99b5afc047",
+      "bytes": 125208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "sha256": "b02a40e861795fc0523a8185dcbb3d95ef903b33ff454034932379f4bd6acf73",
+      "bytes": 166840
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "sha256": "3ae33d6d38828ea205e1d9b5a487e3fc66366d422137b1ae3ed4ab8b222c7e43",
+      "bytes": 257312
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "sha256": "053661656c71ea19195cbb44d9f7bdf8d72e9708097c37f0fa7c3a70a00a5051",
+      "bytes": 336184
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "sha256": "852e7741e38352b0e461b0269f2baa433954a06fb31ef19007dd5a2cef8c1ace",
+      "bytes": 167472
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "sha256": "d71e79c35e2883767d8576bef7c115543b36b70eb03beaccd88c4d161625bf61",
+      "bytes": 125056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "sha256": "d5624fba09fdc5219eca0965e2228ddc2685a0088ae27d814b88febaad814606",
+      "bytes": 114976
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "sha256": "ab9b43e457e022591898ce9b73f8de5c43308fcfcd81bee4c0ee02621da8a0ab",
+      "bytes": 103048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "sha256": "02dcaf868cbb0fef824d0a9f39fad6d40df99038945b1281a820c6f03b4319b1",
+      "bytes": 1692832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "sha256": "85b5e2b770f82ca546fb469eef7846f6de8e21c9f3443d634b07295b764d35f3",
+      "bytes": 119624
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "sha256": "bab732e79a0d4cb3479871a7362c2c371cc5eebb995c3bf9db3ea33da4c96051",
+      "bytes": 155328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "sha256": "adcab2b55e5b84f24ac597b01a140afbdd2593167a5b05b8e0e4b58f50998cfc",
+      "bytes": 142408
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "sha256": "c9c19958876d410bd481abdc9df6b6468c601620e7414c0cd52c36197a10c358",
+      "bytes": 145168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "sha256": "53558ceb5e2bff9d61f87c1b00af1c584f92ca3ba76adccc312d87d822bb8f63",
+      "bytes": 152768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "sha256": "7e0912913898186e83c75a19d2e1a5fcf19123c4d8536b78eba1323828718a4f",
+      "bytes": 110664
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "sha256": "3377db0484ebddda4d0424eca82c7071413064ec28795befb950c5331cba0238",
+      "bytes": 401920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "sha256": "5eb5dc639dda7b1ca651a1bb036abc1ed86f8b2d2c162ec9bae397658d347d8a",
+      "bytes": 325328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "sha256": "a4cfc0e78d36db629c32c06da7a5c39fd17ebbcb24dd372039d7d279a922d5ae",
+      "bytes": 170816
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "sha256": "4787b494e72be3653c28460db977353946f10feffdef9e782ca85042943c1845",
+      "bytes": 169832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "sha256": "8df93e3d5403a0ef96917d8081e78ad68445c83ec5ed38d57bf125a4907d20f7",
+      "bytes": 391784
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "sha256": "ec710ba3692a16af0d03c3962c0e5bd8242dd2ec4c2f6d207c2feccdac8f0ed9",
+      "bytes": 344600
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "sha256": "6a3632498e993bada8024adb6ca552203b82d763c71c55640a0f9bc7513199a1",
+      "bytes": 180200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "sha256": "91a355c04655fe2279fedcce3b21ee0a4d29d29193b1fac032820cfaca6b53c5",
+      "bytes": 101200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "sha256": "210f741cecaf062d295962e38f79843d9cb412ff819b40e50c1fe517eca9be2e",
+      "bytes": 134640
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9",
+      "bytes": 7608920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    }
+  ],
+  "moduleEntries": 49,
+  "uniqueResolvedModuleFiles": 48,
+  "prefixLibraries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9"
+    }
+  ],
+  "fonts": [
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+      "bytes": 708920,
+      "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "bytes": 759720,
+      "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+      "bytes": 334268,
+      "sha256": "0d3c03d1b667192f91223660a3163325cf83132662fe4d9f7d6e596bf7a995c2"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf",
+      "bytes": 254960,
+      "sha256": "2084995adab143b149258f5944b7f863804796b753014526bd7f7915b1b20770"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf",
+      "bytes": 253448,
+      "sha256": "710323dd803666c37988df68e736c233d96efdf5c770c8ee28f4c4f4b84fb32d"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+      "bytes": 343140,
+      "sha256": "54bf827eb99404e8f430c330ad30f063334f637eba0109b6a18d4f566a8e9dd8"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+      "bytes": 356668,
+      "sha256": "aac3f559445d23f0f567a243f91f3f6ad6cb4b5cafa1521a3479fffe0637f0bd"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+      "bytes": 380660,
+      "sha256": "8cb29f7db250ebb2551a6ce2c1e0bfd5a0eb520e9e233370db0493e82e1f36f7"
+    }
+  ],
+  "activePlugins": [
+    "GOffice_smoothing",
+    "GOffice_reg_logfit",
+    "GOffice_plot_surface",
+    "GOffice_reg_linear",
+    "GOffice_plot_barcol",
+    "GOffice_plot_pie",
+    "GOffice_plot_distrib",
+    "GOffice_plot_xy",
+    "GOffice_plot_radar",
+    "Gnumeric_fndate",
+    "Gnumeric_fnTimeSeriesAnalysis",
+    "Gnumeric_plan_perfect",
+    "Gnumeric_fnlogical",
+    "Gnumeric_numtheory",
+    "Gnumeric_fnfinancial",
+    "Gnumeric_dif",
+    "Gnumeric_mps",
+    "Gnumeric_xbase",
+    "Gnumeric_fninfo",
+    "Gnumeric_fnhebdate",
+    "Gnumeric_fnstat",
+    "Gnumeric_lpsolve",
+    "Gnumeric_oleo",
+    "Gnumeric_derivatives",
+    "Gnumeric_fndatabase",
+    "Gnumeric_fnerlang",
+    "Gnumeric_fnlookup",
+    "Gnumeric_OpenCalc",
+    "Gnumeric_Excel",
+    "Gnumeric_fnflt",
+    "Gnumeric_r",
+    "Gnumeric_html",
+    "Gnumeric_glpk",
+    "Gnumeric_QPro",
+    "Gnumeric_lotus",
+    "Gnumeric_fnchristiandate",
+    "Gnumeric_fnrandom",
+    "Gnumeric_fnstring",
+    "Gnumeric_sylk",
+    "Gnumeric_fncomplex",
+    "Gnumeric_applix",
+    "Gnumeric_nlsolve",
+    "Gnumeric_sc",
+    "Gnumeric_paradox",
+    "Gnumeric_fnmath",
+    "Gnumeric_fneng"
+  ],
+  "rows": [
+    {
+      "id": "external-biff8-name-missing-57",
+      "originalMode": "missing",
+      "originalInputSha256": "052a3e1e433aba60121a42a6e6404d2fccfe267301e9f0bb3d1da17d3fd22297",
+      "wrappedInputSha256": "56131f1afbbc2f04b4c6bbe10c634ae902c55e0c663bfc0dc54d38bbc4f971f4",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-missing-57",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-57.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333034293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3339303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333034293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3339303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333034293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3339303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333034293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3339303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333034293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3339303a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786162613734363462623336302e0a0a287373636f6e766572743a3632333034293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3339303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "606d8b15418ec7119d35013b36384c1e20aafe8049e69dbcf833e870ada40a2c"
+        },
+        {
+          "label": "external-biff8-name-missing-57-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-missing-57.xls",
+            "out/ssconvert-linux/external-biff8-name-missing-57.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333036293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3432353a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333036293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3432353a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333036293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3432353a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333036293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3432353a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333036293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3432363a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786161653130393839363363302e0a0a287373636f6e766572743a3632333036293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3432363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "44b97311ab1e99ceb6bbdeeea24c81b583a2bf520f334d5bdbfc5288b688954e"
+        },
+        {
+          "label": "external-biff8-name-missing-57-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-57.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-missing-89",
+      "originalMode": "missing",
+      "originalInputSha256": "dcf003c92d8ed708b9cf54f39e1176156495933c63db549f2a4520ff7b9bf3d1",
+      "wrappedInputSha256": "b14dac65c4fc92742195a08c3f500bb465c460bea4f2e5fd5af5929262986544",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-missing-89",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-89.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333130293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3530303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333130293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3530303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333130293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3530303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333130293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3530303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333130293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3530303a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786162353330323530663336302e0a0a287373636f6e766572743a3632333130293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3530303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "9bd6d7df722250d7101b96dc6e733604022b1153934b993b49ba1c200d75e2f4"
+        },
+        {
+          "label": "external-biff8-name-missing-89-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-missing-89.xls",
+            "out/ssconvert-linux/external-biff8-name-missing-89.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333132293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3533363a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333132293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3533363a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333132293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3533363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333132293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3533363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333132293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3533363a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786161663461646462363363302e0a0a287373636f6e766572743a3632333132293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3533363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "b48f4d287e7a88a8eae2ffad3f802c4f38090389fd76136a4d4bff21b1096a04"
+        },
+        {
+          "label": "external-biff8-name-missing-89-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-89.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-missing-121",
+      "originalMode": "missing",
+      "originalInputSha256": "89427220ba6c7bf832d353b5b2ac366075172a6a8d9f1c4fce9631e0459384cf",
+      "wrappedInputSha256": "597dfcb15b0c6b95c38155109f66914c330a6c1b56230c48f07f74d5bc6cb6a4",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-missing-121",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-121.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333136293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3631333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333136293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3631333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333136293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3631333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333136293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3631333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333136293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3631333a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786162363834373663383339302e0a0a287373636f6e766572743a3632333136293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3631333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "c86be7d8f4090c21d3019c68985e3d3aa581ebb3db953262d582fb1136125fed"
+        },
+        {
+          "label": "external-biff8-name-missing-121-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-missing-121.xls",
+            "out/ssconvert-linux/external-biff8-name-missing-121.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333138293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3634393a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333138293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3634393a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333138293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3634393a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333138293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3634393a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333138293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2032303a35303a34372e3634393a20455843454c3a203120286f6620302920554e4b4e4f574e206e616d652030786162353262633561353363302e0a0a287373636f6e766572743a3632333138293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3634393a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "693432caf1ca0c510dcc07fcdef435c7483934fd98f53a21fb8cb8e0d46ac4f7"
+        },
+        {
+          "label": "external-biff8-name-missing-121-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-missing-121.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-inactive-57",
+      "originalMode": "inactive",
+      "originalInputSha256": "6ba4040e29e5560304c64fbf93c55ffddabf670766f0b9c035f4495ba0a6c084",
+      "wrappedInputSha256": "a2b615ca7c3fd92c2817ff8ee67ecf2043964946c72088ee52013abece647ef2",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-inactive-57",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-57.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333232293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3732363a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333232293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3732373a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333232293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3732373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333232293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3732373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333232293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3732373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "b94b605331e94984b0876a4dfd93f6f9abc2a40ab368394bb2d5d5a3e9092b77"
+        },
+        {
+          "label": "external-biff8-name-inactive-57-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-inactive-57.xls",
+            "out/ssconvert-linux/external-biff8-name-inactive-57.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333234293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3736333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333234293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3736333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333234293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3736333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333234293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3736333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333234293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3736333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "0e758f5c639241a36a3356428a4a345075218e05c45063fc3cceb112aa7d3ab5"
+        },
+        {
+          "label": "external-biff8-name-inactive-57-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-57.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-inactive-89",
+      "originalMode": "inactive",
+      "originalInputSha256": "57c43670d6f574b0d141180b3c11ad2cd2075e56c9710e5816474c07f6650fbd",
+      "wrappedInputSha256": "47945217a1a47fe405061a0a7b5d5119d3f64d662ea3b7c04e0bfadfc8954ac7",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-inactive-89",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-89.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333238293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3834303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333238293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3834303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333238293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3834303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333238293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3834303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333238293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3834303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "277beef2685af817a8264eabe1b7b4eb857b44d1ef3f2193a55dc27f870a97e8"
+        },
+        {
+          "label": "external-biff8-name-inactive-89-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-inactive-89.xls",
+            "out/ssconvert-linux/external-biff8-name-inactive-89.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333330293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3837363a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333330293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3837363a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333330293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3837363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333330293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3837363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333330293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3837363a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "2493a3a6efa7c042ef0a1cd94707a79e579e5a0d3101f10b87a9bcc2f546178f"
+        },
+        {
+          "label": "external-biff8-name-inactive-89-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-89.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-inactive-121",
+      "originalMode": "inactive",
+      "originalInputSha256": "3bec8f2b2a3b3b132125d67ebfee62310c842d473c77dbdbaa8412fa358a683b",
+      "wrappedInputSha256": "2c65b9f43cc41822bb494f104c3b6232f5c678acf650b014c4acc63c10e86923",
+      "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+      "nativeXmlBytes": 4605,
+      "csv": "#REF!\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-inactive-121",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-121.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "0a287373636f6e766572743a3632333334293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3935343a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333334293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3935343a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333334293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3935343a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333334293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3935343a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333334293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3935343a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "fc3150af9adddfb80b10511227eee5928d73629d9e0abd099cd4d8550bb5c9cc"
+        },
+        {
+          "label": "external-biff8-name-inactive-121-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-inactive-121.xls",
+            "out/ssconvert-linux/external-biff8-name-inactive-121.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333336293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3939303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333336293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3939303a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333336293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3939303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333336293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3939303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333336293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34372e3939303a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "859674ed0a8b9c792224663d197617cdd71d701774eb1834577f2b42203e9be7"
+        },
+        {
+          "label": "external-biff8-name-inactive-121-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-inactive-121.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "7e546751eb840e0e44ba2bfefab519d0ef73d4f1ab267aa6658f747a3734dc98",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-active-57",
+      "originalMode": "active",
+      "originalInputSha256": "4a2e08c7504073f64eaa77b281ef4f598d57a4d54bf29742fd94edc89938dab9",
+      "wrappedInputSha256": "6c848c5b83a1357ebf5d6c59e54048d56e55a211a3301ddd435b414a1259821e",
+      "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+      "nativeXmlBytes": 4767,
+      "csv": "6\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-active-57",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-57.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "0a287373636f6e766572743a3632333430293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3037313a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333430293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3037313a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333430293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3037313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333430293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3037313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333430293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3037313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "fcd59454a829ec4cdd2a4e2119f0a38d8fd6ce1b22235bec92afc32fa460c84d"
+        },
+        {
+          "label": "external-biff8-name-active-57-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-active-57.xls",
+            "out/ssconvert-linux/external-biff8-name-active-57.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333432293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3130373a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333432293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3130373a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333432293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3130373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333432293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3130373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333432293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3130373a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "4ce257c4ba2d3c4ac71b0133d0fdee477aa7e8fb758a408ff2679d26ebfdd77d"
+        },
+        {
+          "label": "external-biff8-name-active-57-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-57.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-active-89",
+      "originalMode": "active",
+      "originalInputSha256": "8035d4e24591a2cee4aa044cea7984fae6a9a758dd52c5bd8073c43819db206a",
+      "wrappedInputSha256": "5015238677ee610fc9112a7be7500921b397906067a571479af854b438fd348f",
+      "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+      "nativeXmlBytes": 4767,
+      "csv": "6\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-active-89",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-89.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "0a287373636f6e766572743a3632333436293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3138353a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333436293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3138353a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333436293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3138353a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333436293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3138353a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333436293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3138353a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "89cceb279e508207511f3cbb014bf2493326b4559600f429e093ad3b81708282"
+        },
+        {
+          "label": "external-biff8-name-active-89-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-active-89.xls",
+            "out/ssconvert-linux/external-biff8-name-active-89.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333438293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3232313a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333438293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3232313a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333438293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3232313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333438293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3232313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333438293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3232313a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "57e86c402d1686e4ee54b019b54a3796e3f5c8d92eee1f47390eb8c3edbda166"
+        },
+        {
+          "label": "external-biff8-name-active-89-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-89.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "id": "external-biff8-name-active-121",
+      "originalMode": "active",
+      "originalInputSha256": "fcfea59581dab58aedb9a4e863895fa2595c287560282ae5c9050540ccfed446",
+      "wrappedInputSha256": "e0f8d8651c63b61710b7c251c1455b4579d11f0ab637721d091157e571a1e482",
+      "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+      "nativeXmlBytes": 4767,
+      "csv": "6\n",
+      "captures": [
+        {
+          "label": "external-biff8-name-active-121",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-121.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "0a287373636f6e766572743a3632333532293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3239383a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333532293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3239383a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333532293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3239383a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333532293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3239383a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333532293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3239383a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "4d47aa4657dc56fecd7e5d005e9b17fb91d9d5b06f17695dc6552ac1a2595891"
+        },
+        {
+          "label": "external-biff8-name-active-121-xml",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "-I",
+            "Gnumeric_Excel:excel",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/external-biff8-name-active-121.xls",
+            "out/ssconvert-linux/external-biff8-name-active-121.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632333534293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3333333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333534293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3333333a2065787465726e616c207265666572656e636573206e6f7420737570706f72746564207965742e0a0a287373636f6e766572743a3632333534293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3333333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333534293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3333333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a0a287373636f6e766572743a3632333534293a20676e756d657269633a726561642d5741524e494e47202a2a3a2032303a35303a34382e3333333a2046696c65206973206d6f7374206c696b656c7920636f727275707465642e0a28436f6e646974696f6e2022702d3e6c656e203e203022206661696c656420696e20657863656c5f6765745f78662e290a0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "654c4a4fa2c7cd46493cb0d08a686bbbf7bdd602cb9e2dd3d35130af74e42f2c"
+        },
+        {
+          "label": "external-biff8-name-active-121-replay",
+          "expectedExitCodes": [
+            0,
+            1
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/external-biff8-name-active-121.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "360a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "nativeCommands": 27,
+  "allExitZero": true,
+  "nativeImportAndXmlReplayCsvMatchCandidate": true,
+  "limitations": [
+    "Original inputs omit XF style records; native import/export warns about missing XF records and unsupported external references. Missing-name cases also emit pointer-bearing UNKNOWN name warnings. Preserve these diagnostic differences.",
+    "Only packaged prefix libraries were physically rehashed; other system-library identities remain collected runtime receipts.",
+    "All19 original ssconvert families and root publication remain open."
+  ],
+  "publicNativeXmlReplay": {
+    "config": {
+      "codecs": [],
+      "environment": {
+        "env": {},
+        "locale": "C",
+        "timezone": "UTC"
+      },
+      "limits": {
+        "inputBytes": 100000,
+        "outputBytes": 2000000,
+        "cells": 1000,
+        "sheets": 8,
+        "operations": 10000,
+        "workbookWork": 100000
+      }
+    },
+    "results": [
+      {
+        "id": "external-biff8-name-missing-57",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-missing-89",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-missing-121",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-inactive-57",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-inactive-89",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-inactive-121",
+        "nativeXmlSha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9",
+        "csv": "#REF!\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-active-57",
+        "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+        "csv": "6\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-active-89",
+        "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+        "csv": "6\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      },
+      {
+        "id": "external-biff8-name-active-121",
+        "nativeXmlSha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3",
+        "csv": "6\n",
+        "sdkDiagnostics": [],
+        "shellStderr": "",
+        "resolutions": 0,
+        "inputAndKeepUnchanged": true
+      }
+    ],
+    "executions": 18
+  },
+  "originalRepairCommit": "77bfc208a16c1dfd8b4a187aeaf5a9a90aa30d52",
+  "nativeFixtureDelivery": "a00ad5517f7385d1ab20c232fb323fc8620f926b",
+  "nativeRunUrl": "https://github.com/poe-platform/poe-code/actions/runs/35918106503",
+  "authenticationAttempts": {
+    "initial": "Wrong dependency-manifest filename in the local reducer; no native failure. Original log retained.",
+    "corrected": "Declared filename read from the unchanged workflow; final profile/source/stream checks pass."
+  },
+  "logSha256": {
+    "native-authentication.log": "f6b57160fb139682519466c83a9421df270d617c892d6c68f402ce770aee0d8e",
+    "native-authentication-final.log": "a72c487c07dea6295586e90c6d952d2ba7988a0856f512c8e4a551323e62066c",
+    "native-authentication-exact-profile.log": "a72c487c07dea6295586e90c6d952d2ba7988a0856f512c8e4a551323e62066c",
+    "native-public-replay.log": "dc859efc6f4ef113fed0aa0726806ccd74f896be3b92deefb5746e12d2f7bce5"
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34",
+    "nativeWorkflowIsNotNpmRelease": true
+  },
+  "independentVerification": {
+    "artifactAuthentication": {
+      "scope": "Independent artifact, exact-head manifest, tar/ELF/mode, capture-stream and parent-reduction verification. Native AArch64 binary never executed locally.",
+      "run": 35918106503,
+      "head": "a00ad5517f7385d1ab20c232fb323fc8620f926b",
+      "runSuccessFreshAPI": true,
+      "artifactId": 10775942295,
+      "artifactSha256": "8e60e23dff974b3d74d2745c426959850aec7b45fc02371c1bb5156bfb502846",
+      "artifactBytes": 56106836,
+      "identitySha256": "e65e0adad980501865933b040fa4e0d1c328674a7e47637b715925a73e42269f",
+      "prefixArchiveSha256": "0bafa3c9aab49d271417a8a426c925e8859307cf003517d9a5a2a5c11b229f8e",
+      "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+      "architecture": "AArch64 ELF64 little-endian",
+      "binaryMode": "0755",
+      "manifestBindings": [
+        {
+          "path": "docs/ssconvert/reference-profile.json",
+          "sha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e"
+        },
+        {
+          "path": "docs/ssconvert/optional-runtime-extension-coverage.json",
+          "sha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb"
+        },
+        {
+          "path": "docs/ssconvert/linux-optional-service-native-probes.json",
+          "sha256": "d444455642e602015dff95c36b99b305d3700b3a829703003c735cef5b461a4e"
+        },
+        {
+          "path": "docs/ssconvert/linux-language-native-probes.json",
+          "sha256": "06768ed4ba06d1b60fab2fa7d56f444a58e99c9194b93158341c7004740a734d"
+        },
+        {
+          "path": "docs/ssconvert/linux-python-reference-native-probes.json",
+          "sha256": "3ae0a25cf6869565f8003420dc9eec1dc60e28f000e325bb3f4409d4fc8fa9e3"
+        },
+        {
+          "path": "docs/ssconvert/linux-reference-dependencies.json",
+          "sha256": "a3126d1f67fb59c60c04a588e16c8917fcc64e698d2475ab7d6f427da8f97841"
+        }
+      ],
+      "moduleEntryCount": 49,
+      "uniqueResolvedModuleFiles": 48,
+      "activePluginCount": 46,
+      "nativeInputs": 9,
+      "nativeCaptures": 27,
+      "allExitZero": true,
+      "directAndXmlReplayValues": {
+        "missingAndInactive": "#REF!\n",
+        "active": "6\n"
+      },
+      "parentResultReductionExact": true
+    },
+    "publicReplay": {
+      "scope": "Reran compiled public SDK and compiled Shell XML replay, retaining every original assertion plus direct empty diagnostics checks. No native AArch64 execution.",
+      "exitCode": 0,
+      "executions": 18,
+      "inputs": 9,
+      "exactRootResultRows": true,
+      "exactAuthenticatedNativeCsv": true,
+      "zeroDiagnostics": true,
+      "zeroExternalLinkResolutions": true,
+      "inputAndKeepPreserved": true,
+      "bindings": [
+        {
+          "path": "out/ssconvert-biff-external-names/replay-native.mjs",
+          "bytes": 2937,
+          "sha256": "91d92f996761adf482cec6b4944fc09c7c5773b22266db056ae1be0a95c219f6"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-authenticated.json",
+          "bytes": 68060,
+          "sha256": "15b108cc9a86932c5fb7a3d92d50091f4040c2556092d9c46d167d914a8832b0"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-public-replay.json",
+          "bytes": 2937,
+          "sha256": "45c70d15eaea69fcea674f465f1c9a466bd7554e6ba3a8a0a1ecf902535de4dc"
+        },
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "bytes": 8280621,
+          "sha256": "ddbc2163e0e26c48de3b83ef2ca9734e8978a1508ce402ca9f9473ad0d460d79"
+        },
+        {
+          "path": "packages/safe-bash/dist/shell/index.js",
+          "bytes": 236,
+          "sha256": "4d0cb9592c3666cd68cf35ba5b9f836a645bf2589006c101842f5828aa7000b6"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "bytes": 9494,
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        },
+        {
+          "path": "packages/safe-bash/dist/fs/memory/index.js",
+          "bytes": 148,
+          "sha256": "e84214cae3a012d9d8e1979d228a89e64d6758fe3b884305009d2eea1e273fd7"
+        },
+        {
+          "path": "packages/safe-fs/dist/fs/memory/index.js",
+          "bytes": 62544,
+          "sha256": "8296ae341905afc976254de9960e0fe465b1c694d12816ec3833ac56f41ef0db"
+        },
+        {
+          "path": "packages/safe-fs/dist/core.js",
+          "bytes": 1127,
+          "sha256": "3a8d15f3ef5ba0a88cb9fc891414ae80246d6627508c0dd429f8c211f8090da9"
+        },
+        {
+          "path": "package.json",
+          "bytes": 23016,
+          "sha256": "65d95c1de3409659ebcacf1d8450ce8d9ac27ec0a4dc3ddf0a37b800e5a553fa"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-active-121.gnumeric",
+          "bytes": 4767,
+          "sha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-active-57.gnumeric",
+          "bytes": 4767,
+          "sha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-active-89.gnumeric",
+          "bytes": 4767,
+          "sha256": "ff7a82f91c69e44ba56ac415e757e775f05635d9c6b40f49c0ef9ed0847600d3"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-inactive-121.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-inactive-57.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-inactive-89.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-missing-121.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-missing-57.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        },
+        {
+          "path": "out/ssconvert-biff-external-names/native-capture/external-biff8-name-missing-89.gnumeric",
+          "bytes": 4605,
+          "sha256": "74589e450de935aa44ffee3eda3ff269d7cb337758e3adb4277f41d2f8b82aa9"
+        }
+      ],
+      "stable": true,
+      "nativeCaptureRun": 35918106503,
+      "nativeCaptureHead": "a00ad5517f7385d1ab20c232fb323fc8620f926b"
+    },
+    "receiptSha256": {
+      "independent-native-auth-qualified.json": "e1820f689efa1f6e0281d697086dafcc447fc4ad57a8f72c5b21d8b5c74f83f8",
+      "independent-public-native-replay-receipt.json": "3eec6ad119de4083a364ddee8c028a56b77edff6289f1224bd849f43021174bd"
+    }
+  }
+}

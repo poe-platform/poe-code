@@ -631,6 +631,7 @@ test("nested SDK invocations inherit masks without changing the caller", async (
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(agentCommands());
   shell.commands.register({ name: "child", async execute(context) {
+    assert.ok(context.invoke);
     await context.invoke("touch", ["nested"]);
     return context.invoke("umask", ["002"]);
   } });

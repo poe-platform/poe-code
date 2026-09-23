@@ -1,0 +1,49 @@
+{
+  "commit": "06e2e656020ecc51b5899c32d09966e6186c1d3d",
+  "remoteMainExactVerified": "06e2e656020ecc51b5899c32d09966e6186c1d3d\trefs/heads/main",
+  "localCommitBeforeRebase": "a36d5b6338",
+  "qualifiedRebasedCommit": "255b219e11f8ce6ade7ef4bacb47f77a49a96a19",
+  "finalAdditionalUpstreamChange": {
+    "commit": "9a2f093da558fb71d2b9c7580e3c4c37e16fb022",
+    "paths": [
+      "packages/safe-fs/src/fs/s3/filesystem.ts",
+      "packages/safe-fs/tests/s3-read-file-limit.test.ts"
+    ],
+    "repairAndQualifiedPdfXmlEngineInputsUnchanged": true
+  },
+  "checks": {
+    "originalFullPackage": {
+      "files": 375,
+      "tests": 22706,
+      "artifactVerifier": 7
+    },
+    "rebasedAffected": {
+      "files": 23,
+      "tests": 341
+    },
+    "rebasedLintSourceTestConsumerTypes": "passed",
+    "rebasedMaintainedBuild": {
+      "builds": 4,
+      "layers": 11
+    },
+    "rebasedSdkShellXmlControls": 12,
+    "rebasedBrowserWorkerControls": 8,
+    "allQualifiedPdfBytesUnchanged": true,
+    "browserConsoleMessages": 0
+  },
+  "logSha256": {
+    "rebased-focused.log": "e6ee13314f9a3075ab3a1362002074a4aead2af271d521e5455a630bc5da9906",
+    "rebased-lint.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c",
+    "rebased-workspace-build.log": "8f537eb80c057a21f041fcf0ecc6566bddf98de3b63899c3f670ab2b5a9c4405",
+    "final-rebase.log": "8211a0145312ce6c02a3b55605de38d46c9f8496115f15caabff4e0150b5e4bd",
+    "push-final.log": "a91d0619bdea68323672d4a3cf1da222daf7f715abaf572841b55a3adfdb78bd",
+    "remote-main.txt": "c295f631b1dcaadeddb062cd5555f9b1b963262fa43a37f38dd92d6c99a7e098"
+  },
+  "publication": {
+    "status": "pending",
+    "lastObservedRootLatest": "17.0.34",
+    "containingOlderRelease": "35906072455",
+    "olderReleaseFindings": "checks, build and cached units passed; Bash1/Bash3 failures under current-code validation; fresh unit/Bash2/Bash4 still pending at observation"
+  },
+  "remaining": "All19 original ssconvert families remain open; this delivery repairs the validated CGJ shaping cases only."
+}

@@ -1,5 +1,6 @@
 import { readDataRecord, type HostOperation } from "../extensions.js";
 import { types } from "node:util";
+import { createIntrinsicObject } from "./object-model.js";
 import type { SandboxClosure, SandboxObject, SandboxValue } from "./values.js";
 import type { SandboxIterator } from "./iteration.js";
 
@@ -167,7 +168,8 @@ export function createLiveHostObject(
     ))
       throw new TypeError("Guest expando assertActive must be a synchronous function, not a proxy.");
     expandos = {
-      values: Object.create(null),
+      // Owned writes invalidate descriptor projections; descendants stay live.
+      values: createIntrinsicObject(),
       maxKeys: data.maxKeys as number,
       maxKeyCodeUnits: data.maxKeyCodeUnits as number,
       assertActive: data.assertActive as (() => void) | undefined

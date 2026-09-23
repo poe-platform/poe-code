@@ -1,8 +1,8 @@
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
-  type CommandContext, type CommandDefinition, type FileStat,
+  readBytes, writeBytes, type CommandContext, type CommandDefinition, type FileStat,
 } from "../contracts/index.js";
-import { codeOf, define, diagnostic, eachOperand, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
+import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
@@ -420,37 +420,91 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("rm", async context => {
-      const parsed = options(context.args, "rRfdv", { recursive: "r", force: "f", dir: "d", verbose: "v" });
+      let interactive: "never" | "once" | "always" = "never";
+      let force = false;
+      let ended = false;
+      const args: string[] = [];
+      for (const argument of context.args) {
+        if (ended) { args.push(argument); continue; }
+        if (argument === "--") { ended = true; args.push(argument); continue; }
+        if (argument === "--interactive" || argument.startsWith("--interactive=")) {
+          const policy = argument === "--interactive" ? "always" : argument.slice("--interactive=".length);
+          const policies = { never: "never", no: "never", none: "never", once: "once", always: "always", yes: "always" } as const;
+          const matches = Object.keys(policies).filter(name => policy && name.startsWith(policy));
+          const modes = new Set(matches.map(name => policies[name as keyof typeof policies]));
+          if (modes.size !== 1) throw new UsageError(`${modes.size ? "ambiguous" : "invalid"} argument '${policy}' for 'interactive'`);
+          interactive = [...modes][0]!;
+          if (interactive === "always") force = false;
+          continue;
+        }
+        const flags = argument === "--force" ? "f" : argument.startsWith("-") && !argument.startsWith("--") ? argument.slice(1) : "";
+        for (const flag of flags) {
+          if (flag === "f") { force = true; interactive = "never"; }
+          else if (flag === "i") { interactive = "always"; force = false; }
+          else if (flag === "I") interactive = "once";
+        }
+        args.push(argument);
+      }
+      const parsed = options(args, "rRfdviI", { recursive: "r", force: "f", dir: "d", verbose: "v" });
+      if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
-      await preflightOperands(context, parsed.operands, async operand => {
-        const path = pathOf(context, operand);
-        const stat = await maybeStat(context, path, false);
-        if (!stat) return;
-        const mode = stat.type === "directory" ? parsed.flags.has("r") || parsed.flags.has("R") ? "recursive" : "directory" : "file";
-        if (mode === "directory") await admitEmptyDirectory(context, path, readDirectory);
-        else await admitFilesystemModes(context, "rm", [mode], [path]);
-      });
-      return eachOperand(context, parsed.operands, async operand => {
-        const path = pathOf(context, operand);
-        if (path === "/" || [".", ".."].includes(operand.replace(/\/+$/u, "").split("/").at(-1)!)) throw new FsError("EBUSY", { path, message: "refusing to remove root, '.' or '..'" });
-        const stat = await maybeStat(context, path, false);
-        if (!stat) {
-          if (parsed.flags.has("f")) return;
-          throw new FsError("ENOENT", { path });
-        }
-        const recursive = parsed.flags.has("r") || parsed.flags.has("R");
-        if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
-        if (stat.type === "directory" && !recursive) {
-          try { await removeEmptyDirectory(context, path, readDirectory); }
-          catch (error) {
-            context.signal.throwIfAborted();
-            if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
+      const recursive = parsed.flags.has("r") || parsed.flags.has("R");
+      const answers = lines(readBytes(context.stdin, context.signal));
+      const confirm = async (question: string): Promise<boolean> => {
+        await writeBytes(context.stderr, new TextEncoder().encode(`rm: ${question}? `), context.signal);
+        const answer = await answers.next();
+        const text = answer.done ? "" : new TextDecoder().decode(answer.value.bytes).trimStart();
+        return text[0] === "y" || text[0] === "Y";
+      };
+      try {
+        if (interactive === "once" && (recursive || parsed.operands.length > 3)
+          && !await confirm(`remove ${parsed.operands.length} argument${parsed.operands.length === 1 ? "" : "s"}${recursive ? " recursively" : ""}`)) return { exitCode: 0 };
+        await preflightOperands(context, parsed.operands, async operand => {
+          const path = pathOf(context, operand);
+          const stat = await maybeStat(context, path, false);
+          if (!stat) return;
+          const mode = stat.type === "directory" ? parsed.flags.has("r") || parsed.flags.has("R") ? "recursive" : "directory" : "file";
+          if (mode === "directory") await admitEmptyDirectory(context, path, readDirectory);
+          else await admitFilesystemModes(context, "rm", [mode], [path]);
+        });
+        const remove = async (operand: string, depth = 0): Promise<boolean> => {
+          const path = pathOf(context, operand);
+          if (path === "/" || [".", ".."].includes(operand.replace(/\/+$/u, "").split("/").at(-1)!)) throw new FsError("EBUSY", { path, message: "refusing to remove root, '.' or '..'" });
+          const stat = await maybeStat(context, path, false);
+          if (!stat) {
+            if (parsed.flags.has("f")) return true;
+            throw new FsError("ENOENT", { path });
           }
-        } else {
-          await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
-        }
-        if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
-      });
+          if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
+          if (interactive === "always") {
+            const display = escapeText(operand, "display");
+            if (stat.type === "directory" && recursive) {
+              if (depth > MAX_RECURSIVE_DIRECTORY_DEPTH) throw new FsError("ELOOP", { path });
+              const entries = await readDirectory(context, path, true);
+              if (entries.length) {
+                if (!await confirm(`descend into directory '${display}'`)) return false;
+                let removed = true;
+                for (const entry of entries) if (!await remove(childOperand(operand, entry.name), depth + 1)) removed = false;
+                if (!removed) return false;
+              }
+            }
+            const type = stat.type === "file" ? stat.size === 0 ? "regular empty file" : "regular file" : stat.type === "symlink" ? "symbolic link" : "directory";
+            if (!await confirm(`remove ${type} '${display}'`)) return false;
+          }
+          if (stat.type === "directory" && (!recursive || interactive === "always")) {
+            try { await removeEmptyDirectory(context, path, readDirectory); }
+            catch (error) {
+              context.signal.throwIfAborted();
+              if (!parsed.flags.has("f") || codeOf(error) !== "ENOENT") throw error;
+            }
+          } else {
+            await context.fs.rm(path, { recursive, force: parsed.flags.has("f"), signal: context.signal });
+          }
+          if (parsed.flags.has("v")) await output(context, `removed '${escapeText(operand, "display")}'\n`);
+          return true;
+        };
+        return await eachOperand(context, parsed.operands, async operand => { await remove(operand); });
+      } finally { await answers.return(undefined); }
     }),
     define("rmdir", async context => {
       const parsed = options(context.args, "pv", { parents: "p", verbose: "v", "ignore-fail-on-non-empty": false });

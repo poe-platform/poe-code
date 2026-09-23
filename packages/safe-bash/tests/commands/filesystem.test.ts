@@ -497,6 +497,73 @@ test("mv renames and honors no-clobber without host filesystem operations", asyn
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/renamed")), "one");
 });
 
+for (const option of ["--interactive=always", "--interactive", "-i"]) {
+  for (const answer of ["y\n", "n\n", ""]) test(`rm ${option} respects answer ${JSON.stringify(answer)}`, async () => {
+    const fs = await fixture({ input: "abc" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`rm ${option} input`, { stdin: answer });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "rm: remove regular file 'input'? ");
+    if (answer.startsWith("y")) await assert.rejects(fs.stat("/work/input"), { code: "ENOENT" });
+    else assert.equal(new TextDecoder().decode(await fs.readFile("/work/input")), "abc");
+  });
+}
+
+for (const args of [["--interactive=never"], ["-I"], ["--interactive=once"], ["-if"], ["-i", "-f"]]) {
+  test(`rm ${args.join(" ")} removes one file without prompting or reading stdin`, async () => {
+    const fs = await fixture({ input: "abc" });
+    const stdin = { async *[Symbol.asyncIterator]() { throw new Error("unexpected stdin read"); yield new Uint8Array(); } };
+    const result = await run("rm", [...args, "input"], { fs, stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    await assert.rejects(fs.stat("/work/input"), { code: "ENOENT" });
+  });
+}
+
+test("rm interactive option ordering, multiple answers, and once threshold", async () => {
+  for (const args of [["-fi"], ["-f", "--interactive=always"]]) {
+    const fs = await fixture({ a: "a", b: "b" });
+    const result = await run("rm", [...args, "a", "b"], { fs, stdin: "n\ny\n" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "rm: remove regular file 'a'? rm: remove regular file 'b'? ");
+    assert.equal((await fs.stat("/work/a")).type, "file");
+    await assert.rejects(fs.stat("/work/b"), { code: "ENOENT" });
+  }
+  for (const answer of ["y\n", "n\n"]) {
+    const fs = await fixture({ a: "a", b: "b", c: "c", d: "d" });
+    const result = await run("rm", ["-I", "a", "b", "c", "d"], { fs, stdin: answer });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "rm: remove 4 arguments? ");
+    for (const name of ["a", "b", "c", "d"]) {
+      if (answer === "y\n") await assert.rejects(fs.stat(`/work/${name}`), { code: "ENOENT" });
+      else assert.equal((await fs.stat(`/work/${name}`)).type, "file");
+    }
+  }
+});
+
+test("rm interactive recursive removal preserves declined descendants", async () => {
+  const fs = await fixture({ "dir/a": "a", "dir/b": "b" });
+  const result = await run("rm", ["-ri", "dir"], { fs, stdin: "y\nn\ny\ny\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "rm: descend into directory 'dir'? rm: remove regular file 'dir/a'? rm: remove regular file 'dir/b'? ");
+  assert.equal((await fs.stat("/work/dir/a")).type, "file");
+  await assert.rejects(fs.stat("/work/dir/b"), { code: "ENOENT" });
+});
+
+test("rm invalid interactive policy leaves files intact", async () => {
+  const fs = await fixture({ input: "abc" });
+  assert.equal((await run("rm", ["--interactive=invalid", "input"], { fs })).exitCode, 2);
+  assert.equal((await fs.stat("/work/input")).type, "file");
+});
+
+test("rm once recursive confirmation uses singular and preserves a declined tree", async () => {
+  const fs = await fixture({ "dir/input": "abc" });
+  const result = await run("rm", ["--interactive=once", "-r", "dir"], { fs, stdin: "n\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "rm: remove 1 argument recursively? ");
+  assert.equal((await fs.stat("/work/dir/input")).type, "file");
+});
+
 test("rm refuses directories by default, protects root, removes links not targets, and supports force", async () => {
   const fs = await fixture({ "directory/file": "keep" });
   await fs.symlink("directory", "/work/link");

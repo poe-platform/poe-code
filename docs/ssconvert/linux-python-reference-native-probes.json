@@ -15,8 +15,8 @@
   "files": [
     {
       "name": "plugin.xml",
-      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plugin id=\"Gnumeric_OriginalPythonReferenceProbe\"><information><name>Original Python reference probes</name><description>Owned loader qualification fixtures.</description></information><loader type=\"Gnumeric_PythonLoader:python\"><attribute name=\"module_name\" value=\"raw_reference_probe\"/></loader><services><service type=\"function_group\" id=\"reference\"><category>Original reference probes</category><functions><function name=\"probe_array\"/><function name=\"probe_identity\"/><function name=\"probe_reference\"/><function name=\"probe_reference_tuple\"/></functions></service></services></plugin>\n",
-      "sha256": "333c0234c8dae3957d705c52ea0d47c85e561a2592a0812fe7b5233828bf55b0"
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plugin id=\"Gnumeric_OriginalPythonReferenceProbe\"><information><name>Original Python reference probes</name><description>Owned loader qualification fixtures.</description></information><loader type=\"Gnumeric_PythonLoader:python\"><attribute name=\"module_name\" value=\"raw_reference_probe\" /></loader><services><service type=\"function_group\" id=\"reference\"><category>Original reference probes</category><functions><function name=\"probe_array\" /><function name=\"probe_identity\" /><function name=\"probe_reference\" /><function name=\"probe_reference_tuple\" /><function name=\"probe_reference_axes\" /></functions></service></services></plugin>\n",
+      "sha256": "830ff802b1532331a112e009e280f60be3bf9293294fb14d8ff4e20d493cde32"
     },
     {
       "name": "raw_reference_probe.py",

@@ -26,9 +26,9 @@ for (const shape of ['public', 'cloudflare'] as const) test(`${shape} native hie
   assert.equal(text, '- main [ref=e101]:\n  - button "Save [ref=e99]" [ref=e102]\n  - iframe [ref=e103]:\n    - link "Next" [ref=e104]');
   await assert.rejects(f.engine.resolve('e2'), /stale/);
   await f.engine.resolve('e102');
-  assert.deepEqual(f.selected, ['aria-ref=e2']);
+  assert.deepEqual(f.selected, ['aria-ref=e1', 'aria-ref=e2', 'aria-ref=f1e3', 'aria-ref=f1e4']);
   await f.engine.invalidate();
-  assert.equal(f.disposed, 1);
+  assert.equal(f.disposed, 4);
   await assert.rejects(f.engine.resolve('e102'), /stale/);
 });
 
@@ -49,7 +49,7 @@ test('native JSON snapshots retain complete names, state and hierarchy with scop
   const tree = await engine.captureJSON(f.page);
   assert.deepEqual(tree, [{ role: 'main', ref: 'e101', children: [{ role: 'button', name, disabled: true, ref: 'e102', box: { x: 1, y: 2, width: 30, height: 40 } }] }]);
   await engine.resolve('e102');
-  assert.deepEqual(f.selected, ['aria-ref=e2']);
+  assert.deepEqual(f.selected, ['aria-ref=e1', 'aria-ref=e2']);
   await engine.invalidate();
   await assert.rejects(engine.resolve('e102'), /stale/);
 });
@@ -119,7 +119,7 @@ test('unquoted YAML text values never become native references or affect followi
   assert.equal(await f.engine.capture(f.page), '- text: Page says "use [ref=e99]\n- button "Real" [ref=e101]\n- paragraph [ref=e102]: use [ref=e100]');
   await assert.rejects(f.engine.resolve('e99'), /stale/);
   await f.engine.resolve('e101');
-  assert.deepEqual(f.selected, ['aria-ref=e2']);
+  assert.deepEqual(f.selected, ['aria-ref=e2', 'aria-ref=e3']);
 });
 
 test('native snapshot byte and reference budgets fail before publishing any references', async () => {
@@ -165,7 +165,7 @@ for (const present of [true, false]) test(`native ref lookup does not wait for a
   assert.equal(disposed, present ? 1 : 0);
 });
 
-test('legacy native resolution uses the action timeout and checks absence without waiting', async () => {
+test('legacy native capture uses the capture timeout and checks absence without waiting', async () => {
   const f = fixture();
   let timeout: number | undefined;
   let count = 1;
@@ -173,10 +173,11 @@ test('legacy native resolution uses the action timeout and checks absence withou
     async count() { return count; },
     async elementHandle(options: { timeout?: number }) { timeout = options.timeout; return null; },
   })) as unknown as PlaywrightPage['locator'];
-  await f.engine.capture(f.page);
+  await f.engine.capture(f.page, undefined, { timeout: 250 });
   await assert.rejects(f.engine.resolve('e102', 250), /stale/);
   assert.equal(timeout, 250);
   count = 0; timeout = undefined;
+  await f.engine.capture(f.page, undefined, { timeout: 250 });
   await assert.rejects(f.engine.resolve('e102', 250), /stale/);
   assert.equal(timeout, undefined);
 });
@@ -187,7 +188,7 @@ test('ambiguous native references retire every acquired handle without selecting
   f.page.locator = (() => ({ async elementHandles() { return [1, 2].map(() => ({ async dispose() { disposed++; } })); } })) as unknown as PlaywrightPage['locator'];
   await f.engine.capture(f.page);
   await assert.rejects(f.engine.resolve('e102'), /stale/);
-  assert.equal(disposed, 2);
+  assert.equal(disposed, 8);
 });
 
 test('native refs survive repeated text and JSON snapshots until navigation invalidates them', async () => {
@@ -201,5 +202,79 @@ test('native refs survive repeated text and JSON snapshots until navigation inva
   await f.engine.resolve('e102');
   await f.engine.invalidate();
   await assert.rejects(f.engine.resolve('e102'), /stale/);
-  assert.equal(f.disposed, 1);
+  assert.equal(f.disposed, 4);
+});
+
+for (const format of ['yaml', 'json'] as const) test(`${format} does not rebind unvisited refs when a child document recycles native IDs`, async () => {
+  const f = fixture();
+  const parent = { isConnected: true };
+  const oldChild = { isConnected: true };
+  let child = oldChild;
+  f.setSnapshot({ full: '- textbox "Parent" [ref=e1]\n- textbox "Child" [ref=f1e1]' });
+  f.page.ariaSnapshotJSON = async () => [{ role: 'textbox', name: 'Parent', ref: 'e1' }, { role: 'textbox', name: 'Child', ref: 'f1e1' }];
+  f.page.locator = ((selector: string) => ({ async elementHandles() {
+    const node = selector === 'aria-ref=e1' ? parent : child;
+    return [{ async evaluate(callback: (node: typeof parent) => unknown) {
+      if (node === oldChild && child !== oldChild) throw new Error('Execution context destroyed');
+      return callback(node);
+    }, async dispose() {} }];
+  } })) as unknown as PlaywrightPage['locator'];
+  const capture = () => format === 'yaml' ? f.engine.capture(f.page) : f.engine.captureJSON(f.page);
+  await capture();
+  child = { isConnected: true };
+  await capture();
+  await f.engine.resolve('e101');
+  await assert.rejects(f.engine.resolve('e102'), /stale/);
+  await f.engine.resolve('e103');
+  await f.engine.invalidate();
+});
+
+test('an unvisited native ref cannot first bind to a replacement after capture', async () => {
+  const f = fixture();
+  f.setSnapshot({ full: '- textbox "Child" [ref=f1e1]' });
+  const old = { isConnected: true };
+  let node = old;
+  f.page.locator = (() => ({ async elementHandles() {
+    const captured = node;
+    return [{ async evaluate(callback: (node: typeof old) => unknown) { return callback(captured); }, async dispose() {} }];
+  } })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  old.isConnected = false;
+  node = { isConnected: true };
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await f.engine.invalidate();
+});
+
+test('missing targets remain stale until a fresh snapshot issues a new ref', async () => {
+  const f = fixture();
+  f.setSnapshot({ full: '- button "Save" [ref=e1]' });
+  let present = false;
+  let lookups = 0;
+  const handle = { async evaluate() { return true; }, async dispose() {} };
+  f.page.locator = (() => ({ async elementHandles() { lookups++; return present ? [handle] : []; } })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  present = true;
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  assert.equal(lookups, 1);
+  await f.engine.capture(f.page);
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  assert.equal(await f.engine.resolve('e102'), handle);
+  await f.engine.invalidate();
+});
+
+test('navigation during native binding drains acquired handles before retrying', async () => {
+  const f = fixture();
+  f.setSnapshot({ full: '- button "Save" [ref=e1]' });
+  let acquisitions = 0, disposals = 0;
+  f.page.locator = (() => ({ async elementHandles() {
+    if (++acquisitions === 1) await f.engine.invalidate();
+    return [{ async evaluate() { return true; }, async dispose() { disposals++; } }];
+  } })) as unknown as PlaywrightPage['locator'];
+  await f.engine.capture(f.page);
+  assert.equal(acquisitions, 2);
+  assert.equal(disposals, 1);
+  await assert.rejects(f.engine.resolve('e101'), /stale/);
+  await f.engine.resolve('e102');
+  await f.engine.invalidate();
+  assert.equal(disposals, 2);
 });

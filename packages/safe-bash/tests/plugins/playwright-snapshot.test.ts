@@ -232,3 +232,21 @@ test('capsule refs survive repeated snapshots and actions without retaining old 
   assert.equal(f.snapshot.disposedCapsules.length, 2);
   await assert.rejects(engine.resolve('e1'), /stale/);
 });
+
+test('same-frame document replacement cannot reuse capsule identities after refresh', async () => {
+  const f = fixture();
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 10 });
+  await engine.capture(f.page);
+  const oldChild = f.nodes[2]!;
+  // A detached document can still report connected nodes; document identity matters.
+  const view = { document: {} };
+  Object.assign(oldChild.node, { ownerDocument: { defaultView: view } });
+  const newChild = { ...oldChild.node, ownerDocument: null };
+  const replacement = createSnapshotFrame([{ node: newChild, native: oldChild }]);
+  f.snapshots[1]!.frame.evaluateHandle = replacement.frame.evaluateHandle;
+  await engine.capture(f.page);
+  await engine.resolve('e1');
+  await assert.rejects(engine.resolve('e3'), /stale/);
+  await engine.resolve('e4');
+  await engine.invalidate();
+});

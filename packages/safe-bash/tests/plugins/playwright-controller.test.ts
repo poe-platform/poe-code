@@ -309,6 +309,9 @@ test('navigation retries its stale automatic snapshot without replaying the navi
     Object.assign(lease.context.pages()[0]!, {
       on(event: string, listener: () => void) { if (event === 'framenavigated') listeners.add(listener); },
       off(event: string, listener: () => void) { if (event === 'framenavigated') listeners.delete(listener); },
+      locator() { return { async elementHandles() { return [{
+        async evaluate() { return true; }, async dispose() {},
+      }]; } }; },
       async _snapshotForAI() {
         if (++captures === 2) for (const listener of listeners) listener();
         return { full: '- button "Ready" [ref=e1]' };

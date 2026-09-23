@@ -71,6 +71,20 @@ function formWord(input: string, start: number, file: boolean): { value: string;
   return { value: input.slice(start, end), end };
 }
 
+// curl's deliberately small extension table, rather than a general MIME database.
+const multipartContentTypes = new Map([
+  ["gif", "image/gif"], ["jpg", "image/jpeg"], ["jpeg", "image/jpeg"],
+  ["png", "image/png"], ["svg", "image/svg+xml"], ["txt", "text/plain"],
+  ["html", "text/html"], ["htm", "text/html"], ["pdf", "application/pdf"],
+  ["xml", "application/xml"],
+]);
+
+function filenameContentType(filename: string): string | undefined {
+  const basename = posix.basename(filename);
+  const dot = basename.lastIndexOf(".");
+  return dot < 0 ? undefined : multipartContentTypes.get(basename.slice(dot + 1).toLowerCase());
+}
+
 function multipart(argument: DataArgument, boundary: string): Part[] {
   const equals = argument.value.indexOf("=");
   if (equals < 1) throw new CurlError(2, "Multipart form requires name=value");
@@ -106,7 +120,11 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   let preamble = `--${boundary}\r\nContent-Disposition: form-data; name="${name}"`;
   if (filename !== undefined) preamble += `; filename="${quoted(filename)}"`;
   preamble += "\r\n";
-  if (type || filename !== undefined) preamble += `Content-Type: ${type ?? "application/octet-stream"}\r\n`;
+  if (type || filename !== undefined) {
+    const inferred = filename === undefined ? undefined : filenameContentType(filename) ??
+      (file === undefined ? undefined : filenameContentType(file));
+    preamble += `Content-Type: ${type ?? inferred ?? "application/octet-stream"}\r\n`;
+  }
   preamble += "\r\n";
   return [{ bytes: encode(preamble) }, file !== undefined ? { file } : { bytes: encode(value) }, { bytes: encode("\r\n") }];
 }

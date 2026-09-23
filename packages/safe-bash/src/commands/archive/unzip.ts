@@ -87,14 +87,31 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       archiveStat = await extraction.operation(() => context.fs.stat(archivePath, { signal: context.signal }));
       if (archiveStat.type !== "file") fail("input archive is not a regular file");
       const bytes = await collectBytes(bounded(extraction.input(archivePath), limits.maxArchiveBytes, context.signal, limits.chunkSize), { signal: context.signal, maxBytes: limits.maxArchiveBytes });
-      if (!parsed.pipe && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
+      if (!parsed.pipe && !parsed.names && !parsed.quiet) await budget.output(`Archive:  ${filtered(archive)}\n`);
       const resolved = await resolveZipVolumes({ context, limits, operation: action => extraction.operation(async () => action()), stat: path => extraction.stat(path), input: path => extraction.input(path) }, archivePath, bytes, options.zipHost);
       extraction.inputVolumes = resolved.volumes ?? [];
       const zip = await readZipArchive(resolved.bytes, limits, context.signal, resolved.disks ? { disks: resolved.disks } : { prefix: true });
-      if (!parsed.pipe && !parsed.quiet) await comment(zip.comment, budget);
+      if (parsed.archiveComment || !parsed.pipe && !parsed.names && !parsed.quiet) await comment(zip.comment, budget);
+      if (parsed.archiveComment) return { exitCode: 0 };
       if (!zip.entries.length) {
         await budget.output(`warning [${filtered(archive)}]:  zipfile is empty\n`, true);
         return { exitCode: 1 };
+      }
+      if (parsed.names) {
+        let selected = 0;
+        for (const entry of zip.entries) {
+          await budget.member(entry.size);
+          checkPath(entry.name, limits);
+          if (!await selection.matches(entry.name)) continue;
+          await budget.output(`${filtered(entry.name)}\n`);
+          selected++;
+        }
+        let unmatched = false;
+        for (let index = 0; index < parsed.patterns.length; index++) if (!selection.matched.has(index)) {
+          await budget.output(`caution: filename not matched:  ${filtered(parsed.patterns[index]!)}\n`, true);
+          unmatched = true;
+        }
+        return { exitCode: selected && !unmatched ? 0 : 11 };
       }
       if (parsed.list) await budget.output("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);

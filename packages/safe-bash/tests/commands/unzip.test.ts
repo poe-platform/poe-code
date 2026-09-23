@@ -70,6 +70,42 @@ const listing = "  Length      Date    Time    Name\n---------  ---------- -----
 const footer = "---------                     -------\n";
 const prompt = (name: string) => `replace ${name}? [y]es, [n]o, [A]ll, [N]one, [r]ename: `;
 
+test("unzip zipinfo names mode lists selected members without extracting or printing comments", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/sample.zip", zip([{ name: "folder/" }, { name: "folder/a.txt", body: "a" }, { name: "b.bin", body: "b" }], "archive comment"));
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("unzip -Z -1 sample.zip");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "folder/\nfolder/a.txt\nb.bin\n");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await run(fs, ["-Z1", "sample.zip", "*.txt"]), { exitCode: 0, stdout: "folder/a.txt\n", stderr: "" });
+    await assert.rejects(fs.stat("/work/folder"));
+  } finally { await shell.dispose(); }
+});
+
+for (const archiveComment of ["", "hello\r\nworld\u001b!", "hello\0hidden"]) test(`unzip -z displays only archive comment ${JSON.stringify(archiveComment)}`, async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/sample.zip", zip([{ name: "hello.txt", body: "hello", crc: 0 }], archiveComment));
+  const expected = archiveComment ? archiveComment.startsWith("hello\0") ? "hello\n" : "hello\nworld^[!\n" : "";
+  assert.deepEqual(await run(fs, ["-z", "sample.zip"]), { exitCode: 0, stdout: heading + expected, stderr: "" });
+  assert.deepEqual(await run(fs, ["-qz", "sample.zip"]), { exitCode: 0, stdout: expected, stderr: "" });
+  await assert.rejects(fs.stat("/work/hello.txt"));
+});
+
+test("unzip inspection modes enforce limits and report unmatched names", async () => {
+  const fs = await fixture();
+  const unmatched = await run(fs, ["-Z1", "sample.zip", "absent"]);
+  assert.deepEqual(unmatched, { exitCode: 11, stdout: "", stderr: "caution: filename not matched:  absent\n" });
+  const limited = await run(fs, ["-Z1", "sample.zip"], "", { limits: { maxTextBytes: 3 } });
+  assert.equal(limited.exitCode, 2);
+  assert.match(limited.stderr, /text output limit exceeded/);
+  for (const args of [["-1"], ["-Z"], ["-Z1p"], ["-zt"]]) {
+    assert.equal((await run(fs, [...args, "sample.zip"])).exitCode, 2);
+  }
+  assert.equal((await run(fs, ["-z", "missing.zip"])).exitCode, 9);
+});
+
 test("unzip native Linux listing includes exact padding and totals", async () => {
   assert.deepEqual(await run(await fixture(), ["-l", "sample.zip"]), { exitCode: 0, stderr: "", stdout: heading + listing
     + "        0  2024-01-02 03:04   folder/\n        6  2024-01-02 03:04   hello.txt\n        5  2024-01-02 03:04   folder/data.txt\n"

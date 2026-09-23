@@ -86,9 +86,27 @@ export async function authorizePaths(patches: readonly FilePatch[], options: Pat
   return result;
 }
 
-export async function backupName(path: string, budget: Budget): Promise<string> {
+export interface BackupOptions {
+  suffix?: string;
+  prefix?: string;
+  basenamePrefix?: string;
+  versionControl?: "existing" | "simple" | "numbered";
+}
+
+export async function backupName(path: string, budget: Budget, options: BackupOptions = {}): Promise<string> {
+  const simple = safeTarget(`${path}${options.suffix ?? ".orig"}`, 0, true);
+  if (simple === undefined) throw new ToolError("invalid backup path");
+  if (options.prefix !== undefined || options.basenamePrefix !== undefined) {
+    // GNU prefixes are applied to the operand, before resolving against cwd.
+    const relative = path.startsWith(`${budget.context.cwd}/`) ? path.slice(budget.context.cwd.length + 1) : path;
+    const prefixed = options.prefix !== undefined ? `${options.prefix}${relative}` : `${dirname(path)}/${options.basenamePrefix ?? ""}${basename(path)}`;
+    const safe = safeTarget(`${prefixed}${options.suffix ?? ".orig"}`, 0, true);
+    if (safe === undefined) throw new ToolError("invalid backup path");
+    return resolvePath(budget.context.cwd, safe);
+  }
+  if (options.versionControl === "simple") return simple;
   const parent = dirname(path);
-  if (!await inspect(budget, parent)) return `${path}.orig`;
+  if (!await inspect(budget, parent)) return options.versionControl === "numbered" ? `${path}.~1~` : simple;
   const prefix = `${basename(path)}.~`;
   const entries = await host(budget.context, () => budget.context.fs.readdir(parent, { signal: budget.context.signal }));
   let maximum = 0n;
@@ -103,7 +121,7 @@ export async function backupName(path: string, budget: Budget): Promise<string> 
     const number = BigInt(version);
     if (number > maximum) maximum = number;
   }
-  return maximum ? `${path}.~${maximum + 1n}~` : `${path}.orig`;
+  return maximum || options.versionControl === "numbered" ? `${path}.~${maximum + 1n}~` : simple;
 }
 
 export async function authorizeOutputs(paths: readonly (string | undefined)[], targets: ReadonlySet<string>, input: string | undefined, budget: Budget): Promise<void> {

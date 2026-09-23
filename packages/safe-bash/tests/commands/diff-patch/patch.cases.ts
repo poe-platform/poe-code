@@ -1,6 +1,111 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Shell } from "../../../src/shell/index.js";
+import { standardCommands } from "../../../src/commands/index.js";
+import { diffPatchCommands } from "../../../src/commands/diff-patch/index.js";
 import { contents, filesystem, replacement, run } from "./helpers.js";
+
+for (const args of [["-b"], ["--backup"], ["--binary"], ["-g0"], ["--get=0"], ["-N"], ["--forward"]]) {
+  test(`patch admits ${args.join(" ")} and applies an exact patch`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "new\n");
+    if (args[0] === "-b" || args[0] === "--backup") assert.equal(await contents(result.fs, "target.orig"), "old\n");
+  });
+}
+
+test("Shell combines directory, input, output, backup, forward, binary and get options", async () => {
+  const fs = await filesystem({ "dir/target": "old\n", "dir/change": replacement });
+  const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(diffPatchCommands());
+  const result = await shell.exec("patch --batch -p0 -d dir -i change -o result -b -N --binary -g0");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(fs, "dir/target"), "old\n");
+  assert.equal(await contents(fs, "dir/result"), "new\n");
+  assert.equal(await contents(fs, "dir/target.orig"), "old\n");
+  const cwd = await shell.exec("pwd");
+  assert.equal(cwd.stdout, "/work\n");
+});
+
+test("patch forward skips an already applied patch without reversing the target", async () => {
+  const result = await run("patch", ["-N"], { files: { target: "new\n" }, input: replacement });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "new\n");
+  assert.match(result.stdout, /Skipping patch/u);
+});
+
+for (const args of [["-o", "target"], ["-o", "change", "-i", "change"], ["-d", "missing"], ["-g1"]]) {
+  test(`patch refuses unsafe or unavailable options ${args.join(" ")} before modifying targets`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n", change: replacement }, input: replacement });
+    assert.equal(result.exitCode, 2);
+    assert.equal(await contents(result.fs, "target"), "old\n");
+    assert.equal(await contents(result.fs, "change"), replacement);
+  });
+}
+
+for (const atomic of [[], ["--atomic"]]) {
+  test(`patch alternate output concatenates file sections ${atomic.join(" ")}`, async () => {
+    const result = await run("patch", [...atomic, "-oresult"], { files: { target: "old\n", other: "old\n", result: "stale\n" }, input: replacement + replacement.replaceAll("target", "other") });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "result"), "new\nnew\n");
+    assert.equal(await contents(result.fs, "target"), "old\n");
+    assert.equal(await contents(result.fs, "other"), "old\n");
+  });
+}
+
+test("patch dry-run with backup and output does not create files", async () => {
+  const result = await run("patch", ["--dry-run", "-b", "-oresult"], { files: { target: "old\n" }, input: replacement });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual((await result.fs.readdir("/work")).map(entry => entry.name), ["target"]);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
+
+test("patch backup suffix rejects traversal before publication", async () => {
+  const result = await run("patch", ["-b", "-z/../../escaped"], { files: { target: "old\n" }, input: replacement });
+  assert.equal(result.exitCode, 2);
+  assert.equal(await contents(result.fs, "target"), "old\n");
+});
+
+test("patch unconditional backup creates an empty placeholder for a new file", async () => {
+  const input = "--- /dev/null\n+++ target\n@@ -0,0 +1 @@\n+new\n";
+  const result = await run("patch", ["-b"], { input });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(await contents(result.fs, "target"), "new\n");
+  assert.equal(await contents(result.fs, "target.orig"), "");
+});
+
+for (const [args, name] of [
+  [["-b", "-z.bak"], "target.bak"],
+  [["--backup", "--suffix=.save"], "target.save"],
+  [["-b", "-Bbackups/"], "backups/target.orig"],
+  [["-b", "-Ysaved-"], "saved-target.orig"],
+  [["-b", "-Vnumbered"], "target.~1~"],
+  [["-b", "--version-control=simple"], "target.orig"],
+] as const) {
+  test(`patch backup naming ${args.join(" ")}`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, name), "old\n");
+  });
+}
+
+for (const args of [["-o", "result"], ["--output=result"], ["--atomic", "-oresult"]]) {
+  test(`patch ${args.join(" ")} writes alternate output and preserves input`, async () => {
+    const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "old\n");
+    assert.equal(await contents(result.fs, "result"), "new\n");
+    assert.equal(result.stdout, "patching file result (read from target)\n");
+  });
+}
+
+for (const args of [["-d", "dir"], ["--directory=dir"]]) {
+  test(`patch ${args.join(" ")} resolves targets and patch input in the selected directory`, async () => {
+    const result = await run("patch", [...args, "-i", "change"], { files: { target: "old\n", "dir/target": "old\n", "dir/change": replacement } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(await contents(result.fs, "target"), "old\n");
+    assert.equal(await contents(result.fs, "dir/target"), "new\n");
+  });
+}
 
 test("patch reads -i, dry-run does not modify, and reverse restores bytes", async () => {
   const fs = await filesystem({ target: "old\n", "changes.diff": replacement });
@@ -134,7 +239,7 @@ for (const [name, input] of malformed) test(`--atomic malformed patch rejected b
   assert.equal(await contents(result.fs, "target"), "old\n");
 });
 
-for (const args of [["-p-1"], ["--fuzz=NaN"], ["-i"], ["--output=elsewhere"], ["a", "b"], ["/dev/null"], ["--strip=9007199254740992"]]) {
+for (const args of [["-p-1"], ["--fuzz=NaN"], ["-i"], ["--output="], ["a", "b"], ["/dev/null"], ["--strip=9007199254740992"]]) {
   test(`patch rejects unsupported or invalid options ${JSON.stringify(args)}`, async () => {
     const result = await run("patch", args, { files: { target: "old\n" }, input: replacement });
     assert.equal(result.exitCode, 2);

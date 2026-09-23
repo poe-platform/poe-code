@@ -200,8 +200,20 @@ periodically to observe cancellation.
   enable `TARGET.orig` backups by default. `--no-backup-if-mismatch` disables
   them; `--backup-if-mismatch` enables them. Existing `.orig` is replaced unless
   numbered backups exist, in which case the next `.~N~` number is chosen.
-  This is not unconditional `-b`
-  backup support or GNU's complete backup-naming/versioning interface.
+  `-b` / `--backup` also backs up exact matches. `-z` / `--suffix`,
+  `-B` / `--prefix`, and `-Y` / `--basename-prefix` customize backup names.
+  `-V` / `--version-control` selects `simple`, `numbered`, or `existing`
+  (`never`, `t`, and `nil` are their aliases).
+- `-N` / `--forward` skips reversed or already-applied patches with status 1
+  instead of automatically reversing them.
+- `-d DIR` / `--directory=DIR` selects an existing virtual working directory
+  for targets, input, rejects, and output. `-o FILE` / `--output=FILE` writes
+  patched content to a separate file and preserves the source targets; multiple
+  sections concatenate their output. Output paths undergo the same regular-file,
+  symlink, hard-link, and collision checks as other patch destinations.
+- `--binary` is accepted: virtual UTF-8 input does not perform platform newline
+  translation. This does not add binary-patch support. `-g0` / `--get=0`
+  explicitly disables version-control acquisition; other values are refused.
 - Counts, coordinates, hunk ordering, and newline markers are checked, but
   default mode is not all-input preflight: some later parse failures are
   reported after earlier sections publish. Safety and parsing limits can still
@@ -343,8 +355,8 @@ file. Bounded UTF-8 processing and the quadratic unmatched diff matrix do not
 support arbitrary binary or huge-data workloads; there is no native fallback.
 
 The flag lists above describe the implemented interface, not all GNU flags.
-For example, patch `-b`/`--backup`, `-N`/`--forward`, `-d`/`--directory`,
-`-o`/`--output`, `--posix`, and `--binary` are not accepted. Diagnostics,
+For example, patch `--posix`, `--ifdef`, `--merge`, timestamp controls,
+and version-control acquisition are not accepted. Diagnostics,
 timestamps/metadata, repeated-line alignment, placement, and malformed-input
 handling are not established as fully GNU-identical. GNU mismatches remain
 defects to investigate, not a vague GNU/BSD parity exemption. Historical BSD

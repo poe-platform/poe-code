@@ -5,6 +5,7 @@ import { parseExpression } from "../formulas/parser.js";
 import { biffFunctions } from "./biff-source.js";
 import { biffString, biffError } from "./biff-write.js";
 import { words } from "./biff-write-binary.js";
+import { foldSheetName } from "../workbook/case-fold.js";
 
 const operators: Readonly<Record<string, number>> = { "+": 3, "-": 4, "*": 5, "/": 6, "^": 7, "&": 8,
   "<": 9, "<=": 10, "=": 11, ">=": 12, ">": 13, "<>": 14, " ": 15, ",": 16, ":": 17 };
@@ -85,8 +86,8 @@ export class BiffFormulaWriter {
         const qualified = node.first.sheet !== undefined;
         let index = 0, firstSheet = 0, lastSheet = 0;
         if (qualified) {
-          firstSheet = this.book.sheets.findIndex(s => s.id === node.first.sheet || s.name === node.first.sheet);
-          lastSheet = node.last?.sheet ? this.book.sheets.findIndex(s => s.id === node.last!.sheet || s.name === node.last!.sheet) : firstSheet;
+          firstSheet = this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.first.sheet!));
+          lastSheet = node.last?.sheet !== undefined ? this.book.sheets.findIndex(s => foldSheetName(s.name) === foldSheetName(node.last!.sheet!)) : firstSheet;
           if (firstSheet < 0 || lastSheet < 0) throw new SsconvertError("unsupported-feature", "Excel BIFF detached sheet formula is not implemented");
           index = this.externalSheets.findIndex(s => s.first === firstSheet && s.last === lastSheet);
           if (index < 0) { index = this.externalSheets.length; this.externalSheets.push({ first: firstSheet, last: lastSheet }); }
@@ -100,7 +101,10 @@ export class BiffFormulaWriter {
         if (last) { push(first.subarray(0, 2)); push(last.subarray(0, 2)); push(first.subarray(2)); push(last.subarray(2)); }
         else push(first);
       } else if (node.kind === "name") {
-        const scope = this.book.sheets.find(s => s.id === (node.sheet ?? sheet) || s.name === (node.sheet ?? sheet));
+        const current = this.book.sheets.find(s => s.id === sheet) ??
+          this.book.sheets.find(s => foldSheetName(s.name) === foldSheetName(sheet));
+        const scope = node.sheet === undefined ? current :
+          this.book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!));
         const matches = (name: { readonly name: string }): boolean => name.name.toUpperCase() === node.name.toUpperCase();
         let index = node.workbook === "" && node.sheet === undefined ? -1 : this.book.names?.findIndex(n => matches(n) && n.sheet !== undefined && scope !== undefined &&
           (n.sheet === scope.id || n.sheet === scope.name)) ?? -1;
@@ -117,7 +121,6 @@ export class BiffFormulaWriter {
             relocations.push({ offset: bytes.length + 1, index: externalIndex, kind: "sheet" });
             view.setUint16(1, externalIndex, true); view.setUint16(3, index + 1, true);
           } else {
-            const current = this.book.sheets.find(s => s.id === sheet || s.name === sheet);
             const externalIndex = current === scope ? this.book.sheets.length + 1 : scopeIndex;
             view.setInt16(1, -(externalIndex + 1), true); view.setUint16(9, 1, true);
             view.setUint16(11, index + 1, true); view.setUint16(19, 15, true); view.setUint32(21, ++this.uniqueNameId, true);

@@ -43,7 +43,10 @@ uses a native spreadsheet converter as a fallback. PDF exports can use an explic
 `fonts.resolve({ family, bold, italic, maxBytes, signal })` host binding returning
 TrueType font bytes, which the engine copies. The default request is Sans, regular; missing supplied
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
-font remains the default. Font bytes and character-map work are bounded before parsing. BIFF8 external cell and area
+font remains the default. Font bytes and character-map work are bounded before parsing. With explicit fonts,
+PDF export also admits fully materialized default Gnumeric Sans styles for blank
+cells and single-line text that fits the selected font and cell. Other styles,
+merges and text layouts retain explicit refusals. BIFF8 external cell and area
 links calculate to `#REF!`; their cached values and raw link records remain retained,
 and linked workbooks are never fetched. Safe Bash provides a separate,
 opt-in `ssconvertCommands` plugin using the same engine.

@@ -96,7 +96,7 @@ export const cases: Case[] = [
   row("[1,2]", ".[1.5]=7", [[1, 7]]),
   row("[1,2]", ".[-0.5]=7", [[7, 2]]),
   row("[1,2]", ".[-1.5]=7", [[1, 7]]),
-  row("null", '[("b","a") as $x | $x]', [], 3),
+  row("null", '[("b","a") as $x | $x]', [["b", "a"]]),
 ];
 
 for (const [index, fixture] of cases.entries()) test(`semantic matrix ${index + 1}: ${fixture.filter}`, async () => {

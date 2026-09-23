@@ -175,6 +175,8 @@ stdin, opening data files, or emitting stdout. Reading the `-f` program itself i
 necessarily earlier. Shell redirection effects are outside this command's scope.
 
 - Identity `.`, JSON scalar literals, `#` line comments, and `$name` variables.
+- Lexical `FILTER as $name | BODY` bindings keep the original input for `BODY`.
+  Strings support `"\(FILTER)"` interpolation, including multiple results.
 - Property access `.foo`, `.foo.bar`, `."unusual key"`, `.["key"]`, computed
   indexes `.[EXPR]`, and chained indexing. Bare identifier access must touch its
   dot: `if . then ...` does not become a property named `then`.
@@ -189,7 +191,8 @@ necessarily earlier. Shell redirection effects are outside this command's scope.
 - Iteration `.[]` over arrays or object values, preserving object insertion
   order, including numeric-looking and prototype-looking keys.
 - Parentheses, comma result generators, pipes, array construction `[FILTER]`,
-  and object construction `{a: FILTER}`, `{a}`, `{(KEY_FILTER): VALUE_FILTER}`.
+  and object construction `{a: FILTER}`, `{a}`, `{$name}`,
+  `{$name: FILTER}`, `{(KEY_FILTER): VALUE_FILTER}`, and trailing object commas.
 - Arithmetic `+ - * / %`, unary minus, comparisons `== != < <= > >=`, Boolean
   `and`, `or`, `not`, and alternative `//`. Arithmetic/comparison Cartesian
   products evaluate RHS outermost; object fields expand left-to-right.
@@ -335,8 +338,8 @@ should supply a deadline signal when they require a wall-clock deadline.
 
 ## Deliberate gaps
 
-- Not the entire jq language: no user definitions/modules, `as` binding,
-  recursion, labels/break, interpolation,
+- Not the entire jq language: no recursive definitions, destructuring `as` bindings,
+  recursion, labels/break,
   regex/date/math libraries, formats such as `@csv`, or arbitrary jq builtins.
 - Assignment paths do not include slices, piped selections, optional paths, or
   computed object/array constructions. These are compilation errors, not silent

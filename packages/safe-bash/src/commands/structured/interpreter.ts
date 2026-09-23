@@ -34,6 +34,17 @@ export class Interpreter {
         }
         yield this.variables.get(ast.name)!; return;
       }
+      case "bind": {
+        const depth = (this.frame?.depth ?? 0) + 1;
+        if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+        for await (const value of this.run(ast.source, input)) {
+          // Extend the lexical frame while retaining the invocation's execution context.
+          const scope = Object.create(Interpreter.prototype) as Interpreter;
+          Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
+          yield* scope.run(ast.body, input);
+        }
+        return;
+      }
       case "descend": yield* this.descend(input); return;
       case "try":
         try { yield* this.run(ast.body, input); }
@@ -150,10 +161,10 @@ export class Interpreter {
       for (const key of keys) yield* this.descend(input[key]!, depth + 1);
     }
   }
-  async *field(field: { key: Ast; value: Ast }, previous: Record<string, Json>, input: Json): AsyncGenerator<Record<string, Json>> {
+  async *field(field: { key: Ast; value: Ast | undefined }, previous: Record<string, Json>, input: Json): AsyncGenerator<Record<string, Json>> {
     for await (const key of this.run(field.key, input)) {
       if (typeof key !== "string") throw new JqError("object keys must be strings");
-      for await (const value of this.run(field.value, input)) {
+      for await (const value of field.value ? this.run(field.value, input) : [indexValue(input, key)]) {
         const item = copyObject(previous); put(item, key, value);
         this.budget.value(item); yield item;
       }

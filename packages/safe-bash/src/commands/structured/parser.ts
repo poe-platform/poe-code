@@ -5,6 +5,7 @@ export type Ast =
   | { kind: "identity" }
   | { kind: "literal"; value: Json }
   | { kind: "variable"; name: string }
+  | { kind: "bind"; source: Ast; name: string; body: Ast }
   | { kind: "binary"; operator: string; left: Ast; right: Ast }
   | { kind: "unary"; operand: Ast }
   | { kind: "optional"; operand: Ast }
@@ -15,7 +16,7 @@ export type Ast =
   | { kind: "slice"; base: Ast; start: Ast | undefined; end: Ast | undefined }
   | { kind: "iterate"; base: Ast }
   | { kind: "array"; body: Ast | undefined }
-  | { kind: "object"; fields: { key: Ast; value: Ast }[] }
+  | { kind: "object"; fields: { key: Ast; value: Ast | undefined }[] }
   | { kind: "call"; name: string; args: Ast[] }
   | { kind: "if"; condition: Ast; yes: Ast; no: Ast };
 interface Token { text: string; offset: number; kind: "symbol" | "name" | "number" | "string" | "end" }
@@ -33,26 +34,60 @@ export const functions: Readonly<Record<string, readonly number[]>> = Object.fre
   strings: [0], numbers: [0], booleans: [0], arrays: [0], objects: [0], nulls: [0], scalars: [0], iterables: [0],
   nan: [0], infinite: [0], isnan: [0], isinfinite: [0], isfinite: [0],
 });
-function tokenize(source: string): Token[] {
+function tokenize(source: string, budget: Budget): Token[] {
   const tokens: Token[] = [];
+  const modes: ({ kind: "string"; start: number; segment: number; interpolated: boolean } | { kind: "expression"; parentheses: number })[] = [];
+  const stringToken = (start: number, end: number): Token => {
+    let text = '"';
+    for (let index = start; index < end; index++) {
+      const character = source[index]!;
+      text += character.charCodeAt(0) < 32 ? `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}` : character;
+    }
+    text += '"';
+    try { if (!wellFormed(JSON.parse(text) as string)) throw new Error(); } catch { throw new JqError(`invalid string at offset ${start - 1}`, 3); }
+    return { text, offset: start - 1, kind: "string" };
+  };
   let offset = 0;
   while (offset < source.length) {
+    budget.step();
     const character = source[offset]!;
+    const mode = modes.at(-1);
+    if (mode?.kind === "string") {
+      if (character === '"') {
+        tokens.push(stringToken(mode.segment, offset));
+        if (mode.interpolated) tokens.push({ text: "string-end", offset, kind: "symbol" });
+        modes.pop(); offset++; continue;
+      }
+      if (character === "\\" && source[offset + 1] === "(") {
+        if (!mode.interpolated) tokens.push({ text: "string-start", offset: mode.start, kind: "symbol" });
+        mode.interpolated = true;
+        tokens.push(stringToken(mode.segment, offset), { text: "interpolation-start", offset, kind: "symbol" });
+        modes.push({ kind: "expression", parentheses: 0 }); offset += 2;
+        if (modes.length > budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
+        continue;
+      }
+      offset += character === "\\" ? 2 : 1;
+      continue;
+    }
+    if (mode?.kind === "expression") {
+      if (character === "(") mode.parentheses++;
+      else if (character === ")") {
+        if (mode.parentheses === 0) {
+          tokens.push({ text: "interpolation-end", offset, kind: "symbol" });
+          modes.pop(); offset++;
+          const string = modes.at(-1)!;
+          if (string.kind === "string") string.segment = offset;
+          continue;
+        }
+        mode.parentheses--;
+      }
+    }
     if (/\s/u.test(character)) { offset++; continue; }
     if (character === "#") { while (offset < source.length && source[offset] !== "\n") offset++; continue; }
     const start = offset;
     if (character === '"') {
-      offset++;
-      let escaped = false;
-      while (offset < source.length) {
-        const current = source[offset++]!;
-        if (!escaped && current === '"') break;
-        if (!escaped && current === "\\") escaped = true;
-        else escaped = false;
-      }
-      const text = source.slice(start, offset).replace(/[\x00-\x1f]/gu, character => `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`);
-      try { if (!wellFormed(JSON.parse(text) as string)) throw new Error(); } catch { throw new JqError(`invalid string at offset ${start}`, 3); }
-      tokens.push({ text, offset: start, kind: "string" });
+      modes.push({ kind: "string", start, segment: ++offset, interpolated: false });
+      if (modes.length > budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
       continue;
     }
     const number = /^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?/u.exec(source.slice(offset));
@@ -71,6 +106,7 @@ function tokenize(source: string): Token[] {
     if (!symbol) throw new JqError(`unexpected character at offset ${offset}`, 3);
     tokens.push({ text: symbol[0], offset, kind: "symbol" }); offset += symbol[0].length;
   }
+  if (modes.length) throw new JqError(`unterminated string or interpolation at offset ${offset}`, 3);
   tokens.push({ text: "", offset, kind: "end" });
   return tokens;
 }
@@ -87,7 +123,7 @@ function isPath(ast: Ast): boolean {
 }
 export function moduleProgram(source: string, budget: Budget): { source: string; imports: { name: string; alias?: string }[] } {
   if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
-  const tokens = tokenize(source);
+  const tokens = tokenize(source, budget);
   const imports: { name: string; alias?: string }[] = [];
   let position = 0;
   while (tokens[position]!.text === "include" || tokens[position]!.text === "import") {
@@ -109,10 +145,10 @@ export function moduleProgram(source: string, budget: Budget): { source: string;
   return { source: source.slice(tokens[position]!.offset), imports };
 }
 
-export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget, definitions?: Map<string, Ast>, module = false): Ast {
+export function parse(source: string, variables: ReadonlyMap<string, Json>, budget: Budget, definitions: Map<string, Ast> = new Map(), module = false): Ast {
   const limits = budget.limits;
   if (Buffer.byteLength(source) > limits.maxSourceBytes) throw new JqLimitError("maxSourceBytes");
-  const tokens = tokenize(source);
+  const tokens = tokenize(source, budget);
   let position = 0;
   let nesting = 0;
   let defining = false;
@@ -137,6 +173,11 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   };
   const expect = (text: string): void => { if (!accept(text)) fail(`expected '${text}'`); };
   const literal = (value: Json): Ast => ({ kind: "literal", value });
+  const variable = (name: Token): Ast => {
+    if (name.kind !== "name") fail("expected variable name");
+    if (!bindings.has(name.text) && !variables.has(name.text)) fail(`undefined variable $${name.text}`);
+    return defining && !bindings.has(name.text) ? literal(variables.get(name.text)!) : { kind: "variable", name: name.text };
+  };
   const conditional = (): Ast => {
     const condition = expression(); expect("then");
     const yes = expression();
@@ -154,6 +195,16 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       let left = primary();
       while (true) {
         const operator = peek().text;
+        if (operator === "as" && minimum <= 3) {
+          take(); expect("$");
+          const name = take(); if (name.kind !== "name") fail("expected variable name");
+          expect("|");
+          const previous = bindings.get(name.text) ?? 0;
+          bindings.set(name.text, previous + 1);
+          try { left = { kind: "bind", source: left, name: name.text, body: expression(0, stopComma) }; }
+          finally { if (previous) bindings.set(name.text, previous); else bindings.delete(name.text); }
+          continue;
+        }
         const priority = Object.hasOwn(precedence, operator) ? precedence[operator]! : -1;
         if (priority < minimum || (stopComma && operator === ",")) break;
         take();
@@ -164,6 +215,19 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       }
       return left;
     } finally { nesting--; }
+  };
+  const stringExpression = (token: Token): Ast => {
+    if (token.kind === "string") return literal(JSON.parse(token.text) as string);
+    let result = stringExpression(take());
+    while (accept("interpolation-start")) {
+      const value: Ast = { kind: "call", name: "tostring", args: [] };
+      const interpolated: Ast = { kind: "binary", operator: "|", left: expression(), right: value };
+      expect("interpolation-end");
+      result = { kind: "binary", operator: "+", left: result, right: interpolated };
+      result = { kind: "binary", operator: "+", left: result, right: stringExpression(take()) };
+    }
+    expect("string-end");
+    return result;
   };
   const primary = (): Ast => {
     const token = take();
@@ -196,24 +260,30 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (token.text === "[") {
       result = { kind: "array", body: peek().text === "]" ? undefined : expression() }; expect("]");
     } else if (token.text === "{") {
-      const fields: { key: Ast; value: Ast }[] = [];
-      if (peek().text !== "}") do {
+      const fields: { key: Ast; value: Ast | undefined }[] = [];
+      while (peek().text !== "}") {
         const keyToken = take();
         let key: Ast;
+        let shorthand: Ast | undefined;
         if (keyToken.text === "(") { key = expression(); expect(")"); }
-        else if (keyToken.kind === "string" || keyToken.kind === "name") key = literal(keyToken.kind === "string" ? JSON.parse(keyToken.text) as string : keyToken.text);
+        else if (keyToken.text === "$") {
+          const name = take();
+          shorthand = variable(name);
+          key = peek().text === ":" ? shorthand : literal(name.text);
+        }
+        else if (keyToken.kind === "string" || keyToken.text === "string-start") key = stringExpression(keyToken);
+        else if (keyToken.kind === "name") key = literal(keyToken.text);
         else fail("expected object key");
-        const value = accept(":") ? expression(0, true) : key!.kind === "literal" ? { kind: "index" as const, base: { kind: "identity" as const }, index: key! } : fail("expected ':'");
+        const value = accept(":") ? expression(0, true) : shorthand ?? (keyToken.text === "(" ? fail("expected ':'") : undefined);
         fields.push({ key: key!, value });
-      } while (accept(","));
+        if (!accept(",")) break;
+      }
       expect("}"); result = { kind: "object", fields };
     } else if (token.text === "$") {
-      const name = take(); if (name.kind !== "name") fail("expected variable name");
-      if (!bindings.has(name.text) && !variables.has(name.text)) fail(`undefined variable $${name.text}`);
-      result = defining && !bindings.has(name.text) ? literal(variables.get(name.text)!) : { kind: "variable", name: name.text };
+      result = variable(take());
     } else if (token.text === "-") result = { kind: "unary", operand: expression(10) };
     else if (token.text === "if") result = guardedConditional();
-    else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
+    else if (token.kind === "string" || token.text === "string-start") result = stringExpression(token);
     else if (token.kind === "number") {
       result = literal(decimalNumber(token.text, budget));
     } else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as Json);
@@ -286,12 +356,13 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     }
     const children: Ast[] = [];
     if (node.kind === "binary") children.push(node.left, node.right);
+    else if (node.kind === "bind") children.push(node.source, node.body);
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);
     else if (node.kind === "index") children.push(node.base, node.index);
     else if (node.kind === "iterate") children.push(node.base);
     else if (node.kind === "slice") { children.push(node.base); if (node.start) children.push(node.start); if (node.end) children.push(node.end); }
     else if (node.kind === "array" && node.body) children.push(node.body);
-    else if (node.kind === "object") for (const field of node.fields) children.push(field.key, field.value);
+    else if (node.kind === "object") for (const field of node.fields) { children.push(field.key); if (field.value) children.push(field.value); }
     else if (node.kind === "call") children.push(...node.args);
     else if (node.kind === "if") children.push(node.condition, node.yes, node.no);
     else if (node.kind === "try") { children.push(node.body); if (node.handler) children.push(node.handler); }

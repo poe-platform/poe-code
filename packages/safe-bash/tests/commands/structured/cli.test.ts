@@ -78,7 +78,7 @@ test("compile errors precede stdin iterator creation and data-file effects", asy
   const stdin: ByteSource = { [Symbol.asyncIterator]() { effects++; throw new Error("unexpected stdin effect"); } };
   const fs = new MemoryFileSystem();
   fs.readStream = () => { effects++; throw new Error("unexpected file effect"); };
-  for (const source of ["", "(", "1,(", "{a:", "[", ".a[", "$missing", "false and unknown", '"\\uD800"', '"\\uDC00"', "1e+", ".a |=", "def f: .; f", ".a[1:2]=[]", "(.[]|select(.>1))|=.+10"]) {
+  for (const source of ["", "(", "1,(", "{a:", "[", ".a[", "$missing", "false and unknown", '"\\uD800"', '"\\uDC00"', "1e+", ".a |=", "def f: .; missing", ".a[1:2]=[]", "(.[]|select(.>1))|=.+10"]) {
     const result = await run(["-c", source, "data.json"], stdin, {}, { fs });
     assert.equal(result.exitCode, 3, `${source}: ${result.stderr}`); assert.equal(result.stdout, "");
     assert.doesNotMatch(result.stderr, /TypeError|Cannot read|stack/i);

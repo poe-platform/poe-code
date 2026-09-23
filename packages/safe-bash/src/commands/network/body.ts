@@ -48,6 +48,29 @@ function quoted(value: string): string {
   return value.replace(/["\\]/g, "\\$&");
 }
 
+// curl only unescapes quotes and backslashes inside a double-quoted operand.
+function formWord(input: string, start: number, file: boolean): { value: string; end: number } {
+  const delimiter = (character: string) => character === ";" || (file && character === ",");
+  if (input[start] === '"') {
+    let value = "";
+    for (let index = start + 1; index < input.length; index++) {
+      const character = input[index]!;
+      if (character === '"') {
+        let end = index + 1;
+        while (end < input.length && !delimiter(input[end]!)) end++;
+        return { value, end };
+      }
+      if (character === "\\" && (input[index + 1] === "\\" || input[index + 1] === '"')) {
+        value += input[++index];
+      } else value += character;
+    }
+    // An unmatched opening quote is literal in curl's form grammar.
+  }
+  let end = start;
+  while (end < input.length && !delimiter(input[end]!)) end++;
+  return { value: input.slice(start, end), end };
+}
+
 function multipart(argument: DataArgument, boundary: string): Part[] {
   const equals = argument.value.indexOf("=");
   if (equals < 1) throw new CurlError(2, "Multipart form requires name=value");
@@ -55,25 +78,37 @@ function multipart(argument: DataArgument, boundary: string): Part[] {
   let value = argument.value.slice(equals + 1);
   let type: string | undefined;
   let filename: string | undefined;
+  let file: string | undefined;
   if (argument.kind === "form") {
-    const fields = value.split(";");
-    value = fields.shift()!;
-    for (const field of fields) {
-      if (field.startsWith("type=")) type = field.slice(5);
-      else if (field.startsWith("filename=")) filename = field.slice(9);
-      else throw new CurlError(2, "Unsupported multipart form attribute");
+    const input = value;
+    const isFile = input.startsWith("@") || input.startsWith("<");
+    const word = formWord(input, isFile ? 1 : 0, isFile);
+    if (isFile) {
+      file = word.value;
+      if (!file || input[word.end] === ",") throw new CurlError(2, "Unsupported multipart file list");
+      if (input.startsWith("@")) filename = posix.basename(file);
+    } else value = word.value;
+    let end = word.end;
+    while (end < input.length) {
+      const start = end + 1;
+      if (input.startsWith("type=", start)) {
+        const attribute = formWord(input, start + 5, false);
+        type = attribute.value;
+        end = attribute.end;
+      } else if (input.startsWith("filename=", start)) {
+        const attribute = formWord(input, start + 9, false);
+        filename = attribute.value;
+        end = attribute.end;
+      } else throw new CurlError(2, "Unsupported multipart form attribute");
     }
   }
-  const isFile = argument.kind === "form" && /^[<@]/.test(value);
-  if (isFile && (value.slice(1).includes(",") || !value.slice(1))) throw new CurlError(2, "Unsupported multipart file list");
-  if (isFile && value.startsWith("@")) filename ??= posix.basename(value.slice(1));
   if (type !== undefined && !/^[\w!#$&^_.+-]+\/[\w!#$&^_.+-]+$/.test(type)) throw new CurlError(2, "Invalid multipart content type");
   let preamble = `--${boundary}\r\nContent-Disposition: form-data; name="${name}"`;
   if (filename !== undefined) preamble += `; filename="${quoted(filename)}"`;
   preamble += "\r\n";
   if (type || filename !== undefined) preamble += `Content-Type: ${type ?? "application/octet-stream"}\r\n`;
   preamble += "\r\n";
-  return [{ bytes: encode(preamble) }, isFile ? { file: value.slice(1) } : { bytes: encode(value) }, { bytes: encode("\r\n") }];
+  return [{ bytes: encode(preamble) }, file !== undefined ? { file } : { bytes: encode(value) }, { bytes: encode("\r\n") }];
 }
 
 export function createBody(context: CommandContext, args: CurlArguments, limits: NetworkLimits): RequestBody | undefined {

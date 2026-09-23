@@ -16,6 +16,15 @@ const cases = [
   ["--line-buffered alpha input", "alpha\nalpha beta\n"],
   ["-C0 --no-group-separator alpha input", "alpha\nalpha beta\n"],
   ["--no-ignore-case alpha input", "alpha\nalpha beta\n"],
+  ["--color=never alpha input", "alpha\nalpha beta\n"],
+  ["--colour=auto alpha input", "alpha\nalpha beta\n"],
+  ["--binary-files=text alpha input", "alpha\nalpha beta\n"],
+  ["--binary alpha input", "alpha\nalpha beta\n"],
+  ["--label=AUDIT alpha input", "alpha\nalpha beta\n"],
+  ["--initial-tab -n alpha input", "2:\talpha\n4:\talpha beta\n"],
+  ["-C0 --group-separator=AUDIT alpha input", "alpha\nAUDIT\nalpha beta\n"],
+  ["--color=always alpha input", "", 2],
+  ["--binary-files=invalid alpha input", "", 2],
   ["-bno alpha input", "2:11:alpha\n4:22:alpha\n"],
   ["-bC1 alpha unicode", "0-é\n3:alpha\n9-last\n"],
   ["-HZ alpha input", "input\0alpha\ninput\0alpha beta\n"],
@@ -78,15 +87,41 @@ for (const command of ["grep", "egrep", "fgrep"]) for (const [args, expected, co
   });
 }
 
-test("grep byte prefixes match native grep over multibyte stdin", async () => {
+test("grep prefixes and portable frontend controls match native grep over multibyte stdin", async () => {
   const input = Buffer.from("é\nalpha alpha\nother\nalpha\n");
-  for (const args of [["-bn", "alpha"], ["-bno", "alpha"], ["-bC1", "alpha"]]) {
+  for (const args of [["-bn", "alpha"], ["-bno", "alpha"], ["-bC1", "alpha"], ["--color=never", "alpha"], ["--binary-files=text", "alpha"], ["-H", "--label=AUDIT", "alpha"]]) {
     const native = spawnSync("grep", args, { input, env: { ...process.env, LC_ALL: "C" } });
     assert.ifError(native.error);
     const actual = await run(grepCommands()[0]!, args, input);
     assert.equal(actual.code, native.status);
     assert.deepEqual(actual.stdout, native.stdout);
     assert.deepEqual(actual.stderr, native.stderr);
+  }
+});
+
+test("grep frontend controls preserve CRLF bytes and label standard input", async () => {
+  const definition = grepCommands()[0]!;
+  const bytes = Buffer.from([120, 13, 10]);
+  for (const flag of ["--binary", "--binary-files=text", "--color=never", "--colour=auto"]) {
+    const result = await run(definition, [flag, "-FH", "--label=AUDIT", "x"], bytes);
+    assert.equal(result.code, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.concat([Buffer.from("AUDIT:"), bytes]));
+    assert.equal(result.stderr.length, 0);
+  }
+  const unsupported = await run(definition, ["--binary-files=text", "x"], Buffer.from([120, 0, 10]));
+  assert.equal(unsupported.code, 2);
+  assert.ok(unsupported.stderr.toString().includes("unsupported"));
+  const input = "x\nskip\nx\n";
+  for (const [args, expected] of [
+    [["-n", "--initial-tab", "x"], "1:\tx\n3:\tx\n"],
+    [["-C0", "--group-separator=", "x"], "x\n\nx\n"],
+    [["-C0", "--group-separator=AUDIT", "--no-group-separator", "x"], "x\nx\n"],
+    [["--label=AUDIT", "x"], "x\nx\n"],
+  ] as const) {
+    const result = await run(definition, args, input);
+    assert.equal(result.code, 0);
+    assert.equal(result.stdout.toString(), expected);
+    assert.equal(result.stderr.length, 0);
   }
 });
 

@@ -12,7 +12,7 @@ export function createGrepCommands(executor: RegexExecutor): CommandDefinition[]
     try {
       const contextLengths = new Map<string, number>();
       const filters: { key: string; pattern: string }[] = [];
-      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
+      const parsed = parseOptions(context.args, "EFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": false, "group-separator": "group-separator:", help: false, "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
         const text = context.args[index]!.slice(offset);
         if (["I", "X", "Y"].includes(key)) filters.push({ key, pattern: text });
         if (!["A", "B", "C"].includes(key)) return;
@@ -59,6 +59,12 @@ Print lines matching PATTERN. With no FILE, or FILE -, read standard input.
       --no-group-separator Suppress separators between context groups
       --no-ignore-case    Use case-sensitive matching
       --line-buffered     Accepted; output writes are already awaited
+      --color=WHEN, --colour=WHEN Accept never or auto for non-terminal output
+      --binary-files=text Treat input as text within regex executor limits
+      --binary            Preserve bytes (no Windows text-mode translation)
+      --label=LABEL       Name standard input in filename prefixes
+      --initial-tab       Insert a tab after line prefixes
+      --group-separator=SEP Use SEP between context groups
       --help              Display this help and exit
       --                  End options
 
@@ -73,6 +79,10 @@ inspect the resulting state before repeating the action.
         return { exitCode: 0 };
       }
       let positionalPattern: string | undefined;
+      const color = value(parsed, "color");
+      if (color !== undefined && color !== "never" && color !== "auto") throw new UsageError(`unsupported color mode '${color}'; use never or auto (non-terminal output)`);
+      const binaryMode = value(parsed, "binary-files");
+      if (binaryMode !== undefined && binaryMode !== "text") throw new UsageError(`unsupported binary-files mode '${binaryMode}'; use text`);
       if (!parsed.flags.has("e") && !parsed.flags.has("f")) {
         if (!parsed.operands.length) throw new UsageError("missing pattern");
         positionalPattern = parsed.operands.shift()!;
@@ -144,8 +154,8 @@ inspect the resulting state before repeating the action.
         let remainingAfter = 0;
         let pendingBytes = 0;
         const pending = new Map<number, Line & { offset: number }>();
-        const named = name === "-" ? "(standard input)" : name;
-        const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}`;
+        const named = name === "-" ? value(parsed, "label") ?? "(standard input)" : name;
+        const prefix = (lineNumber = false, position = number, separator = ":", offset = byteOffset) => `${!parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested) ? `${named}${parsed.flags.has("Z") ? "\0" : separator}` : ""}${lineNumber && parsed.flags.has("n") ? `${position}${separator}` : ""}${lineNumber && parsed.flags.has("b") ? `${offset}${separator}` : ""}${lineNumber && parsed.flags.has("initial-tab") && (parsed.flags.has("n") || parsed.flags.has("b") || !parsed.flags.has("h") && (parsed.flags.has("H") || multipleFiles || nested)) ? "\t" : ""}`;
         const emitContext = async (line: Line, position: number, offset = byteOffset) => {
           if (!parsed.flags.has("o")) {
             await output(context, prefix(true, position, "-", offset));
@@ -192,7 +202,7 @@ inspect the resulting state before repeating the action.
               if (!parsed.flags.has("c")) {
                 if (withContext) {
                   const first = pending.keys().next().value ?? number;
-                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, "--\n");
+                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, (value(parsed, "group-separator") ?? "--") + "\n");
                   for (const [position, previous] of pending) await emitContext(previous, position, previous.offset);
                   pending.clear();
                   pendingBytes = 0;

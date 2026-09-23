@@ -198,7 +198,10 @@ const requestAbility: PlaywrightAbility = { scope: 'session', options: 'all', as
   const record = Number.isSafeInteger(index) && index > 0 ? events.requests.find(record => record.index === index) : undefined;
   if (!record) throw new Error(`Request #${index} not found. Use browser_network_requests to see available indexes.`);
   if (request.command === 'request-headers') return textResult(request, headers(record.headers), 'Request headers', 'request');
-  if (request.command === 'request-body') return textResult(request, record.native.postData() ?? '', 'Request body', 'request');
+  if (request.command === 'request-body') {
+    const body = record.native.postData();
+    return body === null ? capabilityResult('', '') : textResult(request, body, 'Request body', 'request');
+  }
   const response = record.response;
   if (request.command === 'response-headers') return textResult(request, response ? headers(response.headers) : '', 'Response headers', 'response');
   if (request.command === 'response-body') {

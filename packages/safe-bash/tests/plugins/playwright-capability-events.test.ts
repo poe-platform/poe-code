@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { flushPlaywrightConsole, observePlaywrightCapabilities, playwrightEventAbilities } from '../../src/playwright/capability-events.js';
 import type { PlaywrightAbilityRequest } from '../../src/playwright/abilities.js';
 import type { PlaywrightContext, PlaywrightPage } from '../../src/playwright/adapter.js';
+import { serializePlaywrightResult } from '../../src/playwright/response.js';
 
 test('automatic console logs honor configured levels while explicit console retains all native message types', async () => {
   const context = new EventEmitter() as EventEmitter & PlaywrightContext;
@@ -139,6 +140,37 @@ test('request indexes preserve native events, binary response artifacts and obse
   assert.deepEqual(artifacts, [Uint8Array.of(0, 255, 1)]);
   for (const close of cleanups) await close();
   assert.deepEqual(context.eventNames(), []);
+});
+
+test('request-body skips absent bodies while publishing explicitly empty and nonempty bodies', async () => {
+  const context = new EventEmitter() as EventEmitter & PlaywrightContext;
+  const page = {} as PlaywrightPage;
+  const cleanups: (() => Promise<void>)[] = [];
+  observePlaywrightCapabilities(context, close => cleanups.push(close), { maxCommandBytes: 4096, maxArtifactBytes: 4096 });
+  const files = new Map<string, Uint8Array>();
+  try {
+    for (const [offset, body] of [null, '', 'SYNTHETIC_BODY'].entries()) {
+      context.emit('request', { url: () => 'https://example.com/api', method: () => body === null ? 'GET' : 'POST', resourceType: () => 'fetch', headers: () => ({}), postData: () => body, failure: () => null, frame: () => ({ page: () => page, parentFrame: () => null }), isNavigationRequest: () => false });
+      const run = (options: PlaywrightAbilityRequest['options']) => playwrightEventAbilities['request-body']!.execute({
+        command: 'request-body', args: [String(offset + 1)], options, session: 's', signal: new AbortController().signal,
+        browserSession: { context, page, registerCleanup() {}, resolveTarget: async () => { throw new Error('unused'); }, selectPage: async () => {} },
+        write: async () => {}, readFile: async () => new Uint8Array(), writeArtifact: async (bytes, filename) => { files.set(filename, bytes); }, registerCleanup() {},
+      });
+      const raw = await run({});
+      const filename = `body-${offset}.txt`;
+      const saved = await run({ filename });
+      if (body === null) {
+        assert.deepEqual(saved, raw);
+        assert.equal(serializePlaywrightResult(saved!, { raw: true, json: false }), '\n');
+        assert.equal(files.has(filename), false);
+      } else {
+        assert.deepEqual(files.get(filename), new TextEncoder().encode(body));
+        assert.match(JSON.stringify(saved), /Request body/);
+      }
+    }
+  } finally {
+    for (const close of cleanups) await close();
+  }
 });
 
 test('oversized diagnostic entries are discarded without poisoning later commands', async () => {

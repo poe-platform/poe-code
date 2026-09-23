@@ -9,7 +9,7 @@ export async function* decodeContent(source: ByteSource, encoding: string, signa
   const iterator = readBytes(source, signal)[Symbol.asyncIterator]();
   let inputError: unknown;
   let inputFailed = false;
-  let stream = new ReadableStream<Uint8Array>({
+  let stream = new ReadableStream<Uint8Array<ArrayBuffer>>({
     async pull(controller) {
       try {
         const next = await iterator.next();

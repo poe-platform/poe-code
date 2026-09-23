@@ -1,0 +1,278 @@
+{
+  "capturedAt": "2026-09-23T18:13:31.273723+00:00",
+  "scope": "Current GNU9.11 Darwin UTF8 fold profile only; historical corpus unchanged. Apple,C-locale,andbyte-mode controls are retained observations, not substituted product expectations. This is not a Linux native qualification.",
+  "corpusSha256": "956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75",
+  "platform": {
+    "system": "Darwin",
+    "release": "25.4.0",
+    "machine": "arm64",
+    "macOS": "26.4.1"
+  },
+  "binaries": {
+    "apple-system": {
+      "executable": "/usr/bin/fold",
+      "resolvedExecutable": "/usr/bin/fold",
+      "sha256Before": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035",
+      "version": {
+        "status": 1,
+        "stdout": "",
+        "stderr": "/usr/bin/fold: illegal option -- -\nusage: fold [-bs] [-w width] [file ...]\n"
+      },
+      "sha256After": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+    },
+    "gnu-coreutils-9.11": {
+      "executable": "/opt/homebrew/bin/gfold",
+      "resolvedExecutable": "/opt/homebrew/Cellar/coreutils/9.11/bin/gfold",
+      "sha256Before": "b73f8dec3908af84a660915d12a99f3677ad691046597307e9112601d89997f1",
+      "version": {
+        "status": 0,
+        "stdout": "fold (GNU coreutils) 9.11\nCopyright (C) 2026 Free Software Foundation, Inc.\nLicense GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by David MacKenzie.\n",
+        "stderr": ""
+      },
+      "sha256After": "b73f8dec3908af84a660915d12a99f3677ad691046597307e9112601d89997f1"
+    }
+  },
+  "localeProbe": {
+    "executable": "/usr/bin/locale",
+    "sha256": "6e4001dd2997062ad2a4d992b381b15d0cda78200679a04ccd52c80e26794487",
+    "args": [
+      "charmap"
+    ]
+  },
+  "locales": {
+    "C": {
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "TZ": "UTC",
+        "LC_ALL": "C",
+        "LANG": "C"
+      },
+      "status": 0,
+      "charmap": "US-ASCII\n",
+      "stderr": ""
+    },
+    "en_US.UTF-8": {
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "TZ": "UTC",
+        "LC_ALL": "en_US.UTF-8",
+        "LANG": "en_US.UTF-8"
+      },
+      "status": 0,
+      "charmap": "UTF-8\n",
+      "stderr": ""
+    },
+    "C.UTF-8": {
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "TZ": "UTC",
+        "LC_ALL": "C.UTF-8",
+        "LANG": "C.UTF-8"
+      },
+      "status": 0,
+      "charmap": "UTF-8\n",
+      "stderr": ""
+    }
+  },
+  "captures": [
+    {
+      "id": "fold-utf8-locale-control",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "locale": "en_US.UTF-8",
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "inputSha256": "9d4ac56ae3a295a9ed174aa6d30122419e6f4f277d1bed49db50b258d2311386",
+      "originalOracle": "GNU coreutils9.7 Darwin",
+      "originalExpected": {
+        "stdoutHex": "c3a9e70a958c410a42c3a90a",
+        "stderrHex": "",
+        "exitCode": 0
+      },
+      "oracle": "GNU coreutils9.11 Darwin arm64",
+      "control": "gnu-coreutils-9.11:en_US.UTF-8:columns",
+      "expected": {
+        "stdoutHex": "c3a9e7958c0a4142c3a90a",
+        "stderrHex": "",
+        "exitCode": 0
+      }
+    }
+  ],
+  "controls": [
+    {
+      "id": "apple-system:C:columns",
+      "binary": "apple-system",
+      "locale": "C",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e7958c4142c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "apple-system:C:bytes",
+      "binary": "apple-system",
+      "locale": "C",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e70a958c410a42c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "apple-system:en_US.UTF-8:columns",
+      "binary": "apple-system",
+      "locale": "en_US.UTF-8",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e7958c0a4142c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "apple-system:en_US.UTF-8:bytes",
+      "binary": "apple-system",
+      "locale": "en_US.UTF-8",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a90ae7958c0a41420ac3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "apple-system:C.UTF-8:columns",
+      "binary": "apple-system",
+      "locale": "C.UTF-8",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e7958c0a4142c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "apple-system:C.UTF-8:bytes",
+      "binary": "apple-system",
+      "locale": "C.UTF-8",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a90ae7958c0a41420ac3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:C:columns",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "C",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e70a958c410a42c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:C:bytes",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "C",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e70a958c410a42c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:en_US.UTF-8:columns",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "en_US.UTF-8",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e7958c0a4142c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:en_US.UTF-8:bytes",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "en_US.UTF-8",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a90ae7958c0a41420ac3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:C.UTF-8:columns",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "C.UTF-8",
+      "args": [
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a9e7958c0a4142c3a90a",
+      "stderrHex": ""
+    },
+    {
+      "id": "gnu-coreutils-9.11:C.UTF-8:bytes",
+      "binary": "gnu-coreutils-9.11",
+      "locale": "C.UTF-8",
+      "args": [
+        "-b",
+        "-w",
+        "3"
+      ],
+      "stdinHex": "c3a9e7958c4142c3a90a",
+      "status": 0,
+      "signal": null,
+      "stdoutHex": "c3a90ae7958c0a41420ac3a90a",
+      "stderrHex": ""
+    }
+  ]
+}

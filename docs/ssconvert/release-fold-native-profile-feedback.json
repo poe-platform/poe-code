@@ -1,0 +1,85 @@
+{
+  "status": "Locally validated and independently reviewed; containing CI/publication pending.",
+  "files": [
+    {
+      "path": "packages/safe-bash/tests/commands/stream-inspection-stress/holdouts.test.ts",
+      "sha256": "85bd5a44b8c5f267d4adb1b4b5cd2427ce2ae2c6dadf6aebbc82757f3e13ac45"
+    },
+    {
+      "path": "packages/safe-bash/tests/commands/stream-inspection-stress/evidence/gnu-fold-9.11-supplement/report.json",
+      "sha256": "b70aa7ad32b627e9395c50a15498b5e7126f25ea3d1a5366a79acf4c05637648"
+    }
+  ],
+  "originalCorpus": {
+    "path": "packages/safe-bash/tests/commands/stream-inspection-stress/evidence/cases.json",
+    "sha256": "956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75"
+  },
+  "validation": {
+    "command": "node --import tsx --conditions=poe-code-source --test tests/commands/stream-inspection-stress/holdouts.test.ts",
+    "tests": 124,
+    "pass": 124,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "durationMs": 1790.538583
+  },
+  "change": "Native profile substitutes exactly fold-utf8-locale-control using separately sealedGNU9.11Darwincapture bound to originalcorpus,args,locale,input,originaloracle,andoriginalexpected. Otherfoldrows/originalprofile unchanged. Supplement loaded only innativeprofile. All12nativecontrols andlocale/binaryidentities retained.",
+  "originalModeProbe": {
+    "command": "STREAM_PROFILE=original node --import tsx --conditions=poe-code-source --test --test-name-pattern='^frozen fixture: fold-utf8-locale-control$' tests/commands/stream-inspection-stress/holdouts.test.ts",
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "qualification": "Expected preservation check: same historicalbyte-splitting expectation disagrees withcurrentUTF8-aware product. Not counted asgreen."
+  },
+  "evidence": [
+    {
+      "path": "out/ssconvert-pwd-packed/ci-fold-current.log",
+      "sha256": "0c91f48bca28c2ea2b096a8456917034ccd43a4175b74e590ff2bf871d7aad9f"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/ci-fold-repaired-holdouts.log",
+      "sha256": "afe85df986cc4cc9c884637b9f545d004fc80d4d5f0aa5a477c8b4d067ed7f22"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/ci-fold-original-preserved.log",
+      "sha256": "9d20424d15ea1a502eb33185aa20e7f37e63679ad7aae96d3371ad4c96559210"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/ci-fold-native-captures.json",
+      "sha256": "0653dcfaff2357385ae9527179e434430150506981ce171a50fb5b4c51b4b5a7"
+    },
+    {
+      "path": "out/ssconvert-pwd-packed/ci-curl-fold-native-inputs.json",
+      "sha256": "da9c5dec49df7a9f9462beb558e96c18f2fc52bbcb1dec68be064c3d7ae938fd"
+    }
+  ],
+  "scope": "GNU9.11DarwinUTF8profile, notLinuxnativequalification. No runtime edits.",
+  "rootReview": {
+    "nativeReplays": 12,
+    "passed": 12,
+    "identity": "All binary hashes matched both captured hashes; stdout/stderr/status match under original explicit environments.",
+    "preserved": "Original corpus and all neighboring fixture selectors retained."
+  },
+  "guardedRootLint": {
+    "complete": true,
+    "exitCode": 0,
+    "errorCount": 0,
+    "warningCount": 2,
+    "scope": {
+      "configured": 16640,
+      "linted": 16640,
+      "ignored": 2241,
+      "unconfigured": 39650,
+      "ignoredDirectories": 271,
+      "heldExcluded": 5
+    },
+    "timings": {
+      "traversalMs": 521810,
+      "parsingMs": 126220,
+      "initializationMs": 26442
+    },
+    "cacheHits": 0,
+    "sha256": "69a51af768bc8f7b4aeda25883cd8a7247ad11f7b90cd67234235dfe896d2386"
+  }
+}

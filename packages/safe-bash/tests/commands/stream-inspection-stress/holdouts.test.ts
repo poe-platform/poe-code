@@ -65,8 +65,33 @@ const supplementalText = readFileSync(resolve(evidence, "gnu-strings-supplement/
 assert.equal(createHash("sha256").update(supplementalText).digest("hex"), "8082fe55e6f426d6ea76107abe27321aadd30046ad429c734c9123bc3c25e3ae");
 const supplemental: { captures: { id: string; expected: Fixture["expected"] }[] } = JSON.parse(supplementalText.toString());
 assert.equal(supplemental.captures.length, 20);
+type FoldCapture = Pick<Fixture, "id" | "args" | "locale" | "stdinHex" | "expected" | "oracle"> & {
+  originalOracle: string;
+  originalExpected: Fixture["expected"];
+};
+let foldCapture: FoldCapture | undefined;
+if (profile === "native") {
+  const foldText = readFileSync(resolve(evidence, "gnu-fold-9.11-supplement/report.json"));
+  assert.equal(createHash("sha256").update(foldText).digest("hex"), "b70aa7ad32b627e9395c50a15498b5e7126f25ea3d1a5366a79acf4c05637648");
+  const foldReport: { corpusSha256: string; captures: FoldCapture[]; controls: unknown[] } = JSON.parse(foldText.toString());
+  assert.equal(foldReport.corpusSha256, "956152bcc27f97af0111073f582e9ca0e74199c309ec406b71ca0c022190da75");
+  assert.deepEqual(foldReport.captures.map(capture => capture.id), ["fold-utf8-locale-control"]);
+  assert.equal(foldReport.controls.length, 12);
+  foldCapture = foldReport.captures[0];
+}
 const activeFixtures = fixtures.map(fixture => {
-  if (profile !== "native" || fixture.command !== "strings") return fixture;
+  if (profile !== "native") return fixture;
+  if (fixture.id === "fold-utf8-locale-control") {
+    assert.ok(foldCapture);
+    assert.equal(fixture.command, "fold");
+    assert.deepEqual(foldCapture.args, fixture.args);
+    assert.equal(foldCapture.locale, fixture.locale);
+    assert.equal(foldCapture.stdinHex, fixture.stdinHex);
+    assert.equal(foldCapture.originalOracle, fixture.oracle);
+    assert.deepEqual(foldCapture.originalExpected, fixture.expected);
+    return { ...fixture, oracle: foldCapture.oracle, expected: foldCapture.expected };
+  }
+  if (fixture.command !== "strings") return fixture;
   const native = supplemental.captures.find(capture => capture.id === fixture.id);
   assert.ok(native);
   return { ...fixture, expected: native.expected };

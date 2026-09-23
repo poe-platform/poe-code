@@ -96,9 +96,13 @@ test('XZ reported options work through virtual-file shell pipelines', async () =
 
 test('XZ-specific controls remain invalid for other formats', async () => {
   for (const command of ['gzip', 'bzip2', 'zstd']) {
-    for (const flag of ['--compress', '--extreme', '-e', '--threads=1', '-T1']) {
+    for (const flag of ['--extreme', '-e', '--threads=1', '-T1']) {
       const result = await run(command, [flag]);
       assert.equal(result.exitCode, 2);
     }
+  }
+  for (const command of ['gzip', 'zstd']) {
+    const result = await run(command, ['--compress']);
+    assert.equal(result.exitCode, 2);
   }
 });

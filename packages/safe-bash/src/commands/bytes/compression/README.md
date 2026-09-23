@@ -53,6 +53,13 @@ execution; other counts, including automatic selection (`0`), fail explicitly.
 The existing 64 MiB codec allocation cap still applies, including to extreme
 presets. These options do not establish support for other native XZ controls.
 
+The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and
+`--compress` to select compression, including on decompression aliases. The last
+`-z`/`-d` selector wins. `-s` and `--small` cap compression block size at level
+`2` (retaining level `1` when selected), regardless of option order. During
+decompression they select bzip2's reduced-memory decoder, including for every
+concatenated member, while retaining checksum validation.
+
 Force does not bypass integrity checks on input starting with gzip magic
 `1f 8b`. Only decompression to stdout (including stdin's implicit stdout and
 `zcat`) with `-f` passes non-gzip input and suffixes through unchanged.

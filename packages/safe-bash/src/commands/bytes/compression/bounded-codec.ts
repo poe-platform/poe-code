@@ -21,6 +21,8 @@ export interface BoundedCodecOptions {
   readonly decompress: boolean;
   readonly level: number;
   readonly extreme?: boolean;
+  /** bzip2's reduced-memory decoder. */
+  readonly small?: boolean | undefined;
   /** Stop at the first frame and return unread bytes to the input reader. */
   readonly singleMember?: boolean;
   readonly onFailure?: (error: unknown) => void;

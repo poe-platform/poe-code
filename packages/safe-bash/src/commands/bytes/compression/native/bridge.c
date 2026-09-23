@@ -48,7 +48,14 @@ API void bridge_destroy(void) {
 #endif
  active=0;
 }
-API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window_log) {
+API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window_log
+#if defined(BZ)
+ ,int small
+#endif
+) {
+#if defined(BZ)
+ if(small!=0&&small!=1)return -1;
+#endif
 #if defined(XZ)
  if(((uint32_t)level & ~LZMA_PRESET_EXTREME)>9)return -1;
 #else
@@ -58,7 +65,7 @@ API int bridge_create(int decode,int level,uint32_t memory_limit,uint32_t window
  limit=memory_limit;peak=used=0;taken=made=0;decompressing=!!decode;active=1;int ok=0;
 #if defined(BZ)
  buffered=flush_remaining=0;flushing=0;memset(&s,0,sizeof(s));s.bzalloc=bzalloc;s.bzfree=release;
- ok=(decode?BZ2_bzDecompressInit(&s,0,0):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
+ ok=(decode?BZ2_bzDecompressInit(&s,0,small):BZ2_bzCompressInit(&s,level,0,30))==BZ_OK;
 #elif defined(XZ)
  s=(lzma_stream)LZMA_STREAM_INIT;s.allocator=&allocator;
  ok=(decode?lzma_stream_decoder(&s,memory_limit,0):lzma_easy_encoder(&s,level,LZMA_CHECK_CRC64))==LZMA_OK;

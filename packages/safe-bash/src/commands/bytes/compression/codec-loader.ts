@@ -53,7 +53,7 @@ export async function createCodec(
     module._initialize?.();
     const initialized = lzma
       ? module.bridge_create_lzma?.(Number(options.decompress), options.level, 64 * 1024 * 1024, lzma!.dictionary, lzma!.properties, Number(lzma!.eos), lzma!.size >>> 0, Math.floor(lzma!.size / 0x100000000))
-      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, 64 * 1024 * 1024, 23);
+      : module.bridge_create(Number(options.decompress), options.extreme ? options.level | 0x80000000 : options.level, 64 * 1024 * 1024, 23, Number(options.small === true));
     signal.throwIfAborted();
     if (initialized !== 0) throw new PublicDiagnostic("codec initialization failed or memory limit exceeded");
     const inputPointer = module.bridge_input();

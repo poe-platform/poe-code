@@ -215,8 +215,8 @@
   "artifacts": [
     {
       "path": "generated/bz2.mjs",
-      "bytes": 162419,
-      "sha256": "0cd7eeb531cd6c5f5a49bb9746114f070e7ffd19a17131f6615bb904532ff687"
+      "bytes": 162459,
+      "sha256": "4805a02a4a20dbcb523c2db026b8122ce92e1204cf47067885706f8b7eb4c61b"
     },
     {
       "path": "generated/xz.mjs",

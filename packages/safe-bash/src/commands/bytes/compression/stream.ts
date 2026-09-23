@@ -71,7 +71,7 @@ export async function transform(
   if (options.format === "gzip" && options.decompress) prepared = gunzipMembers(prepared, signal, options.force, () => { warned = true; });
   const reader = options.format === "gzip" && options.decompress ? undefined : new CodecReader(prepared, signal);
   const transformed = options.format !== "gzip"
-    ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, onFailure: fail }, signal)
+    ? boundedCodec(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {

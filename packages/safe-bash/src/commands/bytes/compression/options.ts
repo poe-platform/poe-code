@@ -10,6 +10,7 @@ export interface CompressionOptions {
   help: boolean;
   quiet: number;
   recursive: boolean;
+  small?: boolean;
   level: number;
   extreme?: boolean;
   suffix?: string;
@@ -27,7 +28,7 @@ export type CompressionFormat = typeof profiles[number]["format"];
 
 const aliases: Readonly<Record<string, string>> = {
   stdout: "c", "to-stdout": "c", decompress: "d", uncompress: "d", keep: "k",
-  force: "f", test: "t", best: "9", "no-name": "n", help: "h", quiet: "q", recursive: "r",
+  force: "f", test: "t", best: "9", "no-name": "n", help: "h", quiet: "q", recursive: "r", compress: "z", small: "s",
 };
 
 export function parseOptions(command: string, args: readonly string[]): CompressionOptions {
@@ -88,6 +89,14 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         }
         case "c": result.stdout = true; break;
         case "d": result.decompress = true; break;
+        case "z":
+          if (profile.format !== "bzip2") throw new UsageError(`invalid option -- '${flag}'`);
+          result.decompress = false;
+          break;
+        case "s":
+          if (profile.format !== "bzip2") throw new UsageError(`invalid option -- '${flag}'`);
+          result.small = true;
+          break;
         case "k": result.keep = true; break;
         case "f": result.force = true; break;
         case "t": result.test = true; result.decompress = true; break;
@@ -110,6 +119,7 @@ export function parseOptions(command: string, args: readonly string[]): Compress
     }
   }
   if (result.suffix === "" && !result.decompress) throw new UsageError("invalid suffix ''");
+  if (result.small && !result.decompress) result.level = Math.min(result.level, 2);
   if (!result.operands.length) result.operands.push("-");
   return result;
 }

@@ -5,8 +5,7 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { Budget, resolveLimits } from "../../src/shell/runtime.js";
 import { cloudflareWorkerLimits } from "../../src/shell/worker-limits.js";
-import { MockS3Client, S3FileSystem, ReadOnlyFileSystem } from "poe-code/safe-fs";
-import { scopeFileSystem } from "poe-code/safe-fs";
+import { MockS3Client, S3FileSystem, ReadOnlyFileSystem, scopeFileSystem } from "@poe-code/safe-fs";
 
 const encoder = new TextEncoder();
 const operationLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxFileSystemOperations";

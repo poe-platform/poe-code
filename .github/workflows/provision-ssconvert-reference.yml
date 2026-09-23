@@ -105,12 +105,12 @@ jobs:
           with (root / 'function-activation-compile.log').open('wb') as log:
               subprocess.run(['cc', str(activation_source), '-o', str(activation_binary), *flags], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
           metadata = []
-          def capture(label, command, capture_env=None):
+          def capture(label, command, capture_env=None, expected_exit_codes=(0,)):
               result = subprocess.run(command, env=env if capture_env is None else capture_env, capture_output=True, timeout=120)
               (root / (label + '.stdout')).write_bytes(result.stdout)
               (root / (label + '.stderr')).write_bytes(result.stderr)
-              metadata.append(dict(label=label, argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(), supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD'] if key in capture_env}))
-              if result.returncode != 0:
+              metadata.append(dict(label=label, expectedExitCodes=list(expected_exit_codes), argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(), supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD'] if key in capture_env}))
+              if result.returncode not in expected_exit_codes:
                   raise RuntimeError('Native capture failed: ' + label)
           for label, command in [
               ('uname', ['uname', '-a']), ('system', ['cat', '/etc/os-release']),
@@ -182,6 +182,22 @@ jobs:
                   zones.append(dict(timezone=zone['timezone'], fileSha256=hashlib.sha256(zone_file.read_bytes()).hexdigest()))
                   capture('frozen-date-' + str(index), [str(binary), '--recalc', '-T', 'Gnumeric_stf:stf_csv', str(path), 'fd://1'], dict(env, TZ=zone['timezone'], LD_PRELOAD=str(hook_binary.resolve())))
               clock_control = dict(clockUnixSeconds=control['clockUnixSeconds'], inputSha256=control['inputSha256'], hookSourceSha256=hashlib.sha256(hook_source.read_bytes()).hexdigest(), hookBinarySha256=hashlib.sha256(hook_binary.read_bytes()).hexdigest(), timezoneFiles=zones, policy=control['policy'])
+          service_path = pathlib.Path('docs/ssconvert/linux-optional-service-native-probes.json')
+          service_inputs = []
+          for fixture in json.loads(service_path.read_text())['inputs']:
+              if fixture['profileId'] != profile['id']:
+                  continue
+              path = root / fixture['filename']
+              path.write_bytes(bytes.fromhex(fixture['inputHex']))
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
+              for probe in fixture['captures']:
+                  argv = [value.replace('{input}', str(path)).replace('{root}', str(root)) for value in probe['argv']]
+                  capture(probe['label'], [str(binary), *argv], expected_exit_codes=probe['expectedExitCodes'])
+              outputs = []
+              for output in sorted(root.glob('*')):
+                  if output.suffix in ['.xls', '.xlsx', '.po']:
+                      outputs.append(dict(name=output.name, bytes=output.stat().st_size, sha256=hashlib.sha256(output.read_bytes()).hexdigest()))
+              service_inputs.append(dict(id=fixture['id'], inputSha256=fixture['inputSha256'], scope=fixture['scope'], generatedOutputs=outputs))
           workflow = pathlib.Path('.github/workflows/provision-ssconvert-reference.yml')
           source_revision = subprocess.check_output(['git', '-c', 'safe.directory=' + str(pathlib.Path.cwd()), 'rev-parse', 'HEAD'], text=True).strip()
           assert source_revision == os.environ['GITHUB_SHA']
@@ -190,6 +206,7 @@ jobs:
               sourceRevision=source_revision,
               image=yaml.safe_load(workflow.read_text())['jobs']['native']['container']['image'],
               profileId=profile['id'], environment=profile['env'],
+              serviceFixtureSha256=hashlib.sha256(service_path.read_bytes()).hexdigest(), serviceInputs=service_inputs,
               dependencyBuilds=json.loads((root / 'dependency-builds.json').read_text()),
               languageFixtureSha256=hashlib.sha256(language_fixture_path.read_bytes()).hexdigest(), languageInputs=language_inputs, frozenDateControl=clock_control,
               referenceProfileSha256=hashlib.sha256(reference_path.read_bytes()).hexdigest(),

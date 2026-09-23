@@ -1,3 +1,4 @@
+import { openDatasourceSession } from "./datasource.js";
 import { snapshotRuntimeFunctions } from "./formulas/runtime-functions.js";
 import { createRegistry } from "./codecs.js";
 import { prepareClipboardImport, serializeClipboard } from "./conversion/clipboard.js";
@@ -50,6 +51,7 @@ function bounded(value: number, maximum: number, name: string) {
 export function createEngine(supplied: EngineConfig): Engine {
   const config = {
     ...supplied,
+    ...(supplied.datasource === undefined ? {} : { datasource: Object.freeze({ open: supplied.datasource.open.bind(supplied.datasource) }) }),
     ...(supplied.password === undefined ? {} : { password: Object.freeze({ read: supplied.password.read.bind(supplied.password) }) }),
     ...(supplied.runtimeFunctions === undefined ? {} : { runtimeFunctions: snapshotRuntimeFunctions(supplied.runtimeFunctions) }),
     limits: Object.freeze({ ...supplied.limits }),
@@ -59,6 +61,8 @@ export function createEngine(supplied: EngineConfig): Engine {
       env: Object.freeze({ ...supplied.environment.env })
     })
   };
+  if (config.datasource && Object.hasOwn(config.runtimeFunctions ?? {}, "ATL_LAST"))
+    throw new TypeError("Conflicting ssconvert datasource runtime function: ATL_LAST");
   if ((supplied.filesystem?.cwd !== undefined || supplied.environment.cwd !== undefined) &&
       (!config.environment.cwd.startsWith("/") || config.environment.cwd.includes("\0")))
     throw new TypeError("ssconvert cwd must be an absolute VFS path");
@@ -120,7 +124,7 @@ export function createEngine(supplied: EngineConfig): Engine {
     });
     const abort = () => { void finish().catch(() => {}); };
     operation.signal.addEventListener("abort", abort, { once: true });
-    const context: CapabilityContext = {
+    let context: CapabilityContext = {
       signal: operation.signal,
       ...(operation.stdinIsDefault === undefined ? {} : { stdinIsDefault: operation.stdinIsDefault }),
       environment: runtimeEnvironment(config.environment),
@@ -162,6 +166,14 @@ export function createEngine(supplied: EngineConfig): Engine {
       let result: T;
       try {
         check(context);
+        if (config.datasource) {
+          const datasource = await openDatasourceSession(config.datasource, context);
+          const records = diagnostics.get(context)!;
+          const admission = admissions.get(context)!;
+          context = { ...context, datasource, runtimeFunctions: { ...context.runtimeFunctions, ...datasource.runtimeFunctions } };
+          diagnostics.set(context, records); admissions.set(context, admission);
+          check(context);
+        }
         result = await work(context);
         check(context);
       } catch (error) {

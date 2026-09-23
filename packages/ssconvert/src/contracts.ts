@@ -85,6 +85,7 @@ export interface PasswordCapability {
   })>): Promise<string | Uint8Array | undefined>;
 }
 export interface CapabilityContext {
+  readonly datasource?: import("./datasource.js").DatasourceSession;
   readonly stdinIsDefault?: boolean;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;
   /** Invocation-local source identity for filename-sensitive importers. */
@@ -104,6 +105,8 @@ export interface CapabilityContext {
   readonly diagnostic?: (diagnostic: Diagnostic) => Promise<void>;
 }
 export interface EngineConfig {
+  /** Explicit optional sample datasource transport, owned per operation. */
+  readonly datasource?: import("./datasource.js").DatasourceCapability;
   readonly runtimeFunctions?: import("./formulas/runtime-functions.js").RuntimeFunctions;
   readonly codecs: readonly Codec[];
   readonly limits: RuntimeLimits;

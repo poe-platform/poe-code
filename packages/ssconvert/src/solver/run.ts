@@ -49,6 +49,10 @@ export async function runSolverValidation(book: Workbook, context: CapabilityCon
     if (!(error instanceof SsconvertError) || error.code !== 'invalid-request') throw error;
     await warning(`Solver: ${error.message}`); return book;
   }
+  // Native services run only after a solver starts, not during admission. The
+  // portable solver has already captured/computed its model; process the host
+  // batch before applying results and recalculating the current datasource values.
+  if (context.datasource) await context.datasource.poll(program.book);
   let result = program.apply(solution);
   if (model.options.programReport && (solution || reportSolution)) result = createProgramReport(program, result, solution ?? reportSolution!, quality, reportedValue);
   if (model.options.sensitivityReport && solution && sensitivity) result = createSensitivityReport(program, result, solution, sensitivity, algorithm.id === 'lpsolve' ? 'lpsolve' : 'glpk');

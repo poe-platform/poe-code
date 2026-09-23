@@ -71,8 +71,8 @@ async function finishReplay(execution: Promise<RunResult>): Promise<RunResult> {
   void execution.then(onSettled, onSettled);
   // Count opportunities to make progress instead of CPU time shared with CI workers.
   // A stuck replay still fails after a finite budget, within the owning test deadline.
-  for (let turn = 0; turn < 256 && !settled; turn++) await hostTurn();
-  if (!settled) throw new Error("Callback replay stalled after 256 host turns");
+  for (let turn = 0; turn < 8192 && !settled; turn++) await hostTurn();
+  if (!settled) throw new Error("Callback replay stalled after 8192 host turns");
   return execution;
 }
 

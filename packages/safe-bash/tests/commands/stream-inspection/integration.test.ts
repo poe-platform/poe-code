@@ -56,6 +56,49 @@ test("strings custom separators replace every newline through agentCommands", as
   } finally { await shell.dispose(); }
 });
 
+test("strings octal alias and whitespace controls preserve native output bytes", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/offsets", Buffer.from("\0ControlOne\0ControlTwo\0"));
+  await fs.writeFile("/whitespace", Buffer.from("\0Control\nInside\r\nEnd\0"));
+  const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(agentCommands());
+  try {
+    for (const [args, expected] of [
+      ["-o offsets", "      1 ControlOne\n     14 ControlTwo\n"],
+      ["-fo offsets", "offsets:       1 ControlOne\noffsets:      14 ControlTwo\n"],
+      ["-o -td offsets", "      1 ControlOne\n     12 ControlTwo\n"],
+      ["-tx -o offsets", "      1 ControlOne\n     14 ControlTwo\n"],
+      ["-otx offsets", "      1 ControlOne\n      c ControlTwo\n"],
+      ["-to -td offsets", "      1 ControlOne\n     12 ControlTwo\n"],
+      ["-w whitespace", "Control\nInside\r\nEnd\n"],
+      ["--include-all-whitespace whitespace", "Control\nInside\r\nEnd\n"],
+      ["-ow -s ':' whitespace", "      1 Control\nInside\r\nEnd:"],
+      ["whitespace", "Control\nInside\n"],
+    ] as const) {
+      const result = await shell.exec(`strings ${args}`);
+      assert.equal(result.exitCode, 0, `${args}: ${result.stderr}`);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(expected));
+    }
+    for (const args of ["-w", "--include-all-whitespace"]) {
+      const result = await shell.exec(`strings ${args}`, { stdin: Buffer.from("\0a\t\n\v\f\rb\0\x01\x7f\xffxyz\0") });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "a\t\n\v\f\rb\n");
+    }
+    const invalid = await shell.exec("strings -tz -o offsets");
+    assert.equal(invalid.exitCode, 1);
+    assert.equal(invalid.stdout, "");
+    assert.equal(invalid.stderr, "strings: invalid radix 'z'\n");
+    for (const [encoding, width, little] of [["l", 2, true], ["b", 2, false], ["L", 4, true], ["B", 4, false]] as const) {
+      const text = "\0Control\nInside\r\nEnd\0";
+      const bytes = new Uint8Array(text.length * width);
+      for (let index = 0; index < text.length; index++) bytes[index * width + (little ? 0 : width - 1)] = text.charCodeAt(index);
+      const result = await shell.exec(`strings -e${encoding} -wo`, { stdin: bytes });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(`${width.toString(8).padStart(7)} Control\nInside\r\nEnd\n`));
+    }
+  } finally { await shell.dispose(); }
+});
+
 test("opt-in plugin collision preflight and replacement use existing contracts", () => {
   assert.deepEqual(createStreamInspectionCommands().map(command => command.name), ["tac", "expand", "fold", "strings"]);
   const original = { name: "strings", execute: () => ({ exitCode: 42 }) };

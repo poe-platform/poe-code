@@ -24,6 +24,7 @@ export function options(
   args: readonly string[], short: string, long: Readonly<Record<string, string | false>> = {},
   stopAtOperand = false, onOperand?: (index: number) => void,
   onValue?: (key: string, index: number, offset: number) => void,
+  onOption?: (key: string, value: string | undefined) => void,
 ): ParsedOptions {
   const flags = new Set<string>();
   const values = new Map<string, string[]>();
@@ -58,6 +59,7 @@ export function options(
         values.set(key, [...values.get(key) ?? [], value]);
       } else if (equals >= 0) throw new UsageError(`option '--${name}' does not take an argument`);
       flags.add(key);
+      onOption?.(key, values.get(key)?.at(-1));
       continue;
     }
     for (let offset = 1; offset < argument.length; offset++) {
@@ -71,6 +73,7 @@ export function options(
         offset = argument.length;
       }
       flags.add(key);
+      onOption?.(key, values.get(key)?.at(-1));
     }
   }
   return { flags, values, operands };

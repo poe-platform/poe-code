@@ -2,6 +2,7 @@ import { options, type ParsedOptions } from "../internal.js";
 
 export function numericOptions(
   args: readonly string[], short: string, long: Readonly<Record<string, string>>, key?: string,
+  onOption?: (key: string, value: string | undefined) => void,
 ): ParsedOptions & { readonly legacyValue?: string } {
   const normalized: string[] = [], ordered: string[] = [], operands: string[] = [];
   let ended = false, legacyIndex: number | undefined, legacyFallback = "";
@@ -40,7 +41,7 @@ export function numericOptions(
       } else if (!short.includes(option)) break;
     }
   }
-  const parsed = options(normalized, key ? short : `${short}0123456789`, long);
+  const parsed = options(normalized, key ? short : `${short}0123456789`, long, false, undefined, undefined, onOption);
   return legacyIndex === undefined ? parsed : {
     ...parsed, legacyValue: [...ordered, ...operands][legacyIndex]?.slice(1) ?? legacyFallback,
   };

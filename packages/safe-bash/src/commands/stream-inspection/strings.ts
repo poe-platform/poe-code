@@ -6,7 +6,17 @@ import { command, RecordBuffer, type StreamInspectionLimits } from "./shared.js"
 
 export function createStringsCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("strings", limits, async session => {
-    const parsed = numericOptions(session.context.args, "adfe:n:s:t:U:T:", { all: "a", data: "d", target: "T", "print-file-name": "f", bytes: "n", "output-separator": "s", radix: "t", encoding: "e", unicode: "U" });
+    let radix: string | undefined;
+    const parsed = numericOptions(session.context.args, "adfon:s:t:we:U:T:", {
+      all: "a", "print-file-name": "f", bytes: "n", "output-separator": "s", radix: "t", "include-all-whitespace": "w",
+      encoding: "e", unicode: "U", data: "d", target: "T",
+    }, undefined, (key, specification) => {
+      if (key === "o") radix = "o";
+      if (key === "t") {
+        if (specification === undefined || !["d", "o", "x"].includes(specification)) throw new UsageError(`invalid radix '${specification}'`);
+        radix = specification;
+      }
+    });
     const target = value(parsed, "T");
     if (target !== undefined && !["elf64-x86-64", "elf32-i386"].includes(target)) throw new UsageError(`unsupported target '${target}'`);
     const data = dataMode(session.context.args);
@@ -27,8 +37,6 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
       minimum = Number.parseInt(specification, specification.startsWith("0") ? 8 : 10);
       if (minimum < 1 || minimum >= 4294967295) throw new UsageError(`invalid number '${specification}'`);
     }
-    const radix = value(parsed, "t");
-    if (radix !== undefined && !["d", "o", "x"].includes(radix)) throw new UsageError(`invalid radix '${radix}'`);
     const files = parsed.operands.filter(name => name !== "-");
     if (parsed.operands.length && !files.length) throw new UsageError("missing file operand after '-' (use no operands for stdin)");
     await session.files(session.names(files), async (source, name) => {
@@ -86,7 +94,7 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
             return;
           }
           if (utf8.length) { utf8.length = 0; await flush(); }
-          if (byte === 9 || byte >= 32 && (byte <= 126 || encoding === "S" && byte >= 128)) append([byte], position);
+          if (byte === 9 || byte >= 32 && (byte <= 126 || encoding === "S" && byte >= 128) || parsed.flags.has("w") && byte >= 10 && byte <= 13) append([byte], position);
           else await flush();
         };
         for await (const chunk of region.source) {
@@ -99,7 +107,7 @@ export function createStringsCommand(limits: StreamInspectionLimits): CommandDef
                 const little = encoding === "l" || encoding === "L";
                 let code = 0;
                 for (let index = 0; index < width; index++) code = code * 256 + unit[little ? width - index - 1 : index]!;
-                if (code === 9 || code >= 32 && code <= 126) append([code], offset - width + 1);
+                if (code === 9 || code >= 32 && code <= 126 || parsed.flags.has("w") && code >= 10 && code <= 13) append([code], offset - width + 1);
                 else await flush();
                 unit.length = 0;
               }

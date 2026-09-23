@@ -119,8 +119,12 @@ in a minimum seven-character right-aligned field. `-f`, `--print-file-name`
 prefixes the literal operand, or `{standard input}`, followed by `: `.
 Offsets reset for each file; each accepted run ends with LF, including at EOF.
 
-This is a bounded binary marker extractor. GNU `-w` and `-o` remain
-compatibility gaps. Numeric `-NUMBER` syntax is
+`-o` selects octal offsets, equivalent to `-t o`; the last `-o` or `-t`
+option selects the radix. `-w` / `--include-all-whitespace` retains LF, VT,
+FF, and CR within printable runs, in addition to the default TAB and printable
+ASCII bytes. Minimum lengths include these whitespace bytes.
+
+This is a bounded binary marker extractor. Numeric `-NUMBER` syntax is
 supported under the pinned GNU strings2.44 Darwin profile, including leading-zero
 octal lengths and deferred numeric selection overriding valid ordinary `-n`.
 Zero and unsigned overflow are rejected. Legacy getopt ordering quirks are

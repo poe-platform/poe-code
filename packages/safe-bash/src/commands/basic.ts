@@ -163,8 +163,10 @@ export async function formatPrintf(context: CommandContext): Promise<CommandResu
             else if (radix === 8 && !text.startsWith("0")) text = "0" + text;
           }
         }
+        const negativeZero = Object.is(number, -0) && "fFeEgG".includes(specifier);
+        if (negativeZero) text = "-" + text;
         if (/[XFEG]/u.test(specifier)) text = text.toUpperCase();
-        if (number >= 0 && /[difFeEgG]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
+        if (number >= 0 && !negativeZero && /[difFeEgG]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
       }
       if (flags.includes("-")) text = text.padEnd(width, " ");
       else if (flags.includes("0") && /[diouxXfFeEgG]/u.test(specifier)

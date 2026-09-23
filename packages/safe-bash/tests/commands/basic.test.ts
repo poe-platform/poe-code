@@ -7,7 +7,36 @@ import { Shell } from "../../src/shell/index.js";
 import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { fixture, run } from "./helpers.js";
 
+for (const [format, negative, positive] of [
+  ["%f", "-0.000000", "0.000000"],
+  ["%e", "-0.000000e+00", "0.000000e+00"],
+  ["%g", "-0", "0"],
+  ["%+f", "-0.000000", "+0.000000"],
+  ["% F", "-0.000000", " 0.000000"],
+  ["%+E", "-0.000000E+00", "+0.000000E+00"],
+  ["% G", "-0", " 0"],
+  ["%+012.2f", "-00000000.00", "+00000000.00"],
+  ["%-12.2f", "-0.00       ", "0.00        "],
+] as const) test(`printf preserves floating negative zero with ${format}`, async () => {
+  for (const operand of ["-0", "-0.00", "-0e0", "-0x0"]) {
+    const result = await run("printf", [format, operand]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, negative, operand);
+  }
+  for (const operand of ["0", "+0.00"]) {
+    assert.equal((await run("printf", [format, operand])).stdout, positive, operand);
+  }
+});
+
 const nativeConsumerGoldens = [
+  {
+    "id": "printf-negative-zero-pipeline",
+    "script": "printf '%f|%e|%g|%+f\\n' -0.00 -0.00 -0.00 -0.00 | cat",
+    "stdoutHex": Buffer.from("-0.000000|-0.000000e+00|-0|-0.000000\n").toString("hex"),
+    "stderrHex": "",
+    "status": 0
+  },
   {
     "id": "17-printf-raw-format",
     "script": "printf $'\\xff:%s:\\xfe\\n' '�'",

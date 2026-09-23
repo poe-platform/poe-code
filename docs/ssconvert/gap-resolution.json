@@ -1309,5 +1309,22 @@
     "productCodeChangeRequired": false,
     "publication": "unverified",
     "wholeGoalComplete": false
+  },
+  "linuxGdaReference": {
+    "evidence": "docs/ssconvert/linux-gda-native-reference.json",
+    "nativeRun": 35844194082,
+    "nativeBuild": "success",
+    "authenticatedSource": "libgda6.0.0",
+    "pkgconfigCoreUiABI": "6.0.0",
+    "exactActivePluginIds": 47,
+    "modules": 56,
+    "functions": [
+      "EXECSQL",
+      "READDBTABLE"
+    ],
+    "nativeQueryExecution": "pending-headless-effect-probes",
+    "sourceUnpatched": true,
+    "publication": "unverified",
+    "wholeGoalComplete": false
   }
 }

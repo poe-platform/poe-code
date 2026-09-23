@@ -691,6 +691,43 @@ test("ln restores a backup if hardlink creation fails after the rename", async (
   await assert.rejects(backing.stat("/work/dest~"), { code: "ENOENT" });
 });
 
+for (const flags of ["-v", "--verbose", "-fv", "-f --verbose"]) {
+  test(`ln ${flags} reports successful hard links using operand paths`, async () => {
+    const fs = await fixture({ input: "new\n", ...flags.includes("f") ? { output: "old\n" } : {} });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    const result = await shell.exec(`ln ${flags} input output`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "'output' => 'input'\n");
+    assert.equal(result.stderr, "");
+    assert.equal((await fs.stat("/work/output")).ino, (await fs.stat("/work/input")).ino);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "new\n");
+    await assert.rejects(fs.stat("/work/output.~1~"), { code: "ENOENT" });
+  });
+}
+
+test("ln verbose reports each successful directory link and stays silent for failures", async () => {
+  const fs = await fixture({ first: "one", second: "two", "out/first": "existing" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const result = await shell.exec("ln -v first second missing out");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "'out/second' => 'second'\n");
+  assert.notEqual(result.stderr, "");
+  assert.equal((await fs.stat("/work/out/second")).ino, (await fs.stat("/work/second")).ino);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/out/first")), "existing");
+});
+
+test("ln verbose distinguishes symbolic links and displays the implicit target", async () => {
+  const fs = await fixture({ "sub/input": "data" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const symbolic = await shell.exec("ln -sv sub/input symbolic");
+  assert.equal(symbolic.exitCode, 0, symbolic.stderr);
+  assert.equal(symbolic.stdout, "'symbolic' -> 'sub/input'\n");
+  assert.equal(await fs.readlink("/work/symbolic"), "sub/input");
+  const implicit = await shell.exec("ln -v sub/input");
+  assert.equal(implicit.exitCode, 0, implicit.stderr);
+  assert.equal(implicit.stdout, "'./input' => 'sub/input'\n");
+});
+
 test("readlink and realpath distinguish literal targets, existing and missing paths", async () => {
   const fs = await fixture({ file: "x" });
   await fs.symlink("file", "/work/link");

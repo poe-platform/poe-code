@@ -5154,5 +5154,14 @@
     "Per-glyph font offsets are preserved; nominal text advance is no longer treated as the positioned run width. Negative/nonfinite advance,nonfinite offset and nonzero vertical advance remain refused.",
     "Fixture PDF reader only admits its emitted Tm/Tj profile, not general native PDF syntax.",
     "All19 original ledger families, wider styles/fonts/layouts, exact shaping/pixel rendering and containing publication remain open."
-  ]
+  ],
+  "delivery": {
+    "implementationCommit": "44c916c0a113505bac2dc275fa68c780d87cca8d",
+    "remoteMainObserved": "ce604c066741070473e1c96f3b2a2d756536251e",
+    "ancestryVerified": true,
+    "ownReleaseRun": 35880631404,
+    "ownReleaseConclusion": "cancelled",
+    "containingReleaseRun": 35880697790,
+    "publication": "unverified;latest17.0.34 still points to ec51e54b9f8b27b13cee93b194c384dcea76efce"
+  }
 }

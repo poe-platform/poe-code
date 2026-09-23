@@ -1,0 +1,275 @@
+{
+  "scope": "Six native decomposed A+acute holdouts; separate extraction bounds from rendered ink",
+  "nativeRun": 35873658046,
+  "nativeProof": "docs/ssconvert/linux-font-metric-holdouts-native-capture.json",
+  "candidateCommit": "44c916c0a113505bac2dc275fa68c780d87cca8d",
+  "operatorEvidence": {
+    "nativePage1": "6 0 0 -6 188 334.334961 Tm; /Span << /ActualText <feff00410301> >> BDC; /f-1-0 1 Tf; (\\301)Tj; EMC",
+    "candidatePage1": "1 0 0 1 188 457.6650390625 Tm;<0024>Tj;1 0 0 1 191.1962890625 458.7578125 Tm;<0032>Tj",
+    "nativePageTransform": "1 0 0 -1 0 791.999983 cm",
+    "candidateFontkitGlyphs": [
+      {
+        "id": 36,
+        "codePoints": [
+          65
+        ],
+        "xAdvance": 1401,
+        "xOffset": 0,
+        "yOffset": 0
+      },
+      {
+        "id": 5923,
+        "codePoints": [
+          769
+        ],
+        "xAdvance": 0,
+        "xOffset": -189,
+        "yOffset": 373
+      }
+    ],
+    "unitsPerEm": 2048,
+    "nativeContentSha256": "42d9a8d586e1246069cf455459b668a47cd59a4a32fa25b1d9c5a1af7257f7d3",
+    "candidateContentSha256": "77a8c212856a00245e83c514f407a1abd1382e4729994e84699980c17db7f35a"
+  },
+  "raster": [
+    {
+      "case": 0,
+      "page": 1,
+      "cropOriginPixels": [
+        742,
+        1305
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        10,
+        9,
+        26,
+        31
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        9,
+        25,
+        31
+      ],
+      "candidateRgbSha256": "21b0248626d450f3dad7dba46062e75ed5309364565990f6ad890f1b60d783ec",
+      "nativeRgbSha256": "ef8f27dad304c01a3eadc9a99d3cb0a6e298815072ab5b0a1f42d13ec20ae63e",
+      "differentPixels": 20
+    },
+    {
+      "case": 1,
+      "page": 1,
+      "cropOriginPixels": [
+        739,
+        2457
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        10,
+        9,
+        28,
+        31
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        9,
+        28,
+        31
+      ],
+      "candidateRgbSha256": "1f9feb5599063aed9db6465906e814ec6044902d60fa357d5dc274acdb87f409",
+      "nativeRgbSha256": "891efb7c3f4a7d066b1ffd40cfbc1cf957559afb6d765d0e59d8479714cd9cd6",
+      "differentPixels": 21
+    },
+    {
+      "case": 2,
+      "page": 2,
+      "cropOriginPixels": [
+        736,
+        1106
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        10,
+        9,
+        30,
+        36
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        9,
+        30,
+        36
+      ],
+      "candidateRgbSha256": "b256a99baedf32a1640792c4ffbc6b03c0a7646ab3778d53902d20ed43a9d1aa",
+      "nativeRgbSha256": "9be6e3ca9049fea049e7fcbb761a3fc107ef453df0e305cf18904aac06ea6f21",
+      "differentPixels": 20
+    },
+    {
+      "case": 3,
+      "page": 2,
+      "cropOriginPixels": [
+        733,
+        2258
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        10,
+        9,
+        33,
+        36
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        9,
+        33,
+        36
+      ],
+      "candidateRgbSha256": "4cf8d01532ce042c86dd2334c0146ddc7256ec28167cc0485a280e06b392a5a2",
+      "nativeRgbSha256": "25466554dd6c9e074ec2e8aef2bc891fee8cb84bb037f90cd3c8719fa564b73e",
+      "differentPixels": 30
+    },
+    {
+      "case": 4,
+      "page": 3,
+      "cropOriginPixels": [
+        726,
+        900
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        11,
+        9,
+        39,
+        48
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        10,
+        38,
+        48
+      ],
+      "candidateRgbSha256": "4ab53654d49e09c33806ce24cc2739dd4ad15b9cb3e2f356af4629024e2fbc81",
+      "nativeRgbSha256": "4f643674ddbb517f72a35f3544539715ea14ca873f69d6cc7a63aec9aaa32a39",
+      "differentPixels": 289
+    },
+    {
+      "case": 5,
+      "page": 3,
+      "cropOriginPixels": [
+        724,
+        2052
+      ],
+      "resolutionDpi": 288,
+      "candidateInkBoundsPixels": [
+        10,
+        9,
+        42,
+        48
+      ],
+      "nativeInkBoundsPixels": [
+        10,
+        10,
+        42,
+        48
+      ],
+      "candidateRgbSha256": "4c4d5ba2c436711d1c5a7fd3b6d7e356be530617c03f8e8c1aee0887f7bfbcf0",
+      "nativeRgbSha256": "2f993d5550a922dbf80426be7d20b0b1419a56f0366f0e19a374da81436f1d06",
+      "differentPixels": 37
+    }
+  ],
+  "observations": [
+    "Native encodes composed Aacute with ActualText preserving original U+0041 U+0301. Candidate paints a separate mark with nonzero GPOS offset.",
+    "The 1.914674pt extraction yMin difference is not a measured ink displacement. At288dpi, observed ink top/bottom differ by at most1pixel across these six crops; exact raster bytes differ in all six.",
+    "Two first-page crops were visually inspected; both display A with acute. No exact pixel, arbitrary font, Unicode shaping or family completion claim.",
+    "Rounded preceding glyph advances alter the separate mark origin compared with a composed glyph. Canonical composition/shaping and native clipping require further validated repair; do not shift the whole cell by the extraction-bound difference.",
+    "All six page/font native subset outlines exactly match the supplied original composed Aacute outline. HarfBuzz10.2.0 source describes font-aware decomposition, reorder and composition; a bare NFC substitution is not general backend parity."
+  ],
+  "wholeGoalComplete": false,
+  "normalizationAuthority": {
+    "version": "10.2.0",
+    "tagObject": "818890f8f6c364ed111689a40ad510c415e559a1",
+    "commit": "7b27c8edd46c674e01dd226fa9e1aa7549f5c436",
+    "githubTagVerification": {
+      "verified": true,
+      "reason": "valid"
+    },
+    "sourceUrl": "https://raw.githubusercontent.com/harfbuzz/harfbuzz/10.2.0/src/hb-ot-shape-normalize.cc",
+    "sourceSha256": "0eae6600f98fee3db3691fdf01d0ad17ce39519e51eb79d1fab430eead78ee57",
+    "nativePackage": "libharfbuzz0b10.2.0-1+deb13u1",
+    "nativeLibrary": "/usr/lib/aarch64-linux-gnu/libharfbuzz.so.0.61020.0",
+    "limitation": "Matching upstream version/source is not a reproducible Debian library build identity. HarfBuzz normalization is font- and shaper-aware; NFC alone is not full algorithm parity.",
+    "snippets": [
+      {
+        "startLine": 39,
+        "endLine": 76,
+        "text": " * This file exports one main function: _hb_ot_shape_normalize().\n *\n * This function closely reflects the Unicode Normalization Algorithm,\n * yet it's different.\n *\n * Each shaper specifies whether it prefers decomposed (NFD) or composed (NFC).\n * The logic however tries to use whatever the font can support.\n *\n * In general what happens is that: each grapheme is decomposed in a chain\n * of 1:2 decompositions, marks reordered, and then recomposed if desired,\n * so far it's like Unicode Normalization.  However, the decomposition and\n * recomposition only happens if the font supports the resulting characters.\n *\n * The goals are:\n *\n *   - Try to render all canonically equivalent strings similarly.  To really\n *     achieve this we have to always do the full decomposition and then\n *     selectively recompose from there.  It's kinda too expensive though, so\n *     we skip some cases.  For example, if composed is desired, we simply\n *     don't touch 1-character clusters that are supported by the font, even\n *     though their NFC may be different.\n *\n *   - When a font has a precomposed character for a sequence but the 'ccmp'\n *     feature in the font is not adequate, use the precomposed character\n *     which typically has better mark positioning.\n *\n *   - When a font does not support a combining mark, but supports it precomposed\n *     with previous base, use that.  This needs the itemizer to have this\n *     knowledge too.  We need to provide assistance to the itemizer.\n *\n *   - When a font does not support a character but supports its canonical\n *     decomposition, well, use the decomposition.\n *\n *   - The shapers can customize the compose and decompose functions to\n *     offload some of their requirements to the normalizer.  For example, the\n *     Indic shaper may want to disallow recomposing of two matras.\n */\n"
+      },
+      {
+        "startLine": 278,
+        "endLine": 300,
+        "text": "\nvoid\n_hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,\n\t\t\thb_buffer_t *buffer,\n\t\t\thb_font_t *font)\n{\n  if (unlikely (!buffer->len)) return;\n\n  _hb_buffer_assert_unicode_vars (buffer);\n\n  hb_ot_shape_normalization_mode_t mode = plan->shaper->normalization_preference;\n  if (mode == HB_OT_SHAPE_NORMALIZATION_MODE_AUTO)\n  {\n    if (plan->has_gpos_mark)\n      // https://github.com/harfbuzz/harfbuzz/issues/653#issuecomment-423905920\n      //mode = HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED;\n      mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;\n    else\n      mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;\n  }\n\n  hb_ot_shape_normalize_context_t c = {\n    plan,"
+      },
+      {
+        "startLine": 430,
+        "endLine": 480,
+        "text": "    unsigned int starter = 0;\n    (void) buffer->next_glyph ();\n    while (buffer->idx < count /* No need for: && buffer->successful */)\n    {\n      hb_codepoint_t composed, glyph;\n      if (/* We don't try to compose a non-mark character with it's preceding starter.\n\t   * This is both an optimization to avoid trying to compose every two neighboring\n\t   * glyphs in most scripts AND a desired feature for Hangul.  Apparently Hangul\n\t   * fonts are not designed to mix-and-match pre-composed syllables and Jamo. */\n\t  _hb_glyph_info_is_unicode_mark(&buffer->cur()))\n      {\n\tif (/* If there's anything between the starter and this char, they should have CCC\n\t     * smaller than this character's. */\n\t    (starter == buffer->out_len - 1 ||\n\t     info_cc (buffer->prev()) < info_cc (buffer->cur())) &&\n\t    /* And compose. */\n\t    c.compose (&c,\n\t\t       buffer->out_info[starter].codepoint,\n\t\t       buffer->cur().codepoint,\n\t\t       &composed) &&\n\t    /* And the font has glyph for the composite. */\n\t    font->get_nominal_glyph (composed, &glyph))\n\t{\n\t  /* Composes. */\n\t  if (unlikely (!buffer->next_glyph ())) break; /* Copy to out-buffer. */\n\t  buffer->merge_out_clusters (starter, buffer->out_len);\n\t  buffer->out_len--; /* Remove the second composable. */\n\t  /* Modify starter and carry on. */\n\t  buffer->out_info[starter].codepoint = composed;\n\t  buffer->out_info[starter].glyph_index() = glyph;\n\t  _hb_glyph_info_set_unicode_props (&buffer->out_info[starter], buffer);\n\n\t  continue;\n\t}\n      }\n\n      /* Blocked, or doesn't compose. */\n      if (unlikely (!buffer->next_glyph ())) break;\n\n      if (info_cc (buffer->prev()) == 0)\n\tstarter = buffer->out_len - 1;\n    }\n    buffer->sync ();\n  }\n}\n\n\n#endif"
+      }
+    ],
+    "nativeOutlines": [
+      {
+        "page": 1,
+        "resource": "/f-1-0",
+        "bold": false,
+        "subsetFontSha256": "ff85952eca4f4a27709e522c61d8fb69b410e06c0a0003d6cc2cdd38ae323b42",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      },
+      {
+        "page": 1,
+        "resource": "/f-2-0",
+        "bold": true,
+        "subsetFontSha256": "2fd18c9194bc50774b6277c15aa224aaa8ba5f1f4069b7e9f6a8dfeb5819b9b5",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      },
+      {
+        "page": 2,
+        "resource": "/f-1-0",
+        "bold": false,
+        "subsetFontSha256": "ff85952eca4f4a27709e522c61d8fb69b410e06c0a0003d6cc2cdd38ae323b42",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      },
+      {
+        "page": 2,
+        "resource": "/f-2-0",
+        "bold": true,
+        "subsetFontSha256": "2fd18c9194bc50774b6277c15aa224aaa8ba5f1f4069b7e9f6a8dfeb5819b9b5",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      },
+      {
+        "page": 3,
+        "resource": "/f-1-0",
+        "bold": false,
+        "subsetFontSha256": "ff85952eca4f4a27709e522c61d8fb69b410e06c0a0003d6cc2cdd38ae323b42",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      },
+      {
+        "page": 3,
+        "resource": "/f-2-0",
+        "bold": true,
+        "subsetFontSha256": "2fd18c9194bc50774b6277c15aa224aaa8ba5f1f4069b7e9f6a8dfeb5819b9b5",
+        "nativeGlyphId": 32,
+        "originalGlyphId": 131,
+        "exactOriginalComposedGlyphOutline": true
+      }
+    ]
+  }
+}

@@ -256,6 +256,35 @@ test('portable storage parser validates own data and returns owned state without
   assert.throws(() => parsePlaywrightStorageState({ cookies: new Array(1), origins: [] }), /Invalid/);
 });
 
+test('WebMCP rejects compact parameter graphs before JSON parsing or browser access', async () => {
+  const f = fixture();
+  const sources = [950000, 10000].map(count => '{"items":[' + '{},'.repeat(count) + '{}]}');
+  assert.ok(sources[0]!.length < 4 * 1024 * 1024);
+  const parse = JSON.parse;
+  let parsed = false;
+  let accessed = false;
+  Object.assign(f.page, { frames() { accessed = true; return []; } });
+  JSON.parse = (text, reviver) => { if (sources.includes(text)) parsed = true; return parse(text, reviver); };
+  try {
+    for (const source of sources) await assert.rejects(f.run('webmcp-call', ['missing'], { params: source }), PlaywrightResourceLimitError);
+    assert.equal(parsed, false);
+    assert.equal(accessed, false);
+  } finally { JSON.parse = parse; }
+});
+
+test('WebMCP invokes a registered tool with admitted parameters and default empty input', async () => {
+  const f = fixture();
+  const inputs: unknown[] = [];
+  Object.assign(f.page, { async evaluate(_callback: unknown, options: { inputJson?: string }) {
+    if (options.inputJson === undefined) return '[{"name":"echo","description":"Echo input"}]';
+    inputs.push(JSON.parse(options.inputJson));
+    return '"ok"';
+  } });
+  await f.run('webmcp-call', ['echo'], { params: '{"items":[{},null,1],"text":"é"}' });
+  await f.run('webmcp-call', ['echo']);
+  assert.deepEqual(inputs, [{ items: [{}, null, 1], text: 'é' }, {}]);
+});
+
 test('WebMCP validates parameters before browser access and maps remote overflow to a resource limit', async () => {
   const f = fixture();
   await assert.rejects(f.run('webmcp-call', ['echo'], { params: '[]' }), /JSON object/);

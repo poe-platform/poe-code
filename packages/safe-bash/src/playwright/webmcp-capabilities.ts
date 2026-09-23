@@ -2,6 +2,7 @@ import type { PlaywrightAbility, PlaywrightAbilityRequest } from './abilities.js
 import type { PlaywrightFrame, PlaywrightPage } from './adapter.js';
 import { capabilityAction, capabilityResult, requirePage, unsupported } from './capability-result.js';
 import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { parseWebMCPParams } from './webmcp-params.js';
 
 interface WebTool { name: string; description: string; inputSchema?: unknown; annotations?: { readOnly?: boolean; consequential?: boolean; untrustedContent?: boolean } }
 interface ModelContext {
@@ -107,8 +108,7 @@ const list: PlaywrightAbility = { scope: 'session', async execute(request) {
 } };
 
 const call: PlaywrightAbility = { scope: 'session', options: 'all', async execute(request) {
-  const params = JSON.parse(request.options.params as string ?? '{}') as unknown;
-  if (!params || typeof params !== 'object' || Array.isArray(params)) throw new Error('WebMCP parameters must be a JSON object');
+  const params = parseWebMCPParams(request.options.params as string ?? '{}', request.limits?.maxCommandBytes);
   const name = request.args[0]!;
   const listings = await listTools(request);
   const matches = listings.filter(listing => (!request.options.frame || listing.url === request.options.frame || listing.label === request.options.frame) && listing.tools.some(tool => tool.name === name));

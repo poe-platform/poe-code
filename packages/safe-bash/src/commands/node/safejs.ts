@@ -4,6 +4,7 @@ import { onlyKeys, record } from "../../integrations/safejs/values.js";
 import { UsageError } from "../internal.js";
 import { bufferBindings, bufferSource } from "./buffer.js";
 import { timerBindings, timerSource } from "./timers.js";
+import { createNodePathModule } from "./path.js";
 import { createSafeJsCommands } from "../safejs/runtime.js";
 import type { Invocation } from "../safejs/options.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
@@ -66,7 +67,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nNative modules, synchronous fs and local module loading are not supported.\n",
+    help: "Usage: node [-e SOURCE | -p EXPRESSION | FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --eval, --print, --input-type=module and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nImport or require path or node:path for virtual POSIX path helpers.\nNative modules, synchronous fs and local module loading are not supported.\n",
     invocation,
     prepare(source, selected, modules, lifecycle) {
       const command = modules.command!;
@@ -82,8 +83,9 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
         stderr: { write: stdio.error },
       };
       modules.fs = { ...fs, default: fs };
-      const requiredModules = new Map([["fs/promises", fs], ["node:fs/promises", fs]]);
-      for (const name of requiredModules.keys()) modules[name] = modules.fs;
+      const path = createNodePathModule(options.runtime, command.cwd as string);
+      const requiredModules = new Map([["fs/promises", fs], ["node:fs/promises", fs], ["path", path], ["node:path", path]]);
+      for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       return {
         importSpecifiers: [...requiredModules.keys()],
         source: bufferSource + timerSource + (selected.print ? `console.log((\n${source}\n));` : source) + "\n;await __safeBashTimers.drain(); __safeBashSetExitCode(process.exitCode);",
@@ -93,7 +95,7 @@ export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOption
           process: processModule, __safeBashSetExitCode: command.setExitCode,
           require: options.runtime.declareHostOperation((name: unknown) => {
             const module = typeof name === "string" ? requiredModules.get(name) : undefined;
-            if (!module) throw new TypeError("Unsupported node module; use fs/promises or node:fs/promises");
+            if (!module) throw new TypeError("Unsupported node module; use fs/promises, node:fs/promises, path or node:path");
             return module;
           }, "read-side-effect"),
         },

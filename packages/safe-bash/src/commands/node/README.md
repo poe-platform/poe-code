@@ -64,11 +64,15 @@ try {
 - Async VFS access supports `import { readFile, writeFile } from "fs"`,
   named, default, and namespace imports from `fs/promises` or `node:fs/promises`,
   `import fs from "fs"`, and `require("fs/promises")` or
-  `require("node:fs/promises")`. `require` only resolves those two explicit names.
+  `require("node:fs/promises")`.
   The `stdio` and `command` SafeJS modules remain accessible.
+- `path` and `node:path` support `require`, default, named, and namespace imports.
+  The POSIX helpers are `join`, `normalize`, `resolve`, `relative`, `basename`,
+  `dirname`, `extname`, and `isAbsolute`, with `sep`, `delimiter`, and `posix`.
+  Resolution uses the virtual cwd. Windows paths, `parse`, and `format` are not supplied.
 
 SafeJS syntax and runtime semantics apply, with top-level `await`, bare-name
-imports, and the two explicit filesystem promise import names above.
+imports, and the explicit filesystem promise and path import names above.
 `--input-type=module` is accepted; CommonJS input mode, synchronous fs,
 native modules, package/local-module loading, `process.exit`, and the native Node
 event loop are not supplied. Other `node:` and slash-containing import specifiers
@@ -85,7 +89,7 @@ registries. All three execute the same runner.
 The `SafeJsRuntime<Budget>` contract requires `run`, `createBudget`, `makeFsModule`,
 and `declareHostOperation`. `run` receives injected `bindings` for the virtual
 process and allowlisted require function, guest modules, an `importSpecifiers`
-allowlist for the two filesystem promise names, a fresh budget, signal,
+allowlist for the filesystem promise and path names, a fresh budget, signal,
 filename, and console sink. Use SafeJS's public factories as shown, or provide an
 implementation that honors that contract. There are no runtime environment switches.
 

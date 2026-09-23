@@ -58,7 +58,7 @@ test("kill-after validates duration before invocation", async () => {
   }
 });
 
-test("kill-after expiry refuses to claim hard escalation without a host binding", async () => {
+test("kill-after expiry preserves status after cooperative child rejection", async () => {
   const scheduler = new ManualScheduler();
   const capture = captureContext(["-k0.03", "1", "child"], {
     invoke: async (_command, _args, options) => {
@@ -66,7 +66,7 @@ test("kill-after expiry refuses to claim hard escalation without a host binding"
       throw options!.signal!.reason;
     },
   });
-  assert.equal((await createTimeoutCommand({ scheduler }).execute(capture.context)).exitCode, 125);
-  assert.equal(capture.stderr(), "timeout: kill-after escalation requires a host policy binding\n");
+  assert.equal((await createTimeoutCommand({ scheduler }).execute(capture.context)).exitCode, 124);
+  assert.equal(capture.stderr(), "");
   assert.equal(scheduler.pending, false);
 });

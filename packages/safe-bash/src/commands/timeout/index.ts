@@ -45,7 +45,6 @@ const records = Object.freeze({
   missingCommand: encoder.encode("timeout: missing command\n"),
   invalidOption: encoder.encode("timeout: invalid option\n"),
   invalidSignal: encoder.encode("timeout: invalid signal\n"),
-  killAfter: encoder.encode("timeout: kill-after escalation requires a host policy binding\n"),
   invokeUnavailable: encoder.encode("timeout: command invocation is unavailable\n"),
   timerSetupFailed: encoder.encode("timeout: timer setup failed\n"),
   help: encoder.encode("Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"),
@@ -242,9 +241,6 @@ function definition(configuration: Settings): CommandDefinition {
       if (retirementFailed) throw retirementFailure;
       if (verbose && deadline.expired) {
         await writeBytes(context.stderr, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), context.signal);
-      }
-      if (!returned && deadline.expired && killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && signalNumber !== 9) {
-        return status(context, records.killAfter, 125);
       }
       if (!returned && invocationFailure === deadline.deadlineReason) return { exitCode: signalNumber === 9 || preserveStatus ? 128 + signalNumber : 124 };
       if (!returned && invocationFailure === deadline.timerFailureReason) return status(context, records.timerSetupFailed, 125);

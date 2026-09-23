@@ -35,11 +35,10 @@ or arbitrary host-error provenance claim.
 `-k DURATION`, `-kDURATION`, `--kill-after DURATION` and
 `--kill-after=DURATION` accept the same duration grammar. Children completing
 before expiry retain their output and status. Zero kill-after disables escalation.
-A child returning a status after the initial signal retains normal timeout
-status selection (124, or the child status with `--preserve-status`). Without a
-host binding, an expired positive kill-after request that rejects with the
-cancellation reason returns 125 with an explicit capability diagnostic after
-cooperative cancellation and cleanup.
+Children settling after cooperative cancellation retain the timeout status,
+including children rejecting with the deadline cancellation reason. Default
+hosts cannot forcibly stop children that ignore cancellation; genuine hard
+escalation still requires an explicit host binding.
 An initial KILL selection retains the existing cooperative signal profile;
 it does not establish native hard preemption.
 

@@ -1,7 +1,9 @@
+import { CompactSourcePositions, compactSourceSpan, compactDerivedPosition } from "./compact-spans.js";
+import { CompactModuleAst } from "./compact-module-ast.js";
 import { boundIdentifiers } from "./bindings.js";
 import { validatePrivateNames } from "./private-names.js";
-import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, type Position, type Token } from "./tokenizer.js";
-import { assignIds } from "./assign-ids.js";
+import { RESERVED_IDENTIFIER_SPELLINGS, tokenize, tokenizeCompact, type Position, type Token } from "./tokenizer.js";
+import { assignCompactIds, assignIds } from "./assign-ids.js";
 import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import { createSyntaxDiagnostic } from "./syntax-diagnostic.js";
@@ -799,7 +801,8 @@ export function parseEvalScript(
   source: string,
   context: EvalParseContext = {},
   owner?: CompileOwner,
-  filename = "<eval>"
+  filename = "<eval>",
+  options: {compactAst?: boolean} = {}
 ): {node: Module; strict: boolean} {
   const compilation = new CompileScope(owner);
   try {
@@ -808,15 +811,22 @@ export function parseEvalScript(
       throw new SandboxError({budget: "stringLength", current: source.length, limit});
     if (owner !== undefined) for (let index = 0; index < source.length; index++) owner.budget.visitNode();
     const grammar = {await: false, yield: false, strict: context.strict === true};
-    const parser = new Parser(tokenize(source, {
+    const tokenOptions = {
       allowRegexLiterals: true, statementList: true, allowLegacyNumbers: true, allowLegacyEscapes: true,
       allowHtmlComments: true, compilation
-    }), source, compilation, "normal", {
+    };
+    const tokens = options.compactAst
+      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source))
+      : tokenize(source, tokenOptions);
+    const parser = new Parser(tokens, source, compilation, "normal", {
       grammar, newTarget: context.newTarget === true,
       superProperty: context.superProperty === true, superCall: context.superCall === true,
       arguments: context.arguments !== false, return: false, await: false, strictAwait: true
     }, false);
-    const node = assignIds(parser.parseScript());
+    if (options.compactAst) parser.enableCompactAst();
+    const parsed = parser.parseScript();
+    parser.finishAstStorage();
+    const node = (options.compactAst ? assignCompactIds : assignIds)(parsed);
     if (source.includes("#")) validatePrivateNames(node, context.privateNames);
     for (const statement of node.body) {
       if (statement.type === "FunctionDeclaration") evalFunctionDeclarations.add(statement);
@@ -899,6 +909,7 @@ class Parser {
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
   private readonly sourceExportNames = new Set<string>();
   private readonly sourceLocalExports = new Map<string, Identifier>();
+  private astStorage?: CompactModuleAst;
 
   constructor(
     private readonly tokens: Token[],
@@ -911,6 +922,15 @@ class Parser {
     private readonly importSpecifiers?: ReadonlySet<string>
   ) {
     this.functionScopes.add(this.scopes[0]!);
+  }
+
+  enableCompactAst(): void {
+    if (this.astStorage) throw new TypeError("Compiler body storage is already enabled.");
+    this.astStorage = new CompactModuleAst(this.source);
+  }
+
+  finishAstStorage(): void {
+    this.astStorage?.finish();
   }
 
   get position(): Position { return (this.tokens[this.index] ?? this.tokens[this.tokens.length - 1]!).start; }
@@ -926,6 +946,9 @@ class Parser {
       start: node.span.start.offset,
       end: node.span.end.offset
     });
+    if (this.astStorage && node.type !== "ClassDeclaration" && node.type !== "ClassExpression" &&
+        node.body.span.end.offset - node.body.span.start.offset >= 512)
+      node.body = this.astStorage.pack(node.body, true, true);
     return node;
   }
 
@@ -1000,10 +1023,11 @@ class Parser {
   parseScript(): Module {
     const body = this.parseStatementList(undefined, true);
     const end = this.currentToken().end;
-    return {
+    const module: Module = {
       type: "Module", body,
       span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
     };
+    return this.astStorage?.pack(module, false, true) ?? module;
   }
 
   parseExpressionOnly(): Expression {
@@ -1350,6 +1374,8 @@ class Parser {
       while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
         if (++semicolons > 1) directivePrologue = false;
       }
+      if (start === undefined && this.astStorage)
+        body[body.length - 1] = this.astStorage.pack(statement, false, true);
     }
 
     return body;
@@ -5728,15 +5754,17 @@ function positionWithinRaw(base: Position, raw: string, index: number): Position
     column += 1;
   }
 
-  return { line, column, offset };
+  const position = { line, column, offset };
+  return compactDerivedPosition(base, position) ?? position;
 }
 
 function rebasePosition(position: Position, base: Position): Position {
-  return {
+  const rebased = {
     line: base.line + position.line - 1,
     column: position.line === 1 ? base.column + position.column - 1 : position.column,
     offset: base.offset + position.offset
   };
+  return compactDerivedPosition(base, rebased) ?? rebased;
 }
 
 function isLiteralPropertyKey(token: Token): boolean {
@@ -5764,7 +5792,7 @@ function assertAllowedIdentifierReference(token: Token, strict: boolean): void {
 }
 
 function createSpan(start: Position, end: Position): SourceSpan {
-  return {
+  return compactSourceSpan(start, end) ?? {
     start: isFrozenPosition(start) ? start : { ...start },
     end: isFrozenPosition(end) ? end : { ...end }
   };

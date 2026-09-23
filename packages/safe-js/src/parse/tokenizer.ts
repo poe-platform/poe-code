@@ -1,3 +1,5 @@
+import { CompactTokens } from "./compact-tokens.js";
+import type { CompactSourcePositions } from "./compact-spans.js";
 import { RegexCompileGuard, type CompileScope } from "../interp/regex/compile-guard.js";
 
 export type Position = {
@@ -159,6 +161,17 @@ export function tokenize(source: string, options: TokenizeOptions = {}): Token[]
   return lexer.tokenize();
 }
 
+/** Internal classic compilation with bounded materialized token/position caches. */
+export function tokenizeCompact(
+  source: string,
+  options: TokenizeOptions,
+  positions: CompactSourcePositions
+): Token[] {
+  const tokens = new CompactTokens(positions);
+  new Lexer(source, {...options, sharedPositions: true}, tokens.indexed).tokenize();
+  return tokens.finish();
+}
+
 export function collectComments(source: string): Comment[] {
   const comments: Comment[] = [];
   tokenize(source, { allowRegexLiterals: true, statementList: true, comments });
@@ -185,7 +198,6 @@ class Lexer {
   private index = 0;
   private line = 1;
   private column = 1;
-  private readonly tokens: Token[] = [];
   private readonly groupingState: GroupingState = {stack: [], classHeads: [], tokenCount: 0};
   private lastClosedStatementBoundary = false;
   private legacyStringEscape = false;
@@ -194,7 +206,8 @@ class Lexer {
 
   constructor(
     private readonly source: string,
-    private readonly options: TokenizeOptions
+    private readonly options: TokenizeOptions,
+    private readonly tokens: Token[] = []
   ) {}
 
   tokenize(): Token[] {

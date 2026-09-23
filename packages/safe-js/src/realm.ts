@@ -948,7 +948,7 @@ class RealmState {
       const namespace = scheduled ? await graph.withImportGroup(evaluate) : await evaluate();
       return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:graph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
     }
-    const script = this.options.classicScripts ? createEvalSource(source, {}, this.lease.owner, filename) : undefined;
+    const script = this.options.classicScripts ? createEvalSource(source, {}, this.lease.owner, filename, {compactAst: true}) : undefined;
     // Each Script owns a charged identity that survives through its saved closures.
     const sourceReference = script && this.options.sourceResolver !== undefined
       ? freezeSourceReference({ referrer: filename }) : undefined;

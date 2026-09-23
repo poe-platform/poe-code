@@ -1,3 +1,11 @@
+import {
+  compilerAssignId,
+  compilerElements,
+  compilerEntries,
+  compilerField,
+  compilerIsArray,
+  compilerOffsets
+} from "./compact-module-ast.js";
 import type { Module, ParseResult, SourceSpan } from "./parser.js";
 
 type AstNode = {
@@ -131,4 +139,43 @@ function isAstNode(value: unknown): value is AstNode {
     typeof (value as { span?: SourceSpan }).span?.start.offset === "number" &&
     typeof (value as { span?: SourceSpan }).span?.end.offset === "number"
   );
+}
+
+/** First assignment traverses private numeric rows without creating AST facades. */
+export function assignCompactIds<T extends Module | ParseResult>(root: T): T {
+  const stack: unknown[] = [root];
+  let nextId = 0;
+  const isNode = (value: unknown): value is object =>
+    value !== null &&
+    typeof value === "object" &&
+    typeof compilerField(value, "type") === "string" &&
+    compilerOffsets(value) !== undefined;
+  while (stack.length) {
+    const node = stack.pop();
+    if (!isNode(node) || compilerField(node, "nodeId") !== undefined) continue;
+    compilerAssignId(node, nextId++);
+    const type = compilerField(node, "type");
+    const children: object[] = [];
+    const add = (value: unknown) => {
+      if (isNode(value)) children.push(value);
+      else if (compilerIsArray(value))
+        for (const child of compilerElements(value))
+          if (isNode(child)) children.push(child);
+    };
+    if (type === "UnaryExpression") add(compilerField(node, "argument"));
+    else if (type === "ExpressionStatement")
+      add(compilerField(node, "expression"));
+    else if (type === "Module") add(compilerField(node, "body"));
+    else {
+      for (const [key, child] of compilerEntries(node))
+        if (key !== "nodeId" && key !== "span" && key !== "type") add(child);
+      children.sort((left, right) => {
+        const a = compilerOffsets(left)!,
+          b = compilerOffsets(right)!;
+        return a[0] - b[0] || a[1] - b[1];
+      });
+    }
+    for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
+  }
+  return root;
 }

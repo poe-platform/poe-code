@@ -1,3 +1,4 @@
+import { compactDynamicNodes } from "./compact-module-ast.js";
 import { SandboxError, type CompileOwner } from "../interp/budget.js";
 import { parseExecutableModule, parseDynamicFunction, parseEvalScript, type EvalParseContext, type DynamicFunctionKind, type ParseResult } from "./parser.js";
 
@@ -23,14 +24,19 @@ export function createDynamicSource(kind: DynamicFunctionKind, parameters: strin
 }
 
 export function createEvalSource(body: string,
-  context: Omit<EvalParseContext, "privateNames"> & {privateNames?: Iterable<string>}, owner?: CompileOwner, filename?: string) {
+  context: Omit<EvalParseContext, "privateNames"> & {privateNames?: Iterable<string>}, owner?: CompileOwner, filename?: string,
+  options: {compactAst?: boolean} = {}) {
   const source: DynamicSource = {kind: "eval", body, nodes: new Map(), context: {
     strict: context.strict === true, newTarget: context.newTarget === true,
     superProperty: context.superProperty === true, superCall: context.superCall === true,
     arguments: context.arguments !== false, privateNames: [...(context.privateNames ?? [])]
   }};
-  const parsed = parseEvalScript(body, {...source.context, privateNames: new Set(source.context.privateNames)}, owner, filename);
-  registerDynamicSource(parsed.node, source);
+  const parsed = parseEvalScript(body, {...source.context, privateNames: new Set(source.context.privateNames)}, owner, filename, options);
+  const nodes = options.compactAst ? compactDynamicNodes(parsed.node, source) : undefined;
+  if (nodes) {
+    source.nodes = nodes;
+    dynamicSourceRecords.add(source);
+  } else registerDynamicSource(parsed.node, source);
   return {...parsed, source};
 }
 

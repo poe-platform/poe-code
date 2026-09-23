@@ -12,7 +12,7 @@ import { formContentType } from "./form-content-type.js";
 
 interface Part {
   readonly headers?: readonly { value: string; file: boolean }[];
-  readonly encoder?: string;
+  readonly encoder?: string | undefined;
   readonly bytes?: Uint8Array;
   readonly separator?: boolean;
   readonly file?: string;

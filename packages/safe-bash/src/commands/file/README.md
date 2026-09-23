@@ -23,9 +23,18 @@ signals and budgeted sinks remain intact, without resetting the shell budget.
 
 ## CLI profile
 
-`file [-bihL] [--mime-type] [--mime-encoding] [--] FILE...`
+`file [-bihL0] [-F SEPARATOR] [-f NAMEFILE] [--mime-type] [--mime-encoding] [--] FILE...`
 
 - `-b` / `--brief`: omit the label; otherwise use `operand: classification`.
+- `-F` / `--separator`: replace the colon between the filename and classification.
+  `-0` / `--print0` adds NUL after the filename; repeat it to separate filename,
+  classification and records with NUL instead of punctuation and newline.
+- `-f` / `--files-from`: read newline-delimited UTF-8 filenames from the VFS,
+  or stdin for `-`. Spaces and carriage returns belong to filenames; a final
+  newline is optional. Empty lists succeed. List entries use the options preceding
+  `-f`; ordinary operands use the final options. Lists are preflighted before
+  classification and share input, argument, entry and work budgets. Invalid UTF-8
+  lists are rejected explicitly. Reading a list from stdin consumes that input.
   No alignment padding; control/format characters and backslashes in labels and
   symlink targets are escaped. Literal VFS path lookup is unaffected.
 - `--mime-type`: MIME only; `--mime-encoding`: charset only; `-i` / `--mime`: both.
@@ -75,9 +84,9 @@ ZIP does not imply OOXML, JAR or any inner subtype. No extraction or bomb expans
 Magic-matched formats use binary encoding even for an ASCII-compatible PDF.
 Unknown content uses application/octet-stream or the text fallback.
 
-No custom magic files, -z/-Z, --extension/--apple, -f input lists, -e test exclusions,
+No custom magic files, -z/-Z, --extension/--apple, -e test exclusions,
 recursive traversal, filesystem devices, permissions inspection, access-time
-restoration, alternate formatting, libmagic parameter flags, CSV/XML/HTML/script
+restoration, native label padding/raw rendering, libmagic parameter flags, CSV/XML/HTML/script
 language classification, Mach-O or arbitrary libmagic database compatibility.
 Unknown options fail explicitly; unsupported format bytes take the fallback.
 

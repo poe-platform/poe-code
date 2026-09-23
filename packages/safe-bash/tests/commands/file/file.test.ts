@@ -47,6 +47,51 @@ test("options, missing operands, terminator, MIME accumulation and version profi
   assert.equal((await run(["--mime-encoding", "-"], {}, { stdin: toByteSource("hello") })).stdout, "/dev/stdin: us-ascii\n");
 });
 
+test("filename lists and output separators accept short and long options", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("hello\n"));
+  await fs.writeFile("/names", Buffer.from("input\n"));
+  for (const args of [["--separator=:", "input"], ["-F:", "input"], ["-F", ":", "input"], ["--separator", ":", "input"]]) {
+    assert.equal((await run(args, {}, { fs })).stdout, "input: ASCII text\n");
+  }
+  for (const args of [["--files-from=names"], ["-fnames"], ["-f", "names"], ["--files-from", "names"]]) {
+    const result = await run(args, {}, { fs });
+    assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "input: ASCII text\n");
+  }
+  assert.equal((await run(["--print0", "input"], {}, { fs })).stdout, "input\0: ASCII text\n");
+  assert.equal((await run(["-00", "input"], {}, { fs })).stdout, "input\0ASCII text\0");
+  assert.equal((await run(["-b00", "input"], {}, { fs })).stdout, "ASCII text\0");
+  assert.equal((await run(["-F", "=", "-0", "input"], {}, { fs })).stdout, "input\0= ASCII text\n");
+});
+
+test("filename lists preserve lines, option order, stdin consumption and entry bounds", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("hello\n"));
+  await fs.writeFile("/two words", Buffer.from("hello\n"));
+  await fs.writeFile("/names", Buffer.from("two words\ninput"));
+  assert.equal((await run(["-f", "names", "-F", "=", "input"], {}, { fs })).stdout,
+    "two words: ASCII text\ninput: ASCII text\ninput= ASCII text\n");
+  assert.equal((await run(["-f", "-", "-"], {}, { fs, stdin: toByteSource("input\n") })).stdout,
+    "input: ASCII text\n/dev/stdin: empty\n");
+  await fs.writeFile("/names", Buffer.from(""));
+  assert.equal((await run(["-f", "names"], {}, { fs })).exitCode, 0);
+  await fs.writeFile("/names", Buffer.from("input\ninput\n"));
+  const limited = await run(["-f", "names"], { limits: { maxEntries: 1 } }, { fs });
+  assert.equal(limited.exitCode, 1); assert.match(limited.stderr, /entry limit/);
+  for (const args of [["-f"], ["-F"], ["--files-from"], ["--separator"]]) {
+    assert.equal((await run(args)).exitCode, 2);
+  }
+  assert.equal((await run(["-f", "missing"], {}, { fs })).exitCode, 1);
+  const oversized = await run(["-f", "names"], { limits: { maxArgumentBytes: 10 } }, { fs });
+  assert.equal(oversized.exitCode, 1); assert.match(oversized.stderr, /argument limit/);
+  assert.equal((await run(["-f", "names"], {}, { fs: proxyFs(fs, { readStream: undefined }) })).stdout,
+    "input: ASCII text\ninput: ASCII text\n");
+  const reusable = { async *[Symbol.asyncIterator]() { yield Buffer.from("input\n"); } };
+  assert.equal((await run(["-f", "-", "-f", "-"], {}, { fs, stdin: reusable })).stdout,
+    "input: ASCII text\n");
+});
+
 test("directories, empty files, links, dangling links, errors and multiple operands", async () => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/dir"); await fs.writeFile("/empty", new Uint8Array());
   await fs.writeFile("/text", Buffer.from("hello\n")); await fs.symlink!("text", "/link"); await fs.symlink!("missing", "/dangling");
@@ -85,6 +130,10 @@ test("manual plugin registration works in actual binary/stdin/output/error Shell
   assert.match(Buffer.from(await fs.readFile("/errors")).toString(), /no such file/);
   const binary = await shell.exec("printf '\\000\\001' | file -bi -");
   assert.equal(binary.exitCode, 0); assert.equal(binary.stdout, "application/octet-stream; charset=binary\n");
+  await fs.writeFile("/names", Buffer.from("/image.txt\n"));
+  const listed = await shell.exec("file --mime-type --print0 --separator='=' --files-from=/names | cat");
+  assert.equal(listed.exitCode, 0); assert.equal(listed.stderr, "");
+  assert.equal(listed.stdout, "/image.txt\0= image/png\n");
   await shell.dispose();
 });
 

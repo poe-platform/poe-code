@@ -1,4 +1,4 @@
-import { FsError, readBytes, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
 import { pathOf } from "../internal.js";
 import { classify, type Classification } from "./classify.js";
 import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type FileCommandsOptions } from "./shared.js";
@@ -6,19 +6,24 @@ import { limitMessage, FileFailure, FileLimitError, settings, SharedBudget, type
 export type { FileCommandsOptions, FileLimits } from "./shared.js";
 
 const profile = "virtual-bash-file-v1";
-const help = "Usage: file [-bihL] [--mime-type] [--mime-encoding] [--] FILE...\nClassify bounded VFS content; '-' reads stdin. -h is the default.\nOptions: --brief, --mime, --dereference, --no-dereference, --help, --version\nNo decompression, external magic database, or complete format validation.\n";
+const help = "Usage: file [-bihL0] [-F SEPARATOR] [-f NAMEFILE] [--mime-type] [--mime-encoding] [--] FILE...\nClassify bounded VFS content; '-' reads stdin. -h is the default.\nOptions: --brief, --mime, --dereference, --no-dereference, --separator, --print0, --files-from, --help, --version\nNo decompression, external magic database, or complete format validation.\n";
 
 interface Arguments {
   brief: boolean;
   follow: boolean;
   mimeType: boolean;
   mimeEncoding: boolean;
+  separator: string;
+  print0: number;
   action?: "help" | "version";
   names: string[];
+  listed: { name: string; format: Arguments }[];
+  stdinUsed: boolean;
 }
 
-async function parse(args: readonly string[], budget: SharedBudget): Promise<Arguments> {
-  const result: Arguments = { brief: false, follow: false, mimeType: false, mimeEncoding: false, names: [] };
+async function parse(context: CommandContext, budget: SharedBudget): Promise<Arguments> {
+  const args = context.args;
+  const result: Arguments = { brief: false, follow: false, mimeType: false, mimeEncoding: false, separator: ":", print0: 0, names: [], listed: [], stdinUsed: false };
   let argumentBytes = 0;
   budget.check(args.length, budget.limits.maxArgumentBytes, "argument");
   for (const argument of args) {
@@ -28,11 +33,37 @@ async function parse(args: readonly string[], budget: SharedBudget): Promise<Arg
     budget.check(argumentBytes, budget.limits.maxArgumentBytes, "argument");
   }
   let options = true;
-  for (const argument of args) {
+  let hasList = false;
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
     if (options && argument === "--") { options = false; continue; }
     if (!options || !argument.startsWith("-") || argument === "-") { result.names.push(argument); continue; }
-    const flags = argument.startsWith("--") ? [argument] : Array.from(argument.slice(1), flag => `-${flag}`);
-    for (const flag of flags) {
+    const long = argument.startsWith("--");
+    const equals = long ? argument.indexOf("=") : -1;
+    const flags = long ? [equals < 0 ? argument : argument.slice(0, equals)] : Array.from(argument.slice(1), flag => `-${flag}`);
+    for (let position = 0; position < flags.length; position++) {
+      const flag = flags[position]!;
+      if (flag === "-F" || flag === "--separator" || flag === "-f" || flag === "--files-from") {
+        const attached = long ? (equals < 0 ? undefined : argument.slice(equals + 1))
+          : (position + 1 < flags.length ? argument.slice(position + 2) : undefined);
+        const value = attached ?? args[++index];
+        if (value === undefined) throw new FileFailure(`option '${flag}' requires an argument`);
+        if (flag === "-F" || flag === "--separator") result.separator = value;
+        else {
+          hasList = true;
+          const names = value === "-" && result.stdinUsed ? { names: [], bytes: 0 }
+            : await readNames(context, value, budget, budget.limits.maxArgumentBytes - argumentBytes);
+          argumentBytes += names.bytes;
+          const format = { ...result, names: [], listed: [] };
+          for (const name of names.names) {
+            budget.check(result.names.length + result.listed.length + 1, budget.limits.maxEntries, "entry");
+            result.listed.push({ name, format });
+          }
+          if (value === "-") result.stdinUsed = true;
+        }
+        break;
+      }
+      if (long && equals >= 0) throw new FileFailure(`unsupported option '${await budget.escapeName(argument)}'`);
       switch (flag) {
         case "-b": case "--brief": result.brief = true; break;
         case "-L": case "--dereference": result.follow = true; break;
@@ -40,15 +71,62 @@ async function parse(args: readonly string[], budget: SharedBudget): Promise<Arg
         case "-i": case "--mime": result.mimeType = result.mimeEncoding = true; break;
         case "--mime-type": result.mimeType = true; break;
         case "--mime-encoding": result.mimeEncoding = true; break;
+        case "-0": case "--print0": result.print0 = Math.min(2, result.print0 + 1); break;
         case "--help": result.action = "help"; break;
         case "--version": result.action = "version"; break;
         default: throw new FileFailure(`unsupported option '${await budget.escapeName(flag)}'`);
       }
     }
   }
-  budget.check(result.names.length, budget.limits.maxEntries, "entry");
-  if (!result.names.length && !result.action) throw new FileFailure("missing file operand (use '-' for stdin)");
+  budget.check(result.names.length + result.listed.length, budget.limits.maxEntries, "entry");
+  if (!result.names.length && !result.listed.length && !result.action && !hasList) throw new FileFailure("missing file operand (use '-' for stdin)");
   return result;
+}
+
+async function readNames(context: CommandContext, name: string, budget: SharedBudget, maximum: number): Promise<{ names: string[]; bytes: number }> {
+  let source: ByteSource;
+  if (name === "-") source = context.stdin;
+  else {
+    const path = pathOf(context, name);
+    const fs = context.fs;
+    const capabilities = fs.capabilitiesFor ? await budget.host(() => fs.capabilitiesFor!(path, { signal: budget.signal })) : fs.capabilities;
+    if (fs.readStream && capabilities.streamingRead !== false) source = fs.readStream(path, { signal: budget.signal, chunkSize: Math.min(16384, budget.limits.maxChunkBytes) });
+    else {
+      const stat = await budget.host(() => fs.stat(path, { signal: budget.signal }));
+      const bound = Math.min(maximum, budget.limits.maxReadFileBytes, budget.limits.maxChunkBytes, budget.remainingInputBytes);
+      if (!Number.isSafeInteger(stat.size) || stat.size < 0) throw new FsError("ENOTSUP", { path, message: "bounded filename list requires readStream or a known size" });
+      budget.check(stat.size, bound, "readFile");
+      const bytes = await budget.host(() => fs.readFile(path, { signal: budget.signal, maxBytes: bound }));
+      budget.check(bytes.length, bound, "readFile");
+      source = toByteSource(bytes);
+    }
+  }
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for await (const chunk of readBytes(source, budget.signal)) {
+    budget.input(chunk.length);
+    budget.check(chunk.length, maximum - size, "argument");
+    await budget.step(chunk.length);
+    chunks.push(new Uint8Array(chunk));
+    size += chunk.length;
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  let text: string;
+  try { text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
+  catch { throw new FileFailure("filename list must contain UTF-8 names"); }
+  const names: string[] = [];
+  let start = 0;
+  for (let index = 0; index < text.length; index++) {
+    if (index % 4096 === 0) await budget.step();
+    if (text[index] !== "\n") continue;
+    budget.check(names.length + 1, budget.limits.maxEntries, "entry");
+    names.push(text.slice(start, index));
+    start = index + 1;
+  }
+  if (start < text.length) { budget.check(names.length + 1, budget.limits.maxEntries, "entry"); names.push(text.slice(start)); }
+  return { names, bytes: size };
 }
 
 async function prefix(source: ByteSource, budget: SharedBudget, signal: AbortSignal, controller?: AbortController): Promise<{ bytes: Uint8Array; complete: boolean }> {
@@ -134,18 +212,18 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
     const budget = new SharedBudget(context, limits);
     let writing = false;
     try {
-      const args = await parse(context.args, budget);
+      const args = await parse(context, budget);
       if (args.action) {
         writing = true;
         await budget.output(context.stdout, args.action === "help" ? help : `file (${profile})\n`);
         return { exitCode: 0 };
       }
       let failed = false;
-      let stdinUsed = false;
-      for (const name of args.names) {
+      let stdinUsed = args.stdinUsed;
+      for (const { name, format } of [...args.listed, ...args.names.map(name => ({ name, format: args }))]) {
         await budget.step();
         let detected: Classification;
-        try { detected = await inspect(context, name, args.follow, !args.mimeType && !args.mimeEncoding, budget, stdinUsed); }
+        try { detected = await inspect(context, name, format.follow, !format.mimeType && !format.mimeEncoding, budget, stdinUsed); }
         catch (error) {
           budget.signal.throwIfAborted();
           if (!(error instanceof FsError)) throw error;
@@ -157,11 +235,11 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
           writing = false;
           continue;
         } finally { if (name === "-") stdinUsed = true; }
-        const content = args.mimeType && args.mimeEncoding ? `${detected.mime}; charset=${detected.encoding}`
-          : args.mimeType ? detected.mime : args.mimeEncoding ? detected.encoding : detected.description;
-        const label = args.brief ? "" : `${name === "-" ? "/dev/stdin" : await budget.escapeName(name)}: `;
+        const content = format.mimeType && format.mimeEncoding ? `${detected.mime}; charset=${detected.encoding}`
+          : format.mimeType ? detected.mime : format.mimeEncoding ? detected.encoding : detected.description;
+        const label = format.brief ? "" : `${name === "-" ? "/dev/stdin" : await budget.escapeName(name)}${format.print0 ? "\0" : ""}${format.print0 >= 2 ? "" : `${format.separator} `}`;
         writing = true;
-        await budget.output(context.stdout, `${label}${content}\n`);
+        await budget.output(context.stdout, `${label}${content}${format.print0 >= 2 ? "\0" : "\n"}`);
         writing = false;
       }
       return { exitCode: failed ? 1 : 0 };
@@ -169,7 +247,7 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
       context.signal.throwIfAborted();
       budget.signal.throwIfAborted();
       if (writing && !(error instanceof FileLimitError)) throw error;
-      if (!(error instanceof FileFailure)) throw error;
+      if (!(error instanceof FileFailure) && !(error instanceof FsError)) throw error;
       let limited = error instanceof FileLimitError;
       let message: string;
       if (error instanceof FileLimitError) message = limitMessage(error);
@@ -183,7 +261,7 @@ export function createFileCommand(options: FileCommandsOptions = {}): CommandDef
         }
       }
       if (!limited) {
-        try { await budget.output(context.stderr, `file: ${message}\n`); return { exitCode: 2 }; }
+        try { await budget.output(context.stderr, `file: ${message}\n`); return { exitCode: error instanceof FsError ? 1 : 2 }; }
         catch (failure) {
           budget.signal.throwIfAborted();
           if (!(failure instanceof FileLimitError)) throw failure;

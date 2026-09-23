@@ -102,10 +102,11 @@ decodes and validates only the first stream, ignoring subsequent streams,
 padding and trailing bytes; it also applies to file output and test mode.
 Compression still consumes all input. `--format=auto`, `--format auto`,
 `-Fauto` and `-F auto` explicitly select the existing XZ/LZMA-alone decoder
-and XZ encoder. `--no-sparse` selects the existing dense-output behavior;
+and XZ encoder. `--format=xz` / `-Fxz` select XZ encoding and restrict
+decoding to XZ streams, rejecting LZMA-alone input. `--no-sparse` selects the existing dense-output behavior;
 `--no-warn` selects the existing frontend profile without XZ warnings.
 Errors still fail and are reported unless quiet is repeated.
-Forced formats, checksum controls, memory adjustment, custom filters, block
+Other forced formats, checksum controls, memory adjustment, custom filters, block
 controls and listing remain unsupported; these options do not lift codec limits.
 
 The bzip2-family definitions (`bzip2`, `bunzip2`, `bzcat`) accept `-z` and

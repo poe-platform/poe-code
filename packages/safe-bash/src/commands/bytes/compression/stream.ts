@@ -29,7 +29,7 @@ async function* passthroughStream(reader: InstanceType<typeof CodecReader>, opti
       (length < 4 || (header[3]! >= 0x31 && header[3]! <= 0x39));
   } else if (options.format === "xz") {
     recognized = length >= 6 && [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0].every((byte, index) => header[index] === byte);
-    if (!recognized && length === 13) {
+    if (!recognized && length === 13 && options.xzFormat !== "xz") {
       // XZ auto-detection also recognizes legacy LZMA headers. Unsupported or
       // damaged recognized streams must still fail rather than become plaintext.
       const properties = header[0]!;
@@ -132,7 +132,7 @@ export async function transform(
   const nativeTransform = options.decompress && !options.test && (options.passthrough || (options.force && options.stdout && options.passthrough !== false))
     ? passthroughStream : options.format === "zstd" && options.decompress ? zstdDecode : boundedCodec;
   const transformed = options.format !== "gzip"
-    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
+    ? nativeTransform(reader!, { format: options.format, decompress: options.decompress, level: options.level, extreme: options.extreme ?? false, xzFormat: options.xzFormat, small: options.small, zstd: options.zstd, singleMember: options.singleStream === true, onFailure: fail }, signal)
     : reader ? codec(reader, { mode: "gzip", level: options.level, onFailure: fail }, signal) : prepared;
   let consumed = false;
   const output = (async function* (): AsyncGenerator<Uint8Array> {

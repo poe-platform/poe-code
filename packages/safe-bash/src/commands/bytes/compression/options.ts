@@ -2,6 +2,7 @@ import { UsageError } from "../../internal.js";
 
 export interface CompressionOptions {
   format: CompressionFormat;
+  xzFormat?: "auto" | "xz";
   decompress: boolean;
   stdout: boolean;
   keep: boolean;
@@ -115,7 +116,8 @@ export function parseOptions(command: string, args: readonly string[]): Compress
       if (argument === "--no-sparse" || argument === "--no-warn") continue;
       if (argument === "--format" || argument.startsWith("--format=")) {
         const format = argument === "--format" ? args[++index] : argument.slice("--format=".length);
-        if (format !== "auto") throw new UsageError("only --format=auto is supported by the XZ frontend");
+        if (format !== "auto" && format !== "xz") throw new UsageError("only --format=auto and --format=xz are supported by the XZ frontend");
+        result.xzFormat = format;
         continue;
       }
       if (argument === "--compress") { result.decompress = false; result.test = false; continue; }
@@ -149,7 +151,8 @@ export function parseOptions(command: string, args: readonly string[]): Compress
         case "F": {
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           const format = flags.slice(offset + 1) || args[++index];
-          if (format !== "auto") throw new UsageError("only --format=auto is supported by the XZ frontend");
+          if (format !== "auto" && format !== "xz") throw new UsageError("only --format=auto and --format=xz are supported by the XZ frontend");
+          result.xzFormat = format;
           offset = flags.length;
           break;
         }

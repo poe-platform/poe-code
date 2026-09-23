@@ -23,6 +23,7 @@ export interface BoundedCodecOptions {
   readonly decompress: boolean;
   readonly level: number;
   readonly extreme?: boolean;
+  readonly xzFormat?: "auto" | "xz" | undefined;
   /** bzip2's reduced-memory decoder. */
   readonly small?: boolean | undefined;
   readonly zstd?: ZstdOptions | undefined;
@@ -50,6 +51,7 @@ export async function* boundedCodec(
   let calls = 0;
   let work = 0;
   let failed = false;
+  let headerOffset = 0;
   // bzip2's CLI publishes full 5000-byte reads, or the final successful read.
   const bufferReads = options.format === "bzip2" && options.decompress;
   let output = new Uint8Array(bufferReads ? 5000 : 64 * 1024);
@@ -88,8 +90,15 @@ export async function* boundedCodec(
         stream = await create(options, signal);
         signal.throwIfAborted();
         ended = false;
+        headerOffset = 0;
       }
       const bytes = current.subarray(offset, Math.min(current.length, offset + 64 * 1024));
+      if (options.format === "xz" && options.decompress && options.xzFormat === "xz") {
+        const magic = [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0];
+        for (let index = 0; index < bytes.length && headerOffset + index < magic.length; index++) {
+          if (bytes[index] !== magic[headerOffset + index]) throw new CompressedDataError("File format not recognized");
+        }
+      }
       const available = output.subarray(buffered);
       const result = stream.step(bytes, available, eof);
       signal.throwIfAborted();
@@ -98,6 +107,7 @@ export async function* boundedCodec(
           !["input", "output", "end"].includes(result.status)) {
         throw new Error("invalid codec progress");
       }
+      headerOffset = Math.min(6, headerOffset + result.consumed);
       offset += result.consumed;
       if (!result.consumed && !result.produced && result.status !== "end") {
         if (eof) throw new CompressedDataError("unexpected end of file");

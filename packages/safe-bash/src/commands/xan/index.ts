@@ -33,6 +33,16 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
     const destination = args.help ? undefined : await preflight(context, args, budget);
     const writer = new Writer(inferDelimiter(args.output ?? "-"), budget);
     source = managedOutput(await prepareRows(args, selection, scope, budget, writer), scope, budget);
+    if (args.parallel && !args.help) {
+      const stderr = createOutputOperation(context, context.stderr);
+      const bytes = await budget.encode("nothing is actually parallelized!\n");
+      try {
+        budget.add("maxOutputBytes", bytes.length);
+        try { await stderr.output.write(bytes); }
+        catch (error) { throw new EscapingFailure(error); }
+      }
+      finally { budget.release(bytes.length); await stderr.close(); }
+    }
     await publish(context, destination, source, operation, budget);
   } catch (error) {
     if (context.signal.aborted) { failed = true; failure = context.signal.reason; }

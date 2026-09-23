@@ -17,6 +17,9 @@ export interface Arguments {
   end?: bigint;
   indices?: bigint[];
   last?: number;
+  humanReadable?: boolean;
+  checkAlignment?: boolean;
+  parallel?: boolean;
 }
 const unsignedMax = (1n << 64n) - 1n;
 export class DeserializationError extends XanError {}
@@ -48,12 +51,12 @@ export function inferDelimiter(path: string): number {
   if (/\.psv$/u.test(path)) return 124;
   return 44;
 }
-const shortOptions: Record<string, string> = { h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
-const switches = new Set(["help", "no-headers", "just-names", "csv"]);
+const shortOptions: Record<string, string> = { H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
+const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel"]);
 const common = ["help", "output", "delimiter"];
 const allowed: Record<Subcommand, Set<string>> = {
   headers: new Set([...common, "just-names", "csv", "start", "color"]),
-  count: new Set([...common, "no-headers"]),
+  count: new Set([...common, "no-headers", "human-readable", "check-alignment", "approx", "parallel", "threads"]),
   select: new Set([...common, "no-headers"]),
   slice: new Set([...common, "no-headers", "start", "skip", "end", "len", "index", "indices", "last"]),
 };
@@ -106,7 +109,12 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
       }
     } else { budget.hold(32); operands.push(arg); }
   }
+  const parallel = values.has("parallel") || values.has("threads");
+  if (values.has("threads") && await unsigned(values.get("threads")!, "--threads", budget) === 0n) throw new XanError("--threads must be positive");
+  if (values.has("approx") && values.has("check-alignment")) throw new XanError("-a/--approx does not work with -c/--check-alignment!");
+  if (parallel && (values.has("approx") || values.has("check-alignment"))) throw new XanError("-p/--parallel or -t/--threads cannot be used with -a/--approx nor -c/--check-alignment!");
   const help = values.has("help");
+  if (!help && (parallel || values.has("approx")) && (!operands.length || operands[0] === "-")) throw new XanError("count execution options require a file path");
   const selection = command === "select" ? operands.shift() : "";
   if (selection === undefined && !help) throw new UsageError("Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.");
   if (command !== "headers" && operands.length > 1) throw new XanError("too many input files");
@@ -161,7 +169,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
     budget.release((indices.length - count) * 8); indices.length = count;
   }
   budget.release(values.size * 32);
-  return { command, inputs: operands, noHeaders: values.has("no-headers"), justNames: values.has("just-names"), csv: values.has("csv"), help, selection: selection ?? "", start,
+  return { command, humanReadable: values.has("human-readable"), checkAlignment: values.has("check-alignment"), parallel, inputs: operands, noHeaders: values.has("no-headers"), justNames: values.has("just-names"), csv: values.has("csv"), help, selection: selection ?? "", start,
     ...(output !== undefined && output !== "-" ? { output: path(output) } : {}),
     ...(delimiter !== undefined ? { delimiter } : {}), ...(end !== undefined ? { end } : {}), ...(indices !== undefined ? { indices } : {}), ...(last !== undefined ? { last } : {}),
   };

@@ -16,7 +16,14 @@ Unknown keys and invalid limits fail construction. Limits are invocation-wide.
 
 - `headers` / `h`: `-j/--just-names`, `--csv`, `-s/--start N`,
   `--color auto|never`, zero or more inputs (at most one `-`).
-- `count`: `-n/--no-headers`, zero or one input; exact count through EOF.
+- `count`: `-n/--no-headers`, `-H/--human-readable`, `-c/--check-alignment`,
+  `-a/--approx`, `-p/--parallel`, `-t/--threads N`, zero or one input.
+  Counting remains exact and sequential through EOF within invocation limits.
+  Approximation and parallel/thread options require a file; parallel/thread options
+  emit `nothing is actually parallelized!`. Threads must be positive. Approximation
+  conflicts with alignment; parallel/thread options conflict with either mode.
+  Human-readable counts use comma grouping and a short suffix from 10,000 rows;
+  as in XAN 0.61.0, parallel/thread options bypass human-readable formatting.
 - `select`: `-n/--no-headers`, required literal selector, optional input.
 - `slice`: `-n/--no-headers`, `-s/--start N`, `--skip N`, `-e/--end N`,
   `-l/--len N`, `-i/--index N`, `-I/--indices LIST`, `-L/--last N`.
@@ -30,7 +37,7 @@ pipe; otherwise comma. Input delimiter override does not change output delimiter
 NUL/CR/LF/quote/non-ASCII delimiters refuse; literal `\t` is accepted.
 Compression and `.cdx`, `.ndjson`, `.jsonl`, `.vcf`, `.gtf`, `.gff2`, `.sam`,
 `.bed` formats refuse, as do expressions, conditions, byte slicing, raw slicing,
-parallel/approximate count and forced color. No shell/eval interpretation occurs.
+forced color. No shell/eval interpretation occurs.
 
 Selectors use the adopted consuming grammar: signed indices, named duplicate
 occurrences, literal byte prefix/suffix, inclusive reversible/open ranges,
@@ -41,7 +48,7 @@ endpoints treat stars as literal names. Syntax/numeric errors precede I/O;
 resolution errors consume only the first logical record and precede publication.
 
 Headers decode only first records as fatal UTF-8. Count is a quote-state splitter
-without width validation. Select/slice preserve bytes, refuse stray/post-close
+without width validation unless `-c/--check-alignment` is set. Select/slice preserve bytes, refuse stray/post-close
 quotes and enforce first-record width. BOM stripping is source-offset-zero only.
 Select retains EOF CR; slice removes it. EOF quoted fields are safely completed.
 Select may preserve valid same-comma data lexemes; cross-delimiter data is decoded
@@ -97,3 +104,6 @@ partial files on later errors. Missing `writeStream` uses bounded whole-result
 `writeFile` with identical flags and simultaneous staging accounting. Identity
 observation is not an atomic open condition, lease or ABA defense. No deployed
 provider acceptance or full XAN/just-bash comparison is claimed.
+
+Source-only count compatibility checks: from the repository root run
+`node --import tsx --conditions=poe-code-source --test packages/safe-bash/tests/commands/xan-count-options.test.mjs`.

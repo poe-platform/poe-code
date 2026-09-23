@@ -12,19 +12,37 @@ import { boundedSort } from "./sort.js";
 async function* emitted(bytes: Uint8Array, budget: Budget): ByteSource {
   try { if (bytes.length) yield bytes; } finally { budget.release(bytes.length); }
 }
-function width(row: RecordRow, expected: number, command: string): void {
+function width(row: RecordRow, expected: number): void {
   if (row.width !== expected) throw new XanError(`CSV error: record ${row.number} (byte: ${row.offset}): found record with ${row.width} fields, but the previous record has ${expected} fields`);
 }
 export async function prepareRows(args: Arguments, selection: Selection | undefined, scope: InputScope, budget: Budget, writer: Writer): Promise<ByteSource> {
-  if (args.help) return emitted(await writer.text("xan: bounded CSV headers (h), count, select, slice\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\nselect: literal selection; slice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nExpressions, advanced formats, parallel/approximate count and color are unsupported.\n"), budget);
+  if (args.help) return emitted(await writer.text("xan: bounded CSV headers (h), count, select, slice\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection; slice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nExpressions, advanced formats and forced color are unsupported. Count execution options use exact sequential counting.\n"), budget);
   if (args.command === "headers") return prepareHeaders(args, scope, budget, writer);
   if (args.command === "slice" && args.noHeaders && args.last === 0) return emitted(new Uint8Array(0), budget);
   const scanner = scope.open(args.inputs[0]!, args);
   if (args.command === "count") {
     let count = 0;
-    while (true) { const row = await scanner.next(); if (!row) break; count++; row.free(); }
+    let expected: number | undefined;
+    while (true) {
+      const row = await scanner.next(); if (!row) break;
+      try {
+        expected ??= row.width;
+        if (args.checkAlignment) width(row, expected);
+        count++;
+      } finally { row.free(); }
+    }
     await scanner.close();
-    return emitted(await writer.text(`${Math.max(0, count - (args.noHeaders ? 0 : 1))}\n`), budget);
+    count = Math.max(0, count - (args.noHeaders ? 0 : 1));
+    let text = String(count);
+    if (args.humanReadable && !args.parallel) {
+      text = count.toLocaleString("en-US");
+      if (count >= 10000) {
+        const scale = count >= 1000000 ? 1000000 : 1000;
+        const rounded = Math.round(count / scale * 10) / 10;
+        text += ` (${rounded}${scale === 1000 ? "k" : "M"})`;
+      }
+    }
+    return emitted(await writer.text(`${text}\n`), budget);
   }
   const first = await scanner.next();
   if (first) scope.own(first.free);
@@ -57,7 +75,7 @@ async function* rows(args: Arguments, scanner: Scanner, first: RecordRow | undef
     while (true) {
       current ??= await scanner.next();
       if (!current) break;
-      width(current, expected, args.command);
+      width(current, expected);
       if (args.command === "select") yield* emitted(await writer.row(current.cells, positions, raw), budget);
       else if (args.last !== undefined) {
         if (ring.length < args.last) { budget.hold(32); ring.push(current); }

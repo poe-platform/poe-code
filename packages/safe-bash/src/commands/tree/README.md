@@ -41,12 +41,19 @@ explicit responsibility. This is not a filesystem sandbox or a snapshot.
 - `-r`, `--dirsfirst`, `--noreport`, `--charset=ASCII|US-ASCII|UTF-8|UTF8`, `-n`, `--`,
   `--help`, `--version`. Short flags can be combined and `-L/-P/-I` take
   attached values. Color is always off; `-n` is an explicit no-op.
+- `--sort=name|version|none`: explicit byte-name order, C-locale version order,
+  or backend enumeration order. `-v` selects version order; `-U` disables sorting.
+  Version numbers are compared without converting digit runs to JavaScript numbers.
+- `--filelimit=number`: skip directories whose filtered visible entries exceed
+  the limit, with a successful annotation and no descendant traversal. Zero disables
+  the limit. Skipped directories count in reports; JSON represents the annotation
+  as an error object in `contents`. These options also accept a separate value.
 
 All arguments are parsed before VFS access. Unknown options are usage errors,
 not ignored switches. Empty operands, NUL and ill-formed Unicode are rejected.
 The default operand is `.`; `-` is an ordinary pathname, not stdin.
 
-Sorting is fixed unsigned UTF-8-byte order, independent of host/shell locale
+Default sorting is unsigned UTF-8-byte order, independent of host/shell locale
 and directory enumeration order. Text names use C-locale escaping: ASCII is
 literal, backslash and common controls are escaped, other bytes use octal.
 This preserves newline and Unicode filenames without injecting terminal control
@@ -231,6 +238,6 @@ Safety tests add direct ByteIO/FS doubles. Backend coverage is memory, rooted re
 readonly, mount, overlay and mock-S3 with pagination; it is not deployed S3/WebDAV
 interoperability evidence. WebDAV, live provider authorization and special native
 file types are not established by these tests. The VFS type contract only names
-files, directories and symlinks. Sorting modes, `--prune`, gitignore, HTML/XML,
+files, directories and symlinks. Metadata sorting modes, `--prune`, gitignore, HTML/XML,
 size/permission metadata, path patterns and raw `-N` output remain unsupported.
 See the author evidence file for failed initial checks and final validation.

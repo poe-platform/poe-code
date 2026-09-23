@@ -5,6 +5,7 @@ import { parse, help, type Arguments } from "./arguments.js";
 import { escaped, message, TreeLimitError, UsageError, WalkBudget } from "./io.js";
 import { settings, type TreeCommandsOptions } from "./options.js";
 import { matches } from "./pattern.js";
+import { compareVersions } from "./sort.js";
 
 interface Entry {
   readonly path: string;
@@ -15,6 +16,7 @@ interface Entry {
   target?: string;
   error?: string;
   cycle?: boolean;
+  limited?: string;
 }
 
 function directory(entry: Entry): boolean { return (entry.followed ?? entry.stat)?.type === "directory"; }
@@ -112,9 +114,9 @@ class Walker {
       if (this.args.exclude.some(pattern => matches(pattern, bytes, this.budget))) continue;
       candidates.push({ name: item.name, bytes });
     }
-    candidates.sort((left, right) => {
+    if (this.args.sort !== "none") candidates.sort((left, right) => {
       this.budget.step(1 + left.bytes.length + right.bytes.length);
-      return Buffer.compare(left.bytes, right.bytes) * (this.args.reverse ? -1 : 1);
+      return (this.args.sort === "version" ? compareVersions(left.bytes, right.bytes) : Buffer.compare(left.bytes, right.bytes)) * (this.args.reverse ? -1 : 1);
     });
     const children: Entry[] = [];
     for (const item of candidates) {
@@ -126,6 +128,10 @@ class Walker {
       }
       children.push(child);
     }
+    if (this.args.filelimit > 0 && children.length > this.args.filelimit) {
+      entry.limited = `${children.length} entries exceeds filelimit, not opening dir`;
+      return [];
+    }
     if (this.args.dirsFirst) children.sort((left, right) => {
       this.budget.step();
       return Number(directory(right)) - Number(directory(left));
@@ -135,7 +141,7 @@ class Walker {
 
   async visit(entry: Entry, ancestors: readonly Entry[], prefix: string, last: boolean, depth: number): Promise<void> {
     const children = await this.children(entry, ancestors, depth);
-    if (directory(entry)) { if (depth > 0 || children.length) this.directories++; }
+    if (directory(entry)) { if (depth > 0 || children.length || entry.limited) this.directories++; }
     else if (entry.stat) this.files++;
     if (entry.error) {
       this.budget.text(entry.error);
@@ -148,6 +154,7 @@ class Walker {
       const fields = { type: entry.stat?.type === "symlink" ? "link" : entry.stat?.type ?? "unknown", name,
         ...(entry.target === undefined ? {} : { target: entry.target }), ...(annotation === undefined ? {} : { error: annotation }) };
       await this.write(`${this.padding(depth + 1)}${serialized(fields, this.budget).slice(0, -1)}`);
+      if (entry.limited) await this.write(`,"contents":[${serialized({ error: entry.limited }, this.budget)}]`);
       if (children.length) {
         await this.write(`,"contents":[${this.newline()}`);
         for (let index = 0; index < children.length; index++) {
@@ -160,7 +167,8 @@ class Walker {
     } else {
       const utf8 = this.args.charset === "UTF-8";
       const branch = this.args.indent && depth > 0 ? prefix + (last ? (utf8 ? "└── " : "`-- ") : (utf8 ? "├── " : "|-- ")) : "";
-      await this.write(`${branch}${escaped(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target, this.budget)}`}${annotation === undefined ? "" : `  [${escaped(annotation, this.budget)}]`}\n`);
+      const textAnnotation = annotation ?? entry.limited;
+      await this.write(`${branch}${escaped(name, this.budget)}${entry.target === undefined ? "" : ` -> ${escaped(entry.target, this.budget)}`}${textAnnotation === undefined ? "" : `  [${escaped(textAnnotation, this.budget)}]`}\n`);
       const childPrefix = depth === 0 ? "" : prefix + (last ? "    " : utf8 ? "│   " : "|   ");
       for (let index = 0; index < children.length; index++) {
         await this.visit(children[index]!, [...ancestors, entry], childPrefix, index === children.length - 1, depth + 1);

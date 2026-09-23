@@ -12,6 +12,8 @@ export interface Arguments {
   report: boolean;
   reverse: boolean;
   dirsFirst: boolean;
+  sort: "name" | "version" | "none";
+  filelimit: number;
   charset: Charset;
   level: number | undefined;
   include: Pattern[];
@@ -32,7 +34,7 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
   }
   const result: Arguments = { all: false, directories: false, follow: false, full: false, indent: true,
     json: false, report: true, reverse: false, dirsFirst: false, charset: "ASCII", level: undefined,
-    include: [], exclude: [], operands: [], help: false, version: false };
+    sort: "name", filelimit: 0, include: [], exclude: [], operands: [], help: false, version: false };
   let ended = false;
   let explicit = false;
   for (let index = 0; index < args.length; index++) {
@@ -48,6 +50,19 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
     if (arg === "--dirsfirst") { result.dirsFirst = true; continue; }
     if (arg === "--help") { result.help = true; continue; }
     if (arg === "--version") { result.version = true; continue; }
+    if (arg === "--sort" || arg.startsWith("--sort=")) {
+      const mode = value("--sort", arg.startsWith("--sort=") ? arg.slice(7) : undefined);
+      if (mode !== "name" && mode !== "version" && mode !== "none") throw new UsageError(`unsupported sort: ${mode}`);
+      result.sort = mode; continue;
+    }
+    if (arg === "--filelimit" || arg.startsWith("--filelimit=")) {
+      const argument = value("--filelimit", arg.startsWith("--filelimit=") ? arg.slice(12) : undefined);
+      const limit = Number(argument);
+      if (!argument.length || [...argument].some(character => character < "0" || character > "9") || !Number.isSafeInteger(limit)) {
+        throw new UsageError("--filelimit must be a nonnegative safe integer");
+      }
+      result.filelimit = limit; continue;
+    }
     if (arg === "--charset" || arg.startsWith("--charset=")) {
       result.charset = explicitCharset(value("--charset", arg.startsWith("--charset=") ? arg.slice(10) : undefined));
       explicit = true; continue;
@@ -63,6 +78,8 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
         case "i": result.indent = false; break;
         case "J": result.json = true; break;
         case "r": result.reverse = true; break;
+        case "v": result.sort = "version"; break;
+        case "U": result.sort = "none"; break;
         case "n": break;
         case "L": case "P": case "I": {
           const argument = value(`-${flag}`, offset + 1 < arg.length ? arg.slice(offset + 1) : undefined);
@@ -85,7 +102,8 @@ export function parse(args: readonly string[], budget: WalkBudget): Arguments {
   return result;
 }
 
-export const help = `Usage: tree [-adlfirnJ] [-L depth] [-P pattern] [-I pattern] [--dirsfirst]
+export const help = `Usage: tree [-adlfirnJvU] [-L depth] [-P pattern] [-I pattern] [--dirsfirst]
+            [--sort=name|version|none] [--filelimit=number]
             [--charset=ASCII|US-ASCII|UTF-8|UTF8] [--noreport] [--] [path ...]
 Virtual filesystem tree; no native processes or implicit host access.
 Default: visible entries, no symlink traversal, C/UTF-8-byte name order,

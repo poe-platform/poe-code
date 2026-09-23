@@ -6,6 +6,7 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
 import { run, seed, shellRun, wrapped } from "./helpers.js";
+import { compareVersions } from "../../../src/commands/tree/sort.js";
 
 test("standalone API, replacement preflight, snapshot options and positive integer limits", () => {
   assert.equal(createTreeCommand().name, "tree");
@@ -24,7 +25,7 @@ test("standalone API, replacement preflight, snapshot options and positive integ
 
 test("unsupported/invalid options preflight before any VFS or stdin access", async () => {
   const fs = wrapped(createMemoryFileSystem(), { async lstat() { throw new Error("unexpected lstat"); } });
-  for (const args of [["--du"], ["-s"], ["--prune"], ["-C"], ["--filelimit=3"], ["-L0"], ["-L257"], ["-L"],
+  for (const args of [["--du"], ["-s"], ["--prune"], ["-C"], ["--filelimit=-1"], ["--filelimit=wat"], ["--filelimit"], ["-L0"], ["-L257"], ["-L"],
     ["--sort=size"], ["--charset=ANSI"], ["-P", "**"], ["-P", "dir/*"], ["-I", "[x"], ["-P", "[z-a]"],
     ["--help", "--du"], [""], ["\0"], ["\ud800"]]) {
     const result = await run(args, {}, { fs, stdin: (async function* () { throw new Error("unexpected stdin"); })() });
@@ -32,6 +33,63 @@ test("unsupported/invalid options preflight before any VFS or stdin access", asy
     assert.equal(result.stdout, "");
     assert.doesNotMatch(result.stderr, /unexpected/u);
   }
+});
+
+test("explicit name/version sorting, reverse and enumeration order", async () => {
+  const backing = createMemoryFileSystem();
+  await backing.mkdir("/dir");
+  for (const name of ["v10", "v2", "v1"]) await backing.writeFile(`/dir/${name}`, new Uint8Array());
+  const fs = wrapped(backing, { async readdir(path, options) {
+    const entries = await backing.readdir(path, options);
+    return path === "/dir" ? ["v10", "v2", "v1"].map(name => entries.find(entry => entry.name === name)!) : entries;
+  } });
+  for (const [options, names] of [
+    [["--sort=name"], ["v1", "v10", "v2"]],
+    [["--sort", "version"], ["v1", "v2", "v10"]],
+    [["--sort=version", "-r"], ["v10", "v2", "v1"]],
+    [["--sort=none"], ["v10", "v2", "v1"]],
+  ] as const) {
+    const result = await shellRun(fs, [...options, "--noreport", "dir"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `dir\n|-- ${names[0]}\n|-- ${names[1]}\n\`-- ${names[2]}\n`);
+  }
+});
+
+test("filelimit skips oversized directories successfully and respects visible filters", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  for (const name of ["a", "b", ".hidden"]) await fs.writeFile(`/dir/${name}`, new Uint8Array());
+  const limited = await shellRun(fs, ["--filelimit=1", "--noreport", "dir"]);
+  assert.equal(limited.exitCode, 0, limited.stderr);
+  assert.equal(limited.stderr, "");
+  assert.equal(limited.stdout, "dir  [2 entries exceeds filelimit, not opening dir]\n");
+  assert.equal((await shellRun(fs, ["--filelimit=1", "dir"])).stdout,
+    "dir  [2 entries exceeds filelimit, not opening dir]\n\n1 directory, 0 files\n");
+  assert.equal((await shellRun(fs, ["--filelimit", "1", "-I", "b", "--noreport", "dir"])).stdout, "dir\n`-- a\n");
+  assert.equal((await shellRun(fs, ["--filelimit=0", "--noreport", "dir"])).stdout, "dir\n|-- a\n`-- b\n");
+  await fs.mkdir("/outer");
+  await fs.mkdir("/outer/nested");
+  for (const name of ["a", "b"]) await fs.writeFile(`/outer/nested/${name}`, new Uint8Array());
+  assert.equal((await shellRun(fs, ["--filelimit=1", "--noreport", "outer"])).stdout,
+    "outer\n`-- nested  [2 entries exceeds filelimit, not opening dir]\n");
+  const json = await shellRun(fs, ["-Ji", "--filelimit=1", "--noreport", "dir"]);
+  assert.deepEqual(JSON.parse(json.stdout), [{ type: "directory", name: "dir", contents: [{ error: "2 entries exceeds filelimit, not opening dir" }] }]);
+});
+
+test("version sort preserves native leading-zero and long-number ordering", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  const names = ["v000", "v001", "v00", "v01", "v010", "v09", "v0", "v1", "v1.2", "v1.10", "v1a", "v2", "v9", "v10", "v99999999999999999999", "v100000000000000000000"];
+  for (const name of [...names].reverse()) await fs.writeFile(`/dir/${name}`, new Uint8Array());
+  const result = await shellRun(fs, ["-Jiv", "--noreport", "dir"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout)[0].contents.map((entry: { name: string }) => entry.name), names);
+});
+
+test("version comparison handles numeric suffixes after leading zeros", () => {
+  const bytes = (name: string): Uint8Array => new TextEncoder().encode(name);
+  assert.ok(compareVersions(bytes("v-0029."), bytes("v-00210")) < 0);
+  assert.ok(compareVersions(bytes("v02143a"), bytes("v029.02")) > 0);
 });
 
 test("files, missing operands, option-like names, repeat roots and valid error JSON", async () => {

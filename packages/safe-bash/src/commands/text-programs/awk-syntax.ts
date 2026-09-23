@@ -132,7 +132,7 @@ export class AwkParser {
   private phase = "record";
   private arrays = new Set<string>();
   private readonly calls: { expression: Extract<Expression, { kind: "call" }>; owner: string | undefined }[] = [];
-  constructor(source: string) { this.lexer = new Lexer(source); this.token = this.lexer.next(); }
+  constructor(source: string, private readonly arities = builtinArities) { this.lexer = new Lexer(source); this.token = this.lexer.next(); }
   private advance(): Token { const previous = this.token; this.token = this.lexer.next(); return previous; }
   private at(text: string): boolean { return this.token.text === text && (this.token.kind === "operator" || this.token.kind === "name"); }
   private ended(): boolean { return this.token.kind === "end"; }
@@ -151,13 +151,13 @@ export class AwkParser {
     while (this.token.kind !== "end") {
       if (this.accept("function")) {
         const name = this.name();
-        if (program.functions.has(name) || Object.hasOwn(builtinArities, name)) throw new ProgramError(`duplicate or reserved function '${name}'`);
+        if (program.functions.has(name) || Object.hasOwn(this.arities, name)) throw new ProgramError(`duplicate or reserved function '${name}'`);
         this.expect("(");
         const parameters: string[] = [];
         if (!this.at(")")) do { parameters.push(this.name()); } while (this.accept(","));
         this.expect(")"); this.newlines();
         if (new Set(parameters).size !== parameters.length) throw new ProgramError("duplicate function parameter");
-        if (parameters.some(parameter => Object.hasOwn(builtinArities, parameter))) throw new ProgramError("reserved function parameter");
+        if (parameters.some(parameter => Object.hasOwn(this.arities, parameter))) throw new ProgramError("reserved function parameter");
         const oldArrays = this.arrays;
         this.arrays = new Set(); this.currentFunction = name;
         const body = this.block();
@@ -183,7 +183,7 @@ export class AwkParser {
     }
     for (const call of this.calls) {
       const definition = program.functions.get(call.expression.name);
-      const arity = Object.hasOwn(builtinArities, call.expression.name) ? builtinArities[call.expression.name] : definition ? [0, definition.parameters.length] : undefined;
+      const arity = Object.hasOwn(this.arities, call.expression.name) ? this.arities[call.expression.name] : definition ? [0, definition.parameters.length] : undefined;
       if (!arity) throw new ProgramError(`unsupported function '${call.expression.name}'`);
       if (call.expression.args.length < arity[0]! || call.expression.args.length > arity[1]!) throw new ProgramError(`invalid argument count for '${call.expression.name}'`);
       if (call.expression.name === "split" && call.expression.args[1]?.kind !== "variable") throw new ProgramError("split requires an array variable as its second argument");
@@ -366,7 +366,7 @@ export class AwkParser {
         if (name === "split" && args[1]?.kind === "variable") this.arrays.add(args[1].name);
         return expression;
       }
-      if (name !== "length" && Object.hasOwn(builtinArities, name)) throw new ProgramError(`reserved variable '${name}'`);
+      if (name !== "length" && Object.hasOwn(this.arities, name)) throw new ProgramError(`reserved variable '${name}'`);
       if (this.accept("[")) {
         const indexes: Expression[] = [];
         do { this.newlines(); indexes.push(this.expression()); } while (this.accept(","));

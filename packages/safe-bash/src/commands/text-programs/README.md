@@ -166,6 +166,14 @@ input or producing output. Dynamic regexes/values, filesystem failures, resource
 limits, and context-dependent errors can fail after earlier output; this is not
 transactional execution. Program files must be read before they can be parsed.
 
+`-l ordchr` and `--load=ordchr` explicitly select the built-in bounded C-locale
+`ord(string)` / `chr(number)` extension. `ord` returns the first byte (zero for
+an empty string); `chr` truncates a finite number and wraps it to one byte.
+The selector also accepts `ordchr.so` and paths ending in either name, including
+GNU installation paths. These identify the built-in implementation: no file is
+opened, no host library is loaded, and `AWKLIBPATH` is not searched. Other modules
+are refused; this does not provide native GNU extension ABI interoperability.
+
 Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`, random
 and time functions, regex/multibyte `RS`, locale/Unicode character semantics,
 hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such

@@ -37,7 +37,7 @@ export class AwkRuntime {
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
-  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true) {
+  constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true, private readonly ordchr = false) {
     const defaults: Record<string, Scalar> = { FS: string(" "), RS: string("\n"), OFS: string(" "), ORS: string("\n"), OFMT: string("%.6g"), CONVFMT: string("%.6g"), SUBSEP: string("\x1c"), NR: numeric(0), FNR: numeric(0), NF: numeric(0), FILENAME: string(""), RSTART: numeric(0), RLENGTH: numeric(0), ARGC: numeric(args.length + 1) };
     try {
       for (const [name, value] of Object.entries(defaults)) this.storeScalar(this.variables, name, value);
@@ -428,6 +428,12 @@ export class AwkRuntime {
     const values: Scalar[] = [];
     for (const argument of args) values.push(await this.scalarExpression(argument));
     const first = values[0] ?? unset;
+    if (this.ordchr && name === "ord") return numeric(this.asText(first).charCodeAt(0) || 0);
+    if (this.ordchr && name === "chr") {
+      const value = number(first);
+      if (!Number.isFinite(value)) throw new ProgramError("invalid numeric argument in 'chr'");
+      return string(String.fromCharCode(Math.trunc(value) & 255));
+    }
     if (name === "sprintf") return string(this.budget.check(formatted(this.asText(first), values.slice(1), value => this.asText(value), this.budget)));
     if (name === "substr") {
       const start = Math.max(0, Math.trunc(number(values[1]!)) - 1);

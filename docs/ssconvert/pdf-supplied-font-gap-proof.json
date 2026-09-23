@@ -1,6 +1,6 @@
 {
   "scope": "Explicit bounded ssconvert PDF font authority",
-  "status": "seven-memory-controls-and-built-node-public-interfaces-qualified",
+  "status": "seven-memory-controls-and-five-public-interfaces-qualified",
   "wholeGoalComplete": false,
   "publication": "unverified",
   "recordedAt": "2026-09-23T13:14:27.657772+00:00",
@@ -118,13 +118,96 @@
       "sha256": "7c3649646a888de620530788f85a0bc6a136d45d5f078ce007a85339719a1c9b",
       "inspected": true,
       "observation": "Readable header/footer/cell groups;no clipping or overlap"
+    },
+    {
+      "path": "out/ssconvert-gap-resolution/pdf-fonts-browser.png",
+      "sha256": "14b7ec0598bf91f7ad071643a3810d62ba47f125a1950cb56490a7e5c7a0ee2a",
+      "inspected": true,
+      "observation": "Readable browser/worker PASS dashboard;both actual PDFs SHA-identical to visually inspected SDK pages"
     }
   ],
   "contract": "Optional EngineConfig/CapabilityContext.fonts.resolve receives frozen Sans/regular request,signal and byte budget;engine snapshots/binds the port. Caller-supplied bytes are admitted,copied,checked by shared TrueType validator and embedded once per invocation. No hostfont/systemfont discovery;undefined refuses. Absent binding retains previous packaged JetBrains Mono behavior.",
   "qualificationLimits": [
     "Native materialized cell styles still refuse;this commit does not remove the style/merge guard.",
     "Public Node SDK/Shell/XML replay PDF bytes are identical and font identity authenticated;native cell size/placement/style/glyph/pixel parity remains open.",
-    "Browser/worker injected-font execution is not yet qualified for this cohort.",
     "All original goal families and successful containing publication remain required."
-  ]
+  ],
+  "portable": {
+    "results": {
+      "browser": [
+        {
+          "id": "print-row-manual",
+          "exitCode": 0,
+          "diagnostics": [],
+          "stderr": "",
+          "pages": 2,
+          "geometry": [
+            {
+              "width": 612,
+              "height": 792
+            },
+            {
+              "width": 612,
+              "height": 792
+            }
+          ],
+          "inputUnchanged": true,
+          "fontUnchanged": true,
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 1000000
+            }
+          ],
+          "outputBytes": 7843,
+          "outputSha256": "45c3bed49e1bf56b872c7821fedc3ab21a234af2869c77122c8d526c644c695b",
+          "expectedPdfSha256": "45c3bed49e1bf56b872c7821fedc3ab21a234af2869c77122c8d526c644c695b",
+          "pass": true
+        }
+      ],
+      "worker": [
+        {
+          "id": "print-row-manual",
+          "exitCode": 0,
+          "diagnostics": [],
+          "stderr": "",
+          "pages": 2,
+          "geometry": [
+            {
+              "width": 612,
+              "height": 792
+            },
+            {
+              "width": 612,
+              "height": 792
+            }
+          ],
+          "inputUnchanged": true,
+          "fontUnchanged": true,
+          "requests": [
+            {
+              "family": "Sans",
+              "bold": false,
+              "italic": false,
+              "maxBytes": 1000000
+            }
+          ],
+          "outputBytes": 7843,
+          "outputSha256": "45c3bed49e1bf56b872c7821fedc3ab21a234af2869c77122c8d526c644c695b",
+          "expectedPdfSha256": "45c3bed49e1bf56b872c7821fedc3ab21a234af2869c77122c8d526c644c695b",
+          "pass": true
+        }
+      ]
+    },
+    "method": "Source-owned browser ESM bundle of public API,explicit fetched SHA-bound DejaVuSans bytes,real browser and module worker command conversion;PDFbytesexacttobuiltNodeSDK/Shell/XMLreplay",
+    "bundleSha256": "7d6db4599024b8d67d12f5ed4f53721ce87cc7a8860c6568ddfe37353cdc8994",
+    "consoleMessages": 0
+  },
+  "delivery": {
+    "productCommit": "32c4dc7b9311991c993d8b51cd35a6f0da60837a",
+    "remoteMain": "verified ancestor of origin/main",
+    "publication": "unverified"
+  }
 }

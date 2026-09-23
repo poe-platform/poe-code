@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-23T13:06:29.042264+00:00",
+  "recordedAt": "2026-09-23T13:16:37.262820+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -842,10 +842,15 @@
     {
       "id": "rendering-font-print-fidelity",
       "status": "open",
-      "currentFinding": "Persisted manual/data-slice row and column page breaks now apply to PDF export;stored auto breaks are recomputed. Seven memory controls,67focused/22527package tests in366files,lint/types and maintained build pass. Three original models preserve page counts/Letter geometry on SDK/Shell/XML formula replay/browser/worker,exact SDK/Shell/replay text and immutable inputs. All five SDK pages and browser dashboard visually inspected;zero diagnostics/console. Authenticated actual native run35861302809 confirms all3models/ninecommands,fiveLetterpages,exact normalized page token order/membership and byte-identical native XML replay PDFs with empty native streams. Prefix AArch64/0755,49module hashes/eightfont blobs authenticate. Native font sizing/appearance differs;pixel/glyph fidelity is unqualified. Font/glyph/style/chart/repeat/grid/full rendering remain open. All3actual native XML checkpoints materialize cell styles and portable PDF export refuses styled/merged cells before any output. Originalcheckpoint bytes/hashes retained as memoryreproducers;style/font painter remains a validated open limit.",
+      "currentFinding": "Persisted manual/data-slice row and column page breaks now apply to PDF export;stored auto breaks are recomputed. Seven memory controls,67focused/22527package tests in366files,lint/types and maintained build pass. Three original models preserve page counts/Letter geometry on SDK/Shell/XML formula replay/browser/worker,exact SDK/Shell/replay text and immutable inputs. All five SDK pages and browser dashboard visually inspected;zero diagnostics/console. Authenticated actual native run35861302809 confirms all3models/ninecommands,fiveLetterpages,exact normalized page token order/membership and byte-identical native XML replay PDFs with empty native streams. Prefix AArch64/0755,49module hashes/eightfont blobs authenticate. Native font sizing/appearance differs;pixel/glyph fidelity is unqualified. Font/glyph/style/chart/repeat/grid/full rendering remain open. All3actual native XML checkpoints materialize cell styles and portable PDF export refuses styled/merged cells before any output. Originalcheckpoint bytes/hashes retained as memoryreproducers;style/font painter remains a validated open limit. Explicit bounded fontauthority now selects authenticatedDejaVuSans across SDK/Shell/XMLreplay/browser/worker,identical7843PDFbytes/twoLetterpages,immutableinput/fontbytes and missingbinding zerooutput. Sevenmemory controls/22534package tests,lint/types and maintainedrootbuild pass;bothpages and browserdashboard inspected. Native materializedstyles stillrefuse;fullfont/style/layout/glyph/pixel/rendering parity remainsopen.",
       "proof": [
         "docs/ssconvert/pdf-page-breaks-gap-proof.json",
-        "docs/ssconvert/linux-pdf-page-breaks-native-capture.json"
+        "docs/ssconvert/linux-pdf-page-breaks-native-capture.json",
+        {
+          "path": "docs/ssconvert/pdf-supplied-font-gap-proof.json",
+          "kind": "bounded-host-font-product-and-five-interface-proof",
+          "outcome": "7controls,22534package tests/367files,lint/types/rootbuild;fivepublicPDFsidentical7843bytes/twoLetterpages/SHA-boundDejaVuSans;missingfontzerooutput,inspectedpages/dashboard. Style/mergeguard retained;fullparityopen."
+        }
       ],
       "delivery": {
         "localCommit": null,

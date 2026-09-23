@@ -70,9 +70,19 @@ there is no automatic `/dev/stdin` mapping. Input files are processed in order.
 | `-e`, `--exit-status` | Base successful execution status on the last output value. |
 | `--arg NAME TEXT` | Bind a string variable. |
 | `--argjson NAME JSON` | Bind exactly one parsed JSON value. |
+| `--rawfile NAME FILE` | Bind the entire virtual file as a string, preserving CR, LF, BOM and NUL. |
+| `--slurpfile NAME FILE` | Bind all JSON values in a virtual file as an array; an empty file binds `[]`. |
 | `-f`, `--from-file` | Read the following operand as a virtual program file. |
 | `-L DIRECTORY`, `-LDIRECTORY` | Search explicit virtual directories for `.jq` modules, in option order. |
 | `--` | End option parsing, including for a negative numeric filter. |
+
+File bindings resolve relative to the virtual cwd and are loaded even with `-n`.
+A binding filename of `-` names a virtual file; it does not consume stdin.
+`--slurpfile` always parses ordinary JSON, independently of `-R`, `--stream` and
+`--seq`; malformed JSON returns status 2 before filter evaluation. Repeated names
+retain the first binding without opening later binding files. File contents share
+the invocation input-byte budget with stdin and data files, and retain the
+variable-value, collection, depth and work limits even when unused.
 
 Streaming and sequence modes use the same byte, depth, collection, work, and
 result budgets as ordinary JSON input. Streaming does not retain complete

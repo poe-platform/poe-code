@@ -28,7 +28,8 @@ interface Options {
   moduleDirectories: string[];
   variables: Map<string, Json>;
 }
-function argumentsFor(args: readonly string[], budget: Budget): Options {
+async function argumentsFor(context: CommandContext, budget: Budget): Promise<Options> {
+  const args = context.args;
   budget.collection(args.length);
   let argumentBytes = 0;
   for (const argument of args) {
@@ -47,12 +48,23 @@ function argumentsFor(args: readonly string[], budget: Budget): Options {
       options.moduleDirectories.push(argument === "-L" ? operand() : argument.slice(2));
       continue;
     }
-    if (!ended && (argument === "--arg" || argument === "--argjson")) {
+    if (!ended && (argument === "--arg" || argument === "--argjson" || argument === "--rawfile" || argument === "--slurpfile")) {
       const name = operand(); const text = operand();
       budget.text(name); budget.text(text);
       let value: Json;
-      try { value = argument === "--arg" ? text : parseJson(text, budget); }
-      catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError(`invalid JSON for --argjson ${name}`, 2); }
+      if (argument === "--rawfile" || argument === "--slurpfile") {
+        if (!wellFormed(name)) throw new JqError("arguments must contain well-formed Unicode", 2);
+        if (options.variables.has(name)) continue;
+        try { value = await fileVariable(context, text, argument === "--rawfile", budget); }
+        catch (error) {
+          context.signal.throwIfAborted();
+          if (!(error instanceof JqError) || error instanceof JqLimitError) throw error;
+          throw new JqError(`Bad JSON in ${argument} ${name} ${text}: ${error.message}`, 2);
+        }
+      } else {
+        try { value = argument === "--arg" ? text : parseJson(text, budget); }
+        catch (error) { if (error instanceof JqLimitError) throw error; throw new JqError(`invalid JSON for --argjson ${name}`, 2); }
+      }
       if (!wellFormed(name) || (typeof value === "string" && !wellFormed(value))) throw new JqError("arguments must contain well-formed Unicode", 2);
       variableBytes += Buffer.byteLength(name) + budget.value(value);
       if (variableBytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
@@ -171,7 +183,7 @@ async function compileProgram(context: CommandContext, options: Options, source:
   return (await compile(source, 1, false)).ast;
 }
 
-async function* inputSources(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<ByteSource> {
+async function* inputSources(context: CommandContext, options: Pick<Options, "files" | "rawInput">, budget: Budget, convert?: FilterInput): AsyncGenerator<ByteSource> {
   const files = options.files.length ? options.files : ["-"];
   let usedStdin = false;
   for (const file of files) {
@@ -195,6 +207,26 @@ async function* inputSources(context: CommandContext, options: Options, budget: 
     budget.inputLocation = { name: file === "-" ? "<stdin>" : file, line: 0, complete: false };
     yield convert ? await convert(source) : source;
   }
+}
+async function fileVariable(context: CommandContext, path: string, raw: boolean, budget: Budget): Promise<Json> {
+  // Resolve first so a literal '-' remains a file, never the command's stdin.
+  const sources = inputSources(context, { files: [pathOf(context, path)], rawInput: raw }, budget);
+  if (raw) {
+    for await (const value of rawValues(sources, budget, true)) return value;
+    return "";
+  }
+  const values: Json[] = [];
+  let bytes = 2;
+  for await (const source of sources) {
+    for await (const value of jsonValues(source, budget)) {
+      budget.collection(values.length + 1);
+      bytes += budget.value(value) + (values.length ? 1 : 0);
+      if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+      values.push(value);
+    }
+  }
+  budget.value(values);
+  return values;
 }
 async function* inputs(context: CommandContext, options: Options, budget: Budget, convert?: FilterInput): AsyncGenerator<Json> {
   if (options.rawInput) {
@@ -237,7 +269,7 @@ export async function executeJq(context: CommandContext, limits: JqLimits, conve
     }
   };
   try {
-    const options = argumentsFor(context.args, budget);
+    const options = await argumentsFor(context, budget);
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
     const ast = await compileProgram(context, options, source, budget);
     const interpreter = new Interpreter(budget, options.variables);

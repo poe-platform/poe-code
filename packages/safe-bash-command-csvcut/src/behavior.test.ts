@@ -60,6 +60,27 @@ const cases: readonly [string, string, CsvcutOptions, string][] = [
 ];
 for (const [id, input, options, output] of cases) test(id, async () => { assert.equal(await run(input, options), output); });
 
+test("empty headers ignore selectors while preserving record output", async () => {
+  for (const include of ["1", "missing"]) {
+    assert.equal(await run("", { include }), "\n");
+    assert.equal(await run("", { include, headerless: true }), "\n");
+    assert.equal(await run("", { include, lineNumbers: true }), "line_number\n");
+    assert.equal(await run("\nAda,1\n", { include }), "\n\n");
+    assert.equal(await run("\nAda,1\n", { include, lineNumbers: true }), "line_number\n1\n");
+    assert.equal(await run("\nAda,1\n", { include, deleteEmptyRows: true }), "\n");
+    assert.equal(await run("\ufeff", { include, addBom: true }), "\ufeff\n");
+    await assert.rejects(run("name,n\nAda,1\n", { include: "missing" }), { code: "INPUT" });
+  }
+});
+
+test("empty-header projection still validates input and output quotas", async () => {
+  await assert.rejects(run("\n\"unfinished", {
+    include: "1", dialect: { profile: "utf8-sig-strict-v1" }
+  }), { code: "INPUT" });
+  await assert.rejects(run("", { include: "1" }, { limits: { outputBytes: 0 } }), { code: "LIMIT" });
+  await assert.rejects(run("", { include: "missing" }, { limits: { argumentBytes: 0 } }), { code: "LIMIT" });
+});
+
 test("selector and strict parser errors precede ordinary output", async () => {
   for (const [input, options] of [
     [a, { include: "1-", zero: true }], [a, { include: " name" }],

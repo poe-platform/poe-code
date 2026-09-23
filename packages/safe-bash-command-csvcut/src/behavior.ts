@@ -148,7 +148,7 @@ export function cutCsv(
           put(`${String(i + (supplied.zero ? 0 : 1)).padStart(3, " ")}: ${headers[i]}\n`);
         }
       } else {
-        const columns = resolveColumns(supplied, headers, b);
+        const columns = headers.length ? resolveColumns(supplied, headers, b) : [];
         const project = (cells: readonly string[]): string[] => {
           const projected: string[] = [];
           for (const index of columns) {

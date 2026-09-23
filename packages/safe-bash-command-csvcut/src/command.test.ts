@@ -74,6 +74,10 @@ test('independent projection controls preserve CLI/SDK parity across byte chunks
     { args: ['-C1-2'], options: { exclude: '1-2' }, input: 'a,b\nx,y\n', expected: '\n\n' },
     { args: ['-n', '--zero'], options: { names: true, zero: true }, input: 'a,b\nx,y\n', expected: '  0: a\n  1: b\n' },
     { args: [], options: {}, input: '', expected: '\n' },
+    { args: ['-c1'], options: { include: '1' }, input: '', expected: '\n' },
+    { args: ['-c', 'missing'], options: { include: 'missing' }, input: '', expected: '\n' },
+    { args: ['--linenumbers', '-c1'], options: { lineNumbers: true, include: '1' }, input: '', expected: 'line_number\n' },
+    { args: ['-c1'], options: { include: '1' }, input: '\nAda,1\n', expected: '\n\n' },
   ];
   assert.equal(csvcutCommand.runtimeIdentity, commandRuntimeIdentity);
   for (const control of controls) for (const chunks of [1, 4096]) {

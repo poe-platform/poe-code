@@ -71,7 +71,8 @@ Output is UTF-8 comma/minimal-double-quote CSV with LF, regardless of input
 dialect. Each embedded CR becomes LF, so CRLF in a cell becomes two LF.
 Short rows pad selected cells with empty strings; excess cells are discarded.
 Zero selected columns emit one LF per record (data rows disappear with `-x`).
-Ordinary empty input emits LF; empty names input fails. No inference, locale or
+Ordinary empty input emits LF; selectors are ignored when the header has zero
+columns. Empty names input fails. No inference, locale or
 null conversion occurs. Unlike csvgrep physical numbering, `-l` counts emitted
 records after deletion.
 

@@ -15,6 +15,16 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
         options.signal?.throwIfAborted();
         if (options.mode === undefined) {
           let path = args[0] as string;
+          if (key === "mkdir" && options.recursive === true) {
+            let existing;
+            try { existing = await target.stat(path, options.signal === undefined ? {} : { signal: options.signal }); }
+            catch (error) {
+              options.signal?.throwIfAborted();
+              if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+            }
+            options.signal?.throwIfAborted();
+            if (existing?.type === "directory") return Reflect.apply(method, target, args);
+          }
           let capabilities = target.capabilities;
           while (target.capabilitiesFor) {
             try {

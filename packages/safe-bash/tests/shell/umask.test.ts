@@ -3,10 +3,89 @@ import { test } from "node:test";
 import { Shell } from "../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/index.js";
-import { CommandRegistry } from "../../src/contracts/index.js";
+import { CommandRegistry, FsError } from "../../src/contracts/index.js";
 import { creationFileSystem } from "../../src/shell/umask.js";
 import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { MockS3Client, S3FileSystem } from "../../src/fs/s3/index.js";
+
+for (const mode of [0o755, 0o711]) for (const symlink of [false, true]) {
+  test(`umask preserves existing implicit recursive mkdir options: ${mode.toString(8)}/${symlink}`, async () => {
+    const backing = createMemoryFileSystem();
+    await backing.mkdir("/existing", { mode });
+    if (symlink) await backing.symlink("/existing", "/alias");
+    const calls: { path: string; mode?: number; recursive?: boolean }[] = [];
+    const fs = new Proxy(backing, {
+      get(target, key) {
+        if (key === "capabilities") return { ...target.capabilities, implicitDirectories: true };
+        if (key === "capabilitiesFor") return undefined;
+        if (key === "mkdir") return async (path: string, options: { mode?: number; recursive?: boolean }) => {
+          calls.push({ path, ...options });
+          return target.mkdir(path, options);
+        };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const path = symlink ? "/alias" : "/existing";
+      const result = await shell.exec(`umask 077; mkdir -pv -m700 ${path}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(calls.length, 1);
+      assert.equal(calls[0]!.path, path);
+      assert.equal(calls[0]!.recursive, true);
+      assert.equal(calls[0]!.mode, undefined);
+      assert.equal((await backing.stat("/existing")).mode & 0o777, mode);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("umask recursive mkdir admits missing paths only for typed ENOENT", async () => {
+  const backing = createMemoryFileSystem();
+  await creationFileSystem(backing, 0o077).mkdir("/new", { recursive: true });
+  assert.equal((await backing.stat("/new")).mode & 0o777, 0o700);
+  for (const reason of [new FsError("EACCES", { path: "/blocked" }), { code: "ENOENT" }]) {
+    let calls = 0;
+    const fs = new Proxy(backing, {
+      get(target, key) {
+        if (key === "stat") return async () => { throw reason; };
+        if (key === "mkdir") return async () => { calls++; };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    await assert.rejects(creationFileSystem(fs, 0o077).mkdir("/blocked", { recursive: true }), error => error === reason);
+    assert.equal(calls, 0);
+  }
+});
+
+test("umask recursive mkdir propagates falsey cancellation after existence lookup", async () => {
+  const backing = createMemoryFileSystem();
+  await backing.mkdir("/existing", { mode: 0o711 });
+  for (const reason of [null, false, 0, "", Number.NaN]) {
+    const controller = new AbortController();
+    let calls = 0;
+    const fs = new Proxy(backing, {
+      get(target, key) {
+        if (key === "stat") return async (...args: Parameters<typeof target.stat>) => {
+          const result = await target.stat(...args);
+          controller.abort(reason);
+          return result;
+        };
+        if (key === "mkdir") return async () => { calls++; };
+        const member: unknown = Reflect.get(target, key, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    try {
+      await creationFileSystem(fs, 0o077).mkdir("/existing", { recursive: true, signal: controller.signal });
+      assert.fail("expected caller cancellation");
+    } catch (error) { assert.ok(Object.is(error, reason)); }
+    assert.equal(calls, 0);
+  }
+});
 
 for (const pathOverride of [false, true]) {
   test(`umask omits implicit modes for permissionless adapters: path override=${pathOverride}`, async () => {

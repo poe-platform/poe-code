@@ -350,7 +350,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     const prefix = originalText.slice(0, index);
     return { line: prefix.split("\n").length, column: index - prefix.lastIndexOf("\n") };
   };
-  const accept = async (doc: Document<Node>) => {
+  const accept = async (doc: Document<Node>, implicit = false) => {
     work.assertOpen();
     const startOffset = originalOffset(doc.range?.[0] ?? 0);
     const endOffset = originalOffset(doc.range?.[2] ?? text.length);
@@ -395,7 +395,7 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
         }
       } else if (yaml.isSeq(node)) for (let index = node.items.length - 1; index >= 0; index--) if (yaml.isNode(node.items[index])) pending.push(node.items[index] as Node);
     }
-    const document = { doc, filename, fileIndex, documentIndex: documents.length, format };
+    const document = { doc, filename: implicit ? "" : filename, fileIndex, documentIndex: documents.length, format };
     documents.push(document);
     await onDocument?.(document);
   };
@@ -447,8 +447,10 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
   const lexer = new yaml.Lexer();
   const parser = new yaml.Parser();
   const composer = new yaml.Composer({ keepSourceTokens: true, intAsBigInt: true, uniqueKeys: false, merge: false, prettyErrors: false, logLevel: "silent" });
+  let hasDocument = false;
   const token = async (item: import("yaml").CST.Token) => {
     await admitCst(item, work);
+    if (item.type === "document") hasDocument = true;
     for (const doc of composer.next(item)) await accept(doc as Document<Node>);
   };
   for (let offset = 0; offset <= text.length; offset += 4096) {
@@ -463,6 +465,6 @@ export async function decodeDocuments(text: string, filename: string, fileIndex:
     if (!incomplete) break;
   }
   for (const item of parser.end()) await token(item);
-  for (const doc of composer.end(documents.length === 0, text.length)) await accept(doc as Document<Node>);
+  for (const doc of composer.end(documents.length === 0, text.length)) await accept(doc as Document<Node>, !hasDocument);
   return documents;
 }

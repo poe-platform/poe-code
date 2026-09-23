@@ -106,6 +106,19 @@ test("keys drops the mapping header without changing source comments", async () 
   } finally { await shell.dispose(); }
 });
 
+for (const input of ["", "a: 1\n", "---\n", "null\n"]) test(`filename metadata for YAML input ${JSON.stringify(input)}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input.yaml", Buffer.from(input));
+  const shell = new Shell({ fs }).use(mikeYqCommands());
+  try {
+    const result = await shell.exec("yq filename input.yaml");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, input === "" ? "\n" : "input.yaml\n");
+    assert.equal(result.stderr, "");
+    assert.equal(Buffer.from(await fs.readFile("/input.yaml")).toString(), input);
+  } finally { await shell.dispose(); }
+});
+
 test("recursive descent emits aliases without traversing their targets", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input.yaml", Buffer.from("a: &base\n  x: 1\nb: *base\n"));

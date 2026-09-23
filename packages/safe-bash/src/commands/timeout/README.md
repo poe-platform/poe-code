@@ -14,6 +14,11 @@ resources. Positive durations use one opaque timer handle at a time, clear a
 completed chunk before rearming, and retain the final handle through cooperative
 child cleanup.
 
+`-v` and `--verbose` preserve child output and status when no deadline expires.
+On expiry they report the cooperative deadline to stderr after child cleanup;
+this diagnostic does not claim native signal delivery. Zero durations remain
+silent and disable the deadline, including in verbose mode.
+
 The deadline is cooperative. The invoked host must honor the supplied signal
 and settle after its child cleanup. An ignored signal, blocked event loop,
 uncooperative host task, stalled clock, or nonsettling cleanup can prevent

@@ -47,7 +47,6 @@ const records = Object.freeze({
   invalidSignal: encoder.encode("timeout: invalid signal\n"),
   killAfter: encoder.encode("timeout: kill-after escalation requires a host policy binding\n"),
   foreground: encoder.encode("timeout: option --foreground is unsupported\n"),
-  verbose: encoder.encode("timeout: option --verbose is unsupported\n"),
   invokeUnavailable: encoder.encode("timeout: command invocation is unavailable\n"),
   timerSetupFailed: encoder.encode("timeout: timer setup failed\n"),
   help: encoder.encode("Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"),
@@ -102,7 +101,6 @@ function settings(value: unknown, includeReplace: boolean): Settings {
 function unsupported(token: string): Uint8Array | undefined {
   const first = token.length > 1 && token.charCodeAt(0) === 45 && token.charCodeAt(1) !== 45 ? token.charCodeAt(1) : -1;
   if (token === "--foreground" || token.startsWith("--foreground=") || first === 102) return records.foreground;
-  if (token === "--verbose" || token.startsWith("--verbose=") || first === 118) return records.verbose;
   return undefined;
 }
 
@@ -127,6 +125,7 @@ function definition(configuration: Settings): CommandDefinition {
       const originalArgs = context.args;
       let offset = 0;
       let preserveStatus = false;
+      let verbose = false;
       let signalNumber = 15;
       let killAfterMilliseconds: number | undefined;
       while (offset < originalArgs.length) {
@@ -138,6 +137,11 @@ function definition(configuration: Settings): CommandDefinition {
         if (token === "--help") return status(context, records.help, 0, true);
         if (token === "--version") return status(context, records.version, 0, true);
         if (token === "-" || !token.startsWith("-")) break;
+        if (token === "-v" || token === "--verbose") {
+          verbose = true;
+          offset++;
+          continue;
+        }
         if (token === "--preserve-status") {
           preserveStatus = true;
           offset++;
@@ -238,6 +242,9 @@ function definition(configuration: Settings): CommandDefinition {
       context.signal.throwIfAborted();
       if (!returned && invocationFailure !== deadline.deadlineReason && invocationFailure !== deadline.timerFailureReason) throw invocationFailure;
       if (retirementFailed) throw retirementFailure;
+      if (verbose && deadline.expired) {
+        await writeBytes(context.stderr, encoder.encode(`timeout: cooperative deadline expired for command ‘${command}’\n`), context.signal);
+      }
       if (deadline.expired && killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && signalNumber !== 9) {
         return status(context, records.killAfter, 125);
       }

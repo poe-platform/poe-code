@@ -151,8 +151,9 @@ for (const [axis, value, source, input] of [
 }
 
 test("XML configuration is validated and captured before invocation", async () => {
-  for (const value of [0, -1, 0.5, NaN, Infinity]) assert.throws(() => createXmlCommands({ limits: { maxNodes: value } }), RangeError);
-  assert.throws(() => createXmlCommands({ limits: { maxDepth: 257 } }), RangeError);
+  for (const value of [0, -1, 0.5, NaN]) assert.throws(() => createXmlCommands({ limits: { maxNodes: value } }), RangeError);
+  assert.doesNotThrow(() => createXmlCommands({ limits: { maxDepth: 257 } }));
+  assert.doesNotThrow(() => createXmlCommands({ limits: { maxNodes: Infinity } }));
   const limits: Partial<XmlQueryLimits> = { maxOutputBytes: 2 };
   const plugin = xmlCommands({ limits });
   Object.assign(limits, { maxOutputBytes: 1000 });

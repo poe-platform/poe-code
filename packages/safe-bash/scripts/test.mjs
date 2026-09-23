@@ -43,7 +43,7 @@ export function runTests(root, args, spawn = spawnSync, fileSystem, execution) {
     delete env.SAFE_BASH_TEST_CONCURRENCY;
     for (const phase of phases) {
       console.log(`# safe-bash phase: ${phase.files.length} files; concurrency ${phase.concurrency}`);
-      const result = spawn(process.execPath, ["--import", "tsx", "--test", `--test-concurrency=${phase.concurrency}`, ...args, ...phase.files], { cwd: root, stdio: "inherit", env });
+      const result = spawn(process.execPath, ["--import", "tsx", "--conditions=poe-code-source", "--test", `--test-concurrency=${phase.concurrency}`, ...args, ...phase.files], { cwd: root, stdio: "inherit", env });
       if (result.error) throw result.error;
       const status = result.status ?? 1;
       if (status !== 0) return status;
@@ -51,7 +51,7 @@ export function runTests(root, args, spawn = spawnSync, fileSystem, execution) {
     return 0;
   }
   const concurrency = args.some(argument => argument === "--test-concurrency" || argument.startsWith("--test-concurrency=")) ? [] : ["--test-concurrency=1"];
-  const result = spawn(process.execPath, ["--import", "tsx", "--test", ...concurrency, ...args, ...files], { cwd: root, stdio: "inherit" });
+  const result = spawn(process.execPath, ["--import", "tsx", "--conditions=poe-code-source", "--test", ...concurrency, ...args, ...files], { cwd: root, stdio: "inherit" });
   if (result.error) throw result.error;
   return result.status ?? 1;
 }

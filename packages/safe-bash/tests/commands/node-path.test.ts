@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { posix } from "node:path";
 import test from "node:test";
-import { Budget, declareHostOperation, makeFsModule, run } from "../../../safe-js/src/index.js";
+import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-js";
 import { nodeCommands } from "../../src/commands/node/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";

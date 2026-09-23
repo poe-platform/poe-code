@@ -24,6 +24,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "poe-code-source": "./src/index.ts",
       "import": "./dist/index.js"
     },
     "./core": {

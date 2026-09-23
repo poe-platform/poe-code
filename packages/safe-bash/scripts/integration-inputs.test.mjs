@@ -146,7 +146,7 @@ test("Bash shards: a singleton reviewed group needs no extra runner process", ()
   specimen.selected.splice(1, 1);
   const calls = [];
   assert.equal(runTests("/package", [], (ignoredExecutable, args) => { calls.push(args); return { status: 0 }; }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), 0);
-  assert.deepEqual(calls, [["--import", "tsx", "--test", "--test-concurrency=1", ...[...specimen.selected].sort()]]);
+  assert.deepEqual(calls, [["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=1", ...[...specimen.selected].sort()]]);
 });
 
 test("Bash shards: the executable rejects invalid opt-ins before discovery or test execution", () => {
@@ -182,8 +182,8 @@ test("Bash shards: phases are sequential, bounded, and strip scheduling env from
     return { status: 0 };
   }, specimen.fileSystem, { shardIndex: 0, shardCount: 1, concurrency: 2 }), 0);
   assert.deepEqual(calls, [
-    ["--import", "tsx", "--test", "--test-concurrency=2", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/safe-a.test.ts", "tests/safe-b.test.ts"],
-    ["--import", "tsx", "--test", "--test-concurrency=1", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/native.test.ts"],
+    ["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=2", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/safe-a.test.ts", "tests/safe-b.test.ts"],
+    ["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=1", "--test-name-pattern", "a case", "--test-reporter=tap", "tests/native.test.ts"],
   ]);
 });
 
@@ -2296,7 +2296,7 @@ test("runner forwards serial options and preserves real failure status", () => {
   };
   const spawn = (executable, args, options) => {
     assert.equal(executable, process.execPath);
-    assert.deepEqual(args, ["--import", "tsx", "--test", "--test-concurrency=1", "--test-reporter=tap", "tests/commands/yq-author-20260828/yq.test.ts"]);
+    assert.deepEqual(args, ["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=1", "--test-reporter=tap", "tests/commands/yq-author-20260828/yq.test.ts"]);
     assert.deepEqual(options, { cwd: "/package", stdio: "inherit" });
     return { status: 17 };
   };
@@ -2324,7 +2324,7 @@ test("runner defaults to serial execution and preserves explicit concurrency ove
     const forwarded = Object.freeze([...options]);
     assert.equal(runTests("/package", forwarded, (executable, args, spawnOptions) => {
       assert.equal(executable, process.execPath);
-      assert.deepEqual(args, ["--import", "tsx", "--test", ...expected, ...files]);
+      assert.deepEqual(args, ["--import", "tsx", "--conditions=poe-code-source", "--test", ...expected, ...files]);
       assert.deepEqual(spawnOptions, { cwd: "/package", stdio: "inherit" });
       return { status: 19 };
     }, fileSystem), 19);
@@ -2664,7 +2664,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/shell-stress/invocation-modes/harness.test.ts"));
   assert.equal(runTests(root, [], (executable, args, options) => {
     assert.equal(executable, process.execPath);
-    assert.deepEqual(args, ["--import", "tsx", "--test", "--test-concurrency=1", ...files]);
+    assert.deepEqual(args, ["--import", "tsx", "--conditions=poe-code-source", "--test", "--test-concurrency=1", ...files]);
     assert.deepEqual(options, { cwd: root, stdio: "inherit" });
     return { status: 0 };
   }), 0);

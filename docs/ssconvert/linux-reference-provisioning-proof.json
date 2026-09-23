@@ -126,5 +126,28 @@
     },
     "requiredLinux": "run the same collector with exact isolated profile environment and preserve source/binary/stdout identity",
     "productParity": "unqualified"
+  },
+  "paradoxPrerequisite": {
+    "nativeEvidence": "The exact declared --enable-plugins list makes plugins/Makefile.am SUBDIRS equal PLUGIN_LIST, including paradox regardless of WITH_PARADOX. Gnumeric configure recorded pxlib absent; plugins/paradox requires pxlib headers/libs. reference-profile.json build.packagesRequested already declares pxlib-dev.",
+    "correction": "pxlib-dev",
+    "packageIndex": "https://deb.debian.org/debian/dists/trixie/main/binary-arm64/Packages.xz",
+    "packageIndexSha256": "be16b37b2f740f066ea93d35d56f04f94d63693e5a3eb421b052bf86fae75bcd",
+    "package": {
+      "Package": "pxlib-dev",
+      "Version": "0.6.9-1",
+      "Architecture": "arm64",
+      "Filename": "pool/main/p/pxlib/pxlib-dev_0.6.9-1_arm64.deb",
+      "SHA256": "a8ab30407987d0271c8ef342d1faaff64f6cb76b6d9ebe738bb798da1e8b4698",
+      "Depends": "pxlib1 (= 0.6.9-1), libgsf-1-dev (>= 1.13.2)"
+    },
+    "library": {
+      "Package": "pxlib1",
+      "Version": "0.6.9-1",
+      "Architecture": "arm64",
+      "Filename": "pool/main/p/pxlib/pxlib1_0.6.9-1_arm64.deb",
+      "SHA256": "568f4c01e1431989e31737fbb2819b23b902a2abda5a2307aa3fbe19fca4aa96",
+      "Depends": "libc6 (>= 2.17), libgsf-1-114 (>= 1.14.8)"
+    },
+    "qualification": "actual install/build/runtime capture required; package-index spelling validation is not runtime activation"
   }
 }

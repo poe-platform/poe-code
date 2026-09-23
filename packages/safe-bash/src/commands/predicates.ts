@@ -33,6 +33,7 @@ export function predicateCommands(): CommandDefinition[] {
     if (args.length === 2 && args[0] === "!") return { exitCode: args[1] ? 1 : 0 };
     const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
+    const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
     let offset = 0;
     const number = (text: string): bigint => {
       if (!/^[ \t]*[+-]?[0-9]+[ \t]*$/u.test(text)) throw new UsageError(`integer expression expected: '${text}'`);
@@ -48,9 +49,13 @@ export function predicateCommands(): CommandDefinition[] {
         if (args[offset++] !== ")") throw new UsageError("missing ')'");
         return inner;
       }
+      const leftLength = token === "-l" && numeric.has(args[offset + 1] ?? "");
+      const left = leftLength ? args[offset++]! : token;
       const operator = args[offset];
       if (operator !== undefined && binary.has(operator)) {
         offset++;
+        const rightLength = numeric.has(operator) && args[offset] === "-l";
+        if (rightLength) offset++;
         const right = args[offset++];
         if (right === undefined) throw new UsageError("binary operator requires two operands");
         return async () => {
@@ -67,8 +72,8 @@ export function predicateCommands(): CommandDefinition[] {
             if (identity !== "unknown") return identity === "same";
             return leftStat?.ino !== undefined && rightStat?.ino !== undefined && leftStat.type === rightStat.type && leftStat.ino === rightStat.ino && leftStat.dev === rightStat.dev;
           }
-          const leftNumber = number(token);
-          const rightNumber = number(right);
+          const leftNumber = leftLength ? BigInt(new TextEncoder().encode(left).byteLength) : number(left);
+          const rightNumber = rightLength ? BigInt(new TextEncoder().encode(right).byteLength) : number(right);
           if (operator === "-eq") return leftNumber === rightNumber;
           if (operator === "-ne") return leftNumber !== rightNumber;
           if (operator === "-lt") return leftNumber < rightNumber;

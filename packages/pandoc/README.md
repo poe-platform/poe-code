@@ -65,6 +65,18 @@ publication or an explicitly supplied streaming destination; streaming output
 can remain partial after failure. Inputs contain `bytes` or `chunks`, with
 optional `source` and `base`.
 
+Conversion-only `filters` is an ordered list of `{kind: "json", path}`,
+`{kind: "lua", path}`, or `{kind: "citeproc"}` requests. Shell equivalents are
+`--filter`/`-F`, `--lua-filter`/`-L`, and `--citeproc`/`-C`.
+Supply `ConversionContext.filters.apply(document, request, context)` (or the
+same capability to `createPandocCommand`) to process them after metadata merges
+and before writing. The callback receives the target format as `context.to`.
+Returned documents are validated with the conversion limits; cancellation and
+callback errors prevent publication. No filter engine is bundled: without an
+explicit capability these requests fail `E_CAPABILITY` before input acquisition.
+Paths identify requests for the trusted adapter; they never enable implicit
+host execution, filesystem access, or citation support.
+
 `limits` can lower the exported `defaultLimits` ceilings: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,
 `attributes`, `tableCells`, `tableFieldText`, `tableRows`, `tableColumns`,

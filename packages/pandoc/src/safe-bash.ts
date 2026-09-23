@@ -30,7 +30,7 @@ export interface PandocCommandContext extends FormatInspectionContext, CommandIn
  * all conversion and limits belong to the SDK. It never invokes native tools. */
 export function createPandocCommand(capabilities: Omit<ConversionContext, "output" | "signal" | "resources" | "resourceFiles" | "resourceCwd"> = {}) {
   const configured: typeof capabilities = Object.fromEntries(Object.keys(capabilities)
-    .filter(key => ["reader", "writer", "limits", "yield"].includes(key))
+    .filter(key => ["reader", "writer", "filters", "limits", "yield"].includes(key))
     .map(key => [key, capabilities[key as keyof typeof capabilities]]));
   return {
     name: "pandoc",

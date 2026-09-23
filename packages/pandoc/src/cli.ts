@@ -41,7 +41,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     if (positional || !arg.startsWith("-")) {operands.push(source(arg)); continue;}
     // Short options with an argument also accept it in the same token.
-    if (arg.length > 2 && ["-f", "-r", "-t", "-w", "-o"].includes(arg.slice(0, 2)) && arg[2] !== "=")
+    if (arg.length > 2 && ["-f", "-r", "-t", "-w", "-o", "-F", "-L"].includes(arg.slice(0, 2)) && arg[2] !== "=")
       arg = `${arg.slice(0, 2)}=${arg.slice(2)}`;
     if (arg === "--lossy" || arg === "--standalone" || arg === "-s" || arg === "--fail-if-warnings") {
       const key = arg === "--lossy" ? "lossy" : arg === "--fail-if-warnings" ? "failIfWarnings" : "standalone";
@@ -50,6 +50,18 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    const filterKind = new Map<string, "json" | "lua" | "citeproc">([["--filter", "json"], ["-F", "json"], ["--lua-filter", "lua"], ["-L", "lua"], ["--citeproc", "citeproc"], ["-C", "citeproc"]]).get(name);
+    if (filterKind) {
+      if (filterKind === "citeproc") {
+        if (equals >= 0) fail(`Unexpected value: ${name}`);
+        options.filters = [...options.filters ?? [], {kind: filterKind}];
+      } else {
+        const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
+        if (!path || path.startsWith("-")) fail(`Missing value: ${name}`);
+        options.filters = [...options.filters ?? [], {kind: filterKind, path: path!}];
+      }
+      continue;
+    }
     const writerOption = new Map<string, string>([["--columns", "columns"], ["--shift-heading-level-by", "shiftHeadingLevelBy"], ["--eol", "eol"], ["--number-sections", "numberSections"], ["-N", "numberSections"], ["--toc", "toc"], ["--table-of-contents", "toc"], ["--strip-comments", "stripComments"], ["--ascii", "ascii"], ["--standalone", "standalone"]]).get(name);
     if (writerOption) {
       const boolean = ["numberSections", "toc", "stripComments", "ascii", "standalone"].includes(writerOption);

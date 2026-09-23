@@ -150,7 +150,16 @@ export interface WriteOptions {
   /** Strict by default; explicitly permit diagnosed table text projections. */
   readonly lossy?: boolean;
 }
-export interface ConversionOptions extends ReadOptions, WriteOptions {}
+export interface ConversionOptions extends ReadOptions, WriteOptions {
+  readonly filters?: readonly FilterRequest[];
+}
+export type FilterRequest =
+  | {readonly kind: "json" | "lua"; readonly path: string}
+  | {readonly kind: "citeproc"};
+/** Trusted host integration; no engine or host execution is enabled implicitly. */
+export interface FilterCapability {
+  apply(document: Document, request: FilterRequest, context: AdapterContext & {readonly to: string}): Promise<Document>;
+}
 export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
@@ -220,6 +229,7 @@ export interface StreamingOutputCapability {
   abort(reason: unknown): Promise<void>;
 }
 export interface ConversionContext {
+  readonly filters?: FilterCapability;
   /** Only this configured filesystem may supply/extract local image resources. */
   readonly resourceFiles?: ResourceFileSystem;
   readonly resourceCwd?: string;

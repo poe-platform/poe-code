@@ -5,6 +5,8 @@ export type {
   AdapterContext,
   ConversionContext,
   ConversionOptions,
+  FilterRequest,
+  FilterCapability,
   MetadataObject,
   MetadataValue,
   ConversionResult,

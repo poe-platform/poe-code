@@ -115,11 +115,13 @@ it("reads explicit JSON metadata files in order, with repeated metadata overridi
   expect(JSON.parse(text(ctx.stdout)).meta).toEqual({config: {t: "MetaMap", c: {b: {t: "MetaBool", c: false}, list: {t: "MetaList", c: []}}}, title: {t: "MetaString", c: "last"}});
   expect(readFile.mock.calls.map(call => call[0])).toEqual(["/input.md", "/one.json", "/two.json"]);
 });
-it("rejects YAML, unsafe execution and unknown flags before any acquisition", async () => {
+it("rejects YAML, unavailable processing and unknown flags before any acquisition", async () => {
   for (const option of ["--metadata-file=x.yaml", "--filter=x", "--lua-filter=x", "--citeproc", "--pdf-engine=x", "--unknown"]) {
     const ctx = context(["-f=commonmark", "-t=plain", "/input.md", option]);
     const readFile = vi.fn(async () => encode(""));
-    expect(await createPandocCommand().execute({...ctx, readFile})).toEqual({exitCode: 2});
+    const processing = ["--filter=x", "--lua-filter=x", "--citeproc"].includes(option);
+    expect(await createPandocCommand().execute({...ctx, readFile})).toEqual({exitCode: processing ? 3 : 2});
+    expect(text(ctx.stderr)).toContain(processing ? "E_CAPABILITY" : "E_OPTION");
     expect(readFile).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
   }
 });

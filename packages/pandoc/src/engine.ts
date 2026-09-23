@@ -70,6 +70,7 @@ class Session extends ExecutionContext {
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
+    if (this.operation === "convert") allowed.push("filters");
     if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
@@ -90,7 +91,7 @@ class Session extends ExecutionContext {
       this.shiftHeadingLevelBy = options.shiftHeadingLevelBy ?? 0;
       this.eol = options.eol;
       this.media.configure(options);
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key) && !(key === "standalone" && options.standalone === false)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia"].includes(key) && !(key === "standalone" && options.standalone === false)));
       if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
       this.yes = options.yes === true;
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
@@ -250,7 +251,7 @@ class Session extends ExecutionContext {
     return owned;
   }
 
-  async writable(document: Document, math?: "source"): Promise<Document> {
+  async writable(document: Document, math?: "source", filters?: ConversionOptions["filters"], to?: string): Promise<Document> {
     let metadata = document.metadata;
     for (const file of this.metadataFiles ?? []) {
       const input = await this.input(file, "json");
@@ -260,6 +261,9 @@ class Session extends ExecutionContext {
     for (const layer of this.metadataJson ?? []) metadata = await mergeJsonMetadata(metadata, layer, this);
     if (this.metadata) metadata = await mergeMetadata(metadata, this.metadata, this);
     if (metadata !== document.metadata) document = await this.document({...document, metadata});
+    for (const request of filters ?? []) {
+      document = await this.document(await this.call(() => this.context.filters!.apply(document, {...request}, Object.assign(this, {to: to!}))));
+    }
     if (math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
         await this.cooperate();
@@ -432,6 +436,18 @@ export async function convert(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const writer = session.registry.resolve(options.to, "write");
+    if (options.filters !== undefined) {
+      if (!Array.isArray(options.filters)) session.fail("E_OPTION", "filters must be an array");
+      session.charge("references", options.filters.length);
+      for (const request of options.filters) {
+        session.checkpoint();
+        if (!request || !["json", "lua", "citeproc"].includes(request.kind) ||
+            (request.kind !== "citeproc" && (typeof request.path !== "string" || !request.path)))
+          session.fail("E_OPTION", "Invalid filter request");
+        if (request.kind !== "citeproc") session.charge("text", request.path.length);
+      }
+      if (options.filters.length && !context.filters) session.fail("E_CAPABILITY", "Filters and citeproc require an explicitly supplied filter capability");
+    }
     if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
     await session.preflightOptions();
     // Account for every operand before invoking readers or writers.
@@ -514,7 +530,7 @@ export async function convert(
     }
     const document = await session.writable(
       await session.document({ blocks, metadata, resources, ...settings }, true),
-      writer.writer!.math
+      writer.writer!.math, options.filters, options.to
     );
     return await session.finish(
       await session.call(() => writer.writer!.write(document, session, writer))

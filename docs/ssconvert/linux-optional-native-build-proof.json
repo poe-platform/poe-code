@@ -15946,5 +15946,21 @@
     "makefile": "AM_CPPFLAGS = \\\n    -DGNOMELOCALEDIR=\\\"\"$(datadir)/locale\"\\\" \t\\\n    -I$(top_srcdir)/src\t-I$(top_builddir)/src\t\\\n    $(GNUMERIC_CFLAGS)\t\t\t\t\\\n    $(GDA_CFLAGS)\t\t\t\t\\\n    $(GNOMEDB_CFLAGS)\n\ngnumeric_plugin_gnomedbdir = $(gnumeric_plugindir)/gnome-db\nxmldir = $(gnumeric_plugin_gnomedbdir)\ngnumeric_plugin_gnomedb_LTLIBRARIES = gnomedb.la\ngnomedb_la_LDFLAGS = -module $(GNUMERIC_PLUGIN_LDFLAGS)\ngnomedb_la_SOURCES = plugin-gnomedb.c\ngnomedb_la_LIBADD = $(GDA_LIBS) $(GNOMEDB_LIBS)\n\nxml_in_files = plugin.xml.in\nxml_DATA = $(xml_in_files:.xml.in=.xml)\n\n@INTLTOOL_XML_RULE@\n\nEXTRA_DIST = $(xml_in_files)\nCLEANFILES = $(xml_DATA)\n",
     "classification": "Shipped UI service requires ui.xml absent from authenticated release directory/install manifest. Actual ssconvert-equivalent collector activation fails before service use. GDA/libgnomedb provisioning cannot supply an absent Gnumeric release UI definition; native source stays unpatched.",
     "ssconvertRelevance": "Native plugin initialization produces explicit activation errors on command path; GUI declaration is not treated as proof of no effect."
-  }
+  },
+  "gdaDependencyFailures": [
+    {
+      "run": 35843092542,
+      "head": "63e1004a741175578d9962f1837777edd3419667",
+      "workflowConclusion": "failure",
+      "stage": "Authenticated dependency archive extraction",
+      "archiveSha256": "995f4b420e666da5c8bac9faf55e7aedbe3789c525d634720a53be3ccf27a670",
+      "logSha256": "d84628f1d92c2ab36268286e6847278aea45efda88a17ac927ae7d9787fca165",
+      "exactFailure": "tarfile.AbsoluteLinkError: 'libgda-6.0.0/installers/MacOSX/gda-browser/build/Applications' is a link to an absolute path",
+      "fix": "Exclude unused installers subtree through explicit manifest prefixes; retain tar data filter for all Linux build members",
+      "filteredExtractionMembers": 2056,
+      "filteredExtractionPassed": true,
+      "setupAssertionFailure": "Initial check expected installer directory itself absent; archive preserves an empty directory entry. Corrected check confirms no installer contents or absolute link.",
+      "nativeBuildQualified": false
+    }
+  ]
 }

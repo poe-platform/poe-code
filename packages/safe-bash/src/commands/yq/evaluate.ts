@@ -240,6 +240,11 @@ export class Evaluator {
       return omitMissing ? [] : [this.child(scalar(this.yaml, this.work, null), base)];
     }
     if (this.yaml.isSeq(node)) {
+      const text = typeof key === "number" && Number.isInteger(key) ? `${key}.0` : String(key);
+      const digits = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
+      const integer = (typeof key === "bigint" || typeof key === "string") && digits.length > 0
+        && [...digits].every(character => character >= "0" && character <= "9");
+      if (!integer) throw new MikeError(`cannot index array with '${text}' (strconv.ParseInt: parsing ${JSON.stringify(text)}: invalid syntax)`);
       let index = Number(key);
       if (!Number.isSafeInteger(index)) throw new MikeError(`cannot index array with '${String(key)}' (strconv.ParseInt: parsing ${JSON.stringify(String(key))}: invalid syntax)`);
       if (index < 0) index += node.items.length;

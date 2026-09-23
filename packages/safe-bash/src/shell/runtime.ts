@@ -3655,7 +3655,7 @@ export class Runtime {
   }
 
   async redirect(redirects: readonly Redirect[], state: State, io: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, isolatedInlineInput = false, persistMoves = false, fileShortcut = false, line?: number): Promise<IO> {
-    const resourceFs = creationFileSystem(scopeFileSystem(this.sourceFs, () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true }), state.umask ?? 0o022);
+    const resourceFs = scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.commandSignal, () => this.budget.fileSystemCleanupOperation(), { preserveDescriptorWriteReceipt: true });
     this.signal.throwIfAborted();
     if (redirects.length > this.budget.limits.maxRedirects) this.budget.fail("maxRedirects");
     io.descriptors ??= new Map<number, Descriptor>([
@@ -4109,7 +4109,8 @@ export class Runtime {
     const initialEnv = { ...env };
     const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd, fs: creationFileSystem(this.fs, state.umask ?? 0o022), signal: this.commandSignal,
+      ...publicIO, command: name, args: argumentValues.args, argumentValues, env, cwd: state.cwd,
+      fs: scopeFileSystem(creationFileSystem(this.sourceFs, state.umask ?? 0o022), () => this.budget.fileSystemOperation(), this.signal, () => this.budget.fileSystemCleanupOperation()), signal: this.commandSignal,
       executionScope: this.budget.executionScope,
       onInternalError: this.budget.onInternalError,
       inputBudget: {

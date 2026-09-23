@@ -1,0 +1,222 @@
+{
+  "scope": "Required release validation patch parser duplicate incomplete-line marker repair",
+  "status": "implemented-focused-and-independent-controls-build-guarded-lint-qualified",
+  "wholeGoalComplete": false,
+  "publication": "unverified",
+  "failedRelease": 35859732558,
+  "failedJob": "validate / bash (1)",
+  "failure": "context-duplicate-newline-marker silently writes current malformed section instead of refusing it before publication.",
+  "repair": "Reject consecutive no-newline markers in shared content reader before current section admission. Preserve earlier valid section non-atomic publication and atomic/dry-run no-effects contracts.",
+  "authorProof": {
+    "status": "source-frozen; child validation terminal and handed to integration owner",
+    "headAtReceipt": "6619246fba038b5df1e840ed12d58c11476b6540",
+    "ownedSource": "packages/safe-bash/src/commands/diff-patch/patch-formats.ts",
+    "baselineSourceSha256": "a78045ac43900582bdb19f0476414e8566c4e1e2edc86b654bc760cf86de3aa4",
+    "inputs": [
+      {
+        "path": "packages/safe-bash/src/commands/diff-patch/patch-formats.ts",
+        "bytes": 10964,
+        "sha256": "c6258e2d8aed3d44c28554dd9f6f6921b14ef6291d47210c77edddeac82f427f"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/parser.test.ts",
+        "bytes": 470,
+        "sha256": "ed15fb8bd38745ee606bfee742cbaeeea3119368b2fabe0a320dd1d3e786da7b"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/fixtures.ts",
+        "bytes": 10268,
+        "sha256": "093d5ea1ae34de581dc65e459dd5644cee09feae72b79c01b91a499e16c12778"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/helpers.ts",
+        "bytes": 5092,
+        "sha256": "1f34b40b4c18807513a36e4f0589c16d771f2555d0e0002f5876ae89245f34a4"
+      },
+      {
+        "path": "packages/safe-bash/tests/commands/diff-patch-stress/parser-regressions/README.md",
+        "bytes": 10017,
+        "sha256": "ff7894c3e3f7574765789cba8821376a45ee8c4726497e5bd59d7c84d8c5d69e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-context-marker-current-red.log",
+        "bytes": 10854,
+        "sha256": "7fa5b0d5a23a52c3f2b2e49135d3b456ec522ffabe4fbfa812767a739f9b738e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/bash-release-feedback/patch-context-marker-maintained-green.log",
+        "bytes": 9493,
+        "sha256": "72bd69d1a4fcd8aff0f2ed5833683c28e833a5a7a5aa80c0a72a60532295241c"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-review.json",
+        "bytes": 2239,
+        "sha256": "f6676f57327c8942d328eadb45aafdc8621bcd176f8fdccc6ef12c4de53a7a63"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent.test.ts",
+        "bytes": 3545,
+        "sha256": "c823c0ec4501f12b4e33d1b01fdb9785e164f209dad5f585aae5bc22e090418d"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-controls-v2.log",
+        "bytes": 7400,
+        "sha256": "9a40c854af862aeb06b903efd3a1b8f96cad89170cb4d565bde0b80458e6bc6b"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-controls.log",
+        "bytes": 7062,
+        "sha256": "1adeb3da3800f1ed5258e3b3719aad65df666eebcee2c949087c19ab6824f1e4"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-neighbor-controls-pre-repair.log",
+        "bytes": 231015,
+        "sha256": "9dbfa93c59014728900a9321d0d6834d50d3bf37f2e00b34fc1aa4c7d5a8fc83"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-neighbor-controls-post-repair.log",
+        "bytes": 237145,
+        "sha256": "8cb89cfe3930b7fe2d4969502388cad2cef0f22ad1fc3e667b3f569fa934d50e"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/node-rebase-feedback/native-marker-review-TkbcOO/report.json",
+        "bytes": 2850,
+        "sha256": "4077d3fb5fc2bcf0578a3d2bc3e0b93d6086964434c57e28b157d3cd8a911069"
+      },
+      {
+        "path": "out/ssconvert-gap-resolution/release35859732558-bash1-failure.log",
+        "bytes": 181873,
+        "sha256": "31a985b2cf2f788754c499bf1a87d1b0c8d8e8ae8ea0b9078aa5c6c4a64f7cf5"
+      }
+    ],
+    "qualifiedRed": {
+      "command": "node --import tsx --test tests/commands/diff-patch-stress/parser-regressions/parser.test.ts",
+      "cwd": "packages/safe-bash",
+      "exitCode": 1,
+      "tests": 76,
+      "pass": 75,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "qualifiedGreen": {
+      "sameMaintainedInputs": true,
+      "exitCode": 0,
+      "tests": 76,
+      "pass": 76,
+      "fail": 0,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "repair": "Reader.content rejects an immediately repeated no-newline marker before normal/context section conversion is admitted; existing empty-incomplete diagnostic remains prior. ParseProgress and prior valid section publication unchanged.",
+    "limits": [
+      "Strict malformed product policy is independent from GNU patch permissive behavior.",
+      "Sealed fixtures and historical evidence unchanged.",
+      "No root lint/type/build gate or remote delivery/release claim; integration owner coordinates these."
+    ],
+    "independentReview": {
+      "reviewer": "node_rebase_feedback",
+      "candidateControls": {
+        "exitCode": 0,
+        "tests": 44,
+        "pass": 44,
+        "fail": 0
+      },
+      "maintainedPostRepair": {
+        "exitCode": 0,
+        "tests": 1238,
+        "pass": 1238,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "maintainedPreRepair": {
+        "tests": 1208,
+        "pass": 1208
+      },
+      "covered": "Normal/context duplicate2/3 markers with LF/CRLF default/atomic/dry combinations, exact no-current-section effects; earlier-valid crossformat section publication; valid incomplete forward/reverse bytes.",
+      "preservedScratchFailure": "Initial independent controls39/40 had an invalid dry-run progress wording expectation; preserved original failure and explicitly corrected probev2 to checking. No product or sealed fixture edits."
+    }
+  },
+  "independentProof": {
+    "qualification": "Independent bounded current-source review, not a full release or Linux native qualification.",
+    "source": "packages/safe-bash/src/commands/diff-patch/patch-formats.ts",
+    "sourceSha256": "c6258e2d8aed3d44c28554dd9f6f6921b14ef6291d47210c77edddeac82f427f",
+    "sourceBytes": 10964,
+    "trackedEdits": [],
+    "controls": [
+      {
+        "scope": "Maintained main diff-patch and hunk regressions before repair",
+        "tests": 1208,
+        "pass": 1208,
+        "fail": 0,
+        "skipped": 0,
+        "terminal": 0,
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-neighbor-controls-pre-repair.log"
+      },
+      {
+        "scope": "Maintained main diff-patch, hunk regressions, publication controls after repair",
+        "tests": 1238,
+        "pass": 1238,
+        "fail": 0,
+        "skipped": 0,
+        "terminal": 0,
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-neighbor-controls-post-repair.log"
+      },
+      {
+        "scope": "Independent memory matrix candidate",
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "skipped": 0,
+        "terminal": 0,
+        "test": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent.test.ts",
+        "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-controls-v2.log"
+      }
+    ],
+    "earlierProbe": {
+      "tests": 40,
+      "pass": 39,
+      "fail": 1,
+      "terminal": 1,
+      "log": "out/ssconvert-gap-resolution/node-rebase-feedback/patch-marker-independent-controls.log",
+      "defect": "Owned probe expected patching file progress during --dry-run; current documented behavior is checking file. v2 corrected explicit mode progress and added opposite cross-format section order. Original failure log retained; owned probe evolved to v2."
+    },
+    "native": {
+      "report": "out/ssconvert-gap-resolution/node-rebase-feedback/native-marker-review-TkbcOO/report.json",
+      "platform": "darwin",
+      "version": "GNU patch 2.8",
+      "sha256": "f89ad6a21236c82e530c3edb31a2ac5d3c478100c0758931d36cb79bb1a53d8c",
+      "conclusion": "Duplicate new-side markers accepted, duplicate old-side markers refused; GNU permissiveness is separately recorded from maintained strict malformed-input refusal policy."
+    }
+  },
+  "checks": {
+    "maintainedOriginalRegression": "red75pass/1fail;green76pass/0fail",
+    "independentMemory": 44,
+    "maintainedNeighborsAndPublication": 1238,
+    "selectedMaintainedBuild": "passed27-builddependencyclosure",
+    "guardedRootLint": {
+      "complete": true,
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "linted": 16524,
+      "receiptCount": 25
+    }
+  },
+  "visualQA": {
+    "source": "Actual built public Shell command result",
+    "inspected": true,
+    "screenshotSha256": "b2bc80af81b20269f758681fb2e9eb57800fb9f4ebff88d40cb35b5a3af49034",
+    "result": "Readable patch:duplicate no-newline marker diagnostic,status2,emptystdout,targetunchanged.",
+    "initialSetupError": "MemoryFileSystem requires Uint8Array data;original text-only QA fixture corrected to explicit encoded bytes before product execution. No product repair for setup."
+  },
+  "nativePolicy": "Independent GNU2.8Darwin permits duplicate new-side marker;SafeBash documented strict malformed-input refusal is separately preserved. No universal GNU parity claim.",
+  "qualificationLimits": [
+    "This focused repair does not establish full SafeBash/ssconvert parity or successful containing release.",
+    "No sealed fixture or test expectations changed.",
+    "Other original goal/publication obligations remain active."
+  ]
+}

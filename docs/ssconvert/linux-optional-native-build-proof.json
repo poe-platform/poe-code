@@ -15961,6 +15961,40 @@
       "filteredExtractionPassed": true,
       "setupAssertionFailure": "Initial check expected installer directory itself absent; archive preserves an empty directory entry. Corrected check confirms no installer contents or absolute link.",
       "nativeBuildQualified": false
+    },
+    {
+      "run": 35843725182,
+      "head": "e6a7d682ac588d884d36124093da5185282e1d7b",
+      "workflowConclusion": "failure",
+      "stage": "Native GDA Meson setup",
+      "archiveExtraction": "passes-with-data-filter-and-installer-exclusion",
+      "logSha256": "8c5b3a6bae73a0edcc583634562c1fa55deb143f6902e334e91da57adabd2b86",
+      "logBytes": 46199,
+      "failure": "libgda-ui/meson.build:184:2: ERROR: Unknown variable \"libgda_gir\".",
+      "concreteMissing": "Program g-ir-scanner found: NO",
+      "sourceExplanation": "libgda_gir is defined only when girscanner.found(); UI generate_gir requires that value unconditionally",
+      "requiredPackages": [
+        "gobject-introspection",
+        "libgirepository1.0-dev"
+      ],
+      "debianPackageVersion": "1.84.0-1",
+      "relevantLines": [
+        "Program g-ir-scanner found: NO",
+        "Run-time dependency gtksourceview-3.0 found: YES 3.24.11",
+        "libgda-ui/meson.build:184:2: ERROR: Unknown variable \"libgda_gir\".",
+        "Program g-ir-scanner found: NO",
+        "Determining dependency 'gtksourceview-3.0' with pkg-config executable '/usr/bin/pkg-config'",
+        "Called: `/usr/bin/pkg-config --modversion gtksourceview-3.0` -> 0",
+        "Called: `/usr/bin/pkg-config --cflags gtksourceview-3.0` -> 0",
+        "-I/usr/include/gtksourceview-3.0 -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/include/sysprof-6 -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/gtk-3.0 -I/usr/include/pango-1.0 -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/fribidi -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/aarch64-linux-gnu -I/usr/include/webp -I/usr/include/gio-unix-2.0 -I/usr/include/cloudproviders -I/usr/include/atk-1.0 -I/usr/include/at-spi2-atk/2.0 -I/usr/include/at-spi-2.0 -I/usr/include/dbus-1.0 -I/usr/lib/aarch64-linux-gnu/dbus-1.0/include -pthread -I/usr/include/libxml2",
+        "Called: `/usr/bin/pkg-config --libs gtksourceview-3.0` -> 0",
+        "-L/usr/lib/aarch64-linux-gnu -lgtksourceview-3.0 -lgtk-3 -lgdk-3 -lz -lpangocairo-1.0 -lpango-1.0 -lharfbuzz -latk-1.0 -lcairo-gobject -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0",
+        "Called: `/usr/bin/pkg-config --libs gtksourceview-3.0` -> 0",
+        "-lgtksourceview-3.0 -lgtk-3 -lgdk-3 -lz -lpangocairo-1.0 -lpango-1.0 -lharfbuzz -latk-1.0 -lcairo-gobject -lcairo -lgdk_pixbuf-2.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0",
+        "Run-time dependency gtksourceview-3.0 found: YES 3.24.11",
+        "libgda-ui/meson.build:184:2: ERROR: Unknown variable \"libgda_gir\"."
+      ],
+      "nativeBuildQualified": false
     }
   ]
 }

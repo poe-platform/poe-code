@@ -38,7 +38,7 @@ jobs:
             build-essential bison ca-certificates curl git pkg-config intltool itstool libxml2-utils gettext \
             libgtk-3-dev libgsf-1-dev libxml2-dev libxslt1-dev librsvg2-dev libglib2.0-dev libbz2-dev zlib1g-dev \
             pxlib-dev libglpk-dev liblpsolve55-dev glpk-utils lp-solve \
-            meson ninja-build valac libsqlite3-dev libjson-glib-dev libgtksourceview-3.0-dev iso-codes \
+            meson ninja-build valac gobject-introspection libgirepository1.0-dev libsqlite3-dev libjson-glib-dev libgtksourceview-3.0-dev iso-codes \
             tzdata fontconfig fonts-dejavu-core fonts-dejavu-mono python3 python3-dev python-gi-dev python3-gi libperl-dev python3-yaml file \
             >> /out/ssconvert-bootstrap.log 2>&1
       - uses: actions/checkout@v7.0.1

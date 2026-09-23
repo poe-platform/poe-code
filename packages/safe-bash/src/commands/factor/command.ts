@@ -16,19 +16,20 @@ export function createFactorCommand(options: FactorCommandsOptions = {}): Comman
     try {
       lifecycle = new Lifecycle(budget, output);
       const operands: string[] = [];
-      let optionsEnded = false, debug = false;
+      let optionsEnded = false, debug = false, exponents = false;
       let information: "help" | "version" | undefined;
       for (const argument of budget.arguments()) {
         if (!optionsEnded && argument === "--") { optionsEnded = true; continue; }
         if (!optionsEnded && argument.startsWith("--")) {
           const equals = argument.indexOf("=");
           const option = equals < 0 ? argument.slice(2) : argument.slice(2, equals);
-          const matches = ["-debug", "help", "version"].filter(name => name.startsWith(option));
+          const matches = ["-debug", "exponents", "help", "version"].filter(name => name.startsWith(option));
           if (matches.length > 1) throw new FactorError(`option '${argument}' is ambiguous; possibilities: ${matches.map(name => `'--${name}'`).join(" ")}`, true);
           const matched = matches[0];
           if (!matched) throw new FactorError(`unrecognized option '${argument}'`, true);
           if (equals >= 0) throw new FactorError(`option '--${matched}' doesn't allow an argument`, true);
           if (matched === "-debug") debug = true;
+          else if (matched === "exponents") exponents = true;
           else { information = matched as "help" | "version"; break; }
         } else {
           if (!optionsEnded && argument.length > 1 && argument.startsWith("-")) throw new FactorError(`invalid option -- '${argument[1]}'`, true);
@@ -37,7 +38,7 @@ export function createFactorCommand(options: FactorCommandsOptions = {}): Comman
         }
       }
       if (information) {
-        const message = information === "version" ? "factor (virtual-bash)\n" : `Usage: factor [NUMBER]...\nPrint prime factors; with no numbers, read standard input.\nOptions: --help --version\nMaximum supported value: ${limits.maxValue}\n`;
+        const message = information === "version" ? "factor (virtual-bash)\n" : `Usage: factor [NUMBER]...\nPrint prime factors; with no numbers, read standard input.\nOptions: --exponents (print repeated factors as powers) --help --version\nMaximum supported value: ${limits.maxValue}\n`;
         budget.outputRoom(message.length);
         await lifecycle.write(bytes(message));
       } else {
@@ -52,7 +53,7 @@ export function createFactorCommand(options: FactorCommandsOptions = {}): Comman
             await lifecycle!.diagnostic(`factor: ${quote(input, budget, 8 + suffix.length)}${suffix}`);
           } else {
             if (debug) await lifecycle!.diagnostic("[using single-precision arithmetic] ");
-            await writer.append(await factorRecord(value, budget));
+            await writer.append(await factorRecord(value, budget, exponents));
           }
         };
         if (operands.length) { for (const operand of operands) await process(operand); }

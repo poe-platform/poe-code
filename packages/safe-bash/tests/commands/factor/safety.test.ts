@@ -73,7 +73,7 @@ test("virtual help short-circuits operands and version prefixes are admitted", a
 test("empty long-option prefix preserves native ambiguity and candidate order", async () => {
   assert.deepEqual(await run(["--=x"]), {
     exitCode: 1, stdout: "",
-    stderr: "factor: option '--=x' is ambiguous; possibilities: '---debug' '--help' '--version'\nTry 'factor --help' for more information.\n",
+    stderr: "factor: option '--=x' is ambiguous; possibilities: '---debug' '--exponents' '--help' '--version'\nTry 'factor --help' for more information.\n",
   });
 });
 

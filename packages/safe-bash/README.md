@@ -81,6 +81,7 @@ filesystem and byte streams, not host executables.
 | Changes/review | `diff`, `patch`, `apply_patch` |
 
 Use `cat --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options.
+`factor --exponents 72` prints `72: 2^3 3^2`; without operands, it reads numbers from stdin.
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.

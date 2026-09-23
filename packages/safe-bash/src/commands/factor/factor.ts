@@ -19,7 +19,7 @@ export async function parseNumber(input: string, budget: Budget): Promise<number
   return large ? "large" : result;
 }
 
-export async function factorRecord(value: number, budget: Budget): Promise<string> {
+export async function factorRecord(value: number, budget: Budget, exponents: boolean): Promise<string> {
   let remaining = value;
   const factors: number[] = [];
   budget.retain(512);
@@ -36,6 +36,15 @@ export async function factorRecord(value: number, budget: Budget): Promise<strin
     }
     if (remaining > 1) factors.push(remaining);
     budget.charge(1 + factors.length * 11);
-    return `${value}:${factors.map(factor => ` ${factor}`).join("")}\n`;
+    let record = `${value}:`;
+    for (let index = 0; index < factors.length; index++) {
+      const factor = factors[index];
+      let exponent = 1;
+      if (exponents) {
+        while (factors[index + 1] === factor) { exponent++; index++; }
+      }
+      record += ` ${factor}${exponent > 1 ? `^${exponent}` : ""}`;
+    }
+    return `${record}\n`;
   } finally { budget.retain(-512); }
 }

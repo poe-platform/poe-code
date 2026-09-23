@@ -2,6 +2,34 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import * as entry from "../../src/index.js";
 
+for (const [command, stdin, stdout] of [
+  ["factor --exponents 72", "", "72: 2^3 3^2\n"],
+  ["factor 0 1 2 12 30 64 --exponents", "", "0:\n1:\n2: 2\n12: 2^2 3\n30: 2 3 5\n64: 2^6\n"],
+  ["factor --exponents", "72\t97\n", "72: 2^3 3^2\n97: 97\n"],
+  ["factor --exp 72", "", "72: 2^3 3^2\n"],
+] as const) test(`factor exponent output: ${command}`, async () => {
+  const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec(command, { stdin });
+    assert.deepEqual({ status: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+      status: 0, stdout, stderr: "",
+    });
+  } finally { await shell.dispose(); }
+});
+
+for (const [command, stderr] of [
+  ["factor --exponents=yes 72", "factor: option '--exponents' doesn't allow an argument\nTry 'factor --help' for more information.\n"],
+  ["factor -- --exponents", "factor: '--exponents' is not a valid positive integer\n"],
+] as const) test(`factor exponent option validation: ${command}`, async () => {
+  const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec(command);
+    assert.deepEqual({ status: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
+      status: 1, stdout: "", stderr,
+    });
+  } finally { await shell.dispose(); }
+});
+
 test("the default preset and public factories expose factor", () => {
   assert.equal(entry.createAgentCommands().filter(command => command.name === "factor").length, 1);
   for (const name of ["createFactorCommand", "createFactorCommands", "factorCommands"]) {

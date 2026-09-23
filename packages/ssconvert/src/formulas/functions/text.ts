@@ -6,6 +6,7 @@ import { byteStringValue, joinByteText } from "../../encoding/byte-value.js";
 import { caseByteText } from "./byte-case.js";
 import { trimByteText } from "./byte-trim.js";
 import { properByteText } from "./byte-proper.js";
+import { findByteText } from "./byte-find.js";
 import { replaceByteText } from "./byte-replaceb.js";
 import { substituteByteText } from "./byte-substitute.js";
 import type { CellValue } from "../../workbook.js";
@@ -45,16 +46,19 @@ function sliceText(name: string, args: readonly (Value | undefined)[], host: Fun
   return str(chars.slice(first, last).join(""));
 }
 function search(name: string, args: readonly (Value | undefined)[], host: FunctionHost): CellValue {
-  const needle = textArg(args, 0, host), source = textArg(args, 1, host), chars = Array.from(source);
-  const start = numberArg(args, 2, host, 1), bytes = name.endsWith("B"), offsets = byteOffsets(source, host);
+  const start = numberArg(args, 2, host, 1), bytes = name.endsWith("B");
+  if (name.startsWith("FIND")) {
+    const found = findByteText(byteTextArg(args, 0, host), byteTextArg(args, 1, host), start, bytes, host.tick);
+    return found === undefined ? error("#VALUE!") : numericResult(found);
+  }
+  const needle = textArg(args, 0, host), source = textArg(args, 1, host), chars = Array.from(source), offsets = byteOffsets(source, host);
   const length = bytes ? offsets.at(-1)! : chars.length;
-  const invalidStart = name.startsWith("FIND") ? start >= length + 1
-    : bytes ? start > length : start >= 2147483647 || Math.trunc(start) > length + 1;
+  const invalidStart = bytes ? start > length : start >= 2147483647 || Math.trunc(start) > length + 1;
   if (start < 1 || invalidStart) return error("#VALUE!");
   const initial = bytes ? offsets.findIndex(offset => offset >= Math.trunc(start) - 1) : Math.trunc(start) - 1;
   for (let index = initial; index <= chars.length; index++) {
     host.tick(); const tail = chars.slice(index).join("");
-    if (name.startsWith("SEARCH") ? wildcard(needle, tail, host, false) : tail.startsWith(needle)) return numericResult((bytes ? offsets[index]! : index) + 1);
+    if (wildcard(needle, tail, host, false)) return numericResult((bytes ? offsets[index]! : index) + 1);
   }
   return error("#VALUE!");
 }

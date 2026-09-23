@@ -6,6 +6,28 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { setup } from "./helpers.js";
 
+for (const [expression, expected] of [
+  ["$@", "COUNT:2\n<Changed\xff A>\n<Last Value>\n"],
+  ["$*", "COUNT:2\n<Changed\xff A>\n<Last Value>\n"],
+  ["pre$@post", "COUNT:2\n<preChanged\xff A>\n<Last Valuepost>\n"],
+  ["pre$*post", "COUNT:2\n<preChanged\xff A>\n<Last Valuepost>\n"],
+  ["\"$@\"", "COUNT:3\n<Changed\xff A>\n<>\n<Last Value>\n"],
+  ["\"$*\"", "COUNT:1\n<Changed\xff ALast Value>\n"],
+  ["\"pre$@post\"", "COUNT:3\n<preChanged\xff A>\n<>\n<Last Valuepost>\n"],
+  ["$owned", "COUNT:1\n<Changed\xff A>\n"],
+] as const) test(`empty IFS preserves positional boundaries and bytes for ${expression}`, async () => {
+  const { shell, fs } = fixture();
+  const script = `owned=$(printf 'Changed\\377 A'); set -- "$owned" "" "Last Value"; IFS=""; measure() { printf 'COUNT:%s\\n' "$#"; for item in "$@"; do printf '<%s>\\n' "$item"; done; }; measure ${expression}`;
+  await fs.writeFile("/empty-ifs.sh", new TextEncoder().encode(script));
+  try {
+    const result = await shell.exec("sh /empty-ifs.sh");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, Uint8Array.from(expected, character => character.charCodeAt(0)));
+  } finally { await shell.dispose(); }
+});
+
+
 const portableByteScripts = [
   ["ANSI-C quote", "printf '%s' $'\\377'"],
   ["command substitution", "printf '%s' \"$(printf '\\377')\""],

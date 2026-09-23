@@ -204,18 +204,29 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "current product mirrors upstream unimplemented formula tokens; requested extension pending",
+      "currentFinding": "WK1/WK3 name records implemented and delivered; op7/8 tokens and wider/local profiles remain open",
       "proof": [
         {
           "kind": "upstream-source",
           "path": "plugins/lotus-123/lotus-formula.c:806-809",
           "outcome": "LOTUS_FORMULA_NAMED/ABS_NAMED explicitly warn Named ranges not implemented in authenticated native source"
+        },
+        {
+          "kind": "executed-record-import",
+          "path": "docs/ssconvert/lotus-name-records-gap-proof.json",
+          "outcome": "350files/13259 tests,8 SDK/Shell/browser/worker cases,16 portable XML/XLSX replays per surface;15 native exact,one native XLSX quoted-name grammar divergence retained"
         }
       ],
       "delivery": {
         "localCommit": null,
         "remoteMain": null,
         "publication": null
+      },
+      "recordImportDelivery": {
+        "implementationCommit": "a470b26db34e34383983b1fe411e867911a77993",
+        "remoteMainObserved": "a470b26db34e34383983b1fe411e867911a77993",
+        "ancestryVerified": true,
+        "publication": "Not yet verified; monitor containing release separately"
       }
     },
     {

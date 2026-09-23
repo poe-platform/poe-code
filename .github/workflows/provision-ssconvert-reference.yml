@@ -64,7 +64,8 @@ jobs:
               urllib.request.urlretrieve(source['url'], archive)
               assert hashlib.sha256(archive.read_bytes()).hexdigest() == source['sha256']
               with tarfile.open(archive) as tar:
-                  tar.extractall(root, filter='data')
+                  members = [member for member in tar.getmembers() if not any(member.name.startswith(prefix) for prefix in dependency.get('excludeArchivePaths', []))]
+                  tar.extractall(root, members=members, filter='data')
               cwd = root / source['directory']
               for index, command in enumerate(dependency['commands']):
                   with (root / (dependency['id'] + '-' + str(index) + '.log')).open('wb') as log:

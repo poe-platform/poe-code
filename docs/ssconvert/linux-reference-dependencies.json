@@ -48,7 +48,11 @@
           "build"
         ]
       ],
-      "policy": "Native source remains unpatched. Gnumeric requires both libgda-6.0 and libgda-ui-6.0; GTK UI is enabled through the source-required experimental option. Unrelated optional libgda services remain disabled explicitly; their coverage is not claimed."
+      "policy": "Native source remains unpatched. Gnumeric requires both libgda-6.0 and libgda-ui-6.0; GTK UI is enabled through the source-required experimental option. Unrelated optional libgda services remain disabled explicitly; their coverage is not claimed.",
+      "excludeArchivePaths": [
+        "libgda-6.0.0/installers/"
+      ],
+      "extractionPolicy": "Exclude only the unused platform installer subtree; retain data filter path/link checks for every Linux build member. The authenticated original archive is unchanged."
     }
   ]
 }

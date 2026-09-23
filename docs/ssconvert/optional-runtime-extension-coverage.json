@@ -1495,15 +1495,29 @@
     },
     {
       "capability": "PY_CAPWORDS",
-      "status": "partial ASCII implementation; Unicode and oracle unresolved",
-      "implementation": "pythonSampleFunctions; ASCII Python whitespace/whole-word capitalization; non-ASCII explicitly unsupported; matching Python Unicode tables require qualification",
-      "oracle": "unmeasured in matching activated optional profile"
+      "status": "implemented declared Unicode16; wider native and exact optional profiles unresolved",
+      "implementation": "pythonSampleFunctions; frozen Unicode16 whitespace/title/lower/sigma plus native typed split exceptions and C-string NUL boundaries; invalid native byte acquisition remains a portable refusal",
+      "oracle": "153scalar controls match activatedPython3.12/3.14;10488Unicode16 contexts and12arrayfields match public surfaces;139Unicode15 differences retained. See capwords-native-loader-gap-proof.json and capwords-cstring-gap-proof.json; inheritedHOME/user-plugin closure and14exact optionalLinuxprofiles remain open.",
+      "history": [
+        {
+          "status": "partial ASCII implementation; Unicode and oracle unresolved",
+          "implementation": "pythonSampleFunctions; ASCII Python whitespace/whole-word capitalization; non-ASCII explicitly unsupported; matching Python Unicode tables require qualification",
+          "oracle": "unmeasured in matching activated optional profile"
+        }
+      ]
     },
     {
       "capability": "PY_PRINTF",
-      "status": "unresolved",
-      "implementation": "requires Python percent-format compatibility interpreter and exception/result conversion",
-      "oracle": "unmeasured in matching activated optional profile"
+      "status": "scalar/array and stable RangeRef prefixes implemented; address-bearing and exact optional profiles unresolved",
+      "implementation": "bounded Python percent-format interpreter, native exception/result conversion and precision<=22 RangeRef prefixes; address digits remain explicitly refused",
+      "oracle": "784scalar/array cases and18precision-bounded RangeRef cases match activatedPython3.12.13/3.14.7 andSDK/Shell/replay/browser/worker. See python-printf-gap-proof.json and python-printf-range-prefix-gap-proof.json; wider native diagnostics/environment and exact optionalLinuxprofiles remain open.",
+      "history": [
+        {
+          "status": "unresolved",
+          "implementation": "requires Python percent-format compatibility interpreter and exception/result conversion",
+          "oracle": "unmeasured in matching activated optional profile"
+        }
+      ]
     },
     {
       "capability": "EXECSQL / READDBTABLE",

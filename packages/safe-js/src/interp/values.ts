@@ -3,7 +3,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { appendScopeDataRoot, scopeDataRoots } from "./scope-data-roots.js";
+import { scopeDataRoots } from "./scope-data-roots.js";
 import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -803,14 +803,20 @@ export function* cloneStructuredGraph(
   } finally { release(); }
 }
 
+interface CaptureBuffer {
+  values: SandboxValue[];
+  length: number;
+}
 interface DataContinuation {
   values: readonly unknown[] | undefined;
   index: number;
   depth: number;
+  capture: CaptureBuffer | undefined;
 }
 const nativeDataArrayFrom = Array.from.bind(Array);
 const nativeDataArrayAppend = Function.prototype.call.bind(Array.prototype.push);
 const nativeDataArraySetPrototype = Object.setPrototypeOf;
+const MAX_REUSABLE_CAPTURE_LENGTH = 64;
 
 export function measureSandboxData(
   values: Iterable<unknown>,
@@ -843,26 +849,49 @@ function measureSandboxDataWithSeen(
   // the segment above their entry count; completed frames release guest roots.
   let pending: DataContinuation[] | undefined;
   let pendingCount = 0;
-  const appendContinuation = (values: readonly unknown[], depth: number): void => {
+  const appendContinuation = (values: readonly unknown[], depth: number, capture?: CaptureBuffer): void => {
     const frames = pending ??= nativeDataArraySetPrototype([], null) as DataContinuation[];
     let frame = frames[pendingCount];
     if (frame === undefined) {
-      frame = { values, index: 1, depth };
+      frame = { values, index: 1, depth, capture };
       nativeDataArrayAppend(frames, frame);
     } else {
       frame.values = values;
       frame.index = 1;
       frame.depth = depth;
+      frame.capture = capture;
     }
     pendingCount++;
   };
 
-  let captures: SandboxValue[] | undefined;
+  let captures: CaptureBuffer | undefined;
+  let freeCaptures: Array<CaptureBuffer | undefined> | undefined;
+  let freeCaptureCount = 0;
+  const releaseCaptures = (buffer: CaptureBuffer): void => {
+    // A wide leaf must not lend its backing storage to a small parent frame
+    // that remains pending through deeper walks. Drop large buffers instead.
+    if (buffer.values.length > MAX_REUSABLE_CAPTURE_LENGTH) return;
+    // No guest roots survive in an available buffer. Pending continuation
+    // frames keep exclusive ownership until all their captures are visited.
+    // Keep backing storage while clearing every used slot. Truncating native
+    // arrays to zero would allocate that storage again on the next append.
+    while (buffer.length > 0) buffer.values[--buffer.length] = undefined;
+    freeCaptures ??= nativeDataArraySetPrototype([], null) as Array<CaptureBuffer | undefined>;
+    freeCaptures[freeCaptureCount++] = buffer;
+  };
   const appendNativeCapture = (value: SandboxValue): void => {
     // Omitting an already visited object is equivalent to visit's first check.
     // Primitive charges and all provider/metadata reads remain observable.
     if (value === undefined || (typeof value === "object" && value !== null && seen.has(value))) return;
-    appendScopeDataRoot(captures ??= [], value);
+    if (captures === undefined) {
+      if (freeCaptureCount > 0) {
+        captures = freeCaptures![--freeCaptureCount]!;
+        freeCaptures![freeCaptureCount] = undefined;
+      } else captures = { values: nativeDataArraySetPrototype([], null), length: 0 };
+    }
+    // Both vectors have null prototypes and are private: indexed writes cannot
+    // invoke inherited setters or replaced native array methods.
+    captures.values[captures.length++] = value;
   };
 
   const visit = (value: unknown, depth = 0): void => {
@@ -1071,18 +1100,20 @@ function measureSandboxDataWithSeen(
           if (!options.ignoreClosureCaptures) {
             const collect = readIndexedClosureCaptures(closure);
             if (collect !== undefined) {
-              let roots: readonly SandboxValue[] | undefined;
+              let roots: CaptureBuffer | undefined;
               try {
                 collect(appendNativeCapture);
                 roots = captures;
               } finally {
+                if (roots === undefined && captures !== undefined) releaseCaptures(captures);
                 // Descendants may collect their own native captures on this walk.
                 captures = undefined;
               }
               if (roots !== undefined && roots.length > 0) {
+                value = roots.values[0];
                 if (roots.length > 1)
-                  appendContinuation(roots, depth + 1);
-                value = roots[0];
+                  appendContinuation(roots.values, depth + 1, roots);
+                else releaseCaptures(roots);
                 depth++;
                 continue walk;
               }
@@ -1477,11 +1508,13 @@ function measureSandboxDataWithSeen(
       while (pendingCount > floor) {
         const frame = pending![pendingCount - 1]!;
         const references = frame.values!;
-        if (frame.index < references.length) {
+        if (frame.index < (frame.capture?.length ?? references.length)) {
           value = references[frame.index++];
           depth = frame.depth;
           continue walk;
         }
+        if (frame.capture !== undefined) releaseCaptures(frame.capture);
+        frame.capture = undefined;
         frame.values = undefined;
         pendingCount--;
       }
@@ -1505,7 +1538,12 @@ function measureSandboxDataWithSeen(
     }
     return usage;
   } finally {
-    while (pendingCount > 0) pending![--pendingCount]!.values = undefined;
+    while (pendingCount > 0) {
+      const frame = pending![--pendingCount]!;
+      if (frame.capture !== undefined) releaseCaptures(frame.capture);
+      frame.capture = undefined;
+      frame.values = undefined;
+    }
   }
 }
 

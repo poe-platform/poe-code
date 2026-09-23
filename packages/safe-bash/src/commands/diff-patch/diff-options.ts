@@ -11,6 +11,7 @@ export interface DiffFlags extends DisplayOptions {
   newFile: boolean;
   labels: string[];
   files: string[];
+  optionArgs: string[];
   ignoreCase: boolean;
   ignoreBlank: boolean;
   ignoreTrailing: boolean;
@@ -33,7 +34,7 @@ function contextLength(value: string): number {
 }
 
 export function flags(args: readonly string[]): DiffFlags {
-  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, labels: [], files: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
+  const result: DiffFlags = { format: "normal", whitespace: "exact", context: 0, brief: false, recursive: false, newFile: false, labels: [], files: [], optionArgs: [], ignoreCase: false, ignoreBlank: false, ignoreTrailing: false, ignoreTabs: false, ignorePatterns: [], functions: [], reportSame: false, text: false, paginate: false, excludes: [], excludeFiles: [], width: 130, expand: false, initialTab: false, leftColumn: false, suppressCommon: false, symbol: "" };
   let selectedFormat: DiffFlags["format"] | undefined;
   const selectFormat = (format: DiffFlags["format"]) => {
     if (selectedFormat !== undefined && selectedFormat !== format) throw new ToolError("conflicting output format options");
@@ -50,6 +51,8 @@ export function flags(args: readonly string[]): DiffFlags {
   let operands = false;
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]!;
+    const optionStart = index;
+    const isOption = !operands && arg !== "-" && arg.startsWith("-");
     if (!operands && arg.startsWith("--")) previousDigit = false;
     const value = (attached: string | undefined, name: string) => {
       const next = attached ?? args[++index];
@@ -144,6 +147,7 @@ export function flags(args: readonly string[]): DiffFlags {
         } else throw new ToolError(`unsupported option: -${flag}`);
       }
     }
+    if (isOption) result.optionArgs.push(...args.slice(optionStart, index + 1));
   }
   if (legacyContext >= 0 && (result.format === "unified" || result.format === "context")) {
     result.context = explicitContext ? Math.max(result.context, legacyContext) : legacyContext;

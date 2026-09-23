@@ -16,6 +16,19 @@ for (const fixture of fixtures) test(`GNU admitted options ${JSON.stringify(fixt
   assert.deepEqual({ exitCode: actual.exitCode, stdout: actual.stdout, stderr: actual.stderr }, expected);
 });
 
+for (const args of [["-r"], ["--recursive"], ["-r", "-N"], ["-r", "-x", "skip"], []]) test(`normal directory sections ${args.join(" ")}`, async () => {
+  const fs = await filesystem({ "left/a.txt": "old\n", "right/a.txt": "new\n", "left/sub/b.txt": "left\n", "right/sub/b.txt": "right\n", "left/same": "same\n", "right/same": "same\n" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(diffPatchCommands());
+  const actual = await shell.exec(["diff", ...args, "left", "right"].join(" "));
+  const prefix = ["diff", ...args].join(" ");
+  assert.equal(actual.exitCode, 1, actual.stderr);
+  assert.equal(actual.stdout, `${prefix} left/a.txt right/a.txt\n1c1\n< old\n---\n> new\n` + (args.length ? `${prefix} left/sub/b.txt right/sub/b.txt\n1c1\n< left\n---\n> right\n` : "Common subdirectories: left/sub and right/sub\n"));
+  const direct = await shell.exec(["diff", ...args, "left/a.txt", "right/a.txt"].join(" "));
+  assert.equal(direct.stdout, "1c1\n< old\n---\n> new\n");
+  const brief = await shell.exec(["diff", "-q", ...args, "left", "right"].join(" "));
+  assert.equal(brief.stdout, "Files left/a.txt and right/a.txt differ\n" + (args.length ? "Files left/sub/b.txt and right/sub/b.txt differ\n" : "Common subdirectories: left/sub and right/sub\n"));
+});
+
 for (const args of [["-rx", "ignore*"], ["-rX", "excludes"], ["-rS", "z"]]) test(`directory selection ${args.join(" ")}`, async () => {
   const files = { "left/ignore.txt": "old\n", "right/ignore.txt": "new\n", "left/z": "same\n", "right/z": "same\n", excludes: "ignore*\n" };
   const actual = await run("diff", [...args, "left", "right"], { files });

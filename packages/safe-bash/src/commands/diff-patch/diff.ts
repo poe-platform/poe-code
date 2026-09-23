@@ -169,7 +169,10 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, options.symbol, budget, append);
     else if (changed) {
-      if (options.format === "normal") await normal(changes, budget, append, options);
+      if (options.format === "normal") {
+        if (pair.nested) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
+        await normal(changes, budget, append, options);
+      }
       else if (options.format === "ed" || options.format === "rcs") await script(changes, options.format, budget, append);
       else await contextual(changes, options.format, label(options.labels[0] ?? (leftStat ? left : "/dev/null")), label(options.labels[1] ?? (rightStat ? right : "/dev/null")), options.context, budget, append, options, options.functions.length ? async position => {
         for (let index = position - 1; index >= 0; index--) {

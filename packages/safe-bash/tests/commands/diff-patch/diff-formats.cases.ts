@@ -276,7 +276,7 @@ test("whitespace comparison applies to stdin, recursive files, and missing files
   assert.equal(stdin.stdout, "");
   const recursive = await run("diff", ["-rw", "left", "right"], { files: { "left/same": "a b\n", "right/same": "ab\n", "left/different": "old\n", "right/different": "new\n" } });
   assert.equal(recursive.exitCode, 1);
-  assert.equal(recursive.stdout, "1c1\n< old\n---\n> new\n");
+  assert.equal(recursive.stdout, "diff -rw left/different right/different\n1c1\n< old\n---\n> new\n");
   const missing = await run("diff", ["-Nw", "old", "new"], { files: { new: " \n" } });
   assert.equal(missing.exitCode, 1);
   assert.equal(missing.stdout, "0a1\n>  \n");

@@ -46,6 +46,12 @@ function fixture() {
     data[core + `/dist/contracts/${name}.js`] = "export {};\n";
     data[core + `/dist/contracts/${name}.d.ts`] = "export {};\n";
   }
+  for (const statement of hostDeclarations.statements) {
+    if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+    const target = core + "/dist/" + statement.moduleSpecifier.text.slice(2, -3);
+    data[target + ".d.ts"] ??= "export {};\n";
+    if (!statement.isTypeOnly) data[target + ".js"] ??= "export {};\n";
+  }
   const volume = Volume.fromJSON(data);
   const fileSystem = createFsFromVolume(volume);
   const compilation = { status: 0, rootNames: [core + "/src/optional.ts"], emittedFiles: Object.keys(data).filter(name => name.startsWith(core + "/dist/")) };
@@ -346,28 +352,31 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     const runtime: string[] = [];
     const declarations: string[] = [];
-    let runtimeNames = 0, typeNames = 0;
+    const expectedRuntime: string[] = [];
+    const expectedDeclarations: string[] = [];
     for (const statement of hostDeclarations.statements) {
       if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier) || !statement.exportClause || !ts.isNamedExports(statement.exportClause)) throw new Error("Expected explicit named host re-exports");
       const names = statement.exportClause.elements.map(element => element.name.text);
       const specifier = "../../" + statement.moduleSpecifier.text.slice(2);
       declarations.push(`export type { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
-      if (statement.isTypeOnly) typeNames += names.length;
-      else { runtimeNames += names.length; runtime.push(`export { ${names.join(", ")} } from ${JSON.stringify(specifier)};`); }
+      expectedDeclarations.push(`export type { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
+      if (!statement.isTypeOnly) {
+        runtime.push(`export { ${names.join(", ")} } from ${JSON.stringify(specifier)};`);
+        expectedRuntime.push(`export { ${names.join(", ")} } from "@poe-platform/safe-bash/optional-host";`);
+      }
     }
-    expect([runtimeNames, typeNames]).toEqual([5, 20]);
+    expect(runtime.length).toBeGreaterThan(0);
+    expect(declarations.length).toBeGreaterThan(runtime.length);
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", runtime.join("\n"));
     volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", declarations.join("\n"));
     const result = await buildOptionalPackage(options);
     const runtimeOutput = volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString();
     const typesOutput = volume.readFileSync(optional + "/dist/opt-in/commands/yes/index.d.ts", "utf8").toString();
-    for (const name of ["codeOf", "pathOf", "output", "compareCopyIdentity", "compareObservedEntries"]) expect(runtimeOutput).toContain(name);
-    expect(typesOutput).toContain("ShellIndexedWriter");
-    expect(typesOutput).toContain("ReadLine");
-    expect(runtimeOutput.split('from "@poe-platform/safe-bash/optional-host"').length - 1).toBe(2);
-    expect(typesOutput.split('from "@poe-platform/safe-bash/optional-host"').length - 1).toBe(4);
-    expect(result.files).not.toContain("optional-host.js");
-    expect(result.files.some((filename: string) => filename.startsWith("contracts/") || filename.startsWith("shell/"))).toBe(false);
+    expect(runtimeOutput).toBe(expectedRuntime.join("\n"));
+    expect(typesOutput).toBe(expectedDeclarations.join("\n"));
+    expect(result.files).toEqual([
+      "commands/yes/helper.js", "commands/yes/index.d.ts", "commands/yes/index.js", "commands/yes/payload.bin", "entrypoints/yes.d.ts", "entrypoints/yes.js", "optional.d.ts", "optional.js",
+    ]);
   });
 
   it.each(["../../commands/internal.js", "undeclared-private-peer", "@poe-platform/safe-bash/contracts/command"])("rejects unsupported external import-equals declarations for %s", async specifier => {

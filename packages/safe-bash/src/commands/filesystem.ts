@@ -697,17 +697,21 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       let ended = false;
       let optionValue = false;
       let logical = false;
+      let interactive = false;
       const args = context.args.map(argument => {
         if (optionValue) { optionValue = false; return argument; }
         if (argument === "--") ended = true;
         if (!ended) {
           if (argument === "--logical") logical = true;
           else if (argument === "--physical") logical = false;
+          else if (argument === "--interactive") interactive = true;
+          else if (argument === "--force") interactive = false;
           else if (argument === "--suffix" || argument === "--target-directory") optionValue = true;
           else if (argument.startsWith("-") && !argument.startsWith("--")) {
             for (let offset = 1; offset < argument.length; offset++) {
               const flag = argument[offset]!;
               if (flag === "L" || flag === "P") logical = flag === "L";
+              if (flag === "i" || flag === "f") interactive = flag === "i";
               if (flag === "S" || flag === "t" || flag === "B") {
                 optionValue = offset === argument.length - 1;
                 break;
@@ -717,7 +721,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         }
         return !ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL || "existing"}` : argument;
       });
-      const parsed = options(args, "srfnTvbLPB:S:t:", { symbolic: "s", relative: "r", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", logical: "L", physical: "P", backup: "B", suffix: "S", "target-directory": "t" });
+      const parsed = options(args, "srifnTvbLPB:S:t:", { symbolic: "s", relative: "r", interactive: "i", force: "f", "no-dereference": "n", "no-target-directory": "T", verbose: "v", logical: "L", physical: "P", backup: "B", suffix: "S", "target-directory": "t" });
       if (parsed.flags.has("r") && !parsed.flags.has("s")) throw new UsageError("cannot do --relative without --symbolic");
       const targetDirectory = value(parsed, "t");
       if (targetDirectory !== undefined && parsed.flags.has("T")) throw new UsageError("cannot combine --target-directory and --no-target-directory");
@@ -737,65 +741,77 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       needCapability(context, symbolic ? "symlink" : "link");
       await preflightOperands(context, operands.slice(0, -1), async operand => {
         const destination = directory ? joinPath(target, basename(operand)) : target;
-        const replacing = (parsed.flags.has("f") || backupMode !== "none") && await maybeStat(context, destination, false);
+        const replacing = (interactive || parsed.flags.has("f") || backupMode !== "none") && await maybeStat(context, destination, false);
         await admitFilesystemModes(context, "ln", [symbolic ? "symbolic" : "hard", ...replacing ? [backupMode !== "none" ? "backup" : "replace"] : []], [destination]);
       });
-      return eachOperand(context, operands.slice(0, -1), async operand => {
-        const destination = directory ? joinPath(target, basename(operand)) : target;
-        const sourcePath = pathOf(context, operand);
-        const source = !symbolic && logical ? await context.fs.realpath(sourcePath, { signal: context.signal }) : sourcePath;
-        const linkTarget = parsed.flags.has("r")
-          ? relativePath(
-            await canonicalizeReadlinkMissing(context, dirname(destination)),
-            await canonicalizeReadlinkMissing(context, operand.startsWith("/") ? operand : `${context.cwd}/${operand}`),
-          ) || "." : operand;
-        if (!symbolic && source === destination) throw new FsError("EEXIST", { path: destination });
-        const existing = await maybeStat(context, destination, false);
-        let backup: string | undefined;
-        if (existing && (parsed.flags.has("f") || backupMode !== "none")) {
-          if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
-          if (!symbolic) {
-            if (logical) await context.fs.stat(source, { signal: context.signal });
-            else await context.fs.lstat(source, { signal: context.signal });
-            const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
-            const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
-            if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
-          }
-          if (backupMode !== "none") {
-            let largest = 0n;
-            if (backupMode !== "simple") {
-              const prefix = basename(destination) + ".~";
-              for (const entry of await readDirectory(context, dirname(destination))) {
-                if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
-                const digits = entry.name.slice(prefix.length, -1);
-                if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
-                const number = BigInt(digits);
-                if (number > largest) largest = number;
+      const answers = lines(readBytes(context.stdin, context.signal));
+      let declined = false;
+      try {
+        const result = await eachOperand(context, operands.slice(0, -1), async operand => {
+          const destination = directory ? joinPath(target, basename(operand)) : target;
+          const sourcePath = pathOf(context, operand);
+          const source = !symbolic && logical ? await context.fs.realpath(sourcePath, { signal: context.signal }) : sourcePath;
+          const linkTarget = parsed.flags.has("r")
+            ? relativePath(
+              await canonicalizeReadlinkMissing(context, dirname(destination)),
+              await canonicalizeReadlinkMissing(context, operand.startsWith("/") ? operand : `${context.cwd}/${operand}`),
+            ) || "." : operand;
+          if (!symbolic && source === destination) throw new FsError("EEXIST", { path: destination });
+          const existing = await maybeStat(context, destination, false);
+          let backup: string | undefined;
+          if (existing && (interactive || parsed.flags.has("f") || backupMode !== "none")) {
+            if (existing.type === "directory") throw new FsError("EISDIR", { path: destination });
+            if (!symbolic) {
+              if (logical) await context.fs.stat(source, { signal: context.signal });
+              else await context.fs.lstat(source, { signal: context.signal });
+              const sourceEntry = joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source));
+              const targetEntry = joinPath(await context.fs.realpath(dirname(destination), { signal: context.signal }), basename(destination));
+              if (sourceEntry === targetEntry) throw new FsError("EEXIST", { path: destination, message: "source and destination are the same file" });
+            }
+            if (interactive) {
+              const displayTarget = directory ? childOperand(operands.at(-1)!, basename(operand)) : operands.at(-1)!;
+              await writeBytes(context.stderr, new TextEncoder().encode(`ln: replace '${escapeText(displayTarget, "display")}'? `), context.signal);
+              const answer = await answers.next();
+              const text = answer.done ? "" : new TextDecoder().decode(answer.value.bytes).trimStart();
+              if (text[0] !== "y" && text[0] !== "Y") { declined = true; return; }
+            }
+            if (backupMode !== "none") {
+              let largest = 0n;
+              if (backupMode !== "simple") {
+                const prefix = basename(destination) + ".~";
+                for (const entry of await readDirectory(context, dirname(destination))) {
+                  if (!entry.name.startsWith(prefix) || !entry.name.endsWith("~")) continue;
+                  const digits = entry.name.slice(prefix.length, -1);
+                  if (!digits || !Array.from(digits).every(char => char >= "0" && char <= "9")) continue;
+                  const number = BigInt(digits);
+                  if (number > largest) largest = number;
+                }
               }
-            }
-            backup = backupMode === "numbered" || largest > 0n ? `${destination}.~${largest + 1n}~` : destination + backupSuffix;
-            if (backup === source || backup === destination) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
-            const backupStat = await maybeStat(context, backup, false);
-            if (!symbolic && backupStat) {
-              const sourceStat = logical ? await context.fs.stat(source, { signal: context.signal }) : await context.fs.lstat(source, { signal: context.signal });
-              if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
-            }
-            await admitFilesystemModes(context, "ln", ["backup"], [destination, backup]);
-            await context.fs.rename(destination, backup, { signal: context.signal });
-          } else await context.fs.rm(destination, { signal: context.signal });
-        }
-        try {
-          if (symbolic) await context.fs.symlink!(linkTarget, destination, { signal: context.signal });
-          else await context.fs.link!(source, destination, { signal: context.signal });
-        } catch (error) {
-          if (backup) await context.fs.rename(backup, destination, { signal: context.signal });
-          throw error;
-        }
-        if (parsed.flags.has("v")) {
-          const displayTarget = directory ? childOperand(operands.at(-1)!, basename(operand)) : operands.at(-1)!;
-          await output(context, `'${escapeText(displayTarget, "display")}' ${symbolic ? "->" : "=>"} '${escapeText(linkTarget, "display")}'\n`);
-        }
-      });
+              backup = backupMode === "numbered" || largest > 0n ? `${destination}.~${largest + 1n}~` : destination + backupSuffix;
+              if (backup === source || backup === destination) throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source or destination" });
+              const backupStat = await maybeStat(context, backup, false);
+              if (!symbolic && backupStat) {
+                const sourceStat = logical ? await context.fs.stat(source, { signal: context.signal }) : await context.fs.lstat(source, { signal: context.signal });
+                if (await compareObservedEntries(context.fs, source, sourceStat, context.fs, backup, backupStat, { signal: context.signal }) !== "distinct") throw new FsError("EINVAL", { path: backup, message: "backup would overwrite source" });
+              }
+              await admitFilesystemModes(context, "ln", ["backup"], [destination, backup]);
+              await context.fs.rename(destination, backup, { signal: context.signal });
+            } else await context.fs.rm(destination, { signal: context.signal });
+          }
+          try {
+            if (symbolic) await context.fs.symlink!(linkTarget, destination, { signal: context.signal });
+            else await context.fs.link!(source, destination, { signal: context.signal });
+          } catch (error) {
+            if (backup) await context.fs.rename(backup, destination, { signal: context.signal });
+            throw error;
+          }
+          if (parsed.flags.has("v")) {
+            const displayTarget = directory ? childOperand(operands.at(-1)!, basename(operand)) : operands.at(-1)!;
+            await output(context, `'${escapeText(displayTarget, "display")}' ${symbolic ? "->" : "=>"} '${escapeText(linkTarget, "display")}'\n`);
+          }
+        });
+        return { exitCode: declined ? 1 : result.exitCode };
+      } finally { await answers.return(undefined); }
     }),
     define("readlink", async context => {
       const canonicalOptions: Record<string, string> = { canonicalize: "f", "canonicalize-existing": "e", "canonicalize-missing": "m" };

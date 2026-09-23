@@ -888,6 +888,49 @@ for (const flags of ["-sr", "--symbolic --relative"]) {
   });
 }
 
+for (const option of ["-i", "--interactive", "-fi", "--force --interactive"]) {
+  for (const answer of ["y\n", " Y es\n", "n\n", "", "\n"]) {
+    test(`ln ${option} respects answer ${JSON.stringify(answer)} through Shell`, async () => {
+      const fs = await fixture({ source: "SOURCE\n", dest: "DEST\n" });
+      const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+      const result = await shell.exec(`ln ${option} source dest`, { stdin: answer });
+      const accepted = answer.trimStart().startsWith("y") || answer.trimStart().startsWith("Y");
+      assert.equal(result.exitCode, accepted ? 0 : 1, result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "ln: replace 'dest'? ");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest")), accepted ? "SOURCE\n" : "DEST\n");
+    });
+  }
+}
+
+test("ln force after interactive and absent destinations do not read stdin", async () => {
+  for (const args of [["-if"], ["--interactive", "--force"], ["-i", "-S", "if", "-f"]]) {
+    const fs = await fixture({ source: "new", dest: "old" });
+    const stdin = { async *[Symbol.asyncIterator]() { throw new Error("unexpected stdin read"); yield new Uint8Array(); } };
+    const result = await run("ln", [...args, "source", "dest"], { fs, stdin });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/dest")), "new");
+  }
+  const fs = await fixture({ source: "new" });
+  const result = await run("ln", ["-i", "source", "dest"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+});
+
+test("ln interactive directory links consume one answer per replacement and back up accepted entries", async () => {
+  const fs = await fixture({ a: "new a", b: "new b", "out/a": "old a", "out/b": "old b" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const result = await shell.exec("ln -sibv a b out", { stdin: "n\ny\n" });
+  assert.equal(result.exitCode, 1, result.stderr);
+  assert.equal(result.stderr, "ln: replace 'out/a'? ln: replace 'out/b'? ");
+  assert.equal(await fs.readlink("/work/out/b"), "b");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/out/a")), "old a");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/work/out/b~")), "old b");
+  await assert.rejects(fs.stat("/work/out/a~"), { code: "ENOENT" });
+  assert.equal(result.stdout, "'out/b' -> 'b'\n");
+});
+
 test("ln relative requires symbolic mode before replacing files", async () => {
   const fs = await fixture({ source: "data", output: "keep" });
   const result = await run("ln", ["-rf", "source", "output"], { fs });

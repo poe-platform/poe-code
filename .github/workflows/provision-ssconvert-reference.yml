@@ -90,7 +90,7 @@ jobs:
       - name: Collect native identity and isolated base-profile captures
         run: |
           python3 - <<'PY'
-          import hashlib, json, os, pathlib, shutil, subprocess, shlex, yaml
+          import hashlib, json, os, pathlib, shutil, subprocess, shlex, stat, threading, time, yaml
           root = pathlib.Path('out/ssconvert-linux')
           profile_path = pathlib.Path('docs/ssconvert/optional-runtime-extension-coverage.json')
           reference_path = pathlib.Path('docs/ssconvert/reference-profile.json')
@@ -106,11 +106,79 @@ jobs:
           with (root / 'function-activation-compile.log').open('wb') as log:
               subprocess.run(['cc', str(activation_source), '-o', str(activation_binary), *flags], env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
           metadata = []
-          def capture(label, command, capture_env=None, expected_exit_codes=(0,)):
-              result = subprocess.run(command, env=env if capture_env is None else capture_env, capture_output=True, timeout=120)
+          def capture(label, command, capture_env=None, expected_exit_codes=(0,), fifo_producer=None):
+              selected_env = env if capture_env is None else capture_env
+              fifo_receipt = None
+              if fifo_producer is None:
+                  result = subprocess.run(command, env=selected_env, capture_output=True, timeout=120)
+              else:
+                  assert fifo_producer['filename'] == 'atl'
+                  payload = bytes.fromhex(fifo_producer['payloadHex'])
+                  assert 0 < len(payload) <= 4096 and 0 < fifo_producer['waitSeconds'] <= 10
+                  home = pathlib.Path(selected_env['HOME']).resolve(strict=True)
+                  assert home.is_relative_to(root) and home != root
+                  fifo = home / fifo_producer['filename']
+                  assert not fifo.exists()
+                  if fifo_producer['preexisting']:
+                      os.mkfifo(fifo, 0o600)
+                  fifo_receipt = dict(home=str(home), path=str(fifo), producerPayloadHex=payload.hex(),
+                      producerPayloadSha256=hashlib.sha256(payload).hexdigest(), preexisting=fifo_producer['preexisting'],
+                      producerBytesWritten=0, observedModes=[], openErrors=[], nativeSourcesPatched=False)
+                  stop = threading.Event()
+                  def produce():
+                      deadline = time.monotonic() + fifo_producer['waitSeconds']
+                      while not stop.is_set() and time.monotonic() < deadline:
+                          descriptor = None
+                          try:
+                              status = fifo.lstat()
+                              if not stat.S_ISFIFO(status.st_mode):
+                                  fifo_receipt['producerError'] = 'Owned path is not a FIFO'
+                                  return
+                              mode = oct(stat.S_IMODE(status.st_mode))
+                              if mode not in fifo_receipt['observedModes']:
+                                  fifo_receipt['observedModes'].append(mode)
+                              descriptor = os.open(fifo, os.O_WRONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+                              assert stat.S_ISFIFO(os.fstat(descriptor).st_mode)
+                              fifo_receipt['producerBytesWritten'] = os.write(descriptor, payload)
+                              return
+                          except OSError as error:
+                              if error.errno not in fifo_receipt['openErrors']:
+                                  fifo_receipt['openErrors'].append(error.errno)
+                          except Exception as error:
+                              fifo_receipt['producerError'] = str(error)
+                              return
+                          finally:
+                              if descriptor is not None:
+                                  os.close(descriptor)
+                          stop.wait(0.001)
+                      fifo_receipt['producerStoppedWithoutWrite'] = True
+                  producer = threading.Thread(target=produce)
+                  producer.start()
+                  process = None
+                  try:
+                      process = subprocess.Popen(command, env=selected_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                      stdout, stderr = process.communicate(timeout=120)
+                      result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+                  finally:
+                      if process is not None and process.poll() is None:
+                          process.kill()
+                          process.communicate()
+                      stop.set()
+                      producer.join(timeout=11)
+                      assert not producer.is_alive()
+                      fifo_receipt['fifoPresentAfterNativeExit'] = fifo.exists()
+                      fifo_receipt['harnessUnlinkedAfterObservation'] = fifo.exists()
+                      if fifo.exists():
+                          assert stat.S_ISFIFO(fifo.lstat().st_mode)
+                          fifo.unlink()
               (root / (label + '.stdout')).write_bytes(result.stdout)
               (root / (label + '.stderr')).write_bytes(result.stderr)
-              metadata.append(dict(label=label, expectedExitCodes=list(expected_exit_codes), argv=command, exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(), supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD'] if key in capture_env}))
+              record = dict(label=label, expectedExitCodes=list(expected_exit_codes), argv=command,
+                  exitCode=result.returncode, stdoutHex=result.stdout.hex(), stderrHex=result.stderr.hex(),
+                  supplementalEnvironment={} if capture_env is None else {key: capture_env[key] for key in ['TZ', 'LD_PRELOAD', 'HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME'] if key in capture_env})
+              if fifo_receipt is not None:
+                  record['fifoLifecycle'] = fifo_receipt
+              metadata.append(record)
               if result.returncode not in expected_exit_codes:
                   raise RuntimeError('Native capture failed: ' + label)
           for label, command in [
@@ -200,7 +268,15 @@ jobs:
               assert hashlib.sha256(path.read_bytes()).hexdigest() == fixture['inputSha256']
               for probe in fixture['captures']:
                   argv = [value.replace('{input}', str(path)).replace('{root}', str(root)) for value in probe['argv']]
-                  capture(probe['label'], [str(binary), *argv], expected_exit_codes=probe['expectedExitCodes'])
+                  probe_env = None
+                  if 'fifoProducer' in probe:
+                      probe_env = dict(env)
+                      for key in ['HOME', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
+                          directory = root / (probe['label'] + '-' + key.lower())
+                          directory.mkdir(exist_ok=False)
+                          probe_env[key] = str(directory)
+                  capture(probe['label'], [str(binary), *argv], capture_env=probe_env,
+                      expected_exit_codes=probe['expectedExitCodes'], fifo_producer=probe.get('fifoProducer'))
               outputs = []
               for output in sorted(root.glob('*')):
                   if output.suffix in ['.xls', '.xlsx', '.po']:

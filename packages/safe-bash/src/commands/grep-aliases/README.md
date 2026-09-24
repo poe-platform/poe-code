@@ -41,12 +41,13 @@ registration separately with the existing collision/replacement policy.
 
 ## Inherited option and diagnostic profile
 
-The inspected grep parser supports `-E -F -i -v -n -c -l -L -q -h -H -o -w -x
--a -e -f -m -s -z` and its existing corresponding long options. These wrappers
-do not implement `-G`, `-P`, recursive/context options, native version output, or
-any additional grep syntax. Repeating the alias's own matcher flag is accepted;
-combining `-E` with `-F` is an error, including an explicitly conflicting alias
-flag. `--`, option arguments and pattern operands retain literal argv semantics.
+The wrappers inherit the current grep parser and its bounded execution.
+Repeating the same matcher flag is accepted; combining distinct `-G`, `-E` or
+`-F` matchers is an error, including `--basic-regexp` with either alias's
+implicit matcher. This follows GNU grep 3.12's explicit matcher conflict rule.
+Conflicts fail before pattern files or standard input are read. Help requested
+before a matcher conflict still displays help.
+`--`, option arguments and pattern operands retain literal argv semantics.
 Native alias option precedence is not universally identical to this profile.
 
 Stdin, explicit `-`, file operands, `-e`, `-f` (including stdin pattern files),

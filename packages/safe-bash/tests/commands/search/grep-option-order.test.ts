@@ -7,6 +7,8 @@ import { grepCommands } from "../../../src/commands/grep.js";
 const cases = [
   ["-G 'mat.*' a", "match\n"],
   ["--basic-regexp 'mat.*' a", "match\n"],
+  ["-GG 'mat.*' a", "match\n"],
+  ["--basic-regexp -G 'mat.*' a", "match\n"],
   ["-G 'match|nope' a b", "", 1],
   ["-l -L match a b", "b\n"],
   ["-L -l match a b", "a\n"],
@@ -41,6 +43,60 @@ for (const [args, stdout, exitCode = 0] of cases) {
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, exitCode);
       assert.equal(result.stdout, stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const args of ["-GE", "-GE -f missing", "-GE --help", "-EF -f missing"]) {
+  test(`grep rejects conflicting matchers before pattern or help processing: ${args}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    for (const command of grepCommands()) shell.commands.register(command);
+    try {
+      const result = await shell.exec(`grep ${args}`);
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "grep: conflicting matchers specified\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("grep rejects conflicting matchers without consuming stdin patterns", async () => {
+  let reads = 0;
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  for (const command of grepCommands()) shell.commands.register(command);
+  async function* input() { reads++; yield Buffer.from("cat\n"); }
+  try {
+    const result = await shell.exec("grep -GE -f -", { stdin: input() });
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, "grep: conflicting matchers specified\n");
+    assert.equal(reads, 0);
+  } finally { await shell.dispose(); }
+});
+
+for (const args of ["--help -GE", "-G --help -E", "-E --help -F"]) {
+  test(`grep preserves help requested before a matcher conflict: ${args}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    for (const command of grepCommands()) shell.commands.register(command);
+    try {
+      const result = await shell.exec(`grep ${args}`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.match(result.stdout, /^Usage: grep /);
+    } finally { await shell.dispose(); }
+  });
+}
+
+// GNU grep 3.12 setmatcher rejects distinct explicit matchers in either order.
+for (const flags of ["-GE", "-EG", "-GF", "-FG", "--basic-regexp --extended-regexp",
+  "--extended-regexp --basic-regexp", "--basic-regexp --fixed-strings", "--fixed-strings --basic-regexp"]) {
+  test(`grep rejects conflicting explicit matchers: ${flags}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    for (const command of grepCommands()) shell.commands.register(command);
+    try {
+      const result = await shell.exec(`grep ${flags} cat`, { stdin: "cat\n" });
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "grep: conflicting matchers specified\n");
     } finally { await shell.dispose(); }
   });
 }

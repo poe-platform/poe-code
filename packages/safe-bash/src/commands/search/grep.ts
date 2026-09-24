@@ -90,6 +90,8 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
       const contextLengths = new Map<string, number>();
       let fileSelection: "l" | "L" | undefined;
       let filenameOption: "h" | "H" | undefined;
+      let matcher: "G" | "E" | "F" | undefined;
+      let helpRequested = false;
       const filters: { key: string; pattern: string }[] = [];
       const parsed = parseOptions(context.args, "GEFivnclLqhHowxae:f:m:szA:B:C:bZrRd:D:I:X:Y:T:", { color: "color:", colour: "color:", "binary-files": "binary-files:", binary: false, label: "label:", "initial-tab": false, "group-separator": "group-separator:", help: false, "basic-regexp": "G", "extended-regexp": "E", "fixed-strings": "F", "ignore-case": "i", "invert-match": "v", "line-number": "n", count: "c", "files-with-matches": "l", "files-without-match": "L", quiet: "q", silent: "q", "no-filename": "h", "with-filename": "H", "only-matching": "o", "word-regexp": "w", "line-regexp": "x", regexp: "e", file: "f", "max-count": "m", "no-messages": "s", text: "a", "null-data": "z", "after-context": "A", "before-context": "B", context: "C", "byte-offset": "b", null: "Z", recursive: "r", "dereference-recursive": "R", directories: "d", devices: "D", "line-buffered": false, "no-group-separator": false, "no-ignore-case": false, include: "I", exclude: "X", "exclude-from": "Y", "exclude-dir": "T" }, false, undefined, (key, index, offset) => {
         const text = context.args[index]!.slice(offset);
@@ -101,6 +103,11 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         }
         catch { throw new UsageError(`${text}: invalid context length argument`); }
       }, key => {
+        if (key === "help") helpRequested = true;
+        if (!helpRequested && (key === "G" || key === "E" || key === "F")) {
+          if (matcher !== undefined && matcher !== key) throw new UsageError("conflicting matchers specified");
+          matcher = key;
+        }
         if (key === "l" || key === "L") fileSelection = key;
         if (key === "h" || key === "H") filenameOption = key;
       });
@@ -217,7 +224,6 @@ inspect the resulting state before repeating the action.
         for await (const line of lines(admitted(source))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
       }
       if (positionalPattern !== undefined) await addArgument(positionalPattern);
-      if (parsed.flags.has("E") && parsed.flags.has("F")) throw new UsageError("conflicting matchers specified");
       const descriptor: GrepDescriptor = {
         kind: "grep", patterns, fixed: parsed.flags.has("F"), extended: parsed.flags.has("E"),
         insensitive: parsed.flags.has("i") && !parsed.flags.has("no-ignore-case"), whole: parsed.flags.has("x"), word: parsed.flags.has("w"),

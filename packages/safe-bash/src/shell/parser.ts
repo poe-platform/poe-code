@@ -856,6 +856,7 @@ class Lexer {
       const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "");
       if (listing) this.position++;
       const length = !listing && this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "")
+        || ["@", "*"].includes(this.source[this.position + 1] ?? "") && this.source[this.position + 2] === "}"
         || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
       if (length) this.position++;
       const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);

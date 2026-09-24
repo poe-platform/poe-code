@@ -663,16 +663,16 @@ for (const row of [
   { operand: "0777", mask: "0777", status: 0 },
   { operand: "000777", mask: "0777", status: 0 },
   { operand: "000000000000000000000000000000000000000000000000000000000000777", mask: "0777", status: 0 },
-  { operand: "1000", mask: "0000", status: 0 },
-  { operand: "1777", mask: "0777", status: 0 },
-  { operand: "7777", mask: "0777", status: 0 },
-  { operand: "0001000", mask: "0000", status: 0 },
+  { operand: "1000", mask: "0022", status: 1 },
+  { operand: "1777", mask: "0022", status: 1 },
+  { operand: "7777", mask: "0022", status: 1 },
+  { operand: "0001000", mask: "0022", status: 1 },
   { operand: "10000", mask: "0022", status: 1 },
   { operand: "17777", mask: "0022", status: 1 },
   { operand: "888", mask: "0022", status: 1 },
   { operand: "777777777777777777777777777777777777777777777777777777777777777", mask: "0022", status: 1 },
 ]) {
-  test(`numeric umask ${row.operand} preserves the GNU Bash range and prior state`, async () => {
+  test(`numeric umask ${row.operand} enforces the permission-bit range and preserves prior state`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem() });
     try {
       const result = await shell.exec(`umask 022; umask ${row.operand}; status=$?; umask; exit "$status"`);

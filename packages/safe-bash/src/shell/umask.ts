@@ -65,9 +65,9 @@ function parseMask(value: string, previous: number): number | undefined {
     for (const digit of value) {
       if (digit < "0" || digit > "7") return undefined;
       mode = mode * 8 + Number(digit);
-      if (mode > 0o7777) return undefined;
+      if (mode > 0o777) return undefined;
     }
-    return mode & 0o777;
+    return mode;
   }
   let allowed = ~previous & 0o777;
   for (const clause of value.split(",")) {

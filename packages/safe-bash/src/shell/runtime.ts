@@ -7029,6 +7029,13 @@ export class Runtime {
       copyArraySelector(part, resolved);
       part = resolved;
     }
+    if (part.kind === "variable" && part.name === "DIRSTACK") {
+      const entries = [state.cwd, ...state.directoryStack?.entries ?? []];
+      const binding = arrayStore(state)?.get(part.name);
+      if (!binding || binding.values.size !== entries.length || entries.some((entry, index) => binding.get(index) !== entry)) {
+        await this.arrayAssignment({ kind: "compound", name: part.name, append: false, entries: entries.map(value => ({ value: { offset: 0, parts: [{ kind: "text", value, quoted: true }] } })) }, state, io);
+      }
+    }
     const selector = getArraySelector(part);
     if (part.kind !== "variable" || selector?.kind !== "element" || selector.index.source === undefined) return part;
     const store = requireArrays(state);
@@ -7067,6 +7074,7 @@ export class Runtime {
       return this.valuePart({ ...part, name, indirect: false }, state, io, hereString, split, hereDocument);
     }
     part = await this.resolveParameter(part, state, io);
+    if (part.kind === "variable" && part.length && (part.name === "@" || part.name === "*")) return String(state.positional.length);
     const memberSelector = getArraySelector(part);
     if (part.kind === "variable" && memberSelector?.kind === "members" && part.operator && defaultParameterOperators.includes(part.operator)) {
       const members = await this.arrayMembers(part.name, state, io);
@@ -7614,7 +7622,7 @@ export class Runtime {
     }
     const arrayOwned = word.parts.some(part => part.kind === "variable" && !part.prefixNames && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const prefixOwned = word.parts.some(part => part.kind === "variable" && (part.prefixNames === "@" || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@"));
-    const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform);
+    const positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
@@ -7746,13 +7754,13 @@ export class Runtime {
       quoteGroup = prefixNameQuoteGroups.get(part);
       const quotedPresence = part.quoted && !((arrayOwned || prefixOwned || positionalOwned) && isQuoteMarker(part));
       const selector = getArraySelector(part);
-      const defaultMembers = part.kind === "variable" && selector?.kind === "members" && defaultParameterOperators.includes(part.operator ?? "")
-        ? await this.arrayMembers(part.name, state, partIO) : undefined;
+      const defaultMembers = part.kind === "variable" && defaultParameterOperators.includes(part.operator ?? "")
+        ? selector?.kind === "members" ? await this.arrayMembers(part.name, state, partIO) : part.name === "@" ? this.positionalValues(state) : undefined : undefined;
       const expandMembers = !defaultMembers || defaultMembers.length > 0 && !(part.kind === "variable" && part.operator!.endsWith("+"));
-      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
+      if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && (part.name === "@" || /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name))) {
         let value: ShellValue | undefined = this.variable(state, part.name);
-        if (selector?.kind === "members") {
-          value = defaultMembers!.length ? "set" : undefined;
+        if (defaultMembers) {
+          value = defaultMembers.length ? part.name === "@" && defaultMembers.length === 1 ? defaultMembers[0] : "set" : undefined;
         } else if (selector?.kind === "element") {
           const binding = arrayStore(state)?.get(part.name);
           const index = binding?.associative
@@ -7804,7 +7812,7 @@ export class Runtime {
       } else if (part.kind === "text" && !splitText) {
         const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
-      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && !part.transform && split) {
+      } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && split) {
         const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           if (position > 0) addField();

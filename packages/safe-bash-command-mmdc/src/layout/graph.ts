@@ -102,8 +102,10 @@ function measureNodeBox(node: DocumentNode, theme: MermaidThemeTokens): SizedNod
     return { doc: node, width: diameter, height: diameter, rx: Math.round(diameter / 2) };
   }
 
-  const width = Math.max(88, snapTo8(measured.width + 36));
-  const height = Math.max(40, snapTo8(measured.height + 22));
+  const extraW = node.shape === "subroutine" || node.shape === "hexagon" ? 48 : 36;
+  const extraH = node.shape === "cylinder" ? 30 : 22;
+  const width = Math.max(88, snapTo8(measured.width + extraW));
+  const height = Math.max(node.shape === "cylinder" ? 48 : 40, snapTo8(measured.height + extraH));
   const rx =
     node.shape === "stadium"
       ? Math.round(height / 2)
@@ -125,7 +127,9 @@ function buildSceneNode(
     doc.accent === true ||
     doc.shape === "diamond" ||
     doc.shape === "stadium" ||
-    doc.shape === "circle";
+    doc.shape === "circle" ||
+    doc.shape === "cylinder" ||
+    doc.shape === "hexagon";
 
   const fill =
     doc.shape === "stateStart"
@@ -341,7 +345,8 @@ function buildSceneNode(
     fontWeight: 500
   });
   const totalTextHeight = measured.lines.length * theme.lineHeight;
-  const startY = y + (height - totalTextHeight) / 2 + theme.fontSize + 1;
+  const cylinderOffset = doc.shape === "cylinder" ? 4 : 0;
+  const startY = y + (height - totalTextHeight) / 2 + theme.fontSize + 1 + cylinderOffset;
 
   const lines: SceneTextLine[] = measured.lines.map((line, idx) => ({
     text: line.text,
@@ -369,7 +374,13 @@ function buildSceneNode(
     shadow: true,
     groupId: doc.groupId,
     lines,
-    dividers: [],
+    dividers:
+      doc.shape === "subroutine"
+        ? [
+            { x1: x + 9, y1: y, x2: x + 9, y2: y + height, stroke },
+            { x1: x + width - 9, y1: y, x2: x + width - 9, y2: y + height, stroke }
+          ]
+        : [],
     badges: []
   };
 }
@@ -470,7 +481,6 @@ export function layoutGraphDocument(
     }
     return base;
   });
-  const sizedById = new Map(sizedNodes.map((s) => [s.doc.id, s]));
   const groupById = new Map(document.groups.map((g) => [g.id, g]));
   const groupOrder = new Map(document.groups.map((g, i) => [g.id, i]));
 
@@ -528,6 +538,58 @@ export function layoutGraphDocument(
       }
     }
     if (!changed) break;
+  }
+
+  // Ensure that if an external node u (outside group G) has a forward edge into any node inside group G,
+  // all nodes inside group G have rank >= rank(u) + 1 so G never visually swallows its predecessor u.
+  for (let pass = 0; pass < 3; pass++) {
+    let adjusted = false;
+    for (const gid of groupById.keys()) {
+      let maxPredRank = -1;
+      for (const fe of forwardEdges) {
+        const srcNode = document.nodes.find((n) => n.id === fe.from);
+        const dstNode = document.nodes.find((n) => n.id === fe.to);
+        if (!srcNode || !dstNode) continue;
+        const srcInG = getGroupAncestors(srcNode.groupId, groupById).includes(gid);
+        const dstInG = getGroupAncestors(dstNode.groupId, groupById).includes(gid);
+        if (!srcInG && dstInG) {
+          const rU = rawRank.get(fe.from) ?? 0;
+          if (rU > maxPredRank) maxPredRank = rU;
+        }
+      }
+      if (maxPredRank >= 0) {
+        let minInternalRank = Infinity;
+        for (const n of document.nodes) {
+          if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
+            const rN = rawRank.get(n.id) ?? 0;
+            if (rN < minInternalRank) minInternalRank = rN;
+          }
+        }
+        if (minInternalRank <= maxPredRank) {
+          const delta = maxPredRank + 1 - minInternalRank;
+          for (const n of document.nodes) {
+            if (getGroupAncestors(n.groupId, groupById).includes(gid)) {
+              rawRank.set(n.id, (rawRank.get(n.id) ?? 0) + delta);
+            }
+          }
+          adjusted = true;
+        }
+      }
+    }
+    if (adjusted) {
+      for (let iter = 0; iter < maxIterations; iter++) {
+        let changed = false;
+        for (const fe of forwardEdges) {
+          const rU = rawRank.get(fe.from) ?? 0;
+          const rV = rawRank.get(fe.to) ?? 0;
+          if (rV < rU + 1) {
+            rawRank.set(fe.to, rU + 1);
+            changed = true;
+          }
+        }
+        if (!changed) break;
+      }
+    }
   }
 
   let maxRank = 0;
@@ -692,6 +754,119 @@ export function layoutGraphDocument(
       primaryCursor += span.maxPrimarySize + baseRankGap + groupExtra + maxLabelAllowance;
     } else {
       primaryCursor += span.maxPrimarySize;
+    }
+  }
+
+  // Barycenter transverse alignment pass: align single-chain and connected nodes across adjacent ranks
+  const getTransverseCenter = (id: string, size: SizedNode): number => {
+    const c = placedCoords.get(id) ?? { x: 80, y: 80 };
+    return isHorizontal ? c.y + size.height / 2 : c.x + size.width / 2;
+  };
+  const setTransverseCenter = (id: string, size: SizedNode, center: number): void => {
+    const c = placedCoords.get(id) ?? { x: 80, y: 80 };
+    if (isHorizontal) {
+      placedCoords.set(id, { x: c.x, y: Math.round(center - size.height / 2) });
+    } else {
+      placedCoords.set(id, { x: Math.round(center - size.width / 2), y: c.y });
+    }
+  };
+  const sizedById = new Map(sizedNodes.map((s) => [s.doc.id, s]));
+
+  for (let sweep = 0; sweep < 6; sweep++) {
+    const rankOrder =
+      sweep % 2 === 0
+        ? Array.from({ length: maxRank + 1 }, (_, i) => i)
+        : Array.from({ length: maxRank + 1 }, (_, i) => maxRank - i);
+
+    for (const r of rankOrder) {
+      const layer = rankLayers[r]!;
+      if (layer.length === 0) continue;
+
+      const desiredCenters: number[] = layer.map((sNode) => {
+        const u = sNode.doc.id;
+        const neighborCenters: number[] = [];
+        for (const e of document.edges) {
+          if (e.from === e.to) continue;
+          const otherId = e.from === u ? e.to : e.to === u ? e.from : undefined;
+          if (!otherId) continue;
+          const rOther = nodeRanks.get(otherId) ?? 0;
+          if (Math.abs(rOther - r) === 1) {
+            const otherSized = sizedById.get(otherId);
+            if (otherSized) {
+              const weight = otherSized.doc.groupId === sNode.doc.groupId && sNode.doc.groupId !== undefined ? 4 : 1;
+              for (let w = 0; w < weight; w++) {
+                neighborCenters.push(getTransverseCenter(otherId, otherSized));
+              }
+            }
+          }
+        }
+        if (neighborCenters.length === 0) {
+          return getTransverseCenter(u, sNode);
+        }
+        const sum = neighborCenters.reduce((acc, v) => acc + v, 0);
+        return Math.round(sum / neighborCenters.length);
+      });
+
+      // Enforce non-overlapping transverse order and minimum gaps within rank r
+      const minGaps: number[] = [];
+      for (let i = 1; i < layer.length; i++) {
+        const prev = layer[i - 1]!;
+        const curr = layer[i]!;
+        const ancPrev = new Set(getGroupAncestors(prev.doc.groupId, groupById));
+        const ancCurr = new Set(getGroupAncestors(curr.doc.groupId, groupById));
+        let crossings = 0;
+        for (const g of ancPrev) if (!ancCurr.has(g)) crossings++;
+        for (const g of ancCurr) if (!ancPrev.has(g)) crossings++;
+        const prevHalf = (isHorizontal ? prev.height : prev.width) / 2;
+        const currHalf = (isHorizontal ? curr.height : curr.width) / 2;
+        minGaps.push(prevHalf + currHalf + baseNodeGap + crossings * 32);
+      }
+
+      // Forward constraint pass
+      for (let i = 1; i < layer.length; i++) {
+        const minAllowed = desiredCenters[i - 1]! + minGaps[i - 1]!;
+        if (desiredCenters[i]! < minAllowed) {
+          desiredCenters[i] = minAllowed;
+        }
+      }
+      // Backward constraint pass
+      for (let i = layer.length - 2; i >= 0; i--) {
+        const maxAllowed = desiredCenters[i + 1]! - minGaps[i]!;
+        if (desiredCenters[i]! > maxAllowed) {
+          desiredCenters[i] = maxAllowed;
+        }
+      }
+
+      for (let i = 0; i < layer.length; i++) {
+        setTransverseCenter(layer[i]!.doc.id, layer[i]!, desiredCenters[i]!);
+      }
+    }
+  }
+
+  // Spine alignment pass: keep all single-node ranks on a shared spine axis, and snap any multi-node rank child that continues the spine onto the spine axis
+  const spineAxis = Math.round(maxTransverseBreadth / 2) + 80;
+  for (let r = 0; r <= maxRank; r++) {
+    const layer = rankLayers[r]!;
+    if (layer.length === 1) {
+      setTransverseCenter(layer[0]!.doc.id, layer[0]!, spineAxis);
+    } else if (layer.length > 1) {
+      // Check if one node in this layer connects both to a single-node previous rank and a single-node next rank (spine continuation)
+      const prevSingleId = r > 0 && rankLayers[r - 1]!.length === 1 ? rankLayers[r - 1]![0]!.doc.id : undefined;
+      const nextSingleId = r < maxRank && rankLayers[r + 1]!.length === 1 ? rankLayers[r + 1]![0]!.doc.id : undefined;
+      let anchorIdx = -1;
+      if (prevSingleId && nextSingleId) {
+        anchorIdx = layer.findIndex((s) =>
+          document.edges.some((e) => (e.from === prevSingleId && e.to === s.doc.id) || (e.to === prevSingleId && e.from === s.doc.id)) &&
+          document.edges.some((e) => (e.from === s.doc.id && e.to === nextSingleId) || (e.to === s.doc.id && e.from === nextSingleId))
+        );
+      }
+      if (anchorIdx >= 0) {
+        const currentAnchorCenter = getTransverseCenter(layer[anchorIdx]!.doc.id, layer[anchorIdx]!);
+        const delta = spineAxis - currentAnchorCenter;
+        for (const item of layer) {
+          setTransverseCenter(item.doc.id, item, getTransverseCenter(item.doc.id, item) + delta);
+        }
+      }
     }
   }
 

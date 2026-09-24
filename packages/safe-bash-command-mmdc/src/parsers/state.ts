@@ -7,7 +7,8 @@ import {
   type FlowDirection,
   type MermaidBudget,
   type MermaidDocument,
-  type MermaidSourceSpan
+  type MermaidSourceSpan,
+  type NodeShape
 } from "../contracts.js";
 import {
   indexOfChar,
@@ -21,12 +22,28 @@ function parseStateDeclaration(
   rawAfterState: string,
   span: MermaidSourceSpan,
   budget: MermaidBudget
-): { id: string; label: string; opensBlock: boolean } {
+): { id: string; label: string; opensBlock: boolean; shape?: NodeShape | undefined; stereotype?: string | undefined } {
   let body = trimWhitespace(rawAfterState);
   let opensBlock = false;
   if (body.endsWith("{")) {
     opensBlock = true;
     body = trimWhitespace(body.slice(0, -1));
+  }
+
+  let shape: NodeShape | undefined;
+  let stereotype: string | undefined;
+  const stereoMatch = body.match(/<<\s*([a-zA-Z0-9_-]+)\s*>>\s*$/);
+  if (stereoMatch) {
+    const kind = stereoMatch[1]!.toLowerCase();
+    body = trimWhitespace(body.slice(0, body.length - stereoMatch[0].length));
+    if (kind === "choice") {
+      shape = "diamond";
+    } else if (kind === "fork" || kind === "join") {
+      shape = "rect";
+      stereotype = kind;
+    } else {
+      stereotype = stereoMatch[1]!;
+    }
   }
 
   // Check for "as" keyword outside quotes: state "Label" as Alias
@@ -38,7 +55,7 @@ function parseStateDeclaration(
       if (c === q && body[i - 1] !== "\\") q = null;
       continue;
     }
-    if (c === '"' || c === "'") {
+    if (c === "\"" || c === "'") {
       q = c;
       continue;
     }
@@ -59,7 +76,13 @@ function parseStateDeclaration(
       throw new MermaidError("E_SYNTAX", "Missing state alias after 'as'", { span });
     }
     checkSafeLabelText(rawLabel, budget, span);
-    return { id: rawId, label: rawLabel || rawId, opensBlock };
+    return {
+      id: rawId,
+      label: shape === "diamond" && rawLabel === rawId ? "?" : rawLabel || rawId,
+      opensBlock,
+      shape,
+      stereotype
+    };
   }
 
   const clean = stripQuotes(body);
@@ -67,7 +90,13 @@ function parseStateDeclaration(
     throw new MermaidError("E_SYNTAX", "Missing state identifier", { span });
   }
   checkSafeLabelText(clean, budget, span);
-  return { id: clean, label: clean, opensBlock };
+  return {
+    id: clean,
+    label: shape === "diamond" ? "?" : clean,
+    opensBlock,
+    shape,
+    stereotype
+  };
 }
 
 export function parseStateDiagram(
@@ -84,7 +113,6 @@ export function parseStateDiagram(
   let startCounter = 0;
   let endCounter = 0;
 
-  // Track start/end pseudostates per group scope so multiple transitions from [*] inside the same scope share the scope's start/end node
   const scopeStartNode = new Map<string, string>();
   const scopeEndNode = new Map<string, string>();
 
@@ -94,13 +122,13 @@ export function parseStateDiagram(
   const ensureStateNode = (
     id: string,
     label?: string,
-    span?: MermaidSourceSpan
+    span?: MermaidSourceSpan,
+    shape?: NodeShape
   ): string => {
     const cleanId = stripQuotes(trimWhitespace(id));
     if (!cleanId) {
       throw new MermaidError("E_SYNTAX", "Empty state identifier", { span });
     }
-    // If cleanId is already a composite group, do not create a duplicate leaf node for it unless needed as endpoint
     const existing = nodes.get(cleanId);
     const display = label !== undefined ? checkSafeLabelText(label, budget, span) : cleanId;
     if (!existing) {
@@ -108,14 +136,20 @@ export function parseStateDiagram(
       nodes.set(cleanId, {
         id: cleanId,
         label: display,
-        shape: "rounded",
+        shape: shape ?? "rounded",
+        accent: shape === "diamond" ? true : undefined,
         groupId: currentGroupId(),
         span
       });
-    } else if (label !== undefined && existing.label === existing.id) {
+    } else {
+      const updatedLabel =
+        label !== undefined && existing.label === existing.id ? display : existing.label;
+      const updatedShape = shape ?? existing.shape;
       nodes.set(cleanId, {
         ...existing,
-        label: display
+        label: updatedLabel,
+        shape: updatedShape,
+        accent: updatedShape === "diamond" ? true : existing.accent
       });
     }
     return cleanId;
@@ -288,19 +322,14 @@ export function parseStateDiagram(
           kind: "compositeState",
           span
         });
-        // If a leaf node was created for decl.id previously, keep its groupId updated
-        if (nodes.has(decl.id)) {
-          nodes.delete(decl.id);
-        }
         groupStack.push(decl.id);
         budget.enterDepth(groupStack.length);
       } else {
-        ensureStateNode(decl.id, decl.label, span);
+        ensureStateNode(decl.id, decl.label, span, decl.shape);
       }
       continue;
     }
 
-    // Check for composite state opening without 'state' keyword: e.g., CompositeName {
     if (text.endsWith("{") && !text.includes("-->")) {
       const rawId = stripQuotes(trimWhitespace(text.slice(0, -1)));
       if (!rawId) {
@@ -315,15 +344,11 @@ export function parseStateDiagram(
         kind: "compositeState",
         span
       });
-      if (nodes.has(rawId)) {
-        nodes.delete(rawId);
-      }
       groupStack.push(rawId);
       budget.enterDepth(groupStack.length);
       continue;
     }
 
-    // Check for transition: A --> B [: label]
     let arrowPos = -1;
     let q: string | null = null;
     for (let i = 0; i <= text.length - 3; i++) {
@@ -332,7 +357,7 @@ export function parseStateDiagram(
         if (c === q && text[i - 1] !== "\\") q = null;
         continue;
       }
-      if (c === '"' || c === "'") {
+      if (c === "\"" || c === "'") {
         q = c;
         continue;
       }
@@ -368,7 +393,7 @@ export function parseStateDiagram(
         id: `state_edge_${edges.length + 1}`,
         from: fromId,
         to: toId,
-        label: transLabel || undefined,
+        label: transLabel,
         lineStyle: "solid",
         startMarker: "none",
         endMarker: "arrow",
@@ -377,34 +402,37 @@ export function parseStateDiagram(
       continue;
     }
 
-    // Check for state description: StateId : Description
-    const colonIdx = indexOfChar(text, ":");
-    if (colonIdx > 0) {
-      const stateId = stripQuotes(trimWhitespace(text.slice(0, colonIdx)));
-      const desc = checkSafeLabelText(
-        stripQuotes(trimWhitespace(text.slice(colonIdx + 1))),
-        budget,
-        span
-      );
-      const existing = nodes.get(stateId);
-      if (existing) {
-        const combined =
-          existing.label === existing.id ? `${existing.label}\n${desc}` : `${existing.label}\n${desc}`;
-        checkSafeLabelText(combined, budget, span);
-        nodes.set(stateId, { ...existing, label: combined });
-      } else {
-        ensureStateNode(stateId, `${stateId}\n${desc}`, span);
+    // Support StateId : Description syntax
+    const descColonIdx = indexOfChar(text, ":");
+    if (descColonIdx > 0) {
+      const stId = stripQuotes(trimWhitespace(text.slice(0, descColonIdx)));
+      const descText = stripQuotes(trimWhitespace(text.slice(descColonIdx + 1)));
+      if (stId && descText) {
+        const safeDesc = checkSafeLabelText(descText, budget, span);
+        if (groups.has(stId)) {
+          const g = groups.get(stId)!;
+          groups.set(stId, { ...g, label: g.label === stId ? `${stId} — ${safeDesc}` : g.label });
+        } else {
+          const existing = nodes.get(stId);
+          const combinedLabel =
+            existing && existing.label !== existing.id
+              ? `${existing.label}\n${safeDesc}`
+              : `${stId}\n${safeDesc}`;
+          ensureStateNode(stId, combinedLabel, span);
+        }
+        continue;
       }
-      continue;
     }
 
-    throw new MermaidError("E_SYNTAX", `Unrecognized stateDiagram statement: '${text}'`, {
-      span
-    });
+    throw new MermaidError(
+      "E_SYNTAX",
+      `Unknown or unsupported stateDiagram statement '${text}'`,
+      { span }
+    );
   }
 
   if (pendingMultiLineNote !== null) {
-    throw new MermaidError("E_SYNTAX", "Unclosed multi-line note in stateDiagram", {
+    throw new MermaidError("E_SYNTAX", "Unclosed multi-line note block (missing 'end note')", {
       span: pendingMultiLineNote.span
     });
   }
@@ -412,32 +440,99 @@ export function parseStateDiagram(
   if (groupStack.length > 0) {
     throw new MermaidError(
       "E_SYNTAX",
-      `Unclosed composite state '${groupStack[groupStack.length - 1]}'`,
-      { span: groups.get(groupStack[groupStack.length - 1]!)?.span }
+      `Unclosed composite state '${groupStack[groupStack.length - 1]}' (missing '}')`
     );
   }
 
-  // If any edge endpoints reference a composite state groupId directly, redirect them to an representative child node or ensure group node
-  const finalEdges: DocumentEdge[] = edges.map((e) => {
-    let from = e.from;
-    let to = e.to;
-    if (groups.has(from) && !nodes.has(from)) {
-      const child = Array.from(nodes.values()).find((n) => n.groupId === from);
-      if (child) from = child.id;
+  // Resolve transitions targeting or exiting composite states to their internal entry/exit states,
+  // and remove any duplicate leaf nodes whose id collides with a non-empty composite state group.
+  const findGroupEntryLeaf = (gid: string, visitedGroups = new Set<string>()): string | undefined => {
+    if (visitedGroups.has(gid)) return undefined;
+    visitedGroups.add(gid);
+    const children = [...nodes.values()].filter((n) => n.groupId === gid && !groups.has(n.id));
+    if (children.length > 0) {
+      const startPseudo = scopeStartNode.get(gid);
+      if (startPseudo && nodes.has(startPseudo)) {
+        return startPseudo;
+      }
+      const childIds = new Set(children.map((c) => c.id));
+      const inDeg = new Map<string, number>();
+      for (const c of children) inDeg.set(c.id, 0);
+      for (const e of edges) {
+        if (childIds.has(e.from) && childIds.has(e.to) && e.from !== e.to) {
+          inDeg.set(e.to, (inDeg.get(e.to) ?? 0) + 1);
+        }
+      }
+      const zeroIn = children.find((c) => (inDeg.get(c.id) ?? 0) === 0);
+      return (zeroIn ?? children[0]!).id;
     }
-    if (groups.has(to) && !nodes.has(to)) {
-      const child = Array.from(nodes.values()).find((n) => n.groupId === to);
-      if (child) to = child.id;
+    const childGroups = [...groups.values()].filter((g) => g.parentId === gid);
+    for (const cg of childGroups) {
+      const nested = findGroupEntryLeaf(cg.id, visitedGroups);
+      if (nested) return nested;
     }
-    return { ...e, from, to };
-  });
+    return undefined;
+  };
+
+  const findGroupExitLeaf = (gid: string, visitedGroups = new Set<string>()): string | undefined => {
+    if (visitedGroups.has(gid)) return undefined;
+    visitedGroups.add(gid);
+    const children = [...nodes.values()].filter((n) => n.groupId === gid && !groups.has(n.id));
+    if (children.length > 0) {
+      const endPseudo = scopeEndNode.get(gid);
+      if (endPseudo && nodes.has(endPseudo)) return endPseudo;
+      const nonStart = children.filter((c) => c.shape !== "stateStart");
+      const pool = nonStart.length > 0 ? nonStart : children;
+      const childIds = new Set(pool.map((c) => c.id));
+      const outDeg = new Map<string, number>();
+      for (const c of pool) outDeg.set(c.id, 0);
+      for (const e of edges) {
+        if (childIds.has(e.from) && childIds.has(e.to) && e.from !== e.to) {
+          outDeg.set(e.from, (outDeg.get(e.from) ?? 0) + 1);
+        }
+      }
+      const sinks = pool.filter((c) => (outDeg.get(c.id) ?? 0) === 0);
+      return (sinks[sinks.length - 1] ?? pool[pool.length - 1]!).id;
+    }
+    const childGroups = [...groups.values()].filter((g) => g.parentId === gid);
+    for (let i = childGroups.length - 1; i >= 0; i--) {
+      const nested = findGroupExitLeaf(childGroups[i]!.id, visitedGroups);
+      if (nested) return nested;
+    }
+    return undefined;
+  };
+
+  for (const gid of groups.keys()) {
+    const entryLeaf = findGroupEntryLeaf(gid);
+    const exitLeaf = findGroupExitLeaf(gid);
+    if (entryLeaf && exitLeaf) {
+      nodes.delete(gid);
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i]!;
+        const newFrom = e.from === gid ? exitLeaf : e.from;
+        const newTo = e.to === gid ? entryLeaf : e.to;
+        if (newFrom !== e.from || newTo !== e.to) {
+          edges[i] = { ...e, from: newFrom, to: newTo };
+        }
+      }
+      for (let i = 0; i < notes.length; i++) {
+        const n = notes[i]!;
+        if (n.targetIds.includes(gid)) {
+          notes[i] = {
+            ...n,
+            targetIds: n.targetIds.map((tid) => (tid === gid ? entryLeaf : tid))
+          };
+        }
+      }
+    }
+  }
 
   return {
     family: "state",
     direction,
-    nodes: Array.from(nodes.values()),
-    groups: Array.from(groups.values()),
-    edges: finalEdges,
+    nodes: [...nodes.values()],
+    groups: [...groups.values()],
+    edges,
     notes
   };
 }

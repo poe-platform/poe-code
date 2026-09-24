@@ -5,6 +5,26 @@ import { layoutMermaid } from "./layout.js";
 import { parseMermaid } from "./parser.js";
 
 export const FLOWCHART_FIXTURES: Readonly<Record<string, string>> = Object.freeze({
+  "flowchart-skip-rank-obstacle": `
+    flowchart TD
+      subgraph Edge ["Edge Layer"]
+        Client(["Client App"]) -- HTTPS --> WAF{"WAF & Rate Limit"}
+        WAF --> GW["API Gateway"]
+      end
+      GW -- gRPC --> Auth
+      subgraph Core ["Core Services"]
+        Auth{"Token Valid?"} -- Yes --> DB[("Order DB")]
+        Auth -- No --> Audit["Audit Logger"]
+        DB -. Event .-> Audit
+      end
+  `,
+  "flowchart-lr-backedge-column-obstacle": `
+    flowchart LR
+      Ingest(["Ingest Δt ≤ 5ms"]) --> Check{"Schema OK?"}
+      Check -- Valid --> Commit["Commit 完了"]
+      Check -- Retry --> Backoff["Exponential Backoff<br/>λ = 2^k · 100ms"]
+      Backoff --> Ingest
+  `,
   "flowchart-basic": `
     flowchart TD
       Start([Client Request]) --> Gateway[API Gateway]

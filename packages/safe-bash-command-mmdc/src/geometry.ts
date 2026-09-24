@@ -469,6 +469,30 @@ export function verifySceneGeometry(scene: MermaidScene): GeometryReport {
     }
   }
 
+  // 6. Edge-to-node non-intersection (no edge segment passes through any unrelated node box)
+  if (scene.family !== "sequence") {
+    for (const edge of scene.edges) {
+      for (let k = 0; k + 1 < edge.points.length; k++) {
+        const a = edge.points[k]!;
+        const b = edge.points[k + 1]!;
+        const segRect: Rect = {
+          x: Math.min(a.x, b.x),
+          y: Math.min(a.y, b.y),
+          width: Math.max(1, Math.abs(b.x - a.x)),
+          height: Math.max(1, Math.abs(b.y - a.y))
+        };
+        for (const node of scene.nodes) {
+          if (node.id === edge.from || node.id === edge.to) continue;
+          if (rectsIntersect(segRect, node, -2)) {
+            violations.push(
+              `Invariant 6 (edge-node intersection): edge "${edge.id}" (${edge.from}->${edge.to}) segment [${k}] intersects unrelated node "${node.id}"`
+            );
+          }
+        }
+      }
+    }
+  }
+
   // 5. ViewBox containment ([padding, viewBox.width - padding] x [padding, viewBox.height - padding])
   const pad = scene.padding;
   const maxX = scene.viewBox.width - pad;

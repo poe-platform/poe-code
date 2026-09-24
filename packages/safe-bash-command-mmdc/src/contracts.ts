@@ -283,7 +283,10 @@ export type NodeShape =
   | "stateEnd"
   | "classCard"
   | "erEntity"
-  | "participant";
+  | "participant"
+  | "cylinder"
+  | "subroutine"
+  | "hexagon";
 
 export type EdgeLineStyle = "solid" | "dotted" | "thick";
 

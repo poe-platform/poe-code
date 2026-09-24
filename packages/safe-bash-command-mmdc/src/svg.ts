@@ -144,6 +144,19 @@ function renderNode(
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}" fill="${escapeXml(node.fill)}"${filterAttr}/>` +
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.headerHeight}" fill="${escapeXml(node.headerFill)}" clip-path="url(#${clipId})"/>` +
       `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}" fill="none" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"/>`;
+  } else if (node.shape === "cylinder") {
+    const cx = node.x + node.width / 2;
+    shapeSvg =
+      `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="10" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"${filterAttr}/>` +
+      `<path d="M ${node.x + 2} ${node.y + 10} Q ${cx} ${node.y + 18} ${node.x + node.width - 2} ${node.y + 10}" fill="none" stroke="${escapeXml(node.stroke)}" stroke-width="1.2" opacity="0.85"/>`;
+  } else if (node.shape === "hexagon") {
+    const inset = 12;
+    const x = node.x;
+    const y = node.y;
+    const w = node.width;
+    const h = node.height;
+    const cy = y + h / 2;
+    shapeSvg = `<polygon points="${x + inset},${y} ${x + w - inset},${y} ${x + w},${cy} ${x + w - inset},${y + h} ${x + inset},${y + h} ${x},${cy}" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}" stroke-linejoin="round"${filterAttr}/>`;
   } else {
     shapeSvg = `<rect x="${node.x}" y="${node.y}" width="${node.width}" height="${node.height}" rx="${node.rx}" fill="${escapeXml(node.fill)}" stroke="${escapeXml(node.stroke)}" stroke-width="${node.strokeWidth}"${filterAttr}/>`;
   }

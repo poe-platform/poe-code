@@ -143,18 +143,18 @@ function parseSingleNodeRef(
     i = res.nextPos;
   } else if (text.startsWith("[(", i)) {
     const res = readBalancedBracket(text, i, "[(", ")]", span);
-    shape = "rect";
+    shape = "cylinder";
     accent = true;
     rawLabel = res.content;
     i = res.nextPos;
   } else if (text.startsWith("[[", i)) {
     const res = readBalancedBracket(text, i, "[[", "]]", span);
-    shape = "rect";
+    shape = "subroutine";
     rawLabel = res.content;
     i = res.nextPos;
   } else if (text.startsWith("{{", i)) {
     const res = readBalancedBracket(text, i, "{{", "}}", span);
-    shape = "diamond";
+    shape = "hexagon";
     accent = true;
     rawLabel = res.content;
     i = res.nextPos;

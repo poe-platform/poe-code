@@ -354,9 +354,12 @@ function synthesizeIdeographOutline(codePoint: number): GlyphOutline {
   const strokes: (readonly GlyphPoint[])[] = [];
   const arch = codePoint % 4;
   if (arch === 0) {
-    strokes.push(makeStroke(120, 460, 880, 460, 56));
-    strokes.push(makeRectContour(200, 320, 800, 620));
-    strokes.push(makeRectContour(260, 380, 740, 560));
+    strokes.push(makeStroke(490, 710, 490, 610, 56));
+    strokes.push(makeStroke(160, 610, 840, 610, 54));
+    strokes.push(makeStroke(160, 610, 160, 490, 52));
+    strokes.push(makeStroke(840, 610, 840, 490, 52));
+    strokes.push(makeStroke(240, 460, 760, 460, 52));
+    strokes.push(makeStroke(140, 310, 860, 310, 56));
     strokes.push(makeStroke(500, 730, 500, 80, 60));
     strokes.push(makeStroke(460, 320, 140, 100, 54));
     strokes.push(makeStroke(540, 320, 860, 100, 54));

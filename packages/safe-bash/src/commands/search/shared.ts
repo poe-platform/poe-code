@@ -12,6 +12,8 @@ export function pathFor(context: CommandContext, path: string): string {
 
 export class OutputClosed extends SearchError {}
 
+const emptyBuffer = Buffer.alloc(0);
+
 export class Limits {
   readonly maxOutputBytes: number;
   readonly maxLineBytes: number;
@@ -34,9 +36,10 @@ export class Limits {
       if ((limit !== Infinity && !Number.isSafeInteger(limit)) || limit < 1) throw new SearchError("search limits must be positive safe integers");
     }
   }
-  async tick(): Promise<void> {
+  tick(): Promise<void> | undefined {
     this.context.signal.throwIfAborted();
-    if (++this.ticks % 128 === 0) await yieldTurn(this.context.signal);
+    if (++this.ticks % 128 === 0) return yieldTurn(this.context.signal);
+    return undefined;
   }
   private async write(chunk: Uint8Array): Promise<void> {
     try { await writeBytes(this.context.stdout, chunk, this.signal); }
@@ -70,13 +73,15 @@ export interface Line { readonly bytes: Buffer; readonly content: Buffer; readon
 export interface ReadState { bytesRead: number; bytesSearched: number; binaryOffset: number | null; skipped: boolean }
 
 export async function* lines(source: ByteSource, limits: Limits, state: ReadState, binary: "skip" | "binary" | "text", nullData: boolean): AsyncGenerator<Line> {
-  let pending = Buffer.alloc(0);
+  let pending: Buffer = emptyBuffer;
   let offset = 0;
   let number = 0;
   const delimiter = nullData ? 0 : 10;
+  const delimiterBuffer = Buffer.from([delimiter]);
   for await (const data of readBytes(source, limits.signal)) {
-    await limits.tick();
-    const chunk = Buffer.from(data);
+    const tickPending = limits.tick();
+    if (tickPending) await tickPending;
+    const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data.buffer, data.byteOffset, data.byteLength);
     if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
     const nul = nullData || binary === "text" ? -1 : chunk.indexOf(0);
     if (nul >= 0 && state.binaryOffset === null) state.binaryOffset = state.bytesRead + nul;
@@ -86,14 +91,24 @@ export async function* lines(source: ByteSource, limits: Limits, state: ReadStat
     for (let end = 0; end < chunk.length; end++) {
       if (chunk[end] !== delimiter && !(binary === "binary" && chunk[end] === 0)) continue;
       if (pending.length + end - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
-      const content = Buffer.concat([pending, chunk.subarray(start, end)]);
-      const bytes = Buffer.concat([content, Buffer.from([delimiter])]);
+      let content: Buffer;
+      let bytes: Buffer;
+      if (pending.length === 0 && chunk[end] === delimiter) {
+        content = chunk.subarray(start, end);
+        bytes = chunk.subarray(start, end + 1);
+      } else {
+        content = pending.length === 0 ? chunk.subarray(start, end) : Buffer.concat([pending, chunk.subarray(start, end)]);
+        bytes = Buffer.concat([content, delimiterBuffer]);
+      }
       state.bytesSearched = offset + bytes.length;
       yield { content, bytes, number: ++number, offset };
-      offset += bytes.length; pending = Buffer.alloc(0); start = end + 1;
+      offset += bytes.length; pending = emptyBuffer; start = end + 1;
     }
     if (pending.length + chunk.length - start > limits.maxLineBytes) throw new SearchError("line byte limit exceeded");
-    pending = Buffer.concat([pending, chunk.subarray(start)]);
+    if (start < chunk.length) {
+      const tail = chunk.subarray(start);
+      pending = pending.length === 0 ? Buffer.from(tail) : Buffer.concat([pending, tail]);
+    }
   }
   if (pending.length) { state.bytesSearched = offset + pending.length; yield { bytes: pending, content: pending, number: ++number, offset }; }
 }

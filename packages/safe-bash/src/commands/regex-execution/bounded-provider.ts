@@ -375,7 +375,8 @@ async function literalStart(program: LiteralProgram, subject: Uint8Array, whole:
       }
     } else if (prefix > 0) prefix = fallback[prefix - 1]!;
     else index++;
-    await ledger.checkpoint(signal);
+    const pending = ledger.checkpoint(signal);
+    if (pending) await pending;
   }
   return -1;
 }
@@ -396,7 +397,8 @@ async function enumerate(input: OwnedRequest, row: Row, finders: readonly ((from
     let best: Span | undefined;
     for (let index = 0; index < finders.length; index++) {
       ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
+      const pending = ledger.checkpoint(signal);
+      if (pending) await pending;
       let candidate = cached[index];
       if (candidate === undefined || candidate !== null && candidate.start < from) {
         candidate = await finders[index]!(from) ?? null;

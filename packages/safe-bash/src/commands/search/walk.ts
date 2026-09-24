@@ -8,6 +8,17 @@ import { defaultFileTypes } from "./file-types.js";
 
 export interface FileTarget { readonly path: string; readonly label: string; readonly explicit: boolean; readonly recursive: boolean }
 
+function compareEntryNames(left: string, right: string): number {
+  const min = Math.min(left.length, right.length);
+  for (let i = 0; i < min; i++) {
+    const a = left.charCodeAt(i);
+    const b = right.charCodeAt(i);
+    if (a >= 0xd800 || b >= 0xd800) return Buffer.compare(Buffer.from(left), Buffer.from(right));
+    if (a !== b) return a - b;
+  }
+  return left.length - right.length;
+}
+
 export class Walker {
   private readonly globs: { glob: Glob; include: boolean }[];
   private readonly hasPositive: boolean;
@@ -21,21 +32,23 @@ export class Walker {
     this.hasPositiveType = args.types.some(rule => rule.include);
   }
   async validate(): Promise<void> {
-    await matchGlobs(this.globs.map(rule => rule.glob), [], this.session);
-    const selected = new Map<string, boolean>();
-    for (const selection of this.args.types) {
-      const names = selection.name === "all" ? Object.keys(defaultFileTypes) : [selection.name];
-      for (const name of names) {
-        await this.limits.tick();
-        for (const pattern of defaultFileTypes[name]!) {
+    if (this.globs.length) await matchGlobs(this.globs.map(rule => rule.glob), [], this.session);
+    if (this.args.types.length) {
+      const selected = new Map<string, boolean>();
+      for (const selection of this.args.types) {
+        const names = selection.name === "all" ? Object.keys(defaultFileTypes) : [selection.name];
+        for (const name of names) {
           await this.limits.tick();
-          selected.delete(pattern);
-          selected.set(pattern, selection.include);
+          for (const pattern of defaultFileTypes[name]!) {
+            await this.limits.tick();
+            selected.delete(pattern);
+            selected.set(pattern, selection.include);
+          }
         }
       }
+      for (const [source, include] of selected) this.typeGlobs.push({ glob: new Glob(source), include });
+      if (this.typeGlobs.length) await matchGlobs(this.typeGlobs.map(rule => rule.glob), [], this.session);
     }
-    for (const [source, include] of selected) this.typeGlobs.push({ glob: new Glob(source), include });
-    await matchGlobs(this.typeGlobs.map(rule => rule.glob), [], this.session);
     if (this.args.ignoreFiles) for (const operand of this.args.ignorePaths) {
       const path = pathFor(this.context, operand);
       await assertPathRequirements(this.context, searchRequirements, ["ignore-file"], [path]);
@@ -79,24 +92,28 @@ export class Walker {
     return { repository, rules: [...inherited, ...local] };
   }
   private async accepted(path: string, name: string, directory: boolean, rules: readonly IgnoreRule[]): Promise<boolean> {
-    let override: boolean | undefined;
-    const relative = relativePath(this.context.cwd, path);
-    const overrides = await matchGlobs(this.globs.map(rule => rule.glob), this.globs.map(() => ({ path: relative, directory, ancestors: false })), this.session);
-    for (let index = 0; index < overrides.length; index++) if (overrides[index]) override = this.globs[index]!.include;
-    if (override !== undefined) return override;
-    if (this.hasPositive && !directory) return false;
+    if (this.globs.length) {
+      let override: boolean | undefined;
+      const relative = relativePath(this.context.cwd, path);
+      const overrides = await matchGlobs(this.globs.map(rule => rule.glob), this.globs.map(() => ({ path: relative, directory, ancestors: false })), this.session);
+      for (let index = 0; index < overrides.length; index++) if (overrides[index]) override = this.globs[index]!.include;
+      if (override !== undefined) return override;
+      if (this.hasPositive && !directory) return false;
+    }
     let include: boolean | undefined;
-    let priority = -1;
-    for (let offset = 0; offset < rules.length;) {
-      const group: IgnoreRule[] = [];
-      const groupPriority = rules[offset]!.priority;
-      while (offset < rules.length && rules[offset]!.priority === groupPriority) {
-        const rule = rules[offset++]!;
-        if (rule.priority >= priority && isPathWithin(rule.base, path)) group.push(rule);
-      }
-      const matches = await matchGlobs(group.map(rule => rule.glob), group.map(rule => ({ path: relativePath(rule.base, path), directory, ancestors: false })), this.session);
-      for (let index = 0; index < matches.length; index++) if (matches[index]) {
-        priority = groupPriority; include = group[index]!.include;
+    if (rules.length) {
+      let priority = -1;
+      for (let offset = 0; offset < rules.length;) {
+        const group: IgnoreRule[] = [];
+        const groupPriority = rules[offset]!.priority;
+        while (offset < rules.length && rules[offset]!.priority === groupPriority) {
+          const rule = rules[offset++]!;
+          if (rule.priority >= priority && isPathWithin(rule.base, path)) group.push(rule);
+        }
+        const matches = await matchGlobs(group.map(rule => rule.glob), group.map(rule => ({ path: relativePath(rule.base, path), directory, ancestors: false })), this.session);
+        for (let index = 0; index < matches.length; index++) if (matches[index]) {
+          priority = groupPriority; include = group[index]!.include;
+        }
       }
     }
     if (include === false) return false;
@@ -130,9 +147,10 @@ export class Walker {
     }
     this.context.signal.throwIfAborted();
     if (entries.length > maxEntries) throw new SearchError("filesystem entry limit exceeded");
-    entries.sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)));
+    entries.sort((left, right) => compareEntryNames(left.name, right.name));
     for (const entry of entries) {
-      await this.limits.tick();
+      const tickPending = this.limits.tick();
+      if (tickPending) await tickPending;
       if (++this.limits.files > this.limits.maxFiles) throw new SearchError("filesystem entry limit exceeded");
       const child = `${path.endsWith("/") ? path.slice(0, -1) : path}/${entry.name}`;
       const display = label ? `${label.endsWith("/") ? label.slice(0, -1) : label}/${entry.name}` : entry.name;

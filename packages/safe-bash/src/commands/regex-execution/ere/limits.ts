@@ -64,13 +64,15 @@ export class EreLedger {
     this.#usage[resource] = Math.max(this.#usage[resource], length);
   }
 
-  async checkpoint(signal?: AbortSignal): Promise<void> {
+  checkpoint(signal?: AbortSignal): Promise<void> | undefined {
     this.check(signal);
     if (this.#usage.work - this.#lastYield >= 256) {
       this.#lastYield = this.#usage.work;
-      await yieldTurn(signal);
-      this.check(signal);
+      return yieldTurn(signal).then(() => {
+        this.check(signal);
+      });
     }
+    return undefined;
   }
 
   markUnknownUsage(reason: unknown): void {

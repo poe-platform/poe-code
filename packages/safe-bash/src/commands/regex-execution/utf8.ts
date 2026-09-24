@@ -20,7 +20,7 @@ export async function validateUtf8(input: Uint8Array | string, ledger: EreLedger
       )) invalidUtf8();
     }
     index += width;
-    await ledger.checkpoint(signal);
+    const pending = ledger.checkpoint(signal);
+    if (pending) await pending;
   }
 }
-

@@ -1001,18 +1001,19 @@ function bindCommandIO(context: CommandContext, io?: IO): void {
 }
 
 async function cloneState(state: State, signal: AbortSignal, scope?: InvocationScope, inheritLocals = true): Promise<State> {
+  const hasLocals = inheritLocals && state.locals.length > 0;
   const destination = await snapshotState(state, () => ({
     ...state,
     variables: Object.assign(Object.create(null) as Record<string, string>, state.variables),
     exported: new Set(state.exported), functions: new Map(state.functions), positional: [...state.positional],
-    exportedFunctions: new Set(state.exportedFunctions),
-    readonlyVariables: new Set(state.readonlyVariables),
-    readonlyFunctions: new Set(state.readonlyFunctions),
-    variableAttributes: new Map(state.variableAttributes),
-    getopts: cloneGetoptsBinding(state),
+    ...(state.exportedFunctions ? { exportedFunctions: new Set(state.exportedFunctions) } : {}),
+    ...(state.readonlyVariables ? { readonlyVariables: new Set(state.readonlyVariables) } : {}),
+    ...(state.readonlyFunctions ? { readonlyFunctions: new Set(state.readonlyFunctions) } : {}),
+    ...(state.variableAttributes ? { variableAttributes: new Map(state.variableAttributes) } : {}),
+    ...(state.getopts ? { getopts: cloneGetoptsBinding(state) } : {}),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
-    locals: inheritLocals ? state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
-  }), signal, async (destination, owner) => {
+    locals: hasLocals ? state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))) : [],
+  }), signal, hasLocals ? async (destination, owner) => {
     const store = arrayStore(destination) ?? requireArrays(destination);
     for (let index = 0; index < destination.locals.length; index++) {
       const sourceFrame = state.locals[index]!;
@@ -1041,7 +1042,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
         await owner.ledger.checkpoint(signal);
       }
     }
-  }, scope);
+  } : undefined, scope);
   try {
     for (const frame of destination.locals) for (const saved of frame.values()) {
       if (saved.heldValue) saved.heldValue = stateMonitor(destination)!.values.scope.hold(saved.heldValue.value);

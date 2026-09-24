@@ -253,19 +253,22 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
   for (let start = from; start <= subject.length; start++) {
     if (initial) {
       ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
+      const pendingCheck = ledger.checkpoint(signal);
+      if (pendingCheck) await pendingCheck;
       if (!initial[subject.charCodeAt(start)]) continue;
     }
     if (word) {
       ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
+      const pendingCheck = ledger.checkpoint(signal);
+      if (pendingCheck) await pendingCheck;
       if (isAsciiWord(subject.charCodeAt(start - 1))) continue;
     }
     push(start, task(() => ({ kind: "node", node: root, next: null })), emptyCaptures, emptyHistories);
     let best: State | undefined;
     while (pending.length > 0) {
       ledger.charge("work", 1, signal);
-      await ledger.checkpoint(signal);
+      const pendingCheck = ledger.checkpoint(signal);
+      if (pendingCheck) await pendingCheck;
       const state = pending.pop()!;
       const current = state.task;
       if (current === null) {

@@ -67,7 +67,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
       state.bytesSearched = line.offset + line.bytes.length;
-      await limits.tick();
+      const tickPending = limits.tick();
+      if (tickPending) await tickPending;
       if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0) {
         await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break records;
       }
@@ -99,9 +100,11 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.bytes.length === line.content.length ? line.offset : 0);
         break records;
       }
-      before.push({ line, matches }); beforeBytes += line.bytes.length;
-      while (before.length > args.before) beforeBytes -= before.shift()!.line.bytes.length;
-      if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
+      if (args.before > 0) {
+        before.push({ line, matches }); beforeBytes += line.bytes.length;
+        while (before.length > args.before) beforeBytes -= before.shift()!.line.bytes.length;
+        if (beforeBytes > limits.maxFileBytes) throw new SearchError("context buffer byte limit exceeded");
+      }
     }
   }
   if (binaryOutput && state.binaryOffset !== null && totals.matched_lines > 0 && !binaryPrinted) {

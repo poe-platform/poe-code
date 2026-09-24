@@ -48,7 +48,7 @@ export interface RuntimeLimits {
   readonly commandOutputBytes?: number;
   readonly compressedBytes?: number;
   readonly inflatedBytes?: number;
-  /** Maximum Argon2 arena bytes for encrypted ODF imports; defaults to 64 MiB. */
+  /** Maximum Argon2 arena bytes for encrypted ODF import/export; defaults to 64 MiB. */
   readonly encryptionMemoryBytes?: number;
   readonly zipEntries?: number;
   readonly zipRatio?: number;

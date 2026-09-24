@@ -22,12 +22,17 @@ format, version, record, formula, numerical or rendering fidelity.
 BIFF7/8 XOR-obfuscated and BIFF8 RC4/CryptoAPI Excel workbooks using the
 native reader's built-in `VelvetSweatshop` password open automatically.
 Other BIFF passwords and encrypted OpenDocument imports use an explicit
-host `password.read` callback. ODF accepts UTF-8 strings or bytes, AES128/192/256 or Blowfish-CFB8,
-SHA1/SHA256 start keys and prefix/full checksums. Every encrypted member is
-admitted before the callback and verified before conversion. Conversion exports
-plaintext. BIFF ciphers and ODF encryption checksums do not authenticate workbook data;
-prefix checksums cover only the first 1024 compressed bytes. Encrypted exports
-remain unsupported. No ambient password acquisition or native fallback occurs.
+host `password.read` callback. ODF accepts UTF-8 strings or bytes, AES128/192/256,
+Blowfish-CFB8/CFB64 and LibreOffice Argon2id/AES256-GCM packages. Encryption work is
+admitted before the callback and ciphertext is verified before conversion. ODF exports
+plaintext by default; `-O encryption=libreoffice-aes256-gcm` opts into authenticated
+package encryption with explicit password and cryptographic `entropy.read` callbacks.
+For that profile, allow `limits.workbookWork: 256 * 1024 * 1024`; its Argon2 arena uses
+64 MiB, bounded by `limits.encryptionMemoryBytes`. Use a non-empty password for
+LibreOffice interoperability. Legacy export profiles and callback details are in the
+[package README](../../packages/ssconvert/README.md). BIFF ciphers and legacy ODF
+checksums do not authenticate workbook data; prefix checksums cover only the first
+1024 compressed bytes. No ambient password acquisition or native fallback occurs.
 
 ```ts
 import { createEngine } from "poe-code/ssconvert";

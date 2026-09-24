@@ -3,6 +3,7 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { ImportedValue } from "../workbook.js";
 
 const urn = "urn:oasis:names:tc:opendocument:xmlns:";
+export const odfEncryptionNamespace = "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0";
 export const odfNamespaces: Readonly<Record<string, string>> = {
   xml: "http://www.w3.org/XML/1998/namespace",
   office: urn + "office:1.0", style: urn + "style:1.0", text: urn + "text:1.0", table: urn + "table:1.0",
@@ -32,7 +33,8 @@ export function odfChildren(value: ImportedValue | undefined): readonly Imported
 export function createOdfXml(context: CapabilityContext, extended: boolean) {
   let work = 0, nodes = 0;
   const encoder = new TextEncoder(), names = new Set<string>();
-  const declarations = Object.fromEntries(Object.entries(odfNamespaces).map(([prefix, uri]) => ["xmlns:" + prefix, uri]));
+  const declarations = { ...Object.fromEntries(Object.entries(odfNamespaces).map(([prefix, uri]) => ["xmlns:" + prefix, uri])),
+    "xmlns:loext": odfEncryptionNamespace };
   function charge(amount = 1) {
     context.signal.throwIfAborted();
     if (!Number.isSafeInteger(amount) || amount < 0 || amount > (context.limits.workbookWork ?? 10000000) - work)
@@ -116,7 +118,8 @@ export function createOdfXml(context: CapabilityContext, extended: boolean) {
     } finally { active.delete(v); }
   }
   function document(tag: string, body: string) {
-    return '<?xml version="1.0" encoding="UTF-8"?>\n' + element(tag, { ...declarations, "office:version": "1.2" }, body);
+    // The encryption extension is declared only on its outer package manifest.
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + element(tag, { ...declarations, "xmlns:loext": undefined, "office:version": "1.2" }, body);
   }
   return { element, escape, text, retained, document, charge };
 }

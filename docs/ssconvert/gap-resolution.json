@@ -30,7 +30,7 @@
     {
       "id": "encrypted-odf",
       "status": "open",
-      "currentFinding": "AES-CBC and Blowfish CFB8/CFB64 imports and explicit legacy encrypted exports are implemented. LibreOffice opens the qualified AES and CFB64 exports. Its default Argon2id/AES-GCM encrypted-package now imports with explicit password and bounded memory/work; the retained LibreOffice 26.8 sample matches independently decrypted CSV and diagnostics through Node SDK/Shell and browser/worker SDK. Modern encrypted writing, wider application/platform qualification and containing release remain open."
+      "currentFinding": "AES-CBC, Blowfish CFB8/CFB64 and LibreOffice Argon2id/AES-GCM imports and explicit encrypted exports are implemented. LibreOffice 26.8 opens qualified AES, CFB64 and modern ASCII/Unicode-password exports. Independent crypto and SDK checks also pass modern empty passwords, which the native loader refuses. Broader algorithm/application/platform qualification and containing publication remain open."
     },
     {
       "id": "encrypted-paradox",

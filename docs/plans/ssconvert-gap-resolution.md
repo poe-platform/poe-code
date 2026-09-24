@@ -272,11 +272,11 @@ Resolve the requested gaps against Gnumeric 1.12.61 and applicable format specif
 
 The pipeline above defines the work and acceptance requirements. Validate each issue against current source, repair it with focused tests, check the maintained package routes, and deliver an atomic Conventional Commit. For visible CLI changes, inspect an ad hoc screenshot. Verify remote main and successful publication separately.
 
-Current implementation: LibreOffice Argon2id v19/AES256-GCM encrypted-package import is implemented with cumulative ZIP/XML/work limits, a default 64 MiB Argon2 arena cap, authenticated-before-inflation processing, cancellation and owned-buffer disposal. The retained LibreOffice 26.8 sample matches independently decrypted CSV and all five baseline diagnostics through Node SDK/Shell and browser/worker SDK. The package suite passed 23,280 tests before the final three authenticated-inner-package controls; all 27 focused package-encryption cases pass. The standalone browser Shell attempt requires a Buffer host dependency and is not counted as qualified.
+Current implementation: LibreOffice Argon2id v19/AES256-GCM package import and explicit export use cumulative ZIP/XML/work limits, a default 64 MiB Argon2 arena cap, authentication before inflation, cancellation and owned-buffer disposal. Independent Python crypto authenticated six real exports (both writers, ASCII/Unicode/empty passwords). LibreOffice 26.8 reads both writers’ ASCII/Unicode outputs and refuses wrong or empty passwords; SDK readback supports empty passwords. Modern browser/worker SDK and Node Shell routes are qualified separately. The standalone browser Shell needs a Buffer host dependency and remains unqualified. Verification passed 23,296 package tests, 635 ODF tests, maintained lint/types and the selected build closure.
 
 Current priorities:
 
-1. Continue encrypted-format qualification, including modern ODF writing and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.
+1. Continue encrypted-format qualification, including broader ODF application profiles and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.
 2. Resolve the validated DOCX depth-2048 timeout affecting release CI. The uncommitted readback-cache experiment was discarded because five filtered cases still timed out. Preserve the matrix's routes and assertions.
 3. Continue the remaining ledger families and qualify the resulting packed SDK/Shell artifacts.
 

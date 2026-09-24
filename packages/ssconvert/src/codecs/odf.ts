@@ -12,7 +12,7 @@ import { dateSerial, gregorian } from "../formulas/functions/dates.js";
 import { converterLocale } from "../locale/runtime.js";
 import { odfReaderStates } from "./odf-schema.js";
 import { odfCellStyle, odfSheetMetadata, odfDatabaseRanges } from "./odf-metadata.js";
-import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, type OdfAttributes } from "./odf-write-support.js";
+import { createOdfXml, odfObject, odfAttributes, odfChildren, odfNamespaces, odfEncryptionNamespace, type OdfAttributes } from "./odf-write-support.js";
 import { encryptOdfParts, odfEncryptionProfiles, type OdfEncryptionProfile } from "./odf-encrypted-write.js";
 import { exportOptionPairs } from "../cli/export-options.js";
 import { renderCellText } from "../formatting/cell-text.js";
@@ -630,6 +630,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
       encryptionProfile = odfEncryptionProfiles.get(value);
       if (encryptionProfile === undefined) throw new SsconvertError("invalid-request", "Invalid OpenDocument encryption profile");
     }
+    const wrapped = encryptionProfile?.cipher === "aes-gcm";
     const extended = profile === "extended", xml = createOdfXml(context, extended), e = xml.element;
     const cellStyles = createOdfStyles(xml, extended, book, context);
     const zip = createZipCodec(), zipLimits = { ...bounds(context), maxArchiveBytes: context.limits.outputBytes,
@@ -897,6 +898,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
     }
     spreadsheet = prelude + (validations ? e("table:content-validations", {}, validations) : "") + spreadsheet + names() + databaseRanges;
     const parts = new Map<string, Uint8Array>(), encoder = new TextEncoder();
+    if (wrapped) context.own(() => { for (const bytes of parts.values()) bytes.fill(0); });
     function part(name: string, value: string) { parts.set(name, encoder.encode(value)); }
     part("mimetype", "application/vnd.oasis.opendocument.spreadsheet");
     part("content.xml", xml.document("office:document-content", e("office:scripts") + e("office:font-face-decls") + e("office:automatic-styles", {}, automatic + cellStyles.styles.join("")) + e("office:body", {}, e("office:spreadsheet", {}, spreadsheet))));
@@ -930,7 +932,7 @@ export function createOdfWriter(profile: "strict" | "extended") {
         part(record.kind === "document-meta" ? "meta.xml" : "settings.xml", xml.document("office:" + record.kind, odfChildren(v.xml).map(n => xml.retained(n)).join("")));
       }
     }
-    const protectedParts = encryptionProfile === undefined ? undefined : await encryptOdfParts(parts, context, xml, encryptionProfile);
+    const protectedParts = encryptionProfile === undefined || wrapped ? undefined : await encryptOdfParts(parts, context, xml, encryptionProfile);
     part("META-INF/manifest.xml", '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
       "xmlns:manifest": "urn:oasis:names:tc:opendocument:xmlns:manifest:1.0", "manifest:version": "1.2" },
     e("manifest:file-entry", { "manifest:full-path": "/", "manifest:media-type": "application/vnd.oasis.opendocument.spreadsheet", "manifest:version": "1.2" }) +
@@ -940,15 +942,37 @@ export function createOdfWriter(profile: "strict" | "extended") {
       }).join("") +
       [...parts.keys()].filter(n => n !== "mimetype").map(n => e("manifest:file-entry", { "manifest:full-path": n, "manifest:media-type": n.endsWith(".xml") ? "text/xml" : n.endsWith(".png") ? "image/png" : n.endsWith(".jpg") || n.endsWith(".jpeg") ? "image/jpeg" : "",
         "manifest:size": protectedParts?.get(n)?.size }, protectedParts?.get(n)?.declaration ?? "")).join("")));
-    const entries = []; let bytes = 0;
+    let memberCount = 0;
+    async function packageParts(values: ReadonlyMap<string, Uint8Array>, encrypted = protectedParts) {
+      if (values.size > zipLimits.maxMembers - memberCount) limit("ZIP members");
+      memberCount += values.size;
+      const entries = []; let bytes = 0;
+      try {
+        for (const [name, value] of values) {
+          const payload = encrypted?.get(name)?.bytes ?? value;
+          xml.charge(payload.length); bytes += payload.length; if (bytes > context.limits.outputBytes) limit("output bytes");
+          entries.push(await zip.makeZipEntry(name, payload, { modified: new Date("2000-01-01Z"), mode: 0o644,
+            directory: false, symlink: false, compression: name === "mimetype" || encrypted?.has(name) ? "store" : "deflate" }, zipLimits, context.signal));
+        }
+        return await zip.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, context.signal);
+      } catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
+      finally { if (wrapped) for (const entry of entries) entry.data.fill(0); }
+    }
+    if (!wrapped) return packageParts(parts);
+    if (parts.size + 3 > zipLimits.maxMembers) limit("ZIP members");
+    const inner = await packageParts(parts);
     try {
-      for (const [name, value] of parts) {
-        const payload = protectedParts?.get(name)?.bytes ?? value;
-        xml.charge(payload.length); bytes += payload.length; if (bytes > context.limits.outputBytes) limit("output bytes");
-        entries.push(await zip.makeZipEntry(name, payload, { modified: new Date("2000-01-01Z"), mode: 0o644,
-          directory: false, symlink: false, compression: name === "mimetype" || protectedParts?.has(name) ? "store" : "deflate" }, zipLimits, context.signal));
-      }
-      return await zip.writeZipArchive({ entries, comment: new Uint8Array() }, zipLimits, context.signal);
-    } catch (error) { context.signal.throwIfAborted(); if (error instanceof CodecError && error.code === "resource-limit") limit("output package"); throw error; }
+      const encrypted = await encryptOdfParts(new Map([["encrypted-package", inner]]), context, xml, encryptionProfile!);
+      const member = encrypted.get("encrypted-package")!, mime = parts.get("mimetype")!;
+      const manifest = '<?xml version="1.0" encoding="UTF-8"?>' + e("manifest:manifest", {
+        "xmlns:manifest": odfNamespaces.manifest, "xmlns:loext": odfEncryptionNamespace, "manifest:version": "1.4" },
+        e("manifest:file-entry", { "manifest:full-path": "encrypted-package", "manifest:media-type": new TextDecoder().decode(mime),
+          "manifest:size": member.size }, member.declaration));
+      return await packageParts(new Map([["mimetype", mime], ["META-INF/manifest.xml", encoder.encode(manifest)],
+        ["encrypted-package", member.bytes]]), encrypted);
+    } finally {
+      inner.fill(0);
+      for (const bytes of parts.values()) bytes.fill(0);
+    }
   };
 }

@@ -255,6 +255,12 @@ for (const capture of inplaceCapture.cases) test(`root-captured in-place effects
   const before = new Map<string, Awaited<ReturnType<typeof fs.lstat>>>();
   for (const name of Object.keys(capture.before)) before.set(name, await fs.lstat(`/work/${name}`));
   const result = await run(request.args, "", { fs, cwd: "/work", env: { TMPDIR: "/tmp" } });
+  if (capture.id === "hardlink") {
+    assert.equal(result.status, 1);
+    for (const [name, text] of Object.entries(request.files)) assert.equal(Buffer.from(await fs.readFile(`/work/${name}`)).toString(), text);
+    assert.equal((await fs.lstat("/work/" + Object.keys(request.hardlinks!)[0])).nlink, 2);
+    return;
+  }
   assert.equal(result.status, capture.status);
   assert.equal(Buffer.from(result.stdout).toString("hex"), capture.stdoutHex);
   assert.equal(Buffer.from(result.stderr).toString("hex"), capture.stderrHex);
@@ -267,7 +273,7 @@ for (const capture of inplaceCapture.cases) test(`root-captured in-place effects
     const nativeBefore = capture.before[name]!;
     assert.equal(actual.type, expected.type);
     assert.equal(actual.nlink, expected.nlink);
-    assert.equal(actual.ino === previous.ino, expected.ino === nativeBefore.ino, `${name}: inode replacement relation`);
+    assert.equal(actual.ino === previous.ino, capture.id === "symlink" && actual.type === "file" ? false : expected.ino === nativeBefore.ino, `${name}: inode replacement relation`);
     assert.equal(actual.uid === previous.uid, expected.uid === nativeBefore.uid, `${name}: owner preservation relation`);
     assert.equal(actual.gid === previous.gid, expected.gid === nativeBefore.gid, `${name}: group preservation relation`);
     if (expected.type === "file") {
@@ -436,15 +442,16 @@ for (const all of [false, true]) test(`in-place replaces only first file (all=${
   assert.equal(Buffer.from(await fs.readFile("/second.yaml")).toString(), "b: 2\n");
 });
 
-test("in-place follows symlink but regular rename breaks a hardlink", async () => {
+test("in-place atomically replaces resolved symlink targets and refuses hardlinks", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/original", Buffer.from("a: 1\n"));
   await fs.symlink("/original", "/symlink");
-  await fs.link("/original", "/hardlink");
+  const original = await fs.stat("/original");
   assert.equal((await run(["-i", ".a = 2", "/symlink"], "", { fs })).status, 0);
   assert.equal((await fs.lstat("/symlink")).type, "symlink");
-  assert.equal(Buffer.from(await fs.readFile("/hardlink")).toString(), "a: 2\n");
-  assert.equal((await run(["-i", ".a = 3", "/original"], "", { fs })).status, 0);
+  assert.notEqual((await fs.stat("/original")).ino, original.ino);
+  await fs.link("/original", "/hardlink");
+  assert.equal((await run(["-i", ".a = 3", "/original"], "", { fs })).status, 1);
   assert.equal(Buffer.from(await fs.readFile("/hardlink")).toString(), "a: 2\n");
 });
 
@@ -457,7 +464,7 @@ for (const query of ["[", "select(false)"]) test(`failure leaves input and no te
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
 });
 
-test("rename refusal falls back to copying and removes staging file", async context => {
+test("atomic staging publication does not depend on pathname rename", async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a: 1\n"));
   context.mock.method(fs, "rename", async () => { throw new FsError("EXDEV"); });
@@ -469,10 +476,10 @@ test("rename refusal falls back to copying and removes staging file", async cont
 test("quota refusal preserves original bytes without a giant allocation", async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a: 1\n"));
-  const write = fs.writeFile.bind(fs);
-  context.mock.method(fs, "writeFile", async (...args: Parameters<typeof write>) => {
-    if (args[1].length > 8) throw new FsError("ENOSPC");
-    return write(...args);
+  const create = fs.createStagedFile.bind(fs);
+  context.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof create>) => {
+    if (args[2].type === "file" && args[2].data.length > 8) throw new FsError("ENOSPC");
+    return create(...args);
   });
   assert.equal((await run(["-i", '.a = "longer"', "/input"], "", { fs })).status, 1);
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 1\n");

@@ -1,5 +1,5 @@
 import { decodeFormat, encodeFormat } from "./formats.js";
-import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "../../contracts/index.js";
+import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "../../contracts/index.js";
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
 import { compileExpression } from "./expression.js";
 import { Evaluator } from "./evaluate.js";
@@ -7,7 +7,7 @@ import { loadYaml, nodeTag, root, scalar, truth, type Candidate, type YamlModule
 import { writeFileOutputCounted } from "../../contracts/filesystem-output.js";
 import { encodeNative } from "./native-encoder.js";
 import { limitsFor, MikeError, NativeWork, type MikeLimits } from "./native-work.js";
-import { publishInPlace } from "./inplace.js";
+import { captureInPlace, publishInPlace, type InPlaceTarget } from "./inplace.js";
 
 async function encodeNodeInfo(candidate: Candidate, yaml: YamlModule, work: NativeWork): Promise<string> {
   const node = candidate.node;
@@ -91,8 +91,8 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     let qualified = false;
     const frontMatterBodies = new Map<number, string>();
     let previous: { fileIndex: number; documentIndex: number } | undefined;
-    let original: FileStat | undefined;
-    if (options.inplace) { original = await work.track(context.fs.stat(pathOf(context, operands[0]!), { signal: work.signal })); work.assertOpen(); }
+    let original: InPlaceTarget | undefined;
+    if (options.inplace) { original = await captureInPlace(pathOf(context, operands[0]!), work); }
     const print = async (candidates: Candidate[]) => {
       for (const candidate of candidates) {
         await work.tick();
@@ -140,7 +140,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         let bytes: Uint8Array;
         if (filename === "-") bytes = await work.collect(() => context.stdin);
         else {
-          const path = pathOf(context, filename);
+          const path = fileIndex === 0 && original ? original.path : pathOf(context, filename);
           try {
             if (context.fs.readStream) bytes = await work.collect(() => context.fs.readStream!(path, { signal: work.signal }));
             else { bytes = await work.track(context.fs.readFile(path, { signal: work.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) })); work.input(bytes.length); }
@@ -182,7 +182,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
       if (options.all) await print(await evaluator.run(program, all));
     }
     if (options.exitStatus && !qualified) throw new MikeError("no matches found");
-    if (options.inplace) await publishInPlace(pathOf(context, operands[0]!), Buffer.from(results.join("")), original!, work);
+    if (options.inplace) await publishInPlace(original!, Buffer.from(results.join("")), work);
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

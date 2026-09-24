@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Composer, Document, Lexer } from "yaml";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { FsError, type InvocationCleanup, type ByteSource } from "../../../src/contracts/index.js";
+import { type InvocationCleanup, type ByteSource } from "../../../src/contracts/index.js";
 import { createMikeYqCommand } from "../../../src/commands/yq/mike.js";
 import { run } from "./helpers.js";
 
@@ -63,10 +63,10 @@ test("late staging-file admission is cleaned after concurrent invocation close",
   let release!: () => void; let opened!: () => void; let cleanup: InvocationCleanup | undefined;
   const admitted = new Promise<void>(resolve => { opened = resolve; });
   const gate = new Promise<void>(resolve => { release = resolve; });
-  const write = fs.writeFile.bind(fs);
-  context.mock.method(fs, "writeFile", async (...args: Parameters<typeof write>) => {
-    if (args[2]?.flag === "wx") { opened(); await gate; await write(args[0], args[1], { flag: "wx" }); return; }
-    return write(...args);
+  const create = fs.createStagedFile.bind(fs);
+  context.mock.method(fs, "createStagedFile", async (...args: Parameters<typeof create>) => {
+    opened(); await gate;
+    return create(args[0], args[1], args[2], { parent: args[3].parent });
   });
   const pending = run(["-i", ".a = 2", "/input"], "", { fs, registerCleanup(callback) { cleanup ??= callback; } });
   const rejected = assert.rejects(pending);
@@ -118,40 +118,42 @@ test("wildcard backtracking consumes the configured work budget", async () => {
   assert.match(result.stderr, /maxSteps/u);
 });
 
-for (const phase of ["wx", "w"] as const) for (const reason of [false, new Error("writer cancellation")]) test(`direct execute drains ${phase} writer without external cleanup: ${String(reason)}`, async context => {
+for (const phase of ["createStagedFile", "publishStagedFile"] as const) for (const reason of [false, new Error("writer cancellation")]) test(`direct execute drains ${phase} without external cleanup: ${String(reason)}`, async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a: 1\n"));
   const controller = new AbortController();
-  let release!: () => void;
-  let entered!: () => void;
+  let release!: () => void; let entered!: () => void;
   const gate = new Promise<void>(resolve => { release = resolve; });
   const admitted = new Promise<void>(resolve => { entered = resolve; });
-  const write = fs.writeFile.bind(fs);
-  let writerFinished = false;
-  let settled = false;
-  if (phase === "w") context.mock.method(fs, "rename", async () => { throw new FsError("EXDEV"); });
-  context.mock.method(fs, "writeFile", async (...args: Parameters<typeof write>) => {
-    if (args[2]?.flag !== phase) return write(...args);
-    entered();
-    await gate;
-    await write(args[0], args[1], { flag: phase });
-    writerFinished = true;
-  });
+  let finished = false; let settled = false;
+  if (phase === "createStagedFile") {
+    const create = fs.createStagedFile.bind(fs);
+    context.mock.method(fs, phase, async (...args: Parameters<typeof create>) => {
+      entered(); await gate;
+      const receipt = await create(args[0], args[1], args[2], { parent: args[3].parent });
+      finished = true; return receipt;
+    });
+  } else {
+    const publish = fs.publishStagedFile.bind(fs);
+    context.mock.method(fs, phase, async (...args: Parameters<typeof publish>) => {
+      entered(); await gate;
+      await publish(args[0], args[1], { parent: args[2].parent, destination: args[2].destination, ...(args[2].ancestors ? { ancestors: args[2].ancestors } : {}) });
+      finished = true;
+    });
+  }
   const pending = run(["-i", ".a = 2", "/input"], "", { fs, signal: controller.signal });
   void pending.then(() => { settled = true; }, () => { settled = true; });
   const rejected = assert.rejects(pending, error => error === reason);
-  await admitted;
-  controller.abort(reason);
+  await admitted; controller.abort(reason);
   try {
     await new Promise<void>(resolve => { setImmediate(resolve); });
-    assert.equal(settled, false);
-    assert.equal(writerFinished, false);
+    assert.equal(settled, false); assert.equal(finished, false);
     assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 1\n");
   } finally { release(); }
   await rejected;
-  assert.equal(writerFinished, true);
+  assert.equal(finished, true);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
-  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), phase === "wx" ? "a: 1\n" : "a: 2\n");
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), phase === "createStagedFile" ? "a: 1\n" : "a: 2\n");
 });
 
 test("pending source next is drained and iterator returned exactly once", async () => {
@@ -227,4 +229,93 @@ test("JSON node admission precedes recursive library node construction", async c
   context.mock.method(Document.prototype, "createNode", function (this: Document, ...args: Parameters<typeof create>) { called = true; return create.apply(this, args); });
   const result = await run(["-p=json", "."], "[1,2,3]", {}, { limits: { maxNodes: 2 } });
   assert.equal(result.status, 1); assert.equal(called, false);
+});
+
+for (const rename of [true, false]) test(`in-place refuses ancestor substitution with rename=${rename}`, async context => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/visible"); await fs.mkdir("/private");
+  await fs.writeFile("/visible/input", Buffer.from("a: 1\n"));
+  await fs.writeFile("/private/input", Buffer.from("a: 9\n"));
+  const read = fs.readStream.bind(fs);
+  let swapped = false;
+  context.mock.method(fs, "readStream", (...args: Parameters<typeof read>) => (async function* () {
+    yield* read(...args);
+    if (!swapped) {
+      swapped = true;
+      await fs.rename("/visible", "/old"); await fs.symlink("/private", "/visible");
+    }
+  })());
+  const backend = new Proxy(fs, { get(target, key) {
+    if (key === "capabilities" && !rename) return { ...target.capabilities, rename: false };
+    if (key === "capabilitiesFor" && !rename) return undefined;
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await run(["-i", ".a = 2", "/visible/input"], "", { fs: backend });
+  assert.equal(result.status, 1);
+  assert.equal(Buffer.from(await fs.readFile("/private/input")).toString(), "a: 9\n");
+  assert.equal(Buffer.from(await fs.readFile("/old/input")).toString(), "a: 1\n");
+});
+
+test("in-place refuses backends without atomic ancestry publication", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a: 1\n"));
+  const backend = new Proxy(fs, { get(target, key) {
+    if (key === "capabilities") return { ...target.capabilities, atomicStagingAncestry: false };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await run(["-i", ".a = 2", "/input"], "", { fs: backend });
+  assert.equal(result.status, 1);
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 1\n");
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input"]);
+});
+
+test("in-place conditional publication preserves a replaced target", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a: 1\n"));
+  const publish = fs.publishStagedFile.bind(fs);
+  context.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
+    await fs.rename("/input", "/old");
+    await fs.writeFile("/input", Buffer.from("a: 9\n"));
+    return publish(...args);
+  });
+  assert.equal((await run(["-i", ".a = 2", "/input"], "", { fs })).status, 1);
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 9\n");
+  assert.equal(Buffer.from(await fs.readFile("/old")).toString(), "a: 1\n");
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["input", "old"]);
+});
+
+test("in-place pins ancestors above the parent through publication and cleanup", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/visible/child", { recursive: true });
+  await fs.mkdir("/private/child", { recursive: true });
+  await fs.writeFile("/visible/child/input", Buffer.from("a: 1\n"));
+  await fs.writeFile("/private/child/input", Buffer.from("a: 9\n"));
+  const publish = fs.publishStagedFile.bind(fs);
+  context.mock.method(fs, "publishStagedFile", async (...args: Parameters<typeof publish>) => {
+    await fs.rename("/visible", "/old"); await fs.symlink("/private", "/visible");
+    return publish(...args);
+  });
+  // Cleanup also refuses the substituted namespace instead of deleting through it.
+  await assert.rejects(run(["-i", ".a = 2", "/visible/child/input"], "", { fs }));
+  assert.equal(Buffer.from(await fs.readFile("/private/child/input")).toString(), "a: 9\n");
+  assert.equal(Buffer.from(await fs.readFile("/old/child/input")).toString(), "a: 1\n");
+  assert.deepEqual((await fs.readdir("/private/child")).map(entry => entry.name), ["input"]);
+});
+
+test("in-place reads the captured symlink target after the alias is replaced", async context => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("a: 1\n"));
+  await fs.writeFile("/other", Buffer.from("a: 9\n"));
+  await fs.symlink("/input", "/alias");
+  const lstat = fs.lstat.bind(fs);
+  context.mock.method(fs, "lstat", async (...args: Parameters<typeof lstat>) => {
+    const stat = await lstat(...args);
+    if (args[0] === "/input") { await fs.rm("/alias"); await fs.symlink("/other", "/alias"); }
+    return stat;
+  });
+  assert.equal((await run(["-i", ".a += 1", "/alias"], "", { fs })).status, 0);
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "a: 2\n");
+  assert.equal(Buffer.from(await fs.readFile("/other")).toString(), "a: 9\n");
 });

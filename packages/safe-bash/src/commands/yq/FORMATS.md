@@ -15,6 +15,13 @@ and URI output uses form-style `+` spaces.
 Conversion uses the configured virtual filesystem and existing Mike-profile
 byte, document, scalar, node, depth, step and output quotas. It does not invoke
 native tools. Split output uses the selected format's extension.
+Mike-style `-i` requires a filesystem with atomic staging and ancestry-bound
+publication. It reads the resolved target and replaces it only while the captured
+target and directory identities still match. Symlinks remain links; their resolved
+targets receive a new inode. Multiply linked files and unsupported backends are
+refused, with no pathname-write fallback. If an ancestor moves after staging,
+cleanup refuses the substituted namespace and reports an error; an owned staging
+directory may remain in the moved original directory.
 Properties keys are checked against configured depth and parser-node quotas
 before constructing their nested maps; each new node also consumes native work.
 

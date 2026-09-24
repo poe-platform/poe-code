@@ -17,9 +17,9 @@ for (const fixture of captured.cases) {
       if (extraDirectiveFormats.has(format)) {
         assert.equal(actual.stderr, `seq: format '${format}' has too many % directives\n`);
       } else {
-        assert.equal(actual.stderr, fixture.source.stderr);
+        assert.equal(actual.stderr, fixture.source.stderr.replace("one f, e or g conversion", "one f, e, g or a conversion"));
         if (["", "literal", "%%", "%%f"].includes(format)) assert.equal(actual.stderr, "seq: format must contain exactly one conversion\n");
-        else if (["%", "%%%", "%s", "%%%s"].includes(format)) assert.equal(actual.stderr, "seq: format requires one f, e or g conversion\n");
+        else if (["%", "%%%", "%s", "%%%s"].includes(format)) assert.equal(actual.stderr, "seq: format requires one f, e, g or a conversion\n");
       }
     } finally { await instance.dispose(); }
   });

@@ -39,15 +39,17 @@ bounded readFile call. No product subprocesses or runtime dependencies are used.
 
 ## seq
 
-Accepts one, two or three signed decimal operands, including decimal exponents.
+Accepts one, two or three signed decimal or hexadecimal operands, including decimal
+exponents and hexadecimal binary exponents (`0x1.8p2`).
 Supports `-s`/`--separator`, `-w`/`--equal-width`, `-f`/`--format`, and `--`.
-Format strings contain one `f`, `e` or `g` conversion (uppercase variants and
+Format strings contain one `f`, `e`, `g` or `a` conversion (uppercase variants and
 optional `L`), literal text/`%%`, sign/space/zero/left/alternate flags, width and
 precision. Zero steps and combining equal-width with explicit formats fail.
 Formats, exponents and coefficients are bounded before large allocation.
 
 Without `-f`, progression uses exact scaled decimal integers, not floating
 accumulation. Default fixed precision comes from first/increment, not the endpoint.
+Equal-width output retains leading-zero width from the first and last operands.
 Exact decimal precision beyond native floating precision is a documented extension.
 With `-f`, finite binary64 operands and a non-underflowed increment are required:
 the value is first + index * increment with one binary64 rounding (the observed
@@ -56,9 +58,10 @@ ties-to-even for rendering. This matches the pinned GNU9.7 Darwin arm64 floating
 profile, including a boundary value only when its rendered number equals the
 endpoint and differs from the prior output. Negative zero is preserved. This
 does not claim x86 extended-precision GNU behavior. Original decimal-only format
-failures and their source correction are retained in author evidence. Nonfinite,
-hexadecimal floating operands, `%a`, and locale-specific numeric punctuation are
-not supported. Numeric locale is always the C decimal convention.
+failures and their source correction are retained in author evidence.
+Hexadecimal `%a`/`%A` formats support default or explicit precision. Nonfinite
+operands and locale-specific numeric punctuation are not supported. Numeric locale
+is always the C decimal convention.
 
 Author native controls use pinned GNU coreutils 9.7 executables built on Darwin
 arm64, not GNU/Linux. Author tests are not an independent verifier or a full gate.

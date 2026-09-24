@@ -30,6 +30,9 @@ test("seq exact bounded decimal extension does not accumulate floating drift", a
 test("seq output, digit, step and argument budgets fail boundedly", async () => {
   for (const [limits, command] of [
     [{ maxOutputBytes: 4 }, "seq 100"], [{ maxNumericDigits: 5 }, "seq 1e10"],
+    [{ maxNumericDigits: 5 }, "seq 0x1p100"],
+    [{ maxNumericDigits: 5 }, "seq 0x123456"],
+    [{ maxNumericDigits: 5 }, "seq -f %.100a 1"],
     [{ maxSteps: 4 }, "seq 100"], [{ maxArgumentBytes: 2 }, "seq 100"],
   ] as const) {
     const instance = shell({ limits });
@@ -38,4 +41,30 @@ test("seq output, digit, step and argument budgets fail boundedly", async () => 
     assert.match(result.stderr, /limit exceeded/);
     await instance.dispose();
   }
+});
+
+test("seq preserves operand width and accepts hexadecimal numbers and conversions", async () => {
+  const instance = shell();
+  try {
+    for (const [script, stdout] of [
+      ["seq -w 001 5", "001\n002\n003\n004\n005\n"],
+      ["seq -w 1 005", "001\n002\n003\n004\n005\n"],
+      ["seq -w -001 2", "-001\n0000\n0001\n0002\n"],
+      ["seq -w 001.5 0.5 2.5", "001.5\n002.0\n002.5\n"],
+      ["seq 0x4", "1\n2\n3\n4\n"],
+      ["seq 0x1p2", "1\n2\n3\n4\n"],
+      ["seq 0x1.8p0 0x.8 0x2.8", "1.5\n2.0\n2.5\n"],
+      ["seq -f '%a' 1 2", "0x1p+0\n0x1p+1\n"],
+      ["seq -f '%a' -0 -0", "-0x0p+0\n"],
+      ["seq -f '%#a' -0x1 -0x1", "-0x1.p+0\n"],
+      ["seq -f '%A' 1 2", "0X1P+0\n0X1P+1\n"],
+      ["seq -f '%.2a' 0x1.8 0x1.8", "0x1.80p+0\n"],
+      ["seq -f '%.0a' 1.5 1.5", "0x2p+0\n"],
+      ["seq -f '%020a' 1 1", "0x000000000000001p+0\n"],
+    ] as const) {
+      const result = await instance.exec(script);
+      assert.equal(result.exitCode, 0, script + result.stderr);
+      assert.equal(result.stdout, stdout, script);
+    }
+  } finally { await instance.dispose(); }
 });

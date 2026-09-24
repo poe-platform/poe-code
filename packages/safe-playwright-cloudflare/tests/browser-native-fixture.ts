@@ -32,6 +32,9 @@ export async function buildNativeFixture(entry: URL) {
   }
   const result = await build({
     entryPoints: [entry.pathname], bundle: true, format: 'esm', platform: 'node',
+    // Workspace path aliases can mix source and built runtime class identities.
+    // Resolve dependencies consistently through their package exports instead.
+    tsconfigRaw: { compilerOptions: {} },
     target: 'es2022', external: ['node:*', 'cloudflare:*', 'browser-user-code.js'], write: false, plugins,
   });
   const source = result.outputFiles[0]?.text;

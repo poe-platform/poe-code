@@ -95,7 +95,7 @@ function metadataOnly(operations: readonly string[]) {
 for (const kind of ["s3", "webdav"] as const) {
   for (const direction of ["to-remote", "from-remote"] as const) {
     for (const action of ["copyFile", "cp", "mv"] as const) {
-      test(`qualified ${kind} existing-target ${action} ${direction}`, async () => {
+      test(`qualified ${kind} comparison preserves existing-target ${action} capability boundaries ${direction}`, async context => {
         const memory = new MemoryFileSystem();
         const { filesystem: remote, operations } = qualified(kind, memory);
         const source = direction === "to-remote" ? memory : remote;
@@ -115,17 +115,25 @@ for (const kind of ["s3", "webdav"] as const) {
         const filesystem = mounted(memory, remote);
         const sourcePath = direction === "to-remote" ? "/memory/source" : "/remote/source";
         const targetPath = direction === "to-remote" ? "/remote/target" : "/memory/target";
+        const allowed = action === "copyFile" || action === "cp" && kind === "s3" && direction === "to-remote";
+        const contentStart = operations().length;
         if (action === "copyFile") await filesystem.copyFile(sourcePath, targetPath);
         else {
-          const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec(`${action} ${sourcePath} ${targetPath}`);
-          assert.equal(result.exitCode, 0, result.stderr);
+          const shell = new Shell({ fs: filesystem }).use(standardCommands());
+          context.after(() => shell.dispose());
+          const result = await shell.exec(`${action} ${sourcePath} ${targetPath}`);
+          assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
+          if (action === "mv") assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
+          else if (direction === "from-remote") assert.match(result.stderr, /ENOTSUP.*copy requires retained reads and streaming writes/u);
+          else if (kind === "webdav") assert.match(result.stderr, /ENOTSUP.*writeStream/u);
+          else assert.equal(result.stderr, "");
         }
-        if (action === "mv") await assert.rejects(source.stat("/source"), { code: "ENOENT" });
-        else assert.deepEqual(await source.readFile("/source"), payload);
-        assert.deepEqual(await target.readFile("/target"), payload);
+        if (!allowed) metadataOnly(operations().slice(contentStart));
+        assert.deepEqual(await source.readFile("/source"), payload);
+        assert.deepEqual(await target.readFile("/target"), allowed ? payload : previous);
         assert.deepEqual(await source.readFile("/sentinel"), sentinel);
         assert.deepEqual(await target.readFile("/sentinel"), sentinel);
-        assert.deepEqual((await source.readdir("/")).map(entry => entry.name), action === "mv" ? ["sentinel"] : ["sentinel", "source"]);
+        assert.deepEqual((await source.readdir("/")).map(entry => entry.name), ["sentinel", "source"]);
         assert.deepEqual((await target.readdir("/")).map(entry => entry.name), ["sentinel", "target"]);
       });
     }
@@ -165,6 +173,28 @@ for (const kind of ["s3", "webdav"] as const) {
 
 
 }
+
+test("qualified S3 permits a retained-source move to a missing remote target", async context => {
+  const memory = new MemoryFileSystem();
+  const { filesystem: remote, operations } = qualified("s3", memory);
+  await memory.writeFile("/source", payload);
+  await memory.writeFile("/sentinel", sentinel);
+  await remote.writeFile("/sentinel", sentinel);
+  const start = operations().length;
+  const shell = new Shell({ fs: mounted(memory, remote) }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("mv /memory/source /remote/target");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+  assert.equal(operations().slice(start).filter(operation => operation === "putObject").length, 1);
+  await assert.rejects(memory.stat("/source"), { code: "ENOENT" });
+  assert.deepEqual(await remote.readFile("/target"), payload);
+  assert.deepEqual(await memory.readFile("/sentinel"), sentinel);
+  assert.deepEqual(await remote.readFile("/sentinel"), sentinel);
+  assert.deepEqual((await memory.readdir("/")).map(entry => entry.name), ["sentinel"]);
+  assert.deepEqual((await remote.readdir("/")).map(entry => entry.name), ["sentinel", "target"]);
+});
 
 test("qualified comparison retains known Memory hardlink and symlink identity", async () => {
   const memory = new MemoryFileSystem();

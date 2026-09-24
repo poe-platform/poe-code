@@ -7,8 +7,10 @@ afterEach(() => vi.restoreAllMocks());
 function remote(text: string) {
   const extra = '<z:propstat><z:prop><v:timestamps xmlns:v="urn:virtual-bash:metadata">'
     + escapeXml(text) + '</v:timestamps></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>';
+  const xml = multistatus(resource("/dav/", true, 0, extra, '"version"'));
   return new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/",
-    fetch: async () => xmlResponse(multistatus(resource("/dav/", true, 0, extra, '"version"'))) });
+    maxXmlBytes: Buffer.byteLength(xml),
+    fetch: async () => xmlResponse(xml) });
 }
 
 const valid = { version: 1, etag: '"version"', type: "directory", atimeMs: -2000.5, mtimeMs: 3000 };

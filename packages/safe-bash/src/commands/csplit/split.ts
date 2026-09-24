@@ -36,12 +36,10 @@ export class Splitter {
       await this.matcher.budget.checkpointWork();
     }
     await this.output.finish();
-    if (this.output.options.suppress) await this.remove();
-    else if (!await this.input.get(this.current + 1)) throw this.range(pattern, repetition);
+    if (!this.output.options.suppress && !await this.input.get(this.current + 1)) throw this.range(pattern, repetition);
   }
   private async regex(pattern: Pattern, repetition: bigint): Promise<boolean> {
     if (!pattern.ignore) await this.output.open();
-    if (this.output.options.suppress && this.current > 0) await this.remove();
     for (;;) {
       const line = await this.input.get(++this.current);
       if (!line) {
@@ -81,6 +79,7 @@ export class Splitter {
         if (pattern.expression !== undefined) {
           if (await this.regex(pattern, repetition)) return;
         } else await this.numeric(pattern, repetition);
+        if (this.output.options.suppress) await this.remove();
         await this.matcher.budget.checkpointWork();
       }
     }

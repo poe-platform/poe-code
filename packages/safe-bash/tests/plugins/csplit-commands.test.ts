@@ -41,6 +41,34 @@ test("elided empty output reuses the formatted suffix index", async () => {
   } finally { await shell.dispose(); }
 });
 
+test("saved scripts suppress each csplit boundary once across pattern types", async () => {
+  const fs = entry.createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input", new TextEncoder().encode("one\ntwo\nthree\nfour\n"));
+  await fs.writeFile("/work/workflow.sh", new TextEncoder().encode([
+    "csplit --suppress-matched -f tail input '/two/'",
+    "csplit --suppress-matched -f number input '/two/' 4",
+    "csplit --suppress-matched -f regex input 2 '/four/'",
+  ].join("\n")));
+  const shell = new entry.Shell({ fs, cwd: "/work" }).use(entry.agentCommands());
+  try {
+    const result = await shell.exec("sh workflow.sh");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "4\n11\n4\n6\n0\n4\n6\n0\n");
+    const files: Record<string, string> = {};
+    for (const item of await fs.readdir("/work")) {
+      if (item.name === "input" || item.name === "workflow.sh") continue;
+      files[item.name] = new TextDecoder().decode(await fs.readFile(`/work/${item.name}`));
+    }
+    assert.deepEqual(files, {
+      tail00: "one\n", tail01: "three\nfour\n",
+      number00: "one\n", number01: "three\n", number02: "",
+      regex00: "one\n", regex01: "three\n", regex02: "",
+    });
+  } finally { await shell.dispose(); }
+});
+
 test("a malformed later pattern is rejected before creating output files", async () => {
   const fs = entry.createMemoryFileSystem();
   await fs.mkdir("/work");

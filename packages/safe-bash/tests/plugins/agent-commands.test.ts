@@ -3,8 +3,8 @@ import test from "node:test";
 import { createNodeRegexProvider } from "../../src/node.js";
 import {
   agentCommands, createAgentCommands, CommandRegistry, createMemoryFileSystem, Shell,
-  toByteSource,
-  type AgentCommandsOptions, type CommandContext, type PluginHost,
+  toByteSource, RegexExecutor,
+  type AgentCommandsOptions, type CommandContext, type PluginHost, type ShellCapabilities,
 } from "../../src/index.js";
 
 import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
@@ -34,6 +34,52 @@ for (const flags of ['-c', '--characters', '-sc', '--char']) {
 function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware installation"); }, registerFileSystem() { throw new Error("Unexpected filesystem installation"); } };
 }
+
+const regexConfigurations: AgentCommandsOptions["regex"][] = [undefined, { requestTimeoutMs: 17 }, {
+  requestTimeoutMs: 17, startupTimeoutMs: 19, maxWorkers: 1, maxQueuedRequests: 0,
+  maxQueuedBytes: 0, idleTimeoutMs: 23, workerOldGenerationMb: 8, workerStackMb: 2,
+}];
+for (const configured of regexConfigurations) {
+  test(`forwarded regex limits can construct an executor: ${JSON.stringify(configured)}`, async t => {
+    const rejected = new Error("configured regex provider reached");
+    const createWorker = t.mock.fn(() => { throw rejected; });
+    const provider = { createWorker };
+    const regex = configured && { ...configured };
+    const plugin = agentCommands({ regexExecutor: provider, ...(regex === undefined ? {} : { regex }) });
+    if (regex) regex.requestTimeoutMs = 99;
+    const errors: unknown[] = [];
+    const shell = new Shell({ fs: createMemoryFileSystem(), onInternalError: error => { errors.push(error); } }).use(plugin);
+    t.after(() => shell.dispose());
+    shell.register({ name: "regex-probe", async execute(context) {
+      const capability = context.capabilities?.regex as ShellCapabilities["regex"];
+      assert.ok(capability);
+      assert.equal(capability.executor, provider);
+      assert.deepEqual(capability.limits, configured ?? {});
+      assert.ok(Object.isFrozen(capability.limits));
+      const executor = new RegexExecutor(capability.executor, capability.limits);
+      context.registerCleanup?.(() => executor.dispose());
+      try {
+        await assert.rejects(executor.request({ kind: "grep", patterns: ["x"], fixed: false,
+          extended: true, insensitive: false, whole: false, word: false },
+        [{ bytes: Uint8Array.of(120), all: true, terminated: true }], context.signal), error => error === rejected);
+        return { exitCode: 0 };
+      } finally { await executor.dispose(); }
+    } });
+    shell.register({ name: "nested-regex-probe", execute: context => context.invoke!("regex-probe", []) });
+    const result = await shell.exec("nested-regex-probe");
+    assert.deepEqual(errors, []);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(createWorker.mock.callCount(), 1);
+  });
+}
+
+test("agent regex capabilities still reject invalid explicit limits", () => {
+  const invalid: NonNullable<AgentCommandsOptions["regex"]>[] = [{ requestTimeoutMs: 0 }, { startupTimeoutMs: 2147483648 },
+    { maxWorkers: -1 }, { maxQueuedRequests: -1 }, { maxQueuedBytes: NaN }, { idleTimeoutMs: Infinity }];
+  for (const regex of invalid) {
+    assert.throws(() => agentCommands({ regex }), RangeError);
+  }
+});
 
 test("default fold counting flags use the last requested mode in UTF-8", async t => {
   const shell = new Shell({ fs: createMemoryFileSystem(), env: { LC_ALL: 'C.UTF-8' } }).use(agentCommands());

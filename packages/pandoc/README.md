@@ -163,8 +163,14 @@ It does not expose host filesystem/process libraries. Conversion work limits
 interrupt Lua instructions. Use trusted scripts: VM allocations and library
 calls are not isolated or individually metered. `Str` callbacks may be global
 or returned in a single table, such as `return {Str = function(el) return el end}`.
-Callbacks return a `Str` element or nil. Other callbacks, Pandoc constructors,
-filter lists remain unsupported. This Lua capability does not process citeproc;
+Callbacks return an inline element, an inline list (empty deletes the element),
+or nil to preserve it. Supported constructors are `pandoc.Str`, `pandoc.Space`,
+`pandoc.SoftBreak`, `pandoc.LineBreak`, `pandoc.Emph`, `pandoc.Underline`,
+`pandoc.Strong`, `pandoc.Strikeout`, `pandoc.Superscript`, `pandoc.Subscript` and
+`pandoc.SmallCaps`. Wrapping constructors take an inline list, for example
+`return pandoc.Emph({pandoc.Str(string.upper(el.text))})`. Generated replacements
+are not filtered again. Other callbacks, constructors and filter lists remain
+unsupported. This Lua capability does not process citeproc;
 use the separate CSL capability above.
 
 `createLuaFilterCapability(loadScript)` executes genuine Lua 5.3 using Fengari.

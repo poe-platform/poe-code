@@ -24,6 +24,10 @@ declare module "fengari" {
     lua_tojsstring(state: State, index: number): string | null;
     lua_pop(state: State, count: number): void;
     lua_next(state: State, index: number): boolean;
+    LUA_TNUMBER: number;
+    lua_rawlen(state: State, index: number): number;
+    lua_rawgeti(state: State, index: number, key: number): number;
+    lua_tointeger(state: State, index: number): number;
     lua_pcall(state: State, args: number, results: number, handler: number): number;
   };
   export const lauxlib: {

@@ -1,6 +1,10 @@
 import {lua, lauxlib, lualib, to_luastring, to_jsstring} from "fengari";
 import {PandocError} from "./errors.js";
 import type {FilterCapability, Document} from "./types.js";
+import type {Inline} from "./ast-types.js";
+
+const wrappedInlineTypes = new Set(["Emph", "Underline", "Strong", "Strikeout", "Superscript", "Subscript", "SmallCaps"]);
+const emptyInlineTypes = new Set(["Space", "SoftBreak", "LineBreak"]);
 
 /** Only use trusted sources: Lua VM allocations are not isolated or metered.
  * The reader grants access to explicitly configured local filter files only. */
@@ -9,8 +13,8 @@ export interface LuaFilterOptions {
 }
 
 /** Execute genuine Lua Str callbacks without a host interpreter or ambient I/O.
- * Str may be global or returned in a single filter table. Other callbacks and
- * Pandoc constructors are unsupported. */
+ * Str may be global or returned in a single filter table. Inline constructors
+ * and replacement lists are supported; other callbacks are unsupported. */
 function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapability {
   if (!options || typeof options.readFile !== "function") throw new TypeError("A local Lua filter reader is required");
   return {
@@ -52,6 +56,23 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
         lua.lua_sethook(state, () => {
           try {context.checkpoint(100);} catch (error) {hookFailure = error; throw error;}
         }, lua.LUA_MASKCOUNT, 100);
+        const constructors = to_luastring(`
+          pandoc = {Str = function(text)
+            assert(type(text) == "string", "pandoc.Str requires text")
+            return {tag = "Str", text = text}
+          end}
+          for _, name in ipairs({${[...wrappedInlineTypes].map(name => JSON.stringify(name)).join(",")}}) do
+            pandoc[name] = function(content)
+              assert(type(content) == "table", name .. " requires an inline list")
+              return {tag = name, content = content}
+            end
+          end
+          for _, name in ipairs({${[...emptyInlineTypes].map(name => JSON.stringify(name)).join(",")}}) do
+            pandoc[name] = function() return {tag = name} end
+          end
+        `);
+        checked(lauxlib.luaL_loadbuffer(state, constructors, constructors.length, to_luastring("pandoc constructors")));
+        checked(lua.lua_pcall(state, 0, 0, 0));
         // Only text Lua is accepted; VM bytecode has no validated provenance.
         if (source[0] === 27) fail("E_UNSUPPORTED_FEATURE", "Lua bytecode filters are unsupported");
         checked(lauxlib.luaL_loadbuffer(state, source, source.length, to_luastring(request.path)));
@@ -90,6 +111,55 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
         if (hasStr && !lua.lua_isfunction(state, -1)) fail("E_AST", "Lua Str callback must be a function");
         lua.lua_pop(state, 1);
         if (!hasStr) return document;
+        const readInline = (depth: number): Inline => {
+          context.checkpoint();
+          context.bound("depth", depth);
+          if (lua.lua_type(state, -1) !== lua.LUA_TTABLE) fail("E_AST", "Lua replacements must be inline elements");
+          if (lua.lua_getfield(state, -1, to_luastring("tag")) !== lua.LUA_TSTRING) fail("E_AST", "Lua inline elements require a tag");
+          const tagBytes = lua.lua_tolstring(state, -1)!;
+          context.charge("retainedBytes", tagBytes.length * 2);
+          const tag = to_jsstring(tagBytes);
+          context.charge("text", tag.length);
+          lua.lua_pop(state, 1);
+          if (tag === "Str") {
+            if (lua.lua_getfield(state, -1, to_luastring("text")) !== lua.LUA_TSTRING) fail("E_AST", "Lua Str text must be a string");
+            const bytes = lua.lua_tolstring(state, -1)!;
+            context.charge("retainedBytes", bytes.length * 2);
+            const text = to_jsstring(bytes);
+            context.charge("text", text.length);
+            lua.lua_pop(state, 1);
+            return {t: "Str", c: text};
+          }
+          if (emptyInlineTypes.has(tag)) return {t: tag} as Inline;
+          if (!wrappedInlineTypes.has(tag)) fail("E_UNSUPPORTED_FEATURE", `Lua inline ${tag} is unsupported`);
+          lua.lua_getfield(state, -1, to_luastring("content"));
+          const content = readList(depth + 1);
+          lua.lua_pop(state, 1);
+          return {t: tag, c: content} as Inline;
+        };
+        const readList = (depth: number): Inline[] => {
+          context.checkpoint();
+          context.bound("depth", depth);
+          if (lua.lua_type(state, -1) !== lua.LUA_TTABLE) fail("E_AST", "Lua inline lists must be tables");
+          const length = lua.lua_rawlen(state, -1);
+          context.charge("references", length);
+          context.charge("retainedBytes", length * 8);
+          lua.lua_pushnil(state);
+          while (lua.lua_next(state, -2)) {
+            context.checkpoint();
+            const key = lua.lua_tointeger(state, -2);
+            if (lua.lua_type(state, -2) !== lua.LUA_TNUMBER || key < 1 || key > length)
+              fail("E_AST", "Lua inline lists require consecutive integer keys");
+            lua.lua_pop(state, 1);
+          }
+          const result: Inline[] = [];
+          for (let index = 1; index <= length; index++) {
+            lua.lua_rawgeti(state, -1, index);
+            result.push(readInline(depth + 1));
+            lua.lua_pop(state, 1);
+          }
+          return result;
+        };
         const visit = async (value: unknown, depth: number): Promise<unknown> => {
           await context.cooperate();
           context.bound("depth", depth);
@@ -103,24 +173,26 @@ function createReaderLuaFilterCapability(options: LuaFilterOptions): FilterCapab
             lua.lua_setfield(state, -2, to_luastring("tag"));
             checked(lua.lua_pcall(state, 1, 1, 0));
             if (lua.lua_isnil(state, -1)) {lua.lua_pop(state, 1); return value;}
-            if (lua.lua_type(state, -1) !== lua.LUA_TTABLE) fail("E_AST", "Lua Str must return an element or nil");
+            if (lua.lua_type(state, -1) !== lua.LUA_TTABLE) fail("E_AST", "Lua Str must return an inline element, list or nil");
             lua.lua_getfield(state, -1, to_luastring("tag"));
-            const tag = lua.lua_tolstring(state, -1);
-            if (!tag || to_jsstring(tag) !== "Str") fail("E_UNSUPPORTED_FEATURE", "Lua Str replacements must remain Str elements");
+            const list = lua.lua_isnil(state, -1);
             lua.lua_pop(state, 1);
-            if (lua.lua_getfield(state, -1, to_luastring("text")) !== lua.LUA_TSTRING) fail("E_AST", "Lua Str text must be a string");
-            const bytes = lua.lua_tolstring(state, -1)!;
-            context.charge("retainedBytes", bytes.length * 2);
-            const text = to_jsstring(bytes);
-            context.charge("text", text.length);
-            lua.lua_pop(state, 2);
-            return {t: "Str", c: text};
+            const result = list ? readList(depth) : readInline(depth);
+            lua.lua_pop(state, 1);
+            return result;
           }
           context.charge("references", Object.keys(value).length);
           if (Array.isArray(value)) {
+            context.charge("retainedBytes", value.length * 8);
             const result: unknown[] = [];
-            for (const child of value) result.push(await visit(child, depth + 1));
-            return result.every((child, index) => child === value[index]) ? value : result;
+            for (const child of value) {
+              const replacement = await visit(child, depth + 1);
+              if (child && typeof child === "object" && "t" in child && child.t === "Str" && Array.isArray(replacement)) {
+                context.charge("retainedBytes", replacement.length * 8);
+                for (const inline of replacement) result.push(inline);
+              } else result.push(replacement);
+            }
+            return result.length === value.length && result.every((child, index) => child === value[index]) ? value : result;
           }
           const result: Record<string, unknown> = {};
           for (const [key, child] of Object.entries(value)) result[key] = await visit(child, depth + 1);

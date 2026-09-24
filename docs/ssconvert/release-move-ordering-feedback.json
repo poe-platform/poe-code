@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "baseline": "4973a079c3411c20fc644609000af1330fba92a9",
+  "issue": "Two move-ordering fixtures injected obsolete pathname-copy and ordinary-removal hooks while requesting a deliberately refused cross-device overwrite.",
+  "baselineTests": { "files": 4, "tests": 76, "passed": 64, "failed": 12, "scope": "Two core ordering failures repaired here; ten mount/authority/remote failures retained separately." },
+  "runtimeChanged": false,
+  "repair": "Preserve existing-target and unknown-identity refusals. Add missing-target variants that exercise writeStream with exclusive creation and removeEntryConditional after successful publication. Assert exact event order, partial host-write preservation, source retention on failure and unchanged sentinel bytes. Pathname copy and ordinary rm fail immediately if invoked.",
+  "source": { "path": "packages/safe-bash/tests/fs/mount/identity-authority-review/implementation/core-ordering.test.ts", "sha256": "fe60ac84772018292c57a2827b76684d1911bd5283086fe86f99339aab6a525a" },
+  "validation": {
+    "focused": { "tests": 8, "passed": 8, "failed": 0 },
+    "related": { "files": 5, "tests": 79, "passed": 79, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed.",
+    "types": "Maintained historical-type-models source/test compilation passed.",
+    "selectionCorrection": "An initial related selection named a nonexistent preservation test and was rejected before execution; the corrected maintained copy-preserve/move selections passed."
+  },
+  "priorDelivery": "4973a079c3411c20fc644609000af1330fba92a9 verified exactly on remote main; publication pending.",
+  "remaining": "Ten other reproduced mount/authority failures, 25 matrix/device failures, all 19 original ssconvert families and successful publication remain open."
+}

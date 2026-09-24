@@ -59,41 +59,53 @@ test("current core EXDEV mv: a known hardlink alias returns GNU status1 without 
 });
 
 for (const publication of ["success", "partial-failure", "unknown"] as const) {
-  test(`current core EXDEV mv known-distinct ${publication}: remove follows completed copy only`, async () => {
+  for (const existing of [false, true]) test(`current core EXDEV mv ${publication}, existing=${existing}: remove follows completed stream only`, async () => {
     const base = new MemoryFileSystem();
     await base.writeFile("/source", bytes("source sentinel"));
-    await base.writeFile("/target", bytes("target sentinel"));
+    if (existing) await base.writeFile("/target", bytes("target sentinel"));
+    await base.writeFile("/keep", bytes("keep sentinel"));
     const events: string[] = [];
     const filesystem = wrapped(base, {
       rename: async () => { events.push("EXDEV"); throw new FsError("EXDEV"); },
-      copyFile: async (source, target, options) => {
+      copyFile: async () => { assert.fail("move must not fall back to pathname copying"); },
+      writeStream: async (target, source, options) => {
+        assert.equal(options?.flag, "wx");
         events.push("copy:start");
         if (publication === "partial-failure") {
           await base.writeFile(target, bytes("partial"));
           events.push("copy:failed");
           throw new FsError("EIO");
         }
-        await base.copyFile(source, target, options);
+        await base.writeStream(target, source, options);
         events.push("copy:complete");
       },
-      rm: async (path, options) => { events.push(`remove:${path}`); await base.rm(path, options); },
+      removeEntryConditional: async (path, options) => {
+        events.push(`remove:${path}`);
+        return base.removeEntryConditional(path, options);
+      },
+      rm: async () => { assert.fail("move must remove the bound source conditionally"); },
     });
     const result = await run("mv", ["/source", "/target"], publication === "unknown" ? opaque(filesystem) : filesystem);
-    if (publication === "success") {
+    if (existing || publication === "unknown") {
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, publication === "unknown"
+        ? /ENOTSUP/u : /ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding/u);
+      assert.deepEqual(events, ["EXDEV"]);
+      assert.deepEqual(await base.readFile("/source"), bytes("source sentinel"));
+      if (existing) assert.deepEqual(await base.readFile("/target"), bytes("target sentinel"));
+      else await assert.rejects(base.lstat("/target"), { code: "ENOENT" });
+    } else if (publication === "success") {
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(events, ["EXDEV", "copy:start", "copy:complete", "remove:/source"]);
       await assert.rejects(base.lstat("/source"), { code: "ENOENT" });
       assert.deepEqual(await base.readFile("/target"), bytes("source sentinel"));
     } else if (publication === "partial-failure") {
       assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /EIO/u);
       assert.deepEqual(events, ["EXDEV", "copy:start", "copy:failed"]);
       assert.deepEqual(await base.readFile("/source"), bytes("source sentinel"));
       assert.deepEqual(await base.readFile("/target"), bytes("partial"));
-    } else {
-      assert.equal(result.exitCode, 1);
-      assert.deepEqual(events, ["EXDEV"]);
-      assert.deepEqual(await base.readFile("/source"), bytes("source sentinel"));
-      assert.deepEqual(await base.readFile("/target"), bytes("target sentinel"));
     }
+    assert.deepEqual(await base.readFile("/keep"), bytes("keep sentinel"));
   });
 }

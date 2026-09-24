@@ -42,12 +42,14 @@ export async function exactUpdate(name: string, input: string, args: readonly st
   assert.equal(result.exitCode, 0, `Valid input must apply: ${result.stderr}`);
   assert.deepEqual(Buffer.from(await backing.readFile(`${cwd}/${name}`)), Buffer.from("new\n"));
   const afterIdentity = await backing.lstat(`${cwd}/${name}`);
-  assert.equal(afterIdentity.ino, identity.ino);
+  assert.notEqual(afterIdentity.ino, identity.ino, "publication replaces the destination with the staged file");
   assert.equal(afterIdentity.dev, identity.dev);
   assert.equal(afterIdentity.nlink, identity.nlink);
-  assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })), [{ method: "writeFile", path: `${cwd}/${name}` }]);
-  await backing.writeFile(`${cwd}/${name}`, Buffer.from("old\n"));
-  assert.deepEqual(await snapshot(backing), before);
+  assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })), [{ method: "publishStagedFile", path: `${cwd}/${name}` }]);
+  assert.deepEqual(await snapshot(backing), before.map(entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry);
+    return entry.path === `${cwd}/${name}` ? { ...entry, ino: afterIdentity.ino, data: Buffer.from("new\n").toString("hex") } : entry;
+  }), "only the published target changes; staging is cleaned up");
 }
 
 export async function explicitTargetOnlyUpdate(input: string): Promise<void> {
@@ -65,6 +67,8 @@ export async function explicitTargetOnlyUpdate(input: string): Promise<void> {
   assert.equal(result.stderr, "");
   assert.equal(result.stdout, "patching file authorized\n");
   assert.deepEqual(observed.mutations().map(operation => ({ method: operation.method, path: operation.path })),
-    [{ method: "writeFile", path: target }]);
-  assert.deepEqual(await snapshot(backing), expected, "Only the explicit target changes; every header decoy and VFS identity remains intact");
+    [{ method: "publishStagedFile", path: target }]);
+  const identity = await backing.lstat(target);
+  assert.deepEqual(await snapshot(backing), expected.map(entry => entry.path === target ? { ...entry, ino: identity.ino } : entry),
+    "Only the explicit target changes; every header decoy and unrelated VFS identity remains intact");
 }

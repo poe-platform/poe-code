@@ -47,12 +47,14 @@ for (const [first, second] of [
       await assertBytes(backing, target, dryRun ? "old\n" : "new\n");
       await assertBytes(backing, "first", dryRun ? "old\n" : "new\n");
       await assertBytes(backing, "sentinel", "untouched\n");
-      assert.equal((await backing.lstat(`${cwd}/${target}`)).ino, identity);
       if (dryRun) {
+        assert.equal((await backing.lstat(`${cwd}/${target}`)).ino, identity);
         assert.deepEqual(observed.mutations(), []);
         assert.deepEqual(await snapshot(backing), before);
       } else {
-        assert(observed.mutations().every(operation => operation.method === "writeFile" && [target, "first"].some(name => operation.path === `${cwd}/${name}`)));
+        assert.notEqual((await backing.lstat(`${cwd}/${target}`)).ino, identity);
+        assert.equal(observed.mutations().length, 3);
+        assert(observed.mutations().every(operation => operation.method === "publishStagedFile" && [target, "first"].some(name => operation.path === `${cwd}/${name}`)));
       }
     });
   }

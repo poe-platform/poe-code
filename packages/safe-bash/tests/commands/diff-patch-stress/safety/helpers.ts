@@ -69,6 +69,7 @@ export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
   const fs: FileSystem = {
     capabilities: { ...backing.capabilities, open: false, streamingRead: hooks.streaming ?? false },
     readFile: (path, options) => perform("readFile", path, options, () => backing.readFile(path, options)),
+    openReadFile: (path, options) => perform("openReadFile", path, options, () => backing.openReadFile(path, options)),
     writeFile: (path, data, options) => perform("writeFile", path, options, () => backing.writeFile(path, data, options), undefined, options?.flag),
     appendFile: (path, data, options) => perform("appendFile", path, options, () => backing.appendFile(path, data, options)),
     stat: (path, options) => perform("stat", path, options, () => backing.stat(path, options)),
@@ -81,13 +82,34 @@ export function instrument(backing: MemoryFileSystem, hooks: Hooks = {}) {
     realpath: (path, options) => perform("realpath", path, options, () => backing.realpath(path, options)),
     access: (path, mode, options) => perform("access", path, options, () => backing.access(path, mode, options)),
     readlink: (path, options) => perform("readlink", path, options, () => backing.readlink(path, options)),
+    createStagedFile: (path, name, content, options) => perform("createStagedFile", path, options,
+      () => backing.createStagedFile(path, name, content, options)),
+    publishStagedFile: (staging, path, options) => perform("publishStagedFile", path, options,
+      () => backing.publishStagedFile(staging, path, options)),
+    removeStagedFile: (staging, options) => perform("removeStagedFile", staging.directory.path, options,
+      () => backing.removeStagedFile(staging, options)),
+    async confineExtraction(roots, options) {
+      const confined = await backing.confineExtraction(roots, options);
+      return new Proxy(confined, {
+        get(target, property) {
+          if (property === "mkdir" || property === "rm" || property === "rmdir") {
+            const method = target[property]!;
+            return (path: string, operationOptions?: FsOptions) => perform(property, path, operationOptions,
+              () => method.call(target, path, operationOptions));
+          }
+          const value: unknown = Reflect.get(target, property, target);
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+    },
     ...(hooks.streaming ? {
       async *readStream(path, options) {
         yield await perform("readStream", path, options, () => backing.readFile(path, options));
       },
     } satisfies Pick<FileSystem, "readStream"> : {}),
   };
-  const mutations = () => calls.filter(call => ["writeFile", "appendFile", "mkdir", "rm", "rename", "copyFile"].includes(call.method));
+  // Target mutations are separate from staging acquisition/cleanup, both retained in calls.
+  const mutations = () => calls.filter(call => ["writeFile", "appendFile", "mkdir", "rm", "rmdir", "rename", "copyFile", "publishStagedFile"].includes(call.method));
   return { fs, calls, mutations };
 }
 

@@ -35,6 +35,12 @@ test("Unicode normalization lookalikes and BOM names remain distinct in MemoryFS
   assert.equal(result.exitCode, 0, result.stderr);
   for (const name of names) await assertBytes(backing, name, name === "e\u0301" ? "new\n" : "old\n");
   assert.deepEqual(observed.mutations().map(operation => operation.path), [`${cwd}/e\u0301`]);
-  await backing.writeFile(`${cwd}/e\u0301`, Buffer.from("old\n"));
-  assert.deepEqual(await snapshot(backing), before);
+  const identity = await backing.lstat(`${cwd}/e\u0301`);
+  assert.deepEqual(await snapshot(backing), before.map(entry => {
+    assert(typeof entry === "object" && entry !== null && "path" in entry);
+    if (entry.path !== `${cwd}/e\u0301`) return entry;
+    assert("ino" in entry);
+    assert.notEqual(identity.ino, entry.ino);
+    return { ...entry, ino: identity.ino, data: Buffer.from("new\n").toString("hex") };
+  }));
 });

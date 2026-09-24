@@ -80,6 +80,6 @@ test("Shell uses explicit diff -u headers through quoted-filename patch pipeline
   await assertBytes(backing, "left", "old\n");
   await assertBytes(backing, "right", "new\n");
   await assertBytes(backing, "sentinel", "untouched\n");
-  assert.equal((await backing.lstat(`${cwd}/${name}`)).ino, beforeIdentity);
+  assert.notEqual((await backing.lstat(`${cwd}/${name}`)).ino, beforeIdentity);
   assert.deepEqual(observed.mutations().map(operation => operation.path), [`${cwd}/${name}`]);
 });

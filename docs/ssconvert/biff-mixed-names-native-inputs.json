@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "baseline": "e995d13c6fb01143aaada72fcb7c250fccce6106",
+  "scope": "Native array-name readback and mixed acyclic/cyclic name declarations.",
+  "findingToValidate": "Current writer abandons dependency ordering for the entire workbook if any cycle exists. An unused cycle may therefore disrupt independent names and macro calls.",
+  "sourceEvidence": {
+    "writerSha256": "d0d7302062f3af692655a1373e8826ecc389f32b17a2340cc694ebc499a76256",
+    "nativeNameParserSha256": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216",
+    "nativeLoopCheckSha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353",
+    "nativeBehavior": "excel_parse_name uses expr_name_add, whose loop check refuses circular named expressions; capture actual warnings and replay behavior before any change."
+  },
+  "public": {
+    "checks": [
+      {
+        "id": "biff-mixed-names-none-excel_biff7",
+        "cycle": "none",
+        "bytes": 5632,
+        "inputSha256": "3042ea55ab5d349ff499d6f0c17ece2c977eeca38fddb4ead62e16640cdb6a24",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-none-excel_biff8",
+        "cycle": "none",
+        "bytes": 5632,
+        "inputSha256": "bcf935f04d05195e6847ad8284da573c0fa04e090012cf4e7b01dc801cd887dc",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-none-excel_dsf",
+        "cycle": "none",
+        "bytes": 9728,
+        "inputSha256": "ff5eccd8282689df3305fd156bb100226d9ff2ba0d169b7bbe101f8e722deeed",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-global-excel_biff7",
+        "cycle": "global",
+        "bytes": 5632,
+        "inputSha256": "0aa1a4e79acc77fecfa30df4d219840390c162615cee0746f50bf582575684b8",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-global-excel_biff8",
+        "cycle": "global",
+        "bytes": 5632,
+        "inputSha256": "ba7627f35221e04a4f358fd27200cdb656123a9bc85f1ed6d98e5c459809335a",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-global-excel_dsf",
+        "cycle": "global",
+        "bytes": 9728,
+        "inputSha256": "00272eeffa9ec4280375cb6883a5d675f82d657549a243902a673c7055599a43",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-local-excel_biff7",
+        "cycle": "local",
+        "bytes": 5632,
+        "inputSha256": "418bc981bc24061a139ed2ecfb2c4571a959337e4a459fe0aadea947a59dec43",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-local-excel_biff8",
+        "cycle": "local",
+        "bytes": 5632,
+        "inputSha256": "8d78edf2eb886f77a8abeb9936d3d71e09f54453c9b01d18e6c947be4242bf75",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      },
+      {
+        "id": "biff-mixed-names-local-excel_dsf",
+        "cycle": "local",
+        "bytes": 9728,
+        "inputSha256": "9908953120c4250bc248be7635ad8a19b752be2c390997ad288a7f4db211120e",
+        "csv": "11\n12\n3\n19\n",
+        "sdkAndShellMatch": true
+      }
+    ],
+    "externalCalls": 0,
+    "executions": 18,
+    "bindings": [
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "d28e868e3482cf29fdf5dd36fc3a80dc6e5b44cea9c735da8f5683423bacbc9b"
+      },
+      {
+        "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+        "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      }
+    ]
+  },
+  "nativeInputs": {
+    "manifest": "docs/ssconvert/linux-optional-service-native-probes.json",
+    "previousInputsPreserved": 111,
+    "totalInputs": 120,
+    "newInputs": 9,
+    "commands": 27,
+    "models": [
+      "Array and ordinary-cell references without cycles.",
+      "Same formulas with an unused global two-name cycle and a lazy IF branch.",
+      "Same formulas with an unused local two-name cycle and a lazy IF branch."
+    ]
+  },
+  "screenshot": {
+    "sha256": "6d218202a738da8bfdc9dd72aca6cb56fbb07742fcb1a0cdf7ce26d8dc13f4b4",
+    "inspected": true
+  },
+  "status": "Native execution pending. No whole-family closure or runtime repair claimed."
+}

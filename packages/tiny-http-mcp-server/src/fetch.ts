@@ -7,8 +7,8 @@ import {
   type ServerOptions,
   type ToolDefinition,
   type ToolReturn,
-  type TypedSchema,
-  type TypedOutputSchema
+  type ToolInputSchema,
+  type ToolOutputSchema
 } from "tiny-stdio-mcp-server/core";
 import { parseMessage } from "tiny-stdio-mcp-server/jsonrpc";
 import { MODERN_PROTOCOL_VERSION } from "tiny-stdio-mcp-server/protocol";
@@ -16,7 +16,7 @@ import { FetchBodyError, readFetchBody } from "./fetch-body.js";
 import { validateModernHeaders } from "./modern-headers.js";
 
 export { defineSchema, ToolError } from "tiny-stdio-mcp-server/core";
-export type { CallToolResult, TypedSchema, TypedOutputSchema } from "tiny-stdio-mcp-server/core";
+export type { CallToolResult, TypedSchema, TypedOutputSchema, ToolInputSchema, ToolOutputSchema } from "tiny-stdio-mcp-server/core";
 
 export interface FetchServerOptions extends ServerOptions {
   /** Defaults to 1 MiB. Enforced while reading the stream. */
@@ -37,8 +37,8 @@ export type FetchToolHandler<TIn, TContext, TOut = ToolReturn> = (
 ) => TOut | CallToolResult | InputRequiredResult | Promise<TOut | CallToolResult | InputRequiredResult>;
 
 export interface FetchServer<TContext = undefined> {
-  tool<TIn, TOut = never>(name: string, description: string, schema: TypedSchema<TIn>,
-    handler: FetchToolHandler<TIn, TContext, TOut>, outputSchema?: TypedOutputSchema<TOut>): FetchServer<TContext>;
+  tool<TIn, TOut = never>(name: string, description: string, schema: ToolInputSchema<TIn>,
+    handler: FetchToolHandler<TIn, TContext, TOut>, outputSchema?: ToolOutputSchema<TOut>): FetchServer<TContext>;
   registerTool<TIn, TOut = never>(definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
     handler: FetchToolHandler<TIn, TContext, TOut>): FetchServer<TContext>;
   fetch(request: Request, ...context: undefined extends TContext ? [context?: TContext] : [context: TContext]): Promise<Response>;

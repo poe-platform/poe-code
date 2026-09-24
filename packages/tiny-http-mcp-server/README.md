@@ -73,6 +73,13 @@ By default, programmatic `listenHttp()` uses:
 
 `path` is normalized, so `"mcp"` and `"/mcp"` serve the same endpoint.
 
+The same `.tool()` and `.registerTool()` APIs accept Toolcraft schemas and
+Zod 4.5.4 schemas directly through Standard Schema and Standard JSON Schema.
+No adapter or Zod dependency is added by this package. Handlers receive inferred,
+parsed arguments with defaults and transforms applied; asynchronous refinements
+are awaited. This also works with `createFetchServer` from
+`tiny-http-mcp-server/fetch`.
+
 ### CLI
 
 The package ships a `tiny-http-mcp-server` binary:

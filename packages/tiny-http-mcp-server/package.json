@@ -52,7 +52,7 @@
   "license": "MIT",
   "dependencies": {
     "jose": "^6.1.2",
-    "tiny-stdio-mcp-server": "^0.1.27"
+    "tiny-stdio-mcp-server": "^0.1.29"
   },
   "bundleDependencies": [
     "mcp-oauth",

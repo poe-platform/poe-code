@@ -16,6 +16,8 @@ export type {
   MessageSessionContext,
   TypedSchema,
   TypedOutputSchema,
+  ToolInputSchema,
+  ToolOutputSchema,
   ImageContent,
   AudioContent,
   EmbeddedResource,

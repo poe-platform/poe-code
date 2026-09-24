@@ -14,8 +14,8 @@ import {
   type InputRequiredResult,
   type HandlerRequestContext,
   type ToolReturn,
-  type TypedSchema,
-  type TypedOutputSchema
+  type ToolInputSchema,
+  type ToolOutputSchema
 } from "tiny-stdio-mcp-server";
 import {
   PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
@@ -76,9 +76,9 @@ export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
   tool<TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<TIn>,
+    inputSchema: ToolInputSchema<TIn>,
     handler: HttpToolHandler<TIn, TOut>,
-    outputSchema?: TypedOutputSchema<TOut>
+    outputSchema?: ToolOutputSchema<TOut>
   ): HttpServer;
   registerTool<TIn, TOut = never>(
     definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
@@ -282,9 +282,9 @@ export function createHttpServer(options: HttpTransportOptions): HttpServer {
   httpServer.tool = <TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<TIn>,
+    inputSchema: ToolInputSchema<TIn>,
     handler: HttpToolHandler<TIn, TOut>,
-    outputSchema?: TypedOutputSchema<TOut>
+    outputSchema?: ToolOutputSchema<TOut>
   ): HttpServer => {
     registerTool(
       name,

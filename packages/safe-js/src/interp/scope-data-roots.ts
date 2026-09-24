@@ -10,15 +10,17 @@ export type DeferredArgumentsData = {
   } | undefined;
 };
 
+export type DeferredFunctionData = {
+  readonly chargeIdentity: object;
+  readonly read: () => SandboxClosure | undefined;
+  readonly collect: (append: (value: SandboxValue) => void) => void;
+};
+
 // Accounting-only snapshots: never guest objects or serialized frame cells.
 type ScopeDataRoot =
   { readonly value: InterpreterValue } | { readonly values: readonly InterpreterValue[] } |
   { readonly arguments: DeferredArgumentsData } |
-  { readonly deferred: {
-    readonly chargeIdentity: object;
-    readonly read: () => SandboxClosure | undefined;
-    readonly collect: (append: (value: SandboxValue) => void) => void;
-  } };
+  { readonly deferred: DeferredFunctionData };
 const freeze = Object.freeze;
 const setPrototypeOf = Object.setPrototypeOf;
 const defineProperty = Reflect.defineProperty;

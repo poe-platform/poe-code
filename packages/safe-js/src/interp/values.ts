@@ -3,7 +3,7 @@ import { readNativeMap, readNativeSet } from "./native-collections.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import { readNativeRegExp } from "./native-regexp.js";
-import { scopeDataRoots, type DeferredArgumentsData } from "./scope-data-roots.js";
+import { scopeDataRoots, type DeferredArgumentsData, type DeferredFunctionData } from "./scope-data-roots.js";
 import { getGeneratorOrigin, getGeneratorSourceReference } from "./closure-origin.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { guestProxyStates } from "./guest-proxy.js";
@@ -914,6 +914,7 @@ function measureSandboxDataWithSeen(
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
   let pendingArguments: Array<{ state: DeferredArgumentsData; units: number | undefined; depth: number }> | undefined;
+  let pendingFunctions: Array<{ state: DeferredFunctionData | undefined; depth: number }> | undefined;
   type WeakContribution = { value: unknown; depth: number };
   let waiting: Map<object | symbol, WeakContribution[]> | undefined;
   let ready: WeakContribution[] | undefined;
@@ -1109,6 +1110,8 @@ function measureSandboxDataWithSeen(
               seen.add(deferred.chargeIdentity);
               usage++;
             }
+            pendingFunctions ??= nativeDataArraySetPrototype([], null);
+            nativeDataArrayAppend(pendingFunctions, { state: deferred, depth });
             if (options.ignoreClosures || options.ignoreClosureCaptures) break entry;
             let roots: CaptureBuffer | undefined;
             try {
@@ -1822,6 +1825,19 @@ function measureSandboxDataWithSeen(
           materialized = true;
         }
       }
+      // An initializer's captured descendants or a later root can materialize
+      // a function without returning it. Its pending projection still retains
+      // the new carrier. Preserve its earlier identity charge, then visit the
+      // fresh properties/captures and any weak keys they expose.
+      for (let index = 0; index < (pendingFunctions?.length ?? 0); index++) {
+        const projection = pendingFunctions![index]!;
+        if (projection.state === undefined) continue;
+        const current = projection.state.read();
+        if (current === undefined) continue;
+        projection.state = undefined;
+        materialized = true;
+        if (!seen.has(current)) visit(current, projection.depth);
+      }
       const previousPrimitiveIndex = primitiveIndex;
       for (; primitiveIndex < projectedPrimitives.length; primitiveIndex++) {
         const projection = projectedPrimitives[primitiveIndex]!;
@@ -1829,11 +1845,13 @@ function measureSandboxDataWithSeen(
         for (const item of projection.values)
           if ((typeof item !== "object" || item === null) && typeof item !== "symbol") visit(item, projection.depth);
       }
-      // Primitive conversion hooks can also force an earlier arguments binding.
-      if (pendingArguments !== undefined && primitiveIndex !== previousPrimitiveIndex) materialized = true;
+      // Primitive conversion hooks can also force an earlier pending binding.
+      if ((pendingArguments !== undefined || pendingFunctions !== undefined) && primitiveIndex !== previousPrimitiveIndex)
+        materialized = true;
       // Visiting a materialized object may force an earlier binding or expose
       // another weak key. Drain those additions before returning the charge.
-    } while (pendingArguments !== undefined && (materialized || readyIndex < (ready?.length ?? 0)));
+    } while ((pendingArguments !== undefined || pendingFunctions !== undefined) &&
+      (materialized || readyIndex < (ready?.length ?? 0)));
     return usage;
   } finally {
     collector.close();

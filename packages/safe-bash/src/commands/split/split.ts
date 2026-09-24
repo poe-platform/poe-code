@@ -59,10 +59,10 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
   let cursor: Cursor | undefined;
   try {
     await outputs.prepareInput(args.input);
-    let name = names.next();
+    let name = args.selectedChunk ? "" : names.next();
     let initial: Awaited<ReturnType<Outputs["prepare"]>> | undefined;
     let initialDirectoryError: FsError | undefined;
-    if (args.input !== "-") {
+    if (args.input !== "-" && !args.selectedChunk) {
       try { initial = await outputs.prepare(name); }
       catch (error) {
         signal.throwIfAborted();
@@ -84,6 +84,19 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       })();
       chunkInput = await collectBytes(source, { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {})});
     }
+    const records = new Map<number, [number, number][]>();
+    if (chunkInput && args.chunkMode === "round-robin") {
+      let start = 0, record = 0;
+      for (let offset = 0; offset < chunkInput.length; offset++) {
+        await budget.step(1);
+        if (chunkInput[offset] !== args.separator && offset + 1 !== chunkInput.length) continue;
+        const index = record++ % args.size;
+        const ranges = records.get(index) ?? [];
+        ranges.push([start, offset + 1]);
+        records.set(index, ranges);
+        start = offset + 1;
+      }
+    }
     let files = 0;
     let chunkIndex = 0;
     let chunkOffset = 0;
@@ -91,7 +104,20 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
     while (true) {
       if (chunkInput && chunkIndex === args.size) break;
       const chunks = chunkInput ? (async function* (): AsyncGenerator<Uint8Array> {
-        const end = chunkOffset + chunkSize + (chunkIndex < chunkInput.length % args.size ? 1 : 0);
+        if (args.chunkMode === "round-robin") {
+          for (const [start, end] of records.get(chunkIndex) ?? []) {
+            for (let offset = start; offset < end; offset += limits.maxChunkBytes) yield chunkInput.subarray(offset, Math.min(end, offset + limits.maxChunkBytes));
+          }
+          return;
+        }
+        let end = chunkSize * (chunkIndex + 1) + Math.min(chunkIndex + 1, chunkInput.length % args.size);
+        if (args.chunkMode === "lines") {
+          end = Math.max(end, chunkOffset);
+          while (end < chunkInput.length && end > 0 && chunkInput[end - 1] !== args.separator) {
+            await budget.step(1);
+            end++;
+          }
+        }
         while (chunkOffset < end) {
           const next = Math.min(end, chunkOffset + limits.maxChunkBytes);
           yield chunkInput.slice(chunkOffset, next);
@@ -104,8 +130,16 @@ async function run(context: CommandContext, limits: SplitLimits): Promise<void> 
       const first = await chunks.next();
       if (first.done && !chunkInput) break;
       chunkIndex++;
-      // Empty byte chunks are trailing; none of the remaining chunks can emit a file.
-      if (first.done && args.elideEmpty) break;
+      if (args.selectedChunk) {
+        if (chunkIndex === args.selectedChunk) {
+          if (!first.done) { budget.output(first.value.length); await context.stdout.write(first.value); }
+          for await (const chunk of chunks) { budget.output(chunk.length); await context.stdout.write(chunk); }
+          break;
+        }
+        for await (const ignoredChunk of chunks) { /* Advance to the selected chunk. */ }
+        continue;
+      }
+      if (first.done && args.elideEmpty) continue;
       budget.check(++files, limits.maxFiles, "file");
       if (files > 1) name = names.next();
       if (files === 1 && initialDirectoryError) throw initialDirectoryError;

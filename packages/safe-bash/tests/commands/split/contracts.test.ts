@@ -6,8 +6,8 @@ import { ReadOnlyFileSystem } from "../../../src/fs/readonly/index.js";
 import { createSplitCommands } from "../../../src/commands/split/index.js";
 import { chunks, files, run, wrapped } from "./helpers.js";
 
-test("hex suffix starts are decimal and counters roll over in base sixteen", async () => {
-  const result = await run(["--hex-suffixes=15", "-a2", "-b1"], "abc");
+test("hex suffix starts are hexadecimal and counters roll over in base sixteen", async () => {
+  const result = await run(["--hex-suffixes=f", "-a2", "-b1"], "abc");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(await files(result.fs), { x0f: "61", x10: "62", x11: "63" });
 });
@@ -35,7 +35,7 @@ test("number mode distributes remainder bytes to the first chunks", async () => 
 });
 
 test("invalid new options and bounded number-mode input fail without output", async () => {
-  for (const args of [["-t"], ["-t::"], ["-t", "é"], ["--hex-suffixes=ff"], ["--elide-empty-files=yes"], ["-n0"], ["-n3", "-l1"]]) {
+  for (const args of [["-t"], ["-t::"], ["-t", "é"], ["--hex-suffixes=fg"], ["--elide-empty-files=yes"], ["-n0"], ["-n3", "-l1"]]) {
     const result = await run(args, "abc");
     assert.equal(result.exitCode, 1, args.join(" "));
     assert.deepEqual(await files(result.fs), {});

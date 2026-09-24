@@ -31,6 +31,8 @@ export function settings(options: SplitCommandsOptions): SplitLimits {
 export interface SplitArguments {
   readonly mode: "lines" | "bytes" | "line-bytes" | "chunks";
   readonly size: number;
+  readonly chunkMode: "bytes" | "lines" | "round-robin";
+  readonly selectedChunk: number;
   readonly input: string;
   readonly prefix: string;
   readonly alphabet: string;
@@ -68,6 +70,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   }
   let mode: SplitArguments["mode"] | undefined;
   let size = 1000;
+  let chunkMode: SplitArguments["chunkMode"] = "bytes";
+  let selectedChunk = 0;
   let suffixLength = 0;
   let alphabet = "abcdefghijklmnopqrstuvwxyz";
   let numericStart: string | undefined;
@@ -80,8 +84,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     if (option === "d" || option === "x") {
       alphabet = option === "d" ? "0123456789" : "0123456789abcdef";
       if (value !== undefined) {
-        if ([...value].some(digit => digit < "0" || digit > "9")) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
-        numericStart = BigInt(value || "0").toString(alphabet.length);
+        if ([...value.toLowerCase()].some(digit => !alphabet.includes(digit))) throw new PublicDiagnostic(`invalid start value for numerical suffix: '${value}'`);
+        numericStart = BigInt(option === "x" ? `0x${value || "0"}` : value || "0").toString(alphabet.length);
       }
     } else if (option === "a") suffixLength = number(value!, "suffix length", false, true);
     else if (option === "e") elideEmpty = true;
@@ -96,6 +100,17 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
     } else {
       if (mode) throw new PublicDiagnostic("cannot split in more than one way");
       mode = option === "l" ? "lines" : option === "b" ? "bytes" : option === "n" ? "chunks" : "line-bytes";
+      if (option === "n") {
+        const parts = value!.split("/");
+        if (parts[0] === "l" || parts[0] === "r") chunkMode = parts.shift() === "l" ? "lines" : "round-robin";
+        if (parts.length < 1 || parts.length > 2) throw new PublicDiagnostic(`invalid number of chunks: '${value}'`);
+        size = number(parts[parts.length - 1]!, "number of chunks");
+        if (parts.length === 2) {
+          selectedChunk = number(parts[0]!, "chunk number");
+          if (selectedChunk > size) throw new PublicDiagnostic(`invalid chunk number: '${value}'`);
+        }
+        return;
+      }
       size = number(value!, option === "l" ? "number of lines" : option === "n" ? "number of chunks" : "number of bytes", option === "b" || option === "C");
     }
   };
@@ -118,6 +133,8 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
       const value = equals < 0 ? (optional ? undefined : args[++index]) : argument.slice(equals + 1);
       if (!optional && value === undefined) throw new PublicDiagnostic(`option '--${name}' requires an argument`);
       apply(option, value);
+    } else if ([...argument.slice(1)].every(digit => digit >= "0" && digit <= "9")) {
+      apply("l", argument.slice(1));
     } else {
       for (let offset = 1; offset < argument.length; offset++) {
         const option = argument[offset]!;
@@ -149,9 +166,9 @@ export function parseArguments(args: readonly string[], limits: SplitLimits): Sp
   if (suffixLength > limits.maxSuffixLength) throw new PublicDiagnostic("split suffix length limit exceeded");
   if (numericStart !== undefined && numericStart.length > suffixLength) throw new PublicDiagnostic("numerical suffix start value is too large for the suffix length");
   if (mode === "line-bytes" && size > limits.maxBufferBytes) throw new PublicDiagnostic("split line-bytes window exceeds buffer limit");
-  if (mode === "chunks" && !elideEmpty && size > limits.maxFiles) throw new PublicDiagnostic("split file limit exceeded");
+  if (mode === "chunks" && !elideEmpty && !selectedChunk && size > limits.maxFiles) throw new PublicDiagnostic("split file limit exceeded");
   return {
-    mode: mode ?? "lines", size, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
+    mode: mode ?? "lines", size, chunkMode, selectedChunk, input: operands[0] ?? "-", prefix: operands[1] ?? "x",
     alphabet,
     suffixLength, automatic,
     numericStart: numericStart ?? "0", additionalSuffix, separator, elideEmpty,

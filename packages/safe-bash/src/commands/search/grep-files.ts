@@ -21,7 +21,7 @@ export async function* grepFiles(context: CommandContext, parsed: ParsedOptions,
     }
   }
   const excludedDirectories = parsed.values.get("T") ?? [];
-  const initialInclude = !rules.length || !rules.at(-1)!.include;
+  const initialInclude = !rules.some(rule => rule.include);
   async function* visit(name: string, ancestors: Set<string>, depth: number, explicit: boolean): AsyncGenerator<GrepFile> {
     context.signal.throwIfAborted();
     if (name === "-") { yield { name, nested: false }; return; }

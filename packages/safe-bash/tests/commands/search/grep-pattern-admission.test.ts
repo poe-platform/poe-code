@@ -80,9 +80,9 @@ test("grep count ceiling is cumulative across explicit options and files", { tim
   assert.equal(result.created, 0);
 });
 
-test("grep admits exactly 1024 patterns without a trailing phantom pattern", { timeout: 5000 }, async () => {
+test("grep admits exactly 1024 patterns including a trailing empty argument pattern", { timeout: 5000 }, async () => {
   for (const ending of ["", "\n"]) {
-    const result = await run(["-e", "x\n".repeat(1023) + "x" + ending]);
+    const result = await run(["-e", "x\n".repeat(ending ? 1022 : 1023) + "x" + ending]);
     assert.equal(result.code, 1);
     assert.equal(result.stderr, "");
     assert.equal(result.messages[0]!.descriptor.kind, "grep");
@@ -123,7 +123,7 @@ test("grep preserves empty files, empty options, CR, NUL and split raw bytes", {
   const result = await run(["-e", "", "-e", "é\n", "-f", "/empty", "-f", "-"], { fs, stdin });
   assert.equal(result.code, 1);
   assert.equal(result.stderr, "");
-  assert.deepEqual((result.messages[0]!.descriptor as { patterns: readonly string[] }).patterns, ["", "\xc3\xa9", "\xff\r", "", "\0\xfe"]);
+  assert.deepEqual((result.messages[0]!.descriptor as { patterns: readonly string[] }).patterns, ["", "\xc3\xa9", "", "\xff\r", "", "\0\xfe"]);
 });
 
 test("grep owns retained fragments from a reused pattern input buffer", { timeout: 5000 }, async () => {

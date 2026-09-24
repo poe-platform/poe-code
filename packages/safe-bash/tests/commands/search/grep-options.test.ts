@@ -22,7 +22,7 @@ const cases = [
   ["--binary alpha input", "alpha\nalpha beta\n"],
   ["--label=AUDIT alpha input", "alpha\nalpha beta\n"],
   ["--initial-tab -n alpha input", "2:\talpha\n4:\talpha beta\n"],
-  ["-C0 --group-separator=AUDIT alpha input", "alpha\nAUDIT\nalpha beta\n"],
+  ["-C0 --group-separator=AUDIT alpha input", "alpha\nalpha beta\n"],
   ["--color=always alpha input", "", 2],
   ["--binary-files=invalid alpha input", "", 2],
   ["-bno alpha input", "2:11:alpha\n4:22:alpha\n"],
@@ -116,7 +116,7 @@ test("grep frontend controls preserve CRLF bytes and label standard input", asyn
   const input = "x\nskip\nx\n";
   for (const [args, expected] of [
     [["-n", "--initial-tab", "x"], "1:\tx\n3:\tx\n"],
-    [["-C0", "--group-separator=", "x"], "x\n\nx\n"],
+    [["-C0", "--group-separator=", "x"], "x\nx\n"],
     [["-C0", "--group-separator=AUDIT", "--no-group-separator", "x"], "x\nx\n"],
     [["--label=AUDIT", "x"], "x\nx\n"],
   ] as const) {

@@ -28,7 +28,10 @@ export function createGrepCommands(executor: RegexExecutor, limits: GrepLimits =
         const text = context.args[index]!.slice(offset);
         if (["I", "X", "Y"].includes(key)) filters.push({ key, pattern: text });
         if (!["A", "B", "C"].includes(key)) return;
-        try { contextLengths.set(key, integer(text)); }
+        try {
+          const length = integer(text);
+          for (const side of key === "C" ? ["A", "B"] : [key]) contextLengths.set(side, length);
+        }
         catch { throw new UsageError(`${text}: invalid context length argument`); }
       });
       if (parsed.flags.has("help")) {
@@ -120,11 +123,12 @@ inspect the resulting state before repeating the action.
       };
       const addArgument = async (pattern: string) => {
         admit(pattern, true);
-        if (pattern === "") {
+        if (pattern !== "") {
+          for await (const line of lines(toByteSource(pattern))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
+        }
+        if (pattern === "" || pattern.endsWith("\n")) {
           if (++patternCount > maxPatternCount) throw new UsageError(`pattern count limit exceeded (${maxPatternCount})`);
           patterns.push("");
-        } else {
-          for await (const line of lines(toByteSource(pattern))) patterns.push(Buffer.from(line.bytes).toString("latin1"));
         }
       };
       async function* admitted(source: ByteSource): ByteSource {
@@ -151,9 +155,9 @@ inspect the resulting state before repeating the action.
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
-      const withContext = contextLengths.size > 0 && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
-      const before = withContext ? contextLengths.get("B") ?? contextLengths.get("C") ?? 0 : 0;
-      const after = withContext ? contextLengths.get("A") ?? contextLengths.get("C") ?? 0 : 0;
+      const withContext = [...contextLengths.values()].some(length => length > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
+      const before = withContext ? contextLengths.get("B") ?? 0 : 0;
+      const after = withContext ? contextLengths.get("A") ?? 0 : 0;
       let emittedGroup = false;
       let anySelected = false;
       let failed = false;
@@ -214,7 +218,7 @@ inspect the resulting state before repeating the action.
               if (!parsed.flags.has("c")) {
                 if (withContext) {
                   const first = pending.keys().next().value ?? number;
-                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, (value(parsed, "group-separator") ?? "--") + "\n");
+                  if (!parsed.flags.has("no-group-separator") && emittedGroup && (lastCovered === 0 || first > lastCovered + 1)) await output(context, (value(parsed, "group-separator") ?? "--") + delimiter);
                   for (const [position, previous] of pending) await emitContext(previous, position, previous.offset);
                   pending.clear();
                   pendingBytes = 0;

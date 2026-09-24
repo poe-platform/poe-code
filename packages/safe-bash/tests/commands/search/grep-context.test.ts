@@ -17,10 +17,10 @@ const cases = [
   { args: ["-n", "-C1"], expected: "2-one\n3:alpha\n4-three\n--\n6-five\n7:alpha\n8-seven\n" },
   { args: ["--before-context=1", "--after-context", "1"], expected: "one\nalpha\nthree\n--\nfive\nalpha\nseven\n" },
   { args: ["--context=2", "-n"], expected: "1-zero\n2-one\n3:alpha\n4-three\n5-four\n6-five\n7:alpha\n8-seven\n9-eight\n" },
-  { args: ["-A0", "-C2", "-n"], expected: "1-zero\n2-one\n3:alpha\n--\n5-four\n6-five\n7:alpha\n" },
+  { args: ["-A0", "-C2", "-n"], expected: "1-zero\n2-one\n3:alpha\n4-three\n5-four\n6-five\n7:alpha\n8-seven\n9-eight\n" },
   { args: ["-C2", "-A0", "-n"], expected: "1-zero\n2-one\n3:alpha\n--\n5-four\n6-five\n7:alpha\n" },
   { args: ["-C2", "-C1", "-n"], expected: "2-one\n3:alpha\n4-three\n--\n6-five\n7:alpha\n8-seven\n" },
-  { args: ["-n", "-C0"], expected: "3:alpha\n--\n7:alpha\n" },
+  { args: ["-n", "-C0"], expected: "3:alpha\n7:alpha\n" },
   { args: ["-n", "-C1"], input: "alpha\nalpha\nother\nalpha", expected: "1:alpha\n2:alpha\n3-other\n4:alpha\n" },
   { args: ["-m1", "-A3", "-n"], input: "alpha\nalpha\nother\nlast\nignored\n", expected: "1:alpha\n2-alpha\n3-other\n4-last\n" },
   { args: ["-v", "-m1", "-A2", "-n"], input: "other\nother\nalpha\nignored\n", expected: "1:other\n2-other\n3-alpha\n" },
@@ -30,7 +30,7 @@ const cases = [
   { args: ["-C2"], input: "other\n", expected: "", code: 1 },
   { args: ["-o", "-C1", "-n"], expected: "3:alpha\n--\n7:alpha\n" },
   { args: ["-o", "-v", "-C1"], expected: "" },
-  { args: ["-z", "-C1", "-n"], input: "one\0alpha\0three\0four\0five\0alpha\0seven", expected: "1-one\u00002:alpha\u00003-three\u0000--\n5-five\u00006:alpha\u00007-seven\u0000" },
+  { args: ["-z", "-C1", "-n"], input: "one\0alpha\0three\0four\0five\0alpha\0seven", expected: "1-one\u00002:alpha\u00003-three\u0000--\u00005-five\u00006:alpha\u00007-seven\u0000" },
 ];
 
 for (const [index, entry] of cases.entries()) test(`grep context GNU case ${index + 1}: ${entry.args.join(" ")}`, async () => {
@@ -113,4 +113,25 @@ test("grep bounds retained before-context bytes and closes input on overflow", a
   assert.equal(result.stdout.length, 0);
   assert.ok(result.stderr.toString().includes("context byte limit exceeded"));
   assert.equal(closed, true);
+});
+
+for (const args of [["-A3", "-C0"], ["-B3", "-C0"], ["-A0"], ["-B0"]]) test(`grep zero context ${args.join(" ")}`, async () => {
+  const result = await run(grepCommands()[0]!, [...args, "alpha"], fixture);
+  assert.equal(result.code, 0);
+  assert.equal(result.stdout.toString(), "alpha\nalpha\n");
+});
+
+for (const args of [["foo\n"], ["-e", "foo\n"], ["-F", "foo\n"]]) test(`grep preserves trailing empty argument pattern ${JSON.stringify(args)}`, async () => {
+  const result = await run(grepCommands()[0]!, args, "bar\nfoo\n");
+  assert.equal(result.code, 0);
+  assert.equal(result.stdout.toString(), "bar\nfoo\n");
+});
+
+test("grep include whitelist survives following exclusions", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  for (const name of ["app.ts", "app.test.ts", "README.md"]) await fs.writeFile("/dir/" + name, Buffer.from("match\n"));
+  const result = await run(grepCommands()[0]!, ["-r", "--include=*.ts", "--exclude=*.test.ts", "match", "/dir"], "", { fs });
+  assert.equal(result.code, 0);
+  assert.equal(result.stdout.toString(), "/dir/app.ts:match\n");
 });

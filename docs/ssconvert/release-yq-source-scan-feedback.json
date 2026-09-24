@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "baseline": "09acfdd54efacb097bd428cfbc28b2cb6bf081bd",
+  "issue": "Raw YAML scanning did not recheck cancellation after its final partial work charge.",
+  "upstream": {
+    "commit": "5bea20f79c01785627c0ef575227bd0491d638cb",
+    "behavior": "Upstream already fixes full 256-unit chunks and stale trace expectations. Those changes are preserved."
+  },
+  "validatedRemainingFailures": [
+    "A one-character scalar charges again after cancellation.",
+    "A forbidden control character replaces the cancellation reason with INPUT_YAML_SYNTAX.",
+    "Comment-only input completes without the required cancellation rejection."
+  ],
+  "repair": "Check work.assertOpen immediately after the final partial source-scan charge.",
+  "tests": {
+    "inputs": [
+      "x",
+      "\u0001",
+      "# comment"
+    ],
+    "reasons": [
+      false,
+      null
+    ],
+    "red": "Six original controls fail before the repair; full upstream scope otherwise passes.",
+    "green": "1018/1018 tests in 29 maintained yq files, zero failures, skips or cancellations; includes live pinned native oracle.",
+    "assertions": [
+      "Exact borrowed cancellation reason.",
+      "One source charge only.",
+      "No document admission or composed nodes."
+    ],
+    "lint": "Focused ESLint passes.",
+    "logs": {
+      "remainder-red.log": "26a2c661385bf15c4bbf014ce6a75665eb3faebe8e4fe62496823609daa5f19e",
+      "remainder-scope-green.log": "96afe3bbf0d39d15871adc64f295787337cd938429fbaecdeb4adce2b1f6c4db",
+      "remainder-final-green.log": "f9b8d18992a5708004cd6b79caf42c9fd24f598f1b7f539891e27dfb98a4053d",
+      "remainder-final-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source-scan-green.log": "b89e23f590563fcce398fdefa7aa707cc84fad726e4394d1f9eaeef60931ceb5",
+      "upstream-scope.log": "7bc4f7c772aec4657a030a7bfafabda2036610afc01588527e793bfb7f361dd0"
+    },
+    "historicalLogNote": "remainder-scope-green.log is the second RED run (before the repair), despite its scratch filename."
+  },
+  "priorCandidate": "The previously stashed full-scan candidate is superseded by upstream plus this validated remainder repair; no upstream runtime/tests reverted.",
+  "delivery": "Remote main and containing publication are tracked separately; all 19 ssconvert families remain open."
+}

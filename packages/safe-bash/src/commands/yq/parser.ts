@@ -1118,7 +1118,10 @@ async function* rawLines(text: string, work: YqOwnedWork, lineOffset = 0): Async
     start = index + 1;
     yield { text: line, number: lineOffset + count, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
   }
-  if (scanned > 0) await work.charge(scanned);
+  if (scanned > 0) {
+    await work.charge(scanned);
+    work.assertOpen();
+  }
 }
 
 async function* documents(text: string, work: YqOwnedWork, lineOffset = 0): AsyncGenerator<RawDocument> {

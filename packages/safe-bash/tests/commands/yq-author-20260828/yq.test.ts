@@ -21,6 +21,29 @@ function text(output: { readonly bytes: Uint8Array[] }): string {
   return new TextDecoder().decode(Buffer.concat(output.bytes));
 }
 
+for (const reason of [false, null]) {
+  for (const input of ["x", "\u0001", "# comment"]) test(`final source scan preserves cancellation for ${JSON.stringify(input)}: ${reason}`, async context => {
+    const controller = new AbortController();
+    const session = createYqQuerySession({ signal: controller.signal });
+    const charge = session.ownedWork.charge.bind(session.ownedWork);
+    const charges: number[] = [];
+    context.mock.method(session.ownedWork, "charge", async (units = 1) => {
+      charges.push(units);
+      await charge(units);
+      controller.abort(reason);
+    });
+    const ledger = new YqLedger();
+    try {
+      await assert.rejects(async () => {
+        for await (const unused of parseYamlDocuments(input, session.ownedWork, ledger)) void unused;
+      }, error => error === reason);
+      assert.deepEqual(charges, [input.length]);
+      assert.equal(ledger.documents, 0);
+      assert.equal(ledger.documentNodes, 0);
+    } finally { await session.close(); }
+  });
+}
+
 test("inline continuation preserves quoting, inserted newlines, and comments", async () => {
   for (const [input, value] of [
     ['[\n  "[}]",\n  \'can\'\'t\',\n  {key: "value"}\n]', ["[}]", "can't", { key: "value" }]],

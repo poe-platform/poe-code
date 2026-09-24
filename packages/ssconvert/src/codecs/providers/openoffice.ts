@@ -1,6 +1,6 @@
 import type { FormatProvider } from "../types.js";
 import { readOdf, probeOdf, createOdfWriter } from "../odf.js";
-import { odfEncryptionKeyBytes } from "../odf-encrypted-write.js";
+import { odfEncryptionProfiles } from "../odf-encrypted-write.js";
 
 export default {
   "id": "Gnumeric_OpenCalc",
@@ -30,7 +30,7 @@ export default {
       "id": "openoffice",
       "direction": "write",
       write: createOdfWriter("strict"),
-      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionKeyBytes.keys()] } },
+      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
       "description": "ODF 1.2 strict conformance (*.ods)",
       "extensions": [
         "ods"
@@ -44,7 +44,7 @@ export default {
       "id": "odf",
       "direction": "write",
       write: createOdfWriter("extended"),
-      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionKeyBytes.keys()] } },
+      exportOptionRules: { encryption: { kind: "enum", values: [...odfEncryptionProfiles.keys()] } },
       "description": "ODF 1.2 extended conformance (*.ods)",
       "extensions": [
         "ods"

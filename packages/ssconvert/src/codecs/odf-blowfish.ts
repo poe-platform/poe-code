@@ -2,12 +2,12 @@ import { blowfishWords } from "./odf-blowfish-profile.js";
 
 /** Blowfish-CFB8 for ODF. The pinned MIT primitive is adapted for owned
  * schedule cleanup and cooperative cancellation, without temporary key copies.
- * Work and input sizes must be admitted by the package reader first. */
-export async function decryptOdfBlowfish(key: Uint8Array, iv: Uint8Array, ciphertext: Uint8Array,
-  signal: AbortSignal): Promise<Uint8Array> {
+ * Work and input sizes must be admitted by the package reader/writer first. */
+export async function transformOdfBlowfish(key: Uint8Array, iv: Uint8Array, input: Uint8Array,
+  signal: AbortSignal, direction: "encrypt" | "decrypt"): Promise<Uint8Array> {
   signal.throwIfAborted();
   if (key.length < 4 || key.length > 56 || iv.length !== 8) throw new TypeError("Invalid ODF Blowfish profile");
-  const words = new Uint32Array(1042), plaintext = new Uint8Array(ciphertext.length);
+  const words = new Uint32Array(1042), output = new Uint8Array(input.length);
   for (let i = 0; i < words.length; i++) words[i] = Number.parseInt(blowfishWords.slice(i * 8, i * 8 + 8), 16);
   const p = words.subarray(0, 18), s = words.subarray(18);
   function encrypt(left: number, right: number): readonly [number, number] {
@@ -32,14 +32,15 @@ export async function decryptOdfBlowfish(key: Uint8Array, iv: Uint8Array, cipher
     }
     const view = new DataView(iv.buffer, iv.byteOffset, iv.byteLength);
     left = view.getUint32(0); right = view.getUint32(4);
-    for (let i = 0; i < ciphertext.length; i++) {
+    for (let i = 0; i < input.length; i++) {
       signal.throwIfAborted();
-      const [stream] = encrypt(left, right), byte = ciphertext[i]!;
-      plaintext[i] = byte ^ (stream >>> 24);
-      left = ((left << 8) | (right >>> 24)) >>> 0; right = ((right << 8) | byte) >>> 0;
+      const [stream] = encrypt(left, right), byte = input[i]!;
+      output[i] = byte ^ (stream >>> 24);
+      const feedback = direction === "encrypt" ? output[i]! : byte;
+      left = ((left << 8) | (right >>> 24)) >>> 0; right = ((right << 8) | feedback) >>> 0;
       if ((i & 4095) === 4095) await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
-    signal.throwIfAborted(); return plaintext;
-  } catch (error) { plaintext.fill(0); throw error; }
+    signal.throwIfAborted(); return output;
+  } catch (error) { output.fill(0); throw error; }
   finally { words.fill(0); }
 }

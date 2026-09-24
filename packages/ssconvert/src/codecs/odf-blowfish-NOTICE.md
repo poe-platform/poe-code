@@ -2,9 +2,9 @@ The Blowfish primitive and pi initialization words in odf-blowfish.ts and
 odf-blowfish-profile.ts are adapted from egoroof-blowfish 4.0.3,
 https://github.com/egoroof/blowfish (published MIT source).
 
-The adaptation implements only the ODF 8-bit CFB reader path, removes temporary
+The adaptation implements the ODF 8-bit CFB reader and writer paths, removes temporary
 key expansion copies, adds per-key-pair/per-byte cancellation and scheduler
-yields, and wipes owned key schedules and failed plaintext. The standard 16-round
+yields, and wipes owned key schedules and failed output. The standard 16-round
 primitive and all 1042 initialization words are unchanged. AES and ODF package
 admission/derivation/checksum/framing are separate implementations.
 

@@ -1,4 +1,4 @@
-import { decryptOdfBlowfish } from "./odf-blowfish.js";
+import { transformOdfBlowfish } from "./odf-blowfish.js";
 import { cbc } from "@noble/ciphers/aes.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { sha256 } from "@noble/hashes/sha2.js";
@@ -160,7 +160,7 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
         key = await deriveOdfKey(start, profile.salt, profile.iterations, profile.keyBytes, context);
         const ciphertext = await read(profile.path);
         let padding = 0;
-        if (profile.cipher === "blowfish-cfb8") compressed = await decryptOdfBlowfish(key, profile.iv, ciphertext, context.signal);
+        if (profile.cipher === "blowfish-cfb8") compressed = await transformOdfBlowfish(key, profile.iv, ciphertext, context.signal, "decrypt");
         else {
           compressed = new Uint8Array(ciphertext.length); let iv = profile.iv;
           for (let at = 0; at < ciphertext.length; at += 16384) {

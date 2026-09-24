@@ -1290,6 +1290,11 @@ still returns the receipt. Once signals are combined, staging admission and
 publication guards preserve the first abort reason, including false or null.
 An actual backend failure after dispatch remains
 the reported failure rather than being replaced by ambient cancellation.
+Guarded scoped publication retains the caller signal and checks scope cancellation
+through its commit guard. When guarded publication is unavailable, scoped
+publication forwards the combined signal through backend resolution. This provides cooperative cancellation;
+it does not add an atomic commit guard to a backend that lacks that capability.
+A successfully completed publication remains acknowledged after cancellation.
 
 Publication atomically verifies the original staging file, its private directory,
 both parents, and the destination's supplied snapshot or explicit absence before

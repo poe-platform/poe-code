@@ -218,6 +218,8 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
               const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, options) ?? original.capabilities);
               assertReady();
               if (callerGuard !== undefined && declared.guardedStagingPublication !== true) throw new FsError("ENOTSUP", { path: args[1] as string, syscall: "guardedStagingPublication" });
+              // Guarded publication preserves the caller signal and observes scope
+              // cancellation at commit. Unguarded backends need a composed signal.
               if (declared.guardedStagingPublication === true) args[optionIndex] = {
                 ...supplied,
                 commitGuard: () => {
@@ -227,6 +229,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
                   return true as const;
                 },
               };
+              else args[optionIndex] = options;
             }
             if (property === "publishStagedFile" && options && "ancestors" in options && options.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", options, (options as PublishStagedFileOptions).destination === null);
             assertReady();

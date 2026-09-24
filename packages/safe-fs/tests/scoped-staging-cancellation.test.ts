@@ -52,3 +52,60 @@ for (const phase of ["creation admission", "publication admission", "publication
     });
   }
 }
+
+for (const phase of ["before", "after"] as const) for (const supplied of ["omitted", "same", "distinct"] as const) {
+  test(`unguarded scoped publication cooperates with ${phase}-commit cancellation: signal=${supplied}`, async () => {
+    const memory = createMemoryFileSystem(); await memory.mkdir("/work");
+    await memory.writeFile("/work/target", new Uint8Array([42]));
+    const ambient = new AbortController(), caller = new AbortController();
+    let dispatched: AbortSignal | undefined;
+    const capabilities = Object.freeze({ ...memory.capabilities, guardedStagingPublication: false });
+    const backing = view(memory, {
+      capabilities,
+      publishStagedFile: async (...args) => {
+        dispatched = args[2].signal;
+        if (phase === "before") ambient.abort(false);
+        await memory.publishStagedFile(...args);
+        if (phase === "after") ambient.abort(false);
+      },
+    });
+    const fs = scopeFileSystem(backing, () => {}, ambient.signal);
+    const parent = await memory.lstat("/work");
+    const staging = await memory.createStagedFile("/work/.stage", "file", {
+      type: "file", data: new Uint8Array([9]),
+    }, { parent, retainCleanup: true });
+    try {
+      const publication = fs.publishStagedFile!(staging, "/work/target", {
+        parent, destination: await memory.lstat("/work/target"),
+        ...(supplied === "omitted" ? {} : { signal: supplied === "same" ? ambient.signal : caller.signal }),
+      });
+      if (phase === "before") await assert.rejects(publication, error => error === false);
+      else await publication;
+      assert.deepEqual(await memory.readFile("/work/target"), new Uint8Array([phase === "before" ? 42 : 9]));
+      assert.equal(dispatched?.aborted, true);
+      assert.equal(dispatched?.reason, false);
+      assert.equal(caller.signal.aborted, false);
+    } finally { await staging.cleanup!.remove(); }
+  });
+}
+
+test("unguarded scoped publication retains the backend failure after dispatch", async () => {
+  const memory = createMemoryFileSystem(); await memory.mkdir("/work");
+  await memory.writeFile("/work/target", new Uint8Array([42]));
+  const ambient = new AbortController(), failure = new FsError("EIO");
+  const backing = view(memory, {
+    capabilities: Object.freeze({ ...memory.capabilities, guardedStagingPublication: false }),
+    publishStagedFile: async () => { ambient.abort(false); throw failure; },
+  });
+  const fs = scopeFileSystem(backing, () => {}, ambient.signal);
+  const parent = await memory.lstat("/work");
+  const staging = await memory.createStagedFile("/work/.stage", "file", {
+    type: "file", data: new Uint8Array([9]),
+  }, { parent, retainCleanup: true });
+  try {
+    await assert.rejects(fs.publishStagedFile!(staging, "/work/target", {
+      parent, destination: await memory.lstat("/work/target"),
+    }), error => error === failure);
+    assert.deepEqual(await memory.readFile("/work/target"), new Uint8Array([42]));
+  } finally { await staging.cleanup!.remove(); }
+});

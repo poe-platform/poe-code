@@ -236,25 +236,46 @@ async function prepareAndRun(
 			fail,
 		});
 		setRelay(relay);
+		let executionFailure: { error: unknown } | undefined;
+		let result: unknown;
+		let disposeGuest: (() => void) | undefined;
 		try {
-			return await runGuest(options, input, metadata, relay, signal);
+			result = await runGuest(options, input, metadata, relay, signal, (dispose) => {
+				disposeGuest = dispose;
+			});
 		} catch (error) {
 			// Loader compilation can fail before any guest obtains browser access.
 			if (!relay.opened()) {
 				const detail = String(error);
-				throw new RunCodeUserError(detail.includes("SyntaxError:")
+				executionFailure = { error: new RunCodeUserError(detail.includes("SyntaxError:")
 					? `${detail}\nplaywright-cli run-code expects one JavaScript function accepting page, for example: async (page) => { return await page.title(); }`
-					: detail);
+					: detail) };
+			} else {
+				executionFailure = { error };
 			}
-			throw error;
-		} finally {
-			const closing = relay.close();
-			if (!signal.aborted) {
+		}
+		const closing = relay.close();
+		const failures: unknown[] = executionFailure ? [executionFailure.error] : [];
+		if (!signal.aborted) {
+			try {
 				await closing;
 				signal.throwIfAborted();
 				await restoreState(options, input, metadata, observer, signal);
+			} catch (cleanupError) {
+				// Unconfirmed cleanup must retire the browser, even after a user error.
+				failures.push(cleanupError);
 			}
 		}
+		// The relay receiver belongs to the guest: retain its RPC handles until cleanup settles.
+		try {
+			disposeGuest?.();
+		} catch (error) {
+			failures.push(error);
+		}
+		if (failures.length > 1)
+			throw new AggregateError(failures, failures.map(String).join("; "), { cause: failures[0] });
+		if (failures.length) throw failures[0];
+		return result;
 	} finally {
 		await observer.detach().catch(() => {});
 	}
@@ -266,6 +287,7 @@ async function runGuest(
 	metadata: BrowserRunCodeMetadata,
 	relay: ReturnType<typeof createRunCodeRelay>,
 	signal: AbortSignal,
+	retainGuest: (dispose: () => void) => void,
 ) {
 	signal.throwIfAborted();
 	const worker = options.loader.load({
@@ -286,6 +308,7 @@ async function runGuest(
 		(result as Promise<unknown> & Partial<Disposable>)[Symbol.dispose]?.();
 		entry[Symbol.dispose]?.();
 	};
+	retainGuest(dispose);
 	signal.addEventListener("abort", dispose, { once: true });
 	try {
 		const response = await result;
@@ -307,7 +330,6 @@ async function runGuest(
 		return parseRunCodeJson(json, signal);
 	} finally {
 		signal.removeEventListener("abort", dispose);
-		dispose();
 	}
 }
 

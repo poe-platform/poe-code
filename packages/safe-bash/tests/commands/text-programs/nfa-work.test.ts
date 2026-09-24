@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { Pattern, substitute } from "../../../src/commands/text-programs/regex.js";
 import { Budget, ProgramError } from "../../../src/commands/text-programs/shared.js";
@@ -11,6 +12,51 @@ function makeBudget(maxSteps = 2048, maxBufferBytes = 8192, signal = new AbortCo
     command: "sed", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(), signal,
     stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} },
   }, { maxSteps, maxBufferBytes });
+}
+
+test("unanchored nonmatching snapshot BRE uses linear work as line length doubles", async context => {
+  const pattern = new Pattern(String.raw`.*\[Snapshot\](\([^)]*\)).*`, false);
+  const counts: number[] = [];
+  for (const length of [16, 32, 64, 128, 256]) {
+    const budget = makeBudget(1000000);
+    const step = budget.step.bind(budget);
+    let steps = 0;
+    context.mock.method(budget, "step", (count = 1) => { steps += count; step(count); });
+    assert.equal(await pattern.find("x".repeat(length), budget), undefined);
+    counts.push(steps);
+  }
+  context.diagnostic(`matcher steps for 16/32/64/128/256 bytes: ${counts.join("/")}`);
+  for (let index = 1; index < counts.length; index++) {
+    assert.ok(counts[index]! <= counts[index - 1]! * 2.2, `superlinear search: ${counts.join("/")}`);
+  }
+  await assert.rejects(pattern.find("x".repeat(256), makeBudget(512)), { message: "execution step limit exceeded" });
+});
+
+for (const [lines, maxSteps] of [[1100, 5000000], [20001, 50000000]] as const) {
+  test(`sed snapshot link scan agrees with native sed across ${lines} short lines`, async () => {
+    const stdin = Array.from({ length: lines }, (_, index) => `- button "Item${index}" [ref=e${index}]\n`).join("");
+    const args = ["-n", String.raw`s/.*\[Snapshot\](\([^)]*\)).*/\1/p`];
+    const native = spawnSync("sed", args, { input: stdin, env: { ...process.env, LC_ALL: "C" } });
+    assert.equal(native.error, undefined);
+    assert.equal(native.signal, null);
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout.length, 0);
+    assert.equal(native.stderr.length, 0);
+    for (const options of [{}, { maxSteps }]) {
+      const actual = await runVirtual("sed", { args, stdin }, options);
+      assert.equal(actual.exitCode, native.status, actual.stderr.toString());
+      assert.deepEqual(actual.stdout, native.stdout);
+      assert.deepEqual(actual.stderr, native.stderr);
+    }
+  });
+}
+
+for (const source of ["(a*)b", String.raw`(a*)\1b`]) {
+  test(`unanchored captured searches retain bounded storage: ${source}`, async () => {
+    for (const length of [16, 64]) {
+      assert.equal(await new Pattern(source).find("a".repeat(length), makeBudget(1000000, 8192)), undefined);
+    }
+  });
 }
 
 test("NFA yields inside one find before its small work limit and preserves queued cancellation", async context => {
@@ -116,9 +162,23 @@ test("matching retains capture preference, unmatched groups, anchors, offsets, b
     ["(a)\\1", "aA", 0, true, true, { start: 0, end: 2, groups: ["aA", "a"] }],
     ["a*", "ba", 0, true, false, { start: 0, end: 0, groups: [""] }],
     [".", "\x00\xff", 1, true, false, { start: 1, end: 2, groups: ["\xff"] }],
+    ["(a.*c)|(b)", "zabxc", 0, true, false, { start: 1, end: 5, groups: ["abxc", "abxc", undefined] }],
+    ["a.*c|b", "zbabc", 0, true, false, { start: 1, end: 2, groups: ["b"] }],
+    [String.raw`(a*)\1b|a*b`, "zaaaab", 1, true, false, { start: 1, end: 6, groups: ["aaaab", "aa"] }],
+    [String.raw`(ab|a)*\1`, "zababaa", 0, true, false, { start: 1, end: 7, groups: ["ababaa", "a"] }],
+    ["(a|b)*b", "zaabb", 2, true, false, { start: 2, end: 5, groups: ["abb", "b"] }],
+    [String.raw`(a?)(b*)\1`, "zabbab", 1, true, false, { start: 1, end: 5, groups: ["abba", "a", "bb"] }],
+    [String.raw`(a*)\1b`, "aaab", 0, true, false, { start: 1, end: 4, groups: ["aab", "a"] }],
   ] as const) {
     assert.deepEqual(await new Pattern(source, extended, ignoreCase).find(text, makeBudget(), from), expected);
   }
+});
+
+test("global matching keeps captures and empty-match suppression across search offsets", async () => {
+  assert.deepEqual(await substitute("zaabxbab", new Pattern("(a*)b"), String.raw`<\1>`, makeBudget(), true),
+    { text: "z<aa>x<><a>", count: 3 });
+  assert.deepEqual(await substitute("baacaa", new Pattern("a*"), "<&>", makeBudget(), true),
+    { text: "<>b<aa>c<aa>", count: 3 });
 });
 
 for (const [tool, args, stdin, expected] of [

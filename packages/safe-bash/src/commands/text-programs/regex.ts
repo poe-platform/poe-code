@@ -74,6 +74,7 @@ export class Pattern {
   private readonly code: Instruction[] = [];
   private readonly anchored: boolean;
   private readonly linear: boolean;
+  private readonly backreferences: boolean;
 
   constructor(source: string, extended = true, ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
     if (!extended) source = extendedSource(source);
@@ -266,6 +267,7 @@ export class Pattern {
     };
     compile(root); emit({ kind: "match" });
     this.linear = this.code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
+    this.backreferences = this.code.some(instruction => instruction.kind === "backreference");
   }
 
   private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from: number,
@@ -365,139 +367,172 @@ export class Pattern {
       }
       return undefined;
     }
-    interface Thread { pc: number; captures: number[]; bytes: number }
+    interface Thread { pc: number; start: number; captures: number[]; bytes: number }
     const storage = new NfaStorage(budget);
     const positionDigits = String(text.length).length;
     const instructionDigits = String(this.code.length).length;
+    if (from > text.length || this.anchored && from !== 0) return undefined;
+    storage.reserve(128);
+    const positions = new Map<number, Thread[]>();
+    let earliestStarts: Map<number, number> | undefined;
+    let nextStart = from;
+    let bestStart: number | undefined;
+    let bestEnd: number | undefined;
+    let bestCaptures: number[] = [];
+    let bestBytes = 0;
     try {
-      for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
-        storage.reserve(256);
-        const positions = new Map<number, Thread[]>([[start, [{ pc: 0, captures: [], bytes: 64 }]]]);
-        let bestEnd: number | undefined;
-        let bestCaptures: number[] = [];
-        let bestBytes = 0;
-        try {
-          for (let position = start; positions.size && position <= text.length; position++) {
-            const advanced = work();
-            if (advanced) await advanced;
-            const pending = positions.get(position);
-            if (!pending) continue;
-            const reversed = work(pending.length);
-            if (reversed) await reversed;
-            pending.reverse();
-            positions.delete(position);
-            const visited = new Set<string | number>();
-            let stateBytes = 0;
-            const enqueue = (destination: number, pc: number, captures: number[], saveSlot?: number): void => {
-              const length = saveSlot === undefined ? captures.length : Math.max(captures.length, saveSlot + 1);
-              const bytes = 64 + length * 8;
-              const waiting = destination === position ? pending : positions.get(destination);
-              storage.reserve(bytes + (waiting ? 0 : 64));
-              const saved = saveSlot === undefined ? captures : [...captures];
-              if (saveSlot !== undefined) saved[saveSlot] = position;
-              const thread = { pc, captures: saved, bytes };
-              if (waiting) waiting.push(thread);
-              else positions.set(destination, [thread]);
-            };
-            while (pending.length) {
-              const paused = work();
-              if (paused) await paused;
-              const thread = pending.pop()!;
-              try {
-                let state: string | number = thread.pc;
-                let bytes = 32;
-                if (this.groupCount) {
-                  const joinedLength = Math.max(0, thread.captures.length - 1) + thread.captures.length * positionDigits;
-                  const stateLength = instructionDigits + 1 + joinedLength;
-                  const serialized = work(stateLength);
-                  if (serialized) await serialized;
-                  const reserved = 32 + joinedLength * 2 + 64 + stateLength * 2;
-                  storage.reserve(reserved);
-                  state = `${thread.pc}:${thread.captures.join(",")}`;
-                  bytes = 64 + state.length * 2;
-                  storage.release(reserved - bytes);
-                } else storage.reserve(bytes);
-                if (visited.has(state)) { storage.release(bytes); continue; }
-                visited.add(state);
-                stateBytes += bytes;
-                const instruction = this.code[thread.pc]!;
-                if (instruction.kind === "character") {
-                  if (position < text.length && instruction.accepts(text[position]!)) enqueue(position + 1, thread.pc + 1, thread.captures);
-                } else if (instruction.kind === "backreference") {
-                  const begin = thread.captures[instruction.index * 2];
-                  const end = thread.captures[instruction.index * 2 + 1];
-                  if (begin === undefined || end === undefined || position + end - begin > text.length) continue;
-                  let matches = true;
-                  for (let offset = 0; offset < end - begin; offset++) {
-                    const compared = work();
-                    if (compared) await compared;
-                    const expected = text[begin + offset]!;
-                    const actual = text[position + offset]!;
-                    if (instruction.ignoreCase ? expected.toLowerCase() !== actual.toLowerCase() : expected !== actual) { matches = false; break; }
-                  }
-                  if (matches) enqueue(position + end - begin, thread.pc + 1, thread.captures);
-                } else if (instruction.kind === "match") {
-                  let preferred = bestEnd === undefined || position > bestEnd;
-                  if (position === bestEnd) for (let index = 1; index <= this.groupCount; index++) {
-                    const compared = work();
-                    if (compared) await compared;
-                    const begin = thread.captures[index * 2];
-                    const end = thread.captures[index * 2 + 1];
-                    const priorBegin = bestCaptures[index * 2];
-                    const priorEnd = bestCaptures[index * 2 + 1];
-                    const length = begin === undefined || end === undefined ? -1 : end - begin;
-                    const priorLength = priorBegin === undefined || priorEnd === undefined ? -1 : priorEnd - priorBegin;
-                    if (length !== priorLength) { preferred = length > priorLength; break; }
-                  }
-                  if (preferred) {
-                    const retained = 32 + thread.captures.length * 8;
-                    storage.reserve(retained);
-                    bestEnd = position;
-                    bestCaptures = thread.captures;
-                    storage.release(bestBytes);
-                    bestBytes = retained;
-                  }
-                } else if (instruction.kind === "split") {
-                  enqueue(position, instruction.second, thread.captures);
-                  enqueue(position, instruction.first, thread.captures);
-                } else if (instruction.kind === "jump") enqueue(position, instruction.target, thread.captures);
-                else if (instruction.kind === "save") {
-                  const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
-                  if (copied) await copied;
-                  enqueue(position, thread.pc + 1, thread.captures, instruction.slot);
-                } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.captures);
-              } finally { storage.release(thread.bytes); }
+      if (this.groupCount && !this.backreferences && !this.anchored) {
+        storage.reserve(64);
+        earliestStarts = new Map();
+      }
+      let position = from;
+      while (position <= text.length) {
+        const advanced = work();
+        if (advanced) await advanced;
+        let pending = positions.get(position);
+        if (bestStart === undefined && (!this.anchored || position === 0) && (!this.backreferences || position === nextStart)) {
+          storage.reserve(72 + (pending ? 0 : 64));
+          pending ??= [];
+          pending.push({ pc: 0, start: position, captures: [], bytes: 72 });
+        }
+        if (!pending && !positions.size) break;
+        if (!pending) { position++; continue; }
+        const reversed = work(pending.length);
+        if (reversed) await reversed;
+        pending.reverse();
+        positions.delete(position);
+        const visited = new Map<string | number, number>();
+        let stateBytes = 0;
+        const enqueue = (destination: number, pc: number, start: number, captures: number[], saveSlot?: number): void => {
+          const length = saveSlot === undefined ? captures.length : Math.max(captures.length, saveSlot + 1);
+          const bytes = 72 + length * 8;
+          const waiting = destination === position ? pending : positions.get(destination);
+          storage.reserve(bytes + (waiting ? 0 : 64));
+          const saved = saveSlot === undefined ? captures : [...captures];
+          if (saveSlot !== undefined) saved[saveSlot] = position;
+          const thread = { pc, start, captures: saved, bytes };
+          if (waiting) waiting.push(thread);
+          else positions.set(destination, [thread]);
+        };
+        while (pending.length) {
+          const paused = work();
+          if (paused) await paused;
+          const thread = pending.pop()!;
+          try {
+            if (bestStart !== undefined && thread.start > bestStart) continue;
+            if (earliestStarts) {
+              // Without backreferences captures affect only the result, so all
+              // capture variants of a later start lose to the earliest start.
+              const earliest = earliestStarts.get(thread.pc);
+              if (earliest !== undefined && earliest < thread.start) continue;
+              if (earliest === undefined) { storage.reserve(40); stateBytes += 40; }
+              earliestStarts.set(thread.pc, thread.start);
             }
-            visited.clear();
-            storage.release(stateBytes + 64);
-          }
-          if (bestEnd !== undefined) {
-            let characters = bestEnd - start;
-            for (let index = 1; index <= this.groupCount; index++) {
-              const counted = work();
-              if (counted) await counted;
-              const begin = bestCaptures[index * 2];
-              const end = bestCaptures[index * 2 + 1];
-              if (begin !== undefined && end !== undefined) characters += end - begin;
-            }
-            const copied = work(characters);
-            if (copied) await copied;
-            storage.reserve(64 + (this.groupCount + 1) * 40 + characters * 2);
-            const groups: (string | undefined)[] = [text.slice(start, bestEnd)];
-            for (let index = 1; index <= this.groupCount; index++) {
-              const materialized = work();
-              if (materialized) await materialized;
-              const begin = bestCaptures[index * 2];
-              const end = bestCaptures[index * 2 + 1];
-              groups.push(begin === undefined || end === undefined ? undefined : text.slice(begin, end));
-            }
-            await budget.checkpoint();
-            return { start, end: bestEnd, groups };
-          }
-        } finally { positions.clear(); storage.clear(); }
+            let state: string | number = thread.pc;
+            let bytes = 40;
+            if (this.groupCount) {
+              const joinedLength = Math.max(0, thread.captures.length - 1) + thread.captures.length * positionDigits;
+              const stateLength = instructionDigits + 1 + joinedLength;
+              const serialized = work(stateLength);
+              if (serialized) await serialized;
+              const reserved = 32 + joinedLength * 2 + 72 + stateLength * 2;
+              storage.reserve(reserved);
+              state = `${thread.pc}:${thread.captures.join(",")}`;
+              bytes = 72 + state.length * 2;
+              storage.release(reserved - bytes);
+            } else storage.reserve(bytes);
+            // At one input position, equal program/capture states have identical
+            // futures. Keep the earliest start instead of rescanning each suffix.
+            const priorStart = visited.get(state);
+            if (priorStart !== undefined) {
+              storage.release(bytes);
+              if (priorStart <= thread.start) continue;
+            } else stateBytes += bytes;
+            visited.set(state, thread.start);
+            const instruction = this.code[thread.pc]!;
+            if (instruction.kind === "character") {
+              if (position < text.length && instruction.accepts(text[position]!)) enqueue(position + 1, thread.pc + 1, thread.start, thread.captures);
+            } else if (instruction.kind === "backreference") {
+              const begin = thread.captures[instruction.index * 2];
+              const end = thread.captures[instruction.index * 2 + 1];
+              if (begin === undefined || end === undefined || position + end - begin > text.length) continue;
+              let matches = true;
+              for (let offset = 0; offset < end - begin; offset++) {
+                const compared = work();
+                if (compared) await compared;
+                const expected = text[begin + offset]!;
+                const actual = text[position + offset]!;
+                if (instruction.ignoreCase ? expected.toLowerCase() !== actual.toLowerCase() : expected !== actual) { matches = false; break; }
+              }
+              if (matches) enqueue(position + end - begin, thread.pc + 1, thread.start, thread.captures);
+            } else if (instruction.kind === "match") {
+              let preferred = bestStart === undefined || thread.start < bestStart || thread.start === bestStart && position > bestEnd!;
+              if (thread.start === bestStart && position === bestEnd) for (let index = 1; index <= this.groupCount; index++) {
+                const compared = work();
+                if (compared) await compared;
+                const begin = thread.captures[index * 2];
+                const end = thread.captures[index * 2 + 1];
+                const priorBegin = bestCaptures[index * 2];
+                const priorEnd = bestCaptures[index * 2 + 1];
+                const length = begin === undefined || end === undefined ? -1 : end - begin;
+                const priorLength = priorBegin === undefined || priorEnd === undefined ? -1 : priorEnd - priorBegin;
+                if (length !== priorLength) { preferred = length > priorLength; break; }
+              }
+              if (preferred) {
+                const retained = 32 + thread.captures.length * 8;
+                storage.reserve(retained);
+                bestStart = thread.start;
+                bestEnd = position;
+                bestCaptures = thread.captures;
+                storage.release(bestBytes);
+                bestBytes = retained;
+              }
+            } else if (instruction.kind === "split") {
+              enqueue(position, instruction.second, thread.start, thread.captures);
+              enqueue(position, instruction.first, thread.start, thread.captures);
+            } else if (instruction.kind === "jump") enqueue(position, instruction.target, thread.start, thread.captures);
+            else if (instruction.kind === "save") {
+              const copied = work(Math.max(thread.captures.length, instruction.slot + 1));
+              if (copied) await copied;
+              enqueue(position, thread.pc + 1, thread.start, thread.captures, instruction.slot);
+            } else if (instruction.kind === "begin" ? position === 0 : position === text.length) enqueue(position, thread.pc + 1, thread.start, thread.captures);
+          } finally { storage.release(thread.bytes); }
+        }
+        visited.clear();
+        earliestStarts?.clear();
+        storage.release(stateBytes + 64);
+        if (this.backreferences && !positions.size) {
+          // Captured text changes backreference transitions. Admit starts
+          // serially to avoid retaining every start's distinct capture history.
+          if (bestStart !== undefined || this.anchored) break;
+          position = ++nextStart;
+        } else position++;
+      }
+      if (bestStart !== undefined && bestEnd !== undefined) {
+        let characters = bestEnd - bestStart;
+        for (let index = 1; index <= this.groupCount; index++) {
+          const counted = work();
+          if (counted) await counted;
+          const begin = bestCaptures[index * 2];
+          const end = bestCaptures[index * 2 + 1];
+          if (begin !== undefined && end !== undefined) characters += end - begin;
+        }
+        const copied = work(characters);
+        if (copied) await copied;
+        storage.reserve(64 + (this.groupCount + 1) * 40 + characters * 2);
+        const groups: (string | undefined)[] = [text.slice(bestStart, bestEnd)];
+        for (let index = 1; index <= this.groupCount; index++) {
+          const materialized = work();
+          if (materialized) await materialized;
+          const begin = bestCaptures[index * 2];
+          const end = bestCaptures[index * 2 + 1];
+          groups.push(begin === undefined || end === undefined ? undefined : text.slice(begin, end));
+        }
+        await budget.checkpoint();
+        return { start: bestStart, end: bestEnd, groups };
       }
       return undefined;
-    } finally { storage.clear(); }
+    } finally { positions.clear(); earliestStarts?.clear(); storage.clear(); }
   }
 }
 

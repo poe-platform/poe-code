@@ -72,3 +72,24 @@ it("rejects offsets outside their source before publishing owned coordinates", (
   }
   expect(owner.position(3)).toEqual({ line: 1, column: 4, offset: 3 });
 });
+
+it("preserves FIFO identity through repeated cache wraparound without promoting hits", () => {
+  const owner = new CompactSourcePositions("x\r\ny\u2028".repeat(500));
+  const retained = Array.from({ length: 514 }, (_, offset) => owner.position(offset));
+  for (let offset = 514; offset < 2200; offset++) {
+    const oldest = retained.shift()!;
+    const next = retained[0]!;
+    expect(owner.position(oldest.offset)).toBe(oldest);
+    const incoming = owner.position(offset);
+    expect(owner.position(next.offset)).toBe(next);
+    expect(owner.position(offset)).toBe(incoming);
+    retained.push(incoming);
+  }
+  const saved = retained[0]!;
+  owner.position(2200);
+  const decoded = owner.position(saved.offset);
+  expect(decoded).not.toBe(saved);
+  expect(decoded).toEqual(saved);
+  expect(Object.isFrozen(decoded)).toBe(true);
+  expect(compactSourceSpan(saved, decoded)?.start).toBe(decoded);
+});

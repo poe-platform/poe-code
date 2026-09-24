@@ -12,6 +12,8 @@ export class CompactSourcePositions {
   private readonly sourceLength: number;
   private readonly lines = [0];
   private readonly positions = new Map<number, Position>();
+  private readonly evictionOffsets = new Float64Array(cacheSize);
+  private evictionIndex = 0;
   private readonly makeSpan: (start: number, end: number) => SourceSpan;
 
   constructor(source: string) {
@@ -90,9 +92,12 @@ export class CompactSourcePositions {
       offset
     });
     setOwner(position, this);
+    // Keep FIFO order without restarting a Map iterator through deleted slots.
     if (this.positions.size === cacheSize)
-      this.positions.delete(this.positions.keys().next().value!);
+      this.positions.delete(this.evictionOffsets[this.evictionIndex]!);
     this.positions.set(offset, position);
+    this.evictionOffsets[this.evictionIndex] = offset;
+    this.evictionIndex = (this.evictionIndex + 1) % cacheSize;
     return position;
   }
 

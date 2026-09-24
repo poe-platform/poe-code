@@ -170,4 +170,81 @@ describe("safe-bash-command-qpdf", () => {
     const updated = PdfDocument.load(files.get("/replace.pdf")!);
     assert.equal(updated.getPage(0).getRotation(), 90);
   });
+
+  it("supports --show-pages, --with-images, --linearize, --collate, --overlay, --underlay, and --flatten-annotations", async () => {
+    const docA = createNumberedPdf(3, "Main");
+    const stampDoc = PdfDocument.create();
+    const sPage = stampDoc.addPage([612, 792]);
+    sPage.drawText("CONFIDENTIAL STAMP", { x: 200, y: 400, size: 18 });
+    sPage.drawImage(
+      {
+        width: 2,
+        height: 2,
+        data: new Uint8Array(2 * 2 * 4).fill(200)
+      },
+      {
+        x: 50,
+        y: 50,
+        width: 20,
+        height: 20
+      }
+    );
+    const stampBytes = stampDoc.save();
+
+    const files = new Map<string, Uint8Array>([
+      ["/main.pdf", docA],
+      ["/stamp.pdf", stampBytes]
+    ]);
+
+    // 1. --show-pages --with-images
+    const showPagesRes = await runQpdfCli(["--show-pages", "--with-images", "/stamp.pdf"], files);
+    assert.equal(showPagesRes.exitCode, 0);
+    assert.match(showPagesRes.stdout, /page 1:/);
+    assert.match(showPagesRes.stdout, /images:/);
+    assert.match(showPagesRes.stdout, /\(2 x 2\)/);
+
+    // 2. --overlay and --linearize
+    const overlayRes = await runQpdfCli(
+      [
+        "--linearize",
+        "--overlay=/stamp.pdf",
+        "--from=1",
+        "--to=1-3",
+        "--repeat=1",
+        "--",
+        "/main.pdf",
+        "/stamped.pdf"
+      ],
+      files
+    );
+    assert.equal(overlayRes.exitCode, 0);
+    const stampedDoc = PdfDocument.load(files.get("/stamped.pdf")!);
+    assert.equal(stampedDoc.getPageCount(), 3);
+    assert.match(stampedDoc.getPage(0).extractText(), /Main Page 1/);
+    assert.match(stampedDoc.getPage(0).extractText(), /CONFIDENTIAL STAMP/);
+    assert.match(stampedDoc.getPage(2).extractText(), /Main Page 3/);
+    assert.match(stampedDoc.getPage(2).extractText(), /CONFIDENTIAL STAMP/);
+
+    // Check linearization status via --check
+    const linCheck = await runQpdfCli(["--check", "/stamped.pdf"], files);
+    assert.equal(linCheck.exitCode, 0);
+    assert.match(linCheck.stdout, /File is linearized/);
+
+    // 3. --collate with --pages
+    const oddDoc = createNumberedPdf(2, "Odd");
+    const evenDoc = createNumberedPdf(2, "Even");
+    files.set("/odd.pdf", oddDoc);
+    files.set("/even.pdf", evenDoc);
+    const collateRes = await runQpdfCli(
+      ["--empty", "--collate", "--pages", "/odd.pdf", "1-z", "/even.pdf", "1-z", "--", "/collated.pdf"],
+      files
+    );
+    assert.equal(collateRes.exitCode, 0);
+    const collated = PdfDocument.load(files.get("/collated.pdf")!);
+    assert.equal(collated.getPageCount(), 4);
+    assert.match(collated.getPage(0).extractText(), /Odd Page 1/);
+    assert.match(collated.getPage(1).extractText(), /Even Page 1/);
+    assert.match(collated.getPage(2).extractText(), /Odd Page 2/);
+    assert.match(collated.getPage(3).extractText(), /Even Page 2/);
+  });
 });

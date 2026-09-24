@@ -95,3 +95,58 @@ test("createPdfAstRenderer converts multi-section HTML with tables, lists, links
   assert.equal(cmd.name, "wkhtmltopdf");
   assert.equal(pdfAstRenderer.profile.id, "pdf-ast-static");
 });
+
+test("createPdfAstRenderer renders inline <svg>, <blockquote>, <dl> definition lists, and colspan table cells", async () => {
+  const fs = new MemoryFileSystem();
+  const html = `<!DOCTYPE html>
+<html>
+<head><title>Complex Elements Spec</title></head>
+<body>
+  <h1>Vector and Semantic Layout</h1>
+  <blockquote>All graphics primitives map deterministically to PDF operators.</blockquote>
+  <dl>
+    <dt>COS Layer</dt><dd>Carousel Object System</dd>
+    <dt>Display List</dt><dd>Evaluated glyphs, paths, and images</dd>
+  </dl>
+  <svg width="220" height="60">
+    <rect x="4" y="4" width="200" height="40" />
+    <text x="16" y="28">SVG Vector Diagram</text>
+  </svg>
+  <table>
+    <tr><th colspan="2">Merged Table Header</th></tr>
+    <tr><td>Cell A1</td><td>Cell B1</td></tr>
+  </table>
+</body>
+</html>`;
+
+  await fs.writeFile("/complex.html", new TextEncoder().encode(html));
+  const result = await runWkhtmltopdf(
+    {
+      args: [
+        "--header-center",
+        "[section] ([isodate])",
+        "/complex.html",
+        "/complex.pdf",
+      ],
+      fs,
+      cwd: "/",
+      signal: new AbortController().signal,
+      stdin: toByteSource(""),
+      stdout: { async write() {} },
+      stderr: { async write() {} },
+    },
+    {
+      limits: wkhtmltopdfLimits,
+      renderer: createPdfAstRenderer(),
+    }
+  );
+
+  assert.equal(result.exitCode, 0);
+  const doc = PdfDocument.load(await fs.readFile("/complex.pdf"));
+  const text = doc.extractText(0);
+  assert.ok(text.includes("All graphics primitives map deterministically"));
+  assert.ok(text.includes("COS Layer: Carousel Object System"));
+  assert.ok(text.includes("SVG Vector Diagram"));
+  assert.ok(text.includes("Merged Table Header"));
+  assert.ok(text.includes("Complex Elements Spec"));
+});

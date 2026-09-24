@@ -37,6 +37,10 @@ describe("pdfReader (@poe-code/pdf-ast integration)", () => {
       size: 11,
       font: "Helvetica",
     });
+    page.drawImage(
+      { width: 4, height: 4, data: new Uint8Array(4 * 4 * 4).fill(210) },
+      { x: 72, y: 520, width: 40, height: 40 }
+    );
     page.drawText("const ast = doc.toSemanticAst();", {
       x: 72,
       y: 605,
@@ -58,6 +62,8 @@ describe("pdfReader (@poe-code/pdf-ast integration)", () => {
     });
     expect(parsedDoc.blocks.some((b) => b.t === "Header")).toBe(true);
     expect(parsedDoc.blocks.some((b) => b.t === "Para")).toBe(true);
+    expect(parsedDoc.resources.length).toBe(1);
+    expect(parsedDoc.resources[0]?.id).toBe("pdf-image-1.png");
 
     const mdResult = await convert(
       [{ bytes: pdfBytes }],

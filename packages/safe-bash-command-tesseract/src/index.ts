@@ -560,10 +560,14 @@ async function decodePagesFromInput(
       const bitmap = decodePng(pngBytes);
       const scale = options.dpi / 72;
 
-      const pageLines = extracted.blocks.flatMap((b) => b.lines);
-      if (pageLines.length > 0) {
+      const sourceBlocks =
+        options.psm === 6
+          ? [{ lines: extracted.blocks.flatMap((b) => b.lines) }]
+          : extracted.blocks;
+      const builtBlocks: OcrBlockBox[] = [];
+      for (const srcBlock of sourceBlocks) {
         const ocrLines: OcrLineBox[] = [];
-        for (const line of pageLines) {
+        for (const line of srcBlock.lines) {
           const words: OcrWordBox[] = [];
           for (const word of line.words) {
             let filtered = word.text;
@@ -615,38 +619,38 @@ async function decodePagesFromInput(
             });
           }
         }
-        const bLeft = ocrLines.length ? Math.min(...ocrLines.map((l) => l.left)) : 0;
-        const bTop = ocrLines.length ? Math.min(...ocrLines.map((l) => l.top)) : 0;
-        const bRight = ocrLines.length ? Math.max(...ocrLines.map((l) => l.left + l.width)) : bitmap.width;
-        const bBottom = ocrLines.length ? Math.max(...ocrLines.map((l) => l.top + l.height)) : bitmap.height;
+        if (ocrLines.length > 0) {
+          const bLeft = Math.min(...ocrLines.map((l) => l.left));
+          const bTop = Math.min(...ocrLines.map((l) => l.top));
+          const bRight = Math.max(...ocrLines.map((l) => l.left + l.width));
+          const bBottom = Math.max(...ocrLines.map((l) => l.top + l.height));
+          builtBlocks.push({
+            left: bLeft,
+            top: bTop,
+            width: Math.max(1, bRight - bLeft),
+            height: Math.max(1, bBottom - bTop),
+            paragraphs: [
+              {
+                left: bLeft,
+                top: bTop,
+                width: Math.max(1, bRight - bLeft),
+                height: Math.max(1, bBottom - bTop),
+                lines: ocrLines,
+              },
+            ],
+          });
+        }
+      }
+      if (builtBlocks.length > 0) {
         pages.push({
           pageNumber: i + 1,
           width: bitmap.width,
           height: bitmap.height,
           dpi: options.dpi,
-          orientationDeg: extracted.rotation ?? 0,
+          orientationDeg: page.getRotation() || extracted.rotation || 0,
           scriptName: "Latin",
           bitmap,
-          blocks:
-            ocrLines.length > 0
-              ? [
-                  {
-                    left: bLeft,
-                    top: bTop,
-                    width: Math.max(1, bRight - bLeft),
-                    height: Math.max(1, bBottom - bTop),
-                    paragraphs: [
-                      {
-                        left: bLeft,
-                        top: bTop,
-                        width: Math.max(1, bRight - bLeft),
-                        height: Math.max(1, bBottom - bTop),
-                        lines: ocrLines,
-                      },
-                    ],
-                  },
-                ]
-              : [],
+          blocks: builtBlocks,
         });
       } else {
         // Scanned / image-only PDF page: run bitmap OCR on the rendered page bitmap
@@ -690,14 +694,31 @@ async function decodePagesFromInput(
   ];
 }
 
-function formatTxt(pages: readonly OcrPageResult[], pageSeparator: string): string {
+function formatTxt(
+  pages: readonly OcrPageResult[],
+  pageSeparator: string,
+  preserveInterwordSpaces = false
+): string {
   const parts: string[] = [];
   for (const page of pages) {
     const lineStrings: string[] = [];
     for (const block of page.blocks) {
       for (const par of block.paragraphs) {
         for (const line of par.lines) {
-          lineStrings.push(line.words.map((w) => w.text).join(" "));
+          if (!preserveInterwordSpaces || line.words.length <= 1) {
+            lineStrings.push(line.words.map((w) => w.text).join(" "));
+          } else {
+            let acc = line.words[0]!.text;
+            for (let wi = 1; wi < line.words.length; wi++) {
+              const prev = line.words[wi - 1]!;
+              const curr = line.words[wi]!;
+              const avgCharW = Math.max(4, prev.width / Math.max(1, prev.text.length));
+              const gapPx = Math.max(0, curr.left - (prev.left + prev.width));
+              const spaces = Math.max(1, Math.min(20, Math.round(gapPx / avgCharW)));
+              acc += " ".repeat(spaces) + curr.text;
+            }
+            lineStrings.push(acc);
+          }
         }
       }
     }
@@ -1126,7 +1147,7 @@ export async function runTesseract(
       let payload: Uint8Array;
       const ext = fmt;
       if (fmt === "txt") {
-        payload = encoder.encode(formatTxt(pages, pageSeparator));
+        payload = encoder.encode(formatTxt(pages, pageSeparator, configVars.get("preserve_interword_spaces") === "1"));
       } else if (fmt === "tsv") {
         payload = encoder.encode(formatTsv(pages));
       } else if (fmt === "hocr") {

@@ -112,6 +112,10 @@ export class PdfPage {
     return this.pageDict;
   }
 
+  get ref(): PdfCosRef {
+    return this.pageRef;
+  }
+
   getDisplayList(): PdfDisplayList {
     return this.evaluateDisplayList();
   }
@@ -454,10 +458,44 @@ export class PdfPage {
     this.setContentAst(ast);
   }
 
-  drawImage(image: PdfImageHandle, options: DrawImageOptions): void {
-    const w = options.width ?? image.width;
-    const h = options.height ?? image.height;
-    const resKey = this.ensureXObjectResource(image.xobjectRef);
+  drawImage(
+    image: PdfImageHandle | { readonly width: number; readonly height: number; readonly data: Uint8Array },
+    options: DrawImageOptions
+  ): void {
+    let handle: PdfImageHandle;
+    if ("xobjectRef" in image && image.xobjectRef) {
+      handle = image;
+    } else {
+      const bmp = image as { readonly width: number; readonly height: number; readonly data: Uint8Array };
+      const pixelCount = bmp.width * bmp.height;
+      let rgbBytes: Uint8Array;
+      if (bmp.data.length === pixelCount * 4) {
+        rgbBytes = new Uint8Array(pixelCount * 3);
+        for (let i = 0, j = 0; i < bmp.data.length; i += 4, j += 3) {
+          rgbBytes[j] = bmp.data[i]!;
+          rgbBytes[j + 1] = bmp.data[i + 1]!;
+          rgbBytes[j + 2] = bmp.data[i + 2]!;
+        }
+      } else {
+        rgbBytes = bmp.data;
+      }
+      const streamObj = cosStream(rgbBytes, {
+        dict: cosDict({
+          Type: cosName("XObject"),
+          Subtype: cosName("Image"),
+          Width: cosNumber(bmp.width),
+          Height: cosNumber(bmp.height),
+          ColorSpace: cosName("DeviceRGB"),
+          BitsPerComponent: cosNumber(8),
+        }),
+        compress: true,
+      });
+      const xobjectRef = this.cosDoc.allocateObject(streamObj);
+      handle = { xobjectRef, width: bmp.width, height: bmp.height };
+    }
+    const w = options.width ?? handle.width;
+    const h = options.height ?? handle.height;
+    const resKey = this.ensureXObjectResource(handle.xobjectRef);
     const ast = this.getContentAst();
     ast.push({
       kind: "graphics-group",

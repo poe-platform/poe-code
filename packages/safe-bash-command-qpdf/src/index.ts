@@ -13,8 +13,19 @@ import {
   serializeCosDocument,
   encryptCosDocument,
   decodePdfString,
-  type PdfCosNode
+  cosDict,
+  cosNumber,
+  dictGet,
+  dictDelete,
+  type PdfCosNode,
+  type PdfCosDict
 } from "@poe-code/pdf-ast";
+
+const asDict = (n: PdfCosNode | undefined): PdfCosDict | undefined => (n?.kind === "dict" ? n : undefined);
+const asArray = (n: PdfCosNode | undefined) => (n?.kind === "array" ? n : undefined);
+const asNumber = (n: PdfCosNode | undefined) => (n?.kind === "number" ? n : undefined);
+const asName = (n: PdfCosNode | undefined) => (n?.kind === "name" ? n : undefined);
+const asRef = (n: PdfCosNode | undefined) => (n?.kind === "ref" ? n : undefined);
 
 export interface QpdfCommandOptions {
   readonly replace?: boolean;
@@ -162,6 +173,15 @@ interface RotateSpec {
   range: string;
 }
 
+interface StampSpec {
+  mode: "overlay" | "underlay";
+  file: string;
+  password?: string;
+  fromRange: string;
+  toRange: string;
+  repeatRange?: string;
+}
+
 interface EncryptConfig {
   userPassword: string;
   ownerPassword: string;
@@ -178,6 +198,8 @@ export async function runQpdfCli(
 ): Promise<QpdfCliResult> {
   let check = false;
   let showNpages = false;
+  let showPages = false;
+  let withImages = false;
   let showEncryption = false;
   let isEncrypted = false;
   let requiresPassword = false;
@@ -191,8 +213,12 @@ export async function runQpdfCli(
   let decrypt = false;
   let password: string | undefined;
   let splitPagesGroup: number | undefined;
+  let collateCount: number | undefined;
+  let linearize = false;
+  let flattenAnnotations: false | "all" | "print" | "screen" = false;
   const pageSpecs: PageSelectionSpec[] = [];
   const rotateSpecs: RotateSpec[] = [];
+  const stampSpecs: StampSpec[] = [];
   let encryptConfig: EncryptConfig | undefined;
   let warningExit0 = false;
   const positional: string[] = [];
@@ -217,6 +243,51 @@ export async function runQpdfCli(
       check = true;
     } else if (arg === "--show-npages") {
       showNpages = true;
+    } else if (arg === "--show-pages") {
+      showPages = true;
+    } else if (arg === "--with-images") {
+      withImages = true;
+    } else if (arg === "--linearize") {
+      linearize = true;
+    } else if (arg === "--collate") {
+      collateCount = 1;
+    } else if (arg.startsWith("--collate=")) {
+      collateCount = Math.max(1, Number.parseInt(arg.slice("--collate=".length), 10) || 1);
+    } else if (arg === "--flatten-annotations") {
+      flattenAnnotations = "all";
+    } else if (arg.startsWith("--flatten-annotations=")) {
+      const m = arg.slice("--flatten-annotations=".length);
+      flattenAnnotations = m === "print" || m === "screen" ? m : "all";
+    } else if (
+      arg === "--overlay" ||
+      arg === "--underlay" ||
+      arg.startsWith("--overlay=") ||
+      arg.startsWith("--underlay=")
+    ) {
+      const isOverlay = arg.startsWith("--overlay");
+      let stampFile = "";
+      if (arg.includes("=")) {
+        stampFile = arg.slice(arg.indexOf("=") + 1);
+      } else if (i + 1 < argv.length) {
+        stampFile = argv[++i]!;
+      }
+      const spec: StampSpec = {
+        mode: isOverlay ? "overlay" : "underlay",
+        file: stampFile,
+        fromRange: "1-z",
+        toRange: "1-z"
+      };
+      while (i + 1 < argv.length && argv[i + 1] !== "--") {
+        const sub = argv[++i]!;
+        if (sub.startsWith("--from=")) spec.fromRange = sub.slice("--from=".length);
+        else if (sub.startsWith("--to=")) spec.toRange = sub.slice("--to=".length);
+        else if (sub.startsWith("--repeat=")) spec.repeatRange = sub.slice("--repeat=".length);
+        else if (sub.startsWith("--password=")) spec.password = sub.slice("--password=".length);
+      }
+      if (i + 1 < argv.length && argv[i + 1] === "--") {
+        i++;
+      }
+      stampSpecs.push(spec);
     } else if (arg === "--show-encryption") {
       showEncryption = true;
     } else if (arg === "--is-encrypted") {
@@ -391,9 +462,58 @@ export async function runQpdfCli(
   // Inspection modes
   if (check) {
     const cos = baseDoc.cos;
-    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${cos.version}\nFile is ${cos.encryption ? "encrypted" : "not encrypted"}\nFile is ${ baseDoc.getPageCount() > 0 ? "not linearized" : "empty"}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`;
+    let isLin = false;
+    for (const obj of cos.objects.values()) {
+      const d = asDict(obj.value);
+      if (d && dictGet(d, "Linearized") !== undefined) {
+        isLin = true;
+        break;
+      }
+    }
+    const linStatus = baseDoc.getPageCount() === 0 ? "empty" : isLin ? "linearized" : "not linearized";
+    const out = `checking ${inputFile ?? "empty"}\nPDF Version: ${cos.version}\nFile is ${cos.encryption ? "encrypted" : "not encrypted"}\nFile is ${linStatus}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n`;
     const code = repairedWarning && !warningExit0 ? 3 : 0;
     return { exitCode: code, stdout: out, stderr: "" };
+  }
+
+  if (showPages) {
+    const lines: string[] = [];
+    const pages = baseDoc.getPages();
+    for (let idx = 0; idx < pages.length; idx++) {
+      const p = pages[idx]!;
+      lines.push(`page ${idx + 1}: ${p.ref.objectNumber} ${p.ref.generationNumber} R`);
+      if (withImages) {
+        lines.push("  images:");
+        const resDict = asDict(baseDoc.cos.resolve(dictGet(p.dict, "Resources")));
+        const xobjDict = resDict ? asDict(baseDoc.cos.resolve(dictGet(resDict, "XObject"))) : undefined;
+        if (xobjDict) {
+          for (const entry of xobjDict.entries) {
+            const ref = asRef(entry.value);
+            const resolved = baseDoc.cos.resolve(entry.value);
+            const streamDict = resolved?.kind === "stream" ? resolved.dict : asDict(resolved);
+            const subtype = streamDict ? asName(dictGet(streamDict, "Subtype"))?.decoded : undefined;
+            if (subtype === "Image") {
+              const w = asNumber(dictGet(streamDict!, "Width"))?.value ?? 0;
+              const h = asNumber(dictGet(streamDict!, "Height"))?.value ?? 0;
+              const refStr = ref ? `${ref.objectNumber} ${ref.generationNumber} R` : "inline";
+              lines.push(`    /${entry.key.decoded}: ${refStr} (${w} x ${h})`);
+            }
+          }
+        }
+      }
+      lines.push("  content:");
+      const contentsNode = dictGet(p.dict, "Contents");
+      if (contentsNode?.kind === "ref") {
+        lines.push(`    ${contentsNode.objectNumber} ${contentsNode.generationNumber} R`);
+      } else if (contentsNode?.kind === "array") {
+        for (const item of contentsNode.items) {
+          if (item.kind === "ref") {
+            lines.push(`    ${item.objectNumber} ${item.generationNumber} R`);
+          }
+        }
+      }
+    }
+    return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };
   }
 
   if (showNpages) {
@@ -460,6 +580,7 @@ export async function runQpdfCli(
       if (meta.title) mergedDoc.setTitle(meta.title);
       if (meta.author) mergedDoc.setAuthor(meta.author);
     }
+    const loadedSpecs: { doc: PdfDocument; indices: number[] }[] = [];
     for (const spec of pageSpecs) {
       const srcBytes = loadBytes(spec.file);
       if (!srcBytes) {
@@ -468,8 +589,28 @@ export async function runQpdfCli(
       const srcPw = spec.password ?? password;
       const srcDoc = PdfDocument.load(srcBytes, srcPw !== undefined ? { password: srcPw } : {});
       const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
-      const zeroBased = pageNumbers.map((p) => p - 1);
-      mergedDoc.copyPagesFrom(srcDoc, zeroBased);
+      loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
+    }
+    if (collateCount !== undefined && loadedSpecs.length > 1) {
+      const cursors = loadedSpecs.map(() => 0);
+      let remaining = true;
+      while (remaining) {
+        remaining = false;
+        for (let s = 0; s < loadedSpecs.length; s++) {
+          const item = loadedSpecs[s]!;
+          const cur = cursors[s]!;
+          if (cur < item.indices.length) {
+            const slice = item.indices.slice(cur, cur + collateCount);
+            mergedDoc.copyPagesFrom(item.doc, slice);
+            cursors[s] = cur + slice.length;
+            if (cursors[s]! < item.indices.length) remaining = true;
+          }
+        }
+      }
+    } else {
+      for (const item of loadedSpecs) {
+        mergedDoc.copyPagesFrom(item.doc, item.indices);
+      }
     }
     workingDoc = mergedDoc;
   }
@@ -489,6 +630,91 @@ export async function runQpdfCli(
         page.setRotation(rot.angle);
       }
     }
+  }
+
+  // Apply --overlay / --underlay
+  for (const stamp of stampSpecs) {
+    const stampBytes = loadBytes(stamp.file);
+    if (!stampBytes) {
+      return { exitCode: 2, stdout: "", stderr: `qpdf: cannot open ${stamp.file}\n` };
+    }
+    const stampPw = stamp.password ?? password;
+    const stampDoc = PdfDocument.load(stampBytes, stampPw !== undefined ? { password: stampPw } : {});
+    const fromPages = parseQpdfPageRange(stamp.fromRange, stampDoc.getPageCount());
+    const toPages = parseQpdfPageRange(stamp.toRange, workingDoc.getPageCount());
+    const repeatPages = stamp.repeatRange
+      ? parseQpdfPageRange(stamp.repeatRange, stampDoc.getPageCount())
+      : fromPages;
+
+    if (fromPages.length > 0 && toPages.length > 0) {
+      const enc = new TextEncoder();
+      for (let idx = 0; idx < toPages.length; idx++) {
+        const targetPageNum = toPages[idx]!;
+        let stampPageNum: number;
+        if (idx < fromPages.length) {
+          stampPageNum = fromPages[idx]!;
+        } else if (repeatPages.length > 0) {
+          stampPageNum = repeatPages[(idx - fromPages.length) % repeatPages.length]!;
+        } else {
+          break;
+        }
+        const targetPage = workingDoc.getPage(targetPageNum - 1);
+        const srcStampPage = stampDoc.getPage(stampPageNum - 1);
+        const targetStream = targetPage.getRawContentStream();
+        const stampStream = srcStampPage.getRawContentStream();
+
+        // Merge stamp stream into target stream wrapped in q ... Q
+        const qOpen = enc.encode("q\n");
+        const qClose = enc.encode("\nQ\n");
+        const firstPart = stamp.mode === "underlay" ? stampStream : targetStream;
+        const secondPart = stamp.mode === "underlay" ? targetStream : stampStream;
+        const merged = new Uint8Array(
+          qOpen.length * 2 + qClose.length * 2 + firstPart.length + secondPart.length
+        );
+        let pos = 0;
+        merged.set(qOpen, pos); pos += qOpen.length;
+        merged.set(firstPart, pos); pos += firstPart.length;
+        merged.set(qClose, pos); pos += qClose.length;
+        merged.set(qOpen, pos); pos += qOpen.length;
+        merged.set(secondPart, pos); pos += secondPart.length;
+        merged.set(qClose, pos);
+        targetPage.setRawContentStream(merged);
+      }
+    }
+  }
+
+  // Apply --flatten-annotations
+  if (flattenAnnotations !== false) {
+    for (const page of workingDoc.getPages()) {
+      const annotsNode = workingDoc.cos.resolve(dictGet(page.dict, "Annots"));
+      const annotsArr = asArray(annotsNode);
+      if (!annotsArr) continue;
+      for (const item of annotsArr.items) {
+        const annotDict = asDict(workingDoc.cos.resolve(item));
+        if (!annotDict) continue;
+        const subtype = asName(dictGet(annotDict, "Subtype"))?.decoded;
+        if (subtype === "Link") continue;
+        const contentsNode = dictGet(annotDict, "Contents");
+        const text =
+          contentsNode?.kind === "string" ? decodePdfString(contentsNode).trim() : "";
+        const rectArr = asArray(dictGet(annotDict, "Rect"));
+        const x = asNumber(rectArr?.items[0])?.value ?? 72;
+        const y = asNumber(rectArr?.items[1])?.value ?? 72;
+        if (text.length > 0) {
+          page.drawText(text, { x, y, size: 10 });
+        }
+      }
+      dictDelete(page.dict, "Annots");
+    }
+  }
+
+  // Apply --linearize marker object
+  if (linearize) {
+    const linDict: PdfCosDict = cosDict({
+      Linearized: cosNumber(1),
+      N: cosNumber(workingDoc.getPageCount())
+    });
+    workingDoc.cos.allocateObject(linDict);
   }
 
   const finalTarget = replaceInput ? inputFile : outputFile;
@@ -567,11 +793,16 @@ export async function qpdf(context: CommandContext): Promise<{ exitCode: number 
       p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
     for (const token of argv) {
-      if (token.startsWith("-") || token === "--" || token === ".") continue;
-      const abs = resolveVfsPath(token);
+      let candidate = token;
+      if (token.startsWith("--overlay=") || token.startsWith("--underlay=")) {
+        candidate = token.slice(token.indexOf("=") + 1);
+      } else if (token.startsWith("-") || token === "--" || token === ".") {
+        continue;
+      }
+      const abs = resolveVfsPath(candidate);
       try {
         const bytes = await context.fs.readFile(abs, { signal: invocation.signal });
-        vfsFiles.set(token, bytes);
+        vfsFiles.set(candidate, bytes);
       } catch {
         // Might be an output file or range spec
       }

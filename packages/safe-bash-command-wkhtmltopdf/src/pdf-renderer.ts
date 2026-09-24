@@ -109,17 +109,29 @@ function resolvePageBox(global: GlobalSettings): {
   return { width, height, marginTop, marginBottom, marginLeft, marginRight };
 }
 
+interface SvgPrimitive {
+  kind: "rect" | "line" | "text";
+  x: number;
+  y: number;
+  w?: number;
+  h?: number;
+  x2?: number;
+  y2?: number;
+  text?: string;
+}
+
 interface HtmlBlock {
-  kind: "heading" | "paragraph" | "code" | "list" | "table" | "hr" | "image" | "pagebreak";
+  kind: "heading" | "paragraph" | "blockquote" | "code" | "list" | "table" | "hr" | "image" | "svg" | "pagebreak";
   level?: number;
   text?: string;
   items?: string[];
   ordered?: boolean;
-  rows?: { cells: string[]; header: boolean }[];
+  rows?: { cells: { text: string; colspan: number }[]; header: boolean }[];
   links?: { text: string; href: string }[];
   pngBytes?: Uint8Array;
   displayWidth?: number;
   displayHeight?: number;
+  svgPrimitives?: SvgPrimitive[];
 }
 
 function decodeHtmlEntities(input: string): string {
@@ -175,7 +187,7 @@ function parseHtmlDocument(rawHtml: string, replacements: readonly [string, stri
 
   const blocks: HtmlBlock[] = [];
   const tokenRegex =
-    /<(h[1-6]|p|pre|ul|ol|table|hr|img|blockquote|div|section|article)\b([^>]*)>([\s\S]*?)<\/\1>|<(hr|img)\b([^>]*?)\/?>/gi;
+    /<(h[1-6]|p|pre|ul|ol|dl|table|svg|hr|img|blockquote|div|section|article)\b([^>]*)>([\s\S]*?)<\/\1>|<(hr|img)\b([^>]*?)\/?>/gi;
 
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -238,19 +250,71 @@ function parseHtmlDocument(rawHtml: string, replacements: readonly [string, stri
       if (items.length > 0) {
         blocks.push({ kind: "list", ordered: tag === "ol", items });
       }
+    } else if (tag === "dl") {
+      const items: string[] = [];
+      const dtDdRegex = /<(dt|dd)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+      let m: RegExpExecArray | null;
+      let currentTerm = "";
+      while ((m = dtDdRegex.exec(inner)) !== null) {
+        const t = m[1]!.toLowerCase();
+        const txt = stripTags(m[2] ?? "");
+        if (t === "dt") {
+          currentTerm = txt;
+        } else if (t === "dd") {
+          items.push(currentTerm ? `${currentTerm}: ${txt}` : txt);
+          currentTerm = "";
+        }
+      }
+      if (items.length > 0) {
+        blocks.push({ kind: "list", ordered: false, items });
+      }
+    } else if (tag === "svg") {
+      const wMatch = /width=["']?(\d+)/i.exec(attrs);
+      const hMatch = /height=["']?(\d+)/i.exec(attrs);
+      const displayWidth = wMatch ? Number(wMatch[1]) : 200;
+      const displayHeight = hMatch ? Number(hMatch[1]) : 100;
+      const svgPrimitives: SvgPrimitive[] = [];
+      const rectRe = /<rect\b([^>]*)\/?>/gi;
+      let rm: RegExpExecArray | null;
+      while ((rm = rectRe.exec(inner)) !== null) {
+        const ra = rm[1] ?? "";
+        const rx = Number(/\bx=["']?([\d.]+)/i.exec(ra)?.[1] ?? 0);
+        const ry = Number(/\by=["']?([\d.]+)/i.exec(ra)?.[1] ?? 0);
+        const rw = Number(/\bwidth=["']?([\d.]+)/i.exec(ra)?.[1] ?? 40);
+        const rh = Number(/\bheight=["']?([\d.]+)/i.exec(ra)?.[1] ?? 20);
+        svgPrimitives.push({ kind: "rect", x: rx, y: ry, w: rw, h: rh });
+      }
+      const textRe = /<text\b([^>]*)>([\s\S]*?)<\/text>/gi;
+      let tm: RegExpExecArray | null;
+      while ((tm = textRe.exec(inner)) !== null) {
+        const ta = tm[1] ?? "";
+        const tx = Number(/\bx=["']?([\d.]+)/i.exec(ta)?.[1] ?? 8);
+        const ty = Number(/\by=["']?([\d.]+)/i.exec(ta)?.[1] ?? 16);
+        const txt = stripTags(tm[2] ?? "");
+        if (txt) svgPrimitives.push({ kind: "text", x: tx, y: ty, text: txt });
+      }
+      blocks.push({ kind: "svg", displayWidth, displayHeight, svgPrimitives });
+    } else if (tag === "blockquote") {
+      const text = stripTags(inner);
+      if (text) {
+        blocks.push({ kind: "blockquote", text, links: extractLinks(inner) });
+      }
     } else if (tag === "table") {
-      const rows: { cells: string[]; header: boolean }[] = [];
+      const rows: { cells: { text: string; colspan: number }[]; header: boolean }[] = [];
       const trRegex = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
       let trMatch: RegExpExecArray | null;
       while ((trMatch = trRegex.exec(inner)) !== null) {
         const rowHtml = trMatch[1] ?? "";
-        const cells: string[] = [];
+        const cells: { text: string; colspan: number }[] = [];
         let header = false;
-        const cellRegex = /<(th|td)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+        const cellRegex = /<(th|td)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
         let cellMatch: RegExpExecArray | null;
         while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
           if (cellMatch[1]?.toLowerCase() === "th") header = true;
-          cells.push(stripTags(cellMatch[2] ?? ""));
+          const cellAttrs = cellMatch[2] ?? "";
+          const colspanMatch = /colspan=["']?(\d+)/i.exec(cellAttrs);
+          const colspan = Math.max(1, colspanMatch ? Number(colspanMatch[1]) : 1);
+          cells.push({ text: stripTags(cellMatch[3] ?? ""), colspan });
         }
         if (cells.length > 0) {
           rows.push({ cells, header });
@@ -482,24 +546,103 @@ function layoutObjectPages(
       continue;
     }
 
+    if (block.kind === "blockquote") {
+      const fontSize = 10.5;
+      const lineHeight = 14.5;
+      const maxChars = Math.max(20, Math.floor((contentWidth - 18) / (fontSize * 0.52)));
+      const lines = wrapTextLines(block.text ?? "", maxChars);
+      const totalH = lines.length * lineHeight + 6;
+      ensureHeight(totalH);
+      const barTop = cursorY - 2;
+      const barBottom = cursorY - totalH + 4;
+      currentActions.push((page, _doc, grayscale) => {
+        page.drawLine({
+          x1: box.marginLeft + 4,
+          y1: barTop,
+          x2: box.marginLeft + 4,
+          y2: barBottom,
+          stroke: rgbColor(0.45, 0.5, 0.6, grayscale),
+          strokeWidth: 2.2,
+        });
+      });
+      for (const line of lines) {
+        const drawY = cursorY - fontSize;
+        const x = box.marginLeft + 14;
+        currentActions.push((page, _doc, grayscale) => {
+          page.drawText(line, {
+            x,
+            y: drawY,
+            size: fontSize,
+            font: "Helvetica-Oblique",
+            color: rgbColor(0.25, 0.27, 0.32, grayscale),
+          });
+        });
+        cursorY -= lineHeight;
+      }
+      cursorY -= 6;
+      continue;
+    }
+
+    if (block.kind === "svg") {
+      const w = Math.min(contentWidth, block.displayWidth ?? 200);
+      const h = block.displayHeight ?? 100;
+      ensureHeight(h + 8);
+      const topBoxY = cursorY;
+      const prims = block.svgPrimitives ?? [];
+      currentActions.push((page, _doc, grayscale) => {
+        for (const p of prims) {
+          if (p.kind === "rect") {
+            const rw = p.w ?? 40;
+            const rh = p.h ?? 20;
+            page.drawRect({
+              x: box.marginLeft + p.x,
+              y: topBoxY - p.y - rh,
+              width: rw,
+              height: rh,
+              fill: rgbColor(0.92, 0.94, 0.98, grayscale),
+              stroke: rgbColor(0.3, 0.4, 0.6, grayscale),
+              strokeWidth: 0.8,
+            });
+          } else if (p.kind === "text" && p.text) {
+            page.drawText(p.text, {
+              x: box.marginLeft + p.x,
+              y: topBoxY - p.y,
+              size: 10,
+              font: "Helvetica",
+              color: rgbColor(0.1, 0.12, 0.18, grayscale),
+            });
+          }
+        }
+      });
+      cursorY -= h + 8;
+      continue;
+    }
+
     if (block.kind === "table") {
       const rows = block.rows ?? [];
-      const colCount = Math.max(1, ...rows.map((r) => r.cells.length));
+      const colCount = Math.max(
+        1,
+        ...rows.map((r) => r.cells.reduce((sum, c) => sum + c.colspan, 0))
+      );
       const colWidth = contentWidth / colCount;
       const rowHeight = 20;
       ensureHeight(rows.length * rowHeight + 8);
       for (const row of rows) {
         ensureHeight(rowHeight);
         const rowBottom = cursorY - rowHeight;
-        for (let c = 0; c < colCount; c++) {
-          const cellX = box.marginLeft + c * colWidth;
-          const cellText = row.cells[c] ?? "";
+        let colCursor = 0;
+        for (const cell of row.cells) {
+          if (colCursor >= colCount) break;
+          const span = Math.min(cell.colspan, colCount - colCursor);
+          const cellX = box.marginLeft + colCursor * colWidth;
+          const cellW = span * colWidth;
+          const cellText = cell.text;
           const isHeader = row.header;
           currentActions.push((page, _doc, grayscale) => {
             page.drawRect({
               x: cellX,
               y: rowBottom,
-              width: colWidth,
+              width: cellW,
               height: rowHeight,
               ...(isHeader ? { fill: rgbColor(0.91, 0.93, 0.96, grayscale) } : {}),
               stroke: rgbColor(0.7, 0.73, 0.78, grayscale),
@@ -513,6 +656,7 @@ function layoutObjectPages(
               color: rgbColor(0.1, 0.1, 0.12, grayscale),
             });
           });
+          colCursor += span;
         }
         cursorY -= rowHeight;
       }
@@ -565,13 +709,18 @@ function layoutObjectPages(
 
 function substituteFurnitureTokens(
   template: string,
-  tokens: { page: number; topage: number; webpage: string; title: string }
+  tokens: { page: number; topage: number; webpage: string; title: string; section?: string; subsection?: string }
 ): string {
+  const isoDate = new Date().toISOString().slice(0, 10);
   return template
     .replace(/\[page\]/g, String(tokens.page))
     .replace(/\[topage\]/g, String(tokens.topage))
     .replace(/\[webpage\]/g, tokens.webpage)
-    .replace(/\[title\]/g, tokens.title);
+    .replace(/\[title\]/g, tokens.title)
+    .replace(/\[section\]/g, tokens.section ?? tokens.title)
+    .replace(/\[subsection\]/g, tokens.subsection ?? "")
+    .replace(/\[isodate\]/g, isoDate)
+    .replace(/\[date\]/g, isoDate);
 }
 
 export function createPdfAstRenderer(): StaticRenderer {

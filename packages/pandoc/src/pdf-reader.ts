@@ -1,4 +1,4 @@
-import { PdfDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, encodePng } from "@poe-code/pdf-ast";
 import type {
   Alignment,
   Attr,
@@ -12,7 +12,7 @@ import type {
   TableHead,
 } from "./ast-types.js";
 import { PandocError } from "./errors.js";
-import type { AdapterContext, Document, Input, ReaderCapability } from "./types.js";
+import type { AdapterContext, Document, Input, ReaderCapability, Resource } from "./types.js";
 
 const EMPTY_ATTR: Attr = ["", [], []];
 
@@ -192,10 +192,44 @@ export const pdfReader: ReaderCapability = Object.freeze({
       }
     }
 
+    const resources: Resource[] = [];
+    let imgCounter = 0;
+    for (const page of doc.getPages()) {
+      const dl = page.getDisplayList();
+      for (const img of dl.images) {
+        if (img.decodedRgba && img.width > 0 && img.height > 0) {
+          imgCounter++;
+          const resId = `pdf-image-${imgCounter}.png`;
+          const pngBytes = encodePng({
+            width: img.width,
+            height: img.height,
+            data: img.decodedRgba,
+          });
+          resources.push({
+            id: resId,
+            bytes: pngBytes,
+          });
+          blocks.push({
+            t: "Para",
+            c: [
+              {
+                t: "Image",
+                c: [
+                  EMPTY_ATTR,
+                  [{ t: "Str", c: `Image ${imgCounter}` }],
+                  [resId, ""],
+                ],
+              },
+            ],
+          });
+        }
+      }
+    }
+
     return {
       blocks,
       metadata,
-      resources: [],
+      resources,
     };
   },
 });

@@ -169,4 +169,33 @@ describe("safe-bash-command-tesseract", () => {
     assert.equal(res.exitCode, 0, res.stderr);
     assert.equal(res.stdout.trim(), "-2026-99");
   });
+
+  it("preserves multi-column blocks in hOCR/TSV, supports preserve_interword_spaces=1, and reports rotated PDF OSD", async () => {
+    const doc = PdfDocument.create();
+    const page = doc.addPage({ width: 612, height: 792 });
+    page.setRotation(90);
+    page.drawText("LeftColRow1", { x: 54, y: 700, size: 12 });
+    page.drawText("LeftColRow2", { x: 54, y: 680, size: 12 });
+    page.drawText("RightColRow1", { x: 340, y: 700, size: 12 });
+    page.drawText("RightColRow2", { x: 340, y: 680, size: 12 });
+
+    const vfs = createMemoryFileSystem();
+    await vfs.writeFile("/multicol.pdf", doc.save());
+
+    // 1. Run OSD (--psm 0)
+    const osdRes = await invokeTesseract(["/multicol.pdf", "stdout", "--psm", "0"], vfs);
+    assert.equal(osdRes.exitCode, 0, osdRes.stderr);
+    assert.match(osdRes.stdout, /Orientation in degrees: 90/);
+    assert.match(osdRes.stdout, /Rotate: 90/);
+
+    // 2. Run hOCR + TXT with preserve_interword_spaces=1
+    const hocrRes = await invokeTesseract(
+      ["/multicol.pdf", "/col_out", "-c", "preserve_interword_spaces=1", "txt", "hocr"],
+      vfs
+    );
+    assert.equal(hocrRes.exitCode, 0, hocrRes.stderr);
+    const hocrText = new TextDecoder().decode(await vfs.readFile("/col_out.hocr"));
+    assert.match(hocrText, /LeftColRow1/);
+    assert.match(hocrText, /RightColRow1/);
+  });
 });

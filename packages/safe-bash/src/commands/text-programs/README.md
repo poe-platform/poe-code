@@ -20,8 +20,8 @@ Omitted budgets are unlimited; setting one does not enable another. Finite limit
 must be positive safe integers. Plugin setup checks all collisions before registering commands.
 The filesystem, streams, and cancellation signal come from `CommandContext`.
 Input/output waits use the contracts' cancellation-aware byte helpers. Interpreter
-loops yield to the event loop every 256 statement checkpoints; regex execution
-is synchronous but step-bounded. Cancellation stops waiting for uncooperative
+loops yield to the event loop every 256 statement checkpoints; regex compilation
+and matching also checkpoint bounded batches of work. Cancellation stops waiting for uncooperative
 streams without claiming to undo their side effects. Limits are per invocation
 and per buffer, not an aggregate process-memory quota.
 
@@ -45,8 +45,17 @@ subexpressions in capture order, including ambiguous repeated nested captures.
 Collating/equivalence classes, lookaround, and other non-POSIX special groups
 are rejected. Exhaustive POSIX subexpression parity is not claimed. Non-ASCII locale folding and
 multibyte-character semantics are outside this C-byte-oriented increment.
-Regex compilation has no implicit source, nesting, repetition, or instruction
-ceiling. Every matching instruction spends the optional invocation step budget.
+Each regex has host-owned ceilings of 8192 source units (bytes for sed/awk,
+UTF-16 code units for jq), 64 nested groups, and 16384 compiled instructions,
+including capture/branch instructions and the final match. These bounds apply
+even when optional invocation budgets are unlimited. The expanded instruction
+count is checked before allocating the program, so short patterns such as
+`a{700000}` fail without expanding their repetitions. These are per-pattern
+storage bounds, separate from `maxBufferBytes`, not a process-memory quota.
+Compilation charges its projected instructions to `maxSteps` and checkpoints
+expansion work. Sed completes this work for substitution and address patterns
+before reading data or creating/truncating script output files, even with empty
+input. Every matching instruction also spends the optional invocation step budget.
 With an explicit step budget, a costly pattern fails deterministically rather
 than entering an uninterruptible native-regex backtracking operation.
 

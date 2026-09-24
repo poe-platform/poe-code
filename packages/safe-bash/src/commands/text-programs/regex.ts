@@ -17,6 +17,34 @@ type Instruction = { kind: "character"; accepts: (character: string) => boolean 
   | { kind: "jump"; target: number }
   | { kind: "split"; first: number; second: number };
 
+// Host-owned bounds cover both the parsed tree and expanded instruction storage.
+const maxPatternInstructions = 16384;
+
+function instructionCounts(root: Node): Map<Node, number> {
+  const counts = new Map<Node, number>();
+  const count = (node: Node): number => {
+    let size: number;
+    if (node.type === "empty") size = 0;
+    else if (node.type === "group" || node.type === "assertion") size = 2 + count(node.node);
+    else if (node.type === "sequence" || node.type === "alternate") {
+      size = node.type === "alternate" ? 2 * (node.nodes.length - 1) : 0;
+      for (const child of node.nodes) size += count(child);
+      // Remove empty sequence work once, before enclosing repetitions amplify it.
+      if (node.type === "sequence") node.nodes = node.nodes.filter(child => counts.get(child)! > 0);
+    } else if (node.type === "repeat") {
+      const child = count(node.node);
+      size = node.maximum === Infinity ? child * (node.minimum + 1) + 2
+        : child * node.maximum + node.maximum - node.minimum;
+    } else size = 1;
+    // Saturation keeps nested products bounded without ever expanding a repeat.
+    size = Math.min(size, maxPatternInstructions + 1);
+    counts.set(node, size);
+    return size;
+  };
+  count(root);
+  return counts;
+}
+
 const classes: Record<string, (character: string) => boolean> = {
   alpha: character => /^[A-Za-z]$/u.test(character),
   alnum: character => /^[A-Za-z0-9]$/u.test(character),
@@ -71,17 +99,19 @@ class NfaStorage {
 export class Pattern {
   readonly groupCount: number;
   readonly groupNames = new Map<string, number>();
-  private readonly code: Instruction[] = [];
+  private code: Instruction[] = [];
+  private parsed: { root: Node; counts: Map<Node, number> } | undefined;
   private readonly anchored: boolean;
-  private readonly linear: boolean;
-  private readonly backreferences: boolean;
+  private linear = false;
+  private backreferences = false;
 
-  constructor(source: string, extended = true, ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
+  constructor(source: string, extended = true, private readonly ignoreCase = false, private readonly dialect: "sed" | "awk" | "jq" = "sed", private readonly modifiers = "") {
+    const prefix = dialect === "jq" ? "jq " : "";
+    if (source.length > 8192) throw new ProgramError(`${prefix}regular expression source limit exceeded`);
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;
-    let jqDepth = 0;
-    if (dialect === "jq" && source.length > 8192) throw new ProgramError("jq regular expression source limit exceeded");
+    let depth = 0;
     const closedGroups = new Set<number>();
     const characterNode = (character: string): Node => ({ type: "character", accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character });
     const escaped = (): string => {
@@ -133,7 +163,7 @@ export class Pattern {
       const token = dialect === "jq" && offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : source[offset];
       offset += token?.length ?? 1;
       if (token === "(") {
-        if (dialect === "jq" && ++jqDepth > 64) throw new ProgramError("jq regular expression depth limit exceeded");
+        if (++depth > 64) throw new ProgramError(`${prefix}regular expression depth limit exceeded`);
         let name: string | undefined;
         let capturing = true;
         let assertion: { positive: boolean; behind: boolean } | undefined;
@@ -157,7 +187,7 @@ export class Pattern {
         const node = alternate();
         if (source[offset++] !== ")") throw new ProgramError("unmatched '(' in regular expression");
         closedGroups.add(index);
-        if (dialect === "jq") jqDepth--;
+        depth--;
         return assertion ? { type: "assertion", node, ...assertion } : capturing ? { type: "group", index, node } : node;
       }
       if (token === "[") return bracket();
@@ -222,52 +252,78 @@ export class Pattern {
     if (offset !== source.length) throw new ProgramError("unmatched ')' in regular expression");
     this.groupCount = groups;
     this.anchored = root.type === "sequence" && root.nodes[0]?.type === "begin";
+    const counts = instructionCounts(root);
+    if (counts.get(root)! + 1 > maxPatternInstructions) throw new ProgramError(`${prefix}regular expression program limit exceeded`);
+    this.parsed = { root, counts };
+  }
+
+  async prepare(budget: Pick<Budget, "step" | "checkpoint">): Promise<void> {
+    if (!this.parsed) return;
+    const { root, counts } = this.parsed;
+    budget.step(counts.get(root)! + 1);
+    await budget.checkpoint();
+    // Publish only a finished program. Cancelled or concurrent preparations own
+    // separate arrays, so a failed caller cannot leave a partially patched NFA.
+    const code: Instruction[] = [];
+    const ignoreCase = this.ignoreCase;
     const emit = (instruction: Instruction): number => {
-      if (dialect === "jq" && this.code.length >= 16384) throw new ProgramError("jq regular expression program limit exceeded");
-      return this.code.push(instruction) - 1;
+      return code.push(instruction) - 1;
     };
-    const compile = (node: Node): void => {
-      if (node.type === "empty") return;
+    const compile = function* (node: Node): Generator<void> {
+      if (counts.get(node) === 0) return;
+      yield;
       if (node.type === "character") { emit({ kind: "character", accepts: node.accepts }); return; }
       if (node.type === "backreference") { emit({ kind: "backreference", index: node.index, ignoreCase }); return; }
       if (node.type === "assertion") {
-        const index = emit({ kind: "assertion", first: this.code.length + 1, next: 0, positive: node.positive, behind: node.behind });
-        compile(node.node); emit({ kind: "match" });
-        (this.code[index] as Extract<Instruction, { kind: "assertion" }>).next = this.code.length;
+        const index = emit({ kind: "assertion", first: code.length + 1, next: 0, positive: node.positive, behind: node.behind });
+        yield* compile(node.node); emit({ kind: "match" });
+        (code[index] as Extract<Instruction, { kind: "assertion" }>).next = code.length;
         return;
       }
       if (node.type === "begin" || node.type === "end") { emit({ kind: node.type }); return; }
-      if (node.type === "sequence") { for (const child of node.nodes) compile(child); return; }
-      if (node.type === "group") { emit({ kind: "save", slot: node.index * 2 }); compile(node.node); emit({ kind: "save", slot: node.index * 2 + 1 }); return; }
+      if (node.type === "sequence") { for (const child of node.nodes) yield* compile(child); return; }
+      if (node.type === "group") { emit({ kind: "save", slot: node.index * 2 }); yield* compile(node.node); emit({ kind: "save", slot: node.index * 2 + 1 }); return; }
       if (node.type === "alternate") {
         const jumps: number[] = [];
         for (let index = 0; index < node.nodes.length; index++) {
-          if (index === node.nodes.length - 1) { compile(node.nodes[index]!); break; }
-          const split = emit({ kind: "split", first: this.code.length + 1, second: 0 });
-          compile(node.nodes[index]!);
+          yield;
+          if (index === node.nodes.length - 1) { yield* compile(node.nodes[index]!); break; }
+          const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+          yield* compile(node.nodes[index]!);
           jumps.push(emit({ kind: "jump", target: 0 }));
-          (this.code[split] as Extract<Instruction, { kind: "split" }>).second = this.code.length;
+          (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
         }
-        for (const jump of jumps) (this.code[jump] as Extract<Instruction, { kind: "jump" }>).target = this.code.length;
+        for (const jump of jumps) (code[jump] as Extract<Instruction, { kind: "jump" }>).target = code.length;
         return;
       }
       if (node.type !== "repeat") throw new ProgramError("invalid internal regular expression node");
-      for (let count = 0; count < node.minimum; count++) compile(node.node);
+      // A zero-width noncapturing body may have an enormous minimum but emits
+      // no instructions. Skip that loop while retaining optional split/jump work.
+      if (counts.get(node.node)! > 0) for (let count = 0; count < node.minimum; count++) yield* compile(node.node);
       if (node.maximum === Infinity) {
-        const split = emit({ kind: "split", first: this.code.length + 1, second: 0 });
-        compile(node.node); emit({ kind: "jump", target: split });
-        (this.code[split] as Extract<Instruction, { kind: "split" }>).second = this.code.length;
-        if (node.lazy) { const instruction = this.code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
+        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+        yield* compile(node.node); emit({ kind: "jump", target: split });
+        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
       } else for (let count = node.minimum; count < node.maximum; count++) {
-        const split = emit({ kind: "split", first: this.code.length + 1, second: 0 });
-        compile(node.node);
-        (this.code[split] as Extract<Instruction, { kind: "split" }>).second = this.code.length;
-        if (node.lazy) { const instruction = this.code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
+        yield;
+        const split = emit({ kind: "split", first: code.length + 1, second: 0 });
+        yield* compile(node.node);
+        (code[split] as Extract<Instruction, { kind: "split" }>).second = code.length;
+        if (node.lazy) { const instruction = code[split] as Extract<Instruction, { kind: "split" }>; [instruction.first, instruction.second] = [instruction.second, instruction.first]; }
       }
     };
-    compile(root); emit({ kind: "match" });
-    this.linear = this.code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
-    this.backreferences = this.code.some(instruction => instruction.kind === "backreference");
+    let work = 0;
+    for (const ignored of compile(root)) {
+      if (++work % 64 === 0) { await budget.checkpoint(); budget.step(0); }
+    }
+    emit({ kind: "match" });
+    await budget.checkpoint();
+    budget.step(0);
+    this.linear = code.every(instruction => instruction.kind === "character" || instruction.kind === "begin" || instruction.kind === "end" || instruction.kind === "match");
+    this.backreferences = code.some(instruction => instruction.kind === "backreference");
+    this.code = code;
+    this.parsed = undefined;
   }
 
   private async findJq(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from: number,
@@ -335,6 +391,7 @@ export class Pattern {
   }
 
   async find(text: string, budget: Pick<Budget, "step" | "checkpoint" | "maxBufferBytes">, from = 0): Promise<Match | undefined> {
+    if (!this.code.length) await this.prepare(budget);
     if (this.dialect === "jq") return (await this.findJq(text, budget, from))?.match;
     await budget.checkpoint();
     let units = 0;

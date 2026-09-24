@@ -1011,6 +1011,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/text-programs/format-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/substitution-admission.test.ts"));
   assert.ok(files.includes("tests/commands/text-programs/nfa-work.test.ts"));
+  assert.ok(files.includes("tests/commands/text-programs/regex-compilation.test.ts"));
   assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
   assert.ok(files.includes("tests/commands/llm/command.test.ts"));
   assert.ok(files.includes("tests/commands/llm/openai.test.ts"));

@@ -29,7 +29,7 @@ interface OutputState {
   readonly unterminatedFiles: Set<string>;
 }
 
-function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number): Instruction[] {
+async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
   const groups: number[] = [];
   const labels = new Map<string, number>();
@@ -73,7 +73,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     }
     throw new ProgramError(bracket ? "unterminated bracket expression" : "unterminated delimited expression");
   };
-  const address = (): Address | undefined => {
+  const address = async (): Promise<Address | undefined> => {
     horizontal();
     const number = /^[0-9]+/u.exec(source.slice(offset));
     if (number) {
@@ -91,7 +91,9 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
       const ignoreCase = source[offset] === "I";
       if (ignoreCase) offset++;
       if (!pattern && ignoreCase) throw new ProgramError("flags on an empty regex are not supported");
-      return { kind: "regex", pattern: pattern ? new Pattern(pattern, extended, ignoreCase) : undefined };
+      const compiled = pattern ? new Pattern(pattern, extended, ignoreCase) : undefined;
+      if (compiled) await compiled.prepare(budget);
+      return { kind: "regex", pattern: compiled };
     }
     return undefined;
   };
@@ -132,10 +134,10 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     if (source[offset] === "#") { while (offset < source.length && source[offset] !== "\n") offset++; continue; }
     if (offset === source.length) break;
     if (result.length >= maxProgramInstructions) throw new ProgramError("program instruction limit exceeded");
-    const first = address();
+    const first = await address();
     horizontal();
     let second: Address | undefined;
-    if (source[offset] === ",") { offset++; second = address(); if (!first || !second) throw new ProgramError("invalid address range"); }
+    if (source[offset] === ",") { offset++; second = await address(); if (!first || !second) throw new ProgramError("invalid address range"); }
     if (first?.kind === "number" && first.number === 0 && second?.kind !== "regex" || second?.kind === "number" && second.number === 0) throw new ProgramError("zero address requires a 0,/regex/ range");
     horizontal();
     const negate = source[offset] === "!";
@@ -179,6 +181,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
       if (pattern) {
         instruction.pattern = new Pattern(pattern, extended, ignoreCase);
         if (instruction.replacementGroupCount > instruction.pattern.groupCount) throw new ProgramError("replacement references an undefined capture group");
+        await instruction.pattern.prepare(budget);
       }
     } else if (kind === "r" || kind === "w") {
       if (kind === "r" && second) throw new ProgramError("read accepts at most one address");
@@ -516,7 +519,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       sources.push(byteString(files.shift()!));
     }
     if (sources[0]?.startsWith("#n")) quiet = true;
-    const program = parse(sources.join("\n"), extended, separator, maxProgramInstructions);
+    const program = await parse(sources.join("\n"), extended, separator, maxProgramInstructions, budget);
     const outputFiles = program.flatMap(instruction => instruction.kind !== "r" && instruction.file !== undefined ? [instruction.file] : []);
     await assertPathRequirements(context, sedRequirements, ["script-output"], outputFiles);
     if (inPlace !== undefined || outputFiles.length) {

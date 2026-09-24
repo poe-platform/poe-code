@@ -21,7 +21,7 @@ for (const count of [1, 2, 3, 20, 100]) {
     let consumed = false;
     const source = (async function* () { consumed = true; yield* []; })();
     const result = await runVirtual("sed", { args: ["s/a/b/;".repeat(count)] }, {
-      maxProgramInstructions: 2, maxSteps: 1, maxBufferBytes: 1,
+      maxProgramInstructions: 2, maxSteps: 4, maxBufferBytes: 1,
     }, source);
     assert.equal(result.exitCode, count <= 2 ? 0 : 2);
     assert.equal(result.stderr.toString(), count <= 2 ? "" : "sed: program instruction limit exceeded\n");

@@ -1,4 +1,5 @@
 import { expect, it, vi } from "vitest";
+import { MAX_DATA_DEPTH } from "../graph-depth.js";
 import { Budget } from "./budget.js";
 import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { Scope } from "./scope.js";
@@ -113,6 +114,52 @@ it("rechecks functions after final primitive conversion hooks", () => {
   let during: number;
   try { during = measureSandboxData(roots); }
   finally { hook.mockRestore(); }
+  expect(during).toBeGreaterThan(1000);
+  expect(during).toBe(measureSandboxData(roots));
+});
+
+it.each([false, true])("preserves each late function's original depth (deep first=%s)", deepFirst => {
+  const shallow = new Scope();
+  const deep = new Scope();
+  for (const scope of [shallow, deep])
+    scope.declareDeferredFunction("f", "let", () => createSandboxClosure({
+      call: () => undefined, properties: { payload: "retained" }
+    }), () => {});
+  let nested: unknown = deep.retainedDataRoots()[0];
+  for (let depth = 0; depth < MAX_DATA_DEPTH; depth++) nested = [nested];
+  const trigger = createSandboxClosure({
+    call: () => undefined,
+    retainedValues: () => { shallow.lookup("f"); deep.lookup("f"); return []; }
+  });
+  const roots = deepFirst
+    ? [nested, ...shallow.retainedDataRoots(), trigger]
+    : [...shallow.retainedDataRoots(), nested, trigger];
+  expect(() => measureSandboxData(roots)).toThrow(expect.objectContaining({
+    code: "budgetExceeded", budget: "dataDepth",
+    current: MAX_DATA_DEPTH + 1, limit: MAX_DATA_DEPTH
+  }));
+});
+
+it("reconciles pending functions discovered while visiting a materialized function", () => {
+  const first = new Scope();
+  const later = new Scope();
+  later.declareDeferredFunction("f", "let", () => createSandboxClosure({
+    call: () => undefined, properties: { payload: "x".repeat(1000) }
+  }), () => {});
+  const materializeLater = createSandboxClosure({
+    call: () => undefined,
+    retainedValues: () => { later.lookup("f"); return []; }
+  });
+  first.declareDeferredFunction("f", "let", () => createSandboxClosure({
+    call: () => undefined,
+    retainedValues: () => [...later.retainedDataRoots(), materializeLater]
+  }), () => {});
+  const trigger = createSandboxClosure({
+    call: () => undefined,
+    retainedValues: () => { first.lookup("f"); return []; }
+  });
+  const roots = [...first.retainedDataRoots(), trigger];
+  const during = measureSandboxData(roots);
   expect(during).toBeGreaterThan(1000);
   expect(during).toBe(measureSandboxData(roots));
 });

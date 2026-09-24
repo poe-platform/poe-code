@@ -914,7 +914,8 @@ function measureSandboxDataWithSeen(
   let usage = 0;
   const projectedPrimitives: Array<{ target: object; values: readonly unknown[]; depth: number }> = [];
   let pendingArguments: Array<{ state: DeferredArgumentsData; units: number | undefined; depth: number }> | undefined;
-  let pendingFunctions: Array<{ state: DeferredFunctionData | undefined; depth: number }> | undefined;
+  let pendingFunctions: Array<DeferredFunctionData | undefined> | undefined;
+  let pendingFunctionDepths: number[] | undefined;
   type WeakContribution = { value: unknown; depth: number };
   let waiting: Map<object | symbol, WeakContribution[]> | undefined;
   let ready: WeakContribution[] | undefined;
@@ -1110,8 +1111,15 @@ function measureSandboxDataWithSeen(
               seen.add(deferred.chargeIdentity);
               usage++;
             }
-            pendingFunctions ??= nativeDataArraySetPrototype([], null);
-            nativeDataArrayAppend(pendingFunctions, { state: deferred, depth });
+            // Private parallel vectors retain each original depth without
+            // allocating a wrapper for every pending function on every walk.
+            if (pendingFunctions === undefined) {
+              pendingFunctions = nativeDataArraySetPrototype([], null);
+              pendingFunctionDepths = nativeDataArraySetPrototype([], null);
+            }
+            const pendingIndex = pendingFunctions!.length;
+            pendingFunctions![pendingIndex] = deferred;
+            pendingFunctionDepths![pendingIndex] = depth;
             if (options.ignoreClosures || options.ignoreClosureCaptures) break entry;
             let roots: CaptureBuffer | undefined;
             try {
@@ -1830,13 +1838,13 @@ function measureSandboxDataWithSeen(
       // the new carrier. Preserve its earlier identity charge, then visit the
       // fresh properties/captures and any weak keys they expose.
       for (let index = 0; index < (pendingFunctions?.length ?? 0); index++) {
-        const projection = pendingFunctions![index]!;
-        if (projection.state === undefined) continue;
-        const current = projection.state.read();
+        const state = pendingFunctions![index];
+        if (state === undefined) continue;
+        const current = state.read();
         if (current === undefined) continue;
-        projection.state = undefined;
+        pendingFunctions![index] = undefined;
         materialized = true;
-        if (!seen.has(current)) visit(current, projection.depth);
+        if (!seen.has(current)) visit(current, pendingFunctionDepths![index]!);
       }
       const previousPrimitiveIndex = primitiveIndex;
       for (; primitiveIndex < projectedPrimitives.length; primitiveIndex++) {

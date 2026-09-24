@@ -64,7 +64,7 @@ function metadataOnly(service: MockS3Client, offset: number) {
   assert.ok(service.requests.slice(offset).every(request => request.operation === "headObject" || request.operation === "listObjectsV2"));
 }
 
-for (const command of ["cp", "mv"] as const) test(`constructor authority enables serialized SDK ${command} over an existing distinct entry`, async () => {
+for (const command of ["cp", "mv"] as const) test(`constructor authority does not grant unsupported serialized SDK ${command}`, async () => {
   const example = await fixture();
   const first = example.make("root", example.comparison);
   const second = example.make("root/nested", example.comparison);
@@ -77,12 +77,24 @@ for (const command of ["cp", "mv"] as const) test(`constructor authority enables
     { receiver: second, path: "/target", peer: first, peerPath: "/nested/source", signal: controller.signal },
   ]);
   metadataOnly(example.service, offset);
-  const result = await new Shell({ fs: filesystem }).use(standardCommands()).exec(`${command} /first/nested/source /second/target`);
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.deepEqual(await example.bytes("target"), sourceBytes);
+  const shell = new Shell({ fs: filesystem }).use(standardCommands());
+  try {
+    const result = await shell.exec(`${command} /first/nested/source /second/target`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, command === "cp"
+      ? "cp: ENOTSUP: copy requires retained reads and streaming writes '/first/nested/source'\n"
+      : "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/first/nested/source' -> '/second/target'\n");
+  } finally { await shell.dispose(); }
+  metadataOnly(example.service, offset);
+  assert.deepEqual(await example.bytes("target"), oldBytes);
   assert.deepEqual(await example.bytes("keep"), oldBytes);
-  if (command === "cp") assert.deepEqual(await example.bytes("source"), sourceBytes);
-  else await assert.rejects(first.stat("/nested/source"), { code: "ENOENT" });
+  assert.deepEqual(await example.bytes("source"), sourceBytes);
+  assert.deepEqual(await second.readdir("/"), ["keep", "source", "target"].map(name => ({ name, type: "file" })));
+  await filesystem.copyFile("/first/nested/source", "/second/target");
+  assert.deepEqual(await example.bytes("target"), sourceBytes);
+  assert.deepEqual(await example.bytes("source"), sourceBytes);
+  assert.deepEqual(await example.bytes("keep"), oldBytes);
 });
 
 for (const authority of ["present", "absent", "unknown"] as const) test(`serialized SDK alias and existing target with ${authority} authority`, async () => {

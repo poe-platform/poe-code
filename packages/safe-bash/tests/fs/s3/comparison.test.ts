@@ -137,7 +137,7 @@ test("comparison forwards signal, propagates abort reasons and never starts peer
   assert.equal(service.requests.length, all);
 });
 
-for (const action of ["copy", "mv"] as const) test(`qualified shared-service existing-target ${action} preserves source semantics and sentinel`, async () => {
+for (const action of ["copy", "mv"] as const) test(`qualified shared-service existing-target ${action} preserves its capability boundary`, async () => {
   const service = new MockS3Client({ buckets: ["bucket"] });
   const left = adapter(createS3Transport(service, service.capabilities));
   const right = adapter(createS3Transport(service, service.capabilities));
@@ -147,13 +147,20 @@ for (const action of ["copy", "mv"] as const) test(`qualified shared-service exi
   const fs = mounted(left, right);
   if (action === "copy") await fs.copyFile("/left/source", "/right/target");
   else {
-    const result = await new Shell({ fs }).use(standardCommands()).exec("mv /left/source /right/target");
-    assert.equal(result.exitCode, 0, result.stderr);
+    const offset = service.requests.length;
+    const shell = new Shell({ fs }).use(standardCommands());
+    try {
+      const result = await shell.exec("mv /left/source /right/target");
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/left/source' -> '/right/target'\n");
+    } finally { await shell.dispose(); }
+    metadataOnly(service, offset);
   }
-  assert.deepEqual(await right.readFile("/target", { maxBytes: 64 }), bytes);
+  assert.deepEqual(await right.readFile("/target", { maxBytes: 64 }), action === "copy" ? bytes : oldBytes);
   assert.deepEqual(await left.readFile("/keep", { maxBytes: 64 }), oldBytes);
-  if (action === "copy") assert.deepEqual(await left.readFile("/source", { maxBytes: 64 }), bytes);
-  else await assert.rejects(left.stat("/source"), { code: "ENOENT" });
+  assert.deepEqual(await left.readFile("/source", { maxBytes: 64 }), bytes);
+  assert.deepEqual(await left.readdir("/"), ["keep", "source", "target"].map(name => ({ name, type: "file" })));
 });
 
 test("recognized aliases reject before GET/mutation; readonly destination remains readonly", async () => {

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "baseline": "1c8bef0ff814d0e897de3b271496ffeee70a8800",
+  "issue": "Five S3 copy/move fixtures treated provider comparison or guarded direct-copy fallback as sufficient authority for commands requiring retained reads or atomic overwrite binding.",
+  "baselineTests": { "files": 5, "tests": 65, "passed": 57, "failed": 8, "scope": "Five copy/move failures repaired here; three gzip failures retained for separate work." },
+  "runtimeChanged": false,
+  "repair": "Preserve exact command refusals, binary source/target/sentinel bytes and namespace. Retain successful direct provider copies, including serialized comparison authority and a mounted exclusive HTTP fallback with exactly one conditional PUT. Distinguish ListObjectsV2 metadata GETs from object-body reads in HTTP traces; refused commands perform metadata operations only. Dispose affected Shell instances.",
+  "sources": [
+    { "path": "packages/safe-bash/tests/fs/s3/comparison.test.ts", "sha256": "43730ed1c7dfaf5ace3ccb8bda9c7cd71d7ea27be880db7cbc4d743e79bc1065" },
+    { "path": "packages/safe-bash/tests/fs/s3/constructor-comparison.test.ts", "sha256": "7bf88d9dd42eaa9128e57a17f0035d8ea6a9d8d057de06cf997754d8da0df660" },
+    { "path": "packages/safe-bash/tests/fs/s3/http/unit/fallback.test.ts", "sha256": "34f38f5761921ecfe31171b80f9090f13b33566b2bce4f764f3b699b3eb139a5" }
+  ],
+  "validation": {
+    "related": { "files": 5, "tests": 102, "passed": 102, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed for all three changed files.",
+    "types": "Final maintained historical-type-models source/test compilation passed.",
+    "intermediate": "Two added HTTP trace assertions initially rejected metadata listings. Add explicit list-type=2 classification and retain the object-body GET refusal. One attempted related selection named a nonexistent file; discovery rejected it before tests, then the actual copy-source-binding file was selected."
+  },
+  "scope": "Mock S3 and local HTTP fixture validation; no deployed-provider qualification or new retained-read capability.",
+  "priorDelivery": "1c8bef0ff814d0e897de3b271496ffeee70a8800 verified exactly on remote main; publication pending.",
+  "remaining": "Three reproduced remote gzip failures, other release feedback, all 19 original ssconvert families and successful publication remain open."
+}

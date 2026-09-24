@@ -15,12 +15,13 @@ const previous = Buffer.from([4, 5]);
 
 async function provider(context: TestContext, options: { readonly race?: "existing" | "missing"; readonly denyGet?: boolean; readonly controller?: AbortController } = {}) {
   const objects = new Map<string, Uint8Array>([["source", payload], ["target", previous]]);
-  const trace: { method: string; path: string; condition: string | undefined; metadata: Record<string, string> }[] = [];
+  const trace: { method: string; path: string; listing: boolean; condition: string | undefined; metadata: Record<string, string> }[] = [];
   const fixture = await serverFor(context, (request, response, bytes) => {
     const name = decodeURIComponent(request.url!.split("?")[0]!.slice("/testbucket/".length));
     const method = request.method!;
     const metadata = Object.fromEntries(Object.entries(request.headers).filter(([header]) => header.startsWith("x-amz-meta-")).map(([header, value]) => [header.slice(11), String(value)]));
-    trace.push({ method, path: name, condition: request.headers["if-match"] as string | undefined ?? request.headers["if-none-match"] as string | undefined, metadata });
+    const listing = new URL(request.url!, "http://fixture.invalid").searchParams.get("list-type") === "2";
+    trace.push({ method, path: name, listing, condition: request.headers["if-match"] as string | undefined ?? request.headers["if-none-match"] as string | undefined, metadata });
     assert.equal(request.headers["x-amz-copy-source"], undefined);
     if (request.url!.includes("?")) {
       response.end("<ListBucketResult><IsTruncated>false</IsTruncated><KeyCount>0</KeyCount></ListBucketResult>");
@@ -117,15 +118,23 @@ test("fallback self-copy REPLACE preserves bytes and replaces metadata under IfM
   assert.equal(fixture.trace.at(-1)?.condition, etag(payload));
 });
 
-test("actual Shell same-view cp existing and missing targets works with native COPY disabled", async context => {
+test("Shell cp refuses missing retained reads while direct HTTP fallback remains supported", async context => {
   const fixture = await provider(context);
   const filesystem = new S3FileSystem({ transport: fixture.client, bucket: key.Bucket, allowNonAtomicRename: true });
   const shell = new Shell({ fs: filesystem }).use(standardCommands());
-  for (const target of ["target", "new"]) {
-    const result = await shell.exec(`cp /source /${target}`);
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual([...fixture.objects.get(target)!], [...payload]);
-  }
+  try {
+    for (const target of ["target", "new"]) {
+      const offset = fixture.trace.length;
+      const result = await shell.exec(`cp /source /${target}`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/source'\n");
+      assert.ok(fixture.trace.slice(offset).every(entry => entry.method === "HEAD" || (entry.method === "GET" && entry.listing)));
+      assert.deepEqual(fixture.objects.get("target"), previous);
+      assert.equal(fixture.objects.has("new"), false);
+      assert.deepEqual([...fixture.objects.keys()].sort(), ["source", "target"]);
+    }
+  } finally { await shell.dispose(); }
   assert.deepEqual(fixture.objects.get("source"), payload);
   const before = fixture.trace.length;
   await assert.rejects(filesystem.rename("/source", "/target"), { code: "ENOTSUP" });
@@ -137,16 +146,26 @@ test("actual Shell same-view cp existing and missing targets works with native C
   assert.equal(fixture.trace.filter(entry => entry.method === "PUT").length, writes);
 });
 
-test("mounted same-view missing-target cp reaches guarded exclusive HTTP fallback", async context => {
+test("mounted cp preserves retained-read refusal while direct exclusive HTTP fallback succeeds", async context => {
   const fixture = await provider(context);
   const filesystem = new S3FileSystem({ transport: fixture.client, bucket: key.Bucket, allowNonAtomicRename: true });
   const mounted = new MountFileSystem({ root: new MemoryFileSystem(), mounts: { "/remote": filesystem } });
   const shell = new Shell({ fs: mounted }).use(standardCommands());
-  const result = await shell.exec("cp /remote/source /remote/mounted-new");
-  assert.equal(result.exitCode, 0, result.stderr);
+  try {
+    const result = await shell.exec("cp /remote/source /remote/mounted-new");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/remote/source'\n");
+  } finally { await shell.dispose(); }
+  assert.ok(fixture.trace.every(entry => entry.method === "HEAD" || (entry.method === "GET" && entry.listing)));
+  assert.deepEqual(fixture.objects.get("source"), payload);
+  assert.deepEqual(fixture.objects.get("target"), previous);
+  assert.deepEqual([...fixture.objects.keys()].sort(), ["source", "target"]);
+  await mounted.copyFile("/remote/source", "/remote/mounted-new", { exclusive: true });
   assert.deepEqual([...fixture.objects.get("mounted-new")!], [...payload]);
   assert.deepEqual(fixture.objects.get("source"), payload);
   assert.equal(fixture.trace.find(entry => entry.method === "PUT" && entry.path === "mounted-new")?.condition, "*");
+  assert.equal(fixture.trace.filter(entry => entry.method === "PUT").length, 1);
   assert.equal(fixture.trace.some(entry => entry.method === "DELETE"), false);
   assert.equal(filesystem.capabilities.atomicRename, false);
 });

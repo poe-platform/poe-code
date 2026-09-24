@@ -31,6 +31,8 @@ export interface BiffFormulaContext {
   /** Native standard external SUPBOOKs have no bound workbook and evaluate to #REF!. */
   readonly unavailableExternalSheets?: readonly boolean[];
   readonly currentSheet?: string;
+  /** Unqualified names in a workbook-scoped NAME expression bind globally. */
+  readonly globalNameDefinition?: boolean;
   readonly localSheets?: readonly string[];
   readonly shared?: boolean;
   readonly limit: number;
@@ -58,6 +60,7 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
     // display sheet must not select a different lexical definition.
     const sheet = context.nameSheets === undefined ? fallbackSheet : context.nameSheets[index - 1];
     if (sheet !== undefined) return "'" + sheet.split("'").join("''") + "'!" + name;
+    if (context.globalNameDefinition) return name;
     if (context.nameSheets !== undefined) for (let at = 0; at < context.names.length; at++) {
       const other = context.names[at]!;
       work += other.length + 1;

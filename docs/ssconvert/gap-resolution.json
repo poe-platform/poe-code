@@ -4,7 +4,7 @@
   "status": "active",
   "baseline": "ec51e54b9",
   "planCommit": "ef6b7a9ee",
-  "recordedAt": "2026-09-24T03:31:07.711861+00:00",
+  "recordedAt": "2026-09-24T12:18:08.270425+00:00",
   "reference": {
     "target": "Gnumeric 1.12.61",
     "archiveSha256": "2ac135d856572713c1a408b76b50a59f2a9769ed21f1213446b5af255df20a12",
@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Sequential BIFF binding, teardown, parse-time macro identity and same-scope duplicate/placeholder replacement now match native values for the qualified inputs. Latest native35949364290 confirms12duplicate inputs/36commands;48compiled SDK/Shell conversions match original and nativeXML replay values. Final75focused tests and maintained lint/types/build pass. Permanent duplicates, forward duplicate stubs, repeated replacements, dynamic diagnostics, broader references and publication remain open. Permanent Sheet_Title/Print_Area imports now retain defaults and replacement identity; global indexed and linked external references preserve scope. Native lifecycle qualification and compiled replay pass; scalar INDIRECT provisional expectation corrected from Blank to native #REF!.",
+      "currentFinding": "Sequential BIFF binding, teardown, parse-time macro identity and same-scope duplicate/placeholder replacement now match native values for the qualified inputs. Latest native35949364290 confirms12duplicate inputs/36commands;48compiled SDK/Shell conversions match original and nativeXML replay values. Final75focused tests and maintained lint/types/build pass. Permanent duplicates, forward duplicate stubs, repeated replacements, dynamic diagnostics, broader references and publication remain open. Permanent Sheet_Title/Print_Area imports now retain defaults and replacement identity; global indexed and linked external references preserve scope. Native lifecycle qualification and compiled replay pass; scalar INDIRECT provisional expectation corrected from Blank to native #REF!. Workbook-scoped alias spelling now matches native across BIFF7/8/dual: six explicit-prefix differences repaired, with cell qualification preserved; 22929 package tests and 24 public conversions pass.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -515,6 +515,11 @@
           "path": "docs/ssconvert/biff-name-lifecycle-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/biff-name-lifecycle-native-capture.json",
           "outcome": "Native 35950939299 confirms eight original value gaps per input and retained local defaults. Three BIFF7/8/dual originals and native XML match 44 values through 12 compiled SDK/Shell conversions. Final 754 BIFF tests, lint/types and selected four-build closure pass; earlier full suite passed 22924 tests before the final external-scope correction. Dynamic diagnostics and wider profiles remain open."
+        },
+        {
+          "kind": "biff-global-alias-spelling",
+          "path": "docs/ssconvert/biff-global-alias-spelling-gap-proof.json",
+          "outcome": "Six red controls repaired; 67 focused and 22929 package tests, lint/types/build pass. Original authenticated native name inventories match all 24 built SDK/Shell conversions; screenshot inspected. Broader qualification and publication remain open."
         }
       ],
       "delivery": {

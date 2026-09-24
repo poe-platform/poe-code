@@ -29,7 +29,26 @@ it.each([7, 8, "dsf"] as const)("retains definition scope independently of BIFF 
   for (const [stream, input] of readCfb(bytes, context)) {
     const reopened = await readBiff(input, context);
     expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value), stream).toEqual(expected);
-    expect(reopened.names?.find(name => name.name === "Global")?.expression).toBe("=[]Inner");
+    expect(reopened.names?.find(name => name.name === "Global")?.expression).toBe("=Inner");
   }
   expect(book).toEqual(before);
+});
+
+it.each([7, 8, "dsf"] as const)("retains native workbook-scope alias spelling in BIFF %s despite permanent local names", async profile => {
+  const names = [
+    { name: "Sheet_Title", expression: "31" }, { name: "Print_Area", expression: "37" },
+    { name: "TitleAlias", expression: "Sheet_Title" }, { name: "AreaAlias", expression: "Print_Area" }
+  ];
+  const book: Workbook = { names, sheets: [{ id: "here", name: "Here", cells: names.map((name, row) =>
+    ({ row, column: 0, formula: "=" + name.name, value: { kind: "number", value: 999 } })) }] };
+  const bytes = await createBiffWriter(profile)(book, [], context), before = bytes.slice();
+  for (const [stream, input] of readCfb(bytes, context)) {
+    const reopened = await readBiff(input, context);
+    expect(reopened.names?.filter(name => name.sheet === undefined && name.name.endsWith("Alias"))
+      .map(name => [name.name, name.expression]), stream).toEqual([["TitleAlias", "=Sheet_Title"], ["AreaAlias", "=Print_Area"]]);
+    expect(reopened.sheets[0]!.cells.slice(0, 2).map(cell => cell.formula), stream).toEqual(["=[]Sheet_Title", "=[]Print_Area"]);
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value), stream)
+      .toEqual([31, 37, 31, 37].map(value => ({ kind: "number", value })));
+  }
+  expect(bytes).toEqual(before);
 });

@@ -406,9 +406,9 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   const formulaNames = names.map(name => name.name);
   const nameBindings = new BiffNameBindings(context, sheets);
   const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
-    resolveName = nameBindings.resolve) => translateBiffFormula(tokens, {
+    resolveName = nameBindings.resolve, globalNameDefinition = false) => translateBiffFormula(tokens, {
     revision, codepage: cp, row, column, names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
-    ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
+    ...(owner ? { currentSheet: owner.name } : {}), shared, globalNameDefinition, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
   const externalTables = [
@@ -452,7 +452,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (name.sheetIndex && nameSheets[at] === undefined) invalidBiff("invalid name sheet scope");
     try {
       nameBindings.define(at + 1, name.name, nameSheets[at], resolve => name.tokens.length ?
-        formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner, false, resolve) : "=#NAME?");
+        formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner, false, resolve, !name.sheetIndex) : "=#NAME?");
     }
     catch (error) {
       if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;

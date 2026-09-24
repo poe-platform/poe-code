@@ -1,21 +1,102 @@
 import { Volume } from "memfs";
 import { spawn } from "node:child_process";
-import { expect, it } from "vitest";
+import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, expect, it, onTestFinished } from "vitest";
 import * as source from "./index.js";
 import { compiledPublicRuntime } from "../tests/compiled-public-runtime.js";
 import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 
 const native = await compiledPublicRuntime;
+
+type NativeResponse = { type: "result"; id: number; ok: boolean; output?: string; error?: string; stack?: string };
+let child: ReturnType<typeof spawn>;
+let closed: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
+let pending: { id: number; resolve: (value: NativeResponse) => void; reject: (error: Error) => void } | undefined;
+let rejectReady: ((error: Error) => void) | undefined;
+let fatal: Error | undefined;
+let nextId = 0, ready = false, stopping = false, acknowledged = false;
+let stderr = "";
+
+function failNative(error: Error): void {
+  fatal ??= error;
+  rejectReady?.(fatal);
+  pending?.reject(fatal);
+  pending = undefined;
+  child?.kill("SIGKILL");
+}
+
+beforeAll(async () => {
+  child = spawn(process.execPath, [fileURLToPath(new URL("../tests/fixtures/repeat-template-native.mjs", import.meta.url))], {
+    stdio: ["ignore", "pipe", "pipe", "ipc"],
+  });
+  let resolveReady: () => void;
+  const startup = new Promise<void>((resolve, reject) => { resolveReady = resolve; rejectReady = reject; });
+  closed = new Promise(resolve => child.on("close", (code, signal) => {
+    if (!stopping || !acknowledged || pending || code !== 0 || signal !== null)
+      failNative(new Error(`Native child closed incompletely: code=${code}, signal=${signal}\n${stderr}`));
+    resolve({ code, signal });
+  }));
+  child.stderr!.setEncoding("utf8").on("data", bytes => { stderr += bytes; });
+  child.stdout!.on("data", () => { failNative(new Error("Unexpected native stdout outside its response")); });
+  child.on("error", failNative);
+  child.on("message", message => {
+    if (!message || typeof message !== "object") return failNative(new Error("Invalid native response"));
+    const response = message as { type?: string; id?: number };
+    if (response.type === "ready" && !ready && !stopping && !fatal) {
+      ready = true;
+      resolveReady();
+    } else if (response.type === "closed" && stopping && !acknowledged && !pending && response.id === nextId) {
+      acknowledged = true;
+    } else if (response.type === "result" && ready && !stopping && pending !== undefined && pending.id === response.id) {
+      const completed = pending;
+      pending = undefined;
+      completed.resolve(message as NativeResponse);
+    } else failNative(new Error("Duplicate, mismatched or unexpected native response"));
+  });
+  const timer = setTimeout(() => { failNative(new Error("Native child did not become ready")); }, 5000);
+  try { await startup; }
+  catch (error) { failNative(error as Error); await closed; throw error; }
+  finally { clearTimeout(timer); }
+});
+
+afterAll(async () => {
+  if (!child) return;
+  if (!fatal) {
+    if (pending) failNative(new Error("Native request unfinished at shutdown"));
+    else {
+      stopping = true;
+      child.send({ type: "shutdown", id: nextId }, error => { if (error) failNative(error); });
+    }
+  }
+  const timer = setTimeout(() => { failNative(new Error("Native child did not finish shutdown")); }, 5000);
+  let outcome: Awaited<typeof closed>;
+  try { outcome = await closed; } finally { clearTimeout(timer); }
+  if (fatal) throw fatal;
+  expect(acknowledged).toBe(true);
+  expect(outcome).toEqual({ code: 0, signal: null });
+});
+
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const codec of ["utf8", "utf16le", "utf16be"] as const)
 for (const depth of [1, 1024, 2048])
 for (const operation of ["controls.repeat", "template.apply"] as const)
 for (const route of ["native-sdk", "native-sdk-batch", "native-cli", "native-cli-batch"] as const)
 it(`repeat/template admitted nested native table depth; strict=${strict}; kind=${kind}; codec=${codec}; depth=${depth}; operation=${operation}; route=${route}`, async () => {
+  const controller = new AbortController();
+  let finished = false, requestId: number | undefined;
+  onTestFinished(async () => {
+    finished = true;
+    controller.abort();
+    if (requestId !== undefined && pending?.id === requestId) {
+      failNative(new Error("Native matrix case ended with an unfinished request"));
+      await closed;
+    }
+  });
+  if (fatal) throw fatal;
   const api = (route.startsWith("native") ? native : source) as typeof source;
   const limits = { ...textContext.limits, maxArchiveBytes: 2097152, maxEntryBytes: 1048576, maxTotalBytes: 4194304, maxRetainedBytes: 2147483648 };
-  const documentLimits = { xmlDepth: 16384, retainedBytes: 2147483648, work: 2147483648 }, signal = new AbortController().signal;
+  const documentLimits = { xmlDepth: 16384, retainedBytes: 2147483648, work: 2147483648 }, signal = controller.signal;
   const fresh = () => ({ signal, limits, budget: new api.DocumentBudget(documentLimits, signal), encoding: { order: "input", compression: "store" } as const });
   const field = '<w:sdt><w:sdtPr><w:id w:val="3"/><w:tag w:val="entry"/><w:text/></w:sdtPr><w:sdtContent><w:r><w:rPr><w:b/></w:rPr><w:t>Old</w:t></w:r></w:sdtContent></w:sdt>';
   const head = '<w:tbl><w:tblPr><w:tblW w:w="2400" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="2400"/></w:tblGrid><w:tr><w:tc><w:p/>', tail = '<w:p/></w:tc></w:tr></w:tbl>';
@@ -29,17 +110,15 @@ it(`repeat/template admitted nested native table depth; strict=${strict}; kind=$
   await api.writeArchive({ comment: new Uint8Array(), members: [...parts].map(([name, bytes]) => ({ name, bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") })) }, { async write(bytes) { memory.appendFileSync("/input", bytes); } }, fresh().encoding, fresh());
   const input = new Uint8Array(memory.readFileSync("/input") as Buffer), original = input.slice();
   const allowed = true;
-  const script = `import {Volume} from 'memfs';import * as api from 'docx';import {Shell,MemoryFileSystem} from '@poe-platform/safe-bash';import {docxCommands} from '@poe-platform/safe-bash/commands/docx';
-let source='';for await(const bytes of process.stdin)source+=bytes;const request=JSON.parse(source),input=new Uint8Array(Buffer.from(request.input,'base64')),memory=Volume.fromJSON({'/output':''}),signal=new AbortController().signal,context={limits:request.limits,signal,budget:new api.DocumentBudget(request.documentLimits,signal),encoding:{order:'input',compression:'store'},stdout:{async write(bytes){memory.appendFileSync('/output',bytes);}}},data=[{values:[{binding:'entry',value:'New 海🌊'}]}],args=request.operation==='controls.repeat'?{control:1,data}:{data},batch={version:1,operations:[{operation:request.operation,arguments:args}]};
-try{if(request.route.includes('sdk')){const pending=request.route.endsWith('batch')?api.executeDocumentBatch(input,batch,{output:'-'},context):request.operation==='controls.repeat'?api.editDocumentControlRepeats(input,{control:1,data,output:'-'},context):api.applyDocumentTemplate(input,{data,output:'-'},context);if(request.allowed)await pending;else{let caught;try{await pending;}catch(error){caught=error;}if(caught?.code!=='unsupported-edit')throw caught??Error('Unsupported edit succeeded');if(memory.statSync('/output').size)throw Error('Failed SDK published');}}else{const fs=new MemoryFileSystem(),retained=new TextEncoder().encode('Retained forced destination');await fs.writeFile('/input',input);await fs.writeFile('/output',retained);await fs.writeFile('/ops',new TextEncoder().encode(JSON.stringify(batch)));await fs.writeFile('/data',new TextEncoder().encode(JSON.stringify(data)));const shell=new Shell({fs}).use(docxCommands({engine:api.createDocxInspectionCommandEngine({limits:request.limits,documentLimits:request.documentLimits})}));try{const command=request.route.endsWith('batch')?'docx batch /input --ops-file /ops':request.operation==='controls.repeat'?'docx controls repeat /input --control 1 --data-file /data':'docx template apply /input --data-file /data',response=await shell.exec(command+' --output /output --force --json'),envelope=JSON.parse(response.stdout);if(Buffer.compare(Buffer.from(await fs.readFile('/input')),Buffer.from(input)))throw Error('Input changed');if(request.allowed){if(response.exitCode)throw Error(response.stdout+response.stderr);memory.writeFileSync('/output',await fs.readFile('/output'));}else{if(response.exitCode!==1||envelope.data!==null||envelope.affected!==0||envelope.errors[0]?.code!=='unsupported-edit')throw Error(response.stdout+response.stderr);if(Buffer.compare(Buffer.from(await fs.readFile('/output')),Buffer.from(retained)))throw Error('Destination changed');}}finally{await shell.dispose();}}console.log(JSON.stringify({ok:true,output:Buffer.from(memory.readFileSync('/output')).toString('base64')}));}catch(error){console.log(JSON.stringify({ok:false,error:String(error),stack:error.stack,code:error.code??null,outputBytes:memory.statSync('/output').size}));}`;
-  const response = await new Promise<string>((resolve, reject) => {
-    const child = spawn(process.execPath, ["--input-type=module", "-e", script], { stdio: ["pipe", "pipe", "pipe"] });
-    let stdout = "", stderr = "";
-    child.stdout.on("data", bytes => { stdout += String(bytes); }); child.stderr.on("data", bytes => { stderr += String(bytes); });
-    child.on("error", reject); child.on("close", status => { if (status !== 0) reject(new Error(stderr)); else resolve(stdout); });
-    child.stdin.end(JSON.stringify({ input: Buffer.from(input).toString("base64"), route, operation, limits, documentLimits, allowed }));
+  if (fatal) throw fatal;
+  if (finished || !ready || stopping || pending) throw new Error("Native child is not available for this case");
+  const observed = await new Promise<NativeResponse>((resolve, reject) => {
+    const id = ++nextId;
+    requestId = id;
+    pending = { id, resolve, reject };
+    child.send({ type: "execute", id, input: Buffer.from(input).toString("base64"), route, operation, limits, documentLimits, allowed },
+      error => { if (error) failNative(error); });
   });
-  const observed = JSON.parse(response) as { ok: boolean; output?: string; error?: string; stack?: string };
   expect(observed, observed.stack ?? observed.error).toMatchObject({ ok: true });
   memory.writeFileSync("/output", Buffer.from(observed.output!, "base64"));
   if (allowed) {

@@ -2,6 +2,8 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import type { Cell, CellValue, Workbook, Range, AxisMetadata, NamedExpression, ImportedValue, UnsupportedRecord, RichTextRun, FormulaGroup } from "../workbook.js";
 import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { decryptBiffRecords } from "./biff-encryption.js";
+import { encryptBiffStream } from "./biff-encrypted-write.js";
+import { exportOptionPairs } from "../cli/export-options.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
 import { BiffNameBindings } from "./biff-name-bindings.js";
@@ -12,12 +14,23 @@ import { writeBiffStream } from "./biff-write.js";
 import type { Codec } from "./types.js";
 
 export function createBiffWriter(profile: 7 | 8 | "dsf"): NonNullable<Codec["write"]> {
-  return async (book, _options, context) => {
+  return async (book, options, context) => {
     context.signal.throwIfAborted();
+    let encrypted = false;
+    for (const text of options) for (const [key, value] of exportOptionPairs(text)) if (key === "encryption") {
+      if (profile !== 8 || value !== "rc4") throw new SsconvertError("invalid-request", "Invalid Excel BIFF encryption profile");
+      encrypted = true;
+    }
     const streams = new Map<string, Uint8Array>();
-    if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context));
-    if (profile === 8 || profile === "dsf") streams.set("Workbook", await writeBiffStream(book, 8, profile === "dsf", context));
-    return writeCfb(streams, context);
+    try {
+      if (profile === 7 || profile === "dsf") streams.set("Book", await writeBiffStream(book, 7, profile === "dsf", context));
+      if (profile === 8 || profile === "dsf") {
+        const stream = await writeBiffStream(book, 8, profile === "dsf", context, encrypted ? new Uint8Array(54) : undefined);
+        streams.set("Workbook", stream);
+        if (encrypted) await encryptBiffStream(stream, context);
+      }
+      return writeCfb(streams, context);
+    } finally { if (encrypted) for (const stream of streams.values()) stream.fill(0); }
   };
 }
 

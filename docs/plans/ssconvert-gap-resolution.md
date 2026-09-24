@@ -274,12 +274,14 @@ The pipeline above defines the work and acceptance requirements. Validate each i
 
 Current implementation: LibreOffice Argon2id v19/AES256-GCM package import and explicit export use cumulative ZIP/XML/work limits, a default 64 MiB Argon2 arena cap, authentication before inflation, cancellation and owned-buffer disposal. Independent Python crypto authenticated six real exports (both writers, ASCII/Unicode/empty passwords). LibreOffice 26.8 reads both writers’ ASCII/Unicode outputs and refuses wrong or empty passwords; SDK readback supports empty passwords. Modern browser/worker SDK and Node Shell routes are qualified separately. The standalone browser Shell needs a Buffer host dependency and remains unqualified. Verification passed 23,296 package tests, 635 ODF tests, maintained lint/types and the selected build closure.
 
+BIFF8 standard RC4 export now uses explicit password/entropy capabilities and bounded cryptographic work. Independent msoffcrypto-tool 6.0.0 and xlrd 2.0.2 read ten small/multi-block exports covering ASCII, Unicode, empty, maximum-length and built-in passwords. CFB output uses exact stream lengths and mini sectors; olefile independently verified 12 allocation boundaries and xlrd read plain BIFF7/8/DSF exports. Public compiled Node Shell and eight browser/worker SDK cases pass; the browser screenshot was inspected. Maintained package tests, lint/types and selected build pass. Native application and other encryption profiles remain open.
+
 Current priorities:
 
 1. Continue encrypted-format qualification, including broader ODF application profiles and remaining BIFF/Paradox profiles; keep the encryption families open until their full requirements pass.
 2. Monitor containing release CI. The historical DOCX depth-2048 timeout predates the supervised-fixture fix; the current rebuilt 96-case cohort passes locally. Preserve the matrix's routes and assertions; this focused result does not qualify the full CI run.
 3. Continue the remaining ledger families and qualify the resulting packed SDK/Shell artifacts.
 
-Verified remote main through ede2c0645 includes cleanup and modern ODF import/export. Published poe-code@17.0.35 points to a8a8a7ef and predates these changes; containing publication remains pending.
+Verified remote main through 80c478353 includes exact CFB stream lengths, cleanup and modern ODF import/export. Published poe-code@17.0.35 points to a8a8a7ef and predates these changes; containing publication remains pending.
 
 Historical run journals and disposable evidence were removed at the user's request. Required test fixtures, canonical inputs and source provenance remain. Prior captures can be inspected in Git history when needed; they are not current-candidate proof. Do not recreate bulky progress journals or commit raw command output.

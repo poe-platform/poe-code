@@ -25,7 +25,7 @@
     {
       "id": "encrypted-biff",
       "status": "open",
-      "currentFinding": "Explicit host passwords support qualified XOR, standard RC4 and CryptoAPI imports, including empty XOR under the stored-key reader contract. Encrypted writing, ancillary streams/properties and wider profiles remain open."
+      "currentFinding": "Explicit host passwords support qualified XOR, standard RC4 and CryptoAPI imports. BIFF8 standard RC4 export uses explicit password/entropy capabilities; ten small/multi-block samples pass independent msoffcrypto and xlrd readback. Other encrypted writers, ancillary streams/properties, native application profiles and containing publication remain open."
     },
     {
       "id": "encrypted-odf",
@@ -105,7 +105,7 @@
   ],
   "delivery": {
     "verifiedRemoteMain": [
-      "ede2c0645a22f35ecbf80dc68d5e6d79c53d6e11"
+      "80c47835301302df03d24e730ea11923b91d711c"
     ],
     "verifiedPublication": {
       "version": "17.0.35",

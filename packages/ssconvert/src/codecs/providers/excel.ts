@@ -35,6 +35,7 @@ export default {
     {
       "id": "excel_biff8",
       write: createBiffWriter(8),
+      exportOptionRules: { encryption: { kind: "enum", values: ["rc4"] } },
       "direction": "write",
       "description": "MS Excel™ 97/2000/XP",
       "extensions": [

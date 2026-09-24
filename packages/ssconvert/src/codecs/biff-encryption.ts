@@ -2,8 +2,8 @@ import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { Binary, invalidBiff, type BiffRecord } from "./biff-binary.js";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 
-/** MS-OFFCRYPTO RC4; never reused for new encryption or authentication. */
-function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext): Uint8Array {
+/** MS-OFFCRYPTO legacy interoperability only; RC4 provides no authentication. */
+export function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext): Uint8Array {
   const state = Uint8Array.from({ length: 256 }, (_, index) => index);
   let j = 0;
   for (let i = 0; i < 256; i++) {
@@ -12,13 +12,16 @@ function rc4Stream(key: Uint8Array, length: number, context: CapabilityContext):
   }
   const result = new Uint8Array(length);
   let i = 0; j = 0;
-  for (let at = 0; at < length; at++) {
-    if ((at & 255) === 0) context.signal.throwIfAborted();
-    i = (i + 1) & 255; j = (j + state[i]!) & 255;
-    [state[i], state[j]] = [state[j]!, state[i]!];
-    result[at] = state[(state[i]! + state[j]!) & 255]!;
-  }
-  return result;
+  try {
+    for (let at = 0; at < length; at++) {
+      if ((at & 255) === 0) context.signal.throwIfAborted();
+      i = (i + 1) & 255; j = (j + state[i]!) & 255;
+      [state[i], state[j]] = [state[j]!, state[i]!];
+      result[at] = state[(state[i]! + state[j]!) & 255]!;
+    }
+    return result;
+  } catch (error) { result.fill(0); throw error; }
+  finally { state.fill(0); }
 }
 
 /** Decode admitted XOR/RC4 profiles; optional secret acquisition is explicit host authority. */

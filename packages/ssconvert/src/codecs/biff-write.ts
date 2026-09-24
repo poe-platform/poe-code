@@ -65,7 +65,8 @@ function stringCache(output: BiffOutput, text: string, revision: 7 | 8, context:
   }
 }
 
-export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boolean, context: CapabilityContext): Promise<Uint8Array> {
+export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boolean, context: CapabilityContext,
+  filepass?: Uint8Array): Promise<Uint8Array> {
   context.signal.throwIfAborted();
   if (book.sheets.length > context.limits.sheets) throw new SsconvertError("resource-limit", "ssconvert BIFF sheets limit exceeded");
   let cellCount = 0;
@@ -116,6 +117,7 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   }
   const nameOrder = formulaWriter.finalize(named.map(entry => entry.formula));
   output.record(0x809, bof(revision, 5));
+  if (filepass) output.record(0x2f, filepass);
   output.record(0xe1, revision === 8 ? words(1200) : new Uint8Array());
   output.record(0xc1, words(0)); output.record(0xe2);
   output.record(0x42, words(revision === 8 ? 1200 : 1252));

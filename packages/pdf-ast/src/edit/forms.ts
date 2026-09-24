@@ -27,14 +27,24 @@ function collectFieldDicts(
   const dict = doc.resolveDict(node);
   if (!dict) return out;
   const tNode = doc.resolve(dictGet(dict, "T"));
-  const partialName = tNode?.kind === "string" ? decodePdfString(tNode) : "";
+  const partialName =
+    tNode?.kind === "string"
+      ? decodePdfString(tNode)
+      : tNode?.kind === "name"
+        ? tNode.decoded
+        : "";
   const fullName = prefix && partialName ? `${prefix}.${partialName}` : partialName || prefix;
 
   const kidsArr = doc.resolveArray(dictGet(dict, "Kids"));
   if (kidsArr && kidsArr.items.length > 0) {
     const hasFT = Boolean(dictGet(dict, "FT"));
-    if (hasFT && fullName) {
+    const kidsHaveNames = kidsArr.items.some(kid => {
+      const kidDict = doc.resolveDict(kid);
+      return Boolean(kidDict && dictGet(kidDict, "T"));
+    });
+    if (!kidsHaveNames && hasFT && fullName) {
       out.push({ fullName, dict });
+      return out;
     }
     for (const kid of kidsArr.items) {
       collectFieldDicts(doc, kid, fullName, out);
@@ -43,6 +53,33 @@ function collectFieldDicts(
     out.push({ fullName, dict });
   }
   return out;
+}
+
+function resolveCheckboxOnValue(doc: ParsedCosDocument, fieldDict: PdfCosDict): string {
+  const inspectApDict = (d: PdfCosDict): string | undefined => {
+    const ap = doc.resolveDict(dictGet(d, "AP"));
+    const nDict = ap ? doc.resolveDict(dictGet(ap, "N")) : undefined;
+    if (!nDict) return undefined;
+    for (const entry of nDict.entries) {
+      if (entry.key.decoded !== "Off") {
+        return entry.key.decoded;
+      }
+    }
+    return undefined;
+  };
+  const direct = inspectApDict(fieldDict);
+  if (direct) return direct;
+  const kidsArr = doc.resolveArray(dictGet(fieldDict, "Kids"));
+  if (kidsArr) {
+    for (const kid of kidsArr.items) {
+      const kidDict = doc.resolveDict(kid);
+      if (kidDict) {
+        const found = inspectApDict(kidDict);
+        if (found) return found;
+      }
+    }
+  }
+  return "Yes";
 }
 
 export function getDocumentFormFields(doc: ParsedCosDocument): PdfFormFieldInfo[] {
@@ -109,9 +146,20 @@ export function setDocumentFormField(
   const existing = all.find(f => f.fullName === fieldName);
   if (existing) {
     if (typeof value === "boolean") {
+      const onValue = resolveCheckboxOnValue(doc, existing.dict);
+      const targetState = cosName(value ? onValue : "Off");
       dictSet(existing.dict, "FT", cosName("Btn"));
-      dictSet(existing.dict, "V", cosName(value ? "Yes" : "Off"));
-      dictSet(existing.dict, "AS", cosName(value ? "Yes" : "Off"));
+      dictSet(existing.dict, "V", targetState);
+      dictSet(existing.dict, "AS", targetState);
+      const kidsArr = doc.resolveArray(dictGet(existing.dict, "Kids"));
+      if (kidsArr) {
+        for (const kid of kidsArr.items) {
+          const kidDict = doc.resolveDict(kid);
+          if (kidDict) {
+            dictSet(kidDict, "AS", targetState);
+          }
+        }
+      }
     } else {
       dictSet(existing.dict, "FT", cosName("Tx"));
       dictSet(existing.dict, "V", cosString(value));

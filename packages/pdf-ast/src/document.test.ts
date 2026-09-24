@@ -206,4 +206,141 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     expect(bitmap.data[idx]).toBeLessThan(50);
     expect(bitmap.data[idx + 2]).toBeGreaterThan(200);
   });
+
+  it("handles upstream PDF edge cases: copyPages inherited attributes & widgets (pdf-lib #1579/#1686/#1332, pypdf #4078), split-widget & custom checkbox states (pdf-lib #1585, qpdf #1056), CTM-transformed redaction (pypdf #4062), and isolated page drawing (pdf-lib #1075/#1541)", () => {
+    // 1. Source document with /Resources, /Rotate, and /CropBox ONLY on parent /Pages node
+    const srcDoc = PdfDocument.create();
+    const srcP1 = srcDoc.addPage([612, 792]);
+    const srcP2 = srcDoc.addPage([612, 792]);
+    srcP1.drawText("Inherited Resource Page 1", { x: 50, y: 700, size: 12 });
+    srcP2.drawText("Unselected Page 2", { x: 50, y: 700, size: 12 });
+
+    const p1ResIdx = srcP1.dict.entries.findIndex(e => e.key.decoded === "Resources");
+    const inheritedRes = srcP1.dict.entries[p1ResIdx]!.value;
+    srcP1.dict.entries.splice(p1ResIdx, 1);
+
+    const parentRef = srcP1.dict.entries.find(e => e.key.decoded === "Parent")!.value;
+    const pagesNode = srcDoc.cos.resolveDict(parentRef)!;
+    pagesNode.entries.push(
+      { key: cosName("Resources"), value: inheritedRes },
+      { key: cosName("Rotate"), value: cosNumber(90) },
+      { key: cosName("CropBox"), value: cosArray([cosNumber(10), cosNumber(10), cosNumber(600), cosNumber(780)]) }
+    );
+
+    const parentFieldRef = srcDoc.cos.allocateObject(
+      cosDict({
+        FT: cosName("Tx"),
+        T: cosName("invoice_id"),
+      })
+    );
+    const widgetRef = srcDoc.cos.allocateObject(
+      cosDict({
+        Type: cosName("Annot"),
+        Subtype: cosName("Widget"),
+        Parent: parentFieldRef,
+        P: srcP1.ref,
+        Rect: cosArray([cosNumber(50), cosNumber(650), cosNumber(200), cosNumber(670)]),
+      })
+    );
+    srcP1.dict.entries.push({ key: cosName("Annots"), value: cosArray([widgetRef]) });
+
+    const dstDoc = PdfDocument.create();
+    const [copiedP1] = dstDoc.copyPagesFrom(srcDoc, [0]);
+    expect(copiedP1!.getRotation()).toBe(90);
+    expect(copiedP1!.getCropBox()).toEqual([10, 10, 600, 780]);
+    expect(dstDoc.extractText()).toContain("Inherited Resource Page 1");
+    expect(dstDoc.extractText()).not.toContain("Unselected Page 2");
+
+    const copiedAnnots = dstDoc.cos.resolveArray(
+      copiedP1!.dict.entries.find(e => e.key.decoded === "Annots")?.value
+    )!;
+    const copiedWidget = dstDoc.cos.resolveDict(copiedAnnots.items[0])!;
+    expect(copiedWidget.entries.some(e => e.key.decoded === "Parent")).toBe(true);
+    const copiedWidgetP = copiedWidget.entries.find(e => e.key.decoded === "P")?.value;
+    expect(copiedWidgetP).toEqual(copiedP1!.ref);
+
+    // 2. AcroForm terminal field with anonymous Widget /Kids + custom checkbox /AP /N (/Agree)
+    const formDoc = PdfDocument.create();
+    const formPage = formDoc.addPage([612, 792]);
+    const anonWidgetRef = formDoc.cos.allocateObject(
+      cosDict({
+        Type: cosName("Annot"),
+        Subtype: cosName("Widget"),
+        P: formPage.ref,
+        Rect: cosArray([cosNumber(50), cosNumber(500), cosNumber(200), cosNumber(520)]),
+      })
+    );
+    const emailFieldRef = formDoc.cos.allocateObject(
+      cosDict({
+        FT: cosName("Tx"),
+        T: cosName("customer.email"),
+        V: cosName("alice@example.com"),
+        Kids: cosArray([anonWidgetRef]),
+      })
+    );
+    const cbWidgetRef = formDoc.cos.allocateObject(
+      cosDict({
+        Type: cosName("Annot"),
+        Subtype: cosName("Widget"),
+        AS: cosName("Off"),
+        AP: cosDict({
+          N: cosDict({
+            Agree: cosDict({}),
+            Off: cosDict({}),
+          }),
+        }),
+      })
+    );
+    const cbFieldRef = formDoc.cos.allocateObject(
+      cosDict({
+        FT: cosName("Btn"),
+        T: cosName("terms"),
+        V: cosName("Off"),
+        Kids: cosArray([cbWidgetRef]),
+      })
+    );
+    const catalog = formDoc.cos.resolveDict(formDoc.cos.rootRef)!;
+    catalog.entries.push({
+      key: cosName("AcroForm"),
+      value: cosDict({ Fields: cosArray([emailFieldRef, cbFieldRef]) }),
+    });
+
+    const fieldsBefore = formDoc.getFormFields();
+    expect(fieldsBefore).toEqual([
+      { name: "customer.email", type: "text", value: "alice@example.com" },
+      { name: "terms", type: "checkbox", value: false },
+    ]);
+
+    formDoc.setFormField("terms", true);
+    const cbFieldDict = formDoc.cos.resolveDict(cbFieldRef)!;
+    const cbWidgetDict = formDoc.cos.resolveDict(cbWidgetRef)!;
+    expect(cbFieldDict.entries.find(e => e.key.decoded === "V")?.value).toEqual(cosName("Agree"));
+    expect(cbWidgetDict.entries.find(e => e.key.decoded === "AS")?.value).toEqual(cosName("Agree"));
+
+    // 3. CTM-transformed content redaction (pypdf #4062)
+    const redactDoc = PdfDocument.create();
+    const redactPage = redactDoc.addPage([612, 792]);
+    redactPage.ensureStandardFontResource("Helvetica");
+    redactPage.setRawContentStream(
+      new TextEncoder().encode(
+        "q 1 0 0 1 120 300 cm BT /F1 12 Tf 0 0 Td (TOP-SECRET-CTM) Tj ET Q\nBT /F1 12 Tf 50 500 Td (PUBLIC-LINE) Tj ET"
+      )
+    );
+    redactPage.redact([[115, 295, 260, 320]]);
+    const postCtmRedact = redactDoc.extractText();
+    expect(postCtmRedact).not.toContain("TOP-SECRET-CTM");
+    expect(postCtmRedact).toContain("PUBLIC-LINE");
+
+    // 4. Graphics state isolation when appending drawing operations onto a page with unbalanced CTM
+    const dirtyDoc = PdfDocument.create();
+    const dirtyPage = dirtyDoc.addPage([612, 792]);
+    dirtyPage.ensureStandardFontResource("Helvetica");
+    dirtyPage.setRawContentStream(
+      new TextEncoder().encode("1 0 0 -1 0 792 cm BT /F1 12 Tf 50 92 Td (Flipped Legacy Text) Tj ET")
+    );
+    dirtyPage.drawText("Clean Stamp", { x: 60, y: 700, size: 12 });
+    const dirtyDl = dirtyPage.evaluateDisplayList();
+    const stampGlyphs = dirtyDl.glyphs.filter(g => "Clean Stamp".includes(g.unicode));
+    expect(stampGlyphs.some(g => Math.abs(g.baselineY - 700) < 2)).toBe(true);
+  });
 });

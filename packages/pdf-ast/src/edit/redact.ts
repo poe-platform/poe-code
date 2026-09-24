@@ -31,6 +31,27 @@ function boxesIntersect(
   return ax0 < bx1 && ax1 > bx0 && ay0 < by1 && ay1 > by0;
 }
 
+type Matrix6 = readonly [number, number, number, number, number, number];
+
+function multiplyMatrix(m1: Matrix6, m2: Matrix6): Matrix6 {
+  return [
+    m1[0] * m2[0] + m1[2] * m2[1],
+    m1[1] * m2[0] + m1[3] * m2[1],
+    m1[0] * m2[2] + m1[2] * m2[3],
+    m1[1] * m2[2] + m1[3] * m2[3],
+    m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
+    m1[1] * m2[4] + m1[3] * m2[5] + m1[5],
+  ];
+}
+
+function invertPoint(ctm: Matrix6, x: number, y: number): readonly [number, number] {
+  const det = ctm[0] * ctm[3] - ctm[1] * ctm[2];
+  if (Math.abs(det) < 1e-9) return [x, y];
+  const dx = x - ctm[4];
+  const dy = y - ctm[5];
+  return [(ctm[3] * dx - ctm[2] * dy) / det, (-ctm[1] * dx + ctm[0] * dy) / det];
+}
+
 export function redactPageContentAst(params: {
   readonly pageIndex: number;
   readonly width: number;
@@ -44,26 +65,48 @@ export function redactPageContentAst(params: {
   const { regions } = params;
   if (regions.length === 0) return [...params.nodes];
 
-  const filterNodes = (nodes: readonly PdfContentNode[]): PdfContentNode[] => {
+  const filterNodes = (nodes: readonly PdfContentNode[], initialCtm: Matrix6): PdfContentNode[] => {
     const out: PdfContentNode[] = [];
+    let curCtm: Matrix6 = initialCtm;
     for (const node of nodes) {
+      if (node.kind === "state-op" && node.operator === "cm" && node.operands.length === 6) {
+        const nums = node.operands.map(o => (o.kind === "number" ? o.value : 0));
+        curCtm = multiplyMatrix(curCtm, [
+          nums[0]!,
+          nums[1]!,
+          nums[2]!,
+          nums[3]!,
+          nums[4]!,
+          nums[5]!,
+        ]);
+        out.push(node);
+        continue;
+      }
       if (node.kind === "graphics-group") {
-        out.push({ kind: "graphics-group", ops: filterNodes(node.ops) });
+        out.push({ kind: "graphics-group", ops: filterNodes(node.ops, curCtm) });
         continue;
       }
       if (node.kind === "marked-content") {
         out.push({
           ...node,
-          children: filterNodes(node.children),
+          children: filterNodes(node.children, curCtm),
         });
         continue;
       }
+      const evalNodes: PdfContentNode[] = [
+        {
+          kind: "state-op",
+          operator: "cm",
+          operands: curCtm.map(n => cosNumber(n)),
+        },
+        node,
+      ];
       if (node.kind === "text-object") {
         const singleDl = evaluateContentStreamToDisplayList({
           pageIndex: params.pageIndex,
           width: params.width,
           height: params.height,
-          nodes: [node],
+          nodes: evalNodes,
           cosDoc: params.cosDoc,
           resourcesDict: params.resourcesDict,
         });
@@ -78,10 +121,11 @@ export function redactPageContentAst(params: {
         if (survivingGlyphs.length > 0) {
           const rebuiltCommands: PdfTextCommand[] = [];
           for (const g of survivingGlyphs) {
+            const [localX, localY] = invertPoint(curCtm, g.bbox[0], g.baselineY);
             rebuiltCommands.push({ kind: "font", fontName: "F1", size: g.fontSize });
             rebuiltCommands.push({
               kind: "matrix",
-              matrix: [1, 0, 0, 1, g.bbox[0], g.baselineY],
+              matrix: [1, 0, 0, 1, localX, localY],
             });
             rebuiltCommands.push({
               kind: "show-text",
@@ -97,7 +141,7 @@ export function redactPageContentAst(params: {
           pageIndex: params.pageIndex,
           width: params.width,
           height: params.height,
-          nodes: [node],
+          nodes: evalNodes,
           cosDoc: params.cosDoc,
           resourcesDict: params.resourcesDict,
         });
@@ -127,7 +171,7 @@ export function redactPageContentAst(params: {
     return out;
   };
 
-  const cleaned = filterNodes(params.nodes);
+  const cleaned = filterNodes(params.nodes, [1, 0, 0, 1, 0, 0]);
   const fill = params.options?.fillColor ?? { r: 0, g: 0, b: 0 };
   const overlayOps: PdfContentNode[] = [
     {

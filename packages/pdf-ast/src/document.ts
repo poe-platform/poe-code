@@ -209,11 +209,26 @@ export class PdfDocument {
 
   copyPagesFrom(sourceDoc: PdfDocument, indices: readonly number[]): PdfPage[] {
     const memo = new Map<number, PdfCosRef>();
+    const sourcePageObjNums = new Set<number>();
+    for (let i = 0; i < sourceDoc.getPageCount(); i++) {
+      sourcePageObjNums.add(sourceDoc.getPage(i).ref.objectNumber);
+    }
+
+    const targetPageRefs = new Map<number, PdfCosRef>();
+    for (const idx of indices) {
+      const srcPage = sourceDoc.getPage(idx);
+      const pageRef = this.cos.allocateObject({ kind: "null" });
+      targetPageRefs.set(idx, pageRef);
+      memo.set(srcPage.ref.objectNumber, pageRef);
+    }
 
     const cloneNode = (node: PdfCosNode): PdfCosNode => {
       if (node.kind === "ref") {
         const existing = memo.get(node.objectNumber);
         if (existing) return existing;
+        if (sourcePageObjNums.has(node.objectNumber)) {
+          return { kind: "null" };
+        }
         const target = sourceDoc.cos.getObject(node.objectNumber);
         if (!target) return cosRef(0);
         // Reserve object number first to handle cycles (e.g. Parent pointers)
@@ -227,9 +242,13 @@ export class PdfDocument {
         return cosArray(node.items.map(cloneNode));
       }
       if (node.kind === "dict") {
+        const typeEntry = dictGet(node, "Type");
+        const isPageTreeNode =
+          typeEntry?.kind === "name" &&
+          (typeEntry.decoded === "Page" || typeEntry.decoded === "Pages");
         const newEntries: PdfDictEntry[] = [];
         for (const entry of node.entries) {
-          if (entry.key.decoded === "Parent") continue;
+          if (isPageTreeNode && entry.key.decoded === "Parent") continue;
           newEntries.push({
             key: { ...entry.key },
             value: cloneNode(entry.value),
@@ -261,7 +280,44 @@ export class PdfDocument {
           cosArray([cosNumber(0), cosNumber(0), cosNumber(size.width), cosNumber(size.height)])
         );
       }
-      const pageRef = this.cos.allocateObject(clonedPageDict);
+      if (!dictGet(clonedPageDict, "Resources")) {
+        dictSet(clonedPageDict, "Resources", cloneNode(srcPage.getResourcesDict()));
+      }
+      if (!dictGet(clonedPageDict, "Rotate") && srcPage.getRotation() !== 0) {
+        dictSet(clonedPageDict, "Rotate", cosNumber(srcPage.getRotation()));
+      }
+      const inheritedBoxKeys = ["CropBox", "BleedBox", "TrimBox", "ArtBox"] as const;
+      for (const boxKey of inheritedBoxKeys) {
+        if (!dictGet(clonedPageDict, boxKey)) {
+          const boxVal =
+            boxKey === "CropBox"
+              ? srcPage.getCropBox()
+              : boxKey === "BleedBox"
+                ? srcPage.getBleedBox()
+                : boxKey === "TrimBox"
+                  ? srcPage.getTrimBox()
+                  : srcPage.getArtBox();
+          if (
+            boxVal[0] !== 0 ||
+            boxVal[1] !== 0 ||
+            boxVal[2] !== size.width ||
+            boxVal[3] !== size.height
+          ) {
+            dictSet(
+              clonedPageDict,
+              boxKey,
+              cosArray([
+                cosNumber(boxVal[0]),
+                cosNumber(boxVal[1]),
+                cosNumber(boxVal[2]),
+                cosNumber(boxVal[3]),
+              ])
+            );
+          }
+        }
+      }
+      const pageRef = targetPageRefs.get(idx)!;
+      this.cos.setObject(pageRef.objectNumber, clonedPageDict, 0);
       const newPage = new PdfPage(this.cos, pageRef, clonedPageDict, this.pages.length);
       this.pages.push(newPage);
       copiedPages.push(newPage);

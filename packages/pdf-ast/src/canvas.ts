@@ -100,12 +100,14 @@ export class PdfPage {
   private cachedContentAst: PdfContentNode[] | undefined;
   private fontResourceCounter = 1;
   private xobjectResourceCounter = 1;
+  private isolatedInitialStream: boolean;
 
   constructor(cosDoc: ParsedCosDocument, pageRef: PdfCosRef, pageDict: PdfCosDict, index: number) {
     this.cosDoc = cosDoc;
     this.pageRef = pageRef;
     this.pageDict = pageDict;
     this.index = index;
+    this.isolatedInitialStream = !dictGet(this.pageDict, "Contents");
   }
 
   get dict(): PdfCosDict {
@@ -155,6 +157,53 @@ export class PdfPage {
     );
   }
 
+  private resolveBox(key: string): [number, number, number, number] {
+    const arr = this.resolveInheritedArray(key) ?? this.resolveInheritedArray("MediaBox");
+    if (arr && arr.items.length >= 4) {
+      const n0 = this.cosDoc.resolve(arr.items[0]);
+      const n1 = this.cosDoc.resolve(arr.items[1]);
+      const n2 = this.cosDoc.resolve(arr.items[2]);
+      const n3 = this.cosDoc.resolve(arr.items[3]);
+      if (
+        n0?.kind === "number" &&
+        n1?.kind === "number" &&
+        n2?.kind === "number" &&
+        n3?.kind === "number"
+      ) {
+        return [n0.value, n1.value, n2.value, n3.value];
+      }
+    }
+    return [0, 0, 612, 792];
+  }
+
+  getMediaBox(): [number, number, number, number] {
+    return this.resolveBox("MediaBox");
+  }
+
+  getCropBox(): [number, number, number, number] {
+    return this.resolveBox("CropBox");
+  }
+
+  setCropBox(x0: number, y0: number, x1: number, y1: number): void {
+    dictSet(
+      this.pageDict,
+      "CropBox",
+      cosArray([cosNumber(x0), cosNumber(y0), cosNumber(x1), cosNumber(y1)])
+    );
+  }
+
+  getBleedBox(): [number, number, number, number] {
+    return this.resolveBox("BleedBox");
+  }
+
+  getTrimBox(): [number, number, number, number] {
+    return this.resolveBox("TrimBox");
+  }
+
+  getArtBox(): [number, number, number, number] {
+    return this.resolveBox("ArtBox");
+  }
+
   getRotation(): 0 | 90 | 180 | 270 {
     const rotNode = this.resolveInheritedNode("Rotate");
     if (rotNode?.kind === "number") {
@@ -190,7 +239,19 @@ export class PdfPage {
     if (!res) {
       const inherited = this.resolveInheritedNode("Resources");
       if (inherited?.kind === "dict") {
-        res = inherited;
+        const clonedEntries = inherited.entries.map(entry => {
+          const subDict = this.cosDoc.resolveDict(entry.value);
+          if (subDict) {
+            return {
+              key: { ...entry.key },
+              value: cosDict(
+                Object.fromEntries(subDict.entries.map(se => [se.key.decoded, se.value]))
+              ),
+            };
+          }
+          return { key: { ...entry.key }, value: entry.value };
+        });
+        res = { kind: "dict", entries: clonedEntries };
       } else {
         res = cosDict({});
       }
@@ -293,6 +354,7 @@ export class PdfPage {
 
   setRawContentStream(bytes: Uint8Array, compress = true): void {
     this.cachedContentAst = parseContentStream(bytes);
+    this.isolatedInitialStream = false;
     const stm = cosStream(bytes, { compress });
     const contentsRef = dictGet(this.pageDict, "Contents");
     if (contentsRef?.kind === "ref") {
@@ -301,6 +363,17 @@ export class PdfPage {
       const newRef = this.cosDoc.allocateObject(stm);
       dictSet(this.pageDict, "Contents", newRef);
     }
+  }
+
+  private getIsolatedContentAst(): PdfContentNode[] {
+    const ast = this.getContentAst();
+    if (!this.isolatedInitialStream && ast.length > 0) {
+      this.isolatedInitialStream = true;
+      this.cachedContentAst = [{ kind: "graphics-group", ops: [...ast] }];
+      return this.cachedContentAst;
+    }
+    this.isolatedInitialStream = true;
+    return ast;
   }
 
   setContentAst(nodes: PdfContentNode[], compress = true): void {
@@ -319,7 +392,7 @@ export class PdfPage {
   drawText(text: string, options: DrawTextOptions): void {
     const size = options.size ?? 12;
     const color = options.color ?? { r: 0, g: 0, b: 0 };
-    const ast = this.getContentAst();
+    const ast = this.getIsolatedContentAst();
 
     let fontResKey: string;
     let tokenNode;
@@ -361,7 +434,7 @@ export class PdfPage {
   }
 
   drawRect(options: DrawRectOptions): void {
-    const ast = this.getContentAst();
+    const ast = this.getIsolatedContentAst();
     const ops: PdfContentNode[] = [];
     if (options.fill) {
       ops.push({
@@ -415,7 +488,7 @@ export class PdfPage {
   }
 
   drawPath(segments: readonly PdfPathSegment[], options: DrawPathOptions = {}): void {
-    const ast = this.getContentAst();
+    const ast = this.getIsolatedContentAst();
     const ops: PdfContentNode[] = [];
     if (options.fill) {
       ops.push({
@@ -496,7 +569,7 @@ export class PdfPage {
     const w = options.width ?? handle.width;
     const h = options.height ?? handle.height;
     const resKey = this.ensureXObjectResource(handle.xobjectRef);
-    const ast = this.getContentAst();
+    const ast = this.getIsolatedContentAst();
     ast.push({
       kind: "graphics-group",
       ops: [

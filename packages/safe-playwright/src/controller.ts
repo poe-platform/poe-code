@@ -1,5 +1,5 @@
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage, PlaywrightFrame } from './adapter.js';
-import { createSnapshotEngine } from './snapshot.js';
+import { createSnapshotEngine, SnapshotLimitError } from './snapshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
 
 export interface PlaywrightControllerOptions {
@@ -243,8 +243,16 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
               await invocation.write(`Tab ${index} ${parsed.command === 'tab-close' ? 'closed' : 'selected'}\n`);
             } else if (parsed.command === 'snapshot') {
               if (typeof page!.on !== 'function' || typeof page!.off !== 'function') throw new Error('Snapshot engine unsupported: navigation events required');
-              const text = await session.snapshot.capture(page!, local.signal);
+              retained = false;
+              let text: string;
+              try { text = await session.snapshot.capture(page!, local.signal); }
+              catch (error) {
+                // Limit refusal is recoverable only after capture cleanup succeeds.
+                if (error instanceof SnapshotLimitError) { checkSession(session); retained = true; }
+                throw error;
+              }
               checkSession(session);
+              retained = true;
               if (parsed.filename !== undefined) {
                 const bytes = new TextEncoder().encode(text);
                 if (bytes.byteLength > maxArtifactBytes) throw new Error('Artifact byte limit exceeded');

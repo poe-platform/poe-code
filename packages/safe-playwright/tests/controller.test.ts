@@ -78,6 +78,56 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+for (const artifact of [false, true]) {
+  test(`failed snapshot capture retires the session (${artifact ? 'artifact' : 'stdout'})`, async () => {
+    const f = fixture();
+    await f.run(['open']);
+    const page = f.leases[0]!.lease.context.pages()[0]!;
+    page.frames = () => [{ locator: () => ({ elementHandles: async () => { throw new Error('provider capture failed'); } }) }];
+    page.on = () => {};
+    page.off = () => {};
+    await assert.rejects(f.run(artifact ? ['snapshot', '--filename=page.yml'] : ['snapshot'], { writeArtifact: async () => {} }), /provider capture failed/);
+    assert.equal(f.leases[0]!.releases, 1);
+    await assert.rejects(f.run(['snapshot']), /Session closed/);
+    await f.controller.dispose();
+  });
+}
+
+test('completed snapshot output refusal preserves the session', async () => {
+  const f = fixture();
+  await f.run(['open']);
+  const page = f.leases[0]!.lease.context.pages()[0]!;
+  page.frames = () => [];
+  page.on = () => {};
+  page.off = () => {};
+  await assert.rejects(f.run(['snapshot'], { write: async () => { throw new Error('output refused'); } }), /output refused/);
+  assert.equal(f.leases[0]!.releases, 0);
+  await f.run(['snapshot']);
+  await f.controller.dispose();
+});
+
+for (const cleanupFails of [false, true]) {
+  test(`snapshot limit ${cleanupFails ? 'with failed cleanup retires' : 'with completed cleanup preserves'} the session`, async () => {
+    const f = fixture();
+    const controller = createPlaywrightController({ adapter: f.adapter, limits: { maxSnapshotBytes: 1 } });
+    const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async () => {} });
+    await run(['open']);
+    const page = f.leases[0]!.lease.context.pages()[0]!;
+    const handle = {
+      async evaluate<T>(fn: (node: SnapshotNode) => T): Promise<T> { return fn({ tagName: 'BUTTON', textContent: 'Long name', isConnected: true, getAttribute: () => null }); },
+      async click() {}, async fill() {},
+      async dispose() { if (cleanupFails) throw new Error('cleanup failed'); },
+    };
+    page.frames = () => [{ locator: () => ({ elementHandles: async () => [handle] }) }];
+    page.on = () => {};
+    page.off = () => {};
+    await assert.rejects(run(['snapshot']), cleanupFails ? /capture and cleanup failed/ : /byte limit/);
+    assert.equal(f.leases[0]!.releases, cleanupFails ? 1 : 0);
+    await controller.dispose();
+    await f.controller.dispose();
+  });
+}
+
 test('session selection, retained ownership, explicit engine, and idempotent disposal', async () => {
   const f = fixture(3);
   await f.run(['open']);

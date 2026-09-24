@@ -2,6 +2,8 @@ import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightFrame } from '.
 
 export interface SnapshotLimits { readonly maxSnapshotBytes: number; readonly maxSnapshotRefs: number }
 
+export class SnapshotLimitError extends Error {}
+
 /** Public element handles only. Shared by regular and Cloudflare injected pages.
  * This is a DOM interaction summary, not the full Playwright CLI accessibility tree.
  * Guest text is never compiled or evaluated as a locator or browser program.
@@ -43,7 +45,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
         signal?.throwIfAborted();
         const handles = await frame.locator('button, input, textarea, select, a[href], [role], [contenteditable="true"]').elementHandles!();
         for (const handle of handles) acquired.add(handle);
-        if (acquired.size > maxSnapshotRefs) throw new Error('Snapshot ref limit exceeded');
+        if (acquired.size > maxSnapshotRefs) throw new SnapshotLimitError('Snapshot ref limit exceeded');
         for (const handle of handles) {
           signal?.throwIfAborted();
           const summary = await handle.evaluate(node => {
@@ -54,7 +56,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
           const ref = nextRef?.() ?? `e${++sequence}`;
           const line = `- ${JSON.stringify(summary.role).slice(1, -1)} ${JSON.stringify(summary.name.trim())} [ref=${ref}]\n`;
           bytes += new TextEncoder().encode(line).byteLength;
-          if (bytes > maxSnapshotBytes) throw new Error('Snapshot byte limit exceeded');
+          if (bytes > maxSnapshotBytes) throw new SnapshotLimitError('Snapshot byte limit exceeded');
           pending.set(ref, { handle, frame });
           text += line;
         }

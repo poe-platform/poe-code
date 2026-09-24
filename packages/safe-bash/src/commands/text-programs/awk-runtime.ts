@@ -41,6 +41,8 @@ export class AwkRuntime {
   private entries = 0;
   private phase = "BEGIN";
   private status = 0;
+  private randomSeed = 1;
+  private randomState = 1;
   constructor(private readonly program: AwkProgram, readonly context: CommandContext, readonly budget: Budget, readonly retention: AwkRetention, args: readonly string[], assignments: readonly string[], separator?: string, private readonly operandAssignments = true, private readonly ordchr = false, private readonly inspection?: AwkInspection) {
     const defaults: Record<string, Scalar> = { FS: string(" "), RS: string("\n"), OFS: string(" "), ORS: string("\n"), OFMT: string("%.6g"), CONVFMT: string("%.6g"), SUBSEP: string("\x1c"), NR: numeric(0), FNR: numeric(0), NF: numeric(0), FILENAME: string(""), RSTART: numeric(0), RLENGTH: numeric(0), ARGC: numeric(args.length + 1) };
     try {
@@ -119,7 +121,7 @@ export class AwkRuntime {
   private pattern(source: string): Pattern {
     let pattern = this.regexes.get(source);
     if (!pattern) {
-      pattern = new Pattern(source);
+      pattern = new Pattern(source, true, false, "awk");
       if (this.regexes.size >= 256) this.regexes.delete(this.regexes.keys().next().value!);
       this.regexes.set(source, pattern);
     }
@@ -439,6 +441,17 @@ export class AwkRuntime {
     const values: Scalar[] = [];
     for (const argument of args) values.push(await this.scalarExpression(argument));
     const first = values[0] ?? unset;
+    if (name === "srand") {
+      const previous = this.randomSeed;
+      this.randomSeed = values.length ? Math.trunc(number(first)) : Math.floor(Date.now() / 1000);
+      this.randomState = this.randomSeed >>> 0;
+      return numeric(previous);
+    }
+    if (name === "rand") {
+      // A full-period 32-bit generator; keep state local to this invocation.
+      this.randomState = (Math.imul(this.randomState, 1664525) + 1013904223) >>> 0;
+      return numeric(this.randomState / 0x100000000);
+    }
     if (this.ordchr && name === "ord") return numeric(this.asText(first).charCodeAt(0) || 0);
     if (this.ordchr && name === "chr") {
       const value = number(first);

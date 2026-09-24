@@ -72,7 +72,7 @@ export class Pattern {
   private readonly anchored: boolean;
   private readonly linear: boolean;
 
-  constructor(source: string, extended = true, ignoreCase = false) {
+  constructor(source: string, extended = true, ignoreCase = false, dialect: "sed" | "awk" = "sed") {
     if (!extended) source = extendedSource(source);
     let offset = 0;
     let groups = 0;
@@ -81,7 +81,17 @@ export class Pattern {
     const escaped = (): string => {
       const character = source[offset++];
       if (character === undefined) throw new ProgramError("trailing backslash in regular expression");
-      if (/^[1-9]$/u.test(character)) throw new ProgramError("pattern backreferences are not supported");
+      if (dialect === "awk") {
+        const octal = "01234567".includes(character);
+        if (octal || character === "x") {
+          let digits = octal ? character : "";
+          const alphabet = octal ? "01234567" : "0123456789abcdefABCDEF";
+          while (digits.length < (octal ? 3 : 2) && offset < source.length && alphabet.includes(source[offset]!)) digits += source[offset++];
+          return digits ? String.fromCharCode(parseInt(digits, octal ? 8 : 16) & 255) : character;
+        }
+        if (character === "b") return "\b";
+      }
+      if (dialect === "sed" && /^[1-9]$/u.test(character)) throw new ProgramError("pattern backreferences are not supported");
       const control: Record<string, string> = { n: "\n", t: "\t", r: "\r", f: "\f", v: "\v", a: "\x07" };
       return control[character] ?? character;
     };
@@ -125,7 +135,7 @@ export class Pattern {
       if (token === "[") return bracket();
       if (token === "\\") {
         const reference = source[offset];
-        if (reference !== undefined && /^[1-9]$/u.test(reference)) {
+        if (dialect === "sed" && reference !== undefined && /^[1-9]$/u.test(reference)) {
           const index = Number(reference);
           if (!closedGroups.has(index)) throw new ProgramError("pattern references an undefined or open capture group");
           offset++;

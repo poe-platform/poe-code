@@ -40,6 +40,10 @@ export function decodeString(source: string): string {
     if (/^[0-7]$/u.test(next)) {
       const following = /^[0-7]{0,2}/u.exec(source.slice(offset + 1))![0];
       result += String.fromCharCode(parseInt(next + following, 8) & 255); offset += following.length;
+    } else if (next === "x") {
+      let digits = "";
+      while (digits.length < 2 && offset + 1 < source.length && "0123456789abcdefABCDEF".includes(source[offset + 1]!)) digits += source[++offset];
+      result += digits ? String.fromCharCode(parseInt(digits, 16)) : "x";
     } else result += controls[next] ?? next;
   }
   return result;
@@ -100,7 +104,7 @@ class Lexer {
         const next = this.source[this.offset++];
         if (next === undefined) break;
         source += next === "/" ? "/" : `\\${next}`;
-      } else if (character === "/" && !bracket) { this.regexSource = source; return new Pattern(source); }
+      } else if (character === "/" && !bracket) { this.regexSource = source; return new Pattern(source, true, false, "awk"); }
       else {
         if (character === "\n") throw new ProgramError("newline in regular expression literal");
         if (character === "[") bracket = true;
@@ -116,6 +120,7 @@ export const builtinArities: Readonly<Record<string, readonly [number, number]>>
   length: [0, 1], substr: [2, 3], index: [2, 2], split: [2, 3], match: [2, 2],
   sub: [2, 3], gsub: [2, 3], sprintf: [1, Infinity], tolower: [1, 1], toupper: [1, 1],
   int: [1, 1], sqrt: [1, 1], exp: [1, 1], log: [1, 1], sin: [1, 1], cos: [1, 1], atan2: [2, 2], close: [1, 1],
+  rand: [0, 0], srand: [0, 1],
 };
 
 const reserved = new Set(["BEGIN", "END", "function", "if", "else", "while", "do", "for", "break", "continue", "next", "nextfile", "return", "exit", "delete", "print", "printf", "getline"]);
@@ -296,7 +301,7 @@ export class AwkParser {
     let left = this.prefix();
     while (true) {
       const token = this.token.kind === "operator" || this.token.kind === "name" ? this.token.text : "";
-      if ((token === "++" || token === "--") && minimum <= 15) {
+      if ((token === "++" || token === "--") && minimum <= 15 && isLvalue(left)) {
         this.advance(); if (!isLvalue(left)) throw new ProgramError("increment requires an assignable expression");
         left = { kind: "unary", operator: token, operand: left, postfix: true }; continue;
       }
@@ -317,7 +322,7 @@ export class AwkParser {
         }
         left = { kind: "binary", operator: token, left, right }; continue;
       }
-      const concatenates = this.token.kind === "number" || this.token.kind === "string" || this.token.kind === "name" && !reserved.has(token) && token !== "in" || token === "$" || token === "(";
+      const concatenates = this.token.kind === "number" || this.token.kind === "string" || this.token.kind === "name" && !reserved.has(token) && token !== "in" || token === "$" || token === "(" || token === "!" || token === "++" || token === "--";
       if (concatenates && minimum <= 8) {
         left = { kind: "binary", operator: "concat", left, right: this.expression(9, print) }; continue;
       }

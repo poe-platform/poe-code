@@ -148,12 +148,15 @@ with optional exponents; arithmetic uses IEEE-754 doubles.
 | Explicit file input | `getline [variable/field/array] < expression` returns 1/0/-1 for record/EOF/I/O error. It respects RS, leaves NR/FNR unchanged, and resplits fields only when replacing `$0`. File cursors persist until `close(path)` or invocation cleanup; `maxGetlineFiles`, when supplied, bounds the number retained. `"-"` reads stdin; `"./-"` names a literal VFS file. |
 | Arguments/environment | Mutable `ARGC`, `ARGV`, and `ENVIRON` initialized only from the command context. Clearing/deleting ARGV entries skips files. ENVIRON changes do not mutate the parent context. |
 | String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals; decoded `\1`…`\9` remain literal backslash+digit, not capture references. After string decoding, replacement `\&` and `\\` produce literal ampersands and backslashes (POSIX rules); other backslashes remain literal, so `"\\n"` inserts backslash+n rather than a newline. |
-| Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. |
+| Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. `rand()` returns a value in `[0,1)`; `srand([seed])` resets the invocation's generator and returns the previous seed. The initial seed is 1; omitting the seed uses the current time in seconds. Equal seeds repeat the sequence; sequences need not match a host awk. |
 
 Numeric strings from fields, input assignments, and array keys retain their
 original text while participating in numeric comparisons and truth tests. A
 literal string `"0"` remains true. Byte-oriented C-locale behavior applies to
-field lengths, substrings, comparisons, and ASCII case conversion.
+field lengths, substrings, comparisons, and ASCII case conversion. Strings and
+regexes accept octal byte escapes (`\101`) and one or two hexadecimal digits
+after `\x` (`\x41`); regex `\b` denotes a backspace byte. Numeric regex escapes
+are byte escapes rather than capture backreferences.
 
 Formatting supports `%c`, `%s`, `%d`/`%i`, `%u`, `%o`, `%x`/`%X`, `%f`/`%F`,
 `%e`/`%E`, `%g`/`%G`, `%%`, flags `-+ #0`, numeric or `*` width/precision.
@@ -191,8 +194,8 @@ execution treats these markers as literal byte strings, without locale translati
 containing one `run` (`r`) and `quit` (`q`); interactive debugging, breakpoints,
 stepping, and other debugger commands are refused explicitly.
 
-Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`, random
-and time functions, regex/multibyte `RS`, locale/Unicode character semantics,
+Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`,
+time functions, regex/multibyte `RS`, locale/Unicode character semantics,
 hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such
 as `gensub`, `patsplit`, `asort`, nested arrays, and special variable behavior
 for `FPAT`, `FIELDWIDTHS`, `IGNORECASE`, or `PROCINFO`. Unknown special-variable

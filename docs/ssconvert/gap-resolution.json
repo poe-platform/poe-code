@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Forward-name, mixed-cycle ordering, link-order, definition-scope and relative-reference repairs are delivered and natively qualified. Referenced-cycle semantics, other links, broader references and publication remain open.",
+      "currentFinding": "Name ordering, links, scopes and relative references are delivered and natively qualified. Empty named constants now replay correctly under local tests and authenticated native XML controls. Original XML cycle rejection, BIFF referenced-cycle error values, broader references and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -474,6 +474,12 @@
             "exactRemoteMainVerified": true,
             "publication": "pending"
           }
+        },
+        {
+          "kind": "empty-native-named-expression",
+          "path": "docs/ssconvert/empty-named-expression-gap-proof.json",
+          "nativeEvidence": "docs/ssconvert/biff-referenced-cycles-native-capture.json",
+          "outcome": "Eight red regressions repaired; 33 focused and 22873 package tests, lint/types/build and eight SDK/Shell native XML replays pass. Original XML circular-definition rejection and BIFF #REF! versus #NAME? remain unresolved."
         }
       ],
       "delivery": {

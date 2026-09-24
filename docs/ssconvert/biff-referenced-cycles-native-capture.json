@@ -1,0 +1,1126 @@
+{
+  "scope": "Exact-head native artifact authentication and raw capture reduction; no local execution of native AArch64 code.",
+  "run": {
+    "id": 35943726208,
+    "head_sha": "3b1f9743c9f59541abd5ca5d73cadfa83c0e3356",
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/poe-platform/poe-code/actions/runs/35943726208",
+    "run_attempt": 1,
+    "created_at": "2026-09-24T01:37:15Z",
+    "updated_at": "2026-09-24T01:41:58Z"
+  },
+  "artifact": {
+    "id": 10785717887,
+    "node_id": "MDg6QXJ0aWZhY3QxMDc4NTcxNzg4Nw==",
+    "name": "ssconvert-linux-3b1f9743c9f59541abd5ca5d73cadfa83c0e3356-35943726208",
+    "size_in_bytes": 56736092,
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10785717887",
+    "archive_download_url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10785717887/zip",
+    "expired": false,
+    "digest": "sha256:024f4ffbb1ca6a76ee1379238097817a8d6e64cae70a655a3e65c4413743b65a",
+    "created_at": "2026-09-24T01:41:55Z",
+    "updated_at": "2026-09-24T01:41:55Z",
+    "expires_at": "2026-10-01T01:41:52Z",
+    "workflow_run": {
+      "id": 35943726208,
+      "repository_id": 1078492326,
+      "head_repository_id": 1078492326,
+      "head_branch": "main",
+      "head_sha": "3b1f9743c9f59541abd5ca5d73cadfa83c0e3356"
+    }
+  },
+  "artifactSha256": "024f4ffbb1ca6a76ee1379238097817a8d6e64cae70a655a3e65c4413743b65a",
+  "identitySha256": "f7faacf57d42e9a47e3cbfbf8cf024aeae882ff9ae57ff260366595ed668e558",
+  "sourceRevision": "3b1f9743c9f59541abd5ca5d73cadfa83c0e3356",
+  "manifestBindings": [
+    {
+      "path": "docs/ssconvert/reference-profile.json",
+      "sha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e"
+    },
+    {
+      "path": "docs/ssconvert/optional-runtime-extension-coverage.json",
+      "sha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb"
+    },
+    {
+      "path": "docs/ssconvert/linux-optional-service-native-probes.json",
+      "sha256": "e7e0c1f71b2933dce2ad3feb4010f479147dbd92da43552ed36d5dac1f4e0344"
+    },
+    {
+      "path": "docs/ssconvert/linux-language-native-probes.json",
+      "sha256": "06768ed4ba06d1b60fab2fa7d56f444a58e99c9194b93158341c7004740a734d"
+    },
+    {
+      "path": "docs/ssconvert/linux-python-reference-native-probes.json",
+      "sha256": "3ae0a25cf6869565f8003420dc9eec1dc60e28f000e325bb3f4409d4fc8fa9e3"
+    },
+    {
+      "path": "docs/ssconvert/linux-reference-dependencies.json",
+      "sha256": "a3126d1f67fb59c60c04a588e16c8917fcc64e698d2475ab7d6f427da8f97841"
+    }
+  ],
+  "workflowSha256": "f5dcd9974fbbcc09c502acaf9e670da882ecd2811b1d4aeb5becee41d7c53d6a",
+  "prefixArchiveSha256": "3c2a4edc76cdfc911e614d986a887fbb5e183c773cd89ccb026ccf70e4f04be3",
+  "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+  "architecture": "ELF64 little-endian AArch64",
+  "binaryMode": "0755",
+  "moduleEntries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "sha256": "9287e99cb0eb58b22e3591d606b7e692f6a01ed4df5f27d31cd253dbbdd08bd7",
+      "bytes": 179168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "sha256": "1d27cc3e112c32e9c4acb3e72502ee543b1eda1ca257c4a64f5b0d1c8b8ef437",
+      "bytes": 106672
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "sha256": "8862a7ac773dc5fc0147fe42be92e3b9b0672d83fcf83be0329d92c0fd2d9803",
+      "bytes": 3230928
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "sha256": "6e65d282c7e00c697fb53924f4c213a6575d36b6cb4a94fe4a001fb9432aa5fa",
+      "bytes": 96056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "sha256": "d53f6f927023b68632236285ce3c9e19c98d84262d5f039688bbc547d5fc170d",
+      "bytes": 153872
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "sha256": "0b5caff19fd3c99333bc7d9cfb172659f3b770456eaafb26f9d6b9e8afdaa332",
+      "bytes": 109744
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "sha256": "5537687bfb6f4239c65d2f5b2ec053ef78e165de7cdd09d4a44dcdfcbf23380f",
+      "bytes": 129160
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "sha256": "3074c0a6ff94af72cadce040a4d6de2c00270d3ef5e2b0be977c58276b3623f8",
+      "bytes": 179248
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "sha256": "1b486c857e1b97d330c20d15648dc49999f1c3ab625005abf1a956a1e5a96fb6",
+      "bytes": 117208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "sha256": "1faaf049e22ed1c150885ca105094a833ded1048053b42bda606dc71abad19c5",
+      "bytes": 98112
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "sha256": "50da1b950765ff1a2c34a9e608e737a553123aacb163a1b96ea7d67ecbe72f5e",
+      "bytes": 273792
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "sha256": "f57b02b1236ade73c909a56f52a5fd4aff7e75e316cacb76ab3c99903903fcdd",
+      "bytes": 82120
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "sha256": "5420584319c02bcfdc106e8c5b62d289aa73e536431d4cbdf62f066c2534de67",
+      "bytes": 117648
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "sha256": "15a7551f3f9b6efee5adf6b1d0ed5c684e697e18f0b181a61c93bd541254ef2a",
+      "bytes": 117880
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "sha256": "2614988bbb8d512296e78ff8ae686c19be9c2a5563a2bcd4cf2824236fdd16ac",
+      "bytes": 89048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "sha256": "ae1c3d5759926cfea414a915d101a0e21e302544a4e1e4e7e17dd4aa5b35b392",
+      "bytes": 173768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "sha256": "be379f6467576b215ca9cac2de85f403121d19830b997cb49a871d4f8341c9a9",
+      "bytes": 251024
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "sha256": "a465fa00dffc7e7107110d370550eb30361852fbb09ec974805470c306b0ebe7",
+      "bytes": 104576
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "sha256": "01ab7fda05e5d3a9c2c2b58624e85f3e80c7776498fc723e3682f119a220fed2",
+      "bytes": 203832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "sha256": "76b04d170909244061aec95b949e919ad4b910e191c52fcab926ec19e5bece24",
+      "bytes": 113800
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "sha256": "a71a298d51db266213770b440542c61f23e17be18eca9c7c70ee51d66ef42263",
+      "bytes": 359728
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "sha256": "97e162519a4df0eb3f7baebb65d7f7af4d4e1aa623e6838192a9a00b4d753e35",
+      "bytes": 250768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "sha256": "dcf46a9056a077ea5383bca055342f78399c15736653ab6714e7dd99b5afc047",
+      "bytes": 125208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "sha256": "b02a40e861795fc0523a8185dcbb3d95ef903b33ff454034932379f4bd6acf73",
+      "bytes": 166840
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "sha256": "3ae33d6d38828ea205e1d9b5a487e3fc66366d422137b1ae3ed4ab8b222c7e43",
+      "bytes": 257312
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "sha256": "053661656c71ea19195cbb44d9f7bdf8d72e9708097c37f0fa7c3a70a00a5051",
+      "bytes": 336184
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "sha256": "852e7741e38352b0e461b0269f2baa433954a06fb31ef19007dd5a2cef8c1ace",
+      "bytes": 167472
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "sha256": "d71e79c35e2883767d8576bef7c115543b36b70eb03beaccd88c4d161625bf61",
+      "bytes": 125056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "sha256": "d5624fba09fdc5219eca0965e2228ddc2685a0088ae27d814b88febaad814606",
+      "bytes": 114976
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "sha256": "ab9b43e457e022591898ce9b73f8de5c43308fcfcd81bee4c0ee02621da8a0ab",
+      "bytes": 103048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "sha256": "02dcaf868cbb0fef824d0a9f39fad6d40df99038945b1281a820c6f03b4319b1",
+      "bytes": 1692832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "sha256": "85b5e2b770f82ca546fb469eef7846f6de8e21c9f3443d634b07295b764d35f3",
+      "bytes": 119624
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "sha256": "bab732e79a0d4cb3479871a7362c2c371cc5eebb995c3bf9db3ea33da4c96051",
+      "bytes": 155328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "sha256": "adcab2b55e5b84f24ac597b01a140afbdd2593167a5b05b8e0e4b58f50998cfc",
+      "bytes": 142408
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "sha256": "c9c19958876d410bd481abdc9df6b6468c601620e7414c0cd52c36197a10c358",
+      "bytes": 145168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "sha256": "53558ceb5e2bff9d61f87c1b00af1c584f92ca3ba76adccc312d87d822bb8f63",
+      "bytes": 152768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "sha256": "7e0912913898186e83c75a19d2e1a5fcf19123c4d8536b78eba1323828718a4f",
+      "bytes": 110664
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "sha256": "3377db0484ebddda4d0424eca82c7071413064ec28795befb950c5331cba0238",
+      "bytes": 401920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "sha256": "5eb5dc639dda7b1ca651a1bb036abc1ed86f8b2d2c162ec9bae397658d347d8a",
+      "bytes": 325328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "sha256": "a4cfc0e78d36db629c32c06da7a5c39fd17ebbcb24dd372039d7d279a922d5ae",
+      "bytes": 170816
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "sha256": "4787b494e72be3653c28460db977353946f10feffdef9e782ca85042943c1845",
+      "bytes": 169832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "sha256": "8df93e3d5403a0ef96917d8081e78ad68445c83ec5ed38d57bf125a4907d20f7",
+      "bytes": 391784
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "sha256": "ec710ba3692a16af0d03c3962c0e5bd8242dd2ec4c2f6d207c2feccdac8f0ed9",
+      "bytes": 344600
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "sha256": "6a3632498e993bada8024adb6ca552203b82d763c71c55640a0f9bc7513199a1",
+      "bytes": 180200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "sha256": "91a355c04655fe2279fedcce3b21ee0a4d29d29193b1fac032820cfaca6b53c5",
+      "bytes": 101200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "sha256": "210f741cecaf062d295962e38f79843d9cb412ff819b40e50c1fe517eca9be2e",
+      "bytes": 134640
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9",
+      "bytes": 7608920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    }
+  ],
+  "uniqueResolvedModuleFiles": 48,
+  "prefixLibraries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9"
+    }
+  ],
+  "fonts": [
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+      "bytes": 708920,
+      "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "bytes": 759720,
+      "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+      "bytes": 334268,
+      "sha256": "0d3c03d1b667192f91223660a3163325cf83132662fe4d9f7d6e596bf7a995c2"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf",
+      "bytes": 254960,
+      "sha256": "2084995adab143b149258f5944b7f863804796b753014526bd7f7915b1b20770"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf",
+      "bytes": 253448,
+      "sha256": "710323dd803666c37988df68e736c233d96efdf5c770c8ee28f4c4f4b84fb32d"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+      "bytes": 343140,
+      "sha256": "54bf827eb99404e8f430c330ad30f063334f637eba0109b6a18d4f566a8e9dd8"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+      "bytes": 356668,
+      "sha256": "aac3f559445d23f0f567a243f91f3f6ad6cb4b5cafa1521a3479fffe0637f0bd"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+      "bytes": 380660,
+      "sha256": "8cb29f7db250ebb2551a6ce2c1e0bfd5a0eb520e9e233370db0493e82e1f36f7"
+    }
+  ],
+  "activePlugins": [
+    "GOffice_plot_xy",
+    "GOffice_reg_logfit",
+    "GOffice_plot_pie",
+    "GOffice_plot_radar",
+    "GOffice_plot_surface",
+    "GOffice_plot_distrib",
+    "GOffice_smoothing",
+    "GOffice_plot_barcol",
+    "GOffice_reg_linear",
+    "Gnumeric_fndate",
+    "Gnumeric_oleo",
+    "Gnumeric_glpk",
+    "Gnumeric_fnlogical",
+    "Gnumeric_fnerlang",
+    "Gnumeric_numtheory",
+    "Gnumeric_Excel",
+    "Gnumeric_paradox",
+    "Gnumeric_fncomplex",
+    "Gnumeric_lotus",
+    "Gnumeric_sylk",
+    "Gnumeric_plan_perfect",
+    "Gnumeric_fnfinancial",
+    "Gnumeric_nlsolve",
+    "Gnumeric_html",
+    "Gnumeric_fndatabase",
+    "Gnumeric_fnstring",
+    "Gnumeric_dif",
+    "Gnumeric_fninfo",
+    "Gnumeric_xbase",
+    "Gnumeric_mps",
+    "Gnumeric_fnhebdate",
+    "Gnumeric_fnchristiandate",
+    "Gnumeric_fnlookup",
+    "Gnumeric_fnrandom",
+    "Gnumeric_fnTimeSeriesAnalysis",
+    "Gnumeric_fnflt",
+    "Gnumeric_applix",
+    "Gnumeric_fneng",
+    "Gnumeric_sc",
+    "Gnumeric_lpsolve",
+    "Gnumeric_derivatives",
+    "Gnumeric_QPro",
+    "Gnumeric_r",
+    "Gnumeric_fnstat",
+    "Gnumeric_OpenCalc",
+    "Gnumeric_fnmath"
+  ],
+  "rows": [
+    {
+      "id": "biff-referenced-cycles-excel_biff7",
+      "inputSha256": "4b6901477f5a7226936d2916acfa3b08afde0c6e5e83c3b8d78ec2baaef0133d",
+      "inputBytes": 5632,
+      "expectedCsv": null,
+      "nativeReplayFilename": "biff-referenced-cycles-excel_biff7-replay.gnumeric",
+      "nativeReplaySha256": "7cd7c516c71395146210fa6edff39d8e78786ff8bd03b8afec5a5189f5b27611",
+      "nativeReplayBytes": 8844,
+      "captures": [
+        {
+          "label": "biff-referenced-cycles-excel_biff7",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff7.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632373438293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3036323a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786161636533343437383638302e0a0a287373636f6e766572743a3632373438293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3036323a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786161636533343437383638302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "a01391227591dfb2144a78153fecef044b062da9a508d5c71318e444b06a4a7b",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62748): gnumeric:read_expr-WARNING **: 01:41:49.062: EXCEL: 4 (of 2) UNKNOWN name 0xaace34478680.\n\n(ssconvert:62748): gnumeric:read_expr-WARNING **: 01:41:49.062: EXCEL: 6 (of 5) UNKNOWN name 0xaace34478680.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_biff7-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff7.xls",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff7-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632373530293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3039343a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162313337636561633262302e0a0a287373636f6e766572743a3632373530293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3039343a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162313337636561633262302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "167cad0a37a711185014324210503899952abecc6fe639c51774ef37f0edb88a",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62750): gnumeric:read_expr-WARNING **: 01:41:49.094: EXCEL: 4 (of 2) UNKNOWN name 0xab137ceac2b0.\n\n(ssconvert:62750): gnumeric:read_expr-WARNING **: 01:41:49.094: EXCEL: 6 (of 5) UNKNOWN name 0xab137ceac2b0.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_biff7-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff7-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": null,
+      "expectedReplayCsvMatches": null,
+      "nativeXmlNames": [
+        {
+          "name": "Guarded",
+          "expression": "if(FALSE,#REF!,7)",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Leaf",
+          "expression": "13",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "LoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Here\"",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "LocalGuarded",
+          "expression": "if(FALSE,#REF!,11)",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Data\"",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopB",
+          "expression": "Data!SheetLoopA",
+          "position": "A1",
+          "sheet": "Data"
+        }
+      ]
+    },
+    {
+      "id": "biff-referenced-cycles-excel_biff8",
+      "inputSha256": "1cc38a7def9e2925872036821d12cf56904db466dcce43b754c2d791662f7655",
+      "inputBytes": 5632,
+      "expectedCsv": null,
+      "nativeReplayFilename": "biff-referenced-cycles-excel_biff8-replay.gnumeric",
+      "nativeReplaySha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+      "nativeReplayBytes": 8844,
+      "captures": [
+        {
+          "label": "biff-referenced-cycles-excel_biff8",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff8.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632373534293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3137333a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162356664326665363638302e0a0a287373636f6e766572743a3632373534293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3137333a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162356664326665363638302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "76b1954578cf2fc93517c500d3ac504562eb08802bf6340c67b33bdbb01de42b",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62754): gnumeric:read_expr-WARNING **: 01:41:49.173: EXCEL: 4 (of 2) UNKNOWN name 0xab5fd2fe6680.\n\n(ssconvert:62754): gnumeric:read_expr-WARNING **: 01:41:49.173: EXCEL: 6 (of 5) UNKNOWN name 0xab5fd2fe6680.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_biff8-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff8.xls",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff8-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632373536293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3230373a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162386263363634373132302e0a0a287373636f6e766572743a3632373536293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3230373a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162386263363634373132302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "7a8b9b5e881ff2782a8de52ef3f22fafff36ec44bb391e5d272ff98aacc63fe0",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62756): gnumeric:read_expr-WARNING **: 01:41:49.207: EXCEL: 4 (of 2) UNKNOWN name 0xab8bc6647120.\n\n(ssconvert:62756): gnumeric:read_expr-WARNING **: 01:41:49.207: EXCEL: 6 (of 5) UNKNOWN name 0xab8bc6647120.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_biff8-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_biff8-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": null,
+      "expectedReplayCsvMatches": null,
+      "nativeXmlNames": [
+        {
+          "name": "Guarded",
+          "expression": "if(FALSE,#REF!,7)",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Leaf",
+          "expression": "13",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "LoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Here\"",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "LocalGuarded",
+          "expression": "if(FALSE,#REF!,11)",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Data\"",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopB",
+          "expression": "Data!SheetLoopA",
+          "position": "A1",
+          "sheet": "Data"
+        }
+      ]
+    },
+    {
+      "id": "biff-referenced-cycles-excel_dsf",
+      "inputSha256": "7ebae9412f4e9ef83cc0e08d7b8796685cb2d2670fea824ff865c91c1fb241ec",
+      "inputBytes": 9728,
+      "expectedCsv": null,
+      "nativeReplayFilename": "biff-referenced-cycles-excel_dsf-replay.gnumeric",
+      "nativeReplaySha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+      "nativeReplayBytes": 8844,
+      "captures": [
+        {
+          "label": "biff-referenced-cycles-excel_dsf",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_dsf.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632373630293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3238373a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162326130643235663134302e0a0a287373636f6e766572743a3632373630293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3238373a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162326130643235663134302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "1cd015b5c0d39a2bea30c63d78d87145fc1fb4837423fd716154ccbdd4350d3b",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62760): gnumeric:read_expr-WARNING **: 01:41:49.287: EXCEL: 4 (of 2) UNKNOWN name 0xab2a0d25f140.\n\n(ssconvert:62760): gnumeric:read_expr-WARNING **: 01:41:49.287: EXCEL: 6 (of 5) UNKNOWN name 0xab2a0d25f140.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_dsf-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_dsf.xls",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_dsf-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632373632293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3332313a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162366265613237383262302e0a0a287373636f6e766572743a3632373632293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030313a34313a34392e3332313a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162366265613237383262302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "1818dfcab1b8485f4dad3da91e63bc52f52a207dc66500487c778bc47904e77a",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62762): gnumeric:read_expr-WARNING **: 01:41:49.321: EXCEL: 4 (of 2) UNKNOWN name 0xab6bea2782b0.\n\n(ssconvert:62762): gnumeric:read_expr-WARNING **: 01:41:49.321: EXCEL: 6 (of 5) UNKNOWN name 0xab6bea2782b0.\n"
+        },
+        {
+          "label": "biff-referenced-cycles-excel_dsf-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-excel_dsf-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b07044efc5c3ba3c46a284db9e8d5e99016d68ae966cb91bd454e4e07e306f50",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": null,
+      "expectedReplayCsvMatches": null,
+      "nativeXmlNames": [
+        {
+          "name": "Guarded",
+          "expression": "if(FALSE,#REF!,7)",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Leaf",
+          "expression": "13",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "LoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Here\"",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "LocalGuarded",
+          "expression": "if(FALSE,#REF!,11)",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Data\"",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopA",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopB",
+          "expression": "Data!SheetLoopA",
+          "position": "A1",
+          "sheet": "Data"
+        }
+      ]
+    },
+    {
+      "id": "biff-referenced-cycles-xml",
+      "inputSha256": "3d6c7a281a46a09ca1c3ca93f6244d2ad2b66d48784fc4055175aef41fd83cd4",
+      "inputBytes": 2999,
+      "expectedCsv": null,
+      "nativeReplayFilename": "biff-referenced-cycles-xml-replay.gnumeric",
+      "nativeReplaySha256": "ba3e177e5fe84e4f9643b9400fbb0fe062de2f5a9599332138f4ceed16d447a0",
+      "nativeReplayBytes": 8970,
+      "captures": [
+        {
+          "label": "biff-referenced-cycles-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-xml.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a300a300a31330a31390a",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204c6f63616c477561726465640a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f662053686565744c6f6f70410a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204c6f6f70410a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b0f82063df34754fe227a28e4479a4f3e8a90321392c38dc01cb05df658498f1",
+          "stderrSha256": "7af4bd66dc60d257d8b7ac6b6cef2739cd85e533985208918fb4e25204535a9f",
+          "stdoutText": "0\n0\n0\n0\n13\n19\n",
+          "stderrText": "Ignoring would-be circular definition of LocalGuarded\nIgnoring would-be circular definition of SheetLoopA\nIgnoring would-be circular definition of Guarded\nIgnoring would-be circular definition of LoopA\n"
+        },
+        {
+          "label": "biff-referenced-cycles-xml-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-referenced-cycles-xml.gnumeric",
+            "out/ssconvert-linux/biff-referenced-cycles-xml-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204c6f63616c477561726465640a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f662053686565744c6f6f70410a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f6620477561726465640a49676e6f72696e6720776f756c642d62652063697263756c617220646566696e6974696f6e206f66204c6f6f70410a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "7af4bd66dc60d257d8b7ac6b6cef2739cd85e533985208918fb4e25204535a9f",
+          "stdoutText": "",
+          "stderrText": "Ignoring would-be circular definition of LocalGuarded\nIgnoring would-be circular definition of SheetLoopA\nIgnoring would-be circular definition of Guarded\nIgnoring would-be circular definition of LoopA\n"
+        },
+        {
+          "label": "biff-referenced-cycles-xml-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A6",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-referenced-cycles-xml-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "300a300a300a300a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "b0f82063df34754fe227a28e4479a4f3e8a90321392c38dc01cb05df658498f1",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "0\n0\n0\n0\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": null,
+      "expectedReplayCsvMatches": null,
+      "nativeXmlNames": [
+        {
+          "name": "Guarded",
+          "expression": "",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Leaf",
+          "expression": "13",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "LoopA",
+          "expression": "",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "LoopB",
+          "expression": "LoopA",
+          "position": "A1",
+          "sheet": null
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Here\"",
+          "position": "A1",
+          "sheet": "Here"
+        },
+        {
+          "name": "LocalGuarded",
+          "expression": "",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Print_Area",
+          "expression": "#REF!",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "Sheet_Title",
+          "expression": "\"Data\"",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopA",
+          "expression": "",
+          "position": "A1",
+          "sheet": "Data"
+        },
+        {
+          "name": "SheetLoopB",
+          "expression": "SheetLoopA",
+          "position": "A1",
+          "sheet": "Data"
+        }
+      ]
+    }
+  ],
+  "newInputs": 4,
+  "newCaptures": 12,
+  "allExitZero": true,
+  "limitations": [
+    "Observed cases only, not full XML/name/native parity. XML replay differences are retained as observed.",
+    "System-library identities are captured receipts; only packaged prefix libraries and fonts physically rehashed.",
+    "Native warnings/failures preserved verbatim, including timestamps/PIDs/pointers if present.",
+    "No native external-link prohibition instrumented; product resolver counters are separate evidence."
+  ],
+  "publicNativeXmlReplayBeforeFix": {
+    "nativeRun": 35943726208,
+    "results": [
+      {
+        "id": "biff-referenced-cycles-excel_biff7",
+        "inputSha256": "7cd7c516c71395146210fa6edff39d8e78786ff8bd03b8afec5a5189f5b27611",
+        "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-referenced-cycles-excel_biff8",
+        "inputSha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+        "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-referenced-cycles-excel_dsf",
+        "inputSha256": "605185949955ed8fb7fb0050afa481fa364e8322c289134feb585dbd5e87d20d",
+        "native": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-referenced-cycles-xml",
+        "inputSha256": "ba3e177e5fe84e4f9643b9400fbb0fe062de2f5a9599332138f4ceed16d447a0",
+        "native": "0\n0\n0\n0\n13\n19\n",
+        "sdkAndShell": "",
+        "exitCode": 1,
+        "stderr": "Unsupported ssconvert feature: formula syntax at 0:0\n",
+        "sdkError": {
+          "code": "unsupported-feature",
+          "message": "Unsupported ssconvert feature: formula syntax at 0:0"
+        },
+        "matchesNative": false
+      }
+    ],
+    "executions": 8,
+    "externalCalls": 0,
+    "bindings": [
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "b84c535ff9cf7ff7d6cc77c62bb6189486fd0cbb8458e44709a752dc17568118"
+      },
+      {
+        "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+        "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      }
+    ]
+  },
+  "xmlSource": {
+    "path": "src/xml-sax-read.c",
+    "sha256": "05e313c36412e6572203fd2f4194487ac939cf63f984d21d8c30bdecfe1713f3",
+    "declarationLines": "2976-2986",
+    "definitionLines": "3157-3205",
+    "finding": "Name expressions are prepended to delayed_names at declaration and processed in reverse declaration order. Each is parsed after all cells; expr_name_check_for_loop rejects circular references and retains the previous placeholder expression. stderr is Ignoring would-be circular definition of NAME followed by newline.",
+    "scope": "Do not apply whole-graph rejection or evaluator changes: importer order and existing placeholders determine which declaration survives."
+  },
+  "finding": "BIFF cycles read as #REF! while guarded self-reference branches retain 7/11; original SDK/Shell cycles return #NAME?. XML rejects four circular definitions and retains empty constants, yielding 0/0/0/0/13/19. Candidate native-XML replay aborts on the empty named expressions; three BIFF-derived XML replays match. Empty expression support and circular-definition rejection are separate repairs."
+}

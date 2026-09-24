@@ -12,6 +12,10 @@ export function parseNamedExpression(
   parse: (source: string, position: ParsePosition) => FormulaNode,
   tick: () => void
 ): FormulaNode {
+  if (name.expression === "" || name.expression === "=") {
+    tick();
+    return { kind: "literal", value: { kind: "blank" }, start: 0, end: 0 };
+  }
   const position = name.position ?? { sheet: name.sheet ?? book.sheets[0]?.id ?? "", row: 0, column: 0 };
   function bind(node: FormulaNode, depth = 0): FormulaNode {
     tick();

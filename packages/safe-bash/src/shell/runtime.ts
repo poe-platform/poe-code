@@ -2979,6 +2979,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     state = trackState(state, this.budget, io[invocationScope]);
     frame.exiting = true;
+    frame.exitStatus = status;
     try {
       try { await this.extensionEvent("exit", state, io, status); }
       catch (error) { if (error instanceof Flow && error.kind === "exit" && !(error instanceof ExtensionCheckpointFailure)) { if (!error.expansionFailure) status = error.status; } else throw error; }
@@ -3492,7 +3493,7 @@ export class Runtime {
       }
       throw error;
     }
-    if (terminal && state.extensions?.exitStatus !== undefined) state.extensions.exitStatus = status;
+    if (terminal && state.extensions?.exitStatus !== undefined && !state.extensions.exiting) state.extensions.exitStatus = status;
     if (publishes) {
       const reported = publicationNegate && (command.kind === "conditional" || command.kind === "arithmetic") ? Number(status === 0) : status;
       if (terminal?.published !== status) await this.publishStatus(state, [reported], io);
@@ -6252,8 +6253,15 @@ export class Runtime {
     if (command === "getopts") return this.getoptsBuiltin(context, state);
     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
     if (command === "pwd") {
-      if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
-      const path = args.at(-1) === "-P" ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
+      let physical = false;
+      for (const arg of args) {
+        if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        for (const flag of arg.slice(1)) {
+          if (flag !== "L" && flag !== "P") { await writeDiagnostic(stderr, "pwd: invalid option\n"); return 2; }
+          physical = flag === "P";
+        }
+      }
+      const path = physical ? await this.fs.realpath(state.cwd, { signal: this.signal }) : state.cwd;
       await writeText(stdout, `${path}\n`);
       return 0;
     }
@@ -6929,7 +6937,7 @@ export class Runtime {
         if (command === "exit") return 2;
         throw completedExit(2, command);
       }
-      const status = operand === undefined ? state.status : Number((value % 256n + 256n) % 256n);
+      const status = operand === undefined ? (command === "exit" && state.extensions?.exiting ? state.extensions.exitStatus ?? state.status : state.status) : Number((value % 256n + 256n) % 256n);
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {

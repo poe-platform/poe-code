@@ -221,7 +221,7 @@ test("set named braceexpand option toggles B without changing errexit", async ()
   } finally { await shell.dispose(); }
 });
 
-for (const name of ["emacs", "errtrace", "functrace", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace"]) {
+for (const name of ["emacs", "hashall", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace"]) {
   test(`set named option retains explicit capability denial for valid name: ${name}`, async () => {
     const { shell } = setup();
     try {

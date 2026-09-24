@@ -502,7 +502,7 @@ test("shopt lists and filters both supported options without mutating unnamed op
   const { shell } = setup();
   try {
     assert.equal((await shell.exec("shopt -p dotglob globstar")).stdout, "shopt -u dotglob\nshopt -u globstar\n");
-    assert.equal((await shell.exec("shopt -s globstar; shopt -sp; shopt -up; shopt -q globstar")).stdout, "shopt -s globstar\nshopt -u dotglob\nshopt -u extglob\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u nullglob\n");
+    assert.equal((await shell.exec("shopt -s globstar; shopt -sp; shopt -up; shopt -q globstar")).stdout, "shopt -s globstar\nshopt -u dotglob\nshopt -u extglob\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u nullglob\nshopt -u extdebug\n");
     const result = await shell.exec("shopt -s globstar unknown dotglob; shopt -p dotglob globstar");
     assert.equal(result.stdout, "shopt -s dotglob\nshopt -s globstar\n");
     assert.match(result.stderr, /unknown: unsupported shell option name/u);

@@ -1,4 +1,6 @@
 export { codeOf, output, pathOf } from "./commands/internal.js";
+export { portableTrapExtension } from "./shell/trap.js";
+export type { TrapExtensionOptions, TrapSignalHost } from "./shell/trap.js";
 export { compareCopyIdentity, compareObservedEntries } from "./commands/copy-identity.js";
 export { EreLedger } from "./commands/regex-execution/ere/limits.js";
 export { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "./commands/regex-execution/ere/errors.js";

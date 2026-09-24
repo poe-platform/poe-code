@@ -61,7 +61,7 @@ test("generic extensions need no trap implementation and keep per-exec state", a
   assert.equal(created, 2);
   assert.equal(closed, 2);
   assert.equal(events.filter(event => event === "exit").length, 2);
-  assert.equal((await shell.exec("command -v trap")).exitCode, 1);
+  assert.equal((await shell.exec("command -v trap")).exitCode, 0);
 });
 
 test("generic named and short options agree with conditionals and listings", async context => {
@@ -72,11 +72,11 @@ test("generic named and short options agree with conditionals and listings", asy
   context.after(() => shell.dispose());
   for (const command of basicCommands()) shell.register(command);
   const result = await shell.exec("set -Z; [[ -o custom ]]; printf '%s;' $?; set -o; set +o custom; [[ -o custom ]]; printf '%s' $?");
-  assert.equal(result.stdout, "0;allexport\toff\nbraceexpand\ton\nerrexit\toff\nnoclobber\toff\nnoexec\toff\nnoglob\toff\nnounset\toff\npipefail\toff\ncustom\ton\n1");
+  assert.equal(result.stdout, "0;allexport\toff\nbraceexpand\ton\nerrexit\toff\nnoclobber\toff\nnoexec\toff\nnoglob\toff\nnounset\toff\npipefail\toff\nerrtrace\toff\nfunctrace\toff\ncustom\ton\n1");
   assert.equal(result.stderr, "");
 });
 
-test("extension array is snapshotted without adding default builtins", async context => {
+test("extension array is snapshotted", async context => {
   const extensions: ShellExtension[] = [];
   const shell = new Shell({ fs: new MemoryFileSystem(), extensions });
   context.after(() => shell.dispose());

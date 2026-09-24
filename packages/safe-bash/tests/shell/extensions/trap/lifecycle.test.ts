@@ -119,9 +119,9 @@ for (const [name, source, input, nativeBindingOverride] of cases) test(`native E
   assert.equal(result.stderr, native.stderr);
 });
 
-test("default shell has no trap builtin", async context => {
+test("default shell supports trap builtin", async context => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   context.after(() => shell.dispose());
-  assert.equal((await shell.exec("command -v trap")).exitCode, 1);
-  assert.equal((await shell.exec("trap '' EXIT")).exitCode, 127);
+  assert.equal((await shell.exec("command -v trap")).exitCode, 0);
+  assert.equal((await shell.exec("trap '' EXIT")).exitCode, 0);
 });

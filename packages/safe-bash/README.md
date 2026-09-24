@@ -616,7 +616,7 @@ and credential protections remain in effect.
 ## Limitations
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
-  background jobs/job control, `trap`, `exec`, process substitution,
+  background jobs/job control, `exec`, process substitution,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
   `globstar`, `nullglob`, `nocaseglob`, and `nocasematch`, plus `-o` for supported
   `set` options. `extglob` can be queried, printed, or unset; enabling it is unsupported.
@@ -630,5 +630,7 @@ and credential protections remain in effect.
   effects or stop uncooperative host work. Limits do not bound total process memory.
   `timeout --preserve-status` retains the child's status; `--signal` (`-s`)
   accepts Linux signal names and numbers and sets the cancellation exit status.
-  Signals use cooperative cancellation, without process signal delivery or traps;
+  `trap` supports cleanup and inherited trap inspection by default. Host signal
+  delivery requires the optional trap extension signal host. Signals from `timeout`
+  use cooperative cancellation without process signal delivery;
   signal `0` lets the child finish, and `KILL` reports status 137 on expiry.

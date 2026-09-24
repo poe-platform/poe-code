@@ -7,6 +7,7 @@ import type {
 } from "../contracts/index.js";
 import { warnIfHostProcessEnv } from "./env-warning.js";
 import { parseShellUnit } from "./parser.js";
+import { portableTrapExtension } from "./trap.js";
 import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
@@ -113,7 +114,7 @@ export class Shell implements PluginHost {
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     resolveLimits(options.limits);
-    this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
+    this.#options = { ...options, extensions: options.extensions?.some(extension => extension.name === "trap") ? [...options.extensions] : [portableTrapExtension(), ...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits } };
     this.commands = commands;
   }
 

@@ -2,8 +2,10 @@
 
 The executable leaf is `src/shell/extensions/trap/index.ts`. Explicit source
 consumers pass `trapExtension()` in `ShellOptions.extensions`. The explicit local
-optional build also exports this factory and its configuration types. There is
-no default registration, default implementation import, or published npm subpath.
+optional build also exports this factory and its configuration types. The portable engine in `src/shell/trap.ts` is registered by default.
+Explicit `trapExtension()` replaces it with the host signal catalog and optional
+signal delivery; there is no published npm subpath. Bare `exit` in an EXIT
+handler retains the status from before cleanup; explicit `exit N` overrides it.
 
 Root qualification passes 184 focused trap tests with the pinned Bash 5.2.37
 oracle, fourteen actual compiled/public-consumer tests, and strict consumer types.

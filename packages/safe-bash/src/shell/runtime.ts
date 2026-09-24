@@ -7658,7 +7658,7 @@ export class Runtime {
     addField();
     let expansionBytes = 0;
     const append = (value: ShellValue, glob: boolean, present: boolean) => {
-      if (splitBoundary && shellValueByteLength(value) > 0) { addField(); splitBoundary = false; }
+      if (splitBoundary && present) addField();
       const text = shellValueText(value);
       const size = shellValueByteLength(value);
       if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail("maxExpansionBytes");
@@ -7786,7 +7786,7 @@ export class Runtime {
         if (part.operator!.endsWith("+") ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, partIO);
           scratch?.reserve(part.alternate!.parts.length * 32, 0);
-          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state.variables, this.budget, undefined, false)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
+          const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state.variables, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
           if (!alternate.length && part.quoted) append("", false, true);
           parts.splice(index + 1, 0, ...alternate);
           continue;

@@ -15,6 +15,8 @@ const cases = [
   ["protected home expansion", "HOME='/home/a b:*'; IFS=' :'; printf '<%s>\\n' ~ ${u:-~/dir}; p=~/a:~/b; printf '<%s>\\n' \"$p\""],
   ["quoted operands and assignment delimiters", "unset u; printf '<%s>\\n' \"${u:-~/dir}\" ${u:-~\"\"} ${u:-~/a:~/b}; p=~\"\":~/b; q=~/a\\:~/b; printf '<%s>\\n' \"$p\" \"$q\""],
   ["raw byte splitting", "IFS=' :'; x=$'a\\377 '; y=$': b\\376'; printf '<%s>\\n' $x$y"],
+  ["empty quotes after IFS whitespace", "IFS=' :'; x='a '; z=':c'; printf '<%s>\\n' $x\"\" $x''$z $x${missing}"],
+  ["raw bytes before empty quoted fields", "IFS=' :'; x=$'a\\377 '; z=$':c\\376'; printf '<%s>\\n' $x\"\"$z"],
 ] as const;
 
 for (const [name, script] of cases) {

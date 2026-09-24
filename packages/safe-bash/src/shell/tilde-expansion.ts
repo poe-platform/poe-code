@@ -2,7 +2,7 @@ import type { Budget } from "./runtime.js";
 import type { WordPart } from "./parser.js";
 
 /** Expand lexical prefixes before parameter expansion, preserving their quoting. */
-export function expandTildes(parts: readonly WordPart[], variables: Readonly<Record<string, string>>, budget: Budget, assignmentStart?: number, protect = true): WordPart[] {
+export function expandTildes(parts: readonly WordPart[], variables: Readonly<Record<string, string>>, budget: Budget, assignmentStart?: number): WordPart[] {
   const result: WordPart[] = [];
   for (let index = 0; index < parts.length; index++) {
     const part = parts[index]!;
@@ -24,7 +24,7 @@ export function expandTildes(parts: readonly WordPart[], variables: Readonly<Rec
       const home = prefix === "" ? variables.HOME : prefix === "+" ? variables.PWD : prefix === "-" ? variables.OLDPWD : undefined;
       if (home === undefined) continue;
       if (retained < offset) result.push({ ...part, value: part.value.slice(retained, offset) });
-      result.push({ kind: "text", value: home, quoted: protect });
+      result.push({ kind: "text", value: home, quoted: true });
       retained = end;
       offset = end - 1;
     }

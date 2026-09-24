@@ -48,9 +48,10 @@ assert.equal(oversizedAllocations, 0);
 assert.ok(maximumChunk <= 8192);
 if (admission) {
   assert.equal(result.exitCode, 1);
-  assert.equal(outputBytes, 1);
-  assert.equal(actualHash, createHash("sha256").update("x").digest("hex"));
-  assert.match(diagnostic, mode === "output-admission" ? /output padding limit/ : /work limit/);
+  const expectedPrefix = mode === "output-admission" ? "" : "x";
+  assert.equal(outputBytes, expectedPrefix.length);
+  assert.equal(actualHash, createHash("sha256").update(expectedPrefix).digest("hex"));
+  assert.match(diagnostic, mode === "output-admission" ? /output projection limit/ : /work limit/);
 } else {
   const expected = mode === "combining" ? `${entry.repeat(columns)}\n${`${entry}\n`.repeat(rows)}`
     : mode === "explicit" ? "\n".repeat(rows + 1) : ` \n${"x\n".repeat(rows)}`;

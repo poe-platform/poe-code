@@ -23,8 +23,8 @@ test("a suffix exact-fit can publish before the following newline limit fails", 
 test("multibyte separator tail admission counts bytes rather than characters", async () => {
   const result = await run(["-t", "-s:", "-o界·"], "x\na:b:c\n", { limits: { maxOutputBytes: 11 } });
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, "x");
-  assert.match(result.stderr, /output padding limit/);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /output projection limit/);
 });
 
 test("work budget admits all suffix bytes before constructing its output", async () => {

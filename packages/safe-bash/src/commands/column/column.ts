@@ -45,6 +45,11 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
           for (const character of parsed.outputSeparator) { await budget.step(); validateScalar(character); }
           if (parsed.separator) for (const character of parsed.separator) { await budget.step(); validateScalar(character, true); }
           const rows: Cell[][] = [], widths: number[] = [];
+          // Only unconditional separators provide a safe output lower bound;
+          // hidden/reordered and JSON tables remain bounded by retention caps.
+          const separatorBytes = parsed.table && !parsed.json && !parsed.order
+            && !parsed.selectors.hide && !parsed.definitions.some(definition => definition.flags.includes("hide"))
+            ? Buffer.byteLength(parsed.outputSeparator) : undefined;
           let rowCount = 0, cellCount = 0, exitCode = 0;
           for (const file of parsed.files) {
             await budget.step();
@@ -71,15 +76,17 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
               }
               if (empty) {
                 if (parsed.keepEmpty) {
+                  if (separatorBytes !== undefined) budget.project(1);
                   if (parsed.table) rows.push([]);
                   else {
                     budget.check(++cellCount, limits.maxCells, "cells");
+                    budget.retain(0);
                     rows.push([{ text: "", width: 0 }]);
                   }
                 }
                 continue;
               }
-              const values = parsed.table ? await fields(text, parsed.separator, budget, limits.maxCells - cellCount, parsed.columnLimit) : [text];
+              const values = parsed.table ? await fields(text, parsed.separator, budget, limits.maxCells - cellCount, parsed.columnLimit, separatorBytes) : [text];
               if (parsed.table && !values.length) {
                 if (parsed.keepEmpty) rows.push([]);
                 continue;
@@ -90,6 +97,7 @@ export function createColumnCommand(options: ColumnCommandsOptions = {}): Comman
                 if (blank) continue;
               }
               budget.check(values.length, limits.maxCells - cellCount, "cells");
+              if (!parsed.table) budget.retain(text.length);
               if (parsed.json && values.length > parsed.names.length && !hideUnnamed) {
                 usage(`line ${rows.length + 1}: for JSON the name of the column ${parsed.names.length + 1} is required`);
               }

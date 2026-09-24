@@ -30,6 +30,8 @@ export class ColumnBudget extends Budget {
   private workUsed = 0;
   private untilYield = 128;
   private emittedBytes = 0;
+  private retainedBytes = 0;
+  private projectedBytes = 0;
   constructor(context: CommandContext, readonly columnLimits: ColumnLimits) {
     super(context, readerSettings(columnLimits));
   }
@@ -39,6 +41,18 @@ export class ColumnBudget extends Budget {
     }
   }
   override async step(): Promise<void> { await this.work(1); }
+  retain(length: number): void {
+    // Charge strings, worst-case tab expansion, and field/cell bookkeeping
+    // before slicing input or constructing display cells. This is a logical
+    // retention budget, not an engine-specific heap measurement.
+    const size = 64 + length * 16;
+    this.check(size, this.columnLimits.maxRetainedBytes - this.retainedBytes, "retention");
+    this.retainedBytes += size;
+  }
+  project(size: number): void {
+    this.check(size, this.columnLimits.maxOutputBytes - this.projectedBytes, "output projection");
+    this.projectedBytes += size;
+  }
   async work(amount: number): Promise<void> {
     this.context.signal.throwIfAborted();
     this.check(amount, this.columnLimits.maxSteps - this.workUsed, "work");

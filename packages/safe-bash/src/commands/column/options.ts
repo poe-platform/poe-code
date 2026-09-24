@@ -14,6 +14,7 @@ export interface ColumnLimits {
   readonly maxSteps: number;
   readonly maxArgumentBytes: number;
   readonly maxWidth: number;
+  readonly maxRetainedBytes: number;
 }
 
 export interface ColumnCommandsOptions {
@@ -26,8 +27,9 @@ export function settings(options: ColumnCommandsOptions): ColumnLimits {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
     maxDiagnosticBytes: Infinity,
     maxRecordBytes: Infinity, maxChunkBytes: Infinity,
-    maxRows: Infinity, maxCells: Infinity, maxFields: Infinity, maxFiles: Infinity,
-    maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: Infinity,
+    maxRows: 10_000, maxCells: 50_000, maxFields: 1_000, maxFiles: Infinity,
+    maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: 65_536,
+    maxRetainedBytes: 8 * 1024 * 1024,
     ...options.limits,
   };
   for (const [name, value] of Object.entries(limits)) {

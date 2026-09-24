@@ -3,6 +3,9 @@ import test from "node:test";
 import { createColumnCommand, type ColumnLimits } from "../../../src/commands/column/index.js";
 import { FsError, type ByteSource } from "../../../src/contracts/index.js";
 import { run } from "./helpers.js";
+import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
+import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { columnCommands } from "../../../src/commands/column/index.js";
 
 for (const args of [["--json"], ["--tree", "1"], ["-N", ""], ["-S", "2"], ["-c0"], ["-c", "unlimited"], ["-c", "1e3"], ["-c", "-3"], ["-c", "999999999999999999999"], ["-c"], ["-s"], ["-t", "-s", ""], ["-o", "|"], ["-s:"], ["-tx"], ["--table=yes"]]) {
   test(`unsupported/invalid argv ${JSON.stringify(args)}`, async () => {
@@ -78,8 +81,8 @@ test("cumulative input/rows/cells limits span multiple file operands", async () 
 test("padding is checked before allocation and cumulative work charges expansion", async () => {
   const result = await run(["-t"], `a x\n${"b".repeat(1000)} y\n`, { limits: { maxOutputBytes: 3 } });
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stdout, "a");
-  assert.match(result.stderr, /output padding limit/);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /output projection limit/);
 });
 
 test("output byte limit counts multibyte UTF-8, not UTF-16 length", async () => {
@@ -147,4 +150,45 @@ test("large public error messages retain UTF-8-safe diagnostic truncation", asyn
   assert.match(result.stderr, /diagnostic truncated/);
   assert.doesNotMatch(result.stderr, /\ufffd/);
   assert.deepEqual(reported, []);
+});
+
+test("tiny empty fields are rejected before output or cell materialization", async () => {
+  const result = await run(["-t", "-s,"], ",".repeat(125_000), { limits: { maxOutputBytes: 1024, maxSteps: 300_000 } });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /output projection/);
+});
+
+test("hidden fields still consume finite retention", async () => {
+  const result = await run(["-t", "-s,", "-H", "1"], ",".repeat(1100));
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /fields per row/);
+});
+
+test("Worker shell rejects tiny fields at column admission before stdout rejection", async () => {
+  const instance = new Shell({ fs: createMemoryFileSystem(), limits: { ...cloudflareWorkerLimits, maxOutputBytes: 1024 } })
+    .use(columnCommands());
+  try {
+    const result = await instance.exec("column -t -s,", { stdin: ",".repeat(125_000) });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /fields per row/);
+  } finally { await instance.dispose(); }
+});
+
+test("retention accounts for cells and tab expansion before allocation", async () => {
+  assert.equal((await run(["-t"], "a", { limits: { maxRetainedBytes: 80 } })).stdout, "a\n");
+  for (const input of ["aa", "\t", ","]) {
+    const result = await run(["-t", "-s,"], input, { limits: { maxRetainedBytes: 79 } });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /retention/);
+  }
+});
+
+test("discarded empty records do not consume projected output", async () => {
+  const result = await run(["-t"], "\n\n\na\n", { limits: { maxOutputBytes: 2 } });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "a\n");
 });

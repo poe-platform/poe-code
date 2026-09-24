@@ -53,12 +53,14 @@ export function decode(bytes: Uint8Array): string {
   catch { throw new FsError("EINVAL", { message: "invalid UTF-8 input" }); }
 }
 
-export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0): Promise<string[]> {
+export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0, outputSeparatorBytes?: number): Promise<string[]> {
   const result: string[] = [];
   let start = 0, offset = 0;
   const append = (end: number): void => {
+    if (outputSeparatorBytes !== undefined) budget.project(result.length ? outputSeparatorBytes : 1);
     budget.check(result.length + 1, budget.columnLimits.maxFields, "fields per row");
     budget.check(result.length + 1, remainingCells, "cells");
+    budget.retain(end - start);
     result.push(text.slice(start, end));
   };
   for (const character of text) {

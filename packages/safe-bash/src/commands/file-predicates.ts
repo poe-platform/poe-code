@@ -39,6 +39,7 @@ export async function evaluateFilePredicate(context: FilePredicateContext, opera
   }
   if (!first) return false;
   switch (operator) {
+    case "-N": return first.mtimeMs > first.atimeMs;
     case "-b": return (first.mode & 0o170000) === 0o060000;
     case "-p": return (first.mode & 0o170000) === 0o010000;
     case "-S": return (first.mode & 0o170000) === 0o140000;

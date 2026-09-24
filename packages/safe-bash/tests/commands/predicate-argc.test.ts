@@ -22,6 +22,11 @@ const cases: readonly (readonly [readonly string[], number])[] = [
   [["Alpha", "-a", ""], 1],
   [["", "-o", "Alpha"], 0],
   [["!", "value", "-eq", "bad"], 2],
+  [["(", "=", ")", "-a", "yes"], 0],
+  [["(", "-eq", ")", "-a", "yes"], 0],
+  [["(", "!", "=", ")", "-o", "yes"], 0],
+  [["(", "!", "-eq", ")", "-o", "yes"], 0],
+  [["(", "=", ")", "-a", ""], 1],
 ];
 
 for (const command of ["test", "["]) {

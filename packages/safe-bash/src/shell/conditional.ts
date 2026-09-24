@@ -93,7 +93,7 @@ async function unary(operator: string, value: string, context: ConditionalContex
   if (operator === "-R") return context.reference(value);
   // Virtual shell descriptors do not expose terminal capabilities.
   if (operator === "-t") return false;
-  if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G"].includes(operator)) {
+  if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-N"].includes(operator)) {
     try { return await evaluateFilePredicate(context, operator, value, undefined, context.predicateIdentity); }
     catch (error) {
       context.signal.throwIfAborted();

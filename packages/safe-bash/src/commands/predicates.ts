@@ -34,7 +34,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
     if (name === "[") {
       if (args.pop() !== "]") throw new UsageError("missing ']'");
     }
-    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R"]);
+    const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
     const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
     const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
     // Small expressions use argc rules before recursive operator precedence.
@@ -61,6 +61,19 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
     const primary = (depth: number): Predicate => {
       const token = args[offset++];
       if (token === undefined) throw new UsageError("argument expected");
+      // A short group treats operator-looking strings as operands by argc.
+      if (args.length > 3 && token === "(" && args[offset + 1] === ")") {
+        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
+        const value = Boolean(args[offset]);
+        offset += 2;
+        return async () => value;
+      }
+      if (token === "(" && args[offset] === "!" && args[offset + 2] === ")") {
+        if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
+        const value = !args[offset + 1];
+        offset += 3;
+        return async () => value;
+      }
       if ((token === "!" || token === "(") && !binary.has(args[offset] ?? "")) {
         if (depth >= maxExpressionDepth) throw new UsageError(`expression nesting exceeds ${maxExpressionDepth}`);
         if (token === "!") { const inner = primary(depth + 1); return async () => !await inner(); }
@@ -126,7 +139,7 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
             }
             catch (error) { context.signal.throwIfAborted(); if (["ENOENT", "ENOTDIR", "EACCES", "EROFS"].includes(codeOf(error) ?? "")) return false; throw error; }
           }
-          if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G"].includes(token)) {
+          if (["-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-N"].includes(token)) {
             return evaluateFilePredicate(context, token, operand, undefined, context.capabilities?.predicateIdentity as PredicateIdentity | undefined ?? identity);
           }
           const stat = await metadata(context, operand, token === "-L" || token === "-h");

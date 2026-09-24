@@ -159,6 +159,7 @@ export function scanStatements(
   let col = 1;
   let inQuote: '"' | "'" | null = null;
   let bracketDepth = 0;
+  let inPipeLabel = false;
   let i = 0;
 
   const flushStatement = (): void => {
@@ -186,6 +187,7 @@ export function scanStatements(
         current += "\n";
       } else {
         bracketDepth = 0;
+        inPipeLabel = false;
         flushStatement();
       }
       line++;
@@ -199,6 +201,7 @@ export function scanStatements(
         current += "\n";
       } else {
         bracketDepth = 0;
+        inPipeLabel = false;
         flushStatement();
       }
       line++;
@@ -254,13 +257,16 @@ export function scanStatements(
       continue;
     }
 
-    if (ch === "[" || ch === "(") {
+    if (ch === "|" && bracketDepth === 0) {
+      inPipeLabel = !inPipeLabel;
+    }
+    if (!inPipeLabel && (ch === "[" || ch === "(" || ch === "{")) {
       bracketDepth++;
-    } else if ((ch === "]" || ch === ")") && bracketDepth > 0) {
+    } else if (!inPipeLabel && (ch === "]" || ch === ")" || ch === "}") && bracketDepth > 0) {
       bracketDepth--;
     }
 
-    if (ch === ";" && bracketDepth === 0) {
+    if (ch === ";" && bracketDepth === 0 && !inPipeLabel) {
       flushStatement();
       i++;
       col++;

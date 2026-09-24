@@ -71,3 +71,39 @@ describe("scanner and flowchart parser", () => {
     );
   });
 });
+
+
+describe("flowchart edge and label boundaries", () => {
+  for (const [operator, style, marker] of [
+    ["-->", "solid", "arrow"], ["---", "solid", "none"],
+    ["-.->", "dotted", "arrow"], ["-.-", "dotted", "none"],
+    ["--x", "solid", "cross"], ["--o", "solid", "openArrow"],
+    ["--->", "solid", "arrow"], ["-..->", "dotted", "arrow"]
+  ]) {
+    it(`parses unspaced ${operator} without consuming it into an identifier`, () => {
+      const doc = parseMermaid(`flowchart LR\nservice-a.v1${operator}service-b.v2`);
+      assert.deepEqual(doc.nodes.map(node => node.id), ["service-a.v1", "service-b.v2"]);
+      assert.equal(doc.edges.length, 1);
+      assert.equal(doc.edges[0]?.from, "service-a.v1");
+      assert.equal(doc.edges[0]?.to, "service-b.v2");
+      assert.equal(doc.edges[0]?.lineStyle, style);
+      assert.equal(doc.edges[0]?.endMarker, marker);
+    });
+  }
+
+  for (const shape of ["{Decision; Yes?}", "{{Decision; Yes?}}", "[Decision; Yes?]"]) {
+    it(`preserves semicolons in ${shape} and pipe labels while splitting statements`, () => {
+      const doc = parseMermaid(`flowchart LR; A${shape}-->|step 1; step 2|B; B-->C`);
+      assert.deepEqual(doc.nodes.map(node => node.id), ["A", "B", "C"]);
+      assert.equal(doc.nodes[0]?.label, "Decision; Yes?");
+      assert.equal(doc.edges[0]?.label, "step 1; step 2");
+      assert.equal(doc.edges.length, 2);
+    });
+  }
+
+  it("does not treat pipes in node labels as edge label boundaries", () => {
+    const doc = parseMermaid("flowchart LR; A{one | two; three}-->B; B-->C");
+    assert.equal(doc.nodes[0]?.label, "one | two; three");
+    assert.equal(doc.edges.length, 2);
+  });
+});

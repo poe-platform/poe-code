@@ -30,6 +30,29 @@ const UNSUPPORTED_FLOWCHART_KEYWORDS = [
   "callback"
 ];
 
+// Longest match first; shared by identifier scanning and edge parsing.
+const FLOWCHART_EDGE_OPERATORS: readonly {
+  readonly token: string;
+  readonly style: EdgeLineStyle;
+  readonly start: EdgeMarkerKind;
+  readonly end: EdgeMarkerKind;
+}[] = [
+  { token: "<-.->", style: "dotted", start: "arrow", end: "arrow" },
+  { token: "<-->", style: "solid", start: "arrow", end: "arrow" },
+  { token: "<==>", style: "thick", start: "arrow", end: "arrow" },
+  { token: "-..->", style: "dotted", start: "none", end: "arrow" },
+  { token: "-.->", style: "dotted", start: "none", end: "arrow" },
+  { token: "--->", style: "solid", start: "none", end: "arrow" },
+  { token: "===>", style: "thick", start: "none", end: "arrow" },
+  { token: "-.-", style: "dotted", start: "none", end: "none" },
+  { token: "-->", style: "solid", start: "none", end: "arrow" },
+  { token: "---", style: "solid", start: "none", end: "none" },
+  { token: "==>", style: "thick", start: "none", end: "arrow" },
+  { token: "===", style: "thick", start: "none", end: "none" },
+  { token: "--x", style: "solid", start: "none", end: "cross" },
+  { token: "--o", style: "solid", start: "none", end: "openArrow" }
+];
+
 interface ParsedNodeRef {
   readonly id: string;
   readonly label?: string | undefined;
@@ -103,7 +126,10 @@ function parseSingleNodeRef(
 ): { node: ParsedNodeRef; nextPos: number } {
   const pos = skipWs(text, startPos);
   let i = pos;
-  while (i < text.length && isIdentifierChar(text[i]!)) i++;
+  while (i < text.length && isIdentifierChar(text[i]!)) {
+    if (text[i] === "-" && FLOWCHART_EDGE_OPERATORS.some(operator => text.startsWith(operator.token, i))) break;
+    i++;
+  }
   if (i === pos) {
     throw new MermaidError(
       "E_SYNTAX",
@@ -231,29 +257,8 @@ function tryParseEdgeOp(
   let inlineLabel: string | undefined;
 
   // Check standard fixed edge operators (longest match first)
-  const fixedOps: readonly {
-    readonly token: string;
-    readonly style: EdgeLineStyle;
-    readonly start: EdgeMarkerKind;
-    readonly end: EdgeMarkerKind;
-  }[] = [
-    { token: "<-.->", style: "dotted", start: "arrow", end: "arrow" },
-    { token: "<-->", style: "solid", start: "arrow", end: "arrow" },
-    { token: "<==>", style: "thick", start: "arrow", end: "arrow" },
-    { token: "-..->", style: "dotted", start: "none", end: "arrow" },
-    { token: "-.->", style: "dotted", start: "none", end: "arrow" },
-    { token: "--->", style: "solid", start: "none", end: "arrow" },
-    { token: "===>", style: "thick", start: "none", end: "arrow" },
-    { token: "-.-", style: "dotted", start: "none", end: "none" },
-    { token: "-->", style: "solid", start: "none", end: "arrow" },
-    { token: "---", style: "solid", start: "none", end: "none" },
-    { token: "==>", style: "thick", start: "none", end: "arrow" },
-    { token: "===", style: "thick", start: "none", end: "none" },
-    { token: "--x", style: "solid", start: "none", end: "cross" },
-    { token: "--o", style: "solid", start: "none", end: "openArrow" }
-  ];
 
-  for (const candidate of fixedOps) {
+  for (const candidate of FLOWCHART_EDGE_OPERATORS) {
     if (rest.startsWith(candidate.token)) {
       lineStyle = candidate.style;
       startMarker = candidate.start;

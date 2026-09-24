@@ -75,3 +75,25 @@ describe("sequenceDiagram parser, layout, and geometry invariants", () => {
     });
   }
 });
+
+
+describe("sequence participant arrow boundaries", () => {
+  for (const source of ["service-x", "service-X", "api-xml", "api-XML"]) {
+    for (const arrow of ["->>", "-->>", "->", "-->", "->>+", "-->>-"]) {
+      it(`preserves ${source} with ${arrow}`, () => {
+        const doc = parseMermaid(`sequenceDiagram\n${source}${arrow}service-y: call`);
+        assert.deepEqual(doc.nodes.map(node => node.id), [source, "service-y"]);
+        assert.equal(doc.edges[0]?.from, source);
+        assert.equal(doc.edges[0]?.to, "service-y");
+        assert.notEqual(doc.edges[0]?.endMarker, "cross");
+      });
+    }
+  }
+  for (const arrow of ["-x", "-X", "--x", "--X", "-x+", "--x-"]) {
+    it(`retains cross arrow ${arrow}`, () => {
+      const doc = parseMermaid(`sequenceDiagram\nA${arrow}B: call ->> later`);
+      assert.deepEqual(doc.nodes.map(node => node.id), ["A", "B"]);
+      assert.equal(doc.edges[0]?.endMarker, "cross");
+    });
+  }
+});

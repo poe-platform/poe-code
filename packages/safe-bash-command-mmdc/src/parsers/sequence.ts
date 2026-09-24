@@ -47,6 +47,9 @@ function findSequenceArrow(text: string): {
 } | null {
   // Scan character by character outside quotes for sequence arrow operators:
   // -->>, ->>, -->, ->, --x, -x
+  // A single -x can also be part of a participant ID. Keep it as a
+  // fallback until a later, unambiguous arrow resolves that boundary.
+  let crossCandidate: ReturnType<typeof findSequenceArrow> = null;
   let quote: string | null = null;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i]!;
@@ -58,6 +61,7 @@ function findSequenceArrow(text: string): {
       quote = ch;
       continue;
     }
+    if (ch === ":") break;
     if (ch !== "-") continue;
 
     let arrowLen = 0;
@@ -112,7 +116,7 @@ function findSequenceArrow(text: string): {
     if (!toRaw) continue;
     const messageText = colonIdx >= 0 ? trimWhitespace(rest.slice(colonIdx + 1)) : "";
 
-    return {
+    const candidate = {
       fromRaw,
       toRaw,
       messageText,
@@ -124,8 +128,13 @@ function findSequenceArrow(text: string): {
         deactivateSource
       }
     };
+    if (endMarker === "cross" && arrowLen === 2) {
+      crossCandidate ??= candidate;
+      continue;
+    }
+    return candidate;
   }
-  return null;
+  return crossCandidate;
 }
 
 export function parseSequenceDiagram(

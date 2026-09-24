@@ -43,6 +43,8 @@ const cases: readonly [string, string[]][] = [
   ['set -- abc "a b"; IFS=:; args "${*@Q}"', ["'abc':'a b'"]],
   ['set --; args "${@@Q}" "${*@Q}"', [""]],
   ['values=(abc "a b"); args "${values[@]@Q}"', ["'abc'", "'a b'"]],
+  ['values=(set ""); args "${values[4]@Q}" "${values[1]@Q}"', ["", "''"]],
+  ['value=set; args "${value[1]@Q}" "${missing[0]@Q}" "${missing[2]@Q}"', ["", "", ""]],
   ["values=('a\\nb' '\\t'); args \"${values[@]@E}\"", ["a\nb", "\t"]],
   ['value=abc; args "${#value}" "${?@Q}" "${#@Q}"', ["3", "'0'", "'0'"]],
   ['set --; args "${@@Q}${*@E}"', []],

@@ -70,11 +70,13 @@ export class Formatter {
   private append(value: string): void {
     this.budget.charge(value.length);
     if (this.pageNumber < this.options.firstPage) return;
+    this.budget.admitOutput(this.rendered.length + value.length);
     this.budget.retain(value.length * 2);
     this.rendered += value;
   }
   private repeat(value: string, count: number, construction = false): string {
     this.budget.admitString(value.length * count);
+    if (!construction && this.pageNumber >= this.options.firstPage) this.budget.admitOutput(this.rendered.length + value.length * count);
     if (construction) this.budget.charge(value.length * count);
     return value.repeat(count);
   }
@@ -211,7 +213,9 @@ export class Formatter {
     const page = `Page ${this.pageNumber}`;
     const available = Math.max(0, this.options.width - width(date) - width(name) - width(page));
     const left = Math.floor(available / 2);
-    this.budget.admitString(5 + this.options.margin + date.length + name.length + page.length + Math.max(1, left) + Math.max(1, available - left));
+    const length = 5 + this.options.margin + date.length + name.length + page.length + Math.max(1, left) + Math.max(1, available - left);
+    this.budget.admitString(length);
+    if (this.pageNumber >= this.options.firstPage) this.budget.admitOutput(this.rendered.length + length);
     this.append(`\n\n${this.repeat(" ", this.options.margin)}${date}${this.repeat(" ", Math.max(1, left))}${name}${this.repeat(" ", Math.max(1, available - left))}${page}\n\n\n`);
     this.needHeader = false;
     this.outputPosition = 0;

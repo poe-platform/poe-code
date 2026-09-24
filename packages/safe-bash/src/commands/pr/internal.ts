@@ -29,9 +29,9 @@ export interface PrCommandsOptions {
 
 export function settings(options: PrCommandsOptions): PrLimits {
   const limits: PrLimits = {
-    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: Infinity,
-    maxPageLines: Infinity, maxPageWidth: Infinity, maxPages: Infinity,
-    maxInputBytes: Infinity, maxBufferedBytes: Infinity,
+    maxArguments: Infinity, maxArgumentBytes: Infinity, maxFiles: Infinity, maxColumns: 256,
+    maxPageLines: Infinity, maxPageWidth: 16_384, maxPages: Infinity,
+    maxInputBytes: Infinity, maxBufferedBytes: 8 * 1024 * 1024,
     maxLineBytes: Infinity, maxLines: Infinity, maxOutputBytes: Infinity,
     maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
   };
@@ -139,6 +139,10 @@ export class Budget {
   }
   line(): void { this.check(++this.lines, this.limits.maxLines, "input lines"); }
   page(): void { this.check(++this.pages, this.limits.maxPages, "pages"); this.charge(); }
+  admitOutput(amount: number): void {
+    this.signal.throwIfAborted();
+    this.check(this.output + amount, this.limits.maxOutputBytes, "output bytes");
+  }
   emitted(amount: number, diagnostic: boolean): void {
     if (diagnostic) {
       this.diagnostics += amount;

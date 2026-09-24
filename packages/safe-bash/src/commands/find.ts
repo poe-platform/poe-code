@@ -40,7 +40,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
     for (let index = 0; index < args.length;) {
       if (args[index] === "-exec") {
         index++;
-        while (index < args.length && args[index] !== ";" && args[index] !== "+") index++;
+        while (index < args.length && args[index] !== ";" && !(args[index] === "+" && args[index - 1] === "{}")) index++;
         index++;
       } else if (args[index] === "-maxdepth" || args[index] === "-mindepth") {
         if (args[index + 1] === undefined) throw new UsageError(`${args[index]} requires a number`);
@@ -122,10 +122,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           signal: context.signal,
           exhausted(): never { throw new UsageError(`pattern work limit exceeded for '${operand}'`); },
         };
-        const matcher = compilePattern(ignoreCase ? operand.toLowerCase() : operand, work);
+        const matcher = compilePattern(operand, work, ignoreCase);
         return async entry => {
           const value = token === "-name" || token === "-iname" ? basename(entry.display) || entry.display : entry.display;
-          return (await matcher)(ignoreCase ? value.toLowerCase() : value);
+          return (await matcher)(value);
         };
       }
       if (token === "-true" || token === "-false") return async () => token === "-true";
@@ -168,7 +168,7 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
         explicitAction = true;
         const command: string[] = [];
         const start = offset;
-        while (args[offset] !== undefined && args[offset] !== ";" && args[offset] !== "+") command.push(args[offset++]!);
+        while (args[offset] !== undefined && args[offset] !== ";" && !(args[offset] === "+" && args[offset - 1] === "{}")) command.push(args[offset++]!);
         const commandArguments = argumentValues.withValues(values.slice(start, offset));
         const terminator = args[offset++];
         if (!command.length || terminator === undefined) throw new UsageError("-exec requires a command terminated by ';' or '+'");

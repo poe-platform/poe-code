@@ -1,12 +1,54 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CommandRegistry, FsError, type FileSystem, type FsOptions, type RemoveOptions } from "../../src/contracts/index.js";
-import { createStandardCommands } from "../../src/commands/index.js";
+import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
+import { exprCommands } from "../../src/commands/expr/index.js";
 import { createReadOnlyFileSystem } from "../../src/fs/readonly/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { fixture, run } from "./helpers.js";
 
 const now = 1_700_000_000_000;
+
+for (const option of ["-iname", "-ipath"]) {
+  for (const [pattern, names] of [
+    ["[[:upper:]]*", ["README.md", "lower.txt", "Z", "a", "z"]],
+    ["[[:lower:]]*", ["README.md", "lower.txt", "Z", "a", "z"]],
+    ["[Z-a]*", ["Z", "[", "_", "a", "z"]],
+    ["[![:upper:]]*", ["1.txt", "[", "_"]],
+  ] as const) {
+    test(`find ${option} preserves case-insensitive bracket pattern ${pattern}`, async () => {
+      const fs = await fixture(Object.fromEntries(["README.md", "lower.txt", "Z", "[", "_", "a", "z", "1.txt"].map(name => [name, ""])));
+      const result = await run("find", [".", "-type", "f", option, option === "-ipath" ? `./${pattern}` : pattern], { fs });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdout.trim().split("\n").sort(), names.map(name => `./${name}`).sort());
+    });
+  }
+}
+
+for (const [command, expected] of [
+  [["echo", "+", "{}"], "+ ./a.txt\n"],
+  [["expr", "1", "+", "1"], "2\n"],
+  [["echo", "+", "-maxdepth", "0", "{}"], "+ -maxdepth 0 ./a.txt\n"],
+  [["echo", "{}", "+literal", "+"], "./a.txt +literal +\n"],
+] as const) {
+  test(`find -exec keeps literal plus arguments: ${command.join(" ")}`, async () => {
+    const fs = await fixture({ "a.txt": "" });
+    const shell = new Shell({ fs, cwd: "/work" }).use(standardCommands()).use(exprCommands());
+    const result = await shell.exec(`find . -name a.txt -exec ${command.join(" ")} \\;`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+  });
+}
+
+test("find batched -exec allows literal plus before its final placeholder", async () => {
+  const fs = await fixture({ "a.txt": "", "b.txt": "" });
+  const result = await run("find", [".", "-type", "f", "-exec", "echo", "+", "{}", "+"], { fs });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "+ ./a.txt ./b.txt\n");
+});
 
 test("find -H follows argument links but keeps descendant links physical", async () => {
   const fs = await fixture({ "tree/file": "", "other/child": "" });

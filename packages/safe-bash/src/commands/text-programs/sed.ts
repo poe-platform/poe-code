@@ -34,21 +34,43 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
   const labels = new Map<string, number>();
   let offset = 0;
   const horizontal = () => { while (source[offset] === " " || source[offset] === "\t" || source[offset] === "\r") offset++; };
-  const delimited = (delimiter: string): string => {
+  const delimited = (delimiter: string, regex = false): string => {
     let text = "";
+    let bracket = false;
+    let first = 0;
+    let special = "";
     while (offset < source.length) {
       const character = source[offset++]!;
-      if (character === delimiter) return text;
+      if (character === delimiter && !bracket) return text;
       if (character === "\\") {
         const next = source[offset++];
         if (next === undefined) break;
-        text += next === "\n" ? "\n" : `\\${next}`;
+        text += next === "\n" || regex && !extended && next === delimiter && "()|+?{}".includes(next) ? next : `\\${next}`;
+        if (bracket) first = 0;
       } else {
         if (character === "\n") throw new ProgramError("unterminated delimited expression");
+        if (regex) {
+          if (!bracket && character === "[") { bracket = true; first = 2; }
+          else if (bracket) {
+            if (special) {
+              if (character === special && source[offset] === "]") {
+                text += character + source[offset++]!;
+                special = "";
+                continue;
+              }
+            } else if (character === "[" && [":", ".", "="].includes(source[offset] ?? "")) {
+              special = source[offset++]!;
+              text += character + special;
+              first = 0;
+              continue;
+            } else if (character === "]" && !first) bracket = false;
+            first = first === 2 && character === "^" ? 1 : 0;
+          }
+        }
         text += character;
       }
     }
-    throw new ProgramError("unterminated delimited expression");
+    throw new ProgramError(bracket ? "unterminated bracket expression" : "unterminated delimited expression");
   };
   const address = (): Address | undefined => {
     horizontal();
@@ -64,7 +86,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     if (source[offset] === "/") delimiter = source[offset++];
     else if (source[offset] === "\\" && source[offset + 1] && source[offset + 1] !== "\n") { offset++; delimiter = source[offset++]; }
     if (delimiter !== undefined) {
-      const pattern = delimited(delimiter);
+      const pattern = delimited(delimiter, true);
       const ignoreCase = source[offset] === "I";
       if (ignoreCase) offset++;
       if (!pattern && ignoreCase) throw new ProgramError("flags on an empty regex are not supported");
@@ -77,14 +99,13 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     const start = offset;
     while (offset < source.length && ![";", "\n", "}"].includes(source[offset]!)) offset++;
     const text = source.slice(start, offset).trim();
-    if (text && !/^[A-Za-z_][A-Za-z0-9_.-]*$/u.test(text)) throw new ProgramError(`invalid branch label '${text}'`);
     return text;
   };
   const textArgument = (terminator: string): string => {
     horizontal();
     if (source[offset] === "\\") {
       offset++;
-      if (source[offset++] !== "\n") throw new ProgramError("text backslash must be followed by newline");
+      if (source[offset] === "\n") offset++;
     }
     let text = "";
     while (offset < source.length && source[offset] !== "\n") {
@@ -130,7 +151,7 @@ function parse(source: string, extended: boolean, separator: string, maxProgramI
     } else if (kind === "s") {
       const delimiter = source[offset++];
       if (!delimiter || delimiter === "\\" || delimiter === "\n") throw new ProgramError("invalid substitution delimiter");
-      const pattern = delimited(delimiter);
+      const pattern = delimited(delimiter, true);
       instruction.replacement = delimited(delimiter);
       instruction.replacementGroupCount = 0;
       for (let index = 0; index < instruction.replacement.length; index++) {

@@ -5,6 +5,41 @@ import { CommandRegistry, FsError, type FileStat } from "../../../src/contracts/
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { metadata, run, seed, shellRun, trace, wrapped } from "./helpers.js";
 
+test("exclusions match every component suffix, including patterns from files", async () => {
+  const fs = createMemoryFileSystem(); await seed(fs);
+  await fs.writeFile("/exclude", new TextEncoder().encode("tree/sub\n"));
+  for (const args of [["--exclude=tree/sub"], ["-X", "/exclude"]]) {
+    const result = await shellRun(fs, ["-b", ...args, "/tree"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "3\t/tree\n");
+  }
+  assert.equal((await shellRun(fs, ["-b", "--exclude=sub/b", "/tree"])).stdout, "0\t/tree/sub\n3\t/tree\n");
+});
+
+test("exclusion brackets support POSIX classes, mixtures and negation", async () => {
+  const fs = createMemoryFileSystem(); await fs.mkdir("/dir");
+  for (const name of ["1", "a", "A", " ", "!", "z"]) await fs.writeFile(`/dir/${name}`, new Uint8Array(1));
+  for (const [pattern, remaining] of [["[[:digit:]]", 5], ["[[:alpha:]]", 3], ["[[:digit:]a-z]", 3], ["[![:alpha:]]", 3], ["[[:space:][:punct:]]", 4]] as const) {
+    const result = await shellRun(fs, ["-bs", `--exclude=${pattern}`, "/dir"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, `${remaining}\t/dir\n`);
+  }
+});
+
+test("separate directories preserve complete own rows after subdirectory failure", async () => {
+  const base = createMemoryFileSystem(); await seed(base);
+  for (const failed of ["/tree/sub", "/tree"]) {
+    const fs = wrapped(base, { async readdir(path, options) {
+      if (path === failed) throw new FsError("EACCES", { path });
+      return base.readdir(path, options);
+    } });
+    const result = await shellRun(fs, ["-bSc", "/tree"]);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /permission denied/u);
+    assert.equal(result.stdout, failed === "/tree/sub" ? "3\t/tree\n" : "");
+  }
+});
+
 test("inode counts include directories and deduplicate hardlinks without allocation metadata", async () => {
   const fs = createMemoryFileSystem(); await seed(fs); await fs.link!("/tree/a", "/tree/alias");
   const result = await shellRun(fs, ["--inodes", "-ac", "tree"]);

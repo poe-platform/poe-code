@@ -99,9 +99,8 @@ class Walker {
       await this.failure(new PublicDiagnostic("invalid zero-length file name"));
       return { bytes: 0, complete: false };
     }
-    const name = display.slice(display.lastIndexOf("/") + 1);
     for (const pattern of this.exclusions) {
-      if (excluded(pattern, display, this.budget) || excluded(pattern, name, this.budget)) return { bytes: 0, complete: true };
+      if (excluded(pattern, display, this.budget)) return { bytes: 0, complete: true };
     }
     let stat: FileStat;
     try {
@@ -134,7 +133,10 @@ class Walker {
     if (stat.type === "directory") {
       this.ancestors.push(stat);
       const entries = await this.children(path, display);
-      if (entries === undefined) amount = { ...amount, complete: false };
+      if (entries === undefined) {
+        amount = { ...amount, complete: false };
+        own = { ...own, complete: false };
+      }
       else for (const entry of entries) {
         this.budget.step();
         const suffix = display.endsWith("/") ? "" : "/";
@@ -146,7 +148,6 @@ class Walker {
         if (this.args.separate && !child.directory) own = await this.add(own, child, display);
       }
       this.ancestors.pop();
-      if (!amount.complete) own = { ...own, complete: false };
     }
     if (depth === 0 || (depth <= this.args.depth && (stat.type === "directory" || this.args.all))) await this.report(this.args.separate ? own : amount, display);
     return { ...amount, directory: stat.type === "directory" };

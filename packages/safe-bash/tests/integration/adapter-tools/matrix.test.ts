@@ -14,8 +14,10 @@ const options = { timeout: 20_000 };
 const todoPipeline = "find src -type f -name '*.txt' | xargs rg --no-heading --no-filename '^TODO' | sed 's/^TODO //' | awk '{ print $1 \":\" $2 }' | jq -R '.' | jq -s '.'";
 
 for (const backend of writableAdapters) {
-  test(`${backend}: independent six-family named-file probes`, options, async context => {
-    await withFixture(backend, async ({ exec, dispatched }) => {
+  const retained = backend !== "s3" && backend !== "webdav";
+  const patchPublication = backend === "memory";
+  test(`${backend}: independent six-family named-file capability probes`, options, async context => {
+    await withFixture(backend, async ({ exec, fs, dispatched }) => {
       const failures: string[] = [];
       const probes = [
         ["find src -type f -name '*.txt'", "src/tasks.txt\n"],
@@ -25,14 +27,23 @@ for (const backend of writableAdapters) {
         ["awk '{ print $1 }' old.txt", original],
         ["jq -c '.names' config.json", '["alpha","beta"]\n'],
         ["sha256sum payload.bin", `${digest}  payload.bin\n`],
-        ["set -o pipefail; gzip -c payload.bin | gzip -dc", payload],
-        ["diff -q old.txt target.txt", ""],
+        ["set -o pipefail; gzip -c payload.bin | gzip -dc", retained ? payload : "", retained ? 0 : 1,
+          retained ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: unexpected end of file\n"],
+        ["diff -q old.txt target.txt", "", retained ? 0 : 2,
+          retained ? "" : "diff: diff input requires identity-checked retained reads\n"],
         ["patch --dry-run -i change.diff", undefined],
       ] as const;
-      for (const [source, expected] of probes) {
+      for (const [source, expected, status = 0, stderr = ""] of probes) {
         try {
+          const before = status === 0 ? undefined : await snapshotTree(fs);
           const result = await exec(source);
-          success(result, typeof expected === "string" ? expected : undefined);
+          if (status === 0) success(result, typeof expected === "string" ? expected : undefined);
+          else {
+            assert.equal(result.exitCode, status, result.stderr);
+            assert.equal(result.stdout, expected);
+            assert.equal(result.stderr, stderr);
+            assert.deepEqual(await snapshotTree(fs), before);
+          }
           if (expected instanceof Uint8Array) assert.deepEqual(result.stdoutBytes, expected);
         } catch (error) {
           const message = `${source}: ${String(error)}`;
@@ -41,7 +52,7 @@ for (const backend of writableAdapters) {
         }
       }
       allFamiliesDispatched(dispatched);
-      assert.deepEqual(failures, [], "every named-file probe must pass; no capability-based skips");
+      assert.deepEqual(failures, [], "every named-file capability expectation must pass; no skipped probes");
     });
   });
 
@@ -54,10 +65,19 @@ for (const backend of writableAdapters) {
       success(await exec("set -o pipefail; cat < payload.bin | gzip -c > payload.gz"), "");
       success(await exec("set -o pipefail; gzip -dc < payload.gz | sha256sum"), `${digest}  -\n`);
       const diff = await exec("diff -u --label target.txt --label target.txt old.txt new.txt > generated.diff");
-      assert.equal(diff.exitCode, 1, diff.stderr);
-      assert.equal(diff.stderr, "");
-      assert.equal(Buffer.from(await fs.readFile("/work/generated.diff")).toString(), change);
-      success(await exec("patch -i generated.diff > patch.log && diff -q target.txt new.txt && cat target.txt"), revised);
+      assert.equal(diff.exitCode, retained ? 1 : 2, diff.stderr);
+      assert.equal(diff.stderr, retained ? "" : "diff: diff input requires identity-checked retained reads\n");
+      assert.equal(Buffer.from(await fs.readFile("/work/generated.diff")).toString(), retained ? change : "");
+      if (patchPublication) success(await exec("patch -i generated.diff > patch.log && diff -q target.txt new.txt && cat target.txt"), revised);
+      else {
+        success(await exec("patch --dry-run -i change.diff"));
+        const before = await snapshotTree(fs);
+        const patch = await exec("patch -i change.diff");
+        assert.equal(patch.exitCode, 2);
+        assert.equal(patch.stdout, "");
+        assert.equal(patch.stderr, "patch: filesystem does not support race-safe patch publication\n");
+        assert.deepEqual(await snapshotTree(fs), before);
+      }
       allFamiliesDispatched(dispatched);
       if (fixture.s3 && backend !== "mount") {
         assert.ok(fixture.s3.requests.some(request => request.operation === "getObject"));
@@ -98,19 +118,41 @@ for (const backend of writableAdapters) {
     });
   });
 
-  test(`${backend === "webdav" ? "webdav configured atomic-empty" : backend}: create, copy, append, inspect and remove files`, options, async () => {
+  test(`${backend === "webdav" ? "webdav configured atomic-empty" : backend}: copy admission, direct copy, append and removal`, options, async () => {
     await withRmdirFixture(backend, async ({ exec, fs }) => {
-      success(await exec("mkdir -p scratch/nested && cp old.txt scratch/nested/copy.txt && printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
+      success(await exec("mkdir -p scratch/nested"), "");
+      const before = await snapshotTree(fs);
+      const copy = await exec("cp old.txt scratch/nested/copy.txt");
+      if (retained) success(copy, "");
+      else {
+        assert.equal(copy.exitCode, 1);
+        assert.equal(copy.stdout, "");
+        assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/old.txt'\n");
+        assert.deepEqual(await snapshotTree(fs), before);
+        await fs.copyFile("/work/old.txt", "/work/scratch/nested/copy.txt", { exclusive: true });
+      }
+      success(await exec("printf 'gamma\\n' >> scratch/nested/copy.txt && cat scratch/nested/copy.txt"), `${original}gamma\n`);
       assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), original);
       success(await exec("find scratch -type f | sort"), "scratch/nested/copy.txt\n");
       success(await exec("rm scratch/nested/copy.txt && rmdir scratch/nested && rmdir scratch && test ! -e scratch"), "");
     });
   });
 
-  test(`${backend}: move retains bytes and removes source`, options, async () => {
+  test(`${backend}: copy admission and same-view move preserve bytes`, options, async () => {
     await withFixture(backend, async ({ exec, fs }) => {
-      success(await exec("cp payload.bin move-source.bin && mv move-source.bin moved.bin"), "");
+      const before = await snapshotTree(fs);
+      const copy = await exec("cp payload.bin move-source.bin");
+      if (retained) success(copy, "");
+      else {
+        assert.equal(copy.exitCode, 1);
+        assert.equal(copy.stdout, "");
+        assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/work/payload.bin'\n");
+        assert.deepEqual(await snapshotTree(fs), before);
+        await fs.copyFile("/work/payload.bin", "/work/move-source.bin", { exclusive: true });
+      }
+      success(await exec("mv move-source.bin moved.bin"), "");
       assert.deepEqual(await fs.readFile("/work/moved.bin"), payload);
+      assert.deepEqual(await fs.readFile("/work/payload.bin"), payload);
       success(await exec("test ! -e move-source.bin"), "");
     });
   });
@@ -125,7 +167,28 @@ for (const backend of writableAdapters) {
 
   test(`${backend}: in-place edit, diff-to-patch stdin and reverse`, options, async () => {
     await withFixture(backend, async ({ exec, fs }) => {
-      success(await exec("sed -i 's/beta/BETA/' old.txt && diff -q old.txt new.txt"), "");
+      success(await exec("sed -i 's/beta/BETA/' old.txt"), "");
+      assert.equal(Buffer.from(await fs.readFile("/work/old.txt")).toString(), revised);
+      const comparison = await exec("diff -q old.txt new.txt");
+      if (retained) success(comparison, "");
+      else {
+        assert.equal(comparison.exitCode, 2);
+        assert.equal(comparison.stdout, "");
+        assert.equal(comparison.stderr, "diff: diff input requires identity-checked retained reads\n");
+      }
+      if (!patchPublication) {
+        const before = await snapshotTree(fs);
+        for (const source of ["cat change.diff | patch", "patch -R -i change.diff"]) {
+          const patch = await exec(source);
+          assert.equal(patch.exitCode, 2);
+          assert.equal(patch.stdout, "");
+          assert.equal(patch.stderr, "patch: filesystem does not support race-safe patch publication\n");
+          assert.deepEqual(await snapshotTree(fs), before);
+        }
+        success(await exec("patch --dry-run -i change.diff"));
+        assert.deepEqual(await snapshotTree(fs), before);
+        return;
+      }
       success(await exec("cat change.diff | patch > patch.log && diff -q target.txt new.txt && patch -R -i change.diff > reverse.log && cat target.txt"), original);
       assert.equal(Buffer.from(await fs.readFile("/work/target.txt")).toString(), original);
       const diff = await exec("diff -u --label target.txt --label target.txt target.txt new.txt | tee streamed.diff | patch > patch.log");
@@ -312,12 +375,11 @@ for (const backend of writableAdapters) {
   });
 }
 
-test("mount: cross-backend pipeline and copy use real mount plus S3", options, async context => {
+test("mount: cross-backend pipelines and copies retain directional admission", options, async context => {
   await withFixture("mount", async ({ exec, fs, s3 }) => {
     const sources = [
       "set -o pipefail; cat payload.bin | gzip -c > /objects/archive.gz",
       "cp payload.bin /objects/copied.bin",
-      "cp /objects/seed.bin returned.bin",
     ];
     const failures: string[] = [];
     for (const source of sources) {
@@ -328,8 +390,20 @@ test("mount: cross-backend pipeline and copy use real mount plus S3", options, a
         failures.push(message);
       }
     }
-    assert.deepEqual(failures, [], "pipeline and both cross-backend copy directions must succeed");
-    success(await exec("set -o pipefail; gzip -dc /objects/archive.gz | sha256sum"), `${digest}  -\n`);
+    assert.deepEqual(failures, [], "pipeline and copy from a retained local source must succeed");
+    const before = await snapshotTree(fs);
+    const copy = await exec("cp /objects/seed.bin returned.bin");
+    assert.equal(copy.exitCode, 1);
+    assert.equal(copy.stdout, "");
+    assert.equal(copy.stderr, "cp: ENOTSUP: copy requires retained reads and streaming writes '/objects/seed.bin'\n");
+    assert.deepEqual(await snapshotTree(fs), before);
+    const named = await exec("gzip -dc /objects/archive.gz");
+    assert.equal(named.exitCode, 1);
+    assert.equal(named.stdout, "");
+    assert.equal(named.stderr, "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/objects/archive.gz'\n");
+    assert.deepEqual(await snapshotTree(fs), before);
+    success(await exec("set -o pipefail; gzip -dc < /objects/archive.gz | sha256sum"), `${digest}  -\n`);
+    await fs.copyFile("/objects/seed.bin", "/work/returned.bin", { exclusive: true });
     assert.deepEqual(await fs.readFile("/work/returned.bin"), payload);
     assert.deepEqual(await fs.readFile("/objects/copied.bin"), payload);
     assert.ok(s3?.requests.some(request => request.operation === "putObject"));
@@ -402,6 +476,12 @@ for (const source of [
           : () => fs.appendFile(path, Buffer.from("changed"));
         await assert.rejects(mutation, fsError("EROFS", path));
         assert.deepEqual(await snapshotTree(fs), before, "direct readonly rejection preserves namespace and bytes");
+      } else if (source === "patch -i change.diff") {
+        assert.equal(result.exitCode, 2);
+        assert.equal(result.stdout, "");
+        assert.equal(result.stderr, "patch: filesystem does not support race-safe patch publication\n");
+        await assert.rejects(fs.writeFile("/work/target.txt", Buffer.from("changed")), fsError("EROFS", "/work/target.txt"));
+        assert.deepEqual(await snapshotTree(fs), before);
       } else {
         assert.match(result.stderr, /EROFS/, "actual readonly filesystem error, not an unrelated command failure");
       }

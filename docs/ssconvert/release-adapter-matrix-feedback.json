@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "baseline": "66fbeb9c304ddf609438172ba14c7f5db865dee6",
+  "issue": "Eighteen integration-matrix fixtures expected named remote reads, command copies or patch publication beyond the adapters' current safety guarantees.",
+  "baselineTests": { "files": 2, "tests": 127, "passed": 102, "failed": 25, "scope": "Eighteen matrix failures repaired here; seven device failures separately delivered in b8acb92d6." },
+  "runtimeChanged": false,
+  "repair": "Declare expected retained-reader and patch-publication profiles independently of runtime capability reporting. Exercise every original named-input probe with explicit success or exact refusal; no capability skips. Verify complete filesystem snapshots after refused operations. Preserve six-family dispatch, stdin compression hashes/bytes, direct provider copies, same-view move and removal, sed edits, patch dry runs, readonly direct-mutation errors and all cleanup controls. Keep full patch application/reversal on the memory profile; other profiles explicitly reject normal, reverse and stdin publication. Cross-mount remote-source copy and named gzip refuse, while local-source copy, direct provider copy and stdin decompression succeed.",
+  "fixtureChange": "On remote profiles, successful direct filesystem copies prepare the append/removal and same-view move controls only after asserting the original Shell cp refusal and unchanged state. This is explicit test setup, not a runtime fallback or a claim that Shell cp succeeded.",
+  "source": { "path": "packages/safe-bash/tests/integration/adapter-tools/matrix.test.ts", "sha256": "20255187df163d6965b973460f3889484f518267e3963716008c3af62e564cbd" },
+  "validation": {
+    "focused": { "tests": 79, "passed": 79, "failed": 0 },
+    "related": { "files": 7, "tests": 204, "passed": 204, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed.",
+    "types": "Final maintained historical-type-models source/test compilation passed."
+  },
+  "scope": "Memory, real, mock S3, loopback WebDAV, mount, overlay and readonly fixtures; no deployed-service or broader compatibility qualification.",
+  "priorDelivery": "66fbeb9c304ddf609438172ba14c7f5db865dee6 verified exactly on remote main; publication pending.",
+  "remaining": "Containing release verification, further fresh feedback and all 19 original ssconvert families remain open."
+}

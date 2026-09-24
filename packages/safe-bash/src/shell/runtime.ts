@@ -130,7 +130,7 @@ export const defaultLimits: Required<ShellLimits> = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "mapfile", "readarray", "umask",
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask",
   "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
 ]);
 
@@ -1863,8 +1863,8 @@ export class Runtime {
     for (const flag of enabled) if ("ilun".includes(flag) && !attributes.includes(flag)) attributes += flag;
     if (enabled.has("l")) attributes = attributes.split("u").join("");
     if (enabled.has("u")) attributes = attributes.split("l").join("");
-    if (attributes) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, attributes); }
-    else state.variableAttributes?.delete(name);
+    state.variableAttributes ??= new Map();
+    state.variableAttributes.set(name, attributes);
   }
 
   private attributeValue(state: State, name: string, value: ShellValue, origin = "assignment", previous?: ShellValue): ShellValue {
@@ -4193,8 +4193,8 @@ export class Runtime {
     }
     const declarationName = commandWords[declarationIndex]?.plain ?? "";
     const declarationBuiltin = state.extensions?.builtins.get(declarationName);
-    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "local", "readonly"].includes(declarationName);
-    const indexedDeclaration = declaration && ["declare", "local", "readonly"].includes(declarationName);
+    const declaration = declarationBuiltin ? declarationBuiltin.expansion === "declaration" : ["export", "declare", "typeset", "local", "readonly"].includes(declarationName);
+    const indexedDeclaration = declaration && ["declare", "typeset", "local", "readonly"].includes(declarationName);
     const compounds = new Map<number, ArrayAssignment>();
     const wordValues = await this.valueWords(commandWords, state, originalIO, declaration, indexedDeclaration, declarationName === "readonly" ? undefined : compounds, declarationIndex + 1);
     const words = wordValues.map(shellValueText);
@@ -6223,7 +6223,8 @@ export class Runtime {
     } finally { try { await pinned?.release(); } finally { try { releaseHolding?.(); } finally { allocation.close(); } } }
   }
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
-    const { command, args, stdout, stderr } = context;
+    const { args, stdout, stderr } = context;
+    const command = context.command === "typeset" ? "declare" : context.command;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
     if (command === "umask") return umaskBuiltin(context, state);
@@ -6335,12 +6336,13 @@ export class Runtime {
           const option = declarationArgs.shift()!;
           if (option === "--") break;
           for (const flag of option.slice(1)) {
-            if (!(command === "local" ? "AailunxrI" : "AailunxrgIfFt").includes(flag)) { await this.diagnostic(context, `${command}: ${option}: invalid option`); return 2; }
+            if (!(command === "local" ? "AailunxrIp" : "AailunxrgIfFtp").includes(flag)) { await this.diagnostic(context, `${context.command}: ${option}: invalid option`); return 2; }
             (option[0] === "-" ? enabled : disabled).add(flag);
           }
         }
         associativeDeclaration = enabled.has("A");
         indexedLocal = associativeDeclaration || enabled.has("a");
+        namerefLocal = command === "local" && enabled.has("n");
         if (enabled.has("f") || enabled.has("F")) {
           let status = 0;
           const names = declarationArgs.length ? declarationArgs : [...state.functions.keys()].sort();
@@ -6359,7 +6361,7 @@ export class Runtime {
           return 2;
         }
         namerefLocal = enabled.has("n");
-        if (indexedLocal && declarationArgs.length === 0) {
+        if (indexedLocal && declarationArgs.length === 0 && !enabled.has("p")) {
           await writeDiagnostic(stderr, "local: -a requires a variable name\n");
           return 2;
         }
@@ -6409,6 +6411,43 @@ export class Runtime {
       const locals = command === "declare" && enabled.has("g") ? undefined : state.locals.at(-1);
       const localDeclaration = command === "local" || command === "declare" && locals !== undefined;
       if (command === "local" && !locals) { await writeDiagnostic(stderr, "local: not in a function\n"); return 1; }
+      if ((command === "declare" || command === "local") && enabled.has("p")) {
+        let status = 0;
+        const names = declarationArgs.length ? declarationArgs : command === "local" ? [...locals!.keys()] : [...new Set([...Object.keys(state.variables), ...state.variableAttributes?.keys() ?? [], ...state.exported, ...state.readonlyVariables ?? [], ...arrayStore(state)?.bindings.keys() ?? []])];
+        for (const name of declarationArgs.length ? names : names.sort()) {
+          this.signal.throwIfAborted();
+          const binding = arrayStore(state)?.get(name);
+          if (!binding && !Object.hasOwn(state.variables, name) && !locals?.has(name) && !state.variableAttributes?.has(name) && !state.exported.has(name) && !state.readonlyVariables?.has(name)) {
+            await this.diagnostic(context, `${context.command}: ${name}: not found`);
+            status = 1;
+            continue;
+          }
+          const attributes = state.variableAttributes?.get(name) ?? "";
+          const flags = [..."aAilnrux"].filter(flag => flag === "a" ? binding && !binding.associative : flag === "A" ? binding?.associative : flag === "r" ? state.readonlyVariables?.has(name) : flag === "x" ? state.exported.has(name) : attributes.includes(flag)).join("");
+          await writeText(stdout, `declare ${flags ? `-${flags}` : "--"} ${name}`);
+          if (binding) {
+            binding.retain();
+            try {
+              await writeText(stdout, "=(");
+              let first = true;
+              for (const index of [...binding.values.keys()].sort((left, right) => left - right)) {
+                await writeText(stdout, first ? "[" : " [");
+                if (binding.associative) await this.printDeclarationValue(binding.keys.get(binding.keyByIndex.get(index)!)!.text.shellValue, state, context);
+                else await writeText(stdout, String(index));
+                await writeText(stdout, "]=");
+                await this.printDeclarationValue(binding.getValue(index)!, state, context);
+                first = false;
+              }
+              await writeText(stdout, ")");
+            } finally { await binding.release(); }
+          } else if (Object.hasOwn(state.variables, name)) {
+            await writeText(stdout, "=");
+            await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
+          }
+          await writeText(stdout, "\n");
+        }
+        return status;
+      }
       let status = 0;
       if (!declarationArgs.length) {
         const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
@@ -6462,7 +6501,7 @@ export class Runtime {
       const declarationOffset = args.length - declarationArgs.length;
       for (let declarationIndex = 0; declarationIndex < declarationArgs.length; declarationIndex++) {
         const arg = declarationArgs[declarationIndex]!;
-        const match = (command === "readonly" && readonlySyntax ? /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su : /^([a-zA-Z_][a-zA-Z_0-9]*)(?:=(.*))?$/su).exec(arg);
+        const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\+?=(.*))?$/su.exec(arg);
         if (!match) { await this.diagnostic(context, `${command}: \`${arg}': not a valid identifier`); status = 1; continue; }
         const name = match[1]!;
         const syntax = context[declarationArrays]?.get(declarationOffset + declarationIndex);
@@ -6470,7 +6509,7 @@ export class Runtime {
         if (namerefLocal && match[2] !== undefined && (match[2] === name || !isShellIdentifier(match[2]))) {
           await this.diagnostic(context, `local: ${match[2]}: invalid name reference`); status = 1; continue;
         }
-        const append = command === "readonly" && readonlySyntax && arg[name.length] === "+";
+        const append = arg[name.length] === "+";
         const assignedValue = (): ShellValue => {
           const original = declarationValues[declarationOffset + declarationIndex]!;
           return typeof original === "string" ? match[2]! : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + (append ? 2 : 1)), context[valueScope]);
@@ -6545,10 +6584,17 @@ export class Runtime {
               const current = store.get(name);
               if (!saved && current && current.associative !== associativeDeclaration) throw new ArrayFailure("cannot convert array kind");
               shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, associativeDeclaration);
-              const value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
+              let value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
               if (value !== undefined) {
+                const index = associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0;
+                if (append) {
+                  const previous = shadow.getValue(index) ?? "";
+                  value = state.variableAttributes?.get(name)?.includes("i")
+                    ? concatShellValues([`(${shellValueText(previous) || "0"})+(`, value, ")"], context[valueScope])
+                    : concatShellValues([previous, value], context[valueScope]);
+                }
                 const token = await textToken(shadow.owner, this.attributeValue(state, name, value), this.signal);
-                try { shadow.insert(associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0, token); } catch (error) { token.release(); throw error; }
+                try { shadow.insert(index, token); } catch (error) { token.release(); throw error; }
               }
               this.signal.throwIfAborted();
               if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
@@ -6658,7 +6704,14 @@ export class Runtime {
         }
         if (match[2] !== undefined) {
           if ((command === "declare" || command === "local") && enabled.has("n")) publishVariable(state, name, assignedValue());
-          else this.writeVariable(state, name, append ? concatShellValues([stateMonitor(state)?.values.get(name, state.variables[name] ?? "") ?? state.variables[name] ?? "", assignedValue()], context[valueScope]) : assignedValue());
+          else {
+            let value = assignedValue();
+            const target = this.referenceName(state, name);
+            if (append) value = state.variableAttributes?.get(target)?.includes("i")
+              ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
+              : concatShellValues([stateMonitor(state)?.values.get(target, state.variables[target] ?? "") ?? state.variables[target] ?? "", value], context[valueScope]);
+            this.writeVariable(state, name, value);
+          }
         }
         else if (command === "local" && name === "OPTIND") this.syncGetopts(state);
         if (command === "export" && !enabled.has("n") || enabled.has("x")) state.exported.add(name);

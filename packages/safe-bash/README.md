@@ -96,7 +96,11 @@ stops passing it. `export -p` prints reusable variable declarations; `export -fp
 exported functions.
 `declare` supports integer (`-i`), ASCII case conversion (`-l`/`-u`), scalar
 name references (`-n`), exports (`-x`), readonly (`-r`), arrays (`-a`/`-A`),
-global declarations (`-g`), inherited locals (`-I`), and function inspection (`-f`/`-F`).
+global declarations (`-g`), inherited locals (`-I`), declaration printing (`-p`),
+and function inspection (`-f`/`-F`). `typeset` is an alias for `declare`.
+`local` accepts variable attribute flags and combinations such as `-ai` and `-ar`.
+`declare`, `typeset`, `local`, and `export` accept `name+=value`; integer variables
+add the arithmetic value instead of concatenating text.
 `cd -L` preserves symlinks in `PWD` (the default); `cd -P` resolves symlinks before
 following `..` and records the physical directory. Use `cd -- <path>` for paths
 beginning with a dash.

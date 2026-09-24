@@ -1270,7 +1270,7 @@ class Parser {
       const indexedDeclaration = (): boolean => {
         let index = 0;
         while (words[index] && scalarAssignmentName(words[index]!)) index++;
-        return ["declare", "local", "readonly"].includes(words[index]?.plain ?? "");
+        return ["declare", "typeset", "local", "readonly"].includes(words[index]?.plain ?? "");
       };
       let line: number | undefined;
       while (true) {

@@ -4,6 +4,44 @@ import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 
+for (const [source, expected] of [
+  ['x=hello; declare x+=world; printf %s "$x"', 'helloworld'],
+  ['declare -i n=10; declare n+=2+3; printf %s "$n"', '15'],
+  ['p=/usr/bin; export p+=/custom; envget p', '/usr/bin/custom'],
+  ['declare -i n=10; export n+=5; envget n', '15'],
+  ['f(){ local s=foo; local s+=bar; printf %s "$s"; }; f', 'foobar'],
+  ['f(){ local -i n=10; local n+=5; printf %s "$n"; }; f', '15'],
+  ['f(){ local -r x=42; local -x e=hi; local -A m; m[k]=v; printf "%s," "$x"; envget e; printf ",%s" "${m[k]}"; }; f', '42,hi,v'],
+  ['f(){ local -l x=HELLO; local -u y=world; printf "%s,%s" "$x" "$y"; }; f', 'hello,WORLD'],
+  ['declare -i x=7; f(){ local -I x; x=2+3; printf "%s," "$x"; }; f; printf %s "$x"', '5,7'],
+  ['f(){ local -ai x; x[0]=2+3; printf %s "${x[0]}"; }; f', '5'],
+  ['f(){ local -ar x=(hello world); printf %s "${x[1]}"; }; f', 'world'],
+  ['x=123; declare -p x', 'declare -- x="123"\n'],
+  ['declare -i x=3; declare -p x', 'declare -i x="3"\n'],
+  ['f(){ local -rx x=hi; local -p x; }; f', 'declare -rx x="hi"\n'],
+  ['f(){ local x=hi; local -p; }; f', 'declare -- x="hi"\n'],
+  ['typeset -i k=2+3; typeset k+=2; typeset -p k', 'declare -i k="7"\n'],
+  ['typeset -a x=(hello world); typeset -p x', 'declare -a x=([0]="hello" [1]="world")\n'],
+  ['x=hi; declare -p missing x; printf %s "$?"', 'declare -- x="hi"\n1'],
+  ['f(){ local -ai x=(2+3); local -ai x+=2; printf %s "${x[0]}"; }; f', '7'],
+  ['declare -ai x=(10); declare x+=5; printf %s "${x[0]}"', '15'],
+  ['typeset -a x=(hello); typeset -a x+=world; printf %s "${x[0]}"', 'helloworld'],
+  ['x=outer; f(){ local -urx x=inner; }; f; x=next; printf %s "$x"; envget x', 'next<unset>'],
+  ['f(){ local -A x=([key]=value); local -p x; }; f', 'declare -A x=(["key"]="value")\n'],
+  ['f(){ local -a x; local -p; }; f', 'declare -a x=()\n'],
+  ['declare -i ZZ=2; declare -p', 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -i ZZ="2"\n'],
+  ['declare x; declare -p x', 'declare -- x\n'],
+] as const) test(`declaration compatibility: ${source}`, async t => {
+  const { shell, commands } = setup();
+  for (const command of basicCommands()) commands.register(command);
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.exitCode, 0);
+  if (source.includes('-p missing')) assert.ok(result.stderr.includes('not found'));
+  else assert.equal(result.stderr, '');
+});
+
 for (const [source, expected, diagnostic] of [
   ['f(){ printf hello; }; readonly -f f; f(){ printf changed; }; f', 'hello', 'f: readonly function'],
   ['f(){ printf hello; }; readonly -f f; f(){ printf changed; }; printf "%s:" "$?"; f', '1:hello', 'f: readonly function'],

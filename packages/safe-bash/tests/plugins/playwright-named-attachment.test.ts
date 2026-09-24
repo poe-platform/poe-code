@@ -37,6 +37,23 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+test('snapshot ref budgets do not limit persisted session listing or attachment', async () => {
+  const f = fixture({ limits: { maxSnapshotRefs: 1, maxSessions: 1 }, persistence: {
+    async list() { return [{ name: 'saved' }, { name: 'other' }]; },
+    async restore() { return { lease: f.lease, selectedPage: f.pages[1] }; },
+    async checkpoint() {}, async delete() {}, async close() {},
+  } });
+  try {
+    const listed = await f.run('list');
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.match(listed.stdout, /saved/);
+    assert.match(listed.stdout, /other/);
+    assert.equal((await f.run('attach saved')).exitCode, 0);
+    assert.equal((await f.run('close-all')).exitCode, 0);
+    assert.equal(f.releases, 1);
+  } finally { await f.shell.dispose(); }
+});
+
 test('closed and expired metadata cannot allocate a browser during attachment', async () => {
   let calls = 0;
   const f = fixture({ persistence: {

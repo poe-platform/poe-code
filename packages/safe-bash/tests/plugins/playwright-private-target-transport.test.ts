@@ -4,6 +4,56 @@ import { createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, ty
 
 type Message = { id?: number; method?: string; sessionId?: string; params?: Record<string, any>; result?: Record<string, any>; error?: Record<string, any> };
 
+test('20001 pending commands share one deadline timer and all replies complete', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const timers = context.mock.method(globalThis, 'setTimeout');
+  const state = fixture({ maxPendingCommands: 20001 });
+  try {
+    for (let id = 1; id <= 20001; id++) state.transport.send({ id, method: 'Runtime.enable' });
+    assert.equal(timers.mock.callCount(), 1);
+    for (const message of state.sent.toReversed()) state.receive({ id: message.id, result: {} });
+    assert.equal(state.received.length, 20001);
+    context.mock.timers.tick(10001);
+    assert.equal(state.closes(), 0);
+  } finally { state.transport.close(); }
+});
+
+test('completing the oldest command preserves the next original deadline', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  let now = 0;
+  context.mock.method(performance, 'now', () => now);
+  const state = fixture({ commandTimeoutMs: 10 });
+  state.transport.send({ id: 1, method: 'Runtime.enable' });
+  now = 4;
+  context.mock.timers.tick(4);
+  state.transport.send({ id: 2, method: 'Runtime.evaluate' });
+  now = 7;
+  context.mock.timers.tick(3);
+  state.receive({ id: state.sent[0]!.id, result: {} });
+  now = 13;
+  context.mock.timers.tick(6);
+  assert.equal(state.closes(), 0);
+  now = 14;
+  context.mock.timers.tick(1);
+  assert.deepEqual(state.reasons, ['CDP Runtime.evaluate timed out (command 2, pending 1, deadline 10ms, elapsed 10ms)']);
+  context.mock.timers.tick(10000);
+  assert.equal(state.closes(), 1);
+});
+
+test('a reply buffered by target creation retains its command deadline', context => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const state = fixture({ commandTimeoutMs: 10, creationTimeoutMs: 100 });
+  state.beginCreation();
+  state.transport.send({ id: 1, method: 'Target.getTargets' });
+  state.receive({ id: state.sent[0]!.id, result: { targetInfos: [] } });
+  assert.deepEqual(state.received, []);
+  context.mock.timers.tick(11);
+  assert.equal(state.closes(), 1);
+  assert.match(state.reasons[0]!, /CDP Target.getTargets timed out/);
+  context.mock.timers.tick(100);
+  assert.equal(state.reasons.length, 1);
+});
+
 for (const retirement of ['session', 'target', 'buffered'] as const) {
   test(`confirmed private ${retirement} retirement tolerates a racing native detach rejection`, () => {
     const state = fixture();

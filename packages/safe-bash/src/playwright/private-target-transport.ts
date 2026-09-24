@@ -44,7 +44,7 @@ interface Command {
   retirementConfirmed: boolean;
   replied: boolean;
   bytes: number;
-  timer: ReturnType<typeof setTimeout>;
+  started: number;
 }
 
 interface Creation {
@@ -97,6 +97,24 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
   let failure: Error | undefined;
   let flushing = false;
   let opened = false;
+  let commandTimer: ReturnType<typeof setTimeout> | undefined;
+  let timedCommandId: number | undefined;
+
+  function scheduleCommandDeadline(): void {
+    // Uniform deadlines and monotonic insertion order keep the oldest command
+    // first, even when replies arrive out of order. Only that command needs a timer.
+    const first = pending.entries().next().value;
+    if (first?.[0] === timedCommandId) return;
+    clearTimeout(commandTimer);
+    commandTimer = undefined;
+    timedCommandId = first?.[0];
+    if (!first) return;
+    const [id, command] = first;
+    commandTimer = setTimeout(() => retire(new Error(
+      `CDP ${command.method} timed out (command ${id}, pending ${pending.size}, deadline ${limits.commandTimeoutMs}ms, elapsed ${Math.round(performance.now() - command.started)}ms)`,
+    )), Math.max(0, limits.commandTimeoutMs - (performance.now() - command.started)));
+  }
+
 
   function retire(reason: unknown): void {
     if (failure) return;
@@ -107,7 +125,9 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       creation.failed = true;
       creation = undefined;
     }
-    for (const command of pending.values()) clearTimeout(command.timer);
+    clearTimeout(commandTimer);
+    commandTimer = undefined;
+    timedCommandId = undefined;
     pending.clear();
     clientKeys.clear();
     targets.clear();
@@ -171,18 +191,16 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (clientKey && clientKeys.has(clientKey)) throw new Error('Duplicate pending client CDP identity');
       if (pending.size >= limits.maxPendingCommands || bytes > limits.maxPendingBytes - pendingBytes) throw new Error('CDP pending command limit exceeded');
       const started = performance.now();
-      const timer = setTimeout(() => retire(new Error(
-        `CDP ${message.method} timed out (command ${id}, pending ${pending.size}, deadline ${limits.commandTimeoutMs}ms, elapsed ${Math.round(performance.now() - started)}ms)`,
-      )), limits.commandTimeoutMs);
       pending.set(id, { clientId: input.id, clientKey, method: message.method, sessionId: message.sessionId,
         targetId: internal && identity(message.params?.sessionId) ? sessions.get(message.params.sessionId)
           : identity(message.params?.targetId) ? message.params.targetId : undefined,
         detachedSessionId: internal && identity(message.params?.sessionId) ? message.params.sessionId : undefined,
         retirementConfirmed: internal && identity(message.params?.sessionId) &&
           (retiredSessions.has(message.params.sessionId) || retiredTargets.has(sessions.get(message.params.sessionId)!)),
-        internal, replied: false, bytes, timer });
+        internal, replied: false, bytes, started });
       if (clientKey) clientKeys.add(clientKey);
       pendingBytes += bytes;
+      scheduleCommandDeadline();
       if (denied) queueMicrotask(() => receive({ id, ...(message.sessionId ? { sessionId: message.sessionId } : {}),
         error: { code: -32000, message: 'Policy-owned target is unavailable to this client' } }));
       else upstream.send(message);
@@ -196,7 +214,7 @@ export function createPlaywrightPrivateTargetTransport(upstream: PlaywrightCDPTr
       if (!command) return;
       pending.delete(message.id);
       pendingBytes -= command.bytes;
-      clearTimeout(command.timer);
+      scheduleCommandDeadline();
       if (command.clientKey) clientKeys.delete(command.clientKey);
       if (command.internal) {
         // Chromium can retire the private session before acknowledging our detach.

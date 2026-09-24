@@ -11,6 +11,11 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases: readonly [string, string[]][] = [
+  ['declare -A map; map[foo]=hELLo; args "${map[foo]^}" "${map[foo]^^}" "${map[foo],}" "${map[foo],,}" "${map[foo]@Q}"', ["HELLo", "HELLO", "hELLo", "hello", "'hELLo'"]],
+  ["declare -A map; map[1]='a\\nb'; args \"${map[1]^^}\" \"${map[1]@Q}\" \"${map[1]@E}\"", [String.raw`A\NB`, String.raw`'a\nb'`, "a\nb"]],
+  ['declare -A map; map[first]=hello; args "${map[0]@Q}" "${map[0]@E}" "${map[0]^^}"', ["", "", ""]],
+  ['declare -A map; map[empty]=; args "${map[empty]@Q}" "${map[empty]@E}" "${map[empty],,}"', ["''", "", ""]],
+  ['declare -A map; map[0]=hello; key=0; args "${map[$key]@Q}" "${map[$key]^^}"', ["'hello'", "HELLO"]],
   ['value=ab; args "${value^^}" "${value^}"', ["AB", "Ab"]],
   ['value=AB; args "${value,,}" "${value,}"', ["ab", "aB"]],
   ['value=abca; args "${value^^[ac]}" "${value^b}" "${value,,}"', ["AbCA", "abca", "abca"]],
@@ -58,6 +63,7 @@ for (const [source, expected] of [
   ["value='\\377z'; rawargs \"${value@E}\"", ["ff7a"]],
   ["value='\\U00110000'; rawargs \"${value@E}\"", ["f4908080"]],
   ["values=('\\377' '\\101'); rawargs \"${values[@]@E}\"", ["ff", "41"]],
+  ["declare -A map; map[foo]=$'a\\377B'; rawargs \"${map[foo]^^}\" \"${map[foo],,}\" \"${map[foo]@Q}\"", ["41ff42", "61ff62", Buffer.from(String.raw`$'a\377B'`).toString("hex")]],
 ] as const) test(`parameter transforms preserve exact bytes: ${source}`, async () => {
   const { shell } = setup({ env: { LC_ALL: "C.UTF-8" } });
   shell.register({ name: "rawargs", async execute(context) {
@@ -69,6 +75,32 @@ for (const [source, expected] of [
     const result = await shell.exec(source);
     assert.equal(result.stderr, "");
     assert.deepEqual(JSON.parse(result.stdout), expected);
+  } finally { await shell.dispose(); }
+});
+
+test("associative transforms expand their key exactly once", async () => {
+  const { shell } = setup();
+  let calls = 0;
+  shell.register({ name: "key", async execute({ stdout }) {
+    calls++;
+    await writeText(stdout, "foo");
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await shell.exec('declare -A map; map[foo]=hello; args "${map[$(key)]@Q}" "${map[$(key)]^^}"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(JSON.parse(result.stdout), ["'hello'", "HELLO"]);
+    assert.equal(calls, 2);
+  } finally { await shell.dispose(); }
+});
+
+for (const operator of ["@Q", "@E", "^", "^^", ",", ",,"]) test(`associative ${operator} preserves nounset failures`, async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec(`declare -A map; map[first]=hello; set -u; args "\${map[0]${operator}}"`);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /unbound variable/u);
   } finally { await shell.dispose(); }
 });
 

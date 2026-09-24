@@ -7011,6 +7011,18 @@ export class Runtime {
         }
         return concatShellValues(fragments, io[valueScope]);
       }
+      const binding = arrayStore(state)?.get(part.name);
+      if (selector?.kind === "element" && binding?.associative) {
+        const holding = binding.owner.hold();
+        try {
+          const index = await this.arrayIndex(binding, selector.index, state, io, binding.owner);
+          const value = index === undefined ? undefined : binding.getValue(index);
+          this.requireParameter(index === undefined ? undefined : binding.get(index), part.name, state, io);
+          if (value === undefined) return "";
+          const owned = shellValueFromBytes(shellValueBytes(value, io[valueScope]), io[valueScope]);
+          return part.transform ? this.transformValue(owned, part.transform, state, io) : this.parameterPattern(part, owned, state, io, hereString);
+        } finally { holding.release(); }
+      }
       const base: Extract<WordPart, { kind: "variable" }> = { ...part };
       delete base.transform;
       if (!part.transform) { delete base.operator; delete base.alternate; }

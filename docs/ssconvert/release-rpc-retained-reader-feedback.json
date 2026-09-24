@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "baseline": "1eb1219b9cc5d5276a0715a290c3c102900fd30a",
+  "issue": "Three RPC ownership tests failed because the fixture deliberately hid openReadFile, which ZIP now requires before publication admission.",
+  "baselineTests": { "tests": 4, "passed": 1, "failed": 3 },
+  "repair": [
+    "Serialize retained-reader acquisition through an opaque numeric server handle, and round-trip stat/read/close operations through the same JSON transport and scope mapping as filesystem observations.",
+    "Keep separate refusal cases for unavailable retained reads and unavailable atomic publication, retaining csplit's independent atomic-mutation requirement.",
+    "Verify retained source identity and raw bytes survive pathname replacement, server scope objects do not cross into client observations, close is idempotent, and reads after close fail EBADF.",
+    "Keep exact extracted/split binary bytes, competing output ownership and actual publication-race injections; require all acquired readers to close on success and failure."
+  ],
+  "runtimeChanged": false,
+  "source": {
+    "path": "packages/safe-bash/tests/commands/rpc-atomic-host.test.ts",
+    "sha256": "a5d00f3c4a54e2d96ac83b207cc1e946967df55e16345807e88ae5c6b086b678"
+  },
+  "validation": {
+    "rpcAndAtomicZip": { "files": 2, "tests": 13, "passed": 13, "failed": 0 },
+    "related": { "files": 5, "tests": 173, "passed": 173, "failed": 0, "skipped": 0 },
+    "lint": "Focused ESLint passed.",
+    "types": "Final maintained historical-type-models source/test compilation passed."
+  },
+  "scope": "In-memory serialized RPC fixture and public Shell execution; this is not deployed network transport qualification. Caller cancellation remains an explicitly forwarded sideband signal, as in the original fixture.",
+  "priorDelivery": "Capability correction fc2daedfb8220e349674f96898ccdeb93bd1b231 verified exactly on remote main; containing publication remains pending.",
+  "remaining": "Seven reproduced memory/remote-adapter comparison failures and other filesystem release groups; all 19 original ssconvert families and publication remain open."
+}

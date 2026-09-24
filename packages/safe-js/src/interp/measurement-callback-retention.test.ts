@@ -5,14 +5,20 @@ import { intrinsicDataRoots } from "./intrinsic-data-roots.js";
 import { scopeDataRoots } from "./scope-data-roots.js";
 import { createSandboxClosure, measureSandboxData, type SandboxValue } from "./values.js";
 
-function fixture(kind: "arguments" | "intrinsic" | "options", fails: boolean) {
+function fixture(kind: "arguments" | "intrinsic" | "options" | "captures", fails: boolean) {
   const payload = { text: "payload" };
   const root = {};
   let append!: (value: SandboxValue) => void;
   const observer = createSandboxClosure({ call: () => undefined });
   const failure = new Error("collection failed");
+  const captured = kind === "captures"
+    ? [payload, ...Array.from({ length: 15 }, () => ({ text: "other" }))]
+    : undefined;
   registerIndexedClosureCaptures(observer, callback => {
     append = callback;
+    // These roots were already visited. Keep the oldest positive cache entry
+    // weakly observed across both successful completion and provider failure.
+    for (const value of captured ?? []) callback(value);
     if (fails) throw failure;
   });
   if (kind === "arguments")
@@ -23,8 +29,9 @@ function fixture(kind: "arguments" | "intrinsic" | "options", fails: boolean) {
   if (kind === "intrinsic") intrinsicDataRoots.set(root, { target: payload, values: [payload] });
   const options = { ignoreClosures: false };
   const reference = new WeakRef(kind === "options" ? options : payload);
-  if (fails) expect(() => measureSandboxData([root, observer], options)).toThrow(failure);
-  else measureSandboxData([root, observer], options);
+  const roots = [...(captured ?? [root]), observer];
+  if (fails) expect(() => measureSandboxData(roots, options)).toThrow(failure);
+  else measureSandboxData(roots, options);
   return { append, reference };
 }
 
@@ -43,7 +50,9 @@ it.skipIf(typeof global.gc !== "function").each([
   { kind: "intrinsic" as const, fails: false },
   { kind: "intrinsic" as const, fails: true },
   { kind: "options" as const, fails: false },
-  { kind: "options" as const, fails: true }
+  { kind: "options" as const, fails: true },
+  { kind: "captures" as const, fails: false },
+  { kind: "captures" as const, fails: true }
 ])("releases $kind after measurement (fails=$fails)", async ({ kind, fails }) => {
   const { append, reference } = fixture(kind, fails);
   const control = {};

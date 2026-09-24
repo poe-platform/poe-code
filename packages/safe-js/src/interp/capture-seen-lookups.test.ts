@@ -29,8 +29,8 @@ vi.mock("./measurement-seen.js", async (importOriginal) => {
   };
 });
 
-it("bounds repeated visited capture lookups while calling every collector afresh", () => {
-  const roots = Array.from({ length: 4 }, () => ({ text: "old" }));
+it.each([4, 16])("bounds repeated lookups for %s scope roots while calling every collector afresh", count => {
+  const roots = Array.from({ length: count }, () => ({ text: "old" }));
   let collections = 0;
   const closures = Array.from({ length: 100 }, () => {
     const closure = createSandboxClosure({ call: () => undefined });

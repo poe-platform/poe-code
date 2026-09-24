@@ -970,18 +970,50 @@ function measureSandboxDataWithSeen(
   // Native scope collectors repeatedly append the same small set of ancestor
   // roots. Remember only confirmed positive membership in this walk; unvisited
   // captures must keep their ordering and exclusive pending snapshots.
+  // Sixteen slots cover deeper module scope chains. Direct comparisons avoid
+  // another visited-registry lookup when an ancestor is still in these slots.
   let firstSeenCapture: object | undefined;
   let secondSeenCapture: object | undefined;
   let thirdSeenCapture: object | undefined;
   let fourthSeenCapture: object | undefined;
+  let fifthSeenCapture: object | undefined;
+  let sixthSeenCapture: object | undefined;
+  let seventhSeenCapture: object | undefined;
+  let eighthSeenCapture: object | undefined;
+  let ninthSeenCapture: object | undefined;
+  let tenthSeenCapture: object | undefined;
+  let eleventhSeenCapture: object | undefined;
+  let twelfthSeenCapture: object | undefined;
+  let thirteenthSeenCapture: object | undefined;
+  let fourteenthSeenCapture: object | undefined;
+  let fifteenthSeenCapture: object | undefined;
+  let sixteenthSeenCapture: object | undefined;
   const appendNativeCapture = (value: SandboxValue): void => {
     // Omitting an already visited object is equivalent to visit's first check.
     // Primitive charges and all provider/metadata reads remain observable.
     if (value === undefined) return;
     if (typeof value === "object" && value !== null) {
       if (value === firstSeenCapture || value === secondSeenCapture ||
-          value === thirdSeenCapture || value === fourthSeenCapture) return;
+          value === thirdSeenCapture || value === fourthSeenCapture ||
+          value === fifthSeenCapture || value === sixthSeenCapture ||
+          value === seventhSeenCapture || value === eighthSeenCapture ||
+          value === ninthSeenCapture || value === tenthSeenCapture ||
+          value === eleventhSeenCapture || value === twelfthSeenCapture ||
+          value === thirteenthSeenCapture || value === fourteenthSeenCapture ||
+          value === fifteenthSeenCapture || value === sixteenthSeenCapture) return;
       if (seen.has(value)) {
+        sixteenthSeenCapture = fifteenthSeenCapture;
+        fifteenthSeenCapture = fourteenthSeenCapture;
+        fourteenthSeenCapture = thirteenthSeenCapture;
+        thirteenthSeenCapture = twelfthSeenCapture;
+        twelfthSeenCapture = eleventhSeenCapture;
+        eleventhSeenCapture = tenthSeenCapture;
+        tenthSeenCapture = ninthSeenCapture;
+        ninthSeenCapture = eighthSeenCapture;
+        eighthSeenCapture = seventhSeenCapture;
+        seventhSeenCapture = sixthSeenCapture;
+        sixthSeenCapture = fifthSeenCapture;
+        fifthSeenCapture = fourthSeenCapture;
         fourthSeenCapture = thirdSeenCapture;
         thirdSeenCapture = secondSeenCapture;
         secondSeenCapture = firstSeenCapture;
@@ -1867,6 +1899,18 @@ function measureSandboxDataWithSeen(
     secondSeenCapture = undefined;
     thirdSeenCapture = undefined;
     fourthSeenCapture = undefined;
+    fifthSeenCapture = undefined;
+    sixthSeenCapture = undefined;
+    seventhSeenCapture = undefined;
+    eighthSeenCapture = undefined;
+    ninthSeenCapture = undefined;
+    tenthSeenCapture = undefined;
+    eleventhSeenCapture = undefined;
+    twelfthSeenCapture = undefined;
+    thirteenthSeenCapture = undefined;
+    fourteenthSeenCapture = undefined;
+    fifteenthSeenCapture = undefined;
+    sixteenthSeenCapture = undefined;
     while (pendingCount > 0) {
       const frame = pending![--pendingCount]!;
       if (frame.capture !== undefined) releaseCaptures(frame.capture);

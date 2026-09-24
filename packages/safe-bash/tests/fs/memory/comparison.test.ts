@@ -115,22 +115,22 @@ for (const kind of ["s3", "webdav"] as const) {
         const filesystem = mounted(memory, remote);
         const sourcePath = direction === "to-remote" ? "/memory/source" : "/remote/source";
         const targetPath = direction === "to-remote" ? "/remote/target" : "/memory/target";
-        const allowed = action === "copyFile" || action === "cp" && kind === "s3" && direction === "to-remote";
-        const contentStart = operations().length;
+        const refused = action === "mv" || action === "cp" && direction === "from-remote";
+        const transferStart = operations().length;
         if (action === "copyFile") await filesystem.copyFile(sourcePath, targetPath);
         else {
           const shell = new Shell({ fs: filesystem }).use(standardCommands());
           context.after(() => shell.dispose());
           const result = await shell.exec(`${action} ${sourcePath} ${targetPath}`);
-          assert.equal(result.exitCode, allowed ? 0 : 1, result.stderr);
-          if (action === "mv") assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
-          else if (direction === "from-remote") assert.match(result.stderr, /ENOTSUP.*copy requires retained reads and streaming writes/u);
-          else if (kind === "webdav") assert.match(result.stderr, /ENOTSUP.*writeStream/u);
+          assert.equal(result.exitCode, refused ? 1 : 0, result.stderr);
+          if (action === "mv") assert.equal(result.stderr,
+            `mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '${sourcePath}' -> '${targetPath}'\n`);
+          else if (refused) assert.equal(result.stderr, `cp: ENOTSUP: copy requires retained reads and streaming writes '${sourcePath}'\n`);
           else assert.equal(result.stderr, "");
         }
-        if (!allowed) metadataOnly(operations().slice(contentStart));
+        if (refused) metadataOnly(operations().slice(transferStart));
         assert.deepEqual(await source.readFile("/source"), payload);
-        assert.deepEqual(await target.readFile("/target"), allowed ? payload : previous);
+        assert.deepEqual(await target.readFile("/target"), refused ? previous : payload);
         assert.deepEqual(await source.readFile("/sentinel"), sentinel);
         assert.deepEqual(await target.readFile("/sentinel"), sentinel);
         assert.deepEqual((await source.readdir("/")).map(entry => entry.name), ["sentinel", "source"]);
@@ -138,6 +138,42 @@ for (const kind of ["s3", "webdav"] as const) {
       });
     }
   }
+
+  test(`qualified ${kind} streams mv to a missing destination and removes the source`, async context => {
+    const memory = new MemoryFileSystem();
+    const { filesystem: remote } = qualified(kind, memory);
+    await memory.writeFile("/source", payload);
+    await memory.writeFile("/sentinel", sentinel);
+    await remote.writeFile("/sentinel", sentinel);
+    const shell = new Shell({ fs: mounted(memory, remote) }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec("mv /memory/source /remote/target");
+    assert.equal(result.exitCode, 0, result.stderr);
+    await assert.rejects(memory.stat("/source"), { code: "ENOENT" });
+    assert.deepEqual(await remote.readFile("/target"), payload);
+    assert.deepEqual(await memory.readFile("/sentinel"), sentinel);
+    assert.deepEqual(await remote.readFile("/sentinel"), sentinel);
+    assert.deepEqual((await memory.readdir("/")).map(entry => entry.name), ["sentinel"]);
+    assert.deepEqual((await remote.readdir("/")).map(entry => entry.name), ["sentinel", "target"]);
+  });
+
+  test(`qualified ${kind} refuses explicit mode preservation before changing the destination`, async context => {
+    const memory = new MemoryFileSystem();
+    const { filesystem: remote, operations } = qualified(kind, memory);
+    await memory.writeFile("/source", payload);
+    await remote.writeFile("/target", previous);
+    const start = operations().length;
+    const shell = new Shell({ fs: mounted(memory, remote) }).use(standardCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec("cp --preserve=mode /memory/source /remote/target");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "cp: ENOTSUP: operation not supported, cp '/remote/target'\n");
+    metadataOnly(operations().slice(start));
+    assert.deepEqual(await memory.readFile("/source"), payload);
+    assert.deepEqual(await remote.readFile("/target"), previous);
+    assert.deepEqual((await memory.readdir("/")).map(entry => entry.name), ["source"]);
+    assert.deepEqual((await remote.readdir("/")).map(entry => entry.name), ["target"]);
+  });
 
   test(`qualified ${kind} comparison cannot grant unsupported overlay retained reads`, async () => {
     const memory = new MemoryFileSystem();

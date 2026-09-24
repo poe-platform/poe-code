@@ -30,6 +30,11 @@ export async function copyCheckedSource(context: CommandContext, source: string,
   try {
     context.signal.throwIfAborted();
     if (!accepting) throw new FsError("EBADF", { path: source });
+    const destinationCapabilities = await context.fs.capabilitiesFor?.(target, {
+      signal: context.signal, creation: exclusive ? "exclusive" : "ifMissing",
+    }) ?? context.fs.capabilities;
+    context.signal.throwIfAborted();
+    if (!accepting) throw new FsError("EBADF", { path: source });
     acquisition = context.fs.openReadFile!(source, { signal: context.signal });
     const reader = await acquisition;
     acquired();
@@ -56,7 +61,8 @@ export async function copyCheckedSource(context: CommandContext, source: string,
       }
     };
     work = context.fs.writeStream!(target, bytes(), {
-      flag: exclusive ? "wx" : "w", mode: expected.mode & 0o7777, signal: context.signal,
+      flag: exclusive ? "wx" : "w", signal: context.signal,
+      ...(destinationCapabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
     });
     await work;
     context.signal.throwIfAborted();

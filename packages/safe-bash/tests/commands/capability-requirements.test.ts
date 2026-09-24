@@ -46,7 +46,7 @@ test("cross-mount move admits source removal and destination publication before 
   }
 });
 
-test("existing cross-mount transfer routes override unavailable native copy modes without new fallback", async () => {
+test("cross-mount streaming transfers preserve overwrite refusal without native copy modes", async () => {
   for (const command of ["cp", "mv"]) for (const missing of [false, true]) {
     const source = await fixture({ source: "payload" });
     const target = await fixture(missing ? {} : { target: "previous" });
@@ -63,12 +63,13 @@ test("existing cross-mount transfer routes override unavailable native copy mode
     const result = await run(command, ["/source/work/source", "/target/work/target"], { fs });
     const refused = command === "mv" && !missing;
     assert.equal(result.exitCode, refused ? 1 : 0, `${command} missing=${missing}: ${result.stderr}`);
-    if (refused) assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
+    if (refused) assert.equal(result.stderr, "mv: ENOTSUP: cross-device overwrite requires atomic destination and ancestry binding '/source/work/source' -> '/target/work/target'\n");
     else assert.equal(result.stderr, "");
     assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), refused ? "previous" : "payload");
     assert.equal(nativeCopies, 0);
     if (command === "mv" && !refused) await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
     else assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+    assert.deepEqual((await target.readdir("/work")).map(entry => entry.name), ["proof", "target"]);
   }
 });
 
@@ -95,11 +96,34 @@ test("direct exclusive copy remains available while commands refuse destinations
     assert.equal(new TextDecoder().decode(await target.readFile("/work/proof")), "payload");
     const result = await run(command, ["/source/work/source", "/target/work/new"], { fs });
     assert.equal(result.exitCode, 1, `${command}: ${result.stderr}`);
-    assert.match(result.stderr, /ENOTSUP/u);
+    assert.equal(result.stderr, `${command}: ENOTSUP: operation not supported, ${command} '/target/work/new'\n`);
     await assert.rejects(target.stat("/work/new"), { code: "ENOENT" });
     assert.deepEqual(flags, ["wx"]);
     assert.equal(streamWrites, 0);
     assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+    assert.deepEqual((await target.readdir("/work")).map(entry => entry.name), ["proof"]);
+  }
+});
+
+test("copy creation modes follow the destination path's declared permissions", async () => {
+  for (const permissions of [true, false, undefined]) {
+    const source = await fixture({ source: "payload" });
+    await source.chmod("/work/source", 0o600);
+    const target = await fixture();
+    const destination = new Proxy(target, {
+      get(backing, property) {
+        if (property === "capabilitiesFor") return async () => ({ ...backing.capabilities, permissions });
+        const member = Reflect.get(backing, property);
+        return typeof member === "function" ? member.bind(backing) : member;
+      },
+    });
+    const fs = new root.MountFileSystem({ root: await fixture(), mounts: { "/source": source, "/target": destination } });
+    const result = await run("cp", ["/source/work/source", "/target/work/new"], { fs });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(await target.readFile("/work/new")), "payload");
+    assert.equal((await target.stat("/work/new")).mode & 0o7777, permissions === true ? 0o600 : 0o666);
+    assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+    assert.equal((await source.stat("/work/source")).mode & 0o7777, 0o600);
   }
 });
 

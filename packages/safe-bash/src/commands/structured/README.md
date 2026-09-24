@@ -374,8 +374,9 @@ code point. The optional third argument supports `i` (ignore case), `m` (dot
 matches newline), `n` (ignore empty matches), `s`, and `g`.
 
 Patterns support literals, classes, anchors, alternation, capturing and
-noncapturing groups, numeric backreferences, and greedy/lazy repetition.
-Lookaround, inline modifiers, and other Oniguruma extensions are unsupported.
+noncapturing groups, lookahead/lookbehind assertions, numeric backreferences,
+and greedy/lazy repetition. Inline modifiers and other Oniguruma extensions are
+unsupported.
 Regex matching shares jq's work, cancellation, collection and value limits;
 patterns additionally have bounded source, nesting and compiled-program size.
 
@@ -383,7 +384,7 @@ patterns additionally have bounded source, nesting and compiled-program size.
 
 - Not the entire jq language: no recursive definitions, destructuring `as` bindings,
   recursion, labels/break,
-  regex/date/math libraries beyond `scan(pattern)` or arbitrary jq builtins.
+  complete regex/date/math libraries or arbitrary jq builtins.
   `scan` streams nonoverlapping matches, or capture arrays when the pattern has
   groups; unmatched groups yield null. It shares the cooperative regex engine
   described above; the flags overload is not supported.
@@ -635,6 +636,13 @@ policy, new public switch, broad grammar feature or diagnostic format changes
 are part of this fix. A different independent final verifier is still required.
 
 ## Literal split integration (August 26, 2026)
+
+`splits(regex)` emits individual fields instead of collecting an array. For
+example, `[splits(",")]` turns `"a,b,c"` into `["a","b","c"]`. Regex delimiters
+preserve empty fields, omit capture groups, and preserve jq's byte advancement
+for empty matches. Matching uses the shared cooperative regex engine and charges
+the jq work budget, including lookahead and lookbehind assertions. Additional
+Oniguruma syntax and the two-argument flags overload are not supported.
 
 `split(separator)` is now registered with exactly one argument. Separators are
 evaluated lazily on the original input, in generator order; input validation

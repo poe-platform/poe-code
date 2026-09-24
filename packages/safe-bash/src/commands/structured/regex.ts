@@ -55,11 +55,13 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
 }
 
 
-function regexError(error: unknown): JqError {
+export function regexError(error: unknown): JqError {
   if (!(error instanceof ProgramError)) throw error;
   if (error.message.includes("buffer limit exceeded")) return new JqLimitError("maxValueBytes");
   const message = error.message === "unterminated bracket expression" ? "premature end of char-class"
-    : error.message === "unmatched '(' in regular expression" ? "end pattern with unmatched parenthesis" : error.message;
+    : error.message === "unmatched '(' in regular expression" ? "end pattern with unmatched parenthesis"
+    : error.message === "quantifier without an expression" ? "target of repeat operator is not specified"
+    : error.message === "reversed character range" ? "empty range in char class" : error.message;
   return new JqError(`Regex failure: ${message}`);
 }
 

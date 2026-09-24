@@ -7,6 +7,7 @@ import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { fromDateIso8601, toDateIso8601 } from "./dates.js";
 import { capture } from "./capture.js";
+import { splitRegex } from "./splits.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
 type Path = (string | number | { start: number; end: number })[];
@@ -659,6 +660,12 @@ export class Interpreter {
         for await (const flags of args[2] ? this.run(args[2], input) : [""]) {
           yield* substituteRegex(input, pattern, flags, captures => this.run(args[1]!, captures), budget);
         }
+      }
+      return;
+    }
+    if (name === "splits") {
+      for await (const separator of this.run(args[0]!, input)) {
+        yield* splitRegex(input, separator, budget);
       }
       return;
     }

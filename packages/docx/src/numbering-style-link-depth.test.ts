@@ -36,9 +36,9 @@ let input='';for await(const chunk of process.stdin)input+=chunk;const request=J
     });
     expect(JSON.parse(response)).toEqual({ ok: true, definition: String(depth), format: "decimal", start: "7", unchanged: true });
   }
-  expect(numbering.serialize()).toEqual(source);
-  expect(definitions.serialize()).toEqual(styleSource);
-  expect(new Uint8Array(memory.readFileSync("/numbering") as Buffer)).toEqual(source);
+  expect(Buffer.from(numbering.serialize()).equals(source)).toBe(true);
+  expect(Buffer.from(definitions.serialize()).equals(styleSource)).toBe(true);
+  expect((memory.readFileSync("/numbering") as Buffer).equals(source)).toBe(true);
 });
 
 it("numbering style lookup reserves work for repeated dependency resolution", () => {

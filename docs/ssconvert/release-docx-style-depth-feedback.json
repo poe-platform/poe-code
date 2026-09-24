@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "baseline": "3438705768121dd20ae5d27a719fc1d5d13a1de2",
+  "issue": "Release fresh-unit gate timed out in four depth-4096 numbering-style tests.",
+  "failedRelease": {
+    "runId": 35938725049,
+    "sourceRevision": "5bea20f79c01785627c0ef575227bd0491d638cb",
+    "route": "npm run test:ci:fresh",
+    "failedTests": 4,
+    "passedTests": 23740,
+    "timeoutMs": 5000,
+    "observedMs": [
+      6336,
+      7345,
+      5544,
+      7162
+    ]
+  },
+  "source": {
+    "path": "packages/docx/src/numbering-style-link-depth.test.ts",
+    "originalSha256": "8fee3de068bb6317ff136fcd2b38d15d1bec1749535670d91c124c85bd556600",
+    "repairedSha256": "f479e6a768cf54cb65678de69e006197ab74f311885250d7c4e7e81bd389fe61",
+    "failedReleaseFileIdentical": true
+  },
+  "repair": "Replace three deep Uint8Array matchers with native Buffer.equals; each assertion still compares every byte. Preserve depth, strict modes, worker/main execution, work limits and timeout. No production changes.",
+  "validation": {
+    "focusedTests": 15,
+    "baselineTestTimeMs": 14221,
+    "repairedTestTimeMs": 3136,
+    "baselineDepth4096Ms": [
+      2727,
+      3995,
+      3033,
+      3488
+    ],
+    "repairedDepth4096ReportedMs": [
+      373,
+      898,
+      924
+    ],
+    "note": "Vitest omits timings below its slow-test threshold. Baseline reproduced costly assertions locally but did not exceed the timeout in isolation.",
+    "lint": "npx eslint packages/docx/src/numbering-style-link-depth.test.ts exited 0",
+    "logs": {
+      "baseline.log": "6526e0f4c0d2af39b7a39052ac8187f608ffb54dfd6fc926c6d38af2852de50e",
+      "optimized.log": "995f5331f412e8e9c2947e259106a5787751601499ff00597eb30453613f7edb",
+      "lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "delivery": "Local checks do not establish remote delivery or publication. Monitor the containing release."
+}

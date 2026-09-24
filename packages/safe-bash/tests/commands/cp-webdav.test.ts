@@ -12,7 +12,7 @@ for (const command of [
   "mkdir copied; cp -r tree copied",
   "cp -r tree copied && cat copied/file",
 ]) {
-  test(`stock WebDAV supports ${command}`, async () => {
+  test(`stock WebDAV refuses unbound source reads for ${command}`, async () => {
     const mock = new MockDav();
     const fs = new WebDavFileSystem({ baseUrl: "https://example.test/dav/", fetch: mock.fetch });
     await fs.mkdir("/work/tree/sub", { recursive: true });
@@ -21,12 +21,14 @@ for (const command of [
     const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
     try {
       const result = await shell.exec(command);
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(result.stderr, "");
-      assert.equal(result.stdout, command.includes("cat ") ? "payload\n" : "");
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /ENOTSUP/u);
+      assert.equal(result.stdout, "");
       const destination = command === "mkdir copied; cp -r tree copied" ? "/work/copied/tree" : "/work/copied";
-      assert.deepEqual(await fs.readFile(`${destination}/file`), await fs.readFile("/work/tree/file"));
-      assert.deepEqual(await fs.readFile(`${destination}/sub/deep`), await fs.readFile("/work/tree/sub/deep"));
+      await assert.rejects(fs.stat(`${destination}/file`), { code: "ENOENT" });
+      await assert.rejects(fs.stat(`${destination}/sub/deep`), { code: "ENOENT" });
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/tree/file")), "payload\n");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/tree/sub/deep")), "deep\n");
     } finally { await shell.dispose(); }
   });
 }

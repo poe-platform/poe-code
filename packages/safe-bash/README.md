@@ -150,6 +150,9 @@ Tar reads newline-delimited exclusion patterns with `-X FILE` / `--exclude-from=
 Use `cat --help`, `base64 --help`, `cp --help`, `sort --help`, `grep --help`, `rg --help` or `tar --help` to discover supported options. `base64 --version`, `cp --version` and `sort --version` identify the safe-bash implementation. These informational requests exit before processing input files.
 `cp -u` / `--update` copies missing files and replaces files only when the source
 has a newer modification time. Recursive copies compare each file separately.
+File-content copies (`cp` and cross-device `mv`) require a retained reader with
+authoritative file identity and streaming writes. The reader identity is verified
+before bytes are read; backends without this guarantee refuse the transfer. Ordinary same-device `mv` still uses rename.
 `mv -i` / `--interactive` asks on stderr before replacing an existing destination
 and reads one response from stdin. A response beginning with `y` or `Y` allows
 the move; refusal or EOF keeps both paths and returns status 1. The last of

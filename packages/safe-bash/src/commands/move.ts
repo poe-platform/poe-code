@@ -1,3 +1,4 @@
+import { copyCheckedSource, admitCopySource } from "./copy-source.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { dirname, FsError, isPathWithin, joinPath, type CommandContext, type FileStat } from "../contracts/index.js";
@@ -119,6 +120,11 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
     }
   }
   for (const entry of plan) {
+    if (entry.stat.type !== "directory" && entry.stat.type !== "symlink") {
+      await admitCopySource(context, entry.source);
+    }
+  }
+  for (const entry of plan) {
     await recheck(context, entry);
     try {
       if (entry.stat.type === "directory") {
@@ -128,7 +134,7 @@ export async function moveAcrossDevices(context: CommandContext, source: string,
         await context.fs.symlink!(entry.link!, entry.target, { signal: context.signal });
       } else {
         if (entry.targetStat?.type === "symlink") await context.fs.rm(entry.target, { recursive: false, signal: context.signal });
-        await context.fs.copyFile(entry.source, entry.target, { exclusive: !entry.targetStat || entry.targetStat.type === "symlink", signal: context.signal });
+        await copyCheckedSource(context, entry.source, entry.target, entry.stat, !entry.targetStat || entry.targetStat.type === "symlink");
       }
     } catch (error) {
       context.signal.throwIfAborted();

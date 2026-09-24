@@ -5,6 +5,7 @@ import {
 import { codeOf, define, diagnostic, eachOperand, lines, options, output, pathOf, requireOperands, UsageError, value } from "./internal.js";
 import { escapeText, quoteShellOperand } from "../escaping.js";
 import { compareCopyIdentity, compareObservedEntries } from "./copy-identity.js";
+import { copyCheckedSource, admitCopySource } from "./copy-source.js";
 import { MoveBudget, moveAcrossDevices } from "./move.js";
 import { admitFilesystemModes, filesystemCommandRequirements } from "./filesystem-requirements.js";
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
@@ -311,6 +312,7 @@ async function copy(
       await context.fs.writeFile(target, new Uint8Array(), { flag: "wx", mode: sourceStat.mode & 0o777, signal: context.signal });
     }
   } else {
+    await admitCopySource(context, physicalSource);
     const replace = removeDestination || flags.has("f") && targetStat !== undefined && targetStat.type !== "character";
     await admitFilesystemModes(context, "cp", ["file", ...replace ? ["replace", "exclusive"] : []], [target]);
     if (targetStat?.type === "directory") throw new FsError("EISDIR", { path: target });
@@ -330,7 +332,7 @@ async function copy(
     }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      await context.fs.copyFile(source, target, { exclusive: removeDestination, signal: context.signal });
+      await copyCheckedSource(context, physicalSource, target, sourceStat, removeDestination);
     }
     catch (error) {
       context.signal.throwIfAborted();
@@ -347,7 +349,7 @@ async function copy(
         if (identities.includes("unknown")) throw new FsError("ENOTSUP", { path: source, dest: target, message: "forced copy unlink lacks authoritative distinctness" });
         await context.fs.rm(target, { recursive: false, signal: context.signal });
       }
-      await context.fs.copyFile(source, target, { exclusive: true, signal: context.signal });
+      await copyCheckedSource(context, physicalSource, target, sourceStat, true);
     }
   }
   if (!preflight) await preserveCopyMetadata(context, preserve, metadata, target);

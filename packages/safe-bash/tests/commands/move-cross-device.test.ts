@@ -36,7 +36,7 @@ for (const shared of [false, true]) for (const existing of [false, true]) {
 test("cross-mount hardlink alias is a no-op, never copy followed by source removal", async () => {
   const { fs, left } = await pair(false, true); await left.link("/source", "/target");
   let copies = 0, removals = 0;
-  const wrapped = proxy(fs, { copyFile: async () => { copies++; }, rm: async () => { removals++; } });
+  const wrapped = proxy(fs, { writeStream: async () => { copies++; }, rm: async () => { removals++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1, result.stderr); assert.equal(copies, 0); assert.equal(removals, 0);
   assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(left, "/target"), "payload");
@@ -46,7 +46,7 @@ test("unknown existing identity rejects before a hypothetical no-op copy or dele
   const { fs, left, right } = await pair(true); let copies = 0, removals = 0;
   const wrapped = proxy(fs, { lstat: async (path, options) => {
     const { identityScope: ignored, ...stat } = await fs.lstat(path, options); void ignored; return stat;
-  }, copyFile: async () => { copies++; }, rm: async () => { removals++; } });
+  }, writeStream: async () => { copies++; }, rm: async () => { removals++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /authoritative distinctness/u);
   assert.equal(copies, 0); assert.equal(removals, 0); assert.equal(await contents(left, "/source"), "payload"); assert.equal(await contents(right, "/target"), "previous");
@@ -54,8 +54,8 @@ test("unknown existing identity rejects before a hypothetical no-op copy or dele
 
 test("raced missing destination uses actual exclusive creation", async () => {
   const { fs, left, right } = await pair(); let removals = 0;
-  const wrapped = proxy(fs, { copyFile: async (source, target, options) => {
-    assert.equal(options?.exclusive, true); await right.writeFile("/target", Buffer.from("concurrent")); await fs.copyFile(source, target, options);
+  const wrapped = proxy(fs, { writeStream: async (source, target, options) => {
+    assert.equal(options?.flag, "wx"); await right.writeFile("/target", Buffer.from("concurrent")); await fs.writeStream(source, target, options);
   }, rm: async () => { removals++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.equal(removals, 0);
@@ -64,21 +64,21 @@ test("raced missing destination uses actual exclusive creation", async () => {
 
 for (const code of ["EIO", "EACCES", "ENOTSUP"] as const) test(`non-EXDEV rename ${code} never starts fallback`, async () => {
   const { fs, left } = await pair(); let copies = 0;
-  const wrapped = proxy(fs, { rename: async () => { throw new FsError(code); }, copyFile: async () => { copies++; } });
+  const wrapped = proxy(fs, { rename: async () => { throw new FsError(code); }, writeStream: async () => { copies++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.equal(copies, 0); assert.equal(await contents(left, "/source"), "payload");
 });
 
 test("EXDEV-shaped caller abort does not trigger fallback or mutate source", async () => {
   const { fs, left } = await pair(), controller = new AbortController(), reason = new FsError("EXDEV"); let copies = 0;
-  const wrapped = proxy(fs, { rename: async () => { controller.abort(reason); throw reason; }, copyFile: async () => { copies++; } });
+  const wrapped = proxy(fs, { rename: async () => { controller.abort(reason); throw reason; }, writeStream: async () => { copies++; } });
   await assert.rejects(run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/", signal: controller.signal }), error => error === reason);
   assert.equal(copies, 0); assert.equal(await contents(left, "/source"), "payload");
 });
 
 test("failed publication may leave partial destination but never removes source", async () => {
   const { fs, left, right } = await pair(); let removals = 0;
-  const wrapped = proxy(fs, { copyFile: async (_source, _target, options) => {
+  const wrapped = proxy(fs, { writeStream: async (_source, _target, options) => {
     assert.ok(options?.signal);
     await right.writeFile("/target", Buffer.from("partial"), { signal: options.signal }); throw new FsError("EIO");
   }, rm: async () => { removals++; } });
@@ -88,8 +88,8 @@ test("failed publication may leave partial destination but never removes source"
 
 test("source replacement after copy is retained, with explicit partial-move failure", async () => {
   const { fs, left, right } = await pair(); let removals = 0;
-  const wrapped = proxy(fs, { copyFile: async (source, target, options) => {
-    await fs.copyFile(source, target, options); await left.rm("/source"); await left.writeFile("/source", Buffer.from("changed"));
+  const wrapped = proxy(fs, { writeStream: async (source, target, options) => {
+    await fs.writeStream(source, target, options); await left.rm("/source"); await left.writeFile("/source", Buffer.from("changed"));
   }, rm: async () => { removals++; } });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.match(result.stderr, /source changed/u); assert.equal(removals, 0);
@@ -100,7 +100,7 @@ test("one caller signal propagates through copy, metadata and removal", async ()
   const { fs, left } = await pair(), controller = new AbortController();
   const seen: string[] = [];
   const wrapped = proxy(fs, {
-    copyFile: async (source, target, options) => { assert.equal(options?.signal, controller.signal); seen.push("copy"); await fs.copyFile(source, target, options); },
+    writeStream: async (source, target, options) => { assert.equal(options?.signal, controller.signal); seen.push("copy"); await fs.writeStream(source, target, options); },
     removeEntryConditional: async (path, options) => { assert.equal(options.signal, controller.signal); assert.ok(options.parent); assert.ok(options.expected); seen.push("remove"); await fs.removeEntryConditional!(path, options); },
   });
   const result = await run("mv", ["/left/source", "/right/target"], { fs: wrapped, cwd: "/", signal: controller.signal });
@@ -131,7 +131,7 @@ async function directoryPair() {
 test("directory move publishes all copied children before any nonrecursive source cleanup", async () => {
   const { fs, left, right } = await directoryPair(); const sequence: string[] = [];
   const wrapped = proxy(fs, {
-    copyFile: async (source, target, options) => { sequence.push("copy"); await fs.copyFile(source, target, options); },
+    writeStream: async (source, target, options) => { sequence.push("copy"); await fs.writeStream(source, target, options); },
     removeEntryConditional: async (path, options) => { sequence.push("remove"); assert.equal(await contents(right, "/tree/first"), "first"); assert.equal(await contents(right, "/tree/deep/last"), "last"); await fs.removeEntryConditional!(path, options); },
   });
   const result = await run("mv", ["/left/tree", "/right/tree"], { fs: wrapped, cwd: "/" });
@@ -140,7 +140,7 @@ test("directory move publishes all copied children before any nonrecursive sourc
 
 test("copy failure in a directory leaves every original entry present", async () => {
   const { fs, left } = await directoryPair(); let calls = 0, removals = 0;
-  const wrapped = proxy(fs, { copyFile: async (source, target, options) => { if (++calls === 2) throw new FsError("ENOSPC"); await fs.copyFile(source, target, options); }, rm: async () => { removals++; }, rmdir: async () => { removals++; } });
+  const wrapped = proxy(fs, { writeStream: async (source, target, options) => { if (++calls === 2) throw new FsError("ENOSPC"); await fs.writeStream(source, target, options); }, rm: async () => { removals++; }, rmdir: async () => { removals++; } });
   const result = await run("mv", ["/left/tree", "/right/tree"], { fs: wrapped, cwd: "/" });
   assert.equal(result.exitCode, 1); assert.equal(removals, 0); assert.equal(await contents(left, "/tree/first"), "first"); assert.equal(await contents(left, "/tree/deep/last"), "last");
 });
@@ -189,7 +189,7 @@ for (const aborted of [false, true]) test(`timestamp errors are not broadly swal
 
 test("identity downgrade after publication does not authorize source deletion", async () => {
   const { fs, left } = await pair(); let copied = false, removals = 0;
-  const wrapped = proxy(fs, { copyFile: async (source, target, options) => { await fs.copyFile(source, target, options); copied = true; },
+  const wrapped = proxy(fs, { writeStream: async (source, target, options) => { await fs.writeStream(source, target, options); copied = true; },
     lstat: async (path, options) => {
       const stat = await fs.lstat(path, options);
       if (!copied || path !== "/left/source") return stat;

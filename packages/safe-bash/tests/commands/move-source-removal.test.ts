@@ -49,7 +49,7 @@ for (const supported of [false, undefined]) test(`cross-device mv refuses before
   let copies = 0;
   const fs = new Proxy(base, { get(target, key) {
     if (key === "capabilitiesFor") return async () => ({ ...root.capabilities, atomicEntryRemoval: supported });
-    if (key === "copyFile") return async () => { copies++; };
+    if (key === "writeStream") return async () => { copies++; };
     const value = Reflect.get(target, key);
     return typeof value === "function" ? value.bind(target) : value;
   } }) as FileSystem;
@@ -75,7 +75,7 @@ test("cross-device directory move requires authoritative planned identity before
       void omitted;
       return unknown;
     };
-    if (key === "copyFile") return async (...args: Parameters<FileSystem["copyFile"]>) => { copies++; await base.copyFile(...args); };
+    if (key === "writeStream") return async (...args: Parameters<NonNullable<FileSystem["writeStream"]>>) => { copies++; await base.writeStream!(...args); };
     const value = Reflect.get(target, key);
     return typeof value === "function" ? value.bind(target) : value;
   } }) as FileSystem;

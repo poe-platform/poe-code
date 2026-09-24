@@ -50,7 +50,7 @@ for (const existing of [false, true]) for (const preserve of [false, true]) {
     await backing.utimes("/work/input", 1_000, 2_000);
     const fs = view(backing, {
       capabilities: { ...backing.capabilities, read: false, copy: false },
-      async copyFile() { assert.fail("attributes-only must not copy content"); },
+      async writeStream() { assert.fail("attributes-only must not copy content"); },
       async readFile() { assert.fail("attributes-only must not read content"); },
     });
     const before = existing ? await backing.stat("/work/output") : undefined;
@@ -231,7 +231,7 @@ test("cp restores temporary directory permissions after child cancellation", asy
   const backing = await fixture({ "source/file": "payload" });
   await backing.chmod("/work/source", 0o550);
   const controller = new AbortController(), reason = new Error("stop copying");
-  const fs = view(backing, { async copyFile() {
+  const fs = view(backing, { async writeStream() {
     controller.abort(reason);
     throw reason;
   } });

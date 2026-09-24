@@ -26,7 +26,7 @@ for (const identity of ["different-device", "different-scope", "missing-device",
     const fs = await fixture({ "tree/child": "child", "tree/mount/nested": "nested" });
     const stat = fs.stat.bind(fs);
     const otherScope = Symbol("other-storage");
-    fs.stat = async (path, options) => {
+    const boundaryStat: typeof fs.stat = async (path, options) => {
       const entry = await stat(path, options);
       if (path !== "/work/tree/mount") return entry;
       const { dev, identityScope, ...metadata } = entry;
@@ -38,7 +38,14 @@ for (const identity of ["different-device", "different-scope", "missing-device",
         }),
       };
     };
-    const shell = new Shell({ fs, cwd: "/work", deviceView: "provided" }).use(agentCommands());
+    const view = new Proxy(fs, {
+      get(target, property) {
+        if (property === "stat") return boundaryStat;
+        const value = Reflect.get(target, property);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const shell = new Shell({ fs: view, cwd: "/work", deviceView: "provided" }).use(agentCommands());
     try {
       const result = await shell.exec("cp -Rx tree output");
       assert.equal(result.exitCode, 0, result.stderr);

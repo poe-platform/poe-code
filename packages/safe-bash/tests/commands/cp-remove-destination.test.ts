@@ -52,7 +52,7 @@ test("remove-destination rejects same-file and directory replacements without de
   assert.equal(new TextDecoder().decode(await fs.readFile("/work/directory/file")), "retained");
 });
 
-for (const capability of ["remove", "exclusiveCopy"] as const) {
+for (const capability of ["remove", "exclusiveCreate"] as const) {
   test(`remove-destination admits ${capability} before changing any destination`, async () => {
     const fs = await fixture({ input: "new", output: "old" });
     const restricted = new Proxy(fs, {

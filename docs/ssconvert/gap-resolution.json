@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Sequential BIFF binding, placeholder teardown and parse-time custom-function identity match the original native cycle/index and forward-macro values. Final22903package tests and publicSDK/Shell conversions pass. XML declaration-order qualification retains a native globals-last SIGSEGV. Re-export qualification documentation, dynamic diagnostics, duplicate/malformed/wider custom-function behavior, broader references and publication remain open.",
+      "currentFinding": "Sequential BIFF binding, placeholder teardown and parse-time custom-function identity match the original native cycle/index and forward-macro values. Final22903package tests and publicSDK/Shell conversions pass. XML declaration-order qualification retains a native globals-last SIGSEGV. Native re-export readback is qualified across18clean commands. Dynamic diagnostics, duplicate/malformed/wider custom-function behavior, broader references and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -497,6 +497,13 @@
           "kind": "biff-custom-function-parse-time-identity",
           "evidence": "docs/ssconvert/biff-forward-macro-binding-gap-proof.json",
           "outcome": "Six original forward-macro inputs now match native#NAME?/#Unknown! values through12builtSDK/Shell conversions. Fullstreamdiagnostics and widerprofiles remain open."
+        },
+        {
+          "kind": "biff-sequential-name-native-reexport",
+          "evidence": "docs/ssconvert/biff-name-binding-fixed-native-capture.json",
+          "runtimeCommit": "f9df68e496512a0c215cee1d035f1458a7ff16ba",
+          "nativeRun": 35947618324,
+          "outcome": "Six re-exported inputs/18nativecommands preserve alltenvalues with no native stderr;12publicnativeXMLreplays match. Product metadata re-export warnings remain separately retained."
         }
       ],
       "delivery": {

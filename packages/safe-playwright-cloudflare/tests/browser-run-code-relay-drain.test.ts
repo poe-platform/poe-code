@@ -53,7 +53,9 @@ test.each([false, true])("relay drains an in-flight receiver RPC before disposal
 	expect(operations).toEqual(["frame", "frame settled", "close receiver", "dispose receiver"]);
 	if (rejects) {
 		expect(error).toBeInstanceOf(AggregateError);
-		expect((error as AggregateError).errors[0].errors).toContain(frameError);
+		expect((error as AggregateError).errors[0].errors[0]).toMatchObject({
+			message: "Run-code receiver frame drain failed", cause: frameError,
+		});
 	} else expect(error).toBeUndefined();
 	expect(fail).not.toHaveBeenCalled();
 });

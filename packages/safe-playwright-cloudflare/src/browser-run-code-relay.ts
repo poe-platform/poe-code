@@ -37,12 +37,12 @@ export function createRunCodeRelay(options: {
 		try {
 			closeBrowserSocket(socket);
 		} catch (error) {
-			failures.push(error);
+			failures.push(new Error("Run-code socket close failed", { cause: error }));
 		}
 		try {
 			await waitForBrowserSocketClose(socket);
 		} catch (error) {
-			failures.push(error);
+			failures.push(new Error("Run-code socket close confirmation failed", { cause: error }));
 		}
 		if (failures.length)
 			throw new AggregateError(failures, "Run-code socket cleanup failed");
@@ -57,17 +57,17 @@ export function createRunCodeRelay(options: {
 		try {
 			await incoming;
 		} catch (error) {
-			failures.push(error);
+			failures.push(new Error("Run-code receiver frame drain failed", { cause: error }));
 		}
 		try {
 			await retained.close();
 		} catch (error) {
-			failures.push(error);
+			failures.push(new Error("Run-code receiver close failed", { cause: error }));
 		}
 		try {
 			retained[Symbol.dispose]();
 		} catch (error) {
-			failures.push(error);
+			failures.push(new Error("Run-code receiver disposal failed", { cause: error }));
 		}
 		if (failures.length)
 			throw new AggregateError(failures, "Run-code receiver cleanup failed");

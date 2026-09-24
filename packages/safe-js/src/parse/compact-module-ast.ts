@@ -152,9 +152,9 @@ export class CompactModuleAst {
         const span = value as SourceSpan,
           start = span.start,
           end = span.end;
-        const startPoint = this.positions.compatiblePosition(start);
-        const endPoint = this.positions.compatiblePosition(end);
-        if (startPoint && endPoint) {
+        const startMatches = this.positions.matchesPosition(start);
+        const endMatches = this.positions.matchesPosition(end);
+        if (startMatches && endMatches) {
           kind = 1;
           row = this.reserve(3);
           this.write(row, kind);

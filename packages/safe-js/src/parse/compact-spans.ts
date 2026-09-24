@@ -118,6 +118,24 @@ export class CompactSourcePositions {
     return point.line === position.line && point.column === position.column ? point : undefined;
   }
 
+  /** Packing validates coordinates without materializing or interning a point. */
+  matchesPosition(position: Position): boolean {
+    if (
+      !Number.isSafeInteger(position.offset) ||
+      position.offset < 0 ||
+      position.offset > this.sourceLength
+    )
+      return false;
+    // Preserve the final offset read and validation for accessor-backed inputs.
+    const offset = position.offset;
+    this.assertOffset(offset);
+    const line = position.line;
+    if (!Number.isSafeInteger(line) || line < 1 || line > this.lines.length) return false;
+    const start = this.lines[line - 1]!;
+    if (offset < start || (line < this.lines.length && offset >= this.lines[line]!)) return false;
+    return offset - start + 1 === position.column;
+  }
+
   private assertOffset(offset: number): void {
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > this.sourceLength)
       throw new RangeError("Source coordinate offset is outside its source.");

@@ -1060,9 +1060,13 @@ when they truly cannot share entries.
 
 Wrappers preserve the scope token and device/inode of the actual selected
 backing entry. They must not relabel it using the wrapper or mount instance.
-An overlay must expose the currently selected backing identity, and reassess
-when copy-up changes the backing object. A wrapper that cannot faithfully
-describe an entry omits identity rather than claiming a disjoint namespace.
+Overlay files expose the currently selected backing identity and reassess
+when copy-up changes the backing object. With two stock Memory layers, merged
+logical directories have an overlay identity scope, distinct from either layer;
+retained directory handles preserve that logical identity. Internal directory
+copy-up preserves it, while replacement of either participating directory
+invalidates it. Publication receipts separately bind both physical layers.
+A wrapper that cannot faithfully describe an entry omits identity rather than claiming a disjoint namespace.
 Read identity is not automatically identity of a future write/copy-up target;
 the mutation implementation must resolve and guard its actual destination.
 
@@ -1219,6 +1223,16 @@ existing operation budget and lifetime rules.
 
 
 ## Atomic owned staging
+
+Stock Memory-backed overlays compose owned staging with synchronous cross-layer
+checks. Their owned stat receipts bind layer selection and both directory
+identities; publication requires the complete `ancestors` sequence. Confined
+views permit `mkdir`, `rm`, and `rmdir` with retained roots and no symlink
+ancestry, and explicitly refuse other mutations. This profile supports patch
+create/replace/delete/reverse without changing the lower store. A wrapper,
+subclass, or customized Memory implementation does not qualify, including
+customization after admission. Failed publication and cancellation leave owned
+staging available for identity-checked cleanup; cleanup preserves foreign entries.
 
 `atomicFileStaging: true` requires `createStagedFile`, `publishStagedFile`, and
 `removeStagedFile`. Creation atomically checks the supplied parent identity,

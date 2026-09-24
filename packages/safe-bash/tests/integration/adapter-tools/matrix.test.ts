@@ -20,7 +20,7 @@ const profiles = {
   s3: { retainedReads: false, patchPublication: false },
   webdav: { retainedReads: false, patchPublication: false },
   mount: { retainedReads: true, patchPublication: false },
-  overlay: { retainedReads: true, patchPublication: false },
+  overlay: { retainedReads: true, patchPublication: true },
 };
 const patchPublicationError = "patch: filesystem does not support race-safe patch publication\n";
 const diffReadError = "diff: diff input requires identity-checked retained reads\n";

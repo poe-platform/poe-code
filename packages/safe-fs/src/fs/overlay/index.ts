@@ -1,3 +1,4 @@
+import { OverlayMemoryPublication } from "./memory-publication.js";
 import { platform } from "#safe-fs-platform";
 import { openRetainedReadFile, requireCapabilities, retainedReadCapabilities } from "../capabilities.js";
 import { finishCleanup } from "../../contracts/cleanup.js";
@@ -11,6 +12,7 @@ import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
+  CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, StagedFileContent,
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
   FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions,
   ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions, WriteFileOptions,
@@ -121,12 +123,14 @@ export class OverlayFileSystem implements FileSystem {
   private readonly activeStages = new Set<string>();
   private readonly linkMetadata = new Map<string, LinkMetadata>();
   private readonly linkOrigins = new Map<string, LinkOrigin>();
+  private readonly publication: OverlayMemoryPublication;
   private queue: Promise<void> = Promise.resolve();
 
   constructor(options: OverlayFileSystemOptions) {
     if (options.upper === options.lower) throw new TypeError("Overlay upper and lower must be distinct backends");
     this.#upper = options.upper;
     this.#lower = options.lower;
+    this.publication = new OverlayMemoryPublication(this.#upper, this.#lower, this.whiteouts, this.opaque, this.activeStages);
     registerEntryView(this, (path, options) => this.run(options, async () => {
       const entry = await this.required(path, options);
       return { filesystem: entry.backend, path: entry.path, readOnly: this.capabilities.readOnly === true };
@@ -171,7 +175,7 @@ export class OverlayFileSystem implements FileSystem {
     this.capabilities = Object.freeze({
       ...semantics,
       open: false,
-      atomicFilePublication: false, atomicFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+      atomicFilePublication: false, atomicFileMutation: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
@@ -191,6 +195,26 @@ export class OverlayFileSystem implements FileSystem {
       ...(effectiveStreamingWrite === undefined ? {} : { streamingWrite: effectiveStreamingWrite }),
     });
     Object.defineProperty(this, "capabilities", { writable: false, configurable: false });
+  }
+
+  confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+    return this.run(options, async () => this.publication.confine(roots, options,
+      (options, operation) => this.run(options, operation, false), this), false);
+  }
+
+  createStagedFile(directory: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+    return this.run(options, async () => {
+      if (content.type === "file" && content.data.byteLength > this.maxBufferBytes) fail("EFBIG", directory);
+      return this.publication.create(directory, name, content, options);
+    }, false);
+  }
+
+  publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    return this.run(options, () => this.publication.publish(staging, destination, options), false);
+  }
+
+  removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {
+    return this.run(options, () => this.publication.cleanup(staging, options), false);
   }
 
   async open(path: string, options: OpenFileOptions): Promise<FileDescriptor> {
@@ -219,6 +243,10 @@ export class OverlayFileSystem implements FileSystem {
 
   capabilitiesFor(path: string, options: CapabilityQueryOptions = {}): Promise<FileSystemCapabilities> {
     return this.run(options, async () => {
+      validatePath(path);
+      // Owned cleanup queries capabilities before using its retained receipt;
+      // private staging is deliberately unavailable to pathname resolution.
+      if ([...this.activeStages].some(root => isPathWithin(root, path))) return this.capabilities;
       const location = await this.resolve(path, options, options.create !== undefined || options.creation !== "exclusive", true);
       const backend = location.entry?.backend ?? this.#upper;
       const capabilities = await backend.capabilitiesFor?.(location.path, options) ?? backend.capabilities;
@@ -264,6 +292,18 @@ export class OverlayFileSystem implements FileSystem {
       const current = await this.required(entry.path, options);
       if (current.backend !== entry.backend || compareIdentity(entry.stat, current.stat) !== "same") fail("ENOTSUP", entry.path, "overlay read layer changed during admission");
       options.signal?.throwIfAborted();
+      if (entry.stat.type === "directory" && this.publication.supported()) {
+        const logical = this.publication.stat(entry.path, snapshotStat(entry.stat));
+        return new Proxy(handle, {
+          get(target, property) {
+            if (property === "stat") return async (options: FsOptions = {}) => ({
+              ...await target.stat(options), identityScope: logical.identityScope!, dev: logical.dev!, ino: logical.ino!,
+            });
+            const value: unknown = Reflect.get(target, property, target);
+            return typeof value === "function" ? value.bind(target) : value;
+          },
+        });
+      }
       return handle;
     } catch (error) {
       await finishCleanup(() => handle.close(), true);
@@ -584,6 +624,7 @@ export class OverlayFileSystem implements FileSystem {
       await this.clone(entry, temporary, options);
       options.signal?.throwIfAborted();
       await this.#upper.rename(temporary, entry.path, options);
+      if (entry.stat.type === "directory") this.publication.copiedDirectory(entry.path, entry.stat);
       this.rememberLink(entry, entry.path);
       if (origin) this.linkOrigins.set(entry.path, origin);
     });
@@ -663,11 +704,17 @@ export class OverlayFileSystem implements FileSystem {
   }
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.run(options, async () => snapshotStat((await this.required(path, options)).stat), false);
+    return this.run(options, async () => {
+      const entry = await this.required(path, options);
+      return this.publication.stat(entry.path, snapshotStat(entry.stat));
+    }, false);
   }
 
   async lstat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    return this.run(options, async () => snapshotStat((await this.required(path, options, false)).stat), false);
+    return this.run(options, async () => {
+      const entry = await this.required(path, options, false);
+      return this.publication.stat(entry.path, snapshotStat(entry.stat));
+    }, false);
   }
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}) {

@@ -14,6 +14,7 @@ import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { openFileDescriptor } from "../descriptor.js";
 import { resolveMissingTarget } from "./missing-target.js";
+import { registerMemoryAtomicView } from "./atomic-view.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
 import { normalizeMemoryFileSystemLimits, type MemoryFileSystemOptions } from "./limits.js";
 
@@ -150,6 +151,35 @@ export class MemoryFileSystem implements FileSystem {
       ledger: this.ledger,
       capabilities: this.capabilities,
       intact: () => this.root === root,
+    });
+    registerMemoryAtomicView(this, {
+      stat: (path) => {
+        this.validatePath(path, "overlayAtomicView");
+        let node: MemoryNode | undefined = this.root;
+        for (const component of path.split("/").filter(Boolean)) {
+          if (component === "." || component === "..") this.fail("EINVAL", "overlayAtomicView", path);
+          if (!node) return undefined;
+          if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
+          this.permission(node, 1, "overlayAtomicView", path);
+          node = node.entries.get(component);
+        }
+        return node ? this.snapshot(node) : undefined;
+      },
+      names: (path) => {
+        const node = this.entry(path, "overlayAtomicView").node!;
+        if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
+        return [...node.entries.keys()];
+      },
+    }, () => {
+      if (Object.getPrototypeOf(this) !== MemoryFileSystem.prototype
+        || Object.getOwnPropertyDescriptor(this, "root")?.value !== root
+        || Object.getOwnPropertyDescriptor(this, "ledger")?.value !== ownedStores.get(this)?.ledger
+        || Object.getOwnPropertyDescriptor(this, "capabilities")?.value !== ownedStores.get(this)?.capabilities) return false;
+      return Object.entries(memoryImplementation).every(([name, expected]) => {
+        const actual = Object.getOwnPropertyDescriptor(this, name)
+          ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+        return actual?.value === expected.value && actual?.get === expected.get && actual?.set === expected.set;
+      });
     });
     if (this.compareEntry === memoryImplementation.compareEntry?.value) {
       registeredAuthorities.add(this);

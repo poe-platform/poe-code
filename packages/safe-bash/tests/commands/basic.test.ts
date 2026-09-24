@@ -481,7 +481,36 @@ test("pwd logical and physical paths stay inside virtual filesystem", async () =
   await fs.symlink("/work", "/alias");
   assert.equal((await run("pwd", [], { fs, cwd: "/alias" })).stdout, "/alias\n");
   assert.equal((await run("pwd", ["-P"], { fs, cwd: "/alias" })).stdout, "/work\n");
-  assert.equal((await run("pwd", ["unexpected"])).exitCode, 2);
+  assert.equal((await run("pwd", ["unexpected"])).stdout, "/work\n");
+});
+
+test("pwd options use the last mode and stop at operands or --", async () => {
+  const fs = await fixture();
+  await fs.symlink("/work", "/alias");
+  for (const [args, expected] of [
+    [["-LP"], "/work"], [["-PL"], "/alias"],
+    [["-P", "-L"], "/alias"], [["-L", "-P"], "/work"],
+    [["-PLP"], "/work"], [["--"], "/alias"],
+    [["-P", "--", "-L"], "/work"], [["ignored", "-P"], "/alias"],
+  ] as const) {
+    const result = await run("pwd", [...args], { fs, cwd: "/alias" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${expected}\n`);
+    const shell = new Shell({ fs, cwd: "/alias", commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      const builtin = await shell.exec(`pwd ${args.join(" ")}`);
+      assert.equal(builtin.exitCode, 0);
+      assert.equal(builtin.stdout, `${expected}\n`);
+    } finally { await shell.dispose(); }
+  }
+  assert.equal((await run("pwd", ["-PX"])).exitCode, 2);
+});
+
+test("dirname strips the slash run before the final component", async () => {
+  const result = await run("dirname", ["/a//b", "a//b", "/a///b/", "//a", "///a", "//a//b", "a//b//c"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "/a\na\n/a\n/\n/\n//a\na//b\n");
 });
 
 test("basename and dirname handle roots, suffixes, multiple names and zero output", async () => {

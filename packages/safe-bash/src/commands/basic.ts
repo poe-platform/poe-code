@@ -35,13 +35,18 @@ export function basicCommands(): CommandDefinition[] {
       return { exitCode: 0 };
     }),
     define("pwd", async (context) => {
-      const parsed = options(context.args, "LP");
-      requireOperands(parsed.operands, 0, 0);
-      const mode = parsed.flags.has("P") ? "physical" : "logical";
+      let mode: "physical" | "logical" = "logical";
+      for (const arg of context.args) {
+        if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
+        for (const flag of arg.slice(1)) {
+          if (flag !== "L" && flag !== "P") throw new UsageError(`invalid option '${flag}'`);
+          mode = flag === "P" ? "physical" : "logical";
+        }
+      }
       assertCommandRequirements(context, pwdRequirements, [mode]);
       if (mode === "physical" && context.fs.capabilitiesFor) assertCommandRequirements(context, pwdRequirements, [mode],
         await context.fs.capabilitiesFor(context.cwd, { signal: context.signal }));
-      await output(context, `${parsed.flags.has("P") ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd}\n`);
+      await output(context, `${mode === "physical" ? await context.fs.realpath(context.cwd, { signal: context.signal }) : context.cwd}\n`);
       return { exitCode: 0 };
     }),
     define("basename", async (context) => {
@@ -59,7 +64,12 @@ export function basicCommands(): CommandDefinition[] {
     define("dirname", async (context) => {
       const parsed = options(context.args, "z", { zero: "z" });
       requireOperands(parsed.operands);
-      for (const operand of parsed.operands) await output(context, dirname(operand.replace(/\/+$/u, "") || (operand.startsWith("/") ? "/" : ".")) + (parsed.flags.has("z") ? "\0" : "\n"));
+      for (const operand of parsed.operands) {
+        const parent = dirname(operand);
+        let end = parent.length;
+        while (end > 1 && parent[end - 1] === "/") end--;
+        await output(context, parent.slice(0, end) + (parsed.flags.has("z") ? "\0" : "\n"));
+      }
       return { exitCode: 0 };
     }),
     printfCommand,

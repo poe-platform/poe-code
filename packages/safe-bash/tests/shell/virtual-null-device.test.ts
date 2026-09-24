@@ -269,6 +269,27 @@ for (const code of ["ENOTSUP", "EACCES"] as const) test(`patch conditional mutat
   assert.deepEqual(await backing.readdir("/"), []);
 });
 
+test("patch admission preserves declared ordinary permission failures", async context => {
+  const backing = new MemoryFileSystem();
+  const accessPaths: string[] = [];
+  const restricted = (filesystem: FileSystem): FileSystem => new Proxy(filesystem, {
+    get(target, property) {
+      if (property === "access") return async (path: string) => { accessPaths.push(path); throw new FsError("ENOTSUP"); };
+      if (property === "confineExtraction") return async (...args: Parameters<NonNullable<FileSystem["confineExtraction"]>>) => restricted(await target.confineExtraction!(...args));
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const fs = restricted(backing);
+  const shell = new Shell({ fs }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("apply_patch '*** Begin Patch\n*** Add File: new\n+created\n*** End Patch'");
+  assert.equal(result.exitCode, 1, result.stdout);
+  assert.equal(result.stderr, "apply_patch: operation not supported: /\n");
+  assert.deepEqual(accessPaths, ["/"]);
+  assert.deepEqual(await backing.readdir("/"), []);
+});
+
 test("null writes stay available while ordinary paths retain backing read-only capabilities", async context => {
   const backing = new MemoryFileSystem();
   await backing.writeFile("/input", new TextEncoder().encode("retained"));
@@ -345,6 +366,43 @@ test("cross-mount moves preserve ordinary directory permissions and timestamps",
   await assert.rejects(origin.stat("/directory"), { code: "ENOENT" });
 });
 
+for (const retainedRead of [true, false]) for (const source of ["diff /input /input", "gzip -c /input | gzip -d"]) {
+  test(`named-file input preserves independent retained-reader admission: ${retainedRead}, ${source}`, async context => {
+    const backing = new MemoryFileSystem();
+    await backing.writeFile("/input", new TextEncoder().encode("payload"));
+    let opened = 0;
+    const fs = new Proxy(backing, {
+      get(target, property) {
+        const capabilities = { ...target.capabilities, streamingRead: false, retainedRead };
+        if (property === "capabilities") return capabilities;
+        if (property === "capabilitiesFor") return async () => capabilities;
+        if (property === "readStream" || property === "readFile") return () => assert.fail("named-file input must use its retained reader");
+        if (property === "openReadFile") return retainedRead ? async (...args: Parameters<MemoryFileSystem["openReadFile"]>) => {
+          opened++;
+          return target.openReadFile(...args);
+        } : undefined;
+        const member = Reflect.get(target, property);
+        return typeof member === "function" ? member.bind(target) : member;
+      },
+    });
+    const shell = new Shell({ fs }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`set -o pipefail; ${source}`);
+    if (retainedRead) {
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, source.startsWith("diff") ? "" : "payload");
+      assert.equal(result.stderr, "");
+      assert.ok(opened > 0);
+    } else {
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes(source.startsWith("diff") ? "retained reads" : "ENOTSUP"), result.stderr);
+      assert.equal(result.stdout, "");
+      assert.equal(opened, 0);
+    }
+    assert.equal(new TextDecoder().decode(await backing.readFile("/input")), "payload");
+  });
+}
+
 for (const source of ["join /input /input", "html-to-markdown /input", "rg -F a /input", "node /input", "curl --data-binary @/input https://example.test/"]) {
   test(`absent optional reader retains bounded ordinary fallback: ${source}`, async context => {
     const backing = new MemoryFileSystem();
@@ -352,10 +410,10 @@ for (const source of ["join /input /input", "html-to-markdown /input", "rg -F a 
     const readLimits: number[] = [];
     const fs = new Proxy(backing, {
       get(target, property) {
-        const capabilities = { ...target.capabilities, streamingRead: false, streamingWrite: false };
+        const capabilities = { ...target.capabilities, streamingRead: false, retainedRead: false, streamingWrite: false };
         if (property === "capabilities") return capabilities;
         if (property === "capabilitiesFor") return async () => capabilities;
-        if (property === "readStream" || property === "writeStream") return undefined;
+        if (property === "readStream" || property === "writeStream" || property === "openReadFile") return undefined;
         if (property === "readFile") return async (path: string, options?: Parameters<FileSystem["readFile"]>[1]) => {
           assert.ok(typeof options?.maxBytes === "number" && Number.isFinite(options.maxBytes));
           readLimits.push(options.maxBytes);

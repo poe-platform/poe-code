@@ -8,6 +8,7 @@ import { splitString } from "./split.js";
 import { indices } from "./indices.js";
 import { fromDateIso8601, toDateIso8601 } from "./dates.js";
 import { capture } from "./capture.js";
+import { recurse } from "./recurse.js";
 import { splitRegex } from "./splits.js";
 import { binary, compare, contains, describe, entries, equal, indexValue, sliceValue, sortedKeys, stableSort, type } from "./values.js";
 
@@ -386,6 +387,7 @@ export class Interpreter {
       for await (const source of this.run(args[0]!, input)) yield* scanRegex(input, source, budget);
       return;
     }
+    if (name === "recurse") { yield* recurse(this, args, input); return; }
     if (name === "capture") {
       for await (const pattern of this.run(args[0]!, input)) {
         if (args[1]) {

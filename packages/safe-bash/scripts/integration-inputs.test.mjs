@@ -960,6 +960,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/structured/file-bindings.test.ts"));
   assert.ok(files.includes("tests/commands/structured/positional-args.test.ts"));
   assert.ok(files.includes("tests/commands/structured/capture.test.ts"));
+  assert.ok(files.includes("tests/commands/structured/recurse.test.ts"));
   assert.ok(files.includes("tests/commands/yq-control-flow.test.ts"));
   assert.ok(files.includes("tests/commands/yq-toml.test.ts"));
   assert.ok(files.includes("tests/commands/yq-toml-parser.test.ts"));

@@ -108,12 +108,13 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
       xfIds.set(cell, styles.register(cell));
       const group = sheet.formulaGroups?.find(group => group.id === cell.formulaGroup && group.kind === "array");
       if (group) {
-        formulas.set(cell, { tokens: new Uint8Array([1, ...words(group.range.startRow, group.range.startColumn)]), arrays: new Uint8Array(), diagnostics: [] });
+        formulas.set(cell, { tokens: new Uint8Array([1, ...words(group.range.startRow, group.range.startColumn)]),
+          arrays: new Uint8Array(), diagnostics: [], nameDependencies: [] });
       } else if (cell.formula) { const formula = formulaWriter.compile(cell.formula, sheet.id, cell.row, cell.column);
         formulas.set(cell, formula); for (const diagnostic of formula.diagnostics) await context.diagnostic?.(diagnostic); }
     }
   }
-  formulaWriter.finalize();
+  const nameOrder = formulaWriter.finalize(named.map(entry => entry.formula));
   output.record(0x809, bof(revision, 5));
   output.record(0xe1, revision === 8 ? words(1200) : new Uint8Array());
   output.record(0xc1, words(0)); output.record(0xe2);
@@ -145,16 +146,20 @@ export async function writeBiffStream(book: Workbook, revision: 7 | 8, dual: boo
   }
   // Native imports NAME expressions immediately, so their NameX/3D links
   // must already be declared even though our reader resolves them afterward.
-  for (const { name, formula } of named) {
+  for (const index of nameOrder) {
+    const entry = named[index];
+    if (!entry) {
+      const text = biffString(formulaWriter.macroNames[index - named.length]!, revision, context, 1), header = new Uint8Array(14);
+      header[0] = 14; header[3] = text[0]!;
+      output.record(0x18, join(header, text.subarray(1)));
+      continue;
+    }
+    const { name, formula } = entry;
     const text = biffString(name.name, revision, context, 1), header = new Uint8Array(14), view = new DataView(header.buffer);
     header[3] = text[0]!; view.setUint16(4, formula.tokens.length, true);
     const scope = name.sheet === undefined ? 0 : book.sheets.findIndex(sheet => sheet.id === name.sheet) + 1;
     view.setUint16(revision === 8 ? 8 : 6, scope, true);
     output.record(0x18, join(join(header, text.subarray(1)), join(formula.tokens, formula.arrays)));
-  }
-  for (const name of formulaWriter.macroNames) {
-    const text = biffString(name, revision, context, 1), header = new Uint8Array(14); header[0] = 14; header[3] = text[0]!;
-    output.record(0x18, join(header, text.subarray(1)));
   }
   if (revision === 8) {
     metadata.global(output); sst(output, strings, context);

@@ -15,23 +15,55 @@ const functions = new Map(Object.entries(biffFunctions).map(([id, spec]) => [spe
 const macroFunctions = new Set(["AVERAGEIF", "AVERAGEIFS", "CUBEKPIMEMBER", "CUBEMEMBER", "CUBEMEMBERPROPERTY",
   "CUBERANKEDMEMBER", "CUBESET", "CUBESETCOUNT", "CUBEVALUE", "COUNTIFS", "IFERROR", "SUMIFS"]);
 
-export interface CompiledBiffFormula { readonly tokens: Uint8Array; readonly arrays: Uint8Array; readonly diagnostics: readonly Diagnostic[]; }
+export interface CompiledBiffFormula {
+  readonly tokens: Uint8Array;
+  readonly arrays: Uint8Array;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly nameDependencies: readonly number[];
+}
 
 export class BiffFormulaWriter {
   readonly externalSheets: { first: number; last: number }[] = [];
   readonly externNames: string[] = [];
   readonly macroNames: string[] = [];
   private uniqueNameId = 0;
-  private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "macro" }[] = [];
+  private readonly relocations: { tokens: Uint8Array; offset: number; index: number; kind: "sheet" | "name" }[] = [];
   constructor(readonly book: Workbook, readonly revision: 7 | 8, readonly context: CapabilityContext) {}
   /** Resolve indices only after all cell, array and defined-name expressions are compiled. */
-  finalize(): void {
+  finalize(definitions: readonly CompiledBiffFormula[] = []): readonly number[] {
+    const count = (this.book.names?.length ?? 0) + this.macroNames.length;
+    const visited = new Uint8Array(count), order: number[] = [];
+    let cyclic = false;
+    for (let index = 0; index < count; index++) {
+      if (visited[index]) continue;
+      const stack = [{ index, next: 0 }];
+      while (stack.length) {
+        this.context.signal.throwIfAborted();
+        const current = stack[stack.length - 1]!;
+        visited[current.index] = 1;
+        const dependencies = definitions[current.index]?.nameDependencies ?? [];
+        if (current.next < dependencies.length) {
+          const dependency = dependencies[current.next++]!;
+          if (!visited[dependency]) stack.push({ index: dependency, next: 0 });
+          else if (visited[dependency] === 1) cyclic = true;
+        } else {
+          visited[current.index] = 2;
+          order.push(current.index);
+          stack.pop();
+        }
+      }
+    }
+    // Cyclic definitions have no dependency-first order; retain their original
+    // serialization rather than changing the existing cyclic-file behavior.
+    if (cyclic) for (let index = 0; index < count; index++) order[index] = index;
+    const indices = new Map(order.map((index, position) => [index, position + 1]));
     for (const relocation of this.relocations) {
       this.context.signal.throwIfAborted();
       const index = relocation.kind === "sheet" ? relocation.index + Number(this.externNames.length > 0) :
-        (this.book.names?.length ?? 0) + relocation.index + 1;
+        indices.get(relocation.index)!;
       new DataView(relocation.tokens.buffer, relocation.tokens.byteOffset).setUint16(relocation.offset, index, true);
     }
+    return order;
   }
   compile(source: string, sheet: string, row: number, column: number, definition?: NamedExpression): CompiledBiffFormula {
     const parse = (expression: string, position: ParsePosition): FormulaNode => {
@@ -45,7 +77,7 @@ export class BiffFormulaWriter {
     const root = definition ? parseNamedExpression(definition, this.book, parse, () => this.context.signal.throwIfAborted()) :
       parse(source, { sheet, row, column });
     const bytes: number[] = [], arrays: number[] = [], diagnostics: Diagnostic[] = [];
-    const relocations: { offset: number; index: number; kind: "sheet" | "macro" }[] = [];
+    const relocations: { offset: number; index: number; kind: "sheet" | "name" }[] = [];
     const push = (part: Uint8Array | readonly number[], target = bytes): void => {
       if (part.length > this.context.limits.outputBytes - bytes.length - arrays.length)
         throw new SsconvertError("resource-limit", "ssconvert BIFF formula bytes limit exceeded");
@@ -132,10 +164,12 @@ export class BiffFormulaWriter {
             view.setInt16(1, -(externalIndex + 1), true); view.setUint16(9, 1, true);
             view.setUint16(11, index + 1, true); view.setUint16(19, 15, true); view.setUint32(21, ++this.uniqueNameId, true);
           }
+          relocations.push({ offset: bytes.length + (this.revision === 8 ? 3 : 11), index, kind: "name" });
           push(data);
         } else {
           const data = new Uint8Array(this.revision === 8 ? 5 : 15); data[0] = 0x43;
-          new DataView(data.buffer).setUint16(1, index + 1, true); push(data);
+          new DataView(data.buffer).setUint16(1, index + 1, true);
+          relocations.push({ offset: bytes.length + 1, index, kind: "name" }); push(data);
         }
       } else if (node.kind === "call") {
         const name = node.name.toUpperCase(), known = functions.get(name);
@@ -149,7 +183,7 @@ export class BiffFormulaWriter {
             const macroName = `_xlfn.${name}`;
             let index = this.macroNames.indexOf(macroName);
             if (index < 0) { index = this.macroNames.length; this.macroNames.push(macroName); }
-            data[0] = 0x23; relocations.push({ offset: bytes.length + 1, index, kind: "macro" });
+            data[0] = 0x23; relocations.push({ offset: bytes.length + 1, index: (this.book.names?.length ?? 0) + index, kind: "name" });
             view.setUint16(1, (this.book.names?.length ?? 0) + index + 1, true);
           } else {
             let index = this.externNames.indexOf(name);
@@ -188,6 +222,7 @@ export class BiffFormulaWriter {
     visit(root);
     const tokens = new Uint8Array(bytes);
     for (const relocation of relocations) this.relocations.push({ ...relocation, tokens });
-    return { tokens, arrays: new Uint8Array(arrays), diagnostics };
+    return { tokens, arrays: new Uint8Array(arrays), diagnostics,
+      nameDependencies: relocations.filter(relocation => relocation.kind === "name").map(relocation => relocation.index) };
   }
 }

@@ -118,8 +118,16 @@ publication. Document-level resources, language, and direction stay outside the
 JSON protocol and are preserved across filters. Source documents with relative
 image targets are rejected because their source-directory information cannot survive
 arbitrary JSON filtering. Absolute and URL image targets retain their existing writer
-and resource policies. Lua uses the explicit capability below; citeproc requires
-an explicitly supplied capability.
+and resource policies. Lua uses the explicit capability below. For genuine CSL
+citations and bibliography, import `createCiteprocFilterCapability` from
+`@poe-code/pandoc/citeproc-filters` and supply `{style, locale, references}`. Here
+`style` and `locale` are CSL XML strings and `references` is an array of CSL JSON
+items with unique string IDs. Pass the result as `filters`; `--citeproc` and `-C`
+then process citation-bearing Pandoc JSON, including author suppression, textual
+citations and note styles, and append the bibliography. Prefixes and suffixes
+currently require plain text. No styles, locales or bibliography files are fetched.
+Use trusted CSL data: citeproc-js runs synchronously without instruction isolation.
+The engine is Frank Bennett's citeproc-js, licensed under CPAL or AGPL.
 
 The Safe Bash plugin accepts the same capability as `pandocCommands({filters})`.
 For example, with your already configured `jsonRuntime`:
@@ -156,7 +164,8 @@ interrupt Lua instructions. Use trusted scripts: VM allocations and library
 calls are not isolated or individually metered. `Str` callbacks may be global
 or returned in a single table, such as `return {Str = function(el) return el end}`.
 Callbacks return a `Str` element or nil. Other callbacks, Pandoc constructors,
-filter lists and citeproc remain unsupported.
+filter lists remain unsupported. This Lua capability does not process citeproc;
+use the separate CSL capability above.
 
 `createLuaFilterCapability(loadScript)` executes genuine Lua 5.3 using Fengari.
 Supply an explicit `(path, signal) => Promise<Uint8Array>` loader and pass the

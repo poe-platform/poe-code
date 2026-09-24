@@ -20,3 +20,9 @@ import {createLuaFilterCapability as createReaderLuaFilterCapability} from "@poe
 const readerLuaFilters = createReaderLuaFilterCapability({readFile: async (_path, _signal) => new Uint8Array()});
 void convert([], {...options, filters: [{kind: "lua", path: "filter.lua"}]}, {filters: readerLuaFilters});
 void pandocCommands({filters: readerLuaFilters});
+
+import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "@poe-code/pandoc/citeproc-filters";
+declare const csl: CiteprocFilterOptions;
+const citations = createCiteprocFilterCapability(csl);
+void convert([], {...options, filters: [{kind: "citeproc"}]}, {filters: citations});
+void pandocCommands({filters: citations});

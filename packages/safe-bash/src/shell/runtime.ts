@@ -148,7 +148,8 @@ const unsupportedSetOptionNames = new Set([
   "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog",
   "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace",
 ]);
-type Discovery = { kind: "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
+const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
+type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 
 function commandSpelling(command: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }>): string {
   if (command.kind === "arithmetic") return `((${command.source}))`;
@@ -4795,6 +4796,7 @@ export class Runtime {
     for (const name of args) {
       this.signal.throwIfAborted();
       let matches = forcePath || all && mode === "path" ? [] : this.internalDiscovery(name, state, skipFunctions);
+      if (!forcePath && !(all && mode === "path") && shellKeywords.has(name)) matches.unshift({ kind: "keyword", name });
       if (!all) matches = matches.slice(0, 1);
       if (all || !matches.length) {
         const paths = await this.searchPaths(name, state, all, true, defaultPath);
@@ -4824,7 +4826,7 @@ export class Runtime {
         }
         else if (mode === "name" || mode === "path") text = `${match.name}\n`;
         else if (match.kind === "function") text = `${name} is a function\n${functionDisplay(name, state.functions.get(name)!)}`;
-        else text = `${name} is ${match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
+        else text = `${name} is ${match.kind === "keyword" ? "a shell keyword" : match.kind === "builtin" ? "a shell builtin" : match.kind === "command" ? "a registered command" : match.kind === "interpreter" ? "a virtual shell interpreter" : match.name}\n`;
         await writeText(context.stdout, text);
       }
     }

@@ -85,5 +85,29 @@
     },
     "lockHandling": "Applied a parsed JSON edit to one exact value, preserving existing duplicate entries and unrelated bytes. The initial whole-document serialization was corrected before commit."
   },
-  "publication": "pending; GitHub workflows only"
+  "publication": {
+    "workflow": 35953422573,
+    "url": "https://github.com/poe-platform/poe-code/actions/runs/35953422573",
+    "headSha": "c4b8a6334e5e372e90737cc642300fa08488d655",
+    "conclusion": "success",
+    "registryVerified": [
+      {
+        "at": "2026-09-24T04:01:00.945987+00:00",
+        "url": "https://registry.npmjs.org/tiny-stdio-mcp-server/latest",
+        "status": 200,
+        "version": "0.1.30",
+        "gitHead": "c4b8a6334e5e372e90737cc642300fa08488d655",
+        "integrity": "sha512-67M/PvKfBUO3MAoEVF+2kujoeuT8lskgDg26jejAV2Jx0+e0zLibqf9nLrTmLgPuTkFIsLj3jiSn3YJ1k+uC0Q=="
+      },
+      {
+        "at": "2026-09-24T04:01:01.161603+00:00",
+        "url": "https://registry.npmjs.org/tiny-stdio-mcp-server/0.1.30",
+        "status": 200,
+        "version": "0.1.30",
+        "gitHead": "c4b8a6334e5e372e90737cc642300fa08488d655",
+        "integrity": "sha512-67M/PvKfBUO3MAoEVF+2kujoeuT8lskgDg26jejAV2Jx0+e0zLibqf9nLrTmLgPuTkFIsLj3jiSn3YJ1k+uC0Q=="
+      }
+    ],
+    "scope": "tiny-stdio-mcp-server only; root poe-code publication remains pending"
+  }
 }

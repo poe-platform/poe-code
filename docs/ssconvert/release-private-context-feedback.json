@@ -97,5 +97,20 @@
   "limitations": [
     "Full containing root CI and publication remain pending.",
     "Other captured filesystem/patch failures are separate and remain to be validated."
-  ]
+  ],
+  "postRebase": {
+    "upstream": "c9436428edede5ab1d1cd7bf2a58f3b7cf036552",
+    "runtimeSha256": "f68bce72ca7690898dde731759134fd570001eb596afc704714c57acf6909afd",
+    "focusedTests": 263,
+    "passed": 249,
+    "skipped": 14,
+    "failed": 0,
+    "scope": "cleanup lifecycle, variable presence, printf destinations and Playwright controller; optional native-oracle skips are not passes"
+  },
+  "delivery": {
+    "mockRemoteMain": "49987358089eb1bd4a0d71319067ddb61e40013b",
+    "runtimeRemoteMain": "f6003348c0673c7d88e31cd8cbd0599d9fe05b48",
+    "verification": "Each push followed by exact git ls-remote refs/heads/main readback",
+    "rootPublication": "pending"
+  }
 }

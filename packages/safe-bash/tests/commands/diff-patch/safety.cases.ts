@@ -128,10 +128,10 @@ test("invalid configuration reports usage failure before mutation", async () => 
 
 test("commit failures stop later files and disclose the committed prefix", async () => {
   const fs = await filesystem({ first: "old\n", second: "old\n", third: "old\n" });
-  const originalWrite = fs.writeFile.bind(fs);
-  fs.writeFile = async (path, data, options) => {
+  const originalWrite = fs.publishStagedFile.bind(fs);
+  fs.publishStagedFile = async (staging, path, options) => {
     if (path === "/work/second") throw new FsError("ENOSPC", { path });
-    return originalWrite(path, data, options);
+    return originalWrite(staging, path, options);
   };
   const input = ["first", "second", "third"].map(path => replacement.replaceAll("target", path)).join("");
   const result = await run("patch", [], { fs, input });

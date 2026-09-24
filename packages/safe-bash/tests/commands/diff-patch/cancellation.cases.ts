@@ -99,11 +99,11 @@ test("cancellation during commit leaves only the already-committed prefix", asyn
   const fs = await filesystem({ first: "old\n", second: "old\n" });
   const controller = new AbortController();
   const reason = new Error("author commit abort");
-  const write = fs.writeFile.bind(fs);
-  fs.writeFile = async (path, data, options) => {
+  const write = fs.publishStagedFile.bind(fs);
+  fs.publishStagedFile = async (staging, path, options) => {
     assert.equal(options?.signal, controller.signal);
     if (path === "/work/second") controller.abort(reason);
-    return write(path, data, options);
+    return write(staging, path, options);
   };
   const input = replacement.replaceAll("target", "first") + replacement.replaceAll("target", "second");
   await assert.rejects(run("patch", [], { fs, input, signal: controller.signal }), error => error === reason);

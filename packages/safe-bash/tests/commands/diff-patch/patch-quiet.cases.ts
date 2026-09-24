@@ -139,10 +139,10 @@ test("quiet does not relax input, output, work or line limits", async () => {
 
 test("quiet reports publication failure and preserves the completed prefix", async () => {
   const fs = await filesystem({ target: "old\n", second: "old\n" });
-  const write = fs.writeFile.bind(fs);
-  fs.writeFile = async (path, data, options) => {
+  const write = fs.publishStagedFile.bind(fs);
+  fs.publishStagedFile = async (staging, path, options) => {
     if (path === "/work/second") throw new FsError("ENOSPC", { path });
-    return write(path, data, options);
+    return write(staging, path, options);
   };
   const result = await run("patch", ["-s"], { fs, input: replacement + replacement.replaceAll("target", "second") });
   assert.equal(result.exitCode, 2);

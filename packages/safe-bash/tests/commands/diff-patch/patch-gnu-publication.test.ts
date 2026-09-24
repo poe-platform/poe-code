@@ -76,12 +76,12 @@ for (const pathSpecific of [false, true]) {
       get(target, property) {
         if (property === "capabilities") return { ...target.capabilities, permissions: pathSpecific };
         if (property === "capabilitiesFor") return async () => ({ ...target.capabilities, permissions: false });
-        if (property === "writeFile") return async (...args: Parameters<FileSystem["writeFile"]>) => {
-          if (args[0].endsWith(".orig")) {
+        if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
+          if (Buffer.from(args[2].type === "file" ? args[2].data : []).toString() === "prefix\nold\ntail\n") {
             backups++;
-            assert.equal(args[2]?.mode, undefined);
+            assert.equal(args[3]?.mode, undefined);
           }
-          return target.writeFile(...args);
+          return target.createStagedFile(...args);
         };
         if (property === "chmod") return async () => { throw new Error("permissionless backup must not chmod"); };
         const value: unknown = Reflect.get(target, property, target);

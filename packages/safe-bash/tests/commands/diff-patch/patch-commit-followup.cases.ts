@@ -14,9 +14,9 @@ for (const method of ["stat", "lstat", "readFile"] as const) {
           if (writes.length && path === "/work/second") throw new FsError("EIO", { path });
           return Reflect.apply(target[method], target, [path, ...args]);
         };
-        if (key === "writeFile") return async (path: string, ...args: unknown[]) => {
+        if (key === "publishStagedFile") return async (staging: unknown, path: string, ...args: unknown[]) => {
           writes.push(path);
-          return Reflect.apply(target.writeFile, target, [path, ...args]);
+          return Reflect.apply(target.publishStagedFile, target, [staging, path, ...args]);
         };
         const value: unknown = Reflect.get(target, key);
         return typeof value === "function" ? value.bind(target) : value;

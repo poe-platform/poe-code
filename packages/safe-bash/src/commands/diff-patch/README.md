@@ -295,8 +295,13 @@ lexically unsafe automatic headers are still rejected. Directory targets are nev
 overwritten. Diff reads operands and exclusion files through retained handles,
 checking the inspected file identity and ancestors before reading content.
 Backends without retained reads or authoritative file identity fail closed; stdin
-remains supported. These checks are not a replacement for adapter sandboxing.
-Host-root confinement
+remains supported. Patch mutation requires an adapter with atomic staging ancestry
+verification and retained no-symlink confinement. Each file is staged privately,
+with its permissions and timestamps, then published only if its destination and
+every retained ancestor still match. Deletions and directory mutations use confined
+views. Unsupported adapters refuse mutation; dry-run remains available. The
+selected patch root is preserved during directory pruning. These checks are not a
+replacement for adapter sandboxing. Host-root confinement
 remains the adapter's responsibility; these commands never address host paths
 outside the supplied virtual filesystem API.
 
@@ -322,11 +327,13 @@ entry per target. `--atomic -R` also reverses section order, unlike default `-R`
 Ordinary preparation failures leave targets unchanged and produce no reject or
 backup files. Successful staged application can still create mismatch backups.
 Status is buffered until publication completes. This mode is **preflight and
-staging, not a backend transaction**; its name does not promise atomic writes.
+staging, not a backend transaction**; each file publication is atomic, but the
+whole patch is not.
 
 Both modes recheck target content and type before publication to detect
 observable changes; atomic mode also rechecks all prepared targets before its
-publication loop. There is no lock or compare-and-swap, so races remain possible.
+publication loop. The backend additionally compares destination and ancestor
+identities atomically when publishing each staged file.
 Publication runs sequentially. A publication-stage filesystem or work-budget
 failure stops immediately and reports the completed-entry count and failing
 path; default counts refer to sections, atomic counts to collapsed targets.
@@ -334,10 +341,11 @@ It does not roll back or attempt later entries, and the failing operation may
 already have side effects. Cancellation propagates the signal reason: earlier
 writes and directory changes remain, and uncooperative in-flight host work may
 continue. Directory pruning or status-output failures can occur after target
-publication. No single-file or multi-file atomicity, rollback, race freedom, or
-forced termination of host work is promised.
+publication. No multi-file transaction, rollback, read snapshot, or forced
+termination of host work is promised.
 
-Every filesystem request receives the command signal. Waiting on host promises,
+Normal filesystem requests receive the command signal; retained cleanup runs
+after in-flight publication settles and can remove only its owned staging entries. Waiting on host promises,
 stdin, and sinks is interruptible and observes late rejections. CPU-heavy
 matching, metadata traversal, and even endless empty input chunks yield
 periodically. Cancellation cannot undo host effects or preempt an individual

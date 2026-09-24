@@ -7,6 +7,7 @@ import { unwrapPatch } from "./patch-envelope.js";
 import { parsePatch, type PatchFormat, type ParseProgress } from "./patch-formats.js";
 import { authorizeOutputs, authorizePaths, backupName, candidateStat, ensureParents, pruneDirectories, pruneParents, regular, rejectName, selectTarget, type AuthorizedPatch, type BackupOptions, type PathOptions } from "./patch-gnu-paths.js";
 import { rejectText } from "./patch-gnu-reject.js";
+import { PatchPublication } from "./patch-publication.js";
 
 interface PatchFlags extends BackupOptions { strip?: number; input: string; reverse: boolean; dryRun: boolean; atomic: boolean; quiet: boolean; force: boolean; backup: boolean; alwaysBackup?: boolean; forward?: boolean; output?: string; directory?: string; reject?: string; fuzz: number; ignoreWhitespace: boolean; removeEmpty: boolean; format?: PatchFormat; target?: string; posix?: boolean; verbose?: boolean; ifdef?: string; merge?: "merge" | "diff3"; setTime?: "local" | "utc"; rejectFormat?: "unified" | "context"; readOnly?: "ignore" | "warn" | "fail"; quotingStyle?: string }
 
@@ -201,34 +202,29 @@ async function unchanged(item: Prepared, budget: Budget): Promise<void> {
   for (const parent of item.parents) await inspect(budget, parent);
 }
 
-async function publish(item: Prepared, budget: Budget, rejects: Set<string>): Promise<void> {
+async function publish(item: Prepared, budget: Budget, rejects: Set<string>, publication: PatchPublication): Promise<void> {
   const context = budget.context;
   await unchanged(item, budget);
-  const write = async (path: string, text: string, append = false, createParents = true, mode?: number) => {
+  const write = async (path: string, text: string, append = false, createParents = true, mode?: number, mtimeMs?: number) => {
     if (createParents) await ensureParents(path, budget);
     else if ((await inspect(budget, dirname(path)))?.type !== "directory") throw new ToolError(`reject parent does not exist: ${dirname(path)}`);
     const stat = await inspect(budget, path);
     regular(stat, path);
     const capabilities = await host(context, async () =>
       await context.fs.capabilitiesFor?.(path, { signal: context.signal, create: true }) ?? context.fs.capabilities);
-    const preserveMode = mode !== undefined && capabilities?.permissions !== false;
-    if (append) await host(context, () => context.fs.appendFile(path, Buffer.from(text), { signal: context.signal }));
-    else if (stat && capabilities?.permissions !== false && !(stat.mode & 0o222)) await replaceReadOnly(path, text, stat.mode, budget);
-    else await host(context, () => context.fs.writeFile(path, Buffer.from(text), { signal: context.signal, flag: stat ? "w" : "wx", ...(preserveMode ? { mode } : {}) }));
-    if (preserveMode && context.fs.chmod) await host(context, () => context.fs.chmod!(path, mode, { signal: context.signal }));
+    if (capabilities?.atomicStagingAncestry !== true) throw new ToolError("filesystem does not support race-safe patch publication");
+    const publicationMode = capabilities?.permissions === false ? undefined : mode ?? (stat ? stat.mode & 0o7777 : undefined);
+    if (append && stat) text = await budget.read(path) + text;
+    await publication.write(path, text, stat, publicationMode, mtimeMs);
   };
   if (item.backup !== undefined && item.backupPath !== undefined) await write(item.backupPath, item.backup, false, true, item.backupMode);
   if (item.remove) {
     if (item.original !== undefined) {
       regular(await inspect(budget, item.path), item.path);
-      await host(context, () => context.fs.rm(item.path, { signal: context.signal }));
+      await publication.remove(item.path);
     }
   } else if (!item.skipWrite) {
-    await write(item.path, item.result);
-    if (item.mtimeMs !== undefined) {
-      if (!context.fs.utimes) throw new ToolError("filesystem does not support setting timestamps");
-      await host(context, () => context.fs.utimes!(item.path, item.mtimeMs!, item.mtimeMs!, { signal: context.signal }));
-    }
+    await write(item.path, item.result, false, true, undefined, item.mtimeMs);
   }
   if (item.rejectPath !== undefined && item.reject !== undefined) {
     await write(item.rejectPath, item.reject, rejects.has(item.rejectPath), false);
@@ -242,6 +238,25 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const cwd = resolvePath(context.cwd, options.directory);
     if ((await inspect(budget, cwd))?.type !== "directory") throw new ToolError(`not a directory: ${options.directory}`);
     context = { ...context, cwd };
+    budget = new Budget(context, budget.limits);
+  }
+  const publication = new PatchPublication(context);
+  if (!options.dryRun) {
+    const fs = context.fs;
+    const capabilities = await host(context, async () => await fs.capabilitiesFor?.(context.cwd, { signal: context.signal }) ?? fs.capabilities);
+    if (!fs.confineExtraction || capabilities.atomicStagingAncestry !== true
+      || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
+      throw new ToolError("filesystem does not support race-safe patch publication");
+    }
+    await publication.capture(`${context.cwd}/.patch-admission`);
+    const confined = await host(context, () => fs.confineExtraction!([context.cwd], { signal: context.signal }));
+    context = { ...context, fs: new Proxy(fs, {
+      get(target, property) {
+        const selected = ["mkdir", "rm", "rmdir"].includes(String(property)) ? confined : target;
+        const value: unknown = Reflect.get(selected, property, selected);
+        return typeof value === "function" ? value.bind(selected) : value;
+      },
+    }) };
     budget = new Budget(context, budget.limits);
   }
   const output = options.output === undefined ? undefined : safeTarget(options.output, 0, true);
@@ -311,6 +326,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       ? !staged.get(path)!.remove : (options.atomic && stagedParents.has(path)) || await candidateStat(path, budget) !== undefined, budget);
     const path = resolvePath(context.cwd, name);
     activePath = path;
+    if (!options.dryRun) await publication.capture(path);
     if (path === paths.input || backupPaths.has(path) || rejectPaths.has(path)) throw new ToolError(`patch target aliases input or an earlier output: ${path}`);
     targets.add(path);
     const prior = options.atomic ? staged.get(path) : undefined;
@@ -334,7 +350,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
             const reject = await rejectText(sourcePatch, outcomes, authorizedPatch.oldName, authorizedPatch.newName, authorizedPatch.indexName, options.reverse, budget, options.rejectFormat);
             const original = await budget.read(path);
             publishing = true;
-            await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects);
+            await publish({ path, original, result: original, remove: false, skipWrite: true, rejectPath, reject, parents: [] }, budget, rejects, publication);
             committed++;
             publishing = false;
             rejectPaths.add(rejectPath);
@@ -405,7 +421,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       ...(backupPath === undefined ? {} : { backupPath }),
       ...(prior?.backupMode !== undefined ? { backupMode: prior.backupMode } : backup !== undefined && stat ? { backupMode: stat.mode & 0o7777 } : {}),
       ...(mtimeMs === undefined ? {} : { mtimeMs }),
-      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd) : [] };
+      ...(rejectPath === undefined ? {} : { rejectPath, reject: rejected! }), parents: remove ? pruneParents(name, context.cwd).filter(parent => parent !== context.cwd) : [] };
     const displayName = quotePatchName(name, options.quotingStyle);
     let message = options.quiet ? "" : `${options.dryRun ? "checking" : "patching"} file ${output === undefined ? displayName : `${quotePatchName(output, options.quotingStyle)} (read from ${displayName})`}\n`;
     if (options.verbose) {
@@ -433,7 +449,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       if (!remove) for (let parent = dirname(path); parent !== "/"; parent = dirname(parent)) stagedParents.add(parent);
     } else if (!options.dryRun) {
       publishing = true;
-      await publish(item, budget, rejects);
+      await publish(item, budget, rejects, publication);
       committed++;
       publishing = false;
       for (const parent of item.parents) parents.add(parent);
@@ -452,7 +468,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     const prepared = [...staged.values()].filter(item => !(item.remove && item.original === undefined));
     for (const item of prepared) await unchanged(item, budget);
     for (const item of prepared) {
-      try { await publish(item, budget, rejects); committed++; }
+      try { await publish(item, budget, rejects, publication); committed++; }
       catch (error) {
         context.signal.throwIfAborted();
         throw new ToolError(`commit stopped; ${committed}/${prepared.length} files committed; failing operation may have side effects; path ${item.path}: ${publicDiagnosticMessage(error, budget.context.onInternalError)}`);
@@ -477,28 +493,6 @@ function patchTimestamp(header: string | undefined, zone: "local" | "utc"): numb
   if (zone === "utc" && parts.length === 2) text += " +0000";
   const time = Date.parse(text);
   return Number.isFinite(time) ? time : undefined;
-}
-
-async function replaceReadOnly(path: string, text: string, mode: number, budget: Budget): Promise<void> {
-  const context = budget.context;
-  const temporary = `${path}.patch-${globalThis.crypto.randomUUID()}`;
-  let owned = false;
-  let operation: Promise<void> | undefined = undefined;
-  let cleanupPromise: Promise<void> | undefined;
-  const cleanup = () => cleanupPromise ??= (async () => {
-    await operation?.catch(() => {});
-    if (owned) { await context.fs.rm(temporary); owned = false; }
-  })();
-  context.registerCleanup?.(cleanup);
-  operation = (async () => {
-    await host(context, () => context.fs.writeFile(temporary, Buffer.from(text), { flag: "wx", mode: 0o600, signal: context.signal }));
-    owned = true;
-    regular(await inspect(budget, path), path);
-    if (context.fs.chmod) await host(context, () => context.fs.chmod!(temporary, mode & 0o7777, { signal: context.signal }));
-    await host(context, () => context.fs.rename(temporary, path, { signal: context.signal }));
-    owned = false;
-  })();
-  try { await operation; } finally { await cleanup(); }
 }
 
 function quotePatchName(name: string, style = "shell"): string {

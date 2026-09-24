@@ -467,6 +467,31 @@ export class Interpreter {
       return;
     }
     if (name === "not") { yield !truth(input); return; }
+    if (name === "transpose") {
+      let width = 0;
+      for await (const [, row] of entries(input, budget)) {
+        for await (const length of this.run({ kind: "call", name: "length", args: [] }, row)) {
+          width = Math.max(width, numberValue(length as number));
+        }
+      }
+      budget.collection(Math.ceil(width));
+      const result: Json[] = [];
+      let bytes = 2;
+      for (let column = 0; column < width; column++) {
+        await budget.tick();
+        const values: Json[] = [];
+        bytes += 2 + (column ? 1 : 0);
+        for await (const [, row] of entries(input, budget)) {
+          const value = indexValue(row, column);
+          bytes += budget.value(value) + (values.length ? 1 : 0);
+          if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+          budget.collection(values.length + 1);
+          values.push(value);
+        }
+        result.push(values);
+      }
+      budget.value(result); yield result; return;
+    }
     if (name === "length") {
       if (input === null) yield 0;
       else if (isNumber(input)) yield Math.abs(numberValue(input));
@@ -485,7 +510,7 @@ export class Interpreter {
         for (const key of objectKeyIterator(input)) { await budget.tick(); void key; length++; }
         yield length;
       }
-      else throw new JqError("boolean has no length");
+      else throw new JqError(`${describe(input, budget)} has no length`);
       return;
     }
     if (name === "keys" || name === "keys_unsorted") {

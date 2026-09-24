@@ -249,6 +249,7 @@ cross-version parity beyond its recorded tests.
 | `has(key)`, `contains(value)` | Own-key/index existence and recursive containment; array `has` truncates fractional indexes but does not wrap negative indexes. |
 | `sort`, `sort_by(f)`, `unique`, `unique_by(f)`, `group_by(f)` | Stable sorting/grouping with recursive jq-style type ordering; key filters may produce multiple values. |
 | `add`, `reverse`, `min`, `max`, `min_by(f)`, `max_by(f)` | Array operations; empty `add`, min, and max return null. |
+| `transpose` | Swap matrix rows and columns, padding short rows with null; empty matrices return `[]`. |
 | `any`, `any(f)`, `any(g; f)`, `all`, `all(f)`, `all(g; f)` | Array/object predicates or explicit generator predicates; short-circuiting and empty-generator identities. |
 | `join(separator)` | Join array elements or object values in insertion order. Strings pass through, null becomes empty text, numbers/booleans use `tostring`; nested containers error. |
 | `first`, `first(f)`, `last`, `last(f)`, `limit(n; f)` | Lazy first/limited consumption; `first(empty)` emits nothing, `last(empty)` emits null; `limit` requires a nonnegative safe integer. |

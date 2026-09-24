@@ -1,8 +1,7 @@
 import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 
+// The separate owned-browser privacy transport still uses this legacy budget.
 export const MAX_RUN_CODE_FRAME_BYTES = 32 * 1024 * 1024;
-export const MAX_RUN_CODE_BYTES = 64 * 1024 * 1024;
-export const MAX_RUN_CODE_FRAMES = 4096;
 export const MAX_RUN_CODE_CONTEXTS = 16;
 export const MAX_RUN_CODE_TARGETS = 64;
 
@@ -15,49 +14,45 @@ interface ProtocolMessage {
 	error?: unknown;
 }
 
-function codePointByteLength(character: string) {
-	const codePoint = character.codePointAt(0)!;
-	if (codePoint <= 0x7f) return 1;
-	if (codePoint <= 0x7ff) return 2;
-	return codePoint <= 0xffff ? 3 : 4;
+export interface RunCodeFrameLimits {
+	maxFrameBytes?: number;
+	maxBytes?: number;
+	maxFrames?: number;
 }
 
-/** O(n) in code points, O(1) auxiliary memory; never materializes encoded frames. */
+/** O(n) in code points, O(1) auxiliary memory. */
 export function frameByteLength(message: string) {
 	let bytes = 0;
 	for (const character of message) {
-		bytes += codePointByteLength(character);
-		if (bytes > MAX_RUN_CODE_FRAME_BYTES)
-			throw new PlaywrightResourceLimitError(
-				"Run-code CDP frame limit exceeded",
-			);
+		const codePoint = character.codePointAt(0)!;
+		bytes += codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
 	}
 	return bytes;
 }
 
-/** O(n) in frame bytes; retained accounting is bounded by the frame limit. */
-export function createRunCodeFrameBudget() {
+/** Omitted budgets never constrain the total traffic or individual frames. */
+export function createRunCodeFrameBudget(limits: RunCodeFrameLimits = {}) {
+	for (const [name, value] of Object.entries(limits)) {
+		if (value !== undefined && (!Number.isSafeInteger(value) || value <= 0))
+			throw new TypeError(`Invalid run-code CDP limit: ${name}`);
+	}
 	let frames = 0;
 	let bytes = 0;
 	return (message: unknown): ProtocolMessage => {
+		if (typeof message !== "string") throw new Error("Run-code CDP frame limit or type violation");
+		const size =
+			limits.maxFrameBytes !== undefined || limits.maxBytes !== undefined
+				? frameByteLength(message)
+				: 0;
+		if (limits.maxFrameBytes !== undefined && size > limits.maxFrameBytes)
+			throw new PlaywrightResourceLimitError("Run-code CDP frame limit exceeded");
+		if (limits.maxFrames !== undefined) frames++;
+		if (limits.maxBytes !== undefined) bytes += size;
 		if (
-			typeof message !== "string" ||
-			message.length > MAX_RUN_CODE_FRAME_BYTES
+			(limits.maxFrames !== undefined && frames > limits.maxFrames) ||
+			(limits.maxBytes !== undefined && bytes > limits.maxBytes)
 		)
-			throw new PlaywrightResourceLimitError(
-				"Run-code CDP frame limit exceeded",
-			);
-		const size = frameByteLength(message);
-		frames++;
-		bytes += size;
-		if (
-			size > MAX_RUN_CODE_FRAME_BYTES ||
-			frames > MAX_RUN_CODE_FRAMES ||
-			bytes > MAX_RUN_CODE_BYTES
-		)
-			throw new PlaywrightResourceLimitError(
-				"Run-code CDP transport limit exceeded",
-			);
+			throw new PlaywrightResourceLimitError("Run-code CDP transport limit exceeded");
 		const parsed: unknown = JSON.parse(message);
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
 			throw new Error("Invalid run-code CDP message");
@@ -80,17 +75,13 @@ export function createRunCodeCreationBudget(options: {
 		context: {
 			ids: contexts,
 			limit: MAX_RUN_CODE_CONTEXTS,
-			field: "browserContextId",
-		},
+			field: "browserContextId"
+		}
 	};
 	const count = (kind: "page" | "context") =>
 		[...pending.values()].filter((value) => value === kind).length;
 	const reserveDisposal = (message: ProtocolMessage) => {
-		if (
-			!Number.isSafeInteger(message.id) ||
-			pending.has(message.id!) ||
-			disposals.has(message.id!)
-		)
+		if (!Number.isSafeInteger(message.id) || pending.has(message.id!) || disposals.has(message.id!))
 			throw new Error("Invalid run-code creation command ID");
 		const id = message.params?.["browserContextId"];
 		if (typeof id === "string") disposals.set(message.id!, id);
@@ -118,9 +109,7 @@ export function createRunCodeCreationBudget(options: {
 				throw new Error("Invalid run-code creation command ID");
 			const group = groups[kind];
 			if (group.ids.size + count(kind) >= group.limit)
-				throw new PlaywrightResourceLimitError(
-					`Run-code ${kind} limit exceeded`,
-				);
+				throw new PlaywrightResourceLimitError(`Run-code ${kind} limit exceeded`);
 			pending.set(message.id!, kind);
 		},
 		reply(message: ProtocolMessage) {
@@ -132,8 +121,7 @@ export function createRunCodeCreationBudget(options: {
 			if (message.error) return;
 			const group = groups[kind];
 			const id = message.result?.[group.field];
-			if (typeof id !== "string")
-				throw new Error("Invalid CDP creation response");
+			if (typeof id !== "string") throw new Error("Invalid CDP creation response");
 			group.ids.add(id);
 		},
 		pageCreated(id: string) {
@@ -143,7 +131,7 @@ export function createRunCodeCreationBudget(options: {
 		},
 		pageDestroyed(id: string) {
 			pages.delete(id);
-		},
+		}
 	};
 }
 

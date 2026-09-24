@@ -990,6 +990,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       });
     }),
     define("ls", async context => {
+      let hidden: "none" | "all" | "almost-all" = "none";
       let sort: "name" | "time" | "size" = "name";
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
@@ -1037,7 +1038,10 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           else if (flag === "p") indicator = "slash";
         }
       }
-      const parsed = options(args, "aAl1dFprRLhtSQcui", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" });
+      const parsed = options(args, "aAl1dFprRLhtSQcui", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h" }, false, undefined, undefined, key => {
+        if (key === "a") hidden = "all";
+        else if (key === "A") hidden = "almost-all";
+      });
       if (sort === "name" && timeKey !== "mtimeMs" && !parsed.flags.has("l")) sort = "time";
       const formatName = (name: string): string => {
         if (!parsed.flags.has("Q")) return escapeText(name, "display");
@@ -1134,8 +1138,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         try {
           if (header) { await output(context, `${outputWritten ? "\n" : ""}${formatName(display)}:\n`); outputWritten = true; }
           const entries = await readDirectory(context, path, true);
-          const names = entries.map(entry => entry.name).filter(name => parsed.flags.has("a") || parsed.flags.has("A") || !name.startsWith("."));
-          if (parsed.flags.has("a")) for (const name of [".", ".."]) {
+          const names = entries.map(entry => entry.name).filter(name => hidden !== "none" || !name.startsWith("."));
+          if (hidden === "all") for (const name of [".", ".."]) {
             const index = names.findIndex(entry => entry > name);
             names.splice(index < 0 ? names.length : index, 0, name);
           }
@@ -1148,7 +1152,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
           for (const child of children) await render(child);
           if (parsed.flags.has("R")) for (const child of children) {
             if (child.display === "." || child.display === "..") continue;
-            if (child.stat.type === "directory") await list({ ...child, display: `${display.replace(/\/$/u, "")}/${child.display}` }, true, ancestors);
+            if (child.stat.type === "directory") await list({ ...child, display: childOperand(display, child.display) }, true, ancestors);
           }
         } finally { ancestors.delete(physical); }
       };

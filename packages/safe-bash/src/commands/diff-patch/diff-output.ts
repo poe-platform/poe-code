@@ -69,7 +69,7 @@ export async function sideBySide(changes: readonly Edit[], options: DisplayOptio
       return;
     }
     if (marker !== " ") text += padding(first.column, markerColumn, options.expand) + marker;
-    if (right !== undefined && right.length > 0) {
+    if (right !== undefined && right.length > 0 && right !== "\n") {
       const column = marker === " " ? first.column : markerColumn + 1;
       const second = clipped(right, half, options.expand);
       text += padding(column, rightStart, options.expand) + second.text;

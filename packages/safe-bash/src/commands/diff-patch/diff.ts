@@ -187,7 +187,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     };
     const oldBytes = await read(left, !!leftStat);
     const newBytes = await read(right, !!rightStat);
-    const reportSame = () => { if (options.reportSame) append(`Files ${options.labels[0] ?? left} and ${options.labels[1] ?? right} are identical\n`); };
+    const label = (name: string) => options.text ? Buffer.from(name).toString("latin1") : name;
+    const reportSame = () => { if (options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`); };
     // Latin-1 preserves byte identity before binary inputs reach text validation.
     if (!options.text && oldBytes.includes("\0") && oldBytes === newBytes) { reportSame(); continue; }
     const oldText = options.text ? oldBytes : budget.text(Buffer.from(oldBytes, "latin1"));
@@ -202,9 +203,8 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     if (!same) await ignoreChanges(changes, options, budget);
     const changed = changes.some(edit => edit.kind !== " " && !edit.ignored);
     different ||= changed;
-    const label = (name: string) => options.text ? Buffer.from(name).toString("latin1") : name;
-    if (!changed && options.reportSame) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} are identical\n`);
-    if (changed && pair.nested && !options.brief) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
+    if (!changed && pair.nested && options.suppressCommon) { reportSame(); continue; }
+    if (pair.nested && !options.brief && (changed || options.format === "side")) append(label(["diff", ...options.optionArgs, left, right].join(" ")) + "\n");
     if (options.brief) { if (changed) append(`Files ${label(options.labels[0] ?? left)} and ${label(options.labels[1] ?? right)} differ\n`); }
     else if (options.format === "side") await sideBySide(changes, options, budget, append);
     else if (options.format === "ifdef") await ifdef(changes, options.symbol, budget, append);
@@ -222,6 +222,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
         return "";
       } : undefined);
     }
+    if (!changed) reportSame();
   }
   const output = Buffer.from(pieces.join(""), options.text ? "latin1" : "utf8");
   if (options.paginate && output.length) {

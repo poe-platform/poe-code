@@ -1261,10 +1261,61 @@ complete ordered `ancestors` receipt list from `/` through the destination paren
 in the same atomic operation as the rename. Every entry must remain a directory
 with its captured backing identity; symlinks, replacements, missing entries, and
 incomplete lists are rejected before publication. Directory child mutations do
-not invalidate these identity checks. Memory supports this guarantee; mount
-views withhold it because their namespace resolution is not atomic with backend
-publication. Backends must not silently ignore supplied ancestry conditions when
-advertising this capability.
+not invalidate these identity checks. Memory supports this guarantee. Mount
+views support it for paths whose complete real ancestry has synchronous
+validation and whose destination supports guarded publication, as described
+below; other paths, including synthetic mount parents, remain unsupported.
+Request `capabilitiesFor(path, { stagingAncestry: true })` to inspect this
+composed guarantee. On a directory, the same query inspects synchronous
+validation of its complete ancestry. Mount leaves that validation capability
+unknown on ordinary queries and in its global capability declaration. The explicit intent permits queries against ancestor
+authorities; ordinary target-only open/resize queries retain their existing
+probe sequence. Publication always performs its own ancestry admission, even
+when a caller omits this optional capability query.
+Backends must not silently ignore supplied ancestry conditions when advertising
+this capability.
+
+`synchronousDirectoryValidation: true` requires `prepareDirectoryAncestry` to
+admit a complete canonical root-to-directory list and return a synchronous
+validator. Preparation may await path-specific capability and policy checks;
+it is not validation or a lease. Each invocation of the returned validator
+checks every directory identity and current search permission, including the
+final directory, without following symlinks, and returns literal `true`. Changed bindings
+fail with `EAGAIN`, missing authoritative identity with `ENOTSUP`, and denied
+search access with `EACCES`. The validator must not yield or mutate
+filesystem state. Its backing state must not be mutable outside the current
+JavaScript execution turn; an ordinary remote stat or native host lookup cannot
+satisfy this contract. The result is not a lease and cannot be retained across
+an await.
+
+`guardedStagingPublication: true` requires `publishStagedFile` to honor the
+optional `commitGuard` after asynchronous preparation and before replacement,
+in the same synchronous section as its local staging/destination checks and
+rename. The guard must return literal `true`; a promise, undefined, or any other
+result fails with `ENOTSUP` before publication, and a misdeclared promise's
+rejection is observed. A thrown refusal prevents publication; existing error
+mapping and cancellation identities apply. This is a separate
+capability: existing ancestry support does not imply support for a new callback.
+Receipt inputs are copied before invoking a guard, and local binding checks run
+after it. The receiver must not invoke additional untrusted callbacks or yield
+between successful validation and replacement.
+
+These are trusted host composition contracts. Guards and the validators they
+invoke must not mutate any participating filesystem; synchronous policy and
+budget callbacks must obey that restriction too. They do not sandbox arbitrary
+host JavaScript. Mount admits asynchronous wrapper policies first, then passes
+a guard that validates all ancestor authorities at the leaf backend's actual
+commit point. It translates the leaf's complete ancestry separately. Shared
+backend mounts require no locks or reentrant lease. Scope preserves synchronous
+validation while enforcing cancellation and charging both preparation and
+validation; Device refuses virtual
+device ancestors. Quota and read-only views withhold unsupported guarantees.
+Real's trusted staging is not promoted to either capability.
+
+This protocol does not change cleanup ownership. A pathname staging receipt
+cannot locate a directory after an ancestor moves; ordinary cleanup still
+refuses stale paths and preserves replacements. Callers needing cleanup after
+relocation require a separately supported retained ownership mechanism.
 
 Cleanup atomically removes only the original staging file, if still present,
 and its empty original private directory. A replacement entry, changed source,

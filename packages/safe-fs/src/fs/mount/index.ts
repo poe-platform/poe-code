@@ -15,6 +15,7 @@ import { normalizePath, validatePath } from "../../contracts/virtual-path.js";
 import { forwardFileDescriptor, openFileDescriptor } from "../descriptor.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import { pathNamespace } from "../path-namespace.js";
+import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { compareIdentity } from "./identity.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
@@ -149,6 +150,7 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         open: ["open"],
+        synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
         trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
         atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
@@ -165,6 +167,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
+      "guardedStagingPublication",
       "trustedOwnedStaging", "atomicFilePublication", "atomicEntryRemoval", "atomicTreeRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open", "versionedDescriptors",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
@@ -175,7 +178,10 @@ export class MountFileSystem implements FileSystem {
       readOnly: all("readOnly"),
       ...(append === undefined ? {} : { append }),
       ...semantics,
-      atomicStagingAncestry: false,
+      // Real ancestry (including synthetic mount parents) is path-dependent.
+      atomicStagingAncestry: mounts.some(({ backend }) => typeof backend.prepareDirectoryAncestry === "function"
+        && typeof backend.publishStagedFile === "function" && (typeof backend.capabilitiesFor === "function"
+          || backend.capabilities.guardedStagingPublication !== false && backend.capabilities.synchronousDirectoryValidation !== false)) ? undefined : false,
       atomicRename: mounts.length === 1 && all("atomicRename"),
       ...(streamingRead === undefined ? {} : { streamingRead }),
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
@@ -201,7 +207,12 @@ export class MountFileSystem implements FileSystem {
         ? { ...observed, descriptorWriteStream: false } : observed;
       const resize = declared.atomicResize === true && (typeof location.mount.backend.resizeFile !== "function" || declared.readOnly === true)
         ? { ...declared, atomicResize: false } : declared;
-      const withOpen = { ...resize, atomicStagingAncestry: false, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
+      const ancestry = options.stagingAncestry === true && location.path === normalizePath(globalPath(path))
+        && await this.supportsStagingAncestry(location, resize, options);
+      const validation = options.stagingAncestry === true ? location.stat?.type === "directory"
+        && location.path === normalizePath(globalPath(path)) && await this.supportsDirectoryValidation(location.path, options) : undefined;
+      const { synchronousDirectoryValidation: ignoredValidation, ...ordinary } = resize;
+      const withOpen = { ...ordinary, ...(validation === undefined ? {} : { synchronousDirectoryValidation: validation }), atomicStagingAncestry: ancestry, ...(typeof location.mount.backend.open === "function" ? {} : { open: false }) };
       const capabilities = location.synthetic ? { ...withOpen, open: false, retainedRead: false }
         : retainedResizeCapabilities(location.mount.backend, retainedReadCapabilities(location.mount.backend, withOpen));
       if (location.synthetic) return readOnlyCapabilities(capabilities);
@@ -214,6 +225,80 @@ export class MountFileSystem implements FileSystem {
         ...(capabilities.exclusiveCopy === false && capabilities.exclusiveCreate === false && capabilities.streamingWrite === false ? { exclusiveCopy: false } : {}),
       });
     });
+  }
+
+  private async supportsStagingAncestry(target: Location, capabilities: FileSystemCapabilities, options: FsOptions): Promise<boolean> {
+    options.signal?.throwIfAborted();
+    if (target.synthetic || target.stat !== undefined && (target.stat.type !== "file" || compareIdentity(target.stat, target.stat) !== "same")
+      || capabilities.atomicFileStaging !== true || capabilities.atomicStagingAncestry !== true
+      || capabilities.guardedStagingPublication !== true || capabilities.readOnly === true) return false;
+    const parent = target.path.slice(0, target.path.lastIndexOf("/")) || "/";
+    return this.supportsDirectoryValidation(parent, options);
+  }
+
+  private async supportsDirectoryValidation(directory: string, options: FsOptions): Promise<boolean> {
+    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+    for (const path of directoryAncestryPaths(directory)) {
+      const entry = await this.lookup(path, controls);
+      if (entry.synthetic || entry.stat?.type !== "directory" || compareIdentity(entry.stat, entry.stat) !== "same") return false;
+      const backend = entry.mount.backend;
+      const declared = await backend.capabilitiesFor?.(entry.local, { ...controls, stagingAncestry: true }) ?? backend.capabilities;
+      options.signal?.throwIfAborted();
+      if (declared.synchronousDirectoryValidation !== true || typeof backend.prepareDirectoryAncestry !== "function") return false;
+    }
+    return true;
+  }
+
+  prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
+    return this.operation("prepareDirectoryAncestry", ancestors.at(-1)?.path ?? "/", options,
+      () => this.prepareAncestry(ancestors, options));
+  }
+
+  private async prepareAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions): Promise<() => true> {
+    options.signal?.throwIfAborted();
+    try {
+      const entries = snapshotDirectoryAncestry(ancestors);
+      const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+      const groups: { mount: Mount; entries: FileStagingEntry[] }[] = [];
+      for (const entry of entries) {
+        const mount = this.select(entry.path);
+        let group = groups.at(-1);
+        if (group?.mount !== mount) { group = { mount, entries: [] }; groups.push(group); }
+        group.entries.push({ path: mount.path === "/" ? entry.path : entry.path.slice(mount.path.length) || "/", stat: entry.stat });
+      }
+      const guards: (() => true)[] = [];
+      for (const group of groups) {
+        controls.signal?.throwIfAborted();
+        const backend = group.mount.backend;
+        for (const entry of group.entries) {
+          let current: FileStat;
+          try { current = await backend.lstat(entry.path, controls); }
+          catch (error) {
+            controls.signal?.throwIfAborted();
+            if (["ENOENT", "ENOTDIR", "ELOOP"].includes(toFsError(error).code)) fail("EAGAIN");
+            throw error;
+          }
+          controls.signal?.throwIfAborted();
+          if (current.type !== "directory") fail("EAGAIN");
+          const identity = compareIdentity(current, entry.stat);
+          if (identity === "unknown") fail("ENOTSUP");
+          if (identity !== "same") fail("EAGAIN");
+          const declared = await backend.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? backend.capabilities;
+          controls.signal?.throwIfAborted();
+          if (declared.synchronousDirectoryValidation !== true) fail("ENOTSUP");
+        }
+        if (typeof backend.prepareDirectoryAncestry !== "function") fail("ENOTSUP");
+        const guard = await backend.prepareDirectoryAncestry(group.entries, controls);
+        controls.signal?.throwIfAborted();
+        if (typeof guard !== "function") fail("ENOTSUP");
+        guards.push(guard);
+      }
+      return () => {
+        controls.signal?.throwIfAborted();
+        for (const guard of guards) runStagingGuard(guard);
+        return true;
+      };
+    } catch (error) { options.signal?.throwIfAborted(); throw error; }
   }
 
   private protected(path: string): boolean {
@@ -748,15 +833,69 @@ export class MountFileSystem implements FileSystem {
 
   publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
     return this.operation("publishStagedFile", staging.file.path, options, async () => {
+      const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);
+      const callerGuard = options.commitGuard;
+      let guard: (() => true) | undefined;
+      if (ancestors) {
+        const canonical = normalizePath(globalPath(destination));
+        const parent = canonical.slice(0, canonical.lastIndexOf("/")) || "/";
+        if (canonical !== destination || ancestors.at(-1)?.path !== parent) fail("EINVAL");
+        guard = await this.prepareAncestry(ancestors, options);
+        runStagingGuard(guard);
+      }
       const local = await this.localStaging(staging, options);
       const target = await this.resolve(destination, options, { followFinal: false, entry: true, allowMissing: true });
+      if (ancestors) {
+        if (target.path !== destination) fail("EAGAIN");
+        if (options.destination === null) {
+          if (target.stat !== undefined) fail("EAGAIN");
+        } else {
+          if (target.stat === undefined || target.stat.type !== options.destination.type) fail("EAGAIN");
+          const identity = compareIdentity(target.stat, options.destination);
+          if (identity === "unknown") fail("ENOTSUP");
+          if (identity !== "same") fail("EAGAIN");
+        }
+      }
       if (this.protected(target.path)) fail("EBUSY");
       if (local.mount !== target.mount) fail("EXDEV");
       this.mutable(target);
       await requireOwnedMutation(local.mount.backend, local.staging.directory.path, "atomicFileStaging", options);
       await requireOwnedMutation(local.mount.backend, target.local, "atomicFileStaging", options, options.destination === null);
       if (!local.mount.backend.publishStagedFile) fail("ENOTSUP");
-      await local.mount.backend.publishStagedFile(local.staging, target.local, options);
+      if (ancestors || callerGuard !== undefined) await requireOwnedMutation(local.mount.backend, target.local, "guardedStagingPublication", options);
+      if (!ancestors) {
+        await local.mount.backend.publishStagedFile(local.staging, target.local, options);
+        return;
+      }
+      const parent = target.path.slice(0, target.path.lastIndexOf("/")) || "/";
+      if (target.path !== normalizePath(globalPath(destination)) || ancestors.at(-1)?.path !== parent) fail("EINVAL");
+      try {
+        const declared = await local.mount.backend.capabilitiesFor?.(target.local, { ...options, stagingAncestry: true }) ?? local.mount.backend.capabilities;
+        if (!await this.supportsStagingAncestry(target, declared, options)) fail("ENOTSUP");
+      } catch (error) {
+        options.signal?.throwIfAborted();
+        if (["ENOTSUP", "ENOENT", "ENOTDIR", "ELOOP"].includes(toFsError(error).code)) {
+          await inspectStagingBindings(async path => {
+            const entry = await this.lookup(path, options);
+            if (!entry.stat) fail("ENOENT");
+            return entry.stat;
+          }, destination, options);
+        }
+        throw error;
+      }
+      const first = ancestors.findIndex(entry => entry.path === target.mount.path);
+      if (first < 0) fail("EINVAL");
+      const localAncestors = ancestors.slice(first).map(entry => ({
+        path: target.mount.path === "/" ? entry.path : entry.path.slice(target.mount.path.length) || "/", stat: entry.stat,
+      }));
+      await local.mount.backend.publishStagedFile(local.staging, target.local, {
+        ...options, ancestors: localAncestors,
+        commitGuard: () => {
+          if (callerGuard !== undefined) runStagingGuard(callerGuard);
+          runStagingGuard(guard!);
+          return true;
+        },
+      });
     }, destination);
   }
 

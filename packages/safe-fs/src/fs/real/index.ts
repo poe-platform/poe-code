@@ -373,6 +373,8 @@ export class RealFileSystem implements FileSystem {
 
   async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
     return this.operation("publishStagedFile", staging.file.path, options, async () => {
+      options.signal?.throwIfAborted();
+      if (options.ancestors !== undefined || options.commitGuard !== undefined) throw new FsError("ENOTSUP");
       const paths = await this.stagingPaths(staging, options);
       const target = await this.path(destination, { ...options, followFinal: false, missing: "final" });
       options.signal?.throwIfAborted();

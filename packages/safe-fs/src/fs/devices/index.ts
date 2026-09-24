@@ -5,7 +5,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -14,6 +14,7 @@ import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from 
 import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
+import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { openFileDescriptor } from "../descriptor.js";
 
 const views = new WeakMap<FileSystem, DeviceFileSystem>();
@@ -32,6 +33,7 @@ function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
     open: ["open"],
+    synchronousDirectoryValidation: ["prepareDirectoryAncestry"], guardedStagingPublication: ["createStagedFile", "publishStagedFile", "removeStagedFile"],
     trustedOwnedStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile", "writeFileConditional", "removeFileConditional", "prepareDirectory"],
     atomicFilePublication: ["publishFileConditional"], atomicEntryRemoval: ["removeEntryConditional"], atomicTreeRemoval: ["removeTreeConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
     streamingRead: ["readStream"], streamingWrite: ["writeStream"], retainedRead: ["openReadFile"],
@@ -163,6 +165,10 @@ export class DeviceFileSystem implements FileSystem {
     options.signal?.throwIfAborted();
     const capabilities = observed.retainedResize === true ? retainedResizeCapabilities(this.#filesystem, observed) : observed;
     const unavailable: Record<string, false> = {};
+    if (resolved.startsWith(`${deviceDirectory}/`)) {
+      unavailable.atomicStagingAncestry = false;
+      unavailable.synchronousDirectoryValidation = false;
+    }
     if (typeof this.#filesystem.open !== "function") unavailable.open = false;
     if (typeof this.#filesystem.readStream !== "function") unavailable.streamingRead = false;
     if (typeof this.#filesystem.writeStream !== "function") {
@@ -460,12 +466,44 @@ export class DeviceFileSystem implements FileSystem {
   }
 
   async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
-    if (options.ancestors !== undefined) await requireOwnedMutation(this.#filesystem, destination, "atomicStagingAncestry", options, options.destination === null);
+    options.signal?.throwIfAborted();
+    if (options.ancestors !== undefined) {
+      const entries = snapshotDirectoryAncestry(options.ancestors);
+      if (entries.some(entry => entry.path === deviceDirectory || entry.path.startsWith(`${deviceDirectory}/`))) throw new FsError("ENOTSUP", { path: destination });
+      await requireOwnedMutation(this.#filesystem, destination, "atomicStagingAncestry", options, options.destination === null);
+    }
     for (const path of [staging.directory.path, staging.file.path, destination]) await this.#mutable(path, options, false);
     await requireOwnedMutation(this.#filesystem, staging.directory.path, "atomicFileStaging", options);
     await requireOwnedMutation(this.#filesystem, destination, "atomicFileStaging", options, options.destination === null);
     if (!this.#filesystem.publishStagedFile) throw new FsError("ENOTSUP", { path: destination });
+    if (options.commitGuard !== undefined) await requireOwnedMutation(this.#filesystem, destination, "guardedStagingPublication", options, options.destination === null);
     await this.#filesystem.publishStagedFile(staging, destination, options);
+  }
+
+  async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
+    options.signal?.throwIfAborted();
+    try {
+      const entries = snapshotDirectoryAncestry(ancestors);
+      const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+      controls.signal?.throwIfAborted();
+      if (entries.some(entry => entry.path === deviceDirectory || entry.path.startsWith(`${deviceDirectory}/`))
+        || !this.#filesystem.prepareDirectoryAncestry) {
+        throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry" });
+      }
+      for (const entry of entries) {
+        const declared = await this.#filesystem.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? this.#filesystem.capabilities;
+        controls.signal?.throwIfAborted();
+        if (declared.synchronousDirectoryValidation !== true) throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry", path: entry.path });
+      }
+      const guard = await this.#filesystem.prepareDirectoryAncestry(entries, controls);
+      controls.signal?.throwIfAborted();
+      if (typeof guard !== "function") throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry" });
+      return () => {
+        controls.signal?.throwIfAborted();
+        runStagingGuard(guard);
+        return true;
+      };
+    } catch (error) { options.signal?.throwIfAborted(); throw error; }
   }
 
   async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {

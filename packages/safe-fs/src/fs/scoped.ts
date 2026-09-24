@@ -1,14 +1,16 @@
-import type { FileStaging, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { FileStaging, FileStagingEntry, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
-import { FsError } from "../contracts/errors.js";
+import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
 import type { ByteSource } from "../contracts/io.js";
 import { finishCleanup } from "../contracts/cleanup.js";
 import { registerEntryView } from "./mount/comparison.js";
 import { openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "./capabilities.js";
+import { inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry } from "./staging-ancestry.js";
 
 const originals = new WeakMap<FileSystem, { filesystem: FileSystem; signal: AbortSignal; cleanupCharge: () => void; creationMask: number | undefined; maxPathComponents: number | undefined }>();
 const operations = new Set<keyof FileSystem>([
+  "prepareDirectoryAncestry",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
@@ -189,18 +191,42 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         }
         if (["publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory"].includes(String(property))) return (async () => {
           const path = typeof args[0] === "string" ? args[0] : (args[0] as FileStaging).directory.path;
-          const options = args[property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1] as FsOptions | undefined;
-          const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
-          await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
-          if (property === "publishStagedFile") {
-            const publishOptions = (options ?? {}) as PublishStagedFileOptions;
-            await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
-            if (publishOptions.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", publishOptions, publishOptions.destination === null);
-          }
-          assertOpen(options);
-          if (property === "publishFileConditional") {
-            args[1] = wrapStream(args[1] as ByteSource, options);
-            args[2] = resizeOptions(options ?? {});
+          const optionIndex = property === "createStagedFile" ? 3 : property === "publishFileConditional" || property === "publishStagedFile" || property === "writeFileConditional" ? 2 : 1;
+          const supplied = args[optionIndex] as FsOptions | undefined;
+          const options = property === "publishStagedFile" ? resizeOptions(supplied ?? {}) : supplied;
+          const callerGuard = property === "publishStagedFile" ? (supplied as PublishStagedFileOptions | undefined)?.commitGuard : undefined;
+          try {
+            const create = property === "createStagedFile" || (property === "publishFileConditional" || property === "writeFileConditional" || property === "prepareDirectory") && options !== undefined && "expected" in options && options.expected === null;
+            await requireOwnedMutation(original, path, property === "publishFileConditional" ? "atomicFilePublication" : property === "removeEntryConditional" ? "atomicEntryRemoval" : property === "removeTreeConditional" ? "atomicTreeRemoval" : property === "prepareDirectory" ? "atomicDirectoryMetadata" : property === "writeFileConditional" || property === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", options ?? {}, create);
+            if (property === "publishStagedFile") {
+              const publishOptions = (options ?? {}) as PublishStagedFileOptions;
+              await requireOwnedMutation(original, args[1] as string, "atomicFileStaging", publishOptions, publishOptions.destination === null);
+              const declared = ownedMutationCapabilities(original, await original.capabilitiesFor?.(args[1] as string, options) ?? original.capabilities);
+              assertOpen(options);
+              if (callerGuard !== undefined && declared.guardedStagingPublication !== true) throw new FsError("ENOTSUP", { path: args[1] as string, syscall: "guardedStagingPublication" });
+              if (declared.guardedStagingPublication === true) args[optionIndex] = {
+                ...supplied,
+                commitGuard: () => {
+                  assertOpen(supplied);
+                  if (callerGuard !== undefined) runStagingGuard(callerGuard);
+                  assertOpen(supplied);
+                  return true as const;
+                },
+              };
+            }
+            if (property === "publishStagedFile" && options && "ancestors" in options && options.ancestors !== undefined) await requireOwnedMutation(original, args[1] as string, "atomicStagingAncestry", options, (options as PublishStagedFileOptions).destination === null);
+            assertOpen(options);
+            if (property === "publishFileConditional") {
+              args[1] = wrapStream(args[1] as ByteSource, options);
+              args[2] = resizeOptions(options ?? {});
+            }
+          } catch (error) {
+            assertOpen(options);
+            if (property === "publishStagedFile" && supplied && "ancestors" in supplied && supplied.ancestors !== undefined
+              && ["ENOTSUP", "ENOENT", "ENOTDIR", "ELOOP"].includes(toFsError(error).code)) {
+              await inspectStagingBindings(path => original.lstat(path, options), args[1] as string, options as PublishStagedFileOptions);
+            }
+            throw error;
           }
           return Reflect.apply(method, original, args);
         })();
@@ -219,7 +245,29 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
         })();
         return Reflect.apply(method, original, args);
       };
-      const scoped = property === "confineExtraction"
+      const scoped = property === "prepareDirectoryAncestry"
+        ? async (...args: unknown[]) => {
+          const options = (args[1] ?? {}) as FsOptions;
+          admit(options);
+          const controls = resizeOptions(options);
+          const entries = snapshotDirectoryAncestry(args[0] as readonly FileStagingEntry[]);
+          try {
+            for (const entry of entries) {
+              const declared = await original.capabilitiesFor?.(entry.path, { ...controls, stagingAncestry: true }) ?? original.capabilities;
+              assertOpen(controls);
+              if (declared.synchronousDirectoryValidation !== true) throw new FsError("ENOTSUP", { path: entry.path });
+            }
+            const guard: unknown = await Reflect.apply(method, original, [entries, controls]);
+            assertOpen(controls);
+            if (typeof guard !== "function") throw new FsError("ENOTSUP", { syscall: "prepareDirectoryAncestry" });
+            return () => {
+              admit(controls);
+              runStagingGuard(guard as () => true);
+              return true as const;
+            };
+          } catch (error) { assertOpen(controls); throw error; }
+        }
+        : property === "confineExtraction"
         ? async (...args: unknown[]) => scopeFileSystem(await dispatch(...args) as FileSystem, charge, signal, cleanupCharge, options)
         : property === "open"
         ? async (path: string, options: OpenFileOptions) => {

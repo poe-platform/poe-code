@@ -80,6 +80,10 @@ export interface FileSystemCapabilities {
   readonly atomicFileStaging?: boolean;
   /** Atomically verifies every supplied root-to-parent directory identity at publication. */
   readonly atomicStagingAncestry?: boolean;
+  /** Prepares directory guards that validate without yielding or mutating state. */
+  readonly synchronousDirectoryValidation?: boolean;
+  /** Invokes commitGuard in the same synchronous section as staged replacement. */
+  readonly guardedStagingPublication?: boolean;
   readonly atomicFilePublication?: boolean;
   readonly atomicFileMutation?: boolean;
   readonly atomicEntryRemoval?: boolean;
@@ -105,9 +109,11 @@ export interface OpenReadFileOptions extends FsOptions {
 }
 
 export interface CapabilityQueryOptions extends OpenReadFileOptions {
+  /** Inspect complete ancestry for staged publication, including other mounts.
+   * Omission retains the ordinary per-target query and its acquisition intent. */
+  readonly stagingAncestry?: boolean;
   readonly create?: boolean;
   readonly creation?: OpenFileOptions["creation"];
-  readonly stagingAncestry?: boolean;
 }
 
 export interface FileReadHandle {
@@ -239,6 +245,9 @@ export interface CreateStagedFileOptions extends FsOptions {
 
 export interface PublishStagedFileOptions extends FsOptions {
   readonly ancestors?: readonly FileStagingEntry[];
+  /** Trusted, mutation-free validation. Must return literal true synchronously;
+   * a promise is not acceptance. Requires guardedStagingPublication. */
+  readonly commitGuard?: () => true;
   readonly parent: FileStat;
   readonly destination: FileStat | null;
 }
@@ -279,6 +288,10 @@ export interface FileSystem {
   prepareDirectory?(path: string, options: PrepareDirectoryOptions): Promise<FileStat>;
   createStagedFile?(directoryPath: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging>;
   publishStagedFile?(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void>;
+  /** Admit a complete canonical root-to-directory prefix and prepare a guard.
+   * The returned guard checks current identities/search access synchronously;
+   * preparation is not validation, and the guard's result is not an async lease. */
+  prepareDirectoryAncestry?(ancestors: readonly FileStagingEntry[], options?: FsOptions): Promise<() => true>;
   removeStagedFile?(staging: FileStaging, options?: FsOptions): Promise<void>;
   openReadFile?(path: string, options?: OpenReadFileOptions): Promise<FileReadHandle>;
   openResizeFile?(path: string, options?: OpenResizeFileOptions): Promise<FileResizeHandle>;

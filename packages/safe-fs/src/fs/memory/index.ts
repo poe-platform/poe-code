@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem, FileSystemCapabilities,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -13,6 +13,7 @@ import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { openFileDescriptor } from "../descriptor.js";
+import { runStagingGuard, snapshotDirectoryAncestry } from "../staging-ancestry.js";
 import { resolveMissingTarget } from "./missing-target.js";
 import { registerMemoryAtomicView } from "./atomic-view.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
@@ -129,6 +130,7 @@ export class MemoryFileSystem implements FileSystem {
       timestamps: true,
       atomicRename: true,
       atomicFileStaging: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true,
+      synchronousDirectoryValidation: true, guardedStagingPublication: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -730,32 +732,51 @@ export class MemoryFileSystem implements FileSystem {
     return Object.freeze({ parent: receipt(parentPath, location.parent), directory: receipt(location.path, directory), file: receipt(`${location.path}/${name}`, file) });
   }
 
-  async publishStagedFile(staging: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+  async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {
+    const entries = snapshotDirectoryAncestry(ancestors);
+    const controls: FsOptions = options.signal === undefined ? {} : { signal: options.signal };
+    controls.signal?.throwIfAborted();
+    return () => this.verifyDirectoryAncestry(entries, controls);
+  }
+
+  private verifyDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions): true {
+    const entries = snapshotDirectoryAncestry(ancestors);
     options.signal?.throwIfAborted();
-    if (options.ancestors) {
-      let path = "/";
-      const parentPath = destination.slice(0, destination.lastIndexOf("/")) || "/";
-      const paths = ["/", ...parentPath.split("/").filter(Boolean).map(component => {
-        path = path === "/" ? `/${component}` : `${path}/${component}`;
-        return path;
-      })];
-      if (paths.length !== options.ancestors.length) this.fail("EINVAL", "publishStagedFile", destination);
-      for (let index = 0; index < paths.length; index++) {
-        const expected = options.ancestors[index]!;
-        if (expected.path !== paths[index]) this.fail("EINVAL", "publishStagedFile", destination);
-        const entry = this.entry(expected.path, "publishStagedFile");
-        if (entry.node?.type !== "directory") this.fail("EAGAIN", "publishStagedFile", destination);
-        this.expectEntry(entry.node, expected.stat, expected.path, false);
-      }
+    let node: MemoryNode | undefined = this.root;
+    for (const [index, expected] of entries.entries()) {
+      if (index > 0) node = (node as DirectoryNode).entries.get(expected.path.slice(expected.path.lastIndexOf("/") + 1));
+      if (node?.type !== "directory") this.fail("EAGAIN", "verifyDirectoryAncestry", expected.path);
+      this.expectEntry(node, expected.stat, expected.path, false);
+      this.permission(node, 1, "verifyDirectoryAncestry", expected.path);
     }
+    return true;
+  }
+
+  async publishStagedFile(receipt: FileStaging, destination: string, options: PublishStagedFileOptions): Promise<void> {
+    const signal = options.signal;
+    const guard = options.commitGuard;
+    const ancestors = options.ancestors === undefined ? undefined : snapshotDirectoryAncestry(options.ancestors);
+    const snapshot = (entry: FileStagingEntry): FileStagingEntry => ({ path: entry.path, stat: { ...entry.stat } });
+    const staging = { parent: snapshot(receipt.parent), directory: snapshot(receipt.directory), file: snapshot(receipt.file) };
+    const parent = { ...options.parent };
+    const expected = options.destination === null ? null : { ...options.destination };
+    const parentPath = destination.slice(0, destination.lastIndexOf("/")) || "/";
+    if (ancestors && ancestors.at(-1)?.path !== parentPath) this.fail("EINVAL", "publishStagedFile", destination);
+    const controls: FsOptions = signal === undefined ? {} : { signal };
+    signal?.throwIfAborted();
+    if (guard !== undefined) runStagingGuard(guard);
+    signal?.throwIfAborted();
+    // All inputs were copied before the guard. Neither outer validation nor
+    // these local checks yield before the stock rename commits.
+    if (ancestors) runStagingGuard(() => this.verifyDirectoryAncestry(ancestors, controls));
     const { directory, file } = this.stagingLocations(staging);
     this.expectEntry(file.node, staging.file.stat, staging.file.path);
     const target = this.entry(destination, "publishStagedFile", true);
-    this.expectEntry(target.parent, options.parent, destination, false);
-    this.expectEntry(target.node, options.destination, destination);
+    this.expectEntry(target.parent, parent, destination, false);
+    this.expectEntry(target.node, expected, destination);
     if (target.parent === directory.node || target.node === directory.node || target.node === file.node) this.fail("EINVAL", "publishStagedFile", destination);
     if (target.node && (target.node.type !== "file" || target.node.nlink !== 1)) this.fail("EAGAIN", "publishStagedFile", destination);
-    return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...options, noReplace: options.destination === null });
+    return MemoryFileSystem.prototype.rename.call(this, staging.file.path, destination, { ...controls, noReplace: expected === null });
   }
 
   async removeStagedFile(staging: FileStaging, options: FsOptions = {}): Promise<void> {

@@ -1,6 +1,7 @@
 import { vol } from "memfs";
 import * as immediate from "node:fs";
 import { beforeEach, expect, it, vi } from "vitest";
+import { createMemoryFileSystem } from "../src/fs/memory/index.js";
 import { createMountFileSystem } from "../src/fs/mount/index.js";
 import { createDeviceFileSystem } from "../src/fs/devices/index.js";
 import { createReadOnlyFileSystem } from "../src/fs/readonly/index.js";
@@ -151,4 +152,36 @@ it("preserves cancellation reasons and creates nothing before admission", async 
   const controller = new AbortController(); controller.abort(false);
   await expect(fs.createStagedFile("/work/.stage", "entry", { type: "file", data: Buffer.from("original") }, { parent, signal: controller.signal })).rejects.toBe(false);
   expect((await fs.readdir("/work")).map(entry => entry.name)).toEqual(["input"]);
+});
+
+
+for (const wrapper of ["direct", "scope", "device"] as const) {
+  for (const condition of ["ancestors", "commitGuard"] as const) {
+    it(`refuses unsupported real ${condition} publication through ${wrapper}`, async () => {
+      const { fs: backing, parent, receipt } = await staged();
+      const fs = wrapper === "scope" ? scopeFileSystem(backing, () => {}, new AbortController().signal)
+        : wrapper === "device" ? createDeviceFileSystem(backing) : backing;
+      const options = { parent, destination: null, ...(condition === "ancestors"
+        ? { ancestors: [{ path: "/", stat: await backing.lstat("/") }, { path: "/work", stat: parent }] }
+        : { commitGuard: () => true as const }) };
+      await expect(fs.publishStagedFile!(receipt, "/work/output", options)).rejects.toMatchObject({ code: "ENOTSUP" });
+      expect(Buffer.from(await backing.readFile(receipt.file.path)).toString()).toBe("original");
+      await expect(backing.lstat("/work/output")).rejects.toMatchObject({ code: "ENOENT" });
+      const controller = new AbortController(); controller.abort(false);
+      await expect(fs.publishStagedFile!(receipt, "/work/output", { ...options, signal: controller.signal })).rejects.toBe(false);
+      await fs.publishStagedFile!(receipt, "/work/output", { parent, destination: null });
+      expect(Buffer.from(await backing.readFile("/work/output")).toString()).toBe("original");
+    });
+  }
+}
+
+
+it("withholds directory validation when a mounted memory path has real outer ancestry", async () => {
+  const root = new RealFileSystem("/machine");
+  const leaf = createMemoryFileSystem();
+  await leaf.mkdir("/work");
+  const fs = createMountFileSystem({ root, mounts: { "/leaf": leaf } });
+  const capabilities = await fs.capabilitiesFor("/leaf/work", { stagingAncestry: true });
+  expect(capabilities.synchronousDirectoryValidation).toBe(false);
+  expect(capabilities.guardedStagingPublication).toBe(true);
 });

@@ -105,7 +105,7 @@ export function serializeExpression(document: FormulaDocument, grammar = documen
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: qualified formula name in target grammar");
         if (value.workbook === "" && grammar.bracketReferences && value.sheet === undefined)
           throw new SsconvertError("unsupported-feature", "Unsupported ssconvert feature: global formula name in target grammar");
-        const external = value.workbook === undefined || value.workbook === "" && value.sheet !== undefined ? "" : value.workbook === "" ? "[]" : grammar.bracketReferences ? quoteFormulaString(value.workbook, "'", grammar) + "#" : "[" + quoteFormulaString(value.workbook, "'", grammar) + "]";
+        const external = value.workbook === undefined || value.workbook === "" && value.sheet !== undefined ? "" : value.workbook === "" ? "[]" : grammar.bracketReferences ? quoteFormulaString(value.workbook, "'", grammar) + "#" : grammar.stringEscape === "raw" ? workbookReference(value.workbook, grammar) : "[" + quoteFormulaString(value.workbook, "'", grammar) + "]";
         const text = external + (value.sheet ? (grammar.quoteSheetName?.(value.sheet) ?? quoteFormulaString(value.sheet, "'", grammar)) + grammar.sheetSeparator : "") + value.name;
         return grammar.bracketReferences && (value.sheet || value.workbook !== undefined) ? "[" + text + "]" : text;
       }

@@ -88,6 +88,22 @@ it("uses an available quote in raw workbook references and refuses unrepresentab
   expect(() => serializeExpression(unrepresentable, sylkWriterGrammar, false)).toThrow("workbook reference quotes");
 });
 
+it.each(["'leading", "O'Brien", "a'\"b", "book]suffix"])("preserves raw external named-expression workbook identity: %s", workbook => {
+  const spelling = "'" + workbook.split("'").join("\\'") + "'";
+  for (const sheet of ["", "Remote!"]) {
+    const document = parse(`=[${spelling}]${sheet}LocalName`, gnumericGrammar);
+    const serialized = serializeExpression(document, sylkWriterGrammar, false);
+    const root = parse(serialized, sylkWriterGrammar).root;
+    expect(root).toMatchObject({ kind: "name", workbook, name: "LocalName", ...(sheet ? { sheet: "Remote" } : {}) });
+    if (!sheet) expect(root).not.toHaveProperty("sheet");
+  }
+});
+
+it("refuses unrepresentable raw external named-expression workbook names", () => {
+  const document = parse("=['\\'\"leading']Remote!LocalName", gnumericGrammar);
+  expect(() => serializeExpression(document, sylkWriterGrammar, false)).toThrow("workbook reference quotes");
+});
+
 it("retains an explicitly qualified last endpoint in a range", () => {
   const document = parse("of:=[.A1:Remote.B2]", odfGrammar);
   const converted = parse(serializeExpression(document, excelGrammar, false));

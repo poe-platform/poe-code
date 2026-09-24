@@ -20,7 +20,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Qualified external-name binding, macro identity, duplicate replacement, permanent names and global alias spelling are repaired. Formula conversion and sheet edits now preserve quoted external-workbook identities without adding implicit resolution authority. Wider token/version/reference semantics, dynamic diagnostics and final qualification remain open."
+      "currentFinding": "Qualified external-name binding, macro identity, duplicate replacement, permanent names and global alias spelling are repaired. Formula conversion and sheet edits preserve quoted external-workbook identities, including raw external named expressions, without adding implicit resolution authority. Wider token/version/reference semantics, dynamic diagnostics and final qualification remain open."
     },
     {
       "id": "encrypted-biff",

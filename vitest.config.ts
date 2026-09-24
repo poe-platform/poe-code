@@ -153,7 +153,6 @@ export default defineConfig({
       "packages/safe-bash-command-pdftotext/src/*.test.ts",
       "packages/safe-bash-command-qpdf/src/*.test.ts",
       "packages/safe-bash-command-soffice/src/*.test.ts",
-      "packages/safe-bash-command-tesseract/src/*.test.ts",
       "packages/safe-bash-command-fmt/src/*.test.ts",
       "packages/safe-bash-command-htmlq/src/*.test.ts",
       "packages/safe-bash-command-fold/src/*.test.ts",

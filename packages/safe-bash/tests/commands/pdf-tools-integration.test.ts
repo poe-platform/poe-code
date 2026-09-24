@@ -5,19 +5,17 @@ import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { pdftotextCommands } from "../../src/commands/pdftotext/index.js";
 import { qpdfCommands } from "../../src/commands/qpdf/index.js";
 import { sofficeCommands, createStoredZipArchive } from "../../src/commands/soffice/index.js";
-import { tesseractCommands } from "../../src/commands/tesseract/index.js";
 import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
 import { pdfAstWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
 
-describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtmltopdf, exiftool, tesseract)", () => {
-  it("runs soffice -> pdfinfo -> pdftotext -> qpdf -> exiftool -> wkhtmltopdf -> tesseract pipeline inside virtual Shell", async () => {
+describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtmltopdf, exiftool)", () => {
+  it("runs soffice -> pdfinfo -> pdftotext -> qpdf -> exiftool -> wkhtmltopdf pipeline inside virtual Shell", async () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs })
       .use(pdfinfoCommands())
       .use(pdftotextCommands())
       .use(qpdfCommands())
       .use(sofficeCommands())
-      .use(tesseractCommands({ replace: true }))
       .use(exiftoolCommands({ replace: true }))
       .use(pdfAstWkhtmltopdfCommands({ replace: true }));
 
@@ -93,16 +91,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const wkRes = await shell.exec("wkhtmltopdf /web.html /web.pdf");
     assert.equal(wkRes.exitCode, 0);
 
-    // 6. Run OCR / text extraction + searchable PDF generation via tesseract on /web.pdf
-    const tessRes = await shell.exec("tesseract /web.pdf /ocr-out pdf txt tsv");
-    assert.equal(tessRes.exitCode, 0);
-    const ocrTxt = new TextDecoder().decode(await fs.readFile("/ocr-out.txt"));
-    assert.match(ocrTxt, /HTML Heading/);
-    const searchablePdfInfo = await shell.exec("pdfinfo /ocr-out.pdf");
-    assert.equal(searchablePdfInfo.exitCode, 0);
-    assert.match(searchablePdfInfo.stdout, /Pages:\s+1/);
-
-    // 7. Merge /input.pdf and /web.pdf via qpdf, rotate, and encrypt
+    // 6. Merge /input.pdf and /web.pdf via qpdf, rotate, and encrypt
     const qpdfMergeRes = await shell.exec("qpdf --empty --pages /input.pdf /web.pdf -- /merged.pdf");
     assert.equal(qpdfMergeRes.exitCode, 0);
 
@@ -119,7 +108,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     assert.equal(encInfoRes.exitCode, 0);
     assert.match(encInfoRes.stdout, /Encrypted:\s+yes \(print:no/);
 
-    // 8. Verify Poppler pdftoppm, pdfunite, pdfseparate, pdftohtml, and libreoffice --cat in Shell
+    // 7. Verify Poppler pdftoppm, pdfunite, pdfseparate, pdftohtml, and libreoffice --cat in Shell
     const uniteRes = await shell.exec("pdfunite /input.pdf /web.pdf /united.pdf");
     assert.equal(uniteRes.exitCode, 0);
 

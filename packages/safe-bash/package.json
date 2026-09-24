@@ -451,10 +451,6 @@
     "./commands/soffice": {
       "types": "./dist/commands/soffice/index.d.ts",
       "import": "./dist/commands/soffice/index.js"
-    },
-    "./commands/tesseract": {
-      "types": "./dist/commands/tesseract/index.d.ts",
-      "import": "./dist/commands/tesseract/index.js"
     }
   },
   "files": [
@@ -570,8 +566,7 @@
     "safe-bash-command-pdfinfo": "*",
     "safe-bash-command-pdftotext": "*",
     "safe-bash-command-qpdf": "*",
-    "safe-bash-command-soffice": "*",
-    "safe-bash-command-tesseract": "*"
+    "safe-bash-command-soffice": "*"
   },
   "poeCode": {
     "packageLint": {
@@ -757,14 +752,6 @@
           }
         },
         "safe-bash-command-soffice": {
-          "version": "0.0.1",
-          "dependencies": {},
-          "devDependencies": {
-            "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
-          }
-        },
-        "safe-bash-command-tesseract": {
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {

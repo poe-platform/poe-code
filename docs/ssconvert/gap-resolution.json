@@ -250,7 +250,7 @@
     {
       "id": "biff-external-and-token-formulas",
       "status": "open",
-      "currentFinding": "Name ordering, links, scopes, relative references and empty constants are delivered and qualified. XML cycle rejection now matches the original native capture; extra declaration-order qualification pending. BIFF referenced-cycle error values, duplicate/malformed declarations, broader references and publication remain open.",
+      "currentFinding": "Sequential BIFF name binding and placeholder teardown now match six native cycle/index profiles; all22895package tests and36public conversions pass. XML cycle declaration-order captures qualify five complete cases; globals-last crashes natively after expected output. Native BIFF re-export readback, dynamic diagnostics, duplicate/malformed/custom-function behavior, broader references and publication remain open.",
       "proof": [
         {
           "kind": "independent-BIFF8-local-span-repair",
@@ -486,6 +486,12 @@
           "path": "docs/ssconvert/gnumeric-name-cycle-gap-proof.json",
           "nativeEvidence": "docs/ssconvert/biff-referenced-cycles-native-capture.json",
           "outcome": "Original XML values and warnings now match SDK/Shell. Nine red regressions repaired; 46 final focused tests, 22883-test package run and final lint/types/build pass. Six additional declaration-order files await native qualification."
+        },
+        {
+          "kind": "biff-sequential-name-binding-and-teardown",
+          "evidence": "docs/ssconvert/biff-name-binding-gap-proof.json",
+          "nativeEvidence": "docs/ssconvert/biff-cycle-indices-native-capture.json",
+          "outcome": "Six original inputs/18nativecommands match expected#REF! and guarded controls;36builtpublicconversions pass. Runtime delivery and containing publication tracked separately."
         }
       ],
       "delivery": {

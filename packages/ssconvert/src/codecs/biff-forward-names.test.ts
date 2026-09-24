@@ -4,10 +4,21 @@ import type { Workbook } from "../workbook.js";
 import { recalculateWorkbook } from "../formulas/evaluator.js";
 import { createBiffWriter, readBiff } from "./biff.js";
 import { readBiffRecords, readCfb } from "./biff-binary.js";
+import { translateBiffFormula } from "./biff-formulas.js";
 
 const context: CapabilityContext = { signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 2000000, outputBytes: 2000000, cells: 5000, sheets: 8, operations: 100000 } };
+
+function writtenNames(input: Uint8Array) {
+  const records = readBiffRecords(input, context), revision = records[0]!.data.u16(0) === 0x600 ? 8 : 7;
+  return { revision, names: records.filter(record => record.opcode === 0x18).map(({ data }) => {
+    const wide = revision === 8 && Boolean(data.u8(14) & 1), start = 14 + Number(revision === 8);
+    const size = data.u8(3) * (wide ? 2 : 1);
+    return { name: Buffer.from(data.slice(start, size)).toString(wide ? "utf16le" : "latin1"),
+      tokens: data.slice(start + size, data.u16(4)) };
+  }) };
+}
 
 for (const padding of [0, 256]) it.each([7, 8, "dsf"] as const)(
   `declares BIFF %s name dependencies before use with ${padding} intervening names`, async profile => {
@@ -72,7 +83,7 @@ it.each([7, 8, "dsf"] as const)("relocates BIFF %s names shared by array and ord
   const before = structuredClone(book);
   for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
     const reopened = await readBiff(input, context);
-    expect(reopened.names?.map(name => name.name), stream).toEqual(["Leaf", "Outer", "_xlfn.IFERROR", "NamedMacro"]);
+    expect(writtenNames(input).names.map(name => name.name), stream).toEqual(["Leaf", "Outer", "_xlfn.IFERROR", "NamedMacro"]);
     expect(reopened.sheets[0]!.formulaGroups).toMatchObject([{ kind: "array", expression }]);
     expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual(
       [11, 12, 3].map(value => ({ kind: "number", value })));
@@ -99,7 +110,7 @@ for (const local of [false, true]) it.each([7, 8, "dsf"] as const)(
     ] }, { id: "data", name: "Data", cells: [] }] };
     const before = structuredClone(book);
     for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
-      const reopened = await readBiff(input, context), names = reopened.names!.map(name => name.name);
+      const reopened = await readBiff(input, context), names = writtenNames(input).names.map(name => name.name);
       expect(names.indexOf("Leaf"), stream).toBeLessThan(names.indexOf("Outer"));
       expect(names.indexOf("_xlfn.IFERROR"), stream).toBeLessThan(names.indexOf("NamedMacro"));
       expect(names.indexOf("LoopA"), stream).toBeLessThan(names.indexOf("LoopB"));
@@ -124,8 +135,11 @@ it.each([7, 8, "dsf"] as const)("keeps BIFF %s overlapping cycles ordered behind
   const before = structuredClone(book);
   for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
     const reopened = await readBiff(input, context);
-    expect(reopened.names?.map(name => name.name), stream).toEqual(["Leaf", "LoopA", "LoopB", "LoopC", "Outer", "SelfLoop"]);
-    expect(reopened.names?.map(name => name.expression), stream).toEqual(
+    const emitted = writtenNames(input), names = emitted.names.map(name => name.name);
+    // Test writer order and expressions before the importer rejects circular definitions.
+    expect(names, stream).toEqual(["Leaf", "LoopA", "LoopB", "LoopC", "Outer", "SelfLoop"]);
+    expect(emitted.names.map(name => translateBiffFormula(name.tokens, { revision: emitted.revision,
+      codepage: 1252, row: 0, column: 0, names, externalSheets: [], limit: 100000 })), stream).toEqual(
       ["=7", "=LoopC+Leaf", "=LoopC", "=LoopA+LoopB", "=IF(FALSE,LoopA,Leaf)", "=SelfLoop+Leaf"]);
     expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
   }

@@ -4,6 +4,7 @@ import { Binary, isCfb, readCfb, readBiffRecords, invalidBiff, type BiffRecord }
 import { decryptBiffRecords } from "./biff-encryption.js";
 import { BiffStrings, biffDecode, biffOverrideCodepage } from "./biff-strings.js";
 import { translateBiffFormula, biffErrors, type BiffFormulaContext } from "./biff-formulas.js";
+import { BiffNameBindings } from "./biff-name-bindings.js";
 import { biffOpcodes } from "./biff-source.js";
 import { biffNode as node, biffMetadataOpcodes, readBiffMetadata } from "./biff-metadata.js";
 import { writeCfb } from "./biff-write-binary.js";
@@ -403,8 +404,10 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   });
   const externalNameTables = new Map<PendingExternalName[], readonly ({ name: string; expression?: string } | undefined)[]>();
   const formulaNames = names.map(name => name.name);
-  const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false) => translateBiffFormula(tokens, {
-    revision, codepage: cp, row, column, names: formulaNames, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
+  const nameBindings = new BiffNameBindings(context);
+  const formula = (tokens: Uint8Array, revision: number, cp: number, row = 0, column = 0, owner?: PendingSheet, shared = false,
+    resolveName = nameBindings.resolve) => translateBiffFormula(tokens, {
+    revision, codepage: cp, row, column, names: formulaNames, resolveName, externalSheets: revision >= 8 ? externalSheets : owner?.legacyExternalSheets ?? legacyExternalSheets,
     ...(owner ? { currentSheet: owner.name } : {}), shared, localSheets, nameSheets, deletedExternalSheets, unavailableExternalSheets, externalNameSheets,
     externalNames: revision >= 8 ? modernExternalNames : legacyNameBindings.get(owner)!,
     limit: context.limits.workbookWork ?? context.limits.inputBytes * 8 });
@@ -447,20 +450,31 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
   }
   const materializedNames: NamedExpression[] = [];
   const globalPlaceholders = new Set<string>();
-  for (const name of names) {
+  for (const [at, name] of names.entries()) {
     // A synthetic VBA function declaration may follow its imported global
     // #NAME placeholder. Keep both indexed symbols, but one lexical placeholder.
     if ((name.flags & 0xe) === 0xe && name.sheetIndex === 0 && name.tokens.length === 0 &&
       globalPlaceholders.has(name.name)) continue;
-    try { materializedNames.push({ name: name.name, expression: name.tokens.length ? formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner) : "=#NAME?",
-      ...(name.sheetIndex ? { sheet: (name.revision >= 8 ? sheets[name.sheetIndex - 1]?.name : (name.owner?.legacyExternalSheets ?? legacyExternalSheets)[name.sheetIndex - 1]) ?? invalidBiff("invalid name sheet scope") } : {}) });
-      if (!name.sheetIndex && materializedNames.at(-1)!.expression === "=#NAME?") globalPlaceholders.add(name.name); }
+    if (name.sheetIndex && nameSheets[at] === undefined) invalidBiff("invalid name sheet scope");
+    try {
+      const accepted = nameBindings.define(at + 1, name.name, resolve => name.tokens.length ?
+        formula(name.tokens, name.revision, name.codepage, 0, 0, name.owner, false, resolve) : "=#NAME?");
+      if (accepted) {
+        if (!name.sheetIndex && nameBindings.expression(at + 1) === "=#NAME?") globalPlaceholders.add(name.name);
+      }
+    }
     catch (error) {
       if (!(error instanceof SsconvertError) || error.code !== "unsupported-feature") throw error;
       await retain(name.record, unsupported, false);
       unsupported.push({ source: "biff", kind: "untranslated-name", disposition: "retained", data: { name: name.name } });
       await context.diagnostic?.({ code: "biff-loss-warning", severity: "warning", message: error.message });
     }
+  }
+  for (const index of nameBindings.finish()) {
+    const at = index - 1;
+    const name = names[at]!;
+    materializedNames.push({ name: name.name, expression: nameBindings.expression(at + 1),
+      ...(name.sheetIndex ? { sheet: nameSheets[at] ?? invalidBiff("invalid name sheet scope") } : {}) });
   }
   const color = (index: number): string => {
     const rgb = index === 0x7fff || index === 64 ? "000000" : index === 65 ? "FFFFFF" :

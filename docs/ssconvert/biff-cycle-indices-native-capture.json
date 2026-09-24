@@ -1,0 +1,1274 @@
+{
+  "scope": "Exact-head native artifact authentication and raw capture reduction; no local execution of native AArch64 code.",
+  "run": {
+    "id": 35946360649,
+    "name": "Provision Linux ssconvert reference",
+    "node_id": "WFR_kwLOQEh8ps8AAAAIXpHvSQ",
+    "head_branch": "main",
+    "head_sha": "beaf054bfaad4bb3a5fdc108a1809819d6db8967",
+    "path": ".github/workflows/provision-ssconvert-reference.yml",
+    "display_title": "Provision Linux ssconvert reference",
+    "run_number": 67,
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "workflow_id": 364940192,
+    "check_suite_id": 97337867889,
+    "check_suite_node_id": "CS_kwDOQEh8ps8AAAAWqcn-cQ",
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649",
+    "html_url": "https://github.com/poe-platform/poe-code/actions/runs/35946360649",
+    "pull_requests": [],
+    "created_at": "2026-09-24T02:13:49Z",
+    "updated_at": "2026-09-24T02:18:45Z",
+    "actor": {
+      "login": "kamilio",
+      "id": 1078185,
+      "node_id": "MDQ6VXNlcjEwNzgxODU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1078185?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kamilio",
+      "html_url": "https://github.com/kamilio",
+      "followers_url": "https://api.github.com/users/kamilio/followers",
+      "following_url": "https://api.github.com/users/kamilio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kamilio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kamilio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kamilio/subscriptions",
+      "organizations_url": "https://api.github.com/users/kamilio/orgs",
+      "repos_url": "https://api.github.com/users/kamilio/repos",
+      "events_url": "https://api.github.com/users/kamilio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kamilio/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "run_attempt": 1,
+    "referenced_workflows": [],
+    "run_started_at": "2026-09-24T02:13:49Z",
+    "triggering_actor": {
+      "login": "kamilio",
+      "id": 1078185,
+      "node_id": "MDQ6VXNlcjEwNzgxODU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1078185?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/kamilio",
+      "html_url": "https://github.com/kamilio",
+      "followers_url": "https://api.github.com/users/kamilio/followers",
+      "following_url": "https://api.github.com/users/kamilio/following{/other_user}",
+      "gists_url": "https://api.github.com/users/kamilio/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/kamilio/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/kamilio/subscriptions",
+      "organizations_url": "https://api.github.com/users/kamilio/orgs",
+      "repos_url": "https://api.github.com/users/kamilio/repos",
+      "events_url": "https://api.github.com/users/kamilio/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/kamilio/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "jobs_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649/jobs",
+    "logs_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649/logs",
+    "check_suite_url": "https://api.github.com/repos/poe-platform/poe-code/check-suites/97337867889",
+    "artifacts_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649/artifacts",
+    "cancel_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649/cancel",
+    "rerun_url": "https://api.github.com/repos/poe-platform/poe-code/actions/runs/35946360649/rerun",
+    "previous_attempt_url": null,
+    "workflow_url": "https://api.github.com/repos/poe-platform/poe-code/actions/workflows/364940192",
+    "head_commit": {
+      "id": "beaf054bfaad4bb3a5fdc108a1809819d6db8967",
+      "tree_id": "2c394fd7dba4612195e1a7b40d71d1c07f34fcba",
+      "message": "test(ssconvert): isolate native XML name crash observation",
+      "timestamp": "2026-09-24T02:12:45Z",
+      "author": {
+        "name": "Kamil Jopek",
+        "email": "kjopek@quora.com"
+      },
+      "committer": {
+        "name": "Kamil Jopek",
+        "email": "kjopek@quora.com"
+      }
+    },
+    "repository": {
+      "id": 1078492326,
+      "node_id": "R_kgDOQEh8pg",
+      "name": "poe-code",
+      "full_name": "poe-platform/poe-code",
+      "private": false,
+      "owner": {
+        "login": "poe-platform",
+        "id": 129537891,
+        "node_id": "O_kgDOB7iXYw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/129537891?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/poe-platform",
+        "html_url": "https://github.com/poe-platform",
+        "followers_url": "https://api.github.com/users/poe-platform/followers",
+        "following_url": "https://api.github.com/users/poe-platform/following{/other_user}",
+        "gists_url": "https://api.github.com/users/poe-platform/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/poe-platform/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/poe-platform/subscriptions",
+        "organizations_url": "https://api.github.com/users/poe-platform/orgs",
+        "repos_url": "https://api.github.com/users/poe-platform/repos",
+        "events_url": "https://api.github.com/users/poe-platform/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/poe-platform/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/poe-platform/poe-code",
+      "description": "Use Poe to power your favorite coding agents (Claude Code, Codex, OpenCode, etc). No need for multiple subscriptions.",
+      "fork": false,
+      "url": "https://api.github.com/repos/poe-platform/poe-code",
+      "forks_url": "https://api.github.com/repos/poe-platform/poe-code/forks",
+      "keys_url": "https://api.github.com/repos/poe-platform/poe-code/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/poe-platform/poe-code/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/poe-platform/poe-code/teams",
+      "hooks_url": "https://api.github.com/repos/poe-platform/poe-code/hooks",
+      "issue_events_url": "https://api.github.com/repos/poe-platform/poe-code/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/poe-platform/poe-code/events",
+      "assignees_url": "https://api.github.com/repos/poe-platform/poe-code/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/poe-platform/poe-code/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/poe-platform/poe-code/tags",
+      "blobs_url": "https://api.github.com/repos/poe-platform/poe-code/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/poe-platform/poe-code/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/poe-platform/poe-code/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/poe-platform/poe-code/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/poe-platform/poe-code/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/poe-platform/poe-code/languages",
+      "stargazers_url": "https://api.github.com/repos/poe-platform/poe-code/stargazers",
+      "contributors_url": "https://api.github.com/repos/poe-platform/poe-code/contributors",
+      "subscribers_url": "https://api.github.com/repos/poe-platform/poe-code/subscribers",
+      "subscription_url": "https://api.github.com/repos/poe-platform/poe-code/subscription",
+      "commits_url": "https://api.github.com/repos/poe-platform/poe-code/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/poe-platform/poe-code/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/poe-platform/poe-code/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/poe-platform/poe-code/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/poe-platform/poe-code/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/poe-platform/poe-code/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/poe-platform/poe-code/merges",
+      "archive_url": "https://api.github.com/repos/poe-platform/poe-code/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/poe-platform/poe-code/downloads",
+      "issues_url": "https://api.github.com/repos/poe-platform/poe-code/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/poe-platform/poe-code/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/poe-platform/poe-code/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/poe-platform/poe-code/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/poe-platform/poe-code/labels{/name}",
+      "releases_url": "https://api.github.com/repos/poe-platform/poe-code/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/poe-platform/poe-code/deployments"
+    },
+    "head_repository": {
+      "id": 1078492326,
+      "node_id": "R_kgDOQEh8pg",
+      "name": "poe-code",
+      "full_name": "poe-platform/poe-code",
+      "private": false,
+      "owner": {
+        "login": "poe-platform",
+        "id": 129537891,
+        "node_id": "O_kgDOB7iXYw",
+        "avatar_url": "https://avatars.githubusercontent.com/u/129537891?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/poe-platform",
+        "html_url": "https://github.com/poe-platform",
+        "followers_url": "https://api.github.com/users/poe-platform/followers",
+        "following_url": "https://api.github.com/users/poe-platform/following{/other_user}",
+        "gists_url": "https://api.github.com/users/poe-platform/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/poe-platform/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/poe-platform/subscriptions",
+        "organizations_url": "https://api.github.com/users/poe-platform/orgs",
+        "repos_url": "https://api.github.com/users/poe-platform/repos",
+        "events_url": "https://api.github.com/users/poe-platform/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/poe-platform/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/poe-platform/poe-code",
+      "description": "Use Poe to power your favorite coding agents (Claude Code, Codex, OpenCode, etc). No need for multiple subscriptions.",
+      "fork": false,
+      "url": "https://api.github.com/repos/poe-platform/poe-code",
+      "forks_url": "https://api.github.com/repos/poe-platform/poe-code/forks",
+      "keys_url": "https://api.github.com/repos/poe-platform/poe-code/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/poe-platform/poe-code/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/poe-platform/poe-code/teams",
+      "hooks_url": "https://api.github.com/repos/poe-platform/poe-code/hooks",
+      "issue_events_url": "https://api.github.com/repos/poe-platform/poe-code/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/poe-platform/poe-code/events",
+      "assignees_url": "https://api.github.com/repos/poe-platform/poe-code/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/poe-platform/poe-code/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/poe-platform/poe-code/tags",
+      "blobs_url": "https://api.github.com/repos/poe-platform/poe-code/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/poe-platform/poe-code/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/poe-platform/poe-code/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/poe-platform/poe-code/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/poe-platform/poe-code/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/poe-platform/poe-code/languages",
+      "stargazers_url": "https://api.github.com/repos/poe-platform/poe-code/stargazers",
+      "contributors_url": "https://api.github.com/repos/poe-platform/poe-code/contributors",
+      "subscribers_url": "https://api.github.com/repos/poe-platform/poe-code/subscribers",
+      "subscription_url": "https://api.github.com/repos/poe-platform/poe-code/subscription",
+      "commits_url": "https://api.github.com/repos/poe-platform/poe-code/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/poe-platform/poe-code/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/poe-platform/poe-code/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/poe-platform/poe-code/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/poe-platform/poe-code/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/poe-platform/poe-code/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/poe-platform/poe-code/merges",
+      "archive_url": "https://api.github.com/repos/poe-platform/poe-code/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/poe-platform/poe-code/downloads",
+      "issues_url": "https://api.github.com/repos/poe-platform/poe-code/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/poe-platform/poe-code/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/poe-platform/poe-code/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/poe-platform/poe-code/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/poe-platform/poe-code/labels{/name}",
+      "releases_url": "https://api.github.com/repos/poe-platform/poe-code/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/poe-platform/poe-code/deployments"
+    }
+  },
+  "artifact": {
+    "id": 10786288712,
+    "node_id": "MDg6QXJ0aWZhY3QxMDc4NjI4ODcxMg==",
+    "name": "ssconvert-linux-beaf054bfaad4bb3a5fdc108a1809819d6db8967-35946360649",
+    "size_in_bytes": 56920161,
+    "url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10786288712",
+    "archive_download_url": "https://api.github.com/repos/poe-platform/poe-code/actions/artifacts/10786288712/zip",
+    "expired": false,
+    "digest": "sha256:86cb046d5b7f91149a0933c3026f167a7c4d668f34da008e31859e8584531cc6",
+    "created_at": "2026-09-24T02:18:41Z",
+    "updated_at": "2026-09-24T02:18:41Z",
+    "expires_at": "2026-10-01T02:18:39Z",
+    "workflow_run": {
+      "id": 35946360649,
+      "repository_id": 1078492326,
+      "head_repository_id": 1078492326,
+      "head_branch": "main",
+      "head_sha": "beaf054bfaad4bb3a5fdc108a1809819d6db8967"
+    }
+  },
+  "artifactSha256": "86cb046d5b7f91149a0933c3026f167a7c4d668f34da008e31859e8584531cc6",
+  "identitySha256": "946d0e60bf8ac0d628619e2319165a0df2e1910240e050ce8741101957da1ddb",
+  "sourceRevision": "beaf054bfaad4bb3a5fdc108a1809819d6db8967",
+  "manifestBindings": [
+    {
+      "path": "docs/ssconvert/reference-profile.json",
+      "sha256": "f5767a61ed1356d95600370135bf3afce808c17aabc0c633d881e14578a8347e"
+    },
+    {
+      "path": "docs/ssconvert/optional-runtime-extension-coverage.json",
+      "sha256": "f585eaea65c17346d5d634916310caf1506bb13d1322f491ba82d8e589a78dfb"
+    },
+    {
+      "path": "docs/ssconvert/linux-optional-service-native-probes.json",
+      "sha256": "dbc011d8124720d4cf23eef8b210ad24a135c14de1629d47ce29f1640a55d5d5"
+    },
+    {
+      "path": "docs/ssconvert/linux-language-native-probes.json",
+      "sha256": "06768ed4ba06d1b60fab2fa7d56f444a58e99c9194b93158341c7004740a734d"
+    },
+    {
+      "path": "docs/ssconvert/linux-python-reference-native-probes.json",
+      "sha256": "3ae0a25cf6869565f8003420dc9eec1dc60e28f000e325bb3f4409d4fc8fa9e3"
+    },
+    {
+      "path": "docs/ssconvert/linux-reference-dependencies.json",
+      "sha256": "a3126d1f67fb59c60c04a588e16c8917fcc64e698d2475ab7d6f427da8f97841"
+    }
+  ],
+  "workflowSha256": "f5dcd9974fbbcc09c502acaf9e670da882ecd2811b1d4aeb5becee41d7c53d6a",
+  "prefixArchiveSha256": "bf84444592728a8e6d42a9e8add2a2b335d7f0b35d50744fb57c004432cb54f0",
+  "binarySha256": "1e05f849beba0397bbaae2a504ec65e44fd1d21b1106edd7b54b47db61b828c1",
+  "architecture": "ELF64 little-endian AArch64",
+  "binaryMode": "0755",
+  "moduleEntries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/applix/applix.so",
+      "sha256": "9287e99cb0eb58b22e3591d606b7e692f6a01ed4df5f27d31cd253dbbdd08bd7",
+      "bytes": 179168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/dif/dif.so",
+      "sha256": "1d27cc3e112c32e9c4acb3e72502ee543b1eda1ca257c4a64f5b0d1c8b8ef437",
+      "bytes": 106672
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/excel/excel.so",
+      "sha256": "8862a7ac773dc5fc0147fe42be92e3b9b0672d83fcf83be0329d92c0fd2d9803",
+      "bytes": 3230928
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-christian-date/plugin.so",
+      "sha256": "6e65d282c7e00c697fb53924f4c213a6575d36b6cb4a94fe4a001fb9432aa5fa",
+      "bytes": 96056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-complex/plugin.so",
+      "sha256": "d53f6f927023b68632236285ce3c9e19c98d84262d5f039688bbc547d5fc170d",
+      "bytes": 153872
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-database/plugin.so",
+      "sha256": "0b5caff19fd3c99333bc7d9cfb172659f3b770456eaafb26f9d6b9e8afdaa332",
+      "bytes": 109744
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-date/plugin.so",
+      "sha256": "5537687bfb6f4239c65d2f5b2ec053ef78e165de7cdd09d4a44dcdfcbf23380f",
+      "bytes": 129160
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-derivatives/plugin.so",
+      "sha256": "3074c0a6ff94af72cadce040a4d6de2c00270d3ef5e2b0be977c58276b3623f8",
+      "bytes": 179248
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-eng/plugin.so",
+      "sha256": "1b486c857e1b97d330c20d15648dc49999f1c3ab625005abf1a956a1e5a96fb6",
+      "bytes": 117208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-erlang/erlang.so",
+      "sha256": "1faaf049e22ed1c150885ca105094a833ded1048053b42bda606dc71abad19c5",
+      "bytes": 98112
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-financial/plugin.so",
+      "sha256": "50da1b950765ff1a2c34a9e608e737a553123aacb163a1b96ea7d67ecbe72f5e",
+      "bytes": 273792
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-flt/plugin.so",
+      "sha256": "f57b02b1236ade73c909a56f52a5fd4aff7e75e316cacb76ab3c99903903fcdd",
+      "bytes": 82120
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-hebrew-date/plugin.so",
+      "sha256": "5420584319c02bcfdc106e8c5b62d289aa73e536431d4cbdf62f066c2534de67",
+      "bytes": 117648
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-info/plugin.so",
+      "sha256": "15a7551f3f9b6efee5adf6b1d0ed5c684e697e18f0b181a61c93bd541254ef2a",
+      "bytes": 117880
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-logical/plugin.so",
+      "sha256": "2614988bbb8d512296e78ff8ae686c19be9c2a5563a2bcd4cf2824236fdd16ac",
+      "bytes": 89048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-lookup/plugin.so",
+      "sha256": "ae1c3d5759926cfea414a915d101a0e21e302544a4e1e4e7e17dd4aa5b35b392",
+      "bytes": 173768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-math/plugin.so",
+      "sha256": "be379f6467576b215ca9cac2de85f403121d19830b997cb49a871d4f8341c9a9",
+      "bytes": 251024
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-numtheory/plugin.so",
+      "sha256": "a465fa00dffc7e7107110d370550eb30361852fbb09ec974805470c306b0ebe7",
+      "bytes": 104576
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-r/rstat.so",
+      "sha256": "01ab7fda05e5d3a9c2c2b58624e85f3e80c7776498fc723e3682f119a220fed2",
+      "bytes": 203832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-random/plugin.so",
+      "sha256": "76b04d170909244061aec95b949e919ad4b910e191c52fcab926ec19e5bece24",
+      "bytes": 113800
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-stat/plugin.so",
+      "sha256": "a71a298d51db266213770b440542c61f23e17be18eca9c7c70ee51d66ef42263",
+      "bytes": 359728
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-string/plugin.so",
+      "sha256": "97e162519a4df0eb3f7baebb65d7f7af4d4e1aa623e6838192a9a00b4d753e35",
+      "bytes": 250768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/fn-tsa/plugin.so",
+      "sha256": "dcf46a9056a077ea5383bca055342f78399c15736653ab6714e7dd99b5afc047",
+      "bytes": 125208
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/glpk/glpk.so",
+      "sha256": "b02a40e861795fc0523a8185dcbb3d95ef903b33ff454034932379f4bd6acf73",
+      "bytes": 166840
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/html/html.so",
+      "sha256": "3ae33d6d38828ea205e1d9b5a487e3fc66366d422137b1ae3ed4ab8b222c7e43",
+      "bytes": 257312
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lotus/lotus.so",
+      "sha256": "053661656c71ea19195cbb44d9f7bdf8d72e9708097c37f0fa7c3a70a00a5051",
+      "bytes": 336184
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/lpsolve/lpsolve.so",
+      "sha256": "852e7741e38352b0e461b0269f2baa433954a06fb31ef19007dd5a2cef8c1ace",
+      "bytes": 167472
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/mps/mps.so",
+      "sha256": "d71e79c35e2883767d8576bef7c115543b36b70eb03beaccd88c4d161625bf61",
+      "bytes": 125056
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/nlsolve/nlsolve.so",
+      "sha256": "d5624fba09fdc5219eca0965e2228ddc2685a0088ae27d814b88febaad814606",
+      "bytes": 114976
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/oleo/oleo.so",
+      "sha256": "ab9b43e457e022591898ce9b73f8de5c43308fcfcd81bee4c0ee02621da8a0ab",
+      "bytes": 103048
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/openoffice/openoffice.so",
+      "sha256": "02dcaf868cbb0fef824d0a9f39fad6d40df99038945b1281a820c6f03b4319b1",
+      "bytes": 1692832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/paradox/paradox.so",
+      "sha256": "85b5e2b770f82ca546fb469eef7846f6de8e21c9f3443d634b07295b764d35f3",
+      "bytes": 119624
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/plan_perfect/plan_perfect.so",
+      "sha256": "bab732e79a0d4cb3479871a7362c2c371cc5eebb995c3bf9db3ea33da4c96051",
+      "bytes": 155328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/qpro/qpro.so",
+      "sha256": "adcab2b55e5b84f24ac597b01a140afbdd2593167a5b05b8e0e4b58f50998cfc",
+      "bytes": 142408
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sc/sc.so",
+      "sha256": "c9c19958876d410bd481abdc9df6b6468c601620e7414c0cd52c36197a10c358",
+      "bytes": 145168
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/sylk/sylk.so",
+      "sha256": "53558ceb5e2bff9d61f87c1b00af1c584f92ca3ba76adccc312d87d822bb8f63",
+      "bytes": 152768
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/xbase/xbase.so",
+      "sha256": "7e0912913898186e83c75a19d2e1a5fcf19123c4d8536b78eba1323828718a4f",
+      "bytes": 110664
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_barcol/barcol.so",
+      "sha256": "3377db0484ebddda4d0424eca82c7071413064ec28795befb950c5331cba0238",
+      "bytes": 401920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_distrib/distrib.so",
+      "sha256": "5eb5dc639dda7b1ca651a1bb036abc1ed86f8b2d2c162ec9bae397658d347d8a",
+      "bytes": 325328
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_pie/pie.so",
+      "sha256": "a4cfc0e78d36db629c32c06da7a5c39fd17ebbcb24dd372039d7d279a922d5ae",
+      "bytes": 170816
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_radar/radar.so",
+      "sha256": "4787b494e72be3653c28460db977353946f10feffdef9e782ca85042943c1845",
+      "bytes": 169832
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_surface/surface.so",
+      "sha256": "8df93e3d5403a0ef96917d8081e78ad68445c83ec5ed38d57bf125a4907d20f7",
+      "bytes": 391784
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/plot_xy/xy.so",
+      "sha256": "ec710ba3692a16af0d03c3962c0e5bd8242dd2ec4c2f6d207c2feccdac8f0ed9",
+      "bytes": 344600
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_linear/linreg.so",
+      "sha256": "6a3632498e993bada8024adb6ca552203b82d763c71c55640a0f9bc7513199a1",
+      "bytes": 180200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/reg_logfit/logfit.so",
+      "sha256": "91a355c04655fe2279fedcce3b21ee0a4d29d29193b1fac032820cfaca6b53c5",
+      "bytes": 101200
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/goffice/0.10.61/plugins/smoothing/smoothing.so",
+      "sha256": "210f741cecaf062d295962e38f79843d9cb412ff819b40e50c1fe517eca9be2e",
+      "bytes": 134640
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9",
+      "bytes": 7608920
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet.so",
+      "resolvedPath": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b",
+      "bytes": 16102216
+    }
+  ],
+  "uniqueResolvedModuleFiles": 48,
+  "prefixLibraries": [
+    {
+      "path": "/opt/ssconvert-reference/lib/libspreadsheet-1.12.61.so",
+      "sha256": "de27e21289922127c8d9c091d93df827df530710ba1d42b1216f0fe789cecc6b"
+    },
+    {
+      "path": "/opt/ssconvert-reference/lib/libgoffice-0.10.so.10.0.61",
+      "sha256": "023a21dab1e7ab8237ae908ded0f971e80dfbcef27b5ba6c7c449585076deac9"
+    }
+  ],
+  "fonts": [
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+      "bytes": 708920,
+      "sha256": "a4c5bc453ca281d90ea079e596da7ae0dfeb5777497c29ec254e76d97ff6f890"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "bytes": 759720,
+      "sha256": "57f73e11f51999432bf7ab22ce55b6f945d5eca1bf824404cfa9ec2e3718c84e"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+      "bytes": 334268,
+      "sha256": "0d3c03d1b667192f91223660a3163325cf83132662fe4d9f7d6e596bf7a995c2"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-BoldOblique.ttf",
+      "bytes": 254960,
+      "sha256": "2084995adab143b149258f5944b7f863804796b753014526bd7f7915b1b20770"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Oblique.ttf",
+      "bytes": 253448,
+      "sha256": "710323dd803666c37988df68e736c233d96efdf5c770c8ee28f4c4f4b84fb32d"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+      "bytes": 343140,
+      "sha256": "54bf827eb99404e8f430c330ad30f063334f637eba0109b6a18d4f566a8e9dd8"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+      "bytes": 356668,
+      "sha256": "aac3f559445d23f0f567a243f91f3f6ad6cb4b5cafa1521a3479fffe0637f0bd"
+    },
+    {
+      "path": "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+      "bytes": 380660,
+      "sha256": "8cb29f7db250ebb2551a6ce2c1e0bfd5a0eb520e9e233370db0493e82e1f36f7"
+    }
+  ],
+  "activePlugins": [
+    "GOffice_plot_xy",
+    "GOffice_reg_logfit",
+    "GOffice_plot_pie",
+    "GOffice_plot_radar",
+    "GOffice_plot_surface",
+    "GOffice_plot_distrib",
+    "GOffice_smoothing",
+    "GOffice_plot_barcol",
+    "GOffice_reg_linear",
+    "Gnumeric_fndate",
+    "Gnumeric_oleo",
+    "Gnumeric_glpk",
+    "Gnumeric_fnlogical",
+    "Gnumeric_fnerlang",
+    "Gnumeric_numtheory",
+    "Gnumeric_Excel",
+    "Gnumeric_paradox",
+    "Gnumeric_fncomplex",
+    "Gnumeric_lotus",
+    "Gnumeric_sylk",
+    "Gnumeric_plan_perfect",
+    "Gnumeric_fnfinancial",
+    "Gnumeric_nlsolve",
+    "Gnumeric_html",
+    "Gnumeric_fndatabase",
+    "Gnumeric_fnstring",
+    "Gnumeric_dif",
+    "Gnumeric_fninfo",
+    "Gnumeric_xbase",
+    "Gnumeric_mps",
+    "Gnumeric_fnhebdate",
+    "Gnumeric_fnchristiandate",
+    "Gnumeric_fnlookup",
+    "Gnumeric_fnrandom",
+    "Gnumeric_fnTimeSeriesAnalysis",
+    "Gnumeric_fnflt",
+    "Gnumeric_applix",
+    "Gnumeric_fneng",
+    "Gnumeric_sc",
+    "Gnumeric_lpsolve",
+    "Gnumeric_derivatives",
+    "Gnumeric_QPro",
+    "Gnumeric_r",
+    "Gnumeric_fnstat",
+    "Gnumeric_OpenCalc",
+    "Gnumeric_fnmath"
+  ],
+  "rows": [
+    {
+      "id": "biff-cycle-indices-0-excel_biff7",
+      "inputSha256": "adf6c9302d2ac6fde9257cf7d9dc0262c01b705241962ce38c11d2a2113f0085",
+      "inputBytes": 5632,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-0-excel_biff7-replay.gnumeric",
+      "nativeReplaySha256": "5342ce9be72153ab4843a30940bf891ffc01f9a2f269884e5c6bdbc8035d5dce",
+      "nativeReplayBytes": 9379,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-0-excel_biff7",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff7.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383034293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3033323a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162386562393661613134302e0a0a287373636f6e766572743a3632383034293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3033323a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162386562393661613134302e0a0a287373636f6e766572743a3632383034293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3033333a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786162386562393661613134302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "311a44dbb1fe37e1a98ac41f4390d8d79ce9cf6c3ef047eef04b9df511e9a3bf",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62804): gnumeric:read_expr-WARNING **: 02:18:35.032: EXCEL: 4 (of 2) UNKNOWN name 0xab8eb96aa140.\n\n(ssconvert:62804): gnumeric:read_expr-WARNING **: 02:18:35.032: EXCEL: 6 (of 5) UNKNOWN name 0xab8eb96aa140.\n\n(ssconvert:62804): gnumeric:read_expr-WARNING **: 02:18:35.033: EXCEL: 8 (of 7) UNKNOWN name 0xab8eb96aa140.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_biff7-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff7.xls",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff7-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383036293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3036373a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162613038646165666565302e0a0a287373636f6e766572743a3632383036293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3036373a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162613038646165666565302e0a0a287373636f6e766572743a3632383036293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3036383a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786162613038646165666565302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "9bc4fb4cabfb336ab696ba15b0ae050e283f4dcc639c356a864a02ad7908f8a6",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62806): gnumeric:read_expr-WARNING **: 02:18:35.067: EXCEL: 4 (of 2) UNKNOWN name 0xaba08daefee0.\n\n(ssconvert:62806): gnumeric:read_expr-WARNING **: 02:18:35.067: EXCEL: 6 (of 5) UNKNOWN name 0xaba08daefee0.\n\n(ssconvert:62806): gnumeric:read_expr-WARNING **: 02:18:35.068: EXCEL: 8 (of 7) UNKNOWN name 0xaba08daefee0.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_biff7-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff7-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    },
+    {
+      "id": "biff-cycle-indices-0-excel_biff8",
+      "inputSha256": "0e71e89e136da6c44dac03c4e9bcd2fb0eba1525d644bd15c03b4e0732b919c8",
+      "inputBytes": 5632,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-0-excel_biff8-replay.gnumeric",
+      "nativeReplaySha256": "0b5776e7b10aeb564956ecaa159a68fd474c8d9cc3dcc06fe044159819426181",
+      "nativeReplayBytes": 9379,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-0-excel_biff8",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff8.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383130293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3135313a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786161623731323235663134302e0a0a287373636f6e766572743a3632383130293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3135323a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786161623731323235663134302e0a0a287373636f6e766572743a3632383130293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3135323a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786161623731323235663134302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "3aa021b6ffbbde9b1d78456cc0ebef4bdcc1bbfb61c34ccf25b76b0c66994c2c",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62810): gnumeric:read_expr-WARNING **: 02:18:35.151: EXCEL: 4 (of 2) UNKNOWN name 0xaab71225f140.\n\n(ssconvert:62810): gnumeric:read_expr-WARNING **: 02:18:35.152: EXCEL: 6 (of 5) UNKNOWN name 0xaab71225f140.\n\n(ssconvert:62810): gnumeric:read_expr-WARNING **: 02:18:35.152: EXCEL: 8 (of 7) UNKNOWN name 0xaab71225f140.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_biff8-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff8.xls",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff8-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383132293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3138363a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162323535323965306565302e0a0a287373636f6e766572743a3632383132293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3138363a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162323535323965306565302e0a0a287373636f6e766572743a3632383132293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3138363a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786162323535323965306565302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "d309f0fc4ff833fe41c678393cced8fc519daefc1c25cc0aa695890ac25cdd35",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62812): gnumeric:read_expr-WARNING **: 02:18:35.186: EXCEL: 4 (of 2) UNKNOWN name 0xab25529e0ee0.\n\n(ssconvert:62812): gnumeric:read_expr-WARNING **: 02:18:35.186: EXCEL: 6 (of 5) UNKNOWN name 0xab25529e0ee0.\n\n(ssconvert:62812): gnumeric:read_expr-WARNING **: 02:18:35.186: EXCEL: 8 (of 7) UNKNOWN name 0xab25529e0ee0.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_biff8-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_biff8-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    },
+    {
+      "id": "biff-cycle-indices-0-excel_dsf",
+      "inputSha256": "aa483602a79015f25d3f321ee47995cfd22f641c76edd994b6398dfd5b2a8399",
+      "inputBytes": 9728,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-0-excel_dsf-replay.gnumeric",
+      "nativeReplaySha256": "0b5776e7b10aeb564956ecaa159a68fd474c8d9cc3dcc06fe044159819426181",
+      "nativeReplayBytes": 9379,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-0-excel_dsf",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_dsf.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383136293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3237323a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162343433663364336632302e0a0a287373636f6e766572743a3632383136293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3237323a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162343433663364336632302e0a0a287373636f6e766572743a3632383136293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3237323a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786162343433663364336632302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "2097bd7c73430f649e2d155f1495082b678a73b991657661ade92b31ec1ae8f7",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62816): gnumeric:read_expr-WARNING **: 02:18:35.272: EXCEL: 4 (of 2) UNKNOWN name 0xab443f3d3f20.\n\n(ssconvert:62816): gnumeric:read_expr-WARNING **: 02:18:35.272: EXCEL: 6 (of 5) UNKNOWN name 0xab443f3d3f20.\n\n(ssconvert:62816): gnumeric:read_expr-WARNING **: 02:18:35.272: EXCEL: 8 (of 7) UNKNOWN name 0xab443f3d3f20.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_dsf-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_dsf.xls",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_dsf-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383138293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3330383a20455843454c3a203420286f6620322920554e4b4e4f574e206e616d652030786162343834333830303132302e0a0a287373636f6e766572743a3632383138293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3330383a20455843454c3a203620286f6620352920554e4b4e4f574e206e616d652030786162343834333830303132302e0a0a287373636f6e766572743a3632383138293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3330383a20455843454c3a203820286f6620372920554e4b4e4f574e206e616d652030786162343834333830303132302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "fa1d61e831fb87c40a265757308f11c7110c21464be6f81e0ab96c4ac1348ef4",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62818): gnumeric:read_expr-WARNING **: 02:18:35.308: EXCEL: 4 (of 2) UNKNOWN name 0xab4843800120.\n\n(ssconvert:62818): gnumeric:read_expr-WARNING **: 02:18:35.308: EXCEL: 6 (of 5) UNKNOWN name 0xab4843800120.\n\n(ssconvert:62818): gnumeric:read_expr-WARNING **: 02:18:35.308: EXCEL: 8 (of 7) UNKNOWN name 0xab4843800120.\n"
+        },
+        {
+          "label": "biff-cycle-indices-0-excel_dsf-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-0-excel_dsf-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    },
+    {
+      "id": "biff-cycle-indices-256-excel_biff7",
+      "inputSha256": "de33a3abb27da8c811079ade28695c97cb17d22353cd8f2bbb5d9a7851db7dc0",
+      "inputBytes": 11776,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-256-excel_biff7-replay.gnumeric",
+      "nativeReplaySha256": "f84b26627a5f6696a0d910aa4ed6c3fc424fda6eff7b8df52dcddb25f4428894",
+      "nativeReplayBytes": 45120,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-256-excel_biff7",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff7.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339333a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786162366238613265616564302e0a0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339343a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786162366238613265616564302e0a0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339343a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786162366238613265616564302e0a0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339343a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786162366238613265616564302e0a0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339343a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786162366238613265616564302e0a0a287373636f6e766572743a3632383232293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3339343a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786162366238613265616564302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "ac08fca951fa7996a88ba9962885a7ce842fce2ab66a4fd13e730de49808ad58",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.393: EXCEL: 102 (of 100) UNKNOWN name 0xab6b8a2eaed0.\n\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.394: EXCEL: 104 (of 102) UNKNOWN name 0xab6b8a2eaed0.\n\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.394: EXCEL: 105 (of 104) UNKNOWN name 0xab6b8a2eaed0.\n\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.394: EXCEL: 106 (of 105) UNKNOWN name 0xab6b8a2eaed0.\n\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.394: EXCEL: 107 (of 106) UNKNOWN name 0xab6b8a2eaed0.\n\n(ssconvert:62822): gnumeric:read_expr-WARNING **: 02:18:35.394: EXCEL: 108 (of 107) UNKNOWN name 0xab6b8a2eaed0.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_biff7-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff7.xls",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff7-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786161663965303264613132302e0a0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786161663965303264613132302e0a0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786161663965303264613132302e0a0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786161663965303264613132302e0a0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786161663965303264613132302e0a0a287373636f6e766572743a3632383234293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3432393a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786161663965303264613132302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "1f3c7651190d9c8d19a0e3d0010c929790aa10d203c5930eb5311ca42e7f95dc",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 102 (of 100) UNKNOWN name 0xaaf9e02da120.\n\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 104 (of 102) UNKNOWN name 0xaaf9e02da120.\n\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 105 (of 104) UNKNOWN name 0xaaf9e02da120.\n\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 106 (of 105) UNKNOWN name 0xaaf9e02da120.\n\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 107 (of 106) UNKNOWN name 0xaaf9e02da120.\n\n(ssconvert:62824): gnumeric:read_expr-WARNING **: 02:18:35.429: EXCEL: 108 (of 107) UNKNOWN name 0xaaf9e02da120.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_biff7-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff7-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    },
+    {
+      "id": "biff-cycle-indices-256-excel_biff8",
+      "inputSha256": "03c717e8a2b9a49d68cba28cd9ccf10cfe67bc7b0fca38f9759b0f4ca1f525bc",
+      "inputBytes": 14848,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-256-excel_biff8-replay.gnumeric",
+      "nativeReplaySha256": "e099b08af732e4d536cd1662b9073a7a9c92be3d0a984d792566ac8201b8b507",
+      "nativeReplayBytes": 45120,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-256-excel_biff8",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff8.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786162386239386561323134302e0a0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786162386239386561323134302e0a0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786162386239386561323134302e0a0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786162386239386561323134302e0a0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786162386239386561323134302e0a0a287373636f6e766572743a3632383238293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3531373a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786162386239386561323134302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "b47ce1df3b8c67fdb364d6c7ac4bcb7624c41a2c7248d62ac19361c883a0ee3a",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 102 (of 100) UNKNOWN name 0xab8b98ea2140.\n\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 104 (of 102) UNKNOWN name 0xab8b98ea2140.\n\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 105 (of 104) UNKNOWN name 0xab8b98ea2140.\n\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 106 (of 105) UNKNOWN name 0xab8b98ea2140.\n\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 107 (of 106) UNKNOWN name 0xab8b98ea2140.\n\n(ssconvert:62828): gnumeric:read_expr-WARNING **: 02:18:35.517: EXCEL: 108 (of 107) UNKNOWN name 0xab8b98ea2140.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_biff8-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff8.xls",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff8-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535333a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786162303761303331653132302e0a0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535343a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786162303761303331653132302e0a0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535343a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786162303761303331653132302e0a0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535343a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786162303761303331653132302e0a0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535343a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786162303761303331653132302e0a0a287373636f6e766572743a3632383330293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3535343a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786162303761303331653132302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "a651d759768df6887d0eb504961661cc31bd08c8b8edb1643a5e46b97d82c85f",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.553: EXCEL: 102 (of 100) UNKNOWN name 0xab07a031e120.\n\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.554: EXCEL: 104 (of 102) UNKNOWN name 0xab07a031e120.\n\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.554: EXCEL: 105 (of 104) UNKNOWN name 0xab07a031e120.\n\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.554: EXCEL: 106 (of 105) UNKNOWN name 0xab07a031e120.\n\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.554: EXCEL: 107 (of 106) UNKNOWN name 0xab07a031e120.\n\n(ssconvert:62830): gnumeric:read_expr-WARNING **: 02:18:35.554: EXCEL: 108 (of 107) UNKNOWN name 0xab07a031e120.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_biff8-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_biff8-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    },
+    {
+      "id": "biff-cycle-indices-256-excel_dsf",
+      "inputSha256": "2cb75232c6d59b03548b0d5efe2567ee24b1c52eb4c8c1293016dfa78f0ce66e",
+      "inputBytes": 25088,
+      "expectedCsv": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+      "nativeReplayFilename": "biff-cycle-indices-256-excel_dsf-replay.gnumeric",
+      "nativeReplaySha256": "e099b08af732e4d536cd1662b9073a7a9c92be3d0a984d792566ac8201b8b507",
+      "nativeReplayBytes": 45120,
+      "captures": [
+        {
+          "label": "biff-cycle-indices-256-excel_dsf",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_dsf.xls",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786161663266306131633134302e0a0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786161663266306131633134302e0a0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786161663266306131633134302e0a0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786161663266306131633134302e0a0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786161663266306131633134302e0a0a287373636f6e766572743a3632383334293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3634303a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786161663266306131633134302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "82c7a87b92f833910113c0bb15d73c3c0f997435a31ce5fbb52f5e54b926d93d",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": "\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 102 (of 100) UNKNOWN name 0xaaf2f0a1c140.\n\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 104 (of 102) UNKNOWN name 0xaaf2f0a1c140.\n\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 105 (of 104) UNKNOWN name 0xaaf2f0a1c140.\n\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 106 (of 105) UNKNOWN name 0xaaf2f0a1c140.\n\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 107 (of 106) UNKNOWN name 0xaaf2f0a1c140.\n\n(ssconvert:62834): gnumeric:read_expr-WARNING **: 02:18:35.640: EXCEL: 108 (of 107) UNKNOWN name 0xaaf2f0a1c140.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_dsf-xml",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "-T",
+            "Gnumeric_XmlIO:sax:0",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_dsf.xls",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_dsf-replay.gnumeric"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "",
+          "stderrHex": "0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637363a20455843454c3a2031303220286f66203130302920554e4b4e4f574e206e616d652030786161623265373166393132302e0a0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637373a20455843454c3a2031303420286f66203130322920554e4b4e4f574e206e616d652030786161623265373166393132302e0a0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637373a20455843454c3a2031303520286f66203130342920554e4b4e4f574e206e616d652030786161623265373166393132302e0a0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637373a20455843454c3a2031303620286f66203130352920554e4b4e4f574e206e616d652030786161623265373166393132302e0a0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637373a20455843454c3a2031303720286f66203130362920554e4b4e4f574e206e616d652030786161623265373166393132302e0a0a287373636f6e766572743a3632383336293a20676e756d657269633a726561645f657870722d5741524e494e47202a2a3a2030323a31383a33352e3637373a20455843454c3a2031303820286f66203130372920554e4b4e4f574e206e616d652030786161623265373166393132302e0a",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "96cd32dcb26a0d8116496b03a20dbe442cb51c9f7db9c30bcfd503b0e8c939ad",
+          "stdoutText": "",
+          "stderrText": "\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.676: EXCEL: 102 (of 100) UNKNOWN name 0xaab2e71f9120.\n\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.677: EXCEL: 104 (of 102) UNKNOWN name 0xaab2e71f9120.\n\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.677: EXCEL: 105 (of 104) UNKNOWN name 0xaab2e71f9120.\n\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.677: EXCEL: 106 (of 105) UNKNOWN name 0xaab2e71f9120.\n\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.677: EXCEL: 107 (of 106) UNKNOWN name 0xaab2e71f9120.\n\n(ssconvert:62836): gnumeric:read_expr-WARNING **: 02:18:35.677: EXCEL: 108 (of 107) UNKNOWN name 0xaab2e71f9120.\n"
+        },
+        {
+          "label": "biff-cycle-indices-256-excel_dsf-replay",
+          "expectedExitCodes": [
+            0
+          ],
+          "argv": [
+            "/opt/ssconvert-reference/bin/ssconvert",
+            "--recalc",
+            "--export-range=Here!A1:A10",
+            "-T",
+            "Gnumeric_stf:stf_csv",
+            "out/ssconvert-linux/biff-cycle-indices-256-excel_dsf-replay.gnumeric",
+            "fd://1"
+          ],
+          "exitCode": 0,
+          "stdoutHex": "23524546210a23524546210a23524546210a23524546210a23524546210a23524546210a370a31310a31330a31390a",
+          "stderrHex": "",
+          "supplementalEnvironment": {},
+          "stdoutSha256": "f746aadf6c7efa42a855323825307844268ee09087d28278732303e0573449ff",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdoutText": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+          "stderrText": ""
+        }
+      ],
+      "allExitZero": true,
+      "expectedDirectCsvMatches": true,
+      "expectedReplayCsvMatches": true
+    }
+  ],
+  "newInputs": 6,
+  "newCaptures": 18,
+  "allExitZero": true,
+  "limitations": [
+    "Observed cases only, not full XML/name/native parity. XML replay differences are retained as observed.",
+    "System-library identities are captured receipts; only packaged prefix libraries and fonts physically rehashed.",
+    "Native warnings/failures preserved verbatim, including timestamps/PIDs/pointers if present.",
+    "No native external-link prohibition instrumented; product resolver counters are separate evidence."
+  ],
+  "publicReplay": {
+    "nativeRun": 35946360649,
+    "results": [
+      {
+        "id": "biff-cycle-indices-0-excel_biff7",
+        "inputSha256": "5342ce9be72153ab4843a30940bf891ffc01f9a2f269884e5c6bdbc8035d5dce",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-cycle-indices-0-excel_biff8",
+        "inputSha256": "0b5776e7b10aeb564956ecaa159a68fd474c8d9cc3dcc06fe044159819426181",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-cycle-indices-0-excel_dsf",
+        "inputSha256": "0b5776e7b10aeb564956ecaa159a68fd474c8d9cc3dcc06fe044159819426181",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-cycle-indices-256-excel_biff7",
+        "inputSha256": "f84b26627a5f6696a0d910aa4ed6c3fc424fda6eff7b8df52dcddb25f4428894",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-cycle-indices-256-excel_biff8",
+        "inputSha256": "e099b08af732e4d536cd1662b9073a7a9c92be3d0a984d792566ac8201b8b507",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      },
+      {
+        "id": "biff-cycle-indices-256-excel_dsf",
+        "inputSha256": "e099b08af732e4d536cd1662b9073a7a9c92be3d0a984d792566ac8201b8b507",
+        "native": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "sdkAndShell": "#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n#REF!\n7\n11\n13\n19\n",
+        "exitCode": 0,
+        "stderr": "",
+        "diagnostics": [],
+        "matchesNative": true
+      }
+    ],
+    "executions": 12,
+    "externalCalls": 0,
+    "bindings": [
+      {
+        "path": "packages/ssconvert/dist/index.js",
+        "sha256": "5511003db6dd69d8e3e0381e420e2f3d1575094ceb42061a5ad50ca6330c8f6d"
+      },
+      {
+        "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+        "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+      }
+    ]
+  },
+  "collectorCorrection": "The 4138695-byte identity receipt exceeded the local authenticator old 4000000-byte cap. Raised its bounded identity read to8000000, then completed all identity, manifest, binary/module/library/font and raw-stream assertions.",
+  "nativeLifecycle": "Native ms-excel-read.c finalizer removes active #NAME? placeholders. High-index ordinary names first parse to #NAME?, but a top-level #NAME? definition is later removed and references become #REF!. Guarded definitions retain their internal #NAME? constants and evaluate7. Qualified missing targets become #REF! immediately.",
+  "sourceEvidence": [
+    {
+      "path": "out/ssconvert-biff-name-definition-scope/ms-excel-read.c",
+      "sha256": "fba376ae47e276e9209800415a44e1060cc775745d3bdd8b400770d0c0f49216"
+    },
+    {
+      "path": "out/ssconvert-biff-sheet-resolution/expr-name.c",
+      "sha256": "bbd67847241cc532f9238c85b195735ff5deb860a1a71a7170bb246cef75c353"
+    },
+    {
+      "path": "out/ssconvert-biff-name-definition-scope/ms-formula-read.c",
+      "sha256": "25cbe0982cc952431c7b10bf7df709e3997d4759cb158f0f6159ba7c6ccd21d5"
+    }
+  ]
+}

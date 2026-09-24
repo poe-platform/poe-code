@@ -73,5 +73,9 @@ it("retains unsupported external declaration flags without interpreting their bo
   const book = await readBiff(workbook(0x39, "active", 0, 1, 2), { ...context, async diagnostic(d) { diagnostics.push(d.message); } });
   expect(book.sheets[0]!.cells[0]!.formula).toBeUndefined();
   expect(diagnostics.some(message => message.includes("external BIFF name expression"))).toBe(true);
-  expect(book.names).toEqual([{ name: "Rate", expression: "=#NAME?" }]);
+  // Native teardown removes the untouched NAME placeholder. The unsupported
+  // EXTERNNAME is still retained without evaluating its body.
+  expect(book.names).toBeUndefined();
+  expect(book.unsupportedRecords?.find(record => record.kind === "EXTERNNAME_v0")?.data)
+    .toMatchObject({ opcode: 0x23, bytes: "02000000000004005261746507001e02001e030003" });
 });

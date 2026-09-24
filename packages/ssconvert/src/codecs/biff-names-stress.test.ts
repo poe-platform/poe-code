@@ -20,9 +20,9 @@ function workbook(name: readonly number[], expression: readonly number[], scope 
   ]);
 }
 
-it("imports zero-token NAME placeholders as #NAME? like stable excel_parse_name", async () => {
+it("removes zero-token NAME placeholders during native importer teardown", async () => {
   expect((await readBiff(workbook([78], []), context)).names)
-    .toEqual([{ name: "N", expression: "=#NAME?" }]);
+    .toBeUndefined();
 });
 
 it("resolves worksheet NAME scope after the global stream closes", async () => {
@@ -30,8 +30,8 @@ it("resolves worksheet NAME scope after the global stream closes", async () => {
     .toEqual([{ name: "N", expression: "=7", sheet: "Worksheet" }]);
 });
 
-it("rejects invalid scope without silently promoting a local name to workbook scope", async () => {
-  await expect(readBiff(workbook([78], [0x1e, 7, 0], 2), context)).rejects.toThrow("invalid name sheet scope");
+it.each([{ tokens: [0x1e, 7, 0] }, { tokens: [] }])("rejects invalid scope even when the definition will be discarded ($tokens)", async ({ tokens }) => {
+  await expect(readBiff(workbook([78], tokens, 2), context)).rejects.toThrow("invalid name sheet scope");
 });
 
 it("bounds token lengths even for otherwise valid NAME headers", async () => {

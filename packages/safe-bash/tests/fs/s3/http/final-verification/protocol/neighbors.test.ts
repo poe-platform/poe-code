@@ -21,7 +21,7 @@ async function rawFixture(context: TestContext, xml: string) {
     let bytes = Buffer.alloc(0);
     let answered = false;
     socket.on("data", chunk => {
-      bytes = Buffer.concat([bytes, chunk]);
+      bytes = Buffer.concat([bytes, typeof chunk === "string" ? Buffer.from(chunk) : chunk]);
       if (answered || !bytes.includes("\r\n\r\n")) return;
       answered = true;
       requests.push(bytes.toString("latin1"));

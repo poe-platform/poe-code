@@ -34,12 +34,12 @@ test("real rmdir preserves a child inserted immediately before the native deleti
   await filesystem.mkdir("/empty");
   const nativeRmdir = host.rmdir;
   let calls = 0;
-  context.mock.method(host, "rmdir", async (path: Parameters<typeof host.rmdir>[0], options?: Parameters<typeof host.rmdir>[1]) => {
+  context.mock.method(host, "rmdir", async (path: Parameters<typeof host.rmdir>[0], options?: undefined) => {
     calls++;
     assert.equal(path, join(root, "empty"));
     assert.equal(options, undefined);
     await host.writeFile(join(root, "empty", "child"), bytes("raced child"));
-    return nativeRmdir(path, options);
+    return nativeRmdir(path);
   });
   syncBuiltinESMExports();
   context.after(() => { context.mock.restoreAll(); syncBuiltinESMExports(); });
@@ -54,10 +54,10 @@ test("real rmdir preserves a directory replaced with a symlink just before nativ
   await filesystem.mkdir("/safe");
   await filesystem.writeFile("/safe/child", bytes("safe child"));
   const nativeRmdir = host.rmdir;
-  context.mock.method(host, "rmdir", async (path: Parameters<typeof host.rmdir>[0], options?: Parameters<typeof host.rmdir>[1]) => {
-    await nativeRmdir(path, options);
+  context.mock.method(host, "rmdir", async (path: Parameters<typeof host.rmdir>[0], _options?: undefined) => {
+    await nativeRmdir(path);
     await host.symlink(join(root, "safe"), join(root, "empty"));
-    return nativeRmdir(path, options);
+    return nativeRmdir(path);
   });
   syncBuiltinESMExports();
   context.after(() => { context.mock.restoreAll(); syncBuiltinESMExports(); });

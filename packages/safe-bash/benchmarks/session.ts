@@ -15,7 +15,7 @@ export class EngineSession {
     });
     if (worker.listenerCount("error") === 0) {
       worker.on("error", (error) => {
-        this.backgroundErrors.push(error.message);
+        this.backgroundErrors.push(error instanceof Error ? error.message : String(error));
         if (this.#worker === worker) this.#worker = undefined;
       });
       worker.on("exit", () => { if (this.#worker === worker) this.#worker = undefined; });

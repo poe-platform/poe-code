@@ -12,7 +12,7 @@ export class VirtualSession {
       const worker = new Worker(new URL("./worker-bootstrap.mjs", import.meta.url), {
         execArgv: ["--unhandled-rejections=strict"], resourceLimits: { maxOldGenerationSizeMb: 256 },
       });
-      worker.on("error", error => { this.backgroundErrors.push(error.message); if (this.#worker === worker) this.#worker = undefined; });
+      worker.on("error", error => { this.backgroundErrors.push(error instanceof Error ? error.message : String(error)); if (this.#worker === worker) this.#worker = undefined; });
       worker.on("exit", () => { if (this.#worker === worker) this.#worker = undefined; });
       this.#worker = worker;
     }

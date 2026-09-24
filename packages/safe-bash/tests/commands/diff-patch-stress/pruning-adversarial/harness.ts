@@ -178,12 +178,12 @@ export function nativeBoundary(current: Fixture, target: string, inject: () => P
   assert.ok(current.realRoot);
   const original = native.rmdir;
   const hostTarget = join(current.realRoot, target);
-  native.rmdir = async (path, options) => {
+  native.rmdir = async (path) => {
     if (String(path) === hostTarget) {
       current.events.push({ layer: "native-empty-only-boundary", operation: "rmdir", path: target });
       await inject();
     }
-    return original(path, options);
+    return original(path);
   };
   syncBuiltinESMExports();
   current.restoreNative = () => { native.rmdir = original; syncBuiltinESMExports(); };

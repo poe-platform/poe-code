@@ -293,5 +293,8 @@ test("run-code closure attempts receiver close and disposal and retains both tru
 	const [receiverError] = failure.errors;
 	if (!(receiverError instanceof AggregateError))
 		throw new Error("Missing receiver cleanup error");
-	expect(receiverError.errors).toEqual([closeError, disposeError]);
+	expect(receiverError.errors).toEqual([
+		new Error("Run-code receiver close failed", { cause: closeError }),
+		new Error("Run-code receiver disposal failed", { cause: disposeError }),
+	]);
 });

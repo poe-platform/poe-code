@@ -7,34 +7,41 @@ import { fixture, run } from "./helpers.js";
 import * as browser from "../../src/index.js";
 import * as root from "../../src/index.js";
 
-test("cross-mount move retains its existing route without requiring native backend rename", async () => {
+for (const existing of [false, true]) test(`cross-mount move without backend rename or rm preserves overwrite safety, existing=${existing}`, async () => {
   const source = await fixture({ source: "payload" });
-  const target = await fixture({ target: "previous" });
+  const target = await fixture(existing ? { target: "previous" } : {});
   const fs = new root.MountFileSystem({ root: await fixture(), mounts: {
-    "/source": restricted(source, { rename: false }),
+    "/source": restricted(source, { rename: false, remove: false }),
     "/target": restricted(target, { rename: false }),
   } });
   const definition = filesystemCommands().find(command => command.name === "mv")!;
   assert.equal(evaluateCommandSupport(definition, fs.capabilities).status, "partial");
   const result = await run("mv", ["/source/work/source", "/target/work/target"], { fs });
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "payload");
-  await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
+  assert.equal(result.exitCode, existing ? 1 : 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), existing ? "previous" : "payload");
+  if (existing) {
+    assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
+    assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+  } else {
+    assert.equal(result.stderr, "");
+    await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
+  }
 });
 
 test("cross-mount move admits source removal and destination publication before content effects", async () => {
-  for (const denied of ["remove", "copy"] as const) {
+  for (const denied of ["remove", "copy"] as const) for (const existing of [false, true]) {
     const source = await fixture({ source: "payload" });
-    const target = await fixture({ target: "previous" });
+    const target = await fixture(existing ? { target: "previous" } : {});
     const fs = new root.MountFileSystem({ root: await fixture(), mounts: {
-      "/source": restricted(source, denied === "remove" ? { remove: false } : {}),
+      "/source": restricted(source, denied === "remove" ? { remove: false, atomicEntryRemoval: false } : {}),
       "/target": restricted(target, denied === "copy" ? { copy: false, exclusiveCopy: false,
         write: false, streamingWrite: false, exclusiveCreate: false } : {}),
     } });
     const result = await run("mv", ["/source/work/source", "/target/work/target"], { fs });
     assert.equal(result.exitCode, 1, denied);
     assert.match(result.stderr, /ENOTSUP/u);
-    assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "previous");
+    if (existing) assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "previous");
+    else await assert.rejects(target.stat("/work/target"), { code: "ENOENT" });
     assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
   }
 });
@@ -54,22 +61,27 @@ test("existing cross-mount transfer routes override unavailable native copy mode
     await fs.copyFile("/source/work/source", "/target/work/proof", { exclusive: true });
     assert.equal(new TextDecoder().decode(await target.readFile("/work/proof")), "payload");
     const result = await run(command, ["/source/work/source", "/target/work/target"], { fs });
-    assert.equal(result.exitCode, 0, `${command} missing=${missing}: ${result.stderr}`);
-    assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), "payload");
+    const refused = command === "mv" && !missing;
+    assert.equal(result.exitCode, refused ? 1 : 0, `${command} missing=${missing}: ${result.stderr}`);
+    if (refused) assert.match(result.stderr, /ENOTSUP.*atomic destination and ancestry binding/u);
+    else assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await target.readFile("/work/target")), refused ? "previous" : "payload");
     assert.equal(nativeCopies, 0);
-    if (command === "mv") await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
+    if (command === "mv" && !refused) await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
     else assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
   }
 });
 
-test("cross-mount transfers preserve independent exclusive creation on a create-only destination", async () => {
+test("direct exclusive copy remains available while commands refuse destinations without streaming writes", async () => {
   for (const command of ["cp", "mv"]) {
     const source = await fixture({ source: "payload" });
     const target = await fixture();
     const flags: string[] = [];
+    let streamWrites = 0;
     const createOnly = new Proxy(restricted(target, { copy: false, exclusiveCopy: false,
       write: false, streamingWrite: false, exclusiveCreate: true }), {
       get(backing, property) {
+        if (property === "writeStream") return async () => { streamWrites++; assert.fail("unsupported streaming write must not be invoked"); };
         if (property === "writeFile") return async (path: string, bytes: Uint8Array, options: Parameters<FileSystem["writeFile"]>[2]) => {
           assert.equal(options?.flag, "wx");
           flags.push(options?.flag ?? "");
@@ -80,12 +92,14 @@ test("cross-mount transfers preserve independent exclusive creation on a create-
     });
     const fs = new root.MountFileSystem({ root: await fixture(), mounts: { "/source": source, "/target": createOnly } });
     await fs.copyFile("/source/work/source", "/target/work/proof", { exclusive: true });
+    assert.equal(new TextDecoder().decode(await target.readFile("/work/proof")), "payload");
     const result = await run(command, ["/source/work/source", "/target/work/new"], { fs });
-    assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
-    assert.equal(new TextDecoder().decode(await target.readFile("/work/new")), "payload");
-    assert.deepEqual(flags, ["wx", "wx"]);
-    if (command === "mv") await assert.rejects(source.stat("/work/source"), { code: "ENOENT" });
-    else assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
+    assert.equal(result.exitCode, 1, `${command}: ${result.stderr}`);
+    assert.match(result.stderr, /ENOTSUP/u);
+    await assert.rejects(target.stat("/work/new"), { code: "ENOENT" });
+    assert.deepEqual(flags, ["wx"]);
+    assert.equal(streamWrites, 0);
+    assert.equal(new TextDecoder().decode(await source.readFile("/work/source")), "payload");
   }
 });
 
@@ -252,7 +266,8 @@ test("mandatory methods do not override known unsupported filesystem modes", asy
     ["mkdir", ["new"], { explicitDirectories: false }],
     ["mkdir", ["-p", "new/deep"], { recursiveMkdir: false }],
     ["mv", ["source", "target"], { rename: false }],
-    ["cp", ["source", "target"], { copy: false }],
+    ["cp", ["source", "target"], { streamingWrite: false }],
+    ["cp", ["source", "target"], { retainedRead: false }],
     ["rm", ["source"], { remove: false }],
     ["rm", ["-r", "directory"], { recursiveRemove: false }],
     ["rmdir", ["directory"], { removeDirectory: false }],

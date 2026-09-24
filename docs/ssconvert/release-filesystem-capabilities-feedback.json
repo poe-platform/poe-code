@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "baseline": "1eb1219b9cc5d5276a0715a290c3c102900fd30a",
+  "issue": "Four capability fixtures expected cross-device overwrite or buffered-copy fallback from commands that require retained reads and streaming writes.",
+  "baselineTests": { "files": 3, "tests": 49, "passed": 35, "failed": 14, "capabilityFailures": 4, "rpcFailures": 3, "memoryComparisonFailures": 7 },
+  "repair": [
+    "Preserve existing-target move refusal and add successful missing-target moves without native rename or ordinary rm support.",
+    "Retain direct exclusive copyFile coverage for a create-only destination; command refusal must create no output, invoke no unsupported writer and preserve source bytes.",
+    "Test the command's actual retainedRead and streamingWrite requirements independently of the direct-copy capability.",
+    "Extend source-removal and destination-publication admission checks to missing targets. This exposes one previously masked failure because remove:false leaves atomicEntryRemoval available. Explicitly deny conditional removal in the negative fixture and retain its independent positive control."
+  ],
+  "runtimeChanged": false,
+  "source": {
+    "path": "packages/safe-bash/tests/commands/capability-requirements.test.ts",
+    "sha256": "44860b595f4927e42587ddef0c672fd7f7ae941b60299b44babcefa73f4e58c2"
+  },
+  "validation": {
+    "focused": { "tests": 20, "passed": 20, "failed": 0 },
+    "missingTargetAdmissionBeforeCorrection": { "tests": 179, "passed": 178, "failed": 1 },
+    "finalRelated": { "files": 9, "tests": 179, "passed": 179, "failed": 0, "skipped": 0 },
+    "lint": "Final focused ESLint passed.",
+    "types": "Final maintained historical-type-models source/test compilation passed."
+  },
+  "upstreamPackagingObservation": {
+    "baseline": "125b05fac7fe8d1c2e027d6db6424d59590e1b37",
+    "before": { "tests": 173, "passed": 170, "failed": 3 },
+    "upstreamFix": "57b7856c966b9f8161de7b22fe9be8a57ee89e0e",
+    "after": { "tests": 173, "passed": 173, "failed": 0, "requiredPosttestsPassed": 2 },
+    "command": "npm test -- --workspace=. --test-file=scripts/package-safe.test.ts",
+    "scope": "Packaging validation only; no local packaging or ExifTool source edits. An initial invocation without the exact workspace selector was rejected before tests ran."
+  },
+  "priorDelivery": "Authority/topology repair 9aa14e2f76bbfec9848827d46ba5184cbef2ebbe verified exactly on remote main. Final stable 104-case repeat passed after the interrupted rebase; the run started during that interruption is invalid and not counted.",
+  "remaining": "RPC, memory/remote-adapter and other filesystem release failures; containing publication and all 19 original ssconvert families remain open."
+}

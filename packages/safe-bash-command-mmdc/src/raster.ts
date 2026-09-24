@@ -656,7 +656,7 @@ function flattenGlyphContour(
       const ctrl = toScreen(next);
       const p1 = toScreen(ordered[(i + 2) % len]!);
       out.push(p0);
-      const steps = 6;
+      const steps = 12;
       for (let s = 1; s < steps; s++) {
         const t = s / steps;
         const inv = 1 - t;
@@ -670,6 +670,8 @@ function flattenGlyphContour(
   }
   return out;
 }
+
+const TEXT_SUB_OFFSETS = [0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375] as const;
 
 function drawTextLine4x4(
   rgba: Uint8Array,
@@ -690,7 +692,7 @@ function drawTextLine4x4(
     startX = (line.x - line.width) * scale;
   }
   const baselineY = line.y * scale;
-  const boldDilation = line.fontWeight >= 600 ? 0.24 * scale : line.fontWeight >= 500 ? 0.1 * scale : 0;
+  const stemBoost = line.fontWeight === 500 && line.fontFamily === "ui" ? 0.08 * scale : 0;
 
   let cursorX = startX;
   for (const symbol of line.text) {
@@ -703,11 +705,11 @@ function drawTextLine4x4(
 
       const minX = Math.max(
         0,
-        Math.floor(cursorX + glyph.xMin * pxPerUnit - boldDilation - 1)
+        Math.floor(cursorX + glyph.xMin * pxPerUnit - stemBoost - 1)
       );
       const maxX = Math.min(
         frameW - 1,
-        Math.ceil(cursorX + glyph.xMax * pxPerUnit + boldDilation + 1)
+        Math.ceil(cursorX + glyph.xMax * pxPerUnit + stemBoost + 1)
       );
       const minY = Math.max(
         0,
@@ -718,35 +720,44 @@ function drawTextLine4x4(
         Math.ceil(baselineY - glyph.yMin * pxPerUnit + 1)
       );
 
-      // 4x4 subpixel scanline intersection rasterizer per pixel row
+      // 8x8 non-zero winding subpixel scanline rasterizer per pixel row
       for (let py = minY; py <= maxY; py++) {
         const rowHits = new Uint8Array(maxX - minX + 1);
-        for (let sy = 0; sy < 4; sy++) {
-          const sampleY = py + SUB_OFFSETS[sy]!;
-          const xCrossings: number[] = [];
+        for (let sy = 0; sy < 8; sy++) {
+          const sampleY = py + TEXT_SUB_OFFSETS[sy]!;
+          const crossings: { x: number; dir: number }[] = [];
           for (const poly of polygons) {
             for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
               const p1 = poly[j]!;
               const p2 = poly[i]!;
               if ((p1.y <= sampleY && p2.y > sampleY) || (p2.y <= sampleY && p1.y > sampleY)) {
                 const xInt = p1.x + ((sampleY - p1.y) / (p2.y - p1.y)) * (p2.x - p1.x);
-                xCrossings.push(xInt);
+                const dir = p1.y < p2.y ? 1 : -1;
+                crossings.push({ x: xInt, dir });
               }
             }
           }
-          if (xCrossings.length < 2) continue;
-          xCrossings.sort((a, b) => a - b);
+          if (crossings.length < 2) continue;
+          crossings.sort((a, b) => a.x - b.x);
 
-          for (let k = 0; k + 1 < xCrossings.length; k += 2) {
-            const segLeft = xCrossings[k]! - boldDilation;
-            const segRight = xCrossings[k + 1]! + boldDilation;
-            const pxStart = Math.max(minX, Math.floor(segLeft));
-            const pxEnd = Math.min(maxX, Math.ceil(segRight));
-            for (let px = pxStart; px <= pxEnd; px++) {
-              for (let sx = 0; sx < 4; sx++) {
-                const sampleX = px + SUB_OFFSETS[sx]!;
-                if (sampleX >= segLeft && sampleX <= segRight) {
-                  rowHits[px - minX]!++;
+          let winding = 0;
+          let spanStart = 0;
+          for (const c of crossings) {
+            const prevWinding = winding;
+            winding += c.dir;
+            if (prevWinding === 0 && winding !== 0) {
+              spanStart = c.x;
+            } else if (prevWinding !== 0 && winding === 0) {
+              const segLeft = spanStart - stemBoost;
+              const segRight = c.x + stemBoost;
+              const pxStart = Math.max(minX, Math.floor(segLeft));
+              const pxEnd = Math.min(maxX, Math.ceil(segRight));
+              for (let px = pxStart; px <= pxEnd; px++) {
+                for (let sx = 0; sx < 8; sx++) {
+                  const sampleX = px + TEXT_SUB_OFFSETS[sx]!;
+                  if (sampleX >= segLeft && sampleX <= segRight) {
+                    rowHits[px - minX]!++;
+                  }
                 }
               }
             }
@@ -756,11 +767,12 @@ function drawTextLine4x4(
         for (let px = minX; px <= maxX; px++) {
           const hits = rowHits[px - minX]!;
           if (hits > 0) {
+            const coverage = Math.pow(Math.min(1, hits / 64), 0.72);
             blendPixel(
               rgba,
               (py * frameW + px) * 4,
               color,
-              Math.min(1, hits / 16)
+              coverage
             );
           }
         }

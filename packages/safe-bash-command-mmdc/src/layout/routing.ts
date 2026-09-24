@@ -237,8 +237,8 @@ function placeEndpointBadge(
   const nx = -uy;
   const ny = ux;
   const isVertical = Math.abs(dx) < 1;
-  const baseNormalDist = isVertical ? testPill.width / 2 + 10 : testPill.height / 2 + 10;
-  const baseAlongDist = isVertical ? testPill.height / 2 + 6 : testPill.width / 2 + 8;
+  const baseNormalDist = Math.max(28, isVertical ? testPill.width / 2 + 12 : testPill.height / 2 + 12);
+  const baseAlongDist = isVertical ? testPill.height / 2 + 4 : testPill.width / 2 + 6;
 
   for (const alongExtra of [0, 6, 12, 18]) {
     const along = Math.max(baseAlongDist, Math.min(Math.max(baseAlongDist, len - 4), baseAlongDist + alongExtra));

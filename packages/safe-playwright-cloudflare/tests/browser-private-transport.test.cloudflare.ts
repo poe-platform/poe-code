@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import {
 	createBrowserPrivateTransport,
 	waitForBrowserSocketClose,
@@ -72,6 +72,56 @@ function target(targetId: string) {
 		params: { targetInfo: { targetId, type: "page" } },
 	});
 }
+
+test("native creation replies within the control budget retain privacy on existing and late clients", async () => {
+	vi.useFakeTimers();
+	vi.spyOn(AbortSignal, "timeout").mockImplementation((ms) => {
+		const controller = new AbortController();
+		setTimeout(() => controller.abort(), ms);
+		return controller.signal;
+	});
+	const privacy = coordinator();
+	const primary = client(privacy);
+	const trusted = control();
+	const creation = privacy.beginCreation();
+	const wire = receive(trusted.server);
+	const created = trusted.owner.send("Target.createTarget", { url: "about:blank" });
+	void created.catch(() => {});
+	try {
+		await wire;
+		await vi.advanceTimersByTimeAsync(2001);
+		const late = client(privacy);
+		trusted.server.send('{"id":1,"result":{"targetId":"delayed-private"}}');
+		const result = await created;
+		creation.commit(result["targetId"] as string);
+		const receipts = [primary, late].map((peer) => receive(peer.socket, true));
+		for (const peer of [primary, late]) {
+			peer.server.send(target("delayed-private"));
+			peer.server.send(barrier);
+		}
+		expect(await Promise.all(receipts)).toEqual([[barrier], [barrier]]);
+		await vi.advanceTimersByTimeAsync(10000);
+	} finally {
+		vi.restoreAllMocks();
+		vi.useRealTimers();
+	}
+});
+
+test.each([undefined, 37])("unknown identity still fails closed at its configured deadline (%s)", (timeoutMs) => {
+	const deadline = new AbortController();
+	const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(deadline.signal);
+	try {
+		const privacy = coordinator({ creationTimeoutMs: timeoutMs }, true);
+		const creation = privacy.beginCreation();
+		expect(timeout).toHaveBeenCalledWith(timeoutMs ?? 10000);
+		deadline.abort();
+		expect(() => creation.commit("late-private")).toThrow("identity timed out");
+		expect(() => privacy.beginCreation()).toThrow("identity timed out");
+		expect(() => creation.fail(new Error("preparer observed timeout"))).not.toThrow();
+	} finally {
+		vi.restoreAllMocks();
+	}
+});
 
 test("CDP command timeout retains its original reason through bridge shutdown", async () => {
 	const privacy = coordinator({ commandTimeoutMs: 20 }, true);

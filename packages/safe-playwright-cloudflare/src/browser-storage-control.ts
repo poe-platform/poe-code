@@ -3,6 +3,8 @@ import type {
 	PlaywrightStorageControlEvent,
 } from "@poe-platform/safe-bash/playwright";
 
+export const DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS = 10000;
+
 export interface BrowserStorageControlLimits {
 	maxMessageBytes?: number;
 	maxPendingCommands?: number;
@@ -102,7 +104,7 @@ export function createBrowserStorageControl(options: {
 		maxPendingBytes: 4 * 1024 * 1024,
 		maxLateReplies: 128,
 		maxSubscriptions: 128,
-		commandTimeoutMs: 10000,
+		commandTimeoutMs: DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS,
 		...options.limits,
 	};
 	for (const [name, value] of Object.entries(limits)) {

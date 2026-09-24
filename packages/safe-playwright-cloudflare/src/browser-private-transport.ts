@@ -9,6 +9,7 @@ import {
 	closeBrowserSocket,
 	registerBrowserSocketClose,
 } from "./browser-socket-closure.js";
+import { DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS } from "./browser-storage-control.js";
 
 export { waitForBrowserSocketClose } from "./browser-socket-closure.js";
 
@@ -59,7 +60,9 @@ export function createBrowserPrivateTransport(
 	const { maxClients = 8, ...guardOptions } = options;
 	const maxTargets = options.maxPrivateTargets ?? 256;
 	const maxBytes = options.maxMessageBytes ?? 16 * 1024 * 1024;
-	const creationTimeoutMs = options.creationTimeoutMs ?? 2000;
+	// Identity must remain guarded for the full trusted creation command budget.
+	const creationTimeoutMs =
+		options.creationTimeoutMs ?? DEFAULT_BROWSER_STORAGE_COMMAND_TIMEOUT_MS;
 	for (const [name, value] of Object.entries({
 		...guardOptions,
 		maxClients,
@@ -166,7 +169,7 @@ export function createBrowserPrivateTransport(
 		};
 		const guard = createPlaywrightPrivateTargetTransport(
 			upstream,
-			guardOptions,
+			{ ...guardOptions, creationTimeoutMs },
 		);
 		const cleanup = (operation: () => void) => {
 			try {

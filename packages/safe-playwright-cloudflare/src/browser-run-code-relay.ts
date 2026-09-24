@@ -52,6 +52,13 @@ export function createRunCodeRelay(options: {
 		const retained = receiver;
 		receiver = undefined;
 		const failures: unknown[] = [];
+		// Revocation skips queued frames, but an admitted RPC still owns this receiver.
+		// Let it settle before closing or disposing the callback capability.
+		try {
+			await incoming;
+		} catch (error) {
+			failures.push(error);
+		}
 		try {
 			await retained.close();
 		} catch (error) {

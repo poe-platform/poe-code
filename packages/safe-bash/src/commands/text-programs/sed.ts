@@ -3,6 +3,7 @@ import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { Pattern, substitute } from "./regex.js";
 import { Budget, ProgramError, byteString, bytes, command, input, lineRecords, readProgram, virtualPath, write, type RecordLine, type TextProgramOptions } from "./shared.js";
 import { assertPathRequirements, requiredFileInput, sedRequirements } from "../search/requirements.js";
+import { editInPlace, prepareInPlace } from "./inplace.js";
 
 type Address = { kind: "number"; number: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {
@@ -533,19 +534,16 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       if (inPlace.includes("/") || inPlace.includes("\0")) throw new ProgramError("backup suffix cannot contain '/' or NUL");
       await assertPathRequirements(context, sedRequirements, ["in-place"], files);
       if (inPlace) await assertPathRequirements(context, sedRequirements, ["backup"], files.flatMap(file => [file, file + inPlace]));
-      for (const file of files) {
-        const path = virtualPath(context, file);
-        if ((await context.fs.lstat(path, { signal: context.signal })).type !== "file") throw new FsError("ENOTSUP", { path, message: "in-place editing requires regular files, not links or directories" });
-      }
+      const targets = await prepareInPlace(context, files, inPlace);
       await prepareOutputs();
-      for (const file of files) {
-        let rewritten = "";
-        const child = { ...context, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
-        outputState.stdoutUnterminated = false;
-        const result = await execute(program, child, [file], quiet, budget, separator, outputState, lineLength);
-        const path = virtualPath(context, file);
-        if (inPlace) await context.fs.copyFile(path, path + inPlace, { signal: context.signal });
-        await writeFileOutput(context, bytes(rewritten), chunk => context.fs.writeFile(path, chunk, { signal: context.signal }));
+      for (const target of targets) {
+        const result = await editInPlace(context, target, inPlace, budget, async stdin => {
+          let rewritten = "";
+          const child = { ...context, stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + Buffer.from(chunk).toString("latin1")); } } };
+          outputState.stdoutUnterminated = false;
+          const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
+          return { result, data: bytes(rewritten) };
+        });
         if (result.quit || result.status) return result.status;
       }
       return 0;

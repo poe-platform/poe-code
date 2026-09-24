@@ -102,12 +102,18 @@ unsupported; file commands use only the supplied virtual filesystem.
 
 Sed streams line records and buffers only required lookahead/pattern/hold/text
 state except in-place editing, which buffers one rewritten file. `-i` requires
-named regular files; symlinks and directories are rejected. The buffered in-place
+named regular files and a VFS with retained reads, retained directory ancestry,
+and atomic conditional writes. Unsupported filesystems, symlink ancestors,
+final symlinks and directories are rejected. The buffered in-place
 replacement and its backup are deferred until interpretation succeeds. Explicit
 `w`/`s///w` commands still have immediate file effects, including when a script
 deliberately names an input file as its output.
-Nonempty backup suffixes copy the original to `FILE+SUFFIX`; suffixes containing
-slash/NUL are rejected. This is not a transaction: copy/write failures or a
+Nonempty backup suffixes write retained original bytes to `FILE+SUFFIX`; suffixes
+containing slash/NUL and backups that are links or alias the input are rejected.
+Both backup and edit publication reject changed destination identities, and the
+edit also rejects changes to the original file since inspection. Backup bytes
+are subject to `maxBufferBytes`, including bytes after an early quit.
+This is not a transaction: backup/write failures or a
 later input-file failure can leave earlier completed edits. Writes use the
 provider's file operation, not native rename-based replacement, so hardlink and
 metadata behavior need not match a particular host sed implementation.

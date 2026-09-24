@@ -89,9 +89,9 @@ test("sed in-place replacements share capacity across files without partial repl
   const { fs, shell } = fixture(4);
   await fs.writeFile("/one", Buffer.from("abc\n"));
   await fs.writeFile("/two", Buffer.from("abc\n"));
-  const original = fs.writeFile.bind(fs);
+  const original = fs.writeFileConditional.bind(fs);
   const writes: string[] = [];
-  fs.writeFile = async (...args) => { writes.push(args[0]); return original(...args); };
+  fs.writeFileConditional = async (...args) => { writes.push(args[0]); return original(...args); };
   await assert.rejects(shell.exec("sed -i 's/a/b/' /one /two"), outputLimit);
   assert.deepEqual(writes, ["/one"]);
   assert.equal(Buffer.from(await fs.readFile("/one")).toString(), "bbc\n");

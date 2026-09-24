@@ -26,8 +26,8 @@ export const sedRequirements: readonly CommandFileSystemRequirement[] = [
   { id: "script-file", description: "Read sed program files (-f)", capabilities: ["read"] },
   { id: "script-read", description: "Read files referenced by sed r instructions", capabilities: [], anyOf: [["streamingRead"], ["read"]] },
   { id: "script-output", description: "Truncate and append files referenced by sed w instructions", capabilities: ["write", "append"], mutates: true },
-  { id: "in-place", description: "Inspect and rewrite named files (-i)", capabilities: ["stat", "write"], mutates: true },
-  { id: "backup", description: "Copy original files to backup destinations (-iSUFFIX)", capabilities: ["copy"], mutates: true },
+  { id: "in-place", description: "Inspect and conditionally rewrite retained files (-i)", capabilities: ["stat", "write", "retainedRead", "atomicFileMutation"], mutates: true },
+  { id: "backup", description: "Conditionally write retained original bytes to backups (-iSUFFIX)", capabilities: ["write", "atomicFileMutation"], mutates: true },
 ];
 
 export async function assertPathRequirements(

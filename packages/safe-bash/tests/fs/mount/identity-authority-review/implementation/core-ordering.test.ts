@@ -9,13 +9,14 @@ import { createMountFileSystem } from "../../../../../src/fs/mount/index.js";
 import { bytes, opaque, wrapped } from "./support.js";
 
 async function run(name: "cp" | "mv", args: string[], filesystem: FileSystem) {
+  const output: Uint8Array[] = [];
   const errors: Uint8Array[] = [];
   const command = filesystemCommands().find(candidate => candidate.name === name)!;
   const result = await command.execute({ command: name, args, fs: filesystem, cwd: "/", env: {},
     signal: new AbortController().signal, stdin: toByteSource(""),
-    stdout: { async write() {} }, stderr: { async write(data) { errors.push(data.slice()); } },
+    stdout: { async write(data) { output.push(data.slice()); } }, stderr: { async write(data) { errors.push(data.slice()); } },
   });
-  return { ...result, stderr: Buffer.concat(errors).toString() };
+  return { ...result, stdout: Buffer.concat(output).toString(), stderr: Buffer.concat(errors).toString() };
 }
 
 test("current core cp -P: unscoped source symlink across two aliases is never unlinked", async () => {

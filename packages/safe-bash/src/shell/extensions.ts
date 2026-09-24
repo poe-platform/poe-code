@@ -237,8 +237,8 @@ function captureHooks(instance: ShellExtensionInstance, field: "listTerminators"
   });
 }
 
-export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope): ShellExtensionState | undefined {
-  if (!definitions.length) return undefined;
+export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope, fallback?: ShellExtension): ShellExtensionState | undefined {
+  if (!definitions.length && !fallback) return undefined;
   const captured = captureShellExtensions(definitions);
   const names = new Set<string>();
   const snapshots = captured.definitions.map((definition, index) => {
@@ -252,6 +252,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
     capturedDefinitions.add(snapshot);
     return snapshot;
   });
+  if (fallback && !names.has(fallback.name)) snapshots.unshift(fallback);
   const builtins = new Map<string, ShellExtensionBuiltin>();
   const options = new Map<string, ShellExtensionOption>();
   const shoptOptions = new Map<string, ShellExtensionOption>();

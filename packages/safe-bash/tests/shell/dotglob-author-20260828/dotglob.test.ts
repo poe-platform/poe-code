@@ -4,10 +4,10 @@ import { Shell, MemoryFileSystem, ShellLimitError, standardCommands, createAgent
 import type { ShellOptions, ShellCommandContext, FsOptions } from "../../../src/index.js";
 
 const line = (enabled: boolean, print = false): string => print ? `shopt -${enabled ? "s" : "u"} dotglob\n` : `dotglob             \t${enabled ? "on" : "off"}\n`;
-const globstarLine = (print = false): string => ["extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
+const globstarLine = (print = false): string => ["extglob", "globstar", "nocaseglob", "nocasematch", "nullglob", "extdebug"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
 const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
 const diagnostic = (text: string): string => `shell: line 1: shopt: ${text}\n`;
-const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, extglob, globstar, nocaseglob, nocasematch, nullglob)`);
+const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, extglob, globstar, nocaseglob, nocasematch, nullglob, extdebug)`);
 
 async function fixture(options: Partial<ShellOptions> = {}) {
   const fs = new MemoryFileSystem();

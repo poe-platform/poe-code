@@ -114,7 +114,7 @@ export class Shell implements PluginHost {
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");
     warnIfHostProcessEnv(options.env);
     const { commandLimits } = resolveLimits(options.limits);
-    this.#options = { ...options, extensions: options.extensions?.some(extension => extension.name === "trap") ? [...options.extensions] : [portableTrapExtension(), ...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
+    this.#options = { ...options, extensions: [...options.extensions ?? []], cwd: resolvePath("/", options.cwd ?? "/"), env: { ...options.env }, limits: { ...options.limits, ...(commandLimits === undefined ? {} : { commandLimits }) } };
     this.commands = commands;
   }
 
@@ -286,7 +286,7 @@ export class Shell implements PluginHost {
         variables.OPTERR = "1";
         state = {
           umask: 0o022,
-          extensions: extensionState(extensions.definitions),
+          extensions: extensionState(extensions.definitions, undefined, undefined, portableTrapExtension()),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,

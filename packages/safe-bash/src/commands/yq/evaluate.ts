@@ -382,13 +382,9 @@ export class Evaluator {
       let equal = false;
       if (nodeTag(left, yaml) === "!!null") equal = nodeTag(right, yaml) === "!!null";
       else if (yaml.isScalar(left) && yaml.isScalar(right)) {
-        const first = value(left, yaml);
-        const second = value(right, yaml);
-        if (typeof first === "string" && typeof second === "string") equal = await this.match(first, second);
-        else if ((typeof first === "number" || typeof first === "bigint") && (typeof second === "number" || typeof second === "bigint")) {
-          // Relational comparison preserves precision across bigint and float operands.
-          equal = first <= second && first >= second;
-        } else equal = first === second;
+        // Mike yq compares scalar spellings, including across YAML tags. Keep
+        // source precision and spelling instead of coercing numbers or booleans.
+        equal = await this.match(scalarText(left, yaml), scalarText(right, yaml));
       }
       return scalar(yaml, this.work, operator === "==" ? equal : !equal);
     }
@@ -434,7 +430,11 @@ export class Evaluator {
     const yaml = this.yaml;
     if (expression.kind === "identity") return inputs;
     if (expression.kind === "group") return next(expression.body);
-    if (expression.kind === "literal") return inputs.map(input => this.child(scalar(yaml, this.work, expression.value, typeof expression.value === "number"), input));
+    if (expression.kind === "literal") return inputs.map(input => {
+      const node = scalar(yaml, this.work, expression.value, typeof expression.value === "number");
+      if (yaml.isScalar(node) && expression.source !== undefined) node.source = expression.source;
+      return this.child(node, input);
+    });
     if (expression.kind === "field") {
       const output: Candidate[] = [];
       for (const base of await next(expression.base)) for (const key of await next(expression.key, [base], false)) output.push(...await this.field(base, value(key.node, yaml), create, omitMissing));

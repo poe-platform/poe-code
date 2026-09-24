@@ -3,7 +3,7 @@ import { MikeError } from "./native-work.js";
 export type Expression =
   | { kind: "identity" | "iterate" }
   | { kind: "recursive"; includeKeys?: boolean }
-  | { kind: "literal"; value: string | boolean | bigint | number | null }
+  | { kind: "literal"; value: string | boolean | bigint | number | null; source?: string }
   | { kind: "group"; body: Expression }
   | { kind: "field"; base: Expression; key: Expression }
   | { kind: "slice"; base: Expression; start: Expression; end: Expression }
@@ -73,8 +73,12 @@ export function compileExpression(source: string, security: { readonly disableEn
         take();
       }
       expect("}"); result = { kind: "object", fields };
-    } else if (token.text === "-") result = { kind: "binary", operator: "*", left: literal(-1n), right: parse(10) };
-    else if (token.kind === "number") result = literal(/[.eE]/u.test(token.text) ? Number(token.text) : BigInt(token.text));
+    } else if (token.text === "-") {
+      const right = parse(10);
+      result = right.kind === "literal" && right.source !== undefined && (typeof right.value === "number" || typeof right.value === "bigint")
+        ? { kind: "literal", value: -right.value, source: `-${right.source}` }
+        : { kind: "binary", operator: "*", left: literal(-1n), right };
+    } else if (token.kind === "number") result = { kind: "literal", value: /[.eE]/u.test(token.text) ? Number(token.text) : BigInt(token.text), source: token.text };
     else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
     else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as boolean | null);
     else if (security.disableEnvOps && ["env", "strenv", "envsubst"].includes(token.text)) throw new MikeError("env operations have been disabled");

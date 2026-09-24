@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "baseline": "0427d3061437388264684c2f8d96356a296d9832",
+  "issue": "Safe Bash declares four PDF/soffice workspace devDependencies missing from its package-lock entry; committed archive admission rejects that drift.",
+  "repair": {
+    "names": [
+      "safe-bash-command-pdfinfo",
+      "safe-bash-command-pdftotext",
+      "safe-bash-command-qpdf",
+      "safe-bash-command-soffice"
+    ],
+    "offset": 598832,
+    "insertedBytes": 167,
+    "unchangedOtherBytes": true,
+    "exactManifestDependencies": true
+  },
+  "validation": {
+    "baselineArchiveControls": {
+      "tests": 221,
+      "passed": 220,
+      "failed": 1,
+      "failure": "workspace lock drift: packages/safe-bash devDependencies"
+    },
+    "repairedArchiveControls": {
+      "commit": "fa5950357",
+      "tests": 221,
+      "passed": 221,
+      "failed": 0,
+      "skipped": 0
+    },
+    "command": "node --import tsx --test tests/integration/s3-http-exports/archive-controls.test.mjs",
+    "scope": "Local source archive and synthetic committed controls; containing CI must still qualify its separate failures.",
+    "lockSha256": "8e89d6090018dc658ecf71e6c8edbd55aac127ec88c9335280143c5dd323fb9c"
+  },
+  "remaining": "Containing release, broader filesystem blockers and all 19 original ssconvert families remain open.",
+  "deliveryReconciliation": {
+    "upstream": "13a7529cc",
+    "result": "Upstream independently synchronized the same four entries before our push. Preserve its entire lockfile and publish this validation evidence only.",
+    "postRebase": "The Safe Bash workspace now exactly matches the upstream lock entry. Separate new root drift: tesseract appears only in lock root devDependencies; full archive qualification remains open until that is reconciled."
+  }
+}

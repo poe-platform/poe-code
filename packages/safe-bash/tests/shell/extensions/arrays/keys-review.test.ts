@@ -141,7 +141,10 @@ for (const limit of ["maxExpansionFields", "maxExpansionBytes"] as const) {
       assert.equal(result.stdoutBytes.length, 0);
       assert.equal(result.stderr, "shell: line 1: indexed array: private metadata limit exceeded\n");
     } else {
-      await assert.rejects(execution, error => error instanceof ShellLimitError && error.limit === limit);
+      const result = await execution;
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdoutBytes.length, 0);
+      assert.equal(result.stderr, "shell: line 1: indexed array: private payload limit exceeded\n");
     }
     assert.equal(seeded, true);
     const next = await shell.exec('a=([2]=x); printf "%s" "${!a[*]}"');

@@ -40,11 +40,12 @@ export async function unchanged(fs: FileSystem): Promise<void> {
   assert.deepEqual(await bytes(fs, "/target"), previous);
 }
 
-export async function provider(options: { scoped?: boolean; alias?: boolean; target?: boolean; comparison?: "actual" | "absent" | "unknown" } = {}) {
+export async function provider(options: { scoped?: boolean | "source"; alias?: boolean; target?: boolean; comparison?: "actual" | "absent" | "unknown" } = {}) {
   const base = createMemoryFileSystem();
   await base.writeFile("/source", payload);
   if (options.alias) await base.link("/source", "/target");
   else if (options.target !== false) await base.writeFile("/target", previous);
+  if (options.comparison === "absent") Object.defineProperty(base, "compareEntry", { value: undefined });
   const events: string[] = [];
   const authority: NonNullable<FileSystem["compareEntry"]> = async (path, peer, peerPath, controls) => {
     events.push(`compare:${path}:${peerPath}`);
@@ -55,16 +56,18 @@ export async function provider(options: { scoped?: boolean; alias?: boolean; tar
     return left.identityScope === right.identityScope && left.dev === right.dev && left.ino === right.ino ? "same" : "distinct";
   };
   const fs: FileSystem = view(base, {
-    stat: async (path, controls) => { const stat = await base.stat(path, controls); return options.scoped ? stat : unscoped(stat); },
-    lstat: async (path, controls) => { const stat = await base.lstat(path, controls); return options.scoped ? stat : unscoped(stat); },
+    stat: async (path, controls) => { const stat = await base.stat(path, controls); return options.scoped === true || options.scoped === "source" && path === "/source" ? stat : unscoped(stat); },
+    lstat: async (path, controls) => { const stat = await base.lstat(path, controls); return options.scoped === true || options.scoped === "source" && path === "/source" ? stat : unscoped(stat); },
     ...(options.comparison === "absent" ? {} : { compareEntry: authority }),
     rename: async () => { events.push("rename:EXDEV"); throw new FsError("EXDEV"); },
-    copyFile: async (source, target, controls) => {
-      events.push(`copy:${controls?.exclusive === true ? "exclusive" : "replace"}`);
-      await base.copyFile(source, target, controls);
+    copyFile: async () => { events.push("unsafe-copyFile"); throw new Error("copy must use a retained reader"); },
+    writeStream: async (target, source, controls) => {
+      events.push(`copy:${controls?.flag === "wx" ? "exclusive" : "replace"}`);
+      await base.writeStream(target, source, controls);
       events.push("published");
     },
     rm: async (path, controls) => { events.push(`remove:${path}`); await base.rm(path, controls); },
+    removeEntryConditional: async (path, controls) => { events.push(`remove:${path}`); await base.removeEntryConditional!(path, controls); },
   });
   return { base, fs, events };
 }

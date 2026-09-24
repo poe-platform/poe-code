@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "baseline": "f4688afa079f17f63378267b3ff189a71a276ecd",
+  "issue": "Nine authority and four mount-topology fixtures expected pathname copying without retained source identity or cross-device overwrite of existing files, or injected failures into obsolete copyFile hooks.",
+  "baselineTests": { "files": 4, "tests": 92, "passed": 74, "failed": 18, "authorityFailures": 9, "topologyFailures": 4, "preservationFailuresDeliveredSeparately": 5 },
+  "repair": [
+    "Preserve unscoped-reader and existing-target move refusal cases with exact diagnostics and unchanged bytes; add scoped-source copies and missing-target publication/removal cases.",
+    "Keep target identity incomplete when testing provider comparisons, so complete source identity permits retained reads without bypassing actual comparison hooks.",
+    "Inject EACCES through writeStream, assert exact calls and w/wx flags, require a second authority comparison before forced unlink, and retain raced aliases and unknown-authority refusals.",
+    "Observe active streaming writes and conditional removals; trap any unsafe copyFile fallback.",
+    "Make the absent comparison fixture truly omit the inherited API. Four new method-absence assertions failed before the inherited method was shadowed.",
+    "Preserve mounted shared/independent backing stores, recognized clients, authority conflicts, read-only policy, symlinks and exact binary payloads."
+  ],
+  "runtimeChanged": false,
+  "validation": {
+    "authorityAndPreservation": { "tests": 68, "passed": 68, "failed": 0 },
+    "authorityCohort": { "files": 4, "tests": 104, "passed": 104, "failed": 0, "skipped": 0 },
+    "related": { "files": 10, "tests": 209, "passed": 209, "failed": 0, "skipped": 0 },
+    "nativeEvidenceSha256": "51d72f9595f65b2e12a03069bd8ce20467ad697b7125375f19983c5d1a8a50bb",
+    "lint": "Focused ESLint passed for all three changed TypeScript files.",
+    "types": "Maintained historical-type-models source/test compilation passed."
+  },
+  "deliveryBeforeThisChange": "8f452a00f493a596b4a17162c89336114cdb791c preservation repair verified exactly on remote main; publication pending.",
+  "remaining": "Other filesystem/adapter release failures, ExifTool packaging fixture feedback, containing publication and all 19 original ssconvert families remain open."
+}

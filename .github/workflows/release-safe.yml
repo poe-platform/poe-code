@@ -2,6 +2,7 @@ name: Release scoped safe packages
 on:
   workflow_dispatch:
 concurrency:
+  queue: max
   group: release-safe
   cancel-in-progress: false
 permissions:

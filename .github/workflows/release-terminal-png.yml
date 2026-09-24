@@ -8,6 +8,7 @@ on:
       - "packages/terminal-png/**"
       - "packages/terminal-png-mcp/**"
 concurrency:
+  queue: max
   group: release-terminal-png
   cancel-in-progress: false
 permissions:

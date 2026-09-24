@@ -7,6 +7,7 @@ on:
       - 'packages/tiny-stdio-mcp-test-server/**'
       - '.github/workflows/release-tiny-mcp-test.yml'
 concurrency:
+  queue: max
   group: release-tiny-mcp-test
   cancel-in-progress: false
 permissions:

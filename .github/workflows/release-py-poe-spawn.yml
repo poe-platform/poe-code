@@ -6,6 +6,7 @@ on:
     paths:
       - 'packages/py-poe-spawn/**'
 concurrency:
+  queue: max
   group: release-py-poe-spawn
   cancel-in-progress: false
 permissions:

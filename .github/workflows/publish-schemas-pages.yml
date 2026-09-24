@@ -7,8 +7,9 @@ on:
   workflow_dispatch:
 
 concurrency:
+  queue: max
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read

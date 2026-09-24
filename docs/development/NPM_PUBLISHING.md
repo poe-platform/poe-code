@@ -13,6 +13,40 @@ Use `.github/workflows/bump-version.yml` when GitHub should bump and release the
 root package. The release workflow runs semantic-release and publishes from
 GitHub.
 
+## Release Queues
+
+Release workflows and Pages publishing use GitHub's native concurrency queue:
+
+```yaml
+concurrency:
+  queue: max
+  group: release-package-name
+  cancel-in-progress: false
+```
+
+Keep group names stable and unique to each publisher. Root validation and root
+publication retain separate groups, so validation can continue while a previous
+validated build publishes. Build-only validation has its own group. Each run
+continues using its triggering commit and its own verified build artifacts.
+
+`cancel-in-progress: false` alone still replaces older pending runs. `queue: max`
+retains up to 100 pending runs per group and rejects new arrivals when full.
+GitHub serves the queue by arrival at the concurrency gate, which can differ from
+commit or dispatch order. The root publisher retains its ancestry guard against
+publishing an older commit over an already published newer commit.
+
+Failed runs release their concurrency slot; inspect their errors and rerun them
+when appropriate. New pushes do not cancel running or queued releases. GitHub's
+ordinary workflow and job time limits still apply.
+
+Run `npm run lint:workflows` after editing a queue. Until actionlint supports
+the new key, this route validates queue values and requires cancellation to be
+disabled for `max`, then suppresses only actionlint's unsupported `queue` key
+diagnostic. All other actionlint checks remain enabled.
+
+See [GitHub's concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+and [actionlint's pending support](https://github.com/rhysd/actionlint/pull/654).
+
 ## Workspace Packages
 
 ### Scoped Safe Libraries

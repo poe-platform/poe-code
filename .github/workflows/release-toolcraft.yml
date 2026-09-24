@@ -57,6 +57,7 @@ on:
       - packages/ssconvert/**
       - turbo.json
 concurrency:
+  queue: max
   group: release-toolcraft
   cancel-in-progress: false
 permissions:

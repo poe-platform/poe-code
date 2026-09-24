@@ -7,6 +7,7 @@ on:
     paths:
       - 'packages/poe-oauth/**'
 concurrency:
+  queue: max
   group: release-poe-oauth
   cancel-in-progress: false
 permissions:

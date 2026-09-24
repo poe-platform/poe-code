@@ -2,6 +2,7 @@ name: Release opencode-poe-auth
 on:
   workflow_dispatch:
 concurrency:
+  queue: max
   group: release-opencode-poe-auth
   cancel-in-progress: false
 permissions:

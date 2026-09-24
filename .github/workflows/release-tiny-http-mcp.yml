@@ -11,6 +11,7 @@ on:
       - 'packages/tiny-mcp-client/**'
       - '.github/workflows/release-tiny-http-mcp.yml'
 concurrency:
+  queue: max
   group: release-tiny-http-mcp
   cancel-in-progress: false
 permissions:

@@ -8,6 +8,7 @@ on:
       - "packages/terminal-pilot/**"
       - "packages/terminal-pilot-mcp/**"
 concurrency:
+  queue: max
   group: release-terminal-pilot
   cancel-in-progress: false
 permissions:

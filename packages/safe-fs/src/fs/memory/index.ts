@@ -190,7 +190,7 @@ export class MemoryFileSystem implements FileSystem {
       }
       retained.set("/", this.root);
     }
-    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream"]);
+    const allowed = new Set(["mkdir", "rm", "rmdir", "rename", "symlink", "link", "chmod", "utimes", "writeFile", "appendFile", "writeStream", "writeFileConditional", "removeFileConditional"]);
     const reads = new Set(["access", "capabilitiesFor", "compareEntry", "lstat", "stat", "readFile", "readStream", "readdir", "readlink", "realpath"]);
     const check = (path: string, followFinal: boolean): void => {
       if (!roots.some(root => root === "/" || path === root || path.startsWith(`${root}/`))) this.fail("EPERM", "confineExtraction", path);
@@ -218,7 +218,7 @@ export class MemoryFileSystem implements FileSystem {
           const paths = property === "symlink" ? [args[1]] : property === "link" || property === "rename" ? args.slice(0, 2) : [args[0]];
           for (const path of paths) {
             if (typeof path !== "string") throw new FsError("EINVAL");
-            check(path, ["chmod", "utimes", "appendFile", "writeFile", "writeStream", "link"].includes(String(property)));
+            check(path, ["chmod", "utimes", "appendFile", "writeFile", "writeStream", "writeFileConditional", "link"].includes(String(property)));
           }
           return Reflect.apply(value, target, args);
         };

@@ -1,6 +1,6 @@
 import {
   createOutputOperation, dirname, readBytes, writeBytes,
-  type CommandContext, type FileStat,
+  type CommandContext, type FileStat, type FileSystem,
 } from "../../contracts/index.js";
 import type { ApplyPatchLimits } from "./options.js";
 import { parse, type PatchFile } from "./parser.js";
@@ -24,8 +24,35 @@ class Invocation {
   readonly work: Work;
   private readonly initial = new Map<string, FileStat | undefined>();
   private ordinal: number | undefined;
+  private fs: FileSystem;
 
-  constructor(readonly context: CommandContext, limits: ApplyPatchLimits) { this.work = new Work(context, limits); }
+  constructor(readonly context: CommandContext, limits: ApplyPatchLimits) {
+    this.work = new Work(context, limits);
+    this.fs = context.fs;
+  }
+
+  private async confine(files: readonly PatchFile[]): Promise<void> {
+    if (!this.fs.confineExtraction) throw new PatchError("filesystem does not support race-safe patch mutations");
+    if (!this.fs.writeFileConditional || !this.fs.removeFileConditional) throw new PatchError("filesystem does not support conditional patch mutations");
+    const roots = new Set<string>();
+    for (const file of files) for (const path of [file.path, file.destination]) {
+      if (!path) continue;
+      const capabilities = await this.work.fs(path, async () => await this.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.fs.capabilities);
+      if (capabilities.atomicFileMutation !== true) throw new PatchError("filesystem does not support atomic conditional patch mutations");
+      let parent = dirname(path);
+      while (!await this.inspect(parent, false)) {
+        await this.work.charge(1);
+        const next = dirname(parent);
+        if (next === parent) throw new PatchError("missing VFS root");
+        parent = next;
+      }
+      roots.add(parent);
+    }
+    // The backend retains these directories and all their ancestors. Every
+    // mutation must enforce the retained ancestry atomically, including mkdir
+    // and source deletion; a separate pathname recheck cannot provide this.
+    this.fs = await this.work.fs(this.work.cwd, () => this.fs.confineExtraction!([...roots], { signal: this.context.signal }));
+  }
 
   private async input(): Promise<string> {
     const { context, work } = this;
@@ -57,7 +84,7 @@ class Invocation {
   private async stat(path: string, cached: boolean): Promise<FileStat | undefined> {
     if (cached && this.initial.has(path)) return this.initial.get(path);
     let result: FileStat | undefined;
-    try { result = { ...await this.work.fs(path, () => this.context.fs.lstat(path, { signal: this.context.signal })) }; }
+    try { result = { ...await this.work.fs(path, () => this.fs.lstat(path, { signal: this.context.signal })) }; }
     catch (error) { if (!(error instanceof FileFailure && error.error.code === "ENOENT")) throw error; }
     if (cached) this.initial.set(path, result);
     return result;
@@ -86,11 +113,11 @@ class Invocation {
       if (parent === target) throw new PatchError("missing VFS root");
       target = parent;
     }
-    try { await this.work.fs(target, () => this.context.fs.access(target, 2, { signal: this.context.signal })); }
+    try { await this.work.fs(target, () => this.fs.access(target, 2, { signal: this.context.signal })); }
     catch (error) {
       if (error instanceof FileFailure && (error.error.code === "ENOTSUP" || error.error.code === "EOPNOTSUPP")) {
         const capabilities = await this.work.fs(target, async () =>
-          await this.context.fs.capabilitiesFor?.(target, { signal: this.context.signal }) ?? this.context.fs.capabilities);
+          await this.fs.capabilitiesFor?.(target, { signal: this.context.signal }) ?? this.fs.capabilities);
         if (capabilities.permissions !== true) return;
       }
       throw error;
@@ -99,7 +126,7 @@ class Invocation {
 
   private async read(path: string): Promise<Uint8Array> {
     const maximum = Math.min(this.work.limits.maxFileBytes, this.work.remaining("maxReadBytes"));
-    const bytes = await this.work.fs(path, () => this.context.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}));
+    const bytes = await this.work.fs(path, () => this.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}));
     if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
     if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
     this.work.count("maxReadBytes", bytes.length);
@@ -107,7 +134,7 @@ class Invocation {
   }
 
   private async prepare(files: readonly PatchFile[]): Promise<Plan[]> {
-    if (this.context.fs.capabilities.readOnly === true) throw new PatchError("read-only file system");
+    if (this.fs.capabilities.readOnly === true) throw new PatchError("read-only file system");
     const snapshots: Snapshot[] = [];
     const byPath = new Map<string, Snapshot>();
     for (const file of files) {
@@ -127,8 +154,8 @@ class Invocation {
       const target = snapshots[right]!;
       await this.work.charge(1);
       let comparison = relation(source.stat, target.stat);
-      if (comparison === "unknown" && this.context.fs.compareEntry) {
-        comparison = await this.work.fs(source.path, () => this.context.fs.compareEntry!(source.path, this.context.fs, target.path, { signal: this.context.signal }));
+      if (comparison === "unknown" && this.fs.compareEntry) {
+        comparison = await this.work.fs(source.path, () => this.fs.compareEntry!(source.path, this.fs, target.path, { signal: this.context.signal }));
         if (comparison !== "same" && comparison !== "distinct" && comparison !== "unknown") throw new PatchError("invalid entry comparison");
       }
       if (comparison === "same") throw new PatchError("patch operations refer to the same backing entry");
@@ -158,19 +185,22 @@ class Invocation {
     if (!await this.work.equal(await this.read(snapshot.path), snapshot.bytes!)) throw new PatchError(`target bytes changed since preflight: ${snapshot.path}`);
   }
 
-  private async parents(path: string): Promise<void> {
+  private async parents(path: string): Promise<FileStat> {
     const parts = dirname(path).split("/").filter(Boolean);
     let current = "";
     for (const part of parts) {
       current += "/" + part;
       let stat = await this.stat(current, false);
       if (!stat) {
-        try { await this.work.fs(current, () => this.context.fs.mkdir(current, { signal: this.context.signal })); }
+        try { await this.work.fs(current, () => this.fs.mkdir(current, { signal: this.context.signal })); }
         catch (error) { if (!(error instanceof FileFailure && error.error.code === "EEXIST")) throw error; }
         stat = await this.stat(current, false);
       }
       if (stat?.type !== "directory") throw new PatchError(`parent is not a directory: ${current}`);
     }
+    const parent = await this.stat(dirname(path), false);
+    if (parent?.type !== "directory") throw new PatchError(`parent is not a directory: ${dirname(path)}`);
+    return parent;
   }
 
   private async publish(plans: readonly Plan[]): Promise<void> {
@@ -180,16 +210,16 @@ class Invocation {
       if (original) await this.unchanged(original);
       else if (await this.inspect(file.path, false)) throw new PatchError(`new target appeared: ${file.path}`);
       if (file.kind === "delete") {
-        await this.work.fs(file.path, () => this.context.fs.rm(file.path, { signal: this.context.signal, recursive: false, force: false }));
+        await this.work.fs(file.path, () => this.fs.removeFileConditional!(file.path, { signal: this.context.signal, parent: this.initial.get(dirname(file.path))!, expected: original!.stat }));
       } else if (file.destination) {
         if (await this.inspect(file.destination, false)) throw new PatchError(`Move destination appeared: ${file.destination}`);
-        await this.parents(file.destination);
-        await this.work.fs(file.destination, () => this.context.fs.writeFile(file.destination!, output!, { signal: this.context.signal, flag: "wx" }));
+        const parent = await this.parents(file.destination);
+        await this.work.fs(file.destination, () => this.fs.writeFileConditional!(file.destination!, output!, { signal: this.context.signal, parent, expected: null }));
         await this.unchanged(original!);
-        await this.work.fs(file.path, () => this.context.fs.rm(file.path, { signal: this.context.signal, recursive: false, force: false }));
+        await this.work.fs(file.path, () => this.fs.removeFileConditional!(file.path, { signal: this.context.signal, parent: this.initial.get(dirname(file.path))!, expected: original!.stat }));
       } else if (!original || !await this.work.equal(original.bytes!, output!)) {
-        await this.parents(file.path);
-        await this.work.fs(file.path, () => this.context.fs.writeFile(file.path, output!, { signal: this.context.signal, flag: original ? "w" : "wx" }));
+        const parent = await this.parents(file.path);
+        await this.work.fs(file.path, () => this.fs.writeFileConditional!(file.path, output!, { signal: this.context.signal, parent, expected: original?.stat ?? null }));
       }
     }
   }
@@ -202,6 +232,7 @@ class Invocation {
     try {
       try {
         const files = await parse(await this.input(), work);
+        await this.confine(files);
         const plans = await this.prepare(files);
         const lines = ["Success. Updated the following files:\n"];
         let bytes = lines[0]!.length;

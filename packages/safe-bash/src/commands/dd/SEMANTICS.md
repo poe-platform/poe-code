@@ -40,7 +40,7 @@ from a character device's reported size.
   numeric input. Binary powers use `K` through `Q`, optionally `iB`; decimal
   powers use `B`/`D` suffixes. The lower-case `k` variants, `b`, `w`, `c`, bare
   suffixes, invalid suffixes, overflow and zero-multiplier warnings are tested.
-  Allocation and transfer limits below are deliberately much smaller.
+  Allocation and transfer quotas below are optional explicit settings.
 - Default input/output records are 512 bytes. `bs` overrides `ibs` and `obs`
   regardless of operand ordering. Repeated ordinary operands take the last
   value; conversion/flag lists accumulate. The last status selection wins.
@@ -223,17 +223,17 @@ virtual-device metadata does not authorize native `/dev` access.
 
 ## Bounds, ownership and cancellation
 
-Options default to `maxBlockBytes=1048576`, `maxBufferBytes=8388608`,
-`maxTransferBytes=67108864`, `maxReadOperations=1000000`, and
-`maxArgumentBytes=65536`. Values are positive safe integers, except a zero
-transfer limit is allowed. `now` defaults to monotonic `performance.now()`.
+Resource quotas are opt-in. Omitted `maxBlockBytes`, `maxBufferBytes`,
+`maxTransferBytes`, `maxReadOperations`, and `maxArgumentBytes` impose no
+application limit. Each supplied setting is independent and accepts a positive
+safe integer; a zero transfer limit is also allowed. `now` defaults to monotonic `performance.now()`.
 
 Argument bytes are admitted before parsing, block sizes before allocation, and
 logical output seek offsets before file opening. Transfer limits bound consumed
 input, emitted output, and logical output extent separately, not their sum.
 Skipped input reads count toward consumed input; ranged input seeking does not.
 An endless device therefore terminates by count, the finite configured budget,
-or caller cancellation; omitting count never grants unlimited copying.
+or caller cancellation. Omitting both count and a transfer quota copies until EOF.
 
 DD consumes the raw argument carrier rather than reconstructing operands from
 lossy display strings. The VFS path API is text-based: invalid UTF-8 operands are

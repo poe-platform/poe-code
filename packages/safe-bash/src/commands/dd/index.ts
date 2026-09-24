@@ -101,14 +101,14 @@ or available locally via: info '(coreutils) dd invocation'
 
 export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinition {
   const limits = {
-    maxBlockBytes: options.maxBlockBytes ?? 1024 * 1024,
-    maxBufferBytes: options.maxBufferBytes ?? 8 * 1024 * 1024,
-    maxTransferBytes: options.maxTransferBytes ?? 64 * 1024 * 1024,
-    maxReadOperations: options.maxReadOperations ?? 1_000_000,
-    maxArgumentBytes: options.maxArgumentBytes ?? 65536,
+    maxBlockBytes: options.maxBlockBytes ?? Infinity,
+    maxBufferBytes: options.maxBufferBytes ?? Infinity,
+    maxTransferBytes: options.maxTransferBytes ?? Infinity,
+    maxReadOperations: options.maxReadOperations ?? Infinity,
+    maxArgumentBytes: options.maxArgumentBytes ?? Infinity,
   };
-  for (const [name, value] of Object.entries(limits)) {
-    if (!Number.isSafeInteger(value) || value < (name === "maxTransferBytes" ? 0 : 1)) throw new RangeError(`${name} must be a ${name === "maxTransferBytes" ? "nonnegative" : "positive"} safe integer`);
+  for (const [name, value] of Object.entries(options).filter(([name]) => name.startsWith("max"))) {
+    if (value !== undefined && (typeof value !== "number" || !Number.isSafeInteger(value) || value < (name === "maxTransferBytes" ? 0 : 1))) throw new RangeError(`${name} must be a ${name === "maxTransferBytes" ? "nonnegative" : "positive"} safe integer`);
   }
   const opener = options.openFile ?? openDdFile;
   const now = options.now ?? (() => performance.now());
@@ -191,13 +191,15 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
     let exitCode = 0;
     let stage = "";
     try {
+      const blockLimit = Number.isFinite(limits.maxBlockBytes) ? BigInt(limits.maxBlockBytes) : undefined;
+      const transferLimit = Number.isFinite(limits.maxTransferBytes) ? BigInt(limits.maxTransferBytes) : undefined;
       const copying = plan.count !== 0n;
-      if (copying && [plan.ibs, plan.obs, ...(plan.convert.has("block") || plan.convert.has("unblock") ? [plan.cbs] : [])].some(size => size > BigInt(limits.maxBlockBytes))) throw new DdError("block size limit exceeded");
-      const ibs = Number(plan.ibs > BigInt(limits.maxBlockBytes) ? BigInt(limits.maxBlockBytes) : plan.ibs);
-      const obs = Number(plan.obs > BigInt(limits.maxBlockBytes) ? BigInt(limits.maxBlockBytes) : plan.obs);
+      if (copying && blockLimit !== undefined && [plan.ibs, plan.obs, ...(plan.convert.has("block") || plan.convert.has("unblock") ? [plan.cbs] : [])].some(size => size > blockLimit)) throw new DdError("block size limit exceeded");
+      const ibs = Number(!copying ? 512n : plan.ibs);
+      const obs = Number(!copying ? 512n : plan.obs);
       const sync = plan.convert.has("fsync") ? "all" : plan.convert.has("fdatasync") ? "data" : undefined;
       const initialSeek = plan.seek * (plan.seekBytes ? 1n : plan.obs);
-      if (initialSeek > BigInt(limits.maxTransferBytes)) throw new DdError("output offset limit exceeded");
+      if (transferLimit !== undefined && initialSeek > transferLimit) throw new DdError("output offset limit exceeded");
       const common = { maxBufferBytes: limits.maxBufferBytes, maxReadOperations: limits.maxReadOperations };
       stage = `failed to open ${quote(plan.input ?? "standard input")}`;
       const input = await acquire({ ...common, direction: "input", ...(plan.input === undefined ? {} : { path: plan.input }), flags: plan.inputFlags,
@@ -240,7 +242,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
         if (!(bytes instanceof Uint8Array) || bytes.length > size) throw new DdError("input reader returned an invalid byte block");
         inputBytes += BigInt(bytes.length);
         inputPosition += BigInt(bytes.length);
-        if (inputBytes > BigInt(limits.maxTransferBytes)) throw new DdError("input transfer limit exceeded");
+        if (transferLimit !== undefined && inputBytes > transferLimit) throw new DdError("input transfer limit exceeded");
         return bytes;
       };
       stage = `error reading ${quote(plan.input ?? "standard input")}`;
@@ -271,7 +273,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
       }
       const writeRecord = async (bytes: Uint8Array, fullBuffer = false): Promise<void> => {
         stage = `${fullBuffer ? "writing to" : "error writing"} ${quote(plan.output ?? "standard output")}`;
-        if (report.stats.bytes + BigInt(bytes.length) > BigInt(limits.maxTransferBytes)) throw new DdError("output transfer limit exceeded");
+        if (transferLimit !== undefined && report.stats.bytes + BigInt(bytes.length) > transferLimit) throw new DdError("output transfer limit exceeded");
         lastSparse = false;
         let written = 0;
         let complete = false;
@@ -286,7 +288,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
           position = cursor;
           appendPositionKnown = true;
         }
-        if (position + BigInt(bytes.length) > BigInt(limits.maxTransferBytes)) throw new DdError("output offset limit exceeded");
+        if (transferLimit !== undefined && position + BigInt(bytes.length) > transferLimit) throw new DdError("output offset limit exceeded");
         if (zeroRecord && (output.seek || deferredAppendSeek) && sparseTarget) {
           try {
             const seek = async (): Promise<number> => { await output.seek?.(position + BigInt(bytes.length), fsOptions); return bytes.length; };

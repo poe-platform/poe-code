@@ -67,39 +67,15 @@ and provider injection belong to top-level `AgentCommandsOptions`. Csplit uses
 the existing shared executor rather than a second independent aggregate pool.
 Numeric-only operations do not require a regex worker.
 
-Every supplied limit must be a positive safe integer. Defaults are:
+Resource quotas are opt-in: omitted limits are unlimited, and setting one does
+not enable others. Every supplied limit must be a positive safe integer.
+Pattern preparation, repeated compilation/search and byte processing share the
+explicit `maxWork` allowance. `maxFileAttempts` bounds attempts separately from
+`maxFiles`, including empty-output elision. Count and diagnostic output share
+`maxDiagnosticBytes`. Regex limits and path depth have no additional internal
+quota ceiling. These settings describe operation and allocation accounting,
+not host process RSS or hostile provider code.
 
-| Limit | Default |
-| --- | ---: |
-| `maxArguments` | 4096 |
-| `maxArgumentBytes` | 65536 |
-| `maxPatterns` | 1024 |
-| `maxInputBytes` | 33554432 |
-| `maxBufferedBytes` | 67108864 |
-| `maxLines` | 262144 |
-| `maxLineBytes` | 1048576 |
-| `maxFiles` | 4096 |
-| `maxFileAttempts` | 8192 |
-| `maxOutputBytes` | 33554432 |
-| `maxDiagnosticBytes` | 65536 |
-| `maxPathBytes` | 4096 |
-| `maxPathDepth` | 128 |
-| `maxWork` | 67108864 |
-| `maxEmptyChunks` | 4096 |
-| `maxRegexPatternBytes` | 8192 |
-| `maxRegexNodes` | 4096 |
-| `maxRegexDepth` | 64 |
-| `maxRegexStates` | 16384 |
-| `maxRegexAllocatedUnits` | 1000000 |
-
-Regex limits also respect the shared engine ceilings; path depth cannot exceed
-4090. Pattern preparation, repeated compilation/search and byte processing
-charge one invocation work allowance. File attempts are bounded separately from
-retained files so empty-output elision cannot create unbounded work. Count and
-diagnostic output share a byte allowance. These are deterministic operation and
-allocation limits, not a promise about host process RSS or hostile provider code.
-The default portable regex provider has an additional 65536-byte subject limit,
-so a larger `maxLineBytes` alone does not permit regex matching on longer lines.
 Provider-level limits and the command's limits both apply.
 
 `maxBufferedBytes` includes twice the admitted input payload, 128 accounting

@@ -4,7 +4,6 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { PublicDiagnostic } from "../../diagnostics.js";
 import type { RegexExecutionOptions } from "../regex-execution/portable.js";
 import type { BoundedRegexProvider } from "../regex-execution/provider.js";
-import { exprMatchCeilings } from "../regex-execution/protocol.js";
 import { quoteBytes } from "./quoting.js";
 
 export interface CsplitLimits {
@@ -43,23 +42,31 @@ export class CsplitError extends PublicDiagnostic {
 
 export function settings(options: CsplitCommandsOptions): CsplitLimits {
   const limits: CsplitLimits = {
-    maxArguments: 4096, maxArgumentBytes: 65_536, maxPatterns: 1024,
-    maxInputBytes: 33_554_432, maxBufferedBytes: 67_108_864, maxLines: 262_144,
-    maxLineBytes: 1_048_576, maxFiles: 4096, maxFileAttempts: 8192,
-    maxOutputBytes: 33_554_432, maxDiagnosticBytes: 65_536,
-    maxPathBytes: 4096, maxPathDepth: 128, maxWork: 67_108_864, maxEmptyChunks: 4096,
-    maxRegexPatternBytes: 8192, maxRegexNodes: 4096, maxRegexDepth: 64,
-    maxRegexStates: 16_384, maxRegexAllocatedUnits: 1_000_000, ...options.limits,
+    maxArguments: Infinity,
+    maxArgumentBytes: Infinity,
+    maxPatterns: Infinity,
+    maxInputBytes: Infinity,
+    maxBufferedBytes: Infinity,
+    maxLines: Infinity,
+    maxLineBytes: Infinity,
+    maxFiles: Infinity,
+    maxFileAttempts: Infinity,
+    maxOutputBytes: Infinity,
+    maxDiagnosticBytes: Infinity,
+    maxPathBytes: Infinity,
+    maxPathDepth: Infinity,
+    maxWork: Infinity,
+    maxEmptyChunks: Infinity,
+    maxRegexPatternBytes: Infinity,
+    maxRegexNodes: Infinity,
+    maxRegexDepth: Infinity,
+    maxRegexStates: Infinity,
+    maxRegexAllocatedUnits: Infinity,
+    ...options.limits,
   };
-  for (const [name, value] of Object.entries(limits)) {
+  for (const [name, value] of Object.entries(options.limits ?? {})) {
     if (!Number.isSafeInteger(value) || value < 1) throw new RangeError(`Invalid csplit limit: ${name}`);
   }
-  if (limits.maxPathDepth > 4090) throw new RangeError("csplit path depth exceeds cleanup ceiling");
-  for (const [name, maximum] of [
-    ["maxRegexPatternBytes", exprMatchCeilings.maxPatternBytes], ["maxRegexNodes", exprMatchCeilings.maxNodes],
-    ["maxRegexDepth", exprMatchCeilings.maxDepth], ["maxRegexStates", exprMatchCeilings.maxStates],
-    ["maxRegexAllocatedUnits", exprMatchCeilings.maxAllocatedUnits],
-  ] as const) if (limits[name] > maximum) throw new RangeError(`csplit ${name} exceeds regex ceiling`);
   return Object.freeze(limits);
 }
 

@@ -166,7 +166,7 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
       if (stat?.type === "directory") return { async *[Symbol.asyncIterator]() { yield* []; throw new FsError("EISDIR", { path }); } };
       if (streaming) return context.fs.readStream!(path, { signal, start: Number(position), chunkSize: request.blockSize });
       return { async *[Symbol.asyncIterator]() {
-        const value = await context.fs.readFile(path, { signal, maxBytes: request.maxBufferBytes });
+        const value = await context.fs.readFile(path, { signal, ...(Number.isFinite(request.maxBufferBytes) ? { maxBytes: request.maxBufferBytes } : {}) });
         yield* toByteSource(value);
       } };
     };

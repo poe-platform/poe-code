@@ -723,7 +723,7 @@ export function parseSourceModule(
     owner?.budget.visitNode(source.length);
     const tokenOptions = {allowRegexLiterals: true, statementList: true, compilation, sharedPositions: options.sharedPositions};
     const tokens = options.compactAst
-      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source))
+      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source), true)
       : tokenize(source, tokenOptions);
     parser = new Parser(
       tokens,
@@ -824,7 +824,7 @@ export function parseEvalScript(
       allowHtmlComments: true, compilation
     };
     const tokens = options.compactAst
-      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source))
+      ? tokenizeCompact(source, tokenOptions, new CompactSourcePositions(source), true)
       : tokenize(source, tokenOptions);
     const parser = new Parser(tokens, source, compilation, "normal", {
       grammar, newTarget: context.newTarget === true,

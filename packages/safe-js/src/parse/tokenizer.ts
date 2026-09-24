@@ -165,9 +165,10 @@ export function tokenize(source: string, options: TokenizeOptions = {}): Token[]
 export function tokenizeCompact(
   source: string,
   options: TokenizeOptions,
-  positions: CompactSourcePositions
+  positions: CompactSourcePositions,
+  lazyPositions = false
 ): Token[] {
-  const tokens = new CompactTokens(positions);
+  const tokens = new CompactTokens(positions, lazyPositions);
   new Lexer(source, {...options, sharedPositions: true}, tokens.indexed).tokenize();
   return tokens.finish();
 }

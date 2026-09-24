@@ -1,4 +1,4 @@
-import type { Token, TokenType } from "./tokenizer.js";
+import type { Position, Token, TokenType } from "./tokenizer.js";
 import type { CompactSourcePositions } from "./compact-spans.js";
 
 const types: readonly TokenType[] = [
@@ -24,8 +24,31 @@ export class CompactTokens {
   private readonly templates = new Map<number, Token["templateExpressions"]>();
   private readonly tokens = new Map<number, Token>();
   private last?: Token;
+  private readonly parserToken?: (type: TokenType, value: string, start: number, end: number) => Token;
 
-  constructor(private readonly sourcePositions: CompactSourcePositions) {}
+  constructor(private readonly sourcePositions: CompactSourcePositions, lazyPositions = false) {
+    if (!lazyPositions) return;
+    // Compiler lookahead usually reads only type/value. These private tokens
+    // need no own enumerable coordinates; ordinary tokenizer output stays eager.
+    // Once observed, each coordinate keeps its identity even after cache eviction.
+    class ParserToken implements Token {
+      #start: number | Position;
+      #end: number | Position;
+      constructor(public type: TokenType, public value: string, start: number, end: number) {
+        this.#start = start;
+        this.#end = end;
+      }
+      get start(): Position {
+        if (typeof this.#start === "number") this.#start = sourcePositions.position(this.#start);
+        return this.#start;
+      }
+      get end(): Position {
+        if (typeof this.#end === "number") this.#end = sourcePositions.position(this.#end);
+        return this.#end;
+      }
+    }
+    this.parserToken = (type, value, start, end) => new ParserToken(type, value, start, end);
+  }
 
   // Only indexing, iteration, length, push and at are used by the lexer/parser.
   // Historical tokens are materialized on demand in a bounded cache.
@@ -80,7 +103,9 @@ export class CompactTokens {
     if (cached !== undefined) return cached;
     const base = index * stride;
     const bits = this.rows[base + 2]!;
-    const token: Token = {
+    const token: Token = this.parserToken?.(
+      types[bits & 255]!, this.values[index]!, this.rows[base]!, this.rows[base + 1]!
+    ) ?? {
       type: types[bits & 255]!,
       value: this.values[index]!,
       start: this.sourcePositions.position(this.rows[base]!),

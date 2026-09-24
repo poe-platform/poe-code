@@ -79,3 +79,55 @@ it.each([7, 8, "dsf"] as const)("relocates BIFF %s names shared by array and ord
   }
   expect(book).toEqual(before);
 });
+
+for (const local of [false, true]) it.each([7, 8, "dsf"] as const)(
+  `keeps BIFF %s independent names usable alongside an unused ${local ? "local" : "global"} cycle`, async profile => {
+    const expression = "=Data!Outer+NamedMacro+ROW(A1:A2)";
+    const scope = local ? { sheet: "data" } : {};
+    const book: Workbook = { names: [
+      { name: "Outer", sheet: "data", expression: "Leaf" },
+      { name: "NamedMacro", expression: "IFERROR(1/0,3)" },
+      { name: "Leaf", sheet: "data", expression: "7" },
+      { name: "LoopA", expression: "LoopB", ...scope },
+      { name: "LoopB", expression: "LoopA", ...scope }
+    ], sheets: [{ id: "here", name: "Here", formulaGroups: [{ id: "array", kind: "array",
+      range: { startRow: 0, endRow: 1, startColumn: 0, endColumn: 0 }, expression }], cells: [
+      { row: 0, column: 0, formula: expression, formulaGroup: "array", value: { kind: "number", value: 999 } },
+      { row: 1, column: 0, formula: expression, formulaGroup: "array", value: { kind: "number", value: 999 } },
+      { row: 2, column: 0, formula: "=NamedMacro", value: { kind: "number", value: 999 } },
+      { row: 3, column: 0, formula: `=IF(FALSE,${local ? "Data!" : ""}LoopA,19)`, value: { kind: "number", value: 999 } }
+    ] }, { id: "data", name: "Data", cells: [] }] };
+    const before = structuredClone(book);
+    for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
+      const reopened = await readBiff(input, context), names = reopened.names!.map(name => name.name);
+      expect(names.indexOf("Leaf"), stream).toBeLessThan(names.indexOf("Outer"));
+      expect(names.indexOf("_xlfn.IFERROR"), stream).toBeLessThan(names.indexOf("NamedMacro"));
+      expect(names.indexOf("LoopA"), stream).toBeLessThan(names.indexOf("LoopB"));
+      expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells.map(cell => cell.value)).toEqual(
+        [11, 12, 3, 19].map(value => ({ kind: "number", value })));
+    }
+    expect(book).toEqual(before);
+  }
+);
+
+it.each([7, 8, "dsf"] as const)("keeps BIFF %s overlapping cycles ordered behind their external dependencies", async profile => {
+  const book: Workbook = { names: [
+    { name: "Outer", expression: "IF(FALSE,LoopA,Leaf)" },
+    { name: "LoopA", expression: "LoopC+Leaf" },
+    { name: "LoopB", expression: "LoopC" },
+    { name: "LoopC", expression: "LoopA+LoopB" },
+    { name: "Leaf", expression: "7" },
+    { name: "SelfLoop", expression: "SelfLoop+Leaf" }
+  ], sheets: [{ id: "here", name: "Here", cells: [
+    { row: 0, column: 0, formula: "=Outer", value: { kind: "number", value: 999 } }
+  ] }] };
+  const before = structuredClone(book);
+  for (const [stream, input] of readCfb(await createBiffWriter(profile)(book, [], context), context)) {
+    const reopened = await readBiff(input, context);
+    expect(reopened.names?.map(name => name.name), stream).toEqual(["Leaf", "LoopA", "LoopB", "LoopC", "Outer", "SelfLoop"]);
+    expect(reopened.names?.map(name => name.expression), stream).toEqual(
+      ["=7", "=LoopC+Leaf", "=LoopC", "=LoopA+LoopB", "=IF(FALSE,LoopA,Leaf)", "=SelfLoop+Leaf"]);
+    expect(recalculateWorkbook(reopened, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 7 });
+  }
+  expect(book).toEqual(before);
+});

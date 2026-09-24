@@ -1,0 +1,272 @@
+{
+  "schemaVersion": 1,
+  "scope": "Order independent BIFF names and macros even when another component is cyclic; preserve order within each cycle.",
+  "baseline": "5633cbcc1e828414c8cb879e9908b2f94e18eefa",
+  "nativeFailureEvidence": "docs/ssconvert/biff-mixed-names-native-capture.json",
+  "repair": [
+    "Use iterative strongly connected components to emit dependencies before callers without recursive stack depth.",
+    "Preserve original declaration order inside each cyclic component.",
+    "Reuse ordinary/macro index relocation for name, cell and array formulas; preserve workbook inputs and separate add-in indices."
+  ],
+  "validation": {
+    "red": "Nine new controls fail before repair: six unused global/local cycle profiles and three overlapping-cycle profiles.",
+    "focused": "53/53 tests pass, including all three profiles, both dual streams, overlapping cycles, self-reference, array and ordinary formula relocation.",
+    "package": "22865/22865 tests in 388 files pass.",
+    "lint": "Maintained ESLint and source/test/consumer TypeScript checks pass.",
+    "build": "Maintained selected workspace closure passes: four builds, 11 layers, two shared-cache hits.",
+    "testFixtureCorrection": "Reopened BIFF expression assertions must include the existing leading equals sign; corrected expectation after the ordering assertions passed.",
+    "public": {
+      "checks": [
+        {
+          "id": "biff-mixed-names-fixed-none-excel_biff7",
+          "cycle": "none",
+          "bytes": 5632,
+          "inputSha256": "3042ea55ab5d349ff499d6f0c17ece2c977eeca38fddb4ead62e16640cdb6a24",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-none-excel_biff8",
+          "cycle": "none",
+          "bytes": 5632,
+          "inputSha256": "bcf935f04d05195e6847ad8284da573c0fa04e090012cf4e7b01dc801cd887dc",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-none-excel_dsf",
+          "cycle": "none",
+          "bytes": 9728,
+          "inputSha256": "ff5eccd8282689df3305fd156bb100226d9ff2ba0d169b7bbe101f8e722deeed",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-global-excel_biff7",
+          "cycle": "global",
+          "bytes": 5632,
+          "inputSha256": "8b57049bb3579e72367d07992571721cd307d13b9d8991364bebd696bca14062",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-global-excel_biff8",
+          "cycle": "global",
+          "bytes": 5632,
+          "inputSha256": "b6ecb04f566a19e4745275929413c6aac8c4aac5463f439e8bb6c1ab5e63a4f6",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-global-excel_dsf",
+          "cycle": "global",
+          "bytes": 9728,
+          "inputSha256": "d3614347a0efe02342d5e4f5346b145599f93fe94e3a798a7998c63c46869b81",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-local-excel_biff7",
+          "cycle": "local",
+          "bytes": 5632,
+          "inputSha256": "c596083b33832c6af8982ecfd8bab3776434e37ff4d32e38237b4c1b74f3eae5",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-local-excel_biff8",
+          "cycle": "local",
+          "bytes": 5632,
+          "inputSha256": "6bed3fca51d9f8c5a9212fd73cd5fd02fd37a29b48d1a2065e91ae853ac9124d",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        },
+        {
+          "id": "biff-mixed-names-fixed-local-excel_dsf",
+          "cycle": "local",
+          "bytes": 9728,
+          "inputSha256": "3c8a027f8a0f3ff92ec22f96d062a39696fa4cc590768319f9f1f441c2a57666",
+          "csv": "11\n12\n3\n19\n",
+          "sdkAndShellMatch": true
+        }
+      ],
+      "externalCalls": 0,
+      "executions": 18,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "b84c535ff9cf7ff7d6cc77c62bb6189486fd0cbb8458e44709a752dc17568118"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ]
+    },
+    "originalNativeXmlReplay": {
+      "nativeRun": 35942668567,
+      "results": [
+        {
+          "id": "biff-mixed-names-none-excel_biff7",
+          "inputSha256": "824e6ab936365700f7c4495fae8644f659a771eb822a729a2162eb5575debf0c",
+          "native": "11\n12\n3\n19\n",
+          "sdkAndShell": "11\n12\n3\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-none-excel_biff8",
+          "inputSha256": "d7d95119471c8f3cf985db4710f2943ed17c420749bea7e3ae6cd5c106491489",
+          "native": "11\n12\n3\n19\n",
+          "sdkAndShell": "11\n12\n3\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-none-excel_dsf",
+          "inputSha256": "d7d95119471c8f3cf985db4710f2943ed17c420749bea7e3ae6cd5c106491489",
+          "native": "11\n12\n3\n19\n",
+          "sdkAndShell": "11\n12\n3\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-global-excel_biff7",
+          "inputSha256": "2be2daf867ab2127319f50a86339ef8b65c175d843e42d6bde376005daa0c71a",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-global-excel_biff8",
+          "inputSha256": "c46a72667ccecb50b975c83aa07178638ae1fca228a0c396f45b8c26b62d50ab",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-global-excel_dsf",
+          "inputSha256": "c46a72667ccecb50b975c83aa07178638ae1fca228a0c396f45b8c26b62d50ab",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-local-excel_biff7",
+          "inputSha256": "2a881739a56d8329572d6f8f6aa95c564ec0645049d6b859255ce9fac5f44b52",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-local-excel_biff8",
+          "inputSha256": "693e156ffbb85fd4c6018e82bfa896979efe50733d7a06d253a0f38f6799a1ed",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        },
+        {
+          "id": "biff-mixed-names-local-excel_dsf",
+          "inputSha256": "693e156ffbb85fd4c6018e82bfa896979efe50733d7a06d253a0f38f6799a1ed",
+          "native": "#REF!\n#REF!\n#NAME?\n19\n",
+          "sdkAndShell": "#REF!\n#REF!\n#NAME?\n19\n",
+          "exitCode": 0,
+          "stderr": "",
+          "diagnostics": [],
+          "matchesNative": true
+        }
+      ],
+      "executions": 18,
+      "externalCalls": 0,
+      "bindings": [
+        {
+          "path": "packages/ssconvert/dist/index.js",
+          "sha256": "d28e868e3482cf29fdf5dd36fc3a80dc6e5b44cea9c735da8f5683423bacbc9b"
+        },
+        {
+          "path": "packages/safe-bash/dist/commands/ssconvert/index.js",
+          "sha256": "3b52143757fda294762e9885b08a9040fe688584e4d687f5937ba4092f02b6d9"
+        }
+      ]
+    },
+    "screenshot": {
+      "inspected": true,
+      "sha256": "938667b41b6bf0ecf19a7913e1b5d696bc22c4a40f16acea2be9750f9d7299c5"
+    },
+    "logs": {
+      "red-expanded.log": "82baf930663a04da9746422aca9cbce8929d4419e515b7d5efc2b6c63bbd42ad",
+      "green.log": "c9f455033f0ba8932e3e90005b576779b112298c6c819f04ba6eb0a2fb97a66a",
+      "unit.log": "cfcb5484eed0f0f96cc3d723ffb4a50416d427539588ff80a8cda602bdc2690e",
+      "lint.log": "57fb4f3f3355df40e50ef77ed87fd3f80fe94bd969eb9695522decb38b5a9c6c",
+      "build.log": "681b26db46ad7f0f26feb7117bbf170592839f98a711703dbc01339074158444"
+    }
+  },
+  "nativeReadback": {
+    "status": "Corrected files prepared; native capture pending.",
+    "priorInputsPreserved": 120,
+    "totalInputs": 129,
+    "inputs": [
+      {
+        "id": "biff-mixed-names-fixed-none-excel_biff7",
+        "sha256": "3042ea55ab5d349ff499d6f0c17ece2c977eeca38fddb4ead62e16640cdb6a24"
+      },
+      {
+        "id": "biff-mixed-names-fixed-none-excel_biff8",
+        "sha256": "bcf935f04d05195e6847ad8284da573c0fa04e090012cf4e7b01dc801cd887dc"
+      },
+      {
+        "id": "biff-mixed-names-fixed-none-excel_dsf",
+        "sha256": "ff5eccd8282689df3305fd156bb100226d9ff2ba0d169b7bbe101f8e722deeed"
+      },
+      {
+        "id": "biff-mixed-names-fixed-global-excel_biff7",
+        "sha256": "8b57049bb3579e72367d07992571721cd307d13b9d8991364bebd696bca14062"
+      },
+      {
+        "id": "biff-mixed-names-fixed-global-excel_biff8",
+        "sha256": "b6ecb04f566a19e4745275929413c6aac8c4aac5463f439e8bb6c1ab5e63a4f6"
+      },
+      {
+        "id": "biff-mixed-names-fixed-global-excel_dsf",
+        "sha256": "d3614347a0efe02342d5e4f5346b145599f93fe94e3a798a7998c63c46869b81"
+      },
+      {
+        "id": "biff-mixed-names-fixed-local-excel_biff7",
+        "sha256": "c596083b33832c6af8982ecfd8bab3776434e37ff4d32e38237b4c1b74f3eae5"
+      },
+      {
+        "id": "biff-mixed-names-fixed-local-excel_biff8",
+        "sha256": "6bed3fca51d9f8c5a9212fd73cd5fd02fd37a29b48d1a2065e91ae853ac9124d"
+      },
+      {
+        "id": "biff-mixed-names-fixed-local-excel_dsf",
+        "sha256": "3c8a027f8a0f3ff92ec22f96d062a39696fa4cc590768319f9f1f441c2a57666"
+      }
+    ]
+  },
+  "remaining": [
+    "Native handling of referenced cycles and associated warnings remains separate from independent-name ordering.",
+    "Broader references, all 19 original families and containing npm publication remain open."
+  ]
+}

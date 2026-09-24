@@ -32,30 +32,48 @@ export class BiffFormulaWriter {
   /** Resolve indices only after all cell, array and defined-name expressions are compiled. */
   finalize(definitions: readonly CompiledBiffFormula[] = []): readonly number[] {
     const count = (this.book.names?.length ?? 0) + this.macroNames.length;
-    const visited = new Uint8Array(count), order: number[] = [];
-    let cyclic = false;
+    const discovered = new Int32Array(count).fill(-1), lowest = new Int32Array(count);
+    const active = new Uint8Array(count), pending: number[] = [], order: number[] = [];
+    let sequence = 0;
     for (let index = 0; index < count; index++) {
-      if (visited[index]) continue;
+      if (discovered[index] !== -1) continue;
       const stack = [{ index, next: 0 }];
       while (stack.length) {
         this.context.signal.throwIfAborted();
         const current = stack[stack.length - 1]!;
-        visited[current.index] = 1;
+        if (discovered[current.index] === -1) {
+          discovered[current.index] = lowest[current.index] = sequence++;
+          active[current.index] = 1;
+          pending.push(current.index);
+        }
         const dependencies = definitions[current.index]?.nameDependencies ?? [];
         if (current.next < dependencies.length) {
           const dependency = dependencies[current.next++]!;
-          if (!visited[dependency]) stack.push({ index: dependency, next: 0 });
-          else if (visited[dependency] === 1) cyclic = true;
+          if (discovered[dependency] === -1) stack.push({ index: dependency, next: 0 });
+          else if (active[dependency]) lowest[current.index] = Math.min(lowest[current.index]!, discovered[dependency]!);
         } else {
-          visited[current.index] = 2;
-          order.push(current.index);
           stack.pop();
+          if (stack.length) {
+            const parent = stack[stack.length - 1]!.index;
+            lowest[parent] = Math.min(lowest[parent]!, lowest[current.index]!);
+          }
+          if (lowest[current.index] === discovered[current.index]) {
+            const component: number[] = [];
+            let member: number;
+            do {
+              this.context.signal.throwIfAborted();
+              member = pending.pop()!;
+              active[member] = 0;
+              component.push(member);
+            } while (member !== current.index);
+            // A cyclic component has no dependency-first order. Keep its own
+            // declaration order without discarding ordering for other names.
+            component.sort((left, right) => left - right);
+            for (const name of component) order.push(name);
+          }
         }
       }
     }
-    // Cyclic definitions have no dependency-first order; retain their original
-    // serialization rather than changing the existing cyclic-file behavior.
-    if (cyclic) for (let index = 0; index < count; index++) order[index] = index;
     const indices = new Map(order.map((index, position) => [index, position + 1]));
     for (const relocation of this.relocations) {
       this.context.signal.throwIfAborted();

@@ -171,7 +171,11 @@ test("process harness scopes benign pipe errors to stdin and preserves cleanup",
       });
       syncBuiltinESMExports();
       try {
-        const result = await isolatedSpawn(process.execPath, ["--eval", 'process.stdout.write("out"); process.stderr.write("err"); process.exitCode = 7;'], {
+        // Fatal cases must stay alive until cleanup, rather than race a normal exit.
+        const script = benign
+          ? 'process.stdout.write("out"); process.stderr.write("err"); process.exitCode = 7;'
+          : "setInterval(() => {}, 1000);";
+        const result = await isolatedSpawn(process.execPath, ["--eval", script], {
           input: "x".repeat(1024 * 1024), timeout: 2000, maxBuffer: 1024,
         });
         assert.equal(result.error, benign ? undefined : error);

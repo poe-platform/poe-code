@@ -1,0 +1,988 @@
+{
+  "schemaVersion": 1,
+  "issue": "Release 35936678217 exposed yq scalar equality differing from pinned Mike Farah yq 4.53.3.",
+  "baseline": "9de7c7c4800a87c2959f05524d0f680e823931da",
+  "oracle": {
+    "version": "4.53.3",
+    "platform": "Darwin ARM64",
+    "sha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+    "authentication": "Official release executable matches maintained yq-native SEMANTICS.md pinned identity."
+  },
+  "behavior": [
+    "Compare original scalar text with RHS wildcard semantics after the existing left-null special case.",
+    "Preserve numeric literal spelling, including exponent, fraction and unary minus.",
+    "Retain native asymmetric null handling: null equals string null is false; string null equals null is true.",
+    "Keep the original quoted-1 review fixture unchanged."
+  ],
+  "validation": {
+    "red": "23 failures among 69 scalar tests before lexical comparison; expanded literal controls exposed RHS normalization.",
+    "focused": "227/227 pass including live native controls, zero skips.",
+    "maintainedScope": "All 29 discovered yq files: 1012/1012 pass, zero skips, 23.74 seconds.",
+    "lint": "ESLint passes all five files across this repair and the independent raw-source cancellation repair.",
+    "public": {
+      "oracleSha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+      "results": [
+        {
+          "input": "a: True\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: True\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: TRUE\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: TRUE\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: False\n",
+          "args": [
+            ".a == false"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == false' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: False\n",
+          "args": [
+            ".a != false"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != false' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1.0\n",
+          "args": [
+            ".a == 1"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1.0\n",
+          "args": [
+            ".a != 1"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 0x10\n",
+          "args": [
+            ".a == 16"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 16' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 0x10\n",
+          "args": [
+            ".a != 16"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 16' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a == 1.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a != 1.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a == 9007199254740992"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 9007199254740992' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a != 9007199254740992"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 9007199254740992' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a == 9007199254740992.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 9007199254740992.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a != 9007199254740992.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 9007199254740992.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a == \"1\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == \"1\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a != \"1\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != \"1\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: true\n",
+          "args": [
+            ".a == \"true\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == \"true\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: true\n",
+          "args": [
+            ".a != \"true\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != \"true\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"1\"\n",
+          "args": [
+            ".a == 1"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"1\"\n",
+          "args": [
+            ".a != 1"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"true\"\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"true\"\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != true' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a == null"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == null' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a != null"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != null' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a == \"null\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == \"null\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a != \"null\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != \"null\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"null\"\n",
+          "args": [
+            ".a == null"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == null' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"null\"\n",
+          "args": [
+            ".a != null"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != null' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a == \"h*o\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == \"h*o\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a != \"h*o\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != \"h*o\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a == \"x*\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == \"x*\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a != \"x*\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != \"x*\"' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1.00\n",
+          "args": [
+            ".a == 1.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1.00\n",
+          "args": [
+            ".a != 1.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1e0\n",
+          "args": [
+            ".a == 1"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1e0\n",
+          "args": [
+            ".a != 1"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 1' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a == 1e0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == 1e0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a != 1e0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != 1e0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1e0\n",
+          "args": [
+            ".a == 1e0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == 1e0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: 1e0\n",
+          "args": [
+            ".a != 1e0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != 1e0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: -1\n",
+          "args": [
+            ".a == -1.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a == -1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: -1\n",
+          "args": [
+            ".a != -1.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a != -1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: -1.0\n",
+          "args": [
+            ".a == -1.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": "",
+          "command": "yq '.a == -1.0' /input.yaml",
+          "matched": true
+        },
+        {
+          "input": "a: -1.0\n",
+          "args": [
+            ".a != -1.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": "",
+          "command": "yq '.a != -1.0' /input.yaml",
+          "matched": true
+        }
+      ],
+      "inputsAndNamespacePreserved": true,
+      "bindings": [
+        {
+          "path": "packages/safe-bash/src/commands/yq/evaluate.ts",
+          "sha256": "bec92ca9276af0eb91b09406f17735fd45e7e6c16efd79d0115980c0e8d76254"
+        },
+        {
+          "path": "packages/safe-bash/src/commands/yq/expression.ts",
+          "sha256": "e10fbb5f2e734e6a877a5dcc71663e9fa033e4a42b06e88c3b3afaf1f27954ee"
+        }
+      ]
+    },
+    "screenshot": {
+      "sha256": "5ae00449b3958e4186f8e035e1b0b4c0ee0cbca6721748e798dc46b71654074c",
+      "inspected": true
+    },
+    "logs": {
+      "red.log": "4564e9f7ff8eb9f7c818c8432d8c686a4a294f832268475c92cd3c77ed52dad3",
+      "native-red.log": "2d036e8ff84bf84f17a267a79e906d2f68a0c4649e3e5ba9b9103fdc749d791e",
+      "scalars-red.log": "9dddc436997403419e0efa2650db85a5ee42843f8dbbc29a05eb407fc91c5cd3",
+      "literal-red.log": "53c77709c6904c7a025410dc257ec3dc8775dd927b5a4e6402a7531660247512",
+      "green-final.log": "e8fd5f89ca691c76a01f60d6106bf0a773c2f1d73a3055c86434558057e2659c",
+      "yq-scope-final.log": "87ec94cb3b452a6b609dde65817409590ec9d7a40cbaba4e10e9f6537f36960d",
+      "lint-scope.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nativeScalarResults": {
+      "sha256": "877de31753a4dd2401aa048937aa9a7fc4d5f6ce858cf31508c5802954297213",
+      "rows": [
+        {
+          "input": "a: True\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: True\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: TRUE\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: TRUE\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: False\n",
+          "args": [
+            ".a == false"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: False\n",
+          "args": [
+            ".a != false"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1.0\n",
+          "args": [
+            ".a == 1"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1.0\n",
+          "args": [
+            ".a != 1"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 0x10\n",
+          "args": [
+            ".a == 16"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 0x10\n",
+          "args": [
+            ".a != 16"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a == 1.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a != 1.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a == 9007199254740992"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a != 9007199254740992"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a == 9007199254740992.0"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 9007199254740993\n",
+          "args": [
+            ".a != 9007199254740992.0"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a == \"1\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: 1\n",
+          "args": [
+            ".a != \"1\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: true\n",
+          "args": [
+            ".a == \"true\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: true\n",
+          "args": [
+            ".a != \"true\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"1\"\n",
+          "args": [
+            ".a == 1"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"1\"\n",
+          "args": [
+            ".a != 1"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"true\"\n",
+          "args": [
+            ".a == true"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"true\"\n",
+          "args": [
+            ".a != true"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a == null"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a != null"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a == \"null\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: null\n",
+          "args": [
+            ".a != \"null\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"null\"\n",
+          "args": [
+            ".a == null"
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"null\"\n",
+          "args": [
+            ".a != null"
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a == \"h*o\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a != \"h*o\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a == \"x*\""
+          ],
+          "status": 0,
+          "stdout": "false\n",
+          "stderr": ""
+        },
+        {
+          "input": "a: \"hello\"\n",
+          "args": [
+            ".a != \"x*\""
+          ],
+          "status": 0,
+          "stdout": "true\n",
+          "stderr": ""
+        }
+      ]
+    },
+    "nativeLiteralResults": [
+      {
+        "input": "a: 1.00\n",
+        "args": [
+          ".a == 1.0"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1.00\n",
+        "args": [
+          ".a != 1.0"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1e0\n",
+        "args": [
+          ".a == 1"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1e0\n",
+        "args": [
+          ".a != 1"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1\n",
+        "args": [
+          ".a == 1e0"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1\n",
+        "args": [
+          ".a != 1e0"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1e0\n",
+        "args": [
+          ".a == 1e0"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: 1e0\n",
+        "args": [
+          ".a != 1e0"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: -1\n",
+        "args": [
+          ".a == -1.0"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: -1\n",
+        "args": [
+          ".a != -1.0"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: -1.0\n",
+        "args": [
+          ".a == -1.0"
+        ],
+        "status": 0,
+        "stdout": "true\n",
+        "stderr": ""
+      },
+      {
+        "input": "a: -1.0\n",
+        "args": [
+          ".a != -1.0"
+        ],
+        "status": 0,
+        "stdout": "false\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "delivery": "Local validation only at recording time; remote delivery and containing npm publication tracked separately.",
+  "remaining": "Native ssconvert qualification documentation, broader gaps and containing publication remain open.",
+  "upstreamReconciliation": {
+    "scalarCommit": "dec8942ccd78f826b1eac83049bb901e5c8fcc3b",
+    "sourceScanCommit": "5bea20f79c01785627c0ef575227bd0491d638cb",
+    "resolution": "Upstream independently delivered both repairs while this evidence was being recorded. Preserve all upstream runtime and test files byte-for-byte; discard the duplicate local scalar implementation.",
+    "verification": "Fresh maintained 29-file yq scope on upstream: 1012 pass, zero failures/skips/cancellations.",
+    "logSha256": "7bc4f7c772aec4657a030a7bfafabda2036610afc01588527e793bfb7f361dd0"
+  }
+}

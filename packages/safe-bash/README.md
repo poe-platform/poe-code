@@ -107,8 +107,10 @@ is unchanged and may further restrict real file modes; remote modes can be advis
 `readonly -f` lists protected functions. `unset -v` removes variables independently.
 `local -i count=2+3` evaluates scalar assignments as arithmetic; `local -n ref=target`
 reads and writes the named variable. Both attributes follow function scope and restore
-outer bindings on return. Nameref targets must be simple variable names; combined
-integer, nameref, and indexed attributes are unsupported.
+outer bindings on return. Indexed and associative arrays support readonly (`-r`),
+integer (`-i`, including arithmetic `+=`), and ASCII case conversion (`-l`/`-u`)
+on each element. Nameref targets must be simple variable names; combining nameref
+with integer or array attributes is unsupported.
 
 ### Command bundle
 

@@ -1032,27 +1032,6 @@ function isShellIdentifier(name: string): boolean {
   return true;
 }
 
-function localDeclarationOptions(args: readonly string[], signal: AbortSignal): { readonly indexed: boolean; readonly integer: boolean; readonly nameref: boolean; readonly offset: number; readonly error: string | undefined } {
-  signal.throwIfAborted();
-  let indexed = false;
-  let integer = false;
-  let nameref = false;
-  let offset = 0;
-  while (args[offset]?.startsWith("-")) {
-    signal.throwIfAborted();
-    const option = args[offset++]!;
-    if (option === "--") break;
-    for (const flag of option.slice(1)) {
-      if (flag === "a") indexed = true;
-      else if (flag === "i") integer = true;
-      else if (flag === "n") nameref = true;
-      else return { indexed, integer, nameref, offset, error: option };
-    }
-    if (option === "-" || indexed && (integer || nameref) || integer && nameref) return { indexed, integer, nameref, offset, error: option };
-  }
-  return { indexed, integer, nameref, offset, error: undefined };
-}
-
 function decimalIndex(value: string): number {
   let position = 0;
   while (position < value.length && /[\t\n\v\f\r ]/u.test(value[position]!)) position++;
@@ -1865,8 +1844,32 @@ export class Runtime {
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+    value = this.attributeValue(state, name, value, origin);
+    if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
+      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
+      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
+    }
+    publishVariable(state, name, value);
+    if (state.allexport) state.exported.add(name);
+    if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
+  }
+
+  private declareAttributes(state: State, name: string, enabled: Set<string>, disabled: Set<string>): void {
+    let attributes = state.variableAttributes?.get(name) ?? "";
+    for (const flag of disabled) attributes = attributes.split(flag).join("");
+    for (const flag of enabled) if ("ilun".includes(flag) && !attributes.includes(flag)) attributes += flag;
+    if (enabled.has("l")) attributes = attributes.split("u").join("");
+    if (enabled.has("u")) attributes = attributes.split("l").join("");
+    if (attributes) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, attributes); }
+    else state.variableAttributes?.delete(name);
+  }
+
+  private attributeValue(state: State, name: string, value: ShellValue, origin = "assignment", previous?: ShellValue): ShellValue {
     const attributes = state.variableAttributes?.get(name) ?? "";
-    if (attributes.includes("i") && origin !== "arithmetic") value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing));
+    if (attributes.includes("i") && origin !== "arithmetic") {
+      const evaluate = (input: ShellValue): bigint => evaluateArithmetic(prepareArithmetic(shellValueText(input) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing);
+      value = String(evaluate(value) + (previous === undefined ? 0n : evaluate(previous)));
+    }
     if (attributes.includes("l") || attributes.includes("u")) {
       const bytes = Uint8Array.from(shellValueBytes(value));
       for (let index = 0; index < bytes.length; index++) {
@@ -1877,13 +1880,7 @@ export class Runtime {
       value = shellValueFromBytes(bytes);
     }
     if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-    if (name === "OPTIND" && state.getopts?.integer && origin !== "arithmetic") {
-      try { value = String(evaluateArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), this.arithmeticVariables(state), this.budget.parsing)); }
-      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
-    }
-    publishVariable(state, name, value);
-    if (state.allexport) state.exported.add(name);
-    if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
+    return value;
   }
 
   private syncGetopts(state: State): void {
@@ -2226,8 +2223,10 @@ export class Runtime {
       staged = await current.copy(this.signal);
       const index = staged.associative ? (await staged.keyIndex("0", operation, this.signal, true))! : 0;
       const previous = current.getValue(index) ?? "";
-      const value = !append ? expanded : typeof previous === "string" && typeof expanded === "string"
+      const integer = state.variableAttributes?.get(name)?.includes("i");
+      let value = !append || integer ? expanded : typeof previous === "string" && typeof expanded === "string"
         ? await this.arrayJoin(operation, [previous, expanded], "") : concatShellValues([previous, expanded], valueAllocation);
+      value = this.attributeValue(state, name, value, "assignment", append ? previous : undefined);
       const token = await textToken(staged.owner, value, this.signal);
       try { staged.insert(index, token); } catch (error) { token.release(); throw error; }
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
@@ -2351,8 +2350,11 @@ export class Runtime {
       }
       let writes = 0;
       let cursor = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
-      const insert = async (index: number, value: ShellValue) => {
+      const insert = async (index: number, value: ShellValue, append = false) => {
         if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
+        const previous = append ? staged!.getValue(index) ?? "" : undefined;
+        if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
+        value = this.attributeValue(state, name, value, "assignment", previous);
         const token = await valueToken(staged!.owner, value, this.signal);
         try { staged!.insert(index, token); } catch (error) { token.release(); throw error; }
         writes++;
@@ -2362,9 +2364,8 @@ export class Runtime {
       if (assignment.kind === "element") {
         const index = selectedIndex ?? (await this.arrayIndex(staged, assignment.index, state, io, operation, true))!;
         const fields = await this.valueWord(assignment.value, state, io, false);
-        let value = await join(fields);
-        if (assignment.append) value = await join([staged.getValue(index) ?? "", value]);
-        await insert(index, value);
+        const value = await join(fields);
+        await insert(index, value, assignment.append);
       } else for (const entry of assignment.entries) {
         const original = compoundEntryWords.get(entry);
         if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
@@ -2380,9 +2381,8 @@ export class Runtime {
         const index = entry.index ? (await this.arrayIndex(staged, entry.index, state, io, operation, true))! : undefined;
         const fields = await this.valueWord(entry.value, state, io, entry.index === undefined);
         if (index !== undefined) {
-          let value = await join(fields);
-          if (entry.append) value = await join([staged.getValue(index) ?? "", value]);
-          await insert(index, value);
+          const value = await join(fields);
+          await insert(index, value, entry.append);
           cursor = index + 1;
         } else for (const value of fields) { await insert(cursor, value); cursor++; }
       }
@@ -6327,12 +6327,12 @@ export class Runtime {
           return status;
         }
       }
-      if (command === "declare") {
+      if (command === "declare" || command === "local") {
         while (declarationArgs[0]?.startsWith("-") || declarationArgs[0]?.startsWith("+")) {
           const option = declarationArgs.shift()!;
           if (option === "--") break;
           for (const flag of option.slice(1)) {
-            if (!"AailunxrgIfFt".includes(flag)) { await this.diagnostic(context, `declare: ${option}: invalid option`); return 2; }
+            if (!(command === "local" ? "AailunxrI" : "AailunxrgIfFt").includes(flag)) { await this.diagnostic(context, `${command}: ${option}: invalid option`); return 2; }
             (option[0] === "-" ? enabled : disabled).add(flag);
           }
         }
@@ -6351,16 +6351,11 @@ export class Runtime {
         }
       }
       if (command === "local") {
-        const options = localDeclarationOptions(declarationArgs, this.signal);
-        if (options.error !== undefined) {
-          await writeDiagnostic(stderr, `local: ${options.error}: unsupported option\n`);
+        if (enabled.has("n") && (enabled.has("i") || indexedLocal)) {
+          await this.diagnostic(context, "local: combined nameref attributes are unsupported");
           return 2;
         }
-        indexedLocal = options.indexed;
-        if (options.integer) enabled.add("i");
-        if (options.nameref) enabled.add("n");
-        namerefLocal = options.nameref;
-        declarationArgs.splice(0, options.offset);
+        namerefLocal = enabled.has("n");
         if (indexedLocal && declarationArgs.length === 0) {
           await writeDiagnostic(stderr, "local: -a requires a variable name\n");
           return 2;
@@ -6528,6 +6523,8 @@ export class Runtime {
               preparedSaved = true;
               await this.prepareVariable(state, name, saved);
             }
+            if (saved && !enabled.has("I")) state.variableAttributes?.delete(name);
+            this.declareAttributes(state, name, enabled, disabled);
             if (compound) {
               // Retain the visible outer binding while expanding the initializer.
               // The saved local participates in the shared publication observers.
@@ -6547,7 +6544,7 @@ export class Runtime {
               shadow = !saved && current ? await current.copy(this.signal) : IndexedBinding.create(store.owner, associativeDeclaration);
               const value = match[2] !== undefined ? assignedValue() : !saved && !current && Object.hasOwn(state.variables, name) ? stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name] : undefined;
               if (value !== undefined) {
-                const token = await textToken(shadow.owner, value, this.signal);
+                const token = await textToken(shadow.owner, this.attributeValue(state, name, value), this.signal);
                 try { shadow.insert(associativeDeclaration ? (await shadow.keyIndex("0", operation, this.signal, true))! : 0, token); } catch (error) { token.release(); throw error; }
               }
               this.signal.throwIfAborted();
@@ -6583,6 +6580,7 @@ export class Runtime {
             await cleanup(() => holding?.release());
           }
           if (primaryPresent) throw primary;
+          if (enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
           continue;
         }
         if (localDeclaration && !locals!.has(name)) {
@@ -6649,15 +6647,7 @@ export class Runtime {
             state.getopts.integer = false;
           }
         }
-        if (command === "declare" || command === "local") {
-          let attributes = state.variableAttributes?.get(name) ?? "";
-          for (const flag of disabled) attributes = attributes.split(flag).join("");
-          for (const flag of enabled) if ("ilun".includes(flag) && !attributes.includes(flag)) attributes += flag;
-          if (enabled.has("l")) attributes = attributes.split("u").join("");
-          if (enabled.has("u")) attributes = attributes.split("l").join("");
-          if (attributes) { state.variableAttributes ??= new Map(); state.variableAttributes.set(name, attributes); }
-          else state.variableAttributes?.delete(name);
-        }
+        if (command === "declare" || command === "local") this.declareAttributes(state, name, enabled, disabled);
         if (match[2] !== undefined && arrayStore(state)?.get(name)) {
           await this.arrayZero(state, name, async () => assignedValue(), append, command === "readonly");
           assignments.delete(name);

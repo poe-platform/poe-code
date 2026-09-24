@@ -32,10 +32,12 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
   let quote = "";
   let lineActive = false;
   let trailingBlank = false;
+  let pendingBlanks = "";
   const parse = function* (text: string): Generator<string | null> {
     for (const character of text) {
       const blank = character === " " || character === "\t";
       if (character === "\n" && !quote && !escaped) {
+        pendingBlanks = "";
         if (active) { yield current; current = ""; active = false; }
         if (lines && lineActive && !trailingBlank) { yield null; lineActive = false; }
         trailingBlank = false;
@@ -43,6 +45,13 @@ async function* argumentsFrom(source: ByteSource, signal: AbortSignal, replaceme
       }
       if (!blank || quote || escaped) lineActive = true;
       trailingBlank = blank && !quote && !escaped;
+      if (replacement && blank && !quote && !escaped) {
+        if (active) pendingBlanks += character;
+        if (current.length + pendingBlanks.length > 131072) throw new UsageError("argument exceeds 128 KiB limit");
+        continue;
+      }
+      current += pendingBlanks;
+      pendingBlanks = "";
       if (escaped) { current += character; active = true; escaped = false; }
       else if (quote) {
         if (character === "\n") throw new UsageError("unmatched quote in input");
@@ -135,28 +144,29 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const argumentValues = getCommandArguments(context);
       const operandIndices: number[] = [];
       let replacementOrigin: { index: number; offset: number } | undefined;
+      let batching: string | undefined;
       const shortOptions = "0rn:s:I:d:tP:xE:a:L:";
       const longOptions = { "arg-file": "a", "max-lines": "L", null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
-        (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; });
+        (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; },
+        key => { if (key === "I" || key === "L" || key === "n") batching = key; });
       const requested = integer(value(parsed, "P") ?? "1");
       const parallelism = requested === 0 ? maxParallelProcesses : Math.min(requested, maxParallelProcesses);
       const slotVariable = value(parsed, "process-slot-var");
       if (slotVariable !== undefined && (!slotVariable || slotVariable.includes("=") || slotVariable.includes("\0"))) throw new UsageError("invalid environment variable name");
-      const replacement = value(parsed, "I");
+      const replacement = batching === "I" ? value(parsed, "I") : undefined;
       if (replacement === "") throw new UsageError("replacement string cannot be empty");
-      if (replacement !== undefined && parsed.flags.has("n")) throw new UsageError("cannot combine -I and -n");
       let replacementPattern: Uint8Array | undefined;
-      if (replacementOrigin) {
+      if (batching === "I" && replacementOrigin) {
         const { index, offset } = replacementOrigin;
         if (shellValueByteLength(argumentValues.values[index]!) - offset > 131072) throw new UsageError("replacement string exceeds 128 KiB limit");
         replacementPattern = argumentValues.bytes(index)!.subarray(offset);
       }
-      const maxLines = parsed.flags.has("L") ? integer(value(parsed, "L")!, 1) : undefined;
+      const maxLines = batching === "L" ? integer(value(parsed, "L")!, 1) : undefined;
       const argumentFile = value(parsed, "a");
       const childInput = argumentFile === undefined ? emptyInput() : context.stdin;
       const childInputIsDefault = argumentFile === undefined ? true : context.stdinIsDefault;
-      const maxArgs = replacement === undefined ? integer(value(parsed, "n") ?? (maxLines === undefined ? "5000" : String(Number.MAX_SAFE_INTEGER)), 1) : 1;
+      const maxArgs = replacement === undefined ? integer(batching === "n" ? value(parsed, "n")! : (maxLines === undefined ? "5000" : String(Number.MAX_SAFE_INTEGER)), 1) : 1;
       const maxBytes = integer(value(parsed, "s") ?? "131072", 1);
       if (maxBytes > 131072) throw new UsageError("command size limit cannot exceed 128 KiB");
       let delimiter = parsed.flags.has("0") ? "\0" : undefined;
@@ -236,7 +246,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       };
       const dispatch = async () => {
         if (stop) return;
-        const childArguments = initial.withValues(replacementPattern === undefined ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
+        const childArguments = initial.withValues(replacementPattern === undefined || parsed.operands.length === 0 ? [...initial.values, ...batch] : await replaceXargsArguments(initial.values, replacementPattern, batch[0] ?? "", maxBytes - encoder.encode(command).length - 1, context.signal));
         const args = childArguments.args;
         const size = encoder.encode(command).length + 1 + childArguments.values.reduce((sum, argument) => sum + shellValueByteLength(argument) + 1, 0);
         if (size > maxBytes) throw new UsageError("expanded arguments exceed command size limit");

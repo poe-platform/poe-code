@@ -165,6 +165,31 @@ test("xargs null/custom delimiters, replacement, empty input and errors are expl
   assert.equal((await run("xargs", ["unknown"], { stdin: "one" })).exitCode, 127);
 });
 
+test("xargs replacement defaults to echo and trims only unquoted trailing blanks", async () => {
+  assert.equal((await run("xargs", ["-I", "{}"], { stdin: chunks("a\nb\n") })).stdout, "a\nb\n");
+  const result = await run("xargs", ["-I", "{}", "printf", "<%s>\n", "{}"], {
+    stdin: chunks("  a  \nb\t\n'c  '  \nd\\ \t\ne  f  "),
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "<a>\n<b>\n<c  >\n<d >\n<e  f>\n");
+});
+
+for (const entry of [
+  { options: ["-n", "1", "-I", "{}"], expected: "a b\nc d\n" },
+  { options: ["-L", "2", "-I", "{}"], expected: "a b\nc d\n" },
+  { options: ["-I", "{}", "-n", "2"], expected: "{} a b\n{} c d\n" },
+  { options: ["-I", "{}", "-n", "1"], expected: "{} a\n{} b\n{} c\n{} d\n" },
+  { options: ["-I", "{}", "-L", "2"], expected: "{} a b c d\n" },
+  { options: ["-n", "1", "-L", "1"], expected: "{} a b\n{} c d\n" },
+  { options: ["-L", "2", "-n", "1"], expected: "{} a\n{} b\n{} c\n{} d\n" },
+  { options: ["--max-args=1", "--replace={}"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "--max-lines=1"], expected: "{} a b\n{} c d\n" },
+]) test(`xargs last batching option wins: ${entry.options.join(" ")}`, async () => {
+  const result = await run("xargs", [...entry.options, "echo", "{}"], { stdin: "a b\nc d\n" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, entry.expected);
+});
+
 test("xargs maps child failures and stops on status 255", async () => {
   let calls = 0;
   assert.equal((await run("xargs", ["-n", "1", "custom"], { stdin: "one two", execute: () => { calls++; return { exitCode: 1 }; } })).exitCode, 123);

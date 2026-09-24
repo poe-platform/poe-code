@@ -745,6 +745,33 @@ for (const option of ["-t", "--truncate-set1"]) {
   });
 }
 
+for (const [first, second, stdin, expected] of [
+  ["\\-", "X", "a\\-b\n", "a\\Xb\n"],
+  ["a\\-z", "123", "a-z\n", "123\n"],
+  ["\\c", "X", "abc\n", "abX\n"],
+  ["a", "\\c", "a\n", "c\n"],
+  ["\\[\\z", "XY", "[z\\", "XY\\"],
+  ["[:", "XY", "[:a\n", "XYa\n"],
+  ["[:]", "XYZ", "[:]a\n", "XYZa\n"],
+  ["[=a=]", "X", "[=a]\n", "[=X]\n"],
+  ["[=\\c=]", "X", "abc\n", "abX\n"],
+  ["a-c", "[X*]", "abc\n", "XXX\n"],
+  ["a-d", "[X*2]YZ", "abcd", "XXYZ"],
+  ["a-d", "[X*02]YZ", "abcd", "XXYZ"],
+  ["a-d", "Y[X*]Z", "abcd", "YXXZ"],
+  ["a-c", "[\\c*3]", "abc", "ccc"],
+  ["\\a\\b\\f\\n\\r\\t\\v\\\\", "12345678", "\x07\b\f\n\r\t\v\\", "12345678"],
+  ["\\141-\\143", "XYZ", "abc", "XYZ"],
+  ["\\x61\\142", "XY", "ab", "XY"],
+  ["\\1z", "XY", "\x01z", "XY"],
+] as const) {
+  test(`tr parses ${JSON.stringify(first)} to ${JSON.stringify(second)}`, async () => {
+    const result = await run("tr", [first, second], { stdin: chunks(stdin) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}
+
 test("tr translates, deletes, squeezes and complements byte sets across chunks", async () => {
   assert.equal((await run("tr", ["a-z", "A-Z"], { stdin: chunks("one two\n") })).stdout, "ONE TWO\n");
   assert.equal((await run("tr", ["-s", "[:space:]", " "], { stdin: chunks("a \t\n b") })).stdout, "a b");

@@ -6,7 +6,7 @@ import { inputRequirements } from "./portable-requirements.js";
 import { followTail, parseTailFollow } from "./tail-follow.js";
 import { wcDisplayWidth } from "./wc-width.js";
 import {
-  assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, escapeBytes, input,
+  assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input,
   lines, options, output, pathOf, UsageError, value,
 } from "./internal.js";
 
@@ -236,9 +236,19 @@ function characterSet(specification: string, repeatLength?: number): number[] {
   const tokens: { bytes: number[]; literal: boolean; repeat?: number }[] = [];
   const readCharacter = (offset: number) => {
     if (specification[offset] === "\\") {
-      const escape = /^\\(?:[0-7]{1,3}|x[0-9a-fA-F]{1,2}|.)/su.exec(specification.slice(offset));
-      if (!escape) throw new UsageError("trailing backslash in character set");
-      return { bytes: [...escapeBytes(escape[0]).bytes], end: offset + escape[0].length, literal: false };
+      const start = offset + 1;
+      if (start === specification.length) throw new UsageError("trailing backslash in character set");
+      const next = specification[start]!;
+      const hexadecimal = next === "x" && "0123456789abcdefABCDEF".includes(specification[start + 1] ?? "!");
+      const digits = hexadecimal ? "0123456789abcdefABCDEF" : "01234567";
+      let end = start + (hexadecimal ? 1 : 0);
+      const digitStart = end;
+      while (end < specification.length && end - digitStart < (hexadecimal ? 2 : 3) && digits.includes(specification[end]!)) end++;
+      if (end > digitStart) return { bytes: [Number.parseInt(specification.slice(digitStart, end), hexadecimal ? 16 : 8) & 255], end, literal: false };
+      // tr quotes unknown escapes; echo's stop-output escape has no meaning here.
+      const controls: Record<string, number> = { a: 7, b: 8, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+      const character = String.fromCodePoint(specification.codePointAt(start)!);
+      return { bytes: controls[next] === undefined ? [...encoder.encode(character)] : [controls[next]], end: start + character.length, literal: false };
     }
     const character = String.fromCodePoint(specification.codePointAt(offset)!);
     return { bytes: [...encoder.encode(character)], end: offset + character.length, literal: character === "-" };

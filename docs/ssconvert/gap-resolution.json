@@ -109,7 +109,7 @@
     {
       "id": "public-packed-artifacts",
       "status": "open",
-      "currentFinding": "An isolated local packaged plugin passes typing and XLSX readback. Final packed root SDK/Shell, private-workspace independence, registry and installed-consumer qualification remain open."
+      "currentFinding": "At 51af29f33, actual root/scoped tarballs installed outside the repository pass 80 SDK/Shell BIFF7/8 format controls with private ssconvert resolution absent. Strict NodeNext declarations, logical PWD, typed-array XLSX/CSV, edited CSV/XLSX, cancellation and input budgets pass with native-command PATH empty. Four orphaned ignored Tesseract outputs were removed to restore canonical scoped packaging. Registry-installed, browser/worker and wider service qualification remain open."
     }
   ],
   "delivery": {

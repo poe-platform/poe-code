@@ -119,7 +119,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
       }
       index++;
     }
-    if (kind === "update" && (!current?.lines.length || hunks.length === 0)) throw new PatchError("Update requires a nonempty hunk", 2);
+    if (kind === "update" && (hunks.length === 0 ? destination === undefined : !current?.lines.length)) throw new PatchError("Update requires a nonempty hunk", 2);
     files.push({ kind, path, label, added, hunks, ...(destination === undefined ? {} : { destination, destinationLabel: destinationLabel! }) });
   }
   if (!files.length) throw new PatchError("patch contains no file operations", 2);

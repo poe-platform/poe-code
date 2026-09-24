@@ -67,6 +67,7 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
     return encode(added, work);
   }
   if (!original) throw new PatchError(`missing target: ${file.label}`);
+  if (file.hunks.length === 0) return original;
   const text = await work.text(original, 1);
   const old = await records(text, work);
   let ending = "\n";
@@ -78,14 +79,18 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
   const replacements: Replacement[] = [];
   let cursor = 0;
   for (const hunk of file.hunks) {
+    let anchorPosition: number | undefined;
     for (const anchor of hunk.anchors) {
       const position = await find(old, [anchor], cursor, false, work);
       if (position < 0) throw new PatchError(`context anchor not found: ${file.label}`);
       cursor = position + 1;
+      anchorPosition = position;
     }
     const pattern: string[] = [];
     for (const line of hunk.lines) { work.step(); if (line.kind !== "+") pattern.push(line.text); await work.checkpoint(); }
-    const start = pattern.length ? await find(old, pattern, cursor, hunk.eof, work) : old.length;
+    const searchStart = anchorPosition !== undefined && pattern.length && await work.equal(old[anchorPosition]!.text, pattern[0]!)
+      ? anchorPosition : cursor;
+    const start = pattern.length ? await find(old, pattern, searchStart, hunk.eof, work) : hunk.eof ? old.length : cursor;
     if (start < 0) throw new PatchError(`expected context not found: ${file.label}`);
     const replacement: RecordLine[] = [];
     let matched = start;

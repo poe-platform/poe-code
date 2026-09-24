@@ -427,7 +427,7 @@ export class S3FileSystem implements FileSystem {
       return bytes;
     }).catch((error: unknown) => {
       this.dispose(iterator);
-      this.dispose(output.Body, iterator === undefined);
+      if (output.Body !== iterator) this.dispose(output.Body, iterator === undefined);
       throw error;
     });
   }

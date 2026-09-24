@@ -4,6 +4,46 @@ import { Readable } from "node:stream";
 import { expect, test, vi } from "vitest";
 import { S3FileSystem } from "../src/fs/s3/filesystem.js";
 import { createS3HttpTransport } from "../src/fs/s3/http/transport.js";
+import { createS3Transport, MockS3Client } from "../src/fs/s3/index.js";
+
+test("readFile closes an SDK body rejected before its first read", async () => {
+  const client = new MockS3Client({ buckets: ["bucket"] });
+  await client.putObject({ Bucket: "bucket", Key: "file", Body: Uint8Array.of(1) });
+  let reads = 0;
+  const body = new Readable({ read() {
+    reads++;
+    this.push(new Uint8Array(8));
+    this.push(null);
+  } });
+  const filesystem = new S3FileSystem({ bucket: "bucket", maxReadBytes: 4, transport: {
+    ...createS3Transport(client),
+    async getObject() { return { Body: body, ContentLength: 8 }; },
+  } });
+  await expect(filesystem.readFile("/file")).rejects.toMatchObject({ code: "EFBIG" });
+  expect(reads).toBe(0);
+  expect(body.destroyed).toBe(true);
+});
+
+for (const cleanup of ["destroy", "cancel"] as const) {
+  test(`readFile calls ${cleanup} once when the rejected body is its own iterator`, async () => {
+    const client = new MockS3Client({ buckets: ["bucket"] });
+    await client.putObject({ Bucket: "bucket", Key: "file", Body: Uint8Array.of(1) });
+    const dispose = vi.fn();
+    const next = vi.fn(async () => ({ done: true as const, value: undefined }));
+    const body = {
+      [Symbol.asyncIterator]() { return this; },
+      next,
+      [cleanup]: dispose,
+    };
+    const filesystem = new S3FileSystem({ bucket: "bucket", maxReadBytes: 4, transport: {
+      ...createS3Transport(client),
+      async getObject() { return { Body: body, ContentLength: 8 }; },
+    } });
+    await expect(filesystem.readFile("/file")).rejects.toMatchObject({ code: "EFBIG" });
+    expect(next).not.toHaveBeenCalled();
+    expect(dispose).toHaveBeenCalledTimes(1);
+  });
+}
 
 for (const length of [12, undefined]) {
   test(`readFile bounds a changed HTTP GET with ContentLength ${length}`, async () => {

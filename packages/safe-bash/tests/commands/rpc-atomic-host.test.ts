@@ -90,6 +90,26 @@ test("RPC retained readers preserve serialized identity and bytes across pathnam
   await assert.rejects(reader.read(0, 1), error => error instanceof FsError && error.code === "EBADF");
 });
 
+test("RPC ZIP input without a retained reader is refused before publication", async context => {
+  const backend = createMemoryFileSystem();
+  await backend.writeFile("/input", Buffer.from("one\ntwo\n"));
+  const { fs, calls } = await rpcAdapter(backend);
+  const limited = new Proxy(fs, { get(target, key) {
+    if (key === "openReadFile") return undefined;
+    if (key === "capabilities") return { ...target.capabilities, retainedRead: false };
+    return Reflect.get(target, key);
+  } });
+  const shell = new Shell({ fs: limited }).use(archiveCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("zip /bundle.zip /input");
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stderr, "zip: ZIP source requires retained reads\n");
+  assert.equal(calls.includes("createStagedFile"), false);
+  assert.equal(calls.includes("publishStagedFile"), false);
+  assert.deepEqual(await backend.readFile("/input"), Uint8Array.from(Buffer.from("one\ntwo\n")));
+  assert.deepEqual((await backend.readdir("/")).map(entry => entry.name), ["input"]);
+});
+
 for (const retained of [false, true]) test(`bounded RPC writes and atomic rename alone safely refuse ZIP and csplit, retained=${retained}`, async context => {
   const backend = createMemoryFileSystem();
   await backend.writeFile("/input", Buffer.from("one\ntwo\n"));

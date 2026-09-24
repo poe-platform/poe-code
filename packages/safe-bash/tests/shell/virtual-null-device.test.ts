@@ -486,6 +486,41 @@ for (const retained of [false, true]) test(`diff uses retained identity rather t
   for (const path of ["/input", "/other"]) assert.equal(new TextDecoder().decode(await backing.readFile(path)), "a\nb\n");
 });
 
+test("diff retains bounded readers through the device view without pathname read fallbacks", async context => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
+  let opened = 0, closed = 0, reads = 0;
+  const fs = new Proxy(backing, {
+    get(target, property) {
+      if (property === "capabilities") return { ...target.capabilities, streamingRead: false };
+      if (property === "readStream" || property === "readFile") return () => { assert.fail("diff must use retained reads"); };
+      if (property === "openReadFile") return async (path: string, options?: FsOptions) => {
+        const handle = await target.openReadFile(path, options);
+        opened++;
+        return {
+          stat: handle.stat.bind(handle),
+          async read(position: number, maxBytes: number, options?: FsOptions) {
+            assert.ok(Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= 16);
+            reads++;
+            return handle.read(position, maxBytes, options);
+          },
+          async close() { closed++; await handle.close(); },
+        };
+      };
+      const member = Reflect.get(target, property);
+      return typeof member === "function" ? member.bind(target) : member;
+    },
+  });
+  const shell = new Shell({ fs }).use(agentCommands({ diffPatch: { maxInputBytes: 16 } }));
+  context.after(() => shell.dispose());
+  const result = await shell.exec("diff /input /input");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "");
+  assert.equal(opened, 2);
+  assert.equal(reads, 2);
+  assert.equal(closed, opened);
+});
+
 test("reserved null replacement and descendants cannot bypass the Shell device view", async context => {
   const { shell, fs } = fixture(context);
   await fs.mkdir("/dev");

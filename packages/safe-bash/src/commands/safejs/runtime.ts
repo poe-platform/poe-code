@@ -75,8 +75,11 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
     };
     const diagnose = async (message: string): Promise<void> => {
       const diagnostic = new AbortController();
-      const cancel = schedule(() => diagnostic.abort(), Math.max(Date.now() + 1, deadline));
-      try { await writeDiagnostic(context.stderr, `${dialect.name}: ${message}\n`, AbortSignal.any([context.signal, diagnostic.signal])); }
+      const end = Math.max(Date.now() + 1, deadline);
+      // Start the write before a second clock read can exhaust its grace period.
+      const pending = writeDiagnostic(context.stderr, `${dialect.name}: ${message}\n`, AbortSignal.any([context.signal, diagnostic.signal]));
+      const cancel = schedule(() => diagnostic.abort(), end);
+      try { await pending; }
       catch (error) { context.signal.throwIfAborted(); if (!diagnostic.signal.aborted) throw error; }
       finally { cancel(); }
     };

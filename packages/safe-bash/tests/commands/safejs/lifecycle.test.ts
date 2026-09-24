@@ -168,6 +168,15 @@ test("uncooperative diagnostic sinks cannot hang a failed invocation", { timeout
   assert.equal(result.exitCode, 1);
 });
 
+test("deadline diagnostics reach a responsive sink when the clock advances between reads", { timeout: 2000 }, async t => {
+  let elapsed = 0;
+  t.mock.method(Date, "now", () => elapsed += 2);
+  const runtime = contractRuntime(async () => new Promise<never>(() => {}));
+  const result = await execute(["-e", "contract"], { runtime, limits: { timeoutMs: 15 } });
+  assert.equal(result.exitCode, 124);
+  assert.equal(result.stderr, "safejs: SafeJS command limit exceeded: timeoutMs\n");
+});
+
 test("empty-only sources yield enough for timeout and cleanup", { timeout: 2000 }, async () => {
   let returned = false;
   const input: ByteSource = { async *[Symbol.asyncIterator]() { try { for (;;) yield new Uint8Array(); } finally { returned = true; } } };

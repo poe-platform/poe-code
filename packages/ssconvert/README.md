@@ -2,7 +2,7 @@
 
 Convert spreadsheets through the `poe-code/ssconvert` SDK on Node.js 22 or newer.
 The engine provides spreadsheet import and export, recalculation, workbook updates,
-and chart and print rendering. PDF export applies persisted manual and data-slice row/column page breaks and recomputes stored automatic breaks. Lotus WK1/WK3 named-range records import as workbook names; WK3 formulas resolve named ranges with relative and absolute references. The optional `pythonSampleFunctions` binding adds
+and chart and print rendering. PDF export applies persisted manual and data-slice row/column page breaks and recomputes stored automatic breaks. Lotus WK1/WK3 named-range records import as workbook names; WK3 formulas resolve named ranges with relative and absolute references. WK3 external variables such as `<<book.wk3>>Sheet:A1` and `<<book.wk3>>First:A1..Last:B2` retain their workbook and sheet identities; recalculation requires the explicit `externalReferences` host binding and otherwise returns `#REF!`. The optional `pythonSampleFunctions` binding adds
 percent formatting through `PY_PRINTF` and Unicode 16 capitalization through `PY_CAPWORDS`; supply it as `runtimeFunctions` to enable
 the sample functions. `PY_BITAND` delegates to the spreadsheet bitwise function; invalid bit domains return an empty cell with the native Python bridge warning. `PY_CAPWORDS` stops at the first NUL and refuses malformed visible Unicode.
 Cooperative `runtimeFunctions` ports can return scalar values, rectangular matrices,

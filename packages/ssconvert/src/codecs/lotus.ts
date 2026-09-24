@@ -1,6 +1,6 @@
 // Released Gnumeric 1.12.61 plugins/lotus-123; GPL-2.0-or-later.
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
-import { formatA1, type Cell, type CellValue, type Workbook, type AxisMetadata, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
+import { formatA1, parseA1, type Cell, type CellValue, type Workbook, type AxisMetadata, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
 import { lotusColors } from "./lotus-colors.js";
 import { LotusRldb } from "./lotus-rldb.js";
 import { Binary } from "./biff-binary.js";
@@ -85,6 +85,40 @@ async function lotusFormat(fmt: number, context: CapabilityContext): Promise<str
 
 type LotusNamedRange = { first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } };
 
+function lotusExternalVariable(name: string): string | undefined {
+  if (!name.startsWith("<<")) return;
+  const end = name.indexOf(">", 2);
+  if (end <= 2 || name[end + 1] !== ">") return;
+  let at = end + 2;
+  const endpoint = () => {
+    const colon = name.indexOf(":", at);
+    if (colon <= at) return;
+    const sheet = name.slice(at, colon); at = colon + 1;
+    const start = at;
+    while (name[at] !== undefined && name[at]! >= "A" && name[at]! <= "Z") at++;
+    const digits = at;
+    while (name[at] !== undefined && name[at]! >= "0" && name[at]! <= "9") at++;
+    if (digits === start || digits === at) return;
+    const row = Number(name.slice(digits, at));
+    if (!Number.isSafeInteger(row) || row < 1) return;
+    try {
+      // Use actual A1 column arithmetic, including AA and subsequent columns.
+      const point = parseA1(name.slice(start, digits) + row);
+      return quoteFormulaString(sheet, "'", gnumericGrammar) + "!" + formatA1(point.row, point.column);
+    } catch { return; }
+  };
+  const first = endpoint();
+  if (first === undefined) return;
+  let last: string | undefined;
+  if (at !== name.length) {
+    if (name.slice(at, at + 2) !== "..") return;
+    at += 2; last = endpoint();
+    if (last === undefined || at !== name.length) return;
+  }
+  // libwps parseVariable's fallback keeps relative axes for both op7 and op8.
+  return "[" + quoteFormulaString(name.slice(2, end), "'", gnumericGrammar) + "]" + first + (last === undefined ? "" : ":" + last);
+}
+
 async function lotusFormula(bytes: Uint8Array, version: number, group: number, row: number, column: number,
   sheetIndex: number, sheetName: (index: number) => string, context: CapabilityContext,
   consumeOperation: () => void, functions: typeof lotusFunctions = lotusFunctions, names?: ReadonlyMap<string, LotusNamedRange>): Promise<string> {
@@ -146,8 +180,12 @@ async function lotusFormula(bytes: Uint8Array, version: number, group: number, r
       if (name.startsWith("$")) name = name.slice(1);
       const range = names?.get(name);
       if (!range) {
-        await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unknown Lotus named reference '${name}'.` });
-        stack.push("#NAME?");
+        const external = lotusExternalVariable(name);
+        if (external !== undefined) stack.push(external);
+        else {
+          await context.diagnostic?.({ code: "lotus", severity: "warning", message: `Unknown Lotus named reference '${name}'.` });
+          stack.push("#NAME?");
+        }
       } else {
         // libwps resolves name tokens to coordinates: op7 keeps relative axes,
         // op8 keeps absolute axes. Workbook names are retained independently.

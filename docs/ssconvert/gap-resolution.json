@@ -24,7 +24,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "WK1/WK3 names, WK3 coordinates, function names and namespace lifecycle repairs are implemented. Independent application readback, dynamic/relative-sheet identity, external-variable fallback and wider profiles remain open."
+      "currentFinding": "WK1/WK3 names, WK3 coordinates, function names and namespace lifecycle repairs are implemented. WK3 op7/op8 external-variable fallback now preserves cell/range identities and relative axes after defined-name lookup; malformed names retain diagnostics and recalculation requires the explicit external-reference host. Full package suite: 403 files / 23,430 tests; 24 compiled SDK/Shell XML/XLSX conversion/readback profiles passed. Native Gnumeric 1.12.61 accepts the constant control but misparses the named token, so native parity is not claimed. Independent application readback, dynamic/relative-sheet identity and wider profiles remain open."
     },
     {
       "id": "biff-external-and-token-formulas",

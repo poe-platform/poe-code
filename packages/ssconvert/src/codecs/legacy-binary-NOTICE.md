@@ -9,6 +9,12 @@ separate native QA profile are recorded in
 - Lotus source authors include Michael Meeks, Stephen Wood, Morten Welinder
   and Jody Goldberg (`plugins/lotus-123/lotus.c`, `lotus-formula.c`, including
   the Works V3 reader, metadata/style tables and RLDB handling).
+- Lotus external-variable syntax and op7/op8 fallback semantics were checked
+  against libwps 0.4.14-2 `src/lib/LotusSpreadsheet.cpp`, available under
+  LGPL-2.1-or-later (alternatively MPL-2.0); major contributors include Andrew
+  Ziem, Marc Maurer and Fridrich Strba. SHA-256:
+  `fcfe58ee8430ce43222e76c01aa4f436731722c5b171d801698a9a0a2496a6e5`.
+  The implementation uses the shared A1 parser for correct multi-letter columns.
 - Quattro Pro: Copyright (C) 2002 Jody Goldberg
   (`plugins/qpro/qpro-read.c`).
 - PlanPerfect reader: Kevin Handy (`plugins/plan-perfect/pln.c`).

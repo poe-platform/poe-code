@@ -255,7 +255,7 @@ function characterSet(specification: string, repeatLength?: number): number[] {
   };
   for (let offset = 0; offset < specification.length;) {
     const classEnd = specification.startsWith("[:", offset) ? specification.indexOf(":]", offset + 2) : -1;
-    if (classEnd !== -1) {
+    if (classEnd !== -1 && specification.indexOf("]", offset + 2) === classEnd + 1) {
       const name = specification.slice(offset + 2, classEnd);
       const bytes = Object.hasOwn(classes, name) ? classes[name] : undefined;
       if (!bytes) throw new UsageError(`unknown character class '${name}'`);
@@ -263,14 +263,17 @@ function characterSet(specification: string, repeatLength?: number): number[] {
     }
     if (specification[offset] === "[" && offset + 1 < specification.length) {
       const equivalent = specification[offset + 1] === "=";
-      const characterOffset = offset + (equivalent ? 2 : 1);
+      const characterOffset = offset + 1;
       if (characterOffset < specification.length) {
         const character = readCharacter(characterOffset);
-        if (equivalent && specification.startsWith("=]", character.end)) {
-          if (character.bytes.length !== 1) throw new UsageError("equivalence expression requires one byte");
-          tokens.push({ bytes: character.bytes, literal: false }); offset = character.end + 2; continue;
+        if (equivalent && offset + 2 < specification.length) {
+          const member = readCharacter(offset + 2);
+          if (specification.startsWith("=]", member.end)) {
+            if (member.bytes.length !== 1) throw new UsageError("equivalence expression requires one byte");
+            tokens.push({ bytes: member.bytes, literal: false }); offset = member.end + 2; continue;
+          }
         }
-        if (!equivalent && specification[character.end] === "*") {
+        if (specification[character.end] === "*") {
           const end = specification.indexOf("]", character.end + 1);
           if (end !== -1) {
             if (repeatLength === undefined) throw new UsageError("repeat expressions are only allowed in the second character set");
@@ -279,6 +282,7 @@ function characterSet(specification: string, repeatLength?: number): number[] {
             if (character.bytes.length !== 1 || ![...count].every(digit => digits.includes(digit))) throw new UsageError("invalid repeat expression");
             // Only positions used by translation matter; retain the byte for squeezing.
             const repeat = count ? Math.min(Number.parseInt(count, count.startsWith("0") ? 8 : 10), Math.max(1, repeatLength)) : 0;
+            if (repeat === 0 && repeatLength === 0) throw new UsageError("the [c*] construct may appear in string2 only when translating");
             tokens.push({ bytes: character.bytes, literal: false, repeat }); offset = end + 1; continue;
           }
         }

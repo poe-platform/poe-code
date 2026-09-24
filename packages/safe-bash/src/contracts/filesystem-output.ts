@@ -48,7 +48,8 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
   const { cleanupFailurePrioritySignal } = context;
   if (flag !== "w" && flag !== "a" && flag !== "wx") throw new TypeError("Invalid descriptor output flag");
   const controller = new AbortController();
-  const signal = AbortSignal.any([context.signal, controller.signal]);
+  if (context.signal.aborted) controller.abort(context.signal.reason);
+  const signal = controller.signal;
   const cleanups: (() => void | Promise<void>)[] = [];
   let descriptor: CommandFileDescriptor | undefined;
   let accepting = true;
@@ -79,7 +80,10 @@ async function openDescriptorOutput(context: FileOutputContext, path: string, op
     void closing.catch(() => {});
     return closing;
   };
-  const interrupted = (): void => { void retire().catch(() => {}); };
+  const interrupted = (): void => {
+    if (!controller.signal.aborted) controller.abort(context.signal.reason);
+    void retire().catch(() => {});
+  };
   const cleanup = async (): Promise<void> => {
     await retire().catch(() => {});
     let cleanupFailure: { reason: unknown } | undefined;

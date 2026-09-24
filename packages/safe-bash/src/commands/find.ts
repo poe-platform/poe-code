@@ -263,6 +263,13 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
       context.signal.throwIfAborted();
       references.set(reference, stat.mtimeMs);
     }
+    let printBuffer = "";
+    const flushPrintBuffer = async (): Promise<void> => {
+      if (!printBuffer) return;
+      const out = printBuffer;
+      printBuffer = "";
+      await output(context, out);
+    };
     const visit = async (display: string, depth: number, ancestors: ReadonlySet<string>, root: string, relative: string): Promise<void> => {
       context.signal.throwIfAborted();
       const path = pathOf(context, display);
@@ -275,8 +282,10 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           catch (error) { if (codeOf(error) !== "ENOENT") throw error; }
         }
         const entry: Entry = { path, display, stat, symlink, depth, root, relative, prune: false };
-        const apply = async () => { if (depth >= minDepth && await evaluate(entry) && !explicitAction) await output(context, `${escapeText(display, "display")}\n`); };
-        if (!depthFirst) await apply();
+        if (!depthFirst && depth >= minDepth && await evaluate(entry) && !explicitAction) {
+          printBuffer += `${escapeText(display, "display")}\n`;
+          if (printBuffer.length >= 4096) await flushPrintBuffer();
+        }
         if (stat.type === "directory" && depth < maxDepth && (!entry.prune || depthFirst)) {
           const physical = await context.fs.realpath(path, { signal: context.signal });
           if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
@@ -286,10 +295,19 @@ export function findCommands(execute: CommandHandler, maxDirectoryEntries?: numb
           while (parent.endsWith("/")) parent = parent.slice(0, -1);
           for (const child of children) await visit(`${parent}/${child.name}`, depth + 1, next, root, relative ? `${relative}/${child.name}` : child.name);
         }
-        if (depthFirst) await apply();
-      } catch (error) { if (formatBudget.exhausted) throw error; await diagnostic(context, error); exitCode = 1; }
+        if (depthFirst && depth >= minDepth && await evaluate(entry) && !explicitAction) {
+          printBuffer += `${escapeText(display, "display")}\n`;
+          if (printBuffer.length >= 4096) await flushPrintBuffer();
+        }
+      } catch (error) {
+        if (formatBudget.exhausted) throw error;
+        await flushPrintBuffer();
+        await diagnostic(context, error);
+        exitCode = 1;
+      }
     };
     for (const root of roots) await visit(root, 0, new Set(), root, "");
+    await flushPrintBuffer();
     for (const flush of flushes) await flush();
     return { exitCode };
   })];

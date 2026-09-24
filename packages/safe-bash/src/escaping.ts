@@ -18,6 +18,18 @@ function* parts(value: string, mode: "display" | "diagnostic"): Generator<string
 }
 
 export function escapeText(value: string, mode: "display" | "diagnostic", checkOutput?: (bytes: number) => void): string {
+  let clean = true;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code < 32 || code >= 127 || code === 92) {
+      clean = false;
+      break;
+    }
+  }
+  if (clean) {
+    checkOutput?.(value.length);
+    return value;
+  }
   let result = "", bytes = 0;
   for (const part of parts(value, mode)) {
     bytes += Buffer.byteLength(part);

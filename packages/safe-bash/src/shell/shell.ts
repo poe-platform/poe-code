@@ -12,7 +12,7 @@ import { captureShellExtensions, extensionState } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
-import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
+import { Budget, Capture, interruptible, registerRuntimeBackingFileSystem, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
@@ -295,8 +295,10 @@ export class Shell implements PluginHost {
         };
         const admission = Runtime.rootCancellationAdmission(budget);
         const filesystem = options.fs ?? this.#options.fs;
+        const runtimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
+        registerRuntimeBackingFileSystem(runtimeFs, filesystem);
         runtime = new Runtime(
-          this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem),
+          runtimeFs,
           this.commands,
           [...this.#middleware],
           budget,

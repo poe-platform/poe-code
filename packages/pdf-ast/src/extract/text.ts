@@ -24,6 +24,27 @@ function mergeBBox(
   ];
 }
 
+function glyphDirection(g: PdfPlacedGlyph): {
+  readonly ux: number;
+  readonly uy: number;
+  readonly along: number;
+  readonly normal: number;
+} {
+  const a = g.matrix[0] ?? 1;
+  const b = g.matrix[1] ?? 0;
+  const len = Math.hypot(a, b) || 1;
+  const ux = a / len;
+  const uy = b / len;
+  const px = g.matrix[4] ?? g.bbox[0];
+  const py = g.matrix[5] ?? g.baselineY;
+  return {
+    ux,
+    uy,
+    along: px * ux + py * uy,
+    normal: -px * uy + py * ux,
+  };
+}
+
 export function extractPageFromDisplayList(
   displayList: PdfDisplayList,
   options: ExtractTextOptions = {}
@@ -43,8 +64,16 @@ export function extractPageFromDisplayList(
     options.mode === "raw"
       ? [...glyphs]
       : [...glyphs].sort((a, b) => {
-          const dy = b.baselineY - a.baselineY;
+          const da = glyphDirection(a);
+          const db = glyphDirection(b);
+          const sameDir = da.ux * db.ux + da.uy * db.uy > 0.85;
           const tol = Math.max(a.fontSize, b.fontSize) * 0.45;
+          if (sameDir) {
+            const dn = db.normal - da.normal;
+            if (Math.abs(dn) > tol) return dn;
+            return da.along - db.along;
+          }
+          const dy = b.baselineY - a.baselineY;
           if (Math.abs(dy) > tol) return dy;
           return a.bbox[0] - b.bbox[0];
         });
@@ -57,8 +86,13 @@ export function extractPageFromDisplayList(
       continue;
     }
     const ref = lastGroup[0]!;
+    const dRef = glyphDirection(ref);
+    const dCur = glyphDirection(g);
     const tol = Math.max(ref.fontSize, g.fontSize) * 0.45;
-    if (Math.abs(g.baselineY - ref.baselineY) <= tol) {
+    if (
+      dRef.ux * dCur.ux + dRef.uy * dCur.uy > 0.85 &&
+      Math.abs(dCur.normal - dRef.normal) <= tol
+    ) {
       lastGroup.push(g);
     } else {
       lineGlyphGroups.push([g]);
@@ -68,7 +102,7 @@ export function extractPageFromDisplayList(
   const lines: PdfTextLine[] = [];
   for (const group of lineGlyphGroups) {
     if (options.mode !== "raw") {
-      group.sort((a, b) => a.bbox[0] - b.bbox[0]);
+      group.sort((a, b) => glyphDirection(a).along - glyphDirection(b).along);
     }
     const subLines: PdfPlacedGlyph[][] = [];
     for (const g of group) {
@@ -78,7 +112,7 @@ export function extractPageFromDisplayList(
         continue;
       }
       const prev = cur[cur.length - 1]!;
-      const gap = g.bbox[0] - prev.bbox[2];
+      const gap = glyphDirection(g).along - (glyphDirection(prev).along + prev.advanceWidth);
       const colSplitThreshold = Math.max(prev.fontSize, g.fontSize) * 4.0;
       if ((options.mode === "logical" || options.mode === "layout" || options.mode === undefined) && gap > colSplitThreshold) {
         subLines.push([g]);
@@ -110,7 +144,7 @@ export function extractPageFromDisplayList(
         }
         if (curWordGlyphs.length > 0) {
           const prev = curWordGlyphs[curWordGlyphs.length - 1]!;
-          const gap = g.bbox[0] - prev.bbox[2];
+          const gap = glyphDirection(g).along - (glyphDirection(prev).along + prev.advanceWidth);
           const spaceThreshold = Math.max(prev.fontSize, g.fontSize) * 0.22;
           if (gap > spaceThreshold) {
             flushWord();

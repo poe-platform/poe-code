@@ -4,6 +4,7 @@ import {
   cosNumber,
   dictGet,
   dictSet,
+  formatPdfNumber,
   type PdfCosArray,
   type PdfCosDict,
   type PdfCosNode,
@@ -40,7 +41,8 @@ export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
       if (!Number.isFinite(node.value)) {
         throw new PdfError("E_CAPABILITY", "Non-finite PDF number");
       }
-      return textEncoder.encode(node.raw);
+      const outRaw = /[eE]/.test(node.raw) ? formatPdfNumber(node.value) : node.raw;
+      return textEncoder.encode(outRaw);
     }
     case "name": {
       let escaped = "/";

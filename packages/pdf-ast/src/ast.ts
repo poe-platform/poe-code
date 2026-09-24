@@ -315,18 +315,26 @@ export function cosBool(value: boolean, span?: ByteSpan): PdfCosBoolean {
   return { kind: "boolean", value, span };
 }
 
+export function formatPdfNumber(value: number): string {
+  if (!Number.isFinite(value) || Math.abs(value) < 1e-10) {
+    return "0";
+  }
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+  const fixed = value.toFixed(6).replace(/\.?0+$/, "");
+  return fixed === "-0" || fixed === "" ? "0" : fixed;
+}
+
 export function cosNumber(value: number, raw?: string, span?: ByteSpan): PdfCosNumber {
   if (!Number.isFinite(value)) {
     throw new Error(`Invalid non-finite PDF number: ${String(value)}`);
   }
   const isInteger = Number.isInteger(value);
   const formatted =
-    raw ??
-    (isInteger
-      ? String(value)
-      : Number(value.toFixed(6))
-          .toString()
-          .replace(/\.0+$/, ""));
+    raw !== undefined && !/[eE]/.test(raw)
+      ? raw
+      : formatPdfNumber(value);
   return { kind: "number", value, raw: formatted, isInteger, span };
 }
 

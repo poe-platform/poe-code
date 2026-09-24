@@ -343,4 +343,73 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     const stampGlyphs = dirtyDl.glyphs.filter(g => "Clean Stamp".includes(g.unicode));
     expect(stampGlyphs.some(g => Math.abs(g.baselineY - 700) < 2)).toBe(true);
   });
+
+  it("handles scientific notation in rotated drawText & COS numbers (qpdf #1079), false inline image EI markers (pypdf #3922), trailing PNG predictor padding (pdf-lib #1496), and page scaling (pdf-lib #991)", async () => {
+    const { applyPredictor } = await import("./cos/filters.js");
+
+    // 1. Rotated drawText by Math.PI / 2 must not emit 6.123233995736766e-17 into content stream,
+    // and external content streams with -3e-05 (qpdf #1079) must be parsed as numbers
+    const doc = PdfDocument.create();
+    const page = doc.addPage([612, 792]);
+    page.drawText("Rotated 90 Degrees", {
+      x: 200,
+      y: 300,
+      size: 14,
+      rotateRadians: Math.PI / 2,
+    });
+    const rawStreamText = new TextDecoder("latin1").decode(page.getRawContentStream());
+    expect(rawStreamText).not.toMatch(/e[+-]?\d+/i);
+
+    const reloaded = PdfDocument.load(doc.save());
+    expect(reloaded.extractText()).toContain("Rotated 90 Degrees");
+
+    // External content stream containing scientific notation -3e-05 in cm
+    const sciPage = reloaded.getPage(0);
+    sciPage.setRawContentStream(
+      new TextEncoder().encode("1 0 0 1 -3e-05 420 cm BT /F1 12 Tf 50 0 Td (SciNotationText) Tj ET")
+    );
+    const sciDl = sciPage.evaluateDisplayList();
+    expect(sciDl.glyphs.map(g => g.unicode).join("")).toContain("SciNotationText");
+    expect(sciDl.glyphs[0]!.baselineY).toBeCloseTo(420, 2);
+
+    // 2. False inline image EI marker inside binary pixel data (pypdf #3922) + CRLF after ID
+    // 4x1 RGB image (12 bytes) whose first 4 bytes are [0x20, 0x45, 0x49, 0x20] (" EI ")
+    const inlineStream = new Uint8Array([
+      ...new TextEncoder().encode("BI /W 4 /H 1 /CS /RGB /BPC 8 ID\r\n"),
+      0x20, 0x45, 0x49, 0x20, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80,
+      ...new TextEncoder().encode("\nEI\nBT /F1 12 Tf 10 500 Td (AfterInlineImage) Tj ET"),
+    ]);
+    sciPage.setRawContentStream(inlineStream);
+    const inlineDl = sciPage.evaluateDisplayList();
+    expect(inlineDl.images.length).toBe(1);
+    expect(inlineDl.images[0]!.decodedRgba!.length).toBe(16);
+    expect(Array.from(inlineDl.images[0]!.decodedRgba!.slice(0, 4))).toEqual([0x20, 0x45, 0x49, 255]);
+    expect(inlineDl.glyphs.map(g => g.unicode).join("")).toContain("AfterInlineImage");
+
+    // 3. PNG predictor (Predictor 12, Columns 4, Colors 1) with trailing zero/newline padding byte
+    const paddedPngRows = new Uint8Array([
+      2, 10, 20, 30, 40,
+      2, 1, 2, 3, 4,
+      0, // extra trailing padding byte emitted by buggy PDF writer
+    ]);
+    const decodedPred = applyPredictor(paddedPngRows, { Predictor: 12, Columns: 4, Colors: 1, BitsPerComponent: 8 });
+    expect(Array.from(decodedPred)).toEqual([10, 20, 30, 40, 11, 22, 33, 44]);
+
+    // 4. PdfPage.scale(x, y) scales page size, content stream (cm), and annotation Rects (pdf-lib #991)
+    const scaleDoc = PdfDocument.create();
+    const scalePage = scaleDoc.addPage([200, 400]);
+    scalePage.drawText("Scaled Label", { x: 20, y: 100, size: 10 });
+    scalePage.addLinkAnnotation({ rect: [10, 20, 50, 40], uri: "https://example.com" });
+    scalePage.scale(2, 1.5);
+    expect(scalePage.getSize()).toEqual({ width: 400, height: 600 });
+    const scaledDl = scalePage.evaluateDisplayList();
+    expect(scaledDl.glyphs[0]!.bbox[0]).toBeCloseTo(40, 1);
+    expect(scaledDl.glyphs[0]!.baselineY).toBeCloseTo(150, 1);
+    const annotsArr = scaleDoc.cos.resolveArray(
+      scalePage.dict.entries.find(e => e.key.decoded === "Annots")?.value
+    )!;
+    const annotDict = scaleDoc.cos.resolveDict(annotsArr.items[0])!;
+    const rectArr = scaleDoc.cos.resolveArray(annotDict.entries.find(e => e.key.decoded === "Rect")?.value)!;
+    expect(rectArr.items.map(i => (i.kind === "number" ? i.value : 0))).toEqual([20, 30, 100, 60]);
+  });
 });

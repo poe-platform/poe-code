@@ -52,11 +52,8 @@ export function applyPredictor(bytes: Uint8Array, parms?: PdfFilterDecodeParms):
   const rowBytes = Math.ceil((columns * colors * bits) / 8);
 
   if (predictor === 2) {
-    if (bytes.length % rowBytes !== 0) {
-      throw new PdfError("E_CAPABILITY", "Truncated TIFF Predictor 2 row");
-    }
-    const out = new Uint8Array(bytes);
-    const rows = out.length / rowBytes;
+    const rows = Math.floor(bytes.length / rowBytes);
+    const out = new Uint8Array(bytes.subarray(0, rows * rowBytes));
     for (let r = 0; r < rows; r++) {
       const base = r * rowBytes;
       if (bits === 8) {
@@ -78,10 +75,7 @@ export function applyPredictor(bytes: Uint8Array, parms?: PdfFilterDecodeParms):
 
   if (predictor >= 10 && predictor <= 15) {
     const stride = rowBytes + 1;
-    if (bytes.length % stride !== 0) {
-      throw new PdfError("E_CAPABILITY", "Truncated PNG predictor row");
-    }
-    const rows = bytes.length / stride;
+    const rows = Math.floor(bytes.length / stride);
     const out = new Uint8Array(rows * rowBytes);
     for (let r = 0; r < rows; r++) {
       const srcBase = r * stride;

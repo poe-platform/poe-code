@@ -1,4 +1,4 @@
-import type { ByteSpan } from "../ast.js";
+import { formatPdfNumber, type ByteSpan } from "../ast.js";
 import { PdfError } from "../errors.js";
 
 export type CosToken =
@@ -135,13 +135,14 @@ export class CosByteLexer {
     if (raw === "false") return { kind: "boolean", value: false, span };
     if (raw === "null") return { kind: "null", span };
 
-    if (/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(raw)) {
-      const isInteger = !raw.includes(".");
+    if (/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw)) {
       const value = Number(raw);
       if (!Number.isFinite(value)) {
         throw new PdfError("E_CAPABILITY", `Non-finite PDF number: ${raw}`);
       }
-      return { kind: "number", value, raw, isInteger, span };
+      const isInteger = Number.isInteger(value) && !raw.includes(".") && !/[eE]/.test(raw);
+      const normalizedRaw = /[eE]/.test(raw) ? formatPdfNumber(value) : raw;
+      return { kind: "number", value, raw: normalizedRaw, isInteger, span };
     }
 
     return { kind: "keyword", value: raw, span };

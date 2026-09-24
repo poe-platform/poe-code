@@ -11,7 +11,7 @@ import {
   type PdfPathSegment,
   type PdfTextCommand,
 } from "../ast.js";
-import { CosByteLexer, type CosToken, isPdfWhitespace } from "../cos/lexer.js";
+import { CosByteLexer, type CosToken, isPdfDelimiter, isPdfWhitespace } from "../cos/lexer.js";
 
 const PATH_PAINT_OPS = new Set(["S", "s", "f", "F", "f*", "B", "B*", "b", "b*", "n"]);
 
@@ -69,6 +69,53 @@ function numVal(node: PdfCosNode | undefined, fallback = 0): number {
   return node?.kind === "number" ? node.value : fallback;
 }
 
+function computeInlineImageMinBytes(entries: readonly PdfDictEntry[]): number {
+  const getEntry = (shortKey: string, longKey: string): PdfCosNode | undefined =>
+    entries.find(e => e.key.decoded === shortKey || e.key.decoded === longKey)?.value;
+
+  const filterNode = getEntry("F", "Filter");
+  if (filterNode) {
+    if (filterNode.kind === "array" && filterNode.items.length === 0) {
+      // Empty filter array means uncompressed (pypdf #4026)
+    } else {
+      return 0;
+    }
+  }
+  const wNode = getEntry("W", "Width");
+  const hNode = getEntry("H", "Height");
+  const bpcNode = getEntry("BPC", "BitsPerComponent");
+  const csNode = getEntry("CS", "ColorSpace");
+
+  const w = wNode?.kind === "number" ? wNode.value : 0;
+  const h = hNode?.kind === "number" ? hNode.value : 0;
+  if (w <= 0 || h <= 0) return 0;
+
+  const bpc = bpcNode?.kind === "number" ? bpcNode.value : 8;
+  const csName = csNode?.kind === "name" ? csNode.decoded : "DeviceRGB";
+  const channels =
+    csName === "G" || csName === "DeviceGray" || csName === "I" || csName === "Indexed"
+      ? 1
+      : csName === "CMYK" || csName === "DeviceCMYK"
+        ? 4
+        : 3;
+  return h * Math.ceil((w * channels * bpc) / 8);
+}
+
+function looksLikePostEiContentStream(bytes: Uint8Array, posAfterEi: number): boolean {
+  let p = posAfterEi;
+  while (p < bytes.length && isPdfWhitespace(bytes[p]!)) p++;
+  if (p >= bytes.length) return true;
+  const limit = Math.min(bytes.length, p + 16);
+  for (let i = p; i < limit; i++) {
+    const b = bytes[i]!;
+    if (b === 0x28 || b === 0x3c || b === 0x25) break;
+    if (!isPdfWhitespace(b) && (b < 0x20 || b > 0x7e)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
   const lexer = new CosByteLexer(bytes);
   const rootNodes: PdfContentNode[] = [];
@@ -112,17 +159,21 @@ export function parseContentStream(bytes: Uint8Array): PdfContentNode[] {
           });
         }
       }
-      if (lexer.pos < bytes.length && isPdfWhitespace(bytes[lexer.pos]!)) {
+      if (lexer.pos < bytes.length && bytes[lexer.pos] === 0x0d && lexer.pos + 1 < bytes.length && bytes[lexer.pos + 1] === 0x0a) {
+        lexer.pos += 2;
+      } else if (lexer.pos < bytes.length && isPdfWhitespace(bytes[lexer.pos]!)) {
         lexer.pos++;
       }
       const dataStart = lexer.pos;
+      const minBytes = computeInlineImageMinBytes(entries);
       let dataEnd = bytes.length;
-      for (let i = dataStart; i + 2 < bytes.length; i++) {
+      for (let i = dataStart + minBytes; i + 2 < bytes.length; i++) {
         if (
           isPdfWhitespace(bytes[i]!) &&
           bytes[i + 1] === 0x45 && // E
           bytes[i + 2] === 0x49 && // I
-          (i + 3 >= bytes.length || isPdfWhitespace(bytes[i + 3]!))
+          (i + 3 >= bytes.length || isPdfWhitespace(bytes[i + 3]!) || isPdfDelimiter(bytes[i + 3]!)) &&
+          looksLikePostEiContentStream(bytes, i + 3)
         ) {
           dataEnd = i;
           lexer.pos = i + 3;

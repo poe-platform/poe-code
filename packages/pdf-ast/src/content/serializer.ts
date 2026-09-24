@@ -1,12 +1,10 @@
-import type { PdfContentNode, PdfCosNode, PdfPathSegment, PdfTextCommand } from "../ast.js";
+import { formatPdfNumber, type PdfContentNode, type PdfCosNode, type PdfPathSegment, type PdfTextCommand } from "../ast.js";
 import { serializeCosNodeBytes } from "../cos/writer.js";
 
-const decoder = new TextDecoder();
-const encoder = new TextEncoder();
+const decoder = new TextDecoder("latin1");
 
 function fmtNum(n: number): string {
-  if (Number.isInteger(n)) return String(n);
-  return Number(n.toFixed(4)).toString();
+  return formatPdfNumber(Number(n.toFixed(6)));
 }
 
 function fmtNode(node: PdfCosNode): string {
@@ -122,5 +120,10 @@ export function serializeContentNodesToLines(nodes: readonly PdfContentNode[]): 
 }
 
 export function serializeContentAst(nodes: readonly PdfContentNode[]): Uint8Array {
-  return encoder.encode(serializeContentNodesToLines(nodes).join("\n"));
+  const str = serializeContentNodesToLines(nodes).join("\n");
+  const out = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    out[i] = str.charCodeAt(i) & 0xff;
+  }
+  return out;
 }

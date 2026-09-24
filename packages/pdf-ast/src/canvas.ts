@@ -217,6 +217,71 @@ export class PdfPage {
     dictSet(this.pageDict, "Rotate", cosNumber(degrees));
   }
 
+  scaleContent(xFactor: number, yFactor: number): void {
+    const ast = [...this.getContentAst()];
+    this.isolatedInitialStream = true;
+    this.setContentAst([
+      {
+        kind: "graphics-group",
+        ops: [
+          {
+            kind: "state-op",
+            operator: "cm",
+            operands: [
+              cosNumber(xFactor),
+              cosNumber(0),
+              cosNumber(0),
+              cosNumber(yFactor),
+              cosNumber(0),
+              cosNumber(0),
+            ],
+          },
+          ...ast,
+        ],
+      },
+    ]);
+  }
+
+  scaleAnnotations(xFactor: number, yFactor: number): void {
+    const annotsArr = this.cosDoc.resolveArray(dictGet(this.pageDict, "Annots"));
+    if (!annotsArr) return;
+    for (const item of annotsArr.items) {
+      const annotDict = this.cosDoc.resolveDict(item);
+      if (!annotDict) continue;
+      const rectArr = this.cosDoc.resolveArray(dictGet(annotDict, "Rect"));
+      if (rectArr && rectArr.items.length >= 4) {
+        const n0 = this.cosDoc.resolve(rectArr.items[0]);
+        const n1 = this.cosDoc.resolve(rectArr.items[1]);
+        const n2 = this.cosDoc.resolve(rectArr.items[2]);
+        const n3 = this.cosDoc.resolve(rectArr.items[3]);
+        if (
+          n0?.kind === "number" &&
+          n1?.kind === "number" &&
+          n2?.kind === "number" &&
+          n3?.kind === "number"
+        ) {
+          dictSet(
+            annotDict,
+            "Rect",
+            cosArray([
+              cosNumber(n0.value * xFactor),
+              cosNumber(n1.value * yFactor),
+              cosNumber(n2.value * xFactor),
+              cosNumber(n3.value * yFactor),
+            ])
+          );
+        }
+      }
+    }
+  }
+
+  scale(xFactor: number, yFactor: number): void {
+    const { width, height } = this.getSize();
+    this.setSize(width * xFactor, height * yFactor);
+    this.scaleContent(xFactor, yFactor);
+    this.scaleAnnotations(xFactor, yFactor);
+  }
+
   private resolveInheritedNode(key: string) {
     let cur: PdfCosDict | undefined = this.pageDict;
     const visited = new Set< PdfCosDict>();
